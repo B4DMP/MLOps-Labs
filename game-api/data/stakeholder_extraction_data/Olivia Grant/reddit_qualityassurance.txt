@@ -1,0 +1,447 @@
+Question: Why do so many teams talk about test data problems but almost nobody fixes them?
+
+I keep hearing “test data is the biggest bottleneck in QA” in every org, every project, every podcast. But when it comes to actually solving it, most teams just do workarounds: shared spreadsheets, magic accounts, or periodic prod refreshes.
+
+So what is the real blocker in your experience?
+Is it funding, access restrictions, masking/compliance fear, ownership gaps, legacy systems, or just that nobody gets rewarded for fixing it?
+
+If your team actually solved test data (even partially), what did you do that worked, and what did you stop doing?
+
+Answer: we don’t have a DBA on the team nor one that we can request assistance from.
+
+we don’t have access to the production database to make copies.
+
+we don’t have lower environment, infrastructure, capable of holding the size databases that we deal with.
+
+we don’t have the knowledge or tools to generate accurate fake data in a lower environment.
+
+If it’s not one of the above, it’s all the above.
+
+--------------------------------------------------
+
+Question: 10+ years Functional QA – Are pure manual testers still getting jobs in India (2026)?
+
+I have 10+ years of experience primarily in Functional / Manual Testing.
+
+I’m noticing fewer interview calls lately and most roles seem to expect automation + API + DevOps exposure.
+
+For those in India with similar experience:
+
+Are you still getting calls as a pure Functional QA?
+
+What skills are recruiters expecting in 2026?
+
+Has anyone successfully switched without deep automation background?
+
+should we be learning AI and be future ready or also learning automation to have that as a skill?
+
+Answer: There are jobs out there but there are very few. It's just not purely functional anymore. Mostly it's automation and manual combined.
+
+--------------------------------------------------
+
+Question: Learning Qa automation
+
+Hi everyone! I’m transitioning into QA and learning Python. I’d love to hear from someone working as QA in USA about how you got started. Any advice is super appreciated!
+
+Answer: Check your area or look at the job market for what companies are looking for with automation. Seems like Java Selenium or even Playwright seems to be the big ones now. Python is good, that's what I started with, but transitioned to Java Selenium and a playwright.
+
+Best place to start is with some classes, like Udemy or even free YouTube courses.
+
+Key thing is to keep working at it. Build out an automation suite for a website.
+
+Which course or channel do you recommend? Thanks
+
+There's a website called Simplilearn that has a FREE introductory course to Selenium. Whole thing is 6 hours. Some of it is out of date because it teaches you about Selenium IDE which is a standalone app now but the rest is solid. It also has a knowledge check with a lot of info jam packed to prep you for interview questions
+
+--------------------------------------------------
+
+Question: He threatens to sue
+
+So SO was a Quality Manager for a small manufacturer. She resigned abruptly because they wanted her signature to okay parts that they were not certified for. Now a manager above her (Let's call him DF for Dumb F*ck) is saying he's gonna sue if he can't do his job because she resigned.
+
+The thing is, when she was interviewed for the job, her boss asked to see if she would sign for something even if it was illegal. She said she would not and got the job. So not even a year later, they are trying to get her to sign things illegally which is why she quit.
+
+The company has a few audits next month. SO spoke to an internal auditor and she said to abandon ship because they would pin the failure on her (even though she uncovered illegal practices which eventually lead to the main perps getting canned).
+
+So in an at-will employment state, does DF (have any chance at winning such a lawsuit?
+
+Answer: Go talk to a lawyer not reddit.
+
+--------------------------------------------------
+
+Question: Practical Exam for Junior QA Tester
+
+Hi, everyone! I have an interview for a game development company, and I am just curious what could be the practical exam for it? I would like to get some idea from everyone.
+
+Answer: hey there from my experience it was more on grammar, how you'd write test cases and been asked to analyze a picture of a game with a given pass or fail questions that make you explain why it failed
+
+--------------------------------------------------
+
+Question: Is QA Automation a good career in 2026?
+
+Hi everyone,
+
+I am currently learning Java and Selenium for QA Automation. I have seen many layoffs in IT and AI growth, so I am a bit confused about the future of QA.
+
+Is QA Automation still a good career option?
+
+What skills should I focus on to stay safe in the next 5–10 years? And also I have 4.5 years of experience in another technology, it’s like support projects
+
+I am from India and planning to move into QA full-time.
+
+Any advice from experienced testers would help.
+
+Thank you!
+
+Answer: No lol, rough times my friend.
+
+--------------------------------------------------
+
+Question: Trying to break into tech in the US – Backend Python or SDET/Automation?
+
+Hi everyone,
+
+I’m 29, currently living in the US, and trying to transition into tech. I don’t have any professional IT experience yet.
+
+I’m currently taking Angela Yu’s 100 Days of Code (Python) and really enjoying it. I like coding and problem-solving, but I also need to be realistic — my goal is to land a stable W-2 job as soon as possible.
+
+I keep going back and forth between:
+
+I’ve read that backend has a higher ceiling long term, but it seems extremely competitive for entry-level. On the other hand, automation looks more accessible, but I’m worried it might limit me later.
+
+My biggest goal right now is simply getting my foot in the door in the US tech market.
+
+For those already working in these roles:
+
+I’d really appreciate honest advice. I’m willing to put in the work — I just don’t want to choose a path blindly.
+
+Thanks in advance.
+
+Answer: Both are going to be VERY difficult to get into in the current market without a CS degree.
+
+--------------------------------------------------
+
+Question: Even after acquiring new skills like Playwright and API automation testing, companies still ask for a minimum of three years of hands-on experience working on projects within an organization. How should I handle this situation? I am already experienced in Selenium.
+
+“Thank you so much. However, even after acquiring new skills like Playwright and API automation testing, companies still ask for a minimum of three years of hands-on experience working on projects within an organization. How should I handle this situation?”
+
+Answer: I think if you have enough experience in Manual testing and dabbled in a bit of automation even on the surface, you stand a chance. It boils down to how you sell yourself.
+
+However, the tech job market is really shit right now. We all need a lot more grit and alternatives to stay afloat while fighting for more opportunities.
+
+--------------------------------------------------
+
+Question: Got laid off recently. 4 years of experience as a Selenium Automation Tester. 30M. How’s the job market And hiring situation in india right now?
+
+Got laid off recently. I have 4 years of experience as a Selenium Automation Tester. 30M. How’s the job market And hiring situation in india right now?
+
+Answer: I think the focus is shifting towards agentic testing. Focus on it.
+
+Maybe for QA in the west. They could complete it cheaper if they just hire an Indian.
+
+Any tools and training that comes to your mind for agentic testing?
+
+--------------------------------------------------
+
+Question: Career Gap 2 years . Thought QA is easy to slide in.
+
+i graduated in 2022.
+
+I did apprenticeship in 2023 - 2024 in product based company.
+
+after that prepared for govt jobs. no hope for me in government side because general category.
+
+april 2026 may career Gap will be exactly 2 years.
+
+I took c# playwright 3 months crash course.
+
+1.learned the hybrid automation framework from scratch.
+
+2. practiced on different website.
+
+3. learned API testing.
+
+4. also learned manual testing.
+
+but I don't have real time experience in that.
+
+what should I do now. I know job market is completey cooked. if Hr saw my career Gap. they will throw it bin.
+
+frnds telling me to fake experience you don't have any option. but I don't like that option. any suggestions.
+
+Answer: QA is neither 'easy' or something you 'slide into'.
+
+--------------------------------------------------
+
+Question: I’m 21 and want to begin my career. I was looking deep into this QA course with good success rates
+
+Im in college pushing my bachelors in Data analytics. I was looking deep into this QA course with good success rates. I just wanted to come on here and ask the people myself what they think about this seen as you guys know the job market, quality of life, and workload of QA. Any thoughts or advice?
+
+Answer: What course is that?
+
+Must be a RST class where you just attend and do exercises without an exam. 100% success rate!!
+
+Also I can recommend them. You learn useful stuff there without the🍨🫖🎲🐝 buzzword bingo.
+
+--------------------------------------------------
+
+Question: MNC or Startup - which should I join
+
+Hi All,
+
+I’m little confused between these two offers
+
+MNC- 20LPA(18 Fixed+2 Variable) - I know the project and people - Remote
+
+Startup - 25LPA(All Fixed) - New Projects and People(obviously) - Remote
+
+Which would you join?
+
+Answer: Start ups you never know if they are going to bankrupt or start a new layoff round.
+
+I worked in two start ups and both at some point had to do lay offs.
+
+--------------------------------------------------
+
+Question: TCS Automation Tester Interview (Selenium + Java) – Questions & Tips Needed 🙏
+
+Hi everyone, I have an upcoming TCS automation tester interview focused on Selenium with Java. If you’ve recently attended, could you share what kind of questions they asked and how the overall difficulty was? Any recent experiences would really help. Thanks in advance!
+
+PS: First time attending a coding interview. Iam shit scared😭
+
+Answer: It would be great if you share your experience
+
+Yes. Would be nice to know how it went. Currently learning automation after about 5 months out of my former Manual QA job.
+
+--------------------------------------------------
+
+Question: Learning automation
+
+Hi guys, so I only know manual testing. Somehow I’ve gotten jobs in the last 4 years that don’t require any automation at all.
+
+I learned Java/coding in university and barely passed those classes. I’m so scared of coding I don’t know why, my head just doesn’t wrap around the concepts. It’s like some people get it so easily but for me it’s the hardest thing ever. But it’s gotten to the point where companies require automation skills now. Cucumber, selenium, Java, etc.
+
+I barely know how to “create a project” in IntelliJ with maven or whatever
+
+How do you suggest I learn it from scratch? Should I learn by myself on YouTube, udemy, join a bootcamp in person? any tips?
+
+Answer: You can start with youtube.But you will gain knowledge only if you get hands on
+
+--------------------------------------------------
+
+Question: Seeking Beta Testers: I built an AI tool to automate GxP / CSV Document Gap Analysis against GAMP 5
+
+Hi everyone,
+
+I’ve been working on a CSV Compliance project, and I’m looking for a few people in the QA, Regulatory, or Computer System Validation (CSV) space to test it out and give me some feedback.
+
+The Problem:
+Reviewing validation documents, test scripts, and compliance reports against GAMP 5 guidelines is incredibly time-consuming and tedious.
+
+What the tool does:
+I built a web app that act as an GxP Compliance Officer. You can upload your CSV-related documents, and the tool will automatically read them, compare the contents against a GAMP 5 knowledge base, and perform a formal gap analysis.
+
+Key Features:
+
+Accepts multiple formats: You can upload PDFs, TXT files, or even folders full of images/photos of physical documents. The app handles the text extraction automatically.
+
+Two Execution Modes (Privacy-focused):
+
+Cloud Mode: Fast analysis using APIs.
+
+Local Mode: For highly sensitive GxP data, you can run the analysis entirely locally on my server. It takes much longer (often a multiples hours for large image sets), but zero data leaves my secure server.
+
+What I need:
+I’m looking for professionals who deal with CSV / GAMP 5 to throw some test documents at it. I want to know:
+
+Is the gap analysis actually accurate and useful?
+
+Are there any document formats it struggles to read?
+
+What features would make this a must-have for your daily workflow?
+
+There is a feedback form built directly into the UI, so it's super easy to let me know what worked and what didn't.
+
+If you are interested in trying it out, please drop a comment or send me a DM and I’ll send you the details to try it out!
+
+Thanks in advance for your help!
+
+Answer: I think it would be good if you people mention if it’s paid or not.
+
+Is that something mods can introduce as a rule for such posts.
+
+--------------------------------------------------
+
+Question: Are your legacy requirements really covered, or just assumed to be?
+
+Hello, I’ve been working on the same 20+ year old codebase for years, with big spec documents and thousands of tests.
+
+The recurring problem: our client regularly finds requirements that we thought were covered, but actually weren’t.
+
+When we dig into the tests, we often discover:
+
+• requirements partially covered
+
+• tests asserting the wrong thing
+
+• false positives that have been passing for years
+
+With a suite this size, manually verifying requirement-to-test coverage just isn’t realistic.
+
+We’re in a regulated environment (everything on-prem, no cloud tools, open source models only).
+
+Has anyone found tooling that helps analyze spec vs test coverage and surface gaps or weak tests?
+
+Or is this just something everyone struggles with in legacy regulated systems?
+
+Answer: Got no real idea but commeting to hear the answer.
+
+Maybe AI could be of use to analyze codebase and requirements, or would implementing a boyscout rule be a solution? On every change check tests vs requirements
+
+--------------------------------------------------
+
+Question: Is anyone actually successfully using the so-called self-healing AI-assisted testing tools for a first release?
+
+In our organization, almost 80–90 percent of the code is written by software like Cursor, with developers doing little tweaking here and there. But when it comes to testing, we are still doing it manually. We are being pressured to adopt AI to meet the pace of rapid development. However, I have a question: when developers are writing code, they have a safety net in mind that if something goes wrong, it will be flagged by QA. But what happens when QA starts relying on AI too, even for the first release? Are those tools actually capable of finding bugs the way testers do?
+
+Answer: Self-healing aka covering potential bugs.
+
+Could you elaborate?
+
+Self healing AI kind of goes against QA. Imagine dev breaks a modal. We can look at it and see "this is broken". A self healing test will just look at it and see "this component I need is missing. Let me try this and see if I get the same result", or "this looks close enough, and it appears to function the same, we wil use that now". So something could've actually been broken or off and we'd not know because this "healed" and found a new way to accomplish the task
+
+--------------------------------------------------
+
+Question: What types of questions does a client typically ask in a client round for an Automation Tester with 3 years of experience?
+
+What types of questions does a client typically ask in a client round for an Automation Tester with 3 years of experience?
+
+Answer: Question 1: Salary kitna loge discuss karle?
+
+--------------------------------------------------
+
+Question: In a service-based company, does an experienced candidate always have to go through a client round after joining a new company before being allocated to a project?
+
+"In a service-based company, does an experienced candidate always have to go through a client round after joining a new company before being allocated to a project?"
+
+Answer: Always? No.
+Usually? Yes.
+
+--------------------------------------------------
+
+Question: Is it ok to create base class,page object utilities under src/main/java and reports under src/main resource instead of src/test
+
+Is it to create base class,page object utilities under src/main/java and reports under src/main resource instead of src/test
+
+Is it to create base class,page object utilities under src/main/java and reports under src/main resource
+
+Answer: I would prefer to have everything connected to tests in one folder- in your case “src/test”.
+
+Are there any limitations or issues why you can’t do that? Maybe ask some developer or architect od the project to help.
+
+--------------------------------------------------
+
+Question: Is it to create base class,page object utilities under src/main/java and reports under src/main resource instead of src/test
+
+Is it to create base class,page object utilities under src/main/java and reports under src/main resource
+
+Answer: wtf?
+
+Idk.. they never ask to answer that kind of questions in school , college or in inteveiew
+
+--------------------------------------------------
+
+Question: Junior QA building automation + CI. Looking for honest feedback.
+
+Hi everyone,
+
+I’m an IT student building my QA portfolio and trying to structure it like something I could realistically show to a hiring manager.
+
+So far I’ve implemented:
+
+• Manual testing documentation (test plan, test cases, bug reports)
+
+• Cypress end to end tests
+
+• Headless execution
+
+• GitHub Actions CI integration
+
+• Clean repo structure with documentation
+
+One thing that surprised me was how different automation feels once CI is involved. My tests were passing locally, but failed in the pipeline because the workflow was running from the wrong directory. That debugging process taught me more than writing the tests did.
+
+I’d really appreciate honest feedback from experienced QA or automation engineers:
+
+• What makes a junior QA portfolio stand out?
+
+• What is usually missing in early automation projects?
+
+• Should I focus next on deeper Cypress, API automation, or security basics?
+
+I’m trying to avoid beginner blind spots before I start applying seriously.
+
+If anyone is open to connecting professionally, I’m happy to share my GitHub or LinkedIn.
+
+Thanks in advance. I genuinely want to improve.
+
+Answer: First of all congrats! What you did now is already comparable to people with 1 - 2 years of exp did in terms of skills and tooling. But for me what can make you stands out is priotization of test cases for automation and design pattern should make you stand out more.
+
+With the AI trend, i think you can include on how do agentic testing as well or at least know what is that all about. I would recommended API testing or Security testing as this would be vital point of contact with AI in general and you as a QA.
+
+This is just my opinion as im only have 4+ years exp in the field.
+
+Thanks, really appreciate that.
+
+You’re right about prioritization, I’m starting to realise automating everything isn’t the goal, choosing the right test cases is. I’ll definitely look deeper into design patterns and cleaner structure as I refine things.
+
+Agentic testing is something I need to explore more, especially alongside API and security testing.
+
+Out of curiosity, what made the biggest difference for you in real projects, better test prioritization or framework design?
+
+Test prioritization because framework design often change depending on your company and the project you work with.
+
+--------------------------------------------------
+
+Question: Being future ready
+
+I currently work as a automation QA with 11 years of experience.With all the AI boom, i feel writing automation scripts in any language will not a be relevant skill in a couple of years.AI will do all of that.And that what companies are pushing towards too.I would like to know opinions on what future skills should i be looking to upskill to in this AI driven industry.
+
+Answer: Domain knowledge will be the winner. Technical knowledge will not have any value as ai writes full framework which was the main skill of sdets.
+
+Adding to this, knack of understanding how to find a business case problem and how it may reveal itself in technical issues. The era of basic bug finding is done. Now we need to think about macro level broken structures.
+
+Can you give an example?
+
+I second this.
+
+By domain knowledge, do you mean general knowledge about the system under test/product?
+
+--------------------------------------------------
+
+Question: How do you deal with UI regressions when following the test pyramid?
+
+Let's say a company provides services primarily via public APIs, and the QA team primarily focuses on the backend/API testing. But they also have UI that utilizes those APIs for everything, so the team has some UI automated tests only for critical flows, almost like a smoke test.
+
+What is the recommended or best way to catch UI regressions in this approach? Let's say hiring more members for UI testing is not feasible at this time due to the company's budget limitation.
+
+I personally don't believe in a UI-heavy automated test strategy since it doesn't scale, especially when the service is API driven and the business logic is complex. But I do wonder how we are supposed to catch stupid regressions that can easily be introduced by FE devs to the areas where UI automated tests coverage doesn't exist at all.
+
+Answer: Ok, you don’t have automated test coverage, but i imagine FE devs introduce changes as part of a work item and you at least design manual test cases against the acceptance criteria of that item?
+
+If so, you catch regressions by executing those tests manually. Naturally, you identify automation candidates while youre at it and maybe implement them too if you have capacity.
+
+If not, then that means your sdlc lacks traceability, or your release process lacks proper quality checkpoints and you will always let errors slip through
+
+I meant regressions like something that appear around unexpected areas as a side effect of the FE work. Something you can't simply predict from a Jira ticket. The areas directly associated with the ticket will of course be manually tested before a release.
+
+So… FE does some changes, you test the areas directly associated with the change, and still errors slip through on areas which are not “directly associated”?
+
+It must be that you are not correctly identifying the associated areas then.
+
+I cant imagine what sort of change they might be doing that affects areas unassociated with it.
+
+Do you have access to the code that is being changed? Maybe you can infer it from there. If not, ask your devs to give you a summary of their changes; that should be a step forward in identifying the areas
+
+--------------------------------------------------
+

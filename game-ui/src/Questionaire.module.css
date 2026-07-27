@@ -1,0 +1,16 @@
+.actionButton {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+}
+
+.actionButton:hover {
+    background: var(--secondary-bg);
+}

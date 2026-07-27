@@ -1,0 +1,56 @@
+services:
+  local_dev_atlas:
+    image: mongodb/mongodb-atlas-local:8.0
+    hostname: local_dev_atlas
+    ports:
+      - 27017:27017
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=philoagents
+      - MONGODB_INITDB_ROOT_PASSWORD=philoagents
+    volumes:
+      - data:/data/db
+      - config:/data/configdb
+    networks:
+      - philoagents-network
+  api:
+    image: game-api
+    container_name: game-api
+    build:
+      context: ./game-api
+      dockerfile: Dockerfile
+      additional_contexts:
+        - gameconfig=./gameConfig
+    environment:
+      - MONGO_URI=mongodb://philoagents:philoagents@local_dev_atlas:27017/?directConnection=true
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./game-api/.env
+    volumes:
+      - ./gameConfig:/gameConfig
+    networks:
+      - philoagents-network
+  ui:
+    image: game-ui
+    container_name: game-ui
+    build:
+      context: ./game-ui
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./game-ui:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - philoagents-network
+
+volumes:
+  data:
+  config:
+
+networks:
+  philoagents-network:
+    name: philoagents-network

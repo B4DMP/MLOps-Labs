@@ -1,0 +1,230 @@
+Question: So what do y’all think of the Block layoffs?
+
+My upcoming interview with Block got canceled, and I am in a bit of relief but at the same time it made me question where is the industry in general headed to. Block CEO is attributing the layoffs to AI. As an active job seeker and currently in a “safe” job, I am questioning my decision to whether this is the right time for a job switch, but at the same time is there ever a right time?
+
+Do you think we will see more layoffs in the future because of AI?
+
+Answer: I wonder if this company overhired during COVID like many others did.
+
+And like many other companies, instead of having to hold a quarterly investors call and having to admit that they will have to fire people (which is read as a negative performance indicator by investors) they AI-washed this (which is read as a positive performance indicator by investors).
+
+There is plenty of evidence elsewhere that AI is not being widely used as CEOs like to portray, it's not widely replacing jobs, it's still very unreliable and not being trusted by execs, and at most it might overwork existing employees rather than replace them. I think AI just became a scapegoat for CEOs to reduce staff without spooking investors (with the added benefit of making their company look modern and future-focused).
+
+4k pre covid to 12k post covid to 10k -> 6k. Very much overhired and also made a bunch of bad acquisitions.
+
+The covid glut was droped back in 2023-2024. This is due to performance, and an anticipation of an economic downturn. Block has a 'buy now pay later' products, there is no way they are getting thier money back the way the economy is going.
+
+--------------------------------------------------
+
+Question: Should on get a Stats heavy DS degree or Data Science Tech Degree in Today's era
+
+I have done bsc data science. Now was looking for MSC options.
+
+I came across a good college and they have 2 course for MSc:
+
+1: MSc Statistics and Data Science
+
+2: Msc Data Science
+
+I went thorugh the coursework. Stats and DS is very Stats heavy course, and they have Deep learning as an elective in 3rd Sem. Where as for the DS course the ML,NLP, and "DL & GEN ai" are core subjects. Plain DS also has cloud.
+
+So now i am in a dillema.
+
+whether i should go with a course that will give me solid statistics foundation(as i dont have a stats bacground) but less DS related and AI stuff.
+
+Or i should take plain DS where the stats would still be at a very basic level, but they teach the modern stuff like ml,nlp, "DL & genai", cloud. I keep saying "DL & GenAI" because that is one subject in the plain msc.
+
+Goal: I dont want to become a researcher, My current aim is to become a Data Scientist, and also get into AI
+
+It would be really appreciated if someone can help me solve this dillema.
+
+Sharing the curriculum
+
+Answer: Here’s how I’d think about it. There are other angles so take this with a grain of salt.
+
+DS degree seems to focus on implementation rather than foundations.
+
+Llms are already pretty good at implementation, especially common patterns. And will likely continue to get better.
+
+Methods will change and be automated but statistics will always be the foundation. Gen ai class sounds cool but when the paradigm around how they are used changes, much of what you learned in that class may no longer be relevant.
+
+When you’re building a model, having an understanding of what’s going on under the hood will often be more useful especially when it comes to debugging, edge cases, concepts used in combination in a way they aren’t commonly.
+
+If battery prices are magically cut in half tomorrow, electric cars will all of a sudden be a much more attractive option for a lot of people. In a world of electric cars who does better, the mechanical engineer out the expert combustion engine mechanic?
+
+I am near finishing my DS degree that is rather tech inclined than Stats heavy. Any suggestions on how to work on stats foundations?
+
+yeah technically you are like me. i did a ds degree and now thinking of taking a stats and ds degree
+
+Thank you. You just convinced me to go the Stats route.
+
+--------------------------------------------------
+
+Question: Large Language Models for Mortals: A Practical Guide for Analysts
+
+Shameless promotion -- I have recently released a book, Large Language Models for Mortals: A Practical Guide for Analysts.
+
+The book is focused on using foundation model APIs, with examples from OpenAI, Anthropic, Google, and AWS in each chapter. The book is compiled via Quarto, so all the code examples are up to date with the latest API changes. The book includes:
+
+Basics of LLMs (via creating a small predict the next word model), and some examples of calling local LLM models from huggingface (classification, embeddings, NER)
+
+An entry chapter on understanding the inputs/outputs of the API. This includes discussing temperature, reasoning/thinking, multi-modal inputs, caching, web search, multi-turn conversations, and estimating costs
+
+A chapter on structured outputs. This includes k-shot prompting, parsing JSON vs using pydantic, batch processing examples for all model providers, YAML/XML examples, evaluating accuracy for different prompts/models, and using log-probs to get a probability estimate for a classification
+
+A chapter on RAG systems: Discusses semantic search vs keyword via plenty of examples. It also has actual vector database deployment patterns, with examples of in-memory FAISS, on-disk ChromaDB, OpenAI vector store, S3 Vectors, or using DB processing directly with BigQuery. It also has examples of chunking and summarizing PDF documents (OCR, chunking strategies). And discusses precision/recall in measuring a RAG retrieval system.
+
+A chapter on tool-calling/MCP/Agents: Uses an example of writing tools to return data from a local database, MCP examples with Claude Desktop, and agent based designs with those tools with OpenAI, Anthropic (showing MCP fixing queries), and Google (showing more complicated directed flows using sequential/parallel agent patterns). This chapter I introduce LLM as a judge to evaluate different models.
+
+A chapter with screenshots showing LLM coding tools -- GitHub Copilot, Claude Code, and Google's Antigravity. Copilot and Claude Code I show examples of adding docstrings and tests for a current repository. And in Claude Code show many of the current features -- MCP, Skills, Commands, Hooks, and how to run in headless mode. Google Antigravity I show building an example Flask app from scratch, and setting up the web-browser interaction and how it can use image models to create test data. I also talk pretty extensively
+
+Final chapter is how to keep up in a fast paced changing environment.
+
+To preview, the first 60+ pages are available here. Can purchase worldwide in paperback or epub. Folks can use the code LLMDEVS for 50% off of the epub price.
+
+I wrote this because the pace of change is so fast, and these are the skills I am looking for in devs to come work for me as AI engineers. It is not rocket science, but hopefully this entry level book is a one stop shop introduction for those looking to learn.
+
+Answer: e hype but the examples from openai and huggingface look actually useful, might have to check it out
+
+--------------------------------------------------
+
+Question: Roast my AB test analysis [A]
+
+I have just finished up a sample analysis on an AB test dummy dataset, and would love feedback.
+
+The dataset is from Udacity's AB Testing course. It tracks data on two landing page variations, treatment and control, with mean conversion rate as the defining metric.
+
+In my analysis, I used an alpha of 0.05, a power of 0.8, and a practical significance level of 2%, meaning the conversion rate must see at least a 2% lift to justify the costs of implementation. The statistical methods I used were as follows:
+
+Two-proportions z-test
+
+Confidence interval
+
+Sign test
+
+Permutation test
+
+See the results here. Thanks for any thoughts on inference and clarity.
+
+Answer: Where to begin… so the confidence interval and two prop z are two sides of the same coin. One is testing a hypothesis, the other gives us a range for the true parameter. The math works out about the same.
+
+The other two tests… I don’t get why you’d do them. Run one test. Never run multiple. You need a bonferroni correction for family-wise error… but if it’s the same response you get no benefit, real or perceived, from testing the same thing multiple times with different tests. Also, they’re non-parametric. If your data are binomially distributed with sufficient N, then you don’t want to run those tests.
+
+Instead of learning how to run tests and saying “roast me,” learn all the theory around statistical testing. If you can understand those concepts you’ll pass more interviews and be a better data scientist.
+
+Thanks for the response. Ive read through ISLP back to front to learn statistics for machine learning, and have just cracked open Practical Statistics for Data Scientists. Any recommendations to learn AB testing fundamentals?
+
+Noted on CI and two proportions z test. That’s coming up in the text book.
+
+Re: running multiple tests — I hear what you’re saying about redundant tests. However, in dummy datasets, I have come across situations where multiple tests are useful; specifically, the sign test with a CI, in a situation where the CI points to an increase (though not statistically significant) and the sign test points to a decrease (though not statistically significant).
+
+Re: bonferroni correction, isn’t that primarily was for multiple variants? Do I need to correct when running multiple tests as well?
+
+My recommendation is to get a degree in statistics to become an expert in this field. Using a non parametric test in binomially distributed data is a red flag. We aren’t just “running a test” there are rules based on the fundamentals of the Z and T distributions.
+
+Anytime you run a test you increase the probability of an error. If you run multiple tests and don’t make a bonferroni correction, then you are making a mistake. The correction is for multiple comparisons. Every time you run a test, it’s an additional comparison. Tests should be pre-determined, otherwise you dive into this world where you’re hunting for an outcome that fits your narrative. There are mathematical proofs behind all of this - it’s not up for debate.
+
+For you, I would start with the fundamentals of the Z and T tests. The assumptions, when to use one vs the other, and when we can’t use either. Then I’d learn ANOVA. If you can handle multivariate calc, you should understand the derivation of these tests.
+
+After that, running the test is really easy. It becomes understanding the business or academic problem to successfully A/B test.
+
+--------------------------------------------------
+
+Question: [Update] How to coach an insular and combative science team
+
+See original post here
+
+I really appreciate the advice from the original thread. I discovered I was being too kind. The approaches I described were worth trying in good faith but it was enabling the negative behavior I was attempting to combat. I had to accept this was not a coaching problem. Thanks to the folks who responded and called this out.
+
+I scheduled system review meetings with VP/Director-level stakeholders from both the business and technical side. For each system I wrote a document enumerating my concerns alongside a log of prior conversations I'd had with the team on the subject describing what was raised and what was ignored. Then I asked the team to walk through and defend their design decisions in that room. It was catastrophic. It became clear to others that the services were poorly built and the scientists fundamentally misunderstood the business problems they were trying to solve.
+
+That made the path forward straightforward. The hardest personalities were let go. These were personalities who refused to acknowledge fault and decided to blame their engineering and business partners when the problems were laid bare.
+
+Anyone remaining from the previous org has been downleveled and needs to earn the right to lead projects again. The one service with genuine positive ROI survived. In the past, that team transitioned as software engineers under a new manager specifically to create distance from the existing dysfunction. Some of the scientists who left are now asking to return which is positive signal that this was the right move.
+
+Answer: where in the wild west are you from such that cowboys can fire established employees within days*
+
+fake as story
+
+*for incompetence
+
+... and then the C-suite gave OP a standing ovation.
+
+This story reeks of AI generated.
+
+“The path forward was straightforward”
+
+“These personalities that refused to acknowledge fault…”
+
+Just over and over again. OP couldn’t even be bothered to clean up the mess
+
+At-will work states.
+
+Half of America.
+
+At will states are a fucking nightmare for workers.
+
+--------------------------------------------------
+
+Question: Toronto active data science related job openings numbers - pretty discouraging - how is it in your city?
+
+I’m feeling pretty discouraged about the data science job market in Toronto.
+
+I built a scraper and pulled active roles from SimplyHired + LinkedIn. I was logged into LinkedIn while scraping, so these are not just promoted posts.
+
+My search keywords were mainly data scientist and data analyst, but a lot of other roles show up under those searches, so that’s why the results include other job families too.
+
+I capped scraping at 18 pages per site (LinkedIn + SimplyHired), because after that the titles get even less relevant.
+
+Total unique active positions: 617
+
+Breakdown of main relevant categories:
+
+Data analyst related: 233
+
+Data scientist related: 124
+
+Machine learning engineer related: 58
+
+Business intelligence specialist: 41
+
+Data engineer: 37
+
+Data science / ML researcher: 33
+
+Analytics engineer: 11
+
+Data associate: 9
+
+Other titles were hard to categorize: GenAI consultants, biostatistician, stats & analytics software engineer, software engineer (ML), pricing analytics architect, etc.
+
+My scraper is obviously not perfect. Some roles were likely missed. Some might be on Indeed or Glassdoor and not show up on LinkedIn or SimplyHired, although in my experience most roles get cross-posted. So let's take the 600 and double it. That’s ~1,200 active DS / ML / DA related roles in the GTA.
+
+Short-term contracts usually don’t get posted like this. Recruiters reach out directly. So let’s add another 500 active short-term contracts floating around. We still end up with less than 2K active positions.
+
+I assume there are thousands, if not tens of thousands, of people right now applying for DS / ML roles here. That ratio alone explains why even getting an interview feels hard.
+
+For context, companies that had noticeably more active roles in my list included: Allstate, Amazon Development Centre Canada ULC, Atlantis IT Group, Aviva, Canadian Tire Corporation, Capital One, CPP Investments, Deloitte, EvenUp, Keystone Recruitment, Lyft, most banks - TD, RBC, BMO, Scotia, StackAdapt, Rakuten Kobo.
+
+There are a lot of other companies in my list, but most have only one active DS related position.
+
+Answer: Why do you think that 600+ open positions is not good exactly?
+
+There aren't "tens of thousands" (per you comment) people in Toronto looking for data science positions.
+
+Most positions are also not advertised, in Sweden the ratio is usually 4:1 of positions being filled by recommendations or headhunters vs. those filled by responders to an advert. So most likely there’s thousands of open positions.
+
+Now, is this market worse than the unsustainable, money showering overhiring spree circa 2019 where a man couldn’t walk down the street discussing SQL without being harassed with a job offer because every company had just borrowed a batch of free money at almost no interest? Yes, yes it is indeed worse now. Does that mean we have it rough now compared to other professions have had it for the past decades? No, not even close.
+
+There are. My 600 postings include data analyst, business intelligence analyst, data scientist, machine learning engineer, statistical analyst, data reporting analyst, etc. There are definitely thousands or tens of thousands of people in the GTA applying for such jobs. Plus a lot of people out of the GTA apply.
+
+--------------------------------------------------
+
+Question: Current role only does data science 1/4 of the year
+
+Title. The rest of the year I’m more doing data engineering/software engineering/business analyst type stuff. (I know that’s a lot of different fields but trust me). Will this hinder my long term career? I plan to stay here for 5 years so they pay for my grad program and vest my 401k. As of now I’m basically creating one xgboost model a year and just doing analysis for the rest of the year based off that model. (Hard to explain without explaining my entire job, basically we are the stakeholders of our own models in a way, with oversight of course). I’m just worried in 5 years when I apply to new jobs I won’t be able to talk about much data science. Our team wants to do more sexy stuff like computer vision but we are too busy with regulatory fillings that it’s never a priority. The good news is I have great job security because of this. The bad news is I don’t do any experimentation or “fun” data science.
+
+Answer: Join the club
+
+--------------------------------------------------
+

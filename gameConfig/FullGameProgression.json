@@ -1,0 +1,446 @@
+{
+  "gamePhases": [
+    {
+      "phase_name": "Introduction",
+      "phase_description": "Introduction to the serious game mechanics and environment",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "The Introduction",
+          "challenge_description": "#Jimmy Roberts# proposes a complex ML model for maximizing accuracy. #Ester Simons# argues that a simpler model would be sufficient and could generate more business value.",
+          "round_introduction_text": "This sample challenge introduces you to the game and its mechanics.",
+          "metric_changes": {
+            "Model (Intro)": 0,
+            "Efficiency (Intro)": 0
+          },
+          "Source": "-"
+        }
+      ]
+    },
+    {
+      "phase_name": "Requirement Engineering",
+      "phase_description": "Business goal definition and stakeholder alignment",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "The Platform Choice",
+          "challenge_description": "For minimizing the development effort, #Willis Slif# proposes to use a cloud-based 3rd-party managed MLOps platform. #Branson Mcnail# warns that the platform may not fully meet the projects requirements and instead argues for designing and developing a custom platform that fits the projects requirements.",
+          "round_introduction_text": "Moving to system and architecture design, the team faces a fundamental dilemma: should they build a custom platform or buy a managed solution?",
+          "metric_changes": {
+            "Automation": 0,
+            "Reliability": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Eken"
+        },
+        {
+          "challenge_title": "The Automation Deadline",
+          "challenge_description": "#Branson Mcnail# proposes to fully automate workflows using CI/CD pipelines. #Hannah Glaser# fears that setting up the pipelines could delay the project and opts for a semi-automated approach where some steps are still executed manually. ",
+          "round_introduction_text": "While defining workflow strategies, an upcoming deadline causes a conflict over the initial level of automation required for the project.",
+          "metric_changes": {
+            "Automation": 0,
+            "Reliability": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Eken"
+        },
+        {
+          "challenge_title": "Subject-Matter Expert Resistance",
+          "challenge_description": "#Marcus Turner# puts up passive resistance to the AI project because he believes that it is intended to replace his job. #Theresa Meyer# attempts to resolve the conflict by assuring him that the AI is only meant to act as a supportive tool.",
+          "round_introduction_text": "As the project begins to take shape, the AI team encounters unexpected difficulties in getting the necessary domain knowledge from the experts.",
+          "metric_changes": {
+            "Automation": 0,
+            "Reliability": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "The Root Causes of Failure for Artificial Intelligence Projects and How They Can Succeed"
+        }
+      ]
+    },
+    {
+      "phase_name": "Data Engineering",
+      "phase_description": " Dataset preparation, addressing data quality, accessibility, and privacy.",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "The Legacy Dataset",
+          "challenge_description": "Fearing that the ML model will not reach the targeted accuracy otherwise, #Daniel Whitaker# proposes a complex data structuring and augmentation process.",
+          "round_introduction_text": "With requirements set, the data engineering team moves to ingest data from various internal systems. It has discovered legacy logging data that lacks context needed for proper ML model training.",
+          "metric_changes": {
+            "Reliability": 0,
+            "Data": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "The root causes of failure for artificial intelligence projects and how they can succeed"
+        },
+        {
+          "challenge_title": "The Unbalanced Data",
+          "challenge_description": "#David Kimmel# warns that if the imbalance is not addressed, models trained on the data may become biased or overfit.",
+          "round_introduction_text": "The data acquisition has been completed. When the team begins data exploration, it becomes clear that one class is significantly overrepresented.",
+          "metric_changes": {
+            "Reliability": 0,
+            "Data": -3,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "The root causes of failure for artificial intelligence projects and how they can succeed"
+        },
+        {
+          "challenge_title": "The Data Instability",
+          "challenge_description": "#Jimmy Everick# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #Daniel Whitaker# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
+          "round_introduction_text": "During data analysis, it was revealed that a data source changes its behavior over time.",
+          "metric_changes": {
+            "Reliability": -2,
+            "Data": -1,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Hidden Technical Debt in Machine Learning Systems"
+        }
+      ]
+    },
+    {
+      "phase_name": "Model Engineering",
+      "phase_description": "Design, training, and evaluation of ML models.",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "The Entanglement Problem",
+          "challenge_description": " #Jimmy Everick# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, #Jimmy Everick# proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #Michigal Sellner# warns that this would come with a higher complexity and may hurt the model's performance.",
+          "round_introduction_text": "With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system.",
+          "metric_changes": {
+            "Model": 0,
+            "Data": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Hidden Technical Debt in Machine Learning Systems"
+        },
+        {
+          "challenge_title": "The Complexity Trade-off",
+          "challenge_description": "#Jimmy Everick# proposes a complex deep learning model for highest accuracy, while #Michigal Sellner# argues for a simpler model that is easier to maintain in production.",
+          "round_introduction_text": "Model experimentation is reaching a critical phase. The data science team has narrowed down the candidates, but the remaining options present a dilemma between performance and operational stability.",
+          "metric_changes": {
+            "Model": 0,
+            "Data": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "The root causes of failure for artificial intelligence projects and how they can succeed"
+        }
+      ]
+    },
+    {
+      "phase_name": "Model Deployment",
+      "phase_description": "Integration of models into production systems.",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "The Automation Risk",
+          "challenge_description": "To comply with CI/CD, #Emily Brooks# proposes a fully automated deployment and validation process. #Olivia Grant# warns that an automated validation may violate responsible AI practices as fairness and bias identification may fall short.",
+          "round_introduction_text": "A ML model that matches the performance goals has been selected for production, but scaling it introduces new hurdles. As the team prepares the deployment pipeline, a conflict arises over how to safely push the model without compromising ethical standards.",
+          "metric_changes": {
+            "Automation": 0,
+            "Reliability": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Eken"
+        },
+        {
+          "challenge_title": "Final Reservations",
+          "challenge_description": "It was found that the current architecture relies on a legacy model whose output is transformed by a transformer model and used as a an input. #Michigal Sellner# warns that this additional system dependency to a model that is not directly in control of the development team could lead to correction cascades, where downstream models continuously compensate for upstream errors, amplifying noise and bias over time and thus degrading overall system performance.",
+          "round_introduction_text": "The deployment is well on its way when a random check of the architecture sparks concerns within the data science division. ",
+          "metric_changes": {
+            "Automation": 0,
+            "Reliability": -3,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Hidden Technical Debt in Machine Learning Systems"
+        }
+      ]
+    },
+    {
+      "phase_name": "Monitoring/ Usage",
+      "phase_description": "Production monitoring and infrastructure management.",
+      "phase_introduction": "phase_introduction_placeholder",
+      "challenges": [
+        {
+          "challenge_title": "Model Accuracy Drops",
+          "challenge_description": "The deployed model shows declining accuracy as live data drifts away from training data. #Willis Slif# is concerned about business impact and requests a rapid retraining. #Mathis Berger# argues that a quick quick damage control without diagnosis and validation risks locking in bad patterns and increase instability.",
+          "round_introduction_text": "The ML solution has been running successfully in production until a subtle but concerning trend emerges.",
+          "metric_changes": {
+            "Model": -4,
+            "Reliability": 0,
+            "Requirements": 0,
+            "Efficiency": 0
+          },
+          "Source": "Learning in Nonstationary Environments: A Survey."
+        }
+      ]
+    }
+  ],
+  "ActionCardImages": [
+    {
+      "description": "accomplishments",
+      "image": "/graphics/cards/undraw_accomplishments_tb6k.svg"
+    },
+    {
+      "description": "all the data",
+      "image": "/graphics/cards/undraw_all-the-data_ijgn.svg"
+    },
+    {
+      "description": "app benchmarks",
+      "image": "/graphics/cards/undraw_app-benchmarks_ls0m.svg"
+    },
+    {
+      "description": "artificial intelligence",
+      "image": "/graphics/cards/undraw_artificial-intelligence_43qa.svg"
+    },
+    {
+      "description": "business decisions",
+      "image": "/graphics/cards/undraw_business-decisions_7vkl.svg"
+    },
+    {
+      "description": "calculator",
+      "image": "/graphics/cards/undraw_calculator_os9t.svg"
+    },
+    {
+      "description": "clean up",
+      "image": "/graphics/cards/undraw_clean-up_af4s.svg"
+    },
+    {
+      "description": "code contribution",
+      "image": "/graphics/cards/undraw_code-contribution_8k0x.svg"
+    },
+    {
+      "description": "coding assistant",
+      "image": "/graphics/cards/undraw_coding-assistant_i178.svg"
+    },
+    {
+      "description": "control panel",
+      "image": "/graphics/cards/undraw_control-panel_j1wf.svg"
+    },
+    {
+      "description": "creation process",
+      "image": "/graphics/cards/undraw_creation-process_uvp6.svg"
+    },
+    {
+      "description": "customer survey",
+      "image": "/graphics/cards/undraw_customer-survey_ek29.svg"
+    },
+    {
+      "description": "dashboard",
+      "image": "/graphics/cards/undraw_dashboard_p93p.svg"
+    },
+    {
+      "description": "data at work",
+      "image": "/graphics/cards/undraw_data-at-work_3tbf.svg"
+    },
+    {
+      "description": "data processing",
+      "image": "/graphics/cards/undraw_data-processing_ohfw.svg"
+    },
+    {
+      "description": "data thief",
+      "image": "/graphics/cards/undraw_data-thief_d66l.svg"
+    },
+    {
+      "description": "database tables",
+      "image": "/graphics/cards/undraw_database-tables_yft5.svg"
+    },
+    {
+      "description": "date picker",
+      "image": "/graphics/cards/undraw_date-picker_8qys.svg"
+    },
+    {
+      "description": "decide",
+      "image": "/graphics/cards/undraw_decide_g91m.svg"
+    },
+    {
+      "description": "design objectives",
+      "image": "/graphics/cards/undraw_design-objectives_f9uv.svg"
+    },
+    {
+      "description": "design process",
+      "image": "/graphics/cards/undraw_design-process_vsrt.svg"
+    },
+    {
+      "description": "dev environment",
+      "image": "/graphics/cards/undraw_dev-environment_n5by.svg"
+    },
+    {
+      "description": "developer activity",
+      "image": "/graphics/cards/undraw_developer-activity_4zqd.svg"
+    },
+    {
+      "description": "document ready",
+      "image": "/graphics/cards/undraw_document-ready_o5d5.svg"
+    },
+    {
+      "description": "document warning",
+      "image": "/graphics/cards/undraw_document-warning_2es6.svg"
+    },
+    {
+      "description": "enter password",
+      "image": "/graphics/cards/undraw_enter-password_1kl4.svg"
+    },
+    {
+      "description": "exploring",
+      "image": "/graphics/cards/undraw_exploring_fzmr.svg"
+    },
+    {
+      "description": "file search",
+      "image": "/graphics/cards/undraw_file-search_cbur.svg"
+    },
+    {
+      "description": "focused dev",
+      "image": "/graphics/cards/undraw_focused-dev_gqoa.svg"
+    },
+    {
+      "description": "goals",
+      "image": "/graphics/cards/undraw_goals_dwgr.svg"
+    },
+    {
+      "description": "idea sketching",
+      "image": "/graphics/cards/undraw_idea-sketching_rifv.svg"
+    },
+    {
+      "description": "image comparison",
+      "image": "/graphics/cards/undraw_image-comparison_ieuw.svg"
+    },
+    {
+      "description": "investing",
+      "image": "/graphics/cards/undraw_investing_uzcu.svg"
+    },
+    {
+      "description": "logic",
+      "image": "/graphics/cards/undraw_logic_bj1j.svg"
+    },
+    {
+      "description": "multitasking",
+      "image": "/graphics/cards/undraw_multitasking_i2bv.svg"
+    },
+    {
+      "description": "nfc sharing",
+      "image": "/graphics/cards/undraw_nfc-sharing_tt2d.svg"
+    },
+    {
+      "description": "online collaboration",
+      "image": "/graphics/cards/undraw_online-collaboration_xon8.svg"
+    },
+    {
+      "description": "open source code",
+      "image": "/graphics/cards/undraw_open-source-code_411s.svg"
+    },
+    {
+      "description": "peekaboo",
+      "image": "/graphics/cards/undraw_peekaboo_5o8i.svg"
+    },
+    {
+      "description": "progressive web app",
+      "image": "/graphics/cards/undraw_progressive-web-app_c4uq.svg"
+    },
+    {
+      "description": "project completed",
+      "image": "/graphics/cards/undraw_project-completed_ug9i.svg"
+    },
+    {
+      "description": "projections",
+      "image": "/graphics/cards/undraw_projections_fhch.svg"
+    },
+    {
+      "description": "proud coder",
+      "image": "/graphics/cards/undraw_proud-coder_bivp.svg"
+    },
+    {
+      "description": "questions",
+      "image": "/graphics/cards/undraw_questions_52ic.svg"
+    },
+    {
+      "description": "radio options",
+      "image": "/graphics/cards/undraw_radio-options_403c.svg"
+    },
+    {
+      "description": "reading notes",
+      "image": "/graphics/cards/undraw_reading-notes_dg9z.svg"
+    },
+    {
+      "description": "remote meeting",
+      "image": "/graphics/cards/undraw_remote-meeting_kqj0.svg"
+    },
+    {
+      "description": "report",
+      "image": "/graphics/cards/undraw_report_k55w.svg"
+    },
+    {
+      "description": "schedule cleanup",
+      "image": "/graphics/cards/undraw_schedule-cleanup_1xs7.svg"
+    },
+    {
+      "description": "scrum board",
+      "image": "/graphics/cards/undraw_scrum-board_7bgh.svg"
+    },
+    {
+      "description": "secure server",
+      "image": "/graphics/cards/undraw_secure-server_lz9x.svg"
+    },
+    {
+      "description": "server status",
+      "image": "/graphics/cards/undraw_server-status_7viz.svg"
+    },
+    {
+      "description": "settings",
+      "image": "/graphics/cards/undraw_settings_alfp.svg"
+    },
+    {
+      "description": "successful upload",
+      "image": "/graphics/cards/undraw_successful-upload_t9fz.svg"
+    },
+    {
+      "description": "system update",
+      "image": "/graphics/cards/undraw_system-update_gekm.svg"
+    },
+    {
+      "description": "target audience",
+      "image": "/graphics/cards/undraw_target-audience_prun.svg"
+    },
+    {
+      "description": "team goals",
+      "image": "/graphics/cards/undraw_team-goals_0026.svg"
+    },
+    {
+      "description": "transfer files",
+      "image": "/graphics/cards/undraw_transfer-files_anat.svg"
+    },
+    {
+      "description": "usability testing",
+      "image": "/graphics/cards/undraw_usability-testing_w7dd.svg"
+    },
+    {
+      "description": "user feedback",
+      "image": "/graphics/cards/undraw_user-feedback_5fp8.svg"
+    },
+    {
+      "description": "vault",
+      "image": "/graphics/cards/undraw_vault_tyfh.svg"
+    },
+    {
+      "description": "visual data",
+      "image": "/graphics/cards/undraw_visual-data_1eya.svg"
+    },
+    {
+      "description": "web search",
+      "image": "/graphics/cards/undraw_web-search_7oif.svg"
+    },
+    {
+      "description": "world",
+      "image": "/graphics/cards/undraw_world_bdnk.svg"
+    }
+  ]
+}

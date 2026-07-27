@@ -1,0 +1,502 @@
+[
+  {
+    "category": "Cognitive",
+    "dimension": "Personal Identity",
+    "question": "What core values define your personal identity?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Belief Systems",
+    "question": "How do your beliefs influence your lifestyle choices?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Self-Reflection",
+    "question": "In what ways does your self-perception affect your daily decisions?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Social Issues",
+    "question": "How do you form your opinions on complex social issues?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Civic Duty",
+    "question": "What are your views on prioritizing individual rights versus the common good?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Problem Solving",
+    "question": "Describe your typical thought process when faced with a difficult dilemma."
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Knowledge Acquisition",
+    "question": "How do you evaluate the reliability of new information you encounter?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Adaptability",
+    "question": "How quickly do you adapt your views when presented with contradictory evidence?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Personal History",
+    "question": "How have your past experiences shaped your current worldview?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Moral Compass",
+    "question": "What principles guide your distinction between right and wrong?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Decision Making",
+    "question": "Do you rely more on intuition or structured logic when making a major life choice?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Personal Identity",
+    "question": "To what extent do your professional duties define who you are?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Social Interaction",
+    "question": "How do you interpret the intentions of others during negotiations?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Future Outlook",
+    "question": "What is your vision for society ten years from now?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Belief Systems",
+    "question": "How do you handle interactions with individuals who hold fundamentally different beliefs?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Knowledge Base",
+    "question": "Which subjects do you consider yourself most knowledgeable about, and why?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Self-Perception",
+    "question": "How aligns your internal self-image with the way others perceive you?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Critical Thinking",
+    "question": "When did you recently change your mind about an important issue?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Social Issues",
+    "question": "What role should institutions play in guiding community behaviors?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Risk Assessment",
+    "question": "How do you cognitively weigh the risks and benefits of an uncertain opportunity?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Ethical Considerations",
+    "question": "Are there ethical lines you would never cross, regardless of the potential benefit?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Memory",
+    "question": "Which memories influence your daily routine the most?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Ideology",
+    "question": "How strictly do you adhere to traditional versus progressive frameworks of thought?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Creativity",
+    "question": "When approaching a new project, how do you balance creativity with pragmatism?"
+  },
+  {
+    "category": "Cognitive",
+    "dimension": "Personal Identity",
+    "question": "How do cultural narratives influence your understanding of your role in the world?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Self-Improvement",
+    "question": "What inspires you to improve yourself?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Self-Regulation",
+    "question": "How do you overcome procrastination in your personal life?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Habit Maintenance",
+    "question": "What drives you to maintain or change your habits?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Career Goals",
+    "question": "What is your primary motivation behind your chosen career path?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Self-Efficacy",
+    "question": "How confident are you in your ability to achieve long-term objectives?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Reward Systems",
+    "question": "Do you respond better to intrinsic rewards or external recognition?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Resilience",
+    "question": "What pushes you forward when you encounter a significant setback?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Outcome Expectations",
+    "question": "How do your expectations of success shape the effort you put into a task?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Social Influence",
+    "question": "How much does the desire to help others motivate your daily actions?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Ambition",
+    "question": "How do you define personal success?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Financial Goals",
+    "question": "What role does financial security play in driving your decisions?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Competition",
+    "question": "Are you motivated by competition with others, or by self-competition?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Meaning and Purpose",
+    "question": "What legacy do you hope to leave behind?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Self-Discipline",
+    "question": "How do you stay focused when working on uninteresting but necessary tasks?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Inspiration",
+    "question": "Who are the role models that ignite your ambition, and why?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Energy Management",
+    "question": "At what time of day do you feel the most driven to initiate new projects?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Fear Avoidance",
+    "question": "How much does the fear of failure dictate the choices you make?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Curiosity",
+    "question": "What topics are you motivated to learn about without any external prompting?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Commitment",
+    "question": "Once you make a promise, what internal drives ensure you keep it?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Task Prioritization",
+    "question": "How do you motivate yourself when faced with competing priorities?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Validation",
+    "question": "How important is societal validation to your sense of achievement?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Innovation",
+    "question": "What drives you to find novel solutions instead of relying on established routines?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Perseverance",
+    "question": "Describe a time when your sheer willpower got you through a challenge."
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Autonomy",
+    "question": "How does the desire for independence fuel your lifestyle?"
+  },
+  {
+    "category": "Motivational",
+    "dimension": "Risk Tolerance",
+    "question": "What motivates you to take a calculated risk?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Demographics and Heritage",
+    "question": "How has your biological heritage shaped your lifestyle?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Preventive Health",
+    "question": "What is your approach to preventive health measures?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Physical Goals",
+    "question": "How do you integrate physical health into your personal goals?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Age and Stage",
+    "question": "How does your current age or life stage influence your daily energy levels?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Sleep Patterns",
+    "question": "In what ways do your sleep habits dictate your overall mood and cognition?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Diet and Nutrition",
+    "question": "How does your approach to food and nutrition reflect your respect for your biology?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Physical Capability",
+    "question": "How do your physical capabilities limit or enhance your participation in social events?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Stress Physiology",
+    "question": "How does your body physically react when you are placed under extreme pressure?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Environmental Adaptation",
+    "question": "How sensitive is your physiology to changes in your environment, such as weather or altitude?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Fitness Habits",
+    "question": "What physical activities do you engage in to maintain your physiological well-being?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Physical Appearance",
+    "question": "How do your physical characteristics influence your self-concept?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Health Management",
+    "question": "How proactive are you in seeking medical advice for minor ailments?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Circadian Rhythms",
+    "question": "Are you more productive as a morning person or a night owl, and how does this shape your routine?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Aging Process",
+    "question": "What are your perspectives on the natural aging process?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Pain Tolerance",
+    "question": "How do you physically and mentally handle pain or discomfort?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Genetic Predisposition",
+    "question": "To what extent do you feel constrained or empowered by your genetic predispositions?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Mind-Body Connection",
+    "question": "How do you believe your physical state affects your mental clarity?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Sensory Perception",
+    "question": "Which of your senses do you rely on most heavily to navigate the world?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Metabolism and Energy",
+    "question": "How do you manage fluctuations in your physical energy throughout the day?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Hygiene and Self-Care",
+    "question": "What self-care routines are essential for your biological maintenance?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Physical Space",
+    "question": "How does your physical comfort dictate the environments you choose to spend time in?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Disease Recovery",
+    "question": "How resilient is your immune system when bouncing back from illness?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Physical Expression",
+    "question": "How do you use your body language to express confidence or discomfort?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Ergonomics",
+    "question": "How much attention do you pay to the physical ergonomics of your daily workspace?"
+  },
+  {
+    "category": "Biological",
+    "dimension": "Reproductive Health",
+    "question": "How do your physiological milestones align with your life's timelines and expectations?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Emotional Well-being",
+    "question": "How does emotional well-being factor into your lifestyle choices?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Emotional Intelligence",
+    "question": "What role does emotional intelligence play in your personal growth?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Emotional Triggers",
+    "question": "What triggers strong emotional responses for you?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Empathy",
+    "question": "How easily are you affected by the emotional states of those around you?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Stress Management",
+    "question": "How do you regulate your emotions during high-stress situations?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Joy and Fulfillment",
+    "question": "What activities consistently bring you a sense of deep joy and fulfillment?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Frustration",
+    "question": "How do you channel feelings of frustration into productive outcomes?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Guilt and Regret",
+    "question": "How do feelings of guilt or regret influence your future behavior?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Vulnerability",
+    "question": "Are you comfortable showing vulnerability to your close peers?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Attachment",
+    "question": "How quickly do you form emotional attachments to people or projects?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Optimism vs Pessimism",
+    "question": "Do you generally approach the future with hope or apprehension?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Emotional Expression",
+    "question": "How openly do you express your feelings when disagreeing with someone?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Coping Mechanisms",
+    "question": "What are your primary emotional coping mechanisms after a failure?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Gratitude",
+    "question": "How does practicing or feeling gratitude impact your overall mood?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Anxiety",
+    "question": "In what ways does anxiety or worry manifest in your decision-making?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Conflict Resolution",
+    "question": "Do emotions hinder or help you when navigating interpersonal conflicts?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Trust and Betrayal",
+    "question": "How do you emotionally process a perceived betrayal by an ally?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Aesthetic Appreciation",
+    "question": "How profoundly do art, nature, or beauty affect your emotional state?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Passion",
+    "question": "How aggressively do you pursue endeavors that ignite your passions?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Loneliness",
+    "question": "How do you handle feelings of isolation or loneliness?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Anger",
+    "question": "What is the most effective way for you to dissipate anger?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Pride",
+    "question": "How does personal pride influence your willingness to ask for help?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Sympathy",
+    "question": "How does a sense of sympathy for others guide your charitable or civic actions?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Nostalgia",
+    "question": "To what extent does nostalgia dictate your view of the present?"
+  },
+  {
+    "category": "Affective",
+    "dimension": "Surprise",
+    "question": "How do you emotionally react to unexpected changes in your plans?"
+  }
+]

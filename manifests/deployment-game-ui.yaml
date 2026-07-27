@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ma-bela-veltrup
+  name: mlops-game-ui
+  labels:
+    app: mlops-game-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlops-game-ui
+  template:
+    metadata:
+      labels:
+        app: mlops-game-ui
+    spec:
+      containers:
+      - name: mlops-game-ui
+        image: registry.git.rwth-aachen.de/i5/theses/bachelor-thesis-bela-veltrup/mlops-game/game-ui:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlops-game-ui
+  namespace: ma-bela-veltrup
+spec:
+  selector:
+    app: mlops-game-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

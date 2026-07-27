@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ma-bela-veltrup
+  name: mlops-game-ui-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx-public
+  tls:
+  - hosts:
+    - public.cluster.dbis.rwth-aachen.de
+    secretName: wildcard-tls-secret-public
+  rules:
+  - host: public.cluster.dbis.rwth-aachen.de
+    http:
+      paths:
+      - path: /mlops-lab/(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: mlops-game-ui
+            port:
+              number: 80

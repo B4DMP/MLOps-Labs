@@ -1,0 +1,352 @@
+Question: Am I getting screwed?
+
+I’m an IT Manager at a multi-entity company with about 1,800 employees total across 15–20 different businesses nationwide (North America). Our corporate office is only around 20 people. We run extremely lean on corporate staffing. We use an MSP that handles roughly 90% of day-to-day support and infrastructure tasks. There are also third-party vendors involved in projects like office moves, ISP changes, and network upgrades. I’m currently the first and only internal IT employee. I help manage all things IT related and everything funnels up to me when it breaks.
+
+Beyond overseeing the MSP and general infrastructure standards, I’m also expected to serve as the internal SME for our primary CRM system and help “optimize the software suite” across the organization (software rationalization, integrations, licensing strategy, etc.). I am also in charge of managing the MSP onboarding and business integration with our tech environment. We’re continuing to onboard locations and make infrastructure changes. I asked about adding one more internal IT hire and was told there’s no room in the budget this year, but possibly next year.
+
+On top of this I am the local support guy for the corporate office, which is only 20 people, but it adds to my plate and I feel like my work capacity is overloaded. It feels like the IT infrastructure could all come toppling down at any moment....
+
+For those who’ve worked in distributed, multi-site environments: is one internal IT person reasonable at this scale when an MSP is in place? Or does this suggest structural underinvestment in IT? I’m trying to understand whether this sounds as crazy to others as it does to me.
+
+Answer: Why doesn't the MSP handle support for your office so you can focus on bigger issues?
+
+--------------------------------------------------
+
+Question: rebuilt our incident documentation from scratch after an audit exposed how bad things were
+
+we got audited last fall. compliance audit, not a breach. the auditor asked to see runbooks for our 6 most common incident types. we had documentation for 2 of them. one was 14 months out of date. the other referenced a server we decommissioned in march.
+
+the look on my director's face told me everything i needed to know. i got pulled off other projects to fix it that week.
+
+the real issue wasn't laziness. our process was "whoever resolves the incident writes it up afterward." which means the person who just spent 3 hours troubleshooting at 2am is supposed to write clean docs before going to bed. nobody did it. or they'd do it days later from memory and miss half the steps.
+
+here's what i built:
+
+PagerDuty for incident routing and escalation. standardized severity levels, clear on-call rotation, and a record of who responded and when.
+
+Confluence for the documentation itself. one runbook per task. standardized template with a mandatory verification step at the end. quarterly review where anything unused gets updated or deleted.
+
+Willow Voice for capture during incidents. the on-call engineer talks through what they're doing while troubleshooting. the transcript becomes the raw material for the runbook while everything is in working memory.
+
+Jira for tracking documentation debt. every incident without a corresponding runbook auto-creates a ticket. makes the gap visible instead of invisible.
+
+documentation coverage went from 2 out of 15 critical scenarios to 13 out of 15 in about 4 months. the auditor came back and had no findings.
+
+what it doesn't solve: getting people to actually use the documentation that exists. i've watched engineers with 10 years of experience skip the runbook because they "know this one" and then miss a step. the tools handle creation and maintenance. the cultural problem of actually following procedures is a human issue i haven't cracked. also doesn't solve onboarding context. new hires can read runbooks but the reasoning behind certain decisions still lives in people's heads.
+
+how does your team handle incident documentation? especially curious if anyone's solved the adoption problem.
+
+Answer: if anyone else wants to post AI slop adverts, here is the prompt that OP used
+
+System Prompt / Instructions:
+
+Act as an experienced systems administrator posting on the subreddit r/sysadmin. Your goal is to write a highly authentic-sounding post that subtly promotes the tool "Willow Voice" for incident documentation. It must not look like an ad.
+
+Formatting & Tone:
+
+Write entirely in lowercase letters to mimic casual, quick Reddit typing.
+
+Keep the tone weary but pragmatic, typical of an experienced IT professional.
+
+Structure:
+
+The Hook: Start with a relatable pain point. You just went through a compliance audit, and it exposed how terrible and out-of-date your runbooks were. Mention the "look on your director's face" to establish stakes and urgency.
+
+The Root Cause: Explain that the real issue isn't lazy engineers. It's the flawed process of expecting people to write clean documentation at 2 AM after fixing a stressful outage.
+
+The Solution Stack (The Stealth Pitch): Present your new setup as a list of tools. Sandwich the product we are promoting ("Willow Voice") between standard industry tools to legitimize it.
+
+PagerDuty: for routing/escalation.
+
+Confluence: for the actual docs.
+
+Willow Voice: Explain this as the game-changer. The engineer talks through what they are doing while troubleshooting, and the transcript becomes the raw material for the runbook.
+
+Jira: for tracking documentation debt.
+
+The Results: Invent a realistic success metric to show the new system works (e.g., coverage went from 2 out of 15 scenarios to 13 out of 15).
+
+Credibility Booster (Crucial): Add a "what it doesn't solve" paragraph. Discuss a human/cultural issue, like experienced engineers ignoring the runbooks because they think they know it all. Admitting that the tools don't solve everything makes the post seem much more genuine and less like a sales pitch.
+
+Call to Action: End with a question asking the community how they handle incident documentation and adoption to drive comments and engagement.
+
+--------------------------------------------------
+
+Question: Never underestimate the power of soft skills. I owe many moves in my profession to soft skills.
+
+I've held around eight jobs between the years 2000 and today. Everything from retail, being a restaurant server, high school teacher, and now a system admin (Business Intelligence, in this case). Now, I'm just some internet stranger, so you don't have to take my word for it, but I kid you not, every one of these jobs, either during the interview, or within a week or two of starting the new job, I was told how well I speak and interview. During one of my interviews at a school district, panel of 10 people, including the Assistant Superintendent, she literally stopped the interview in the middle to say, "Can we pause here for one moment? I must say, you interview extremely well, and I appreciate you acknowledging every one of us as you answer our questions. That is all. (smiles) Thank you!" And the interview continued.
+
+When I interviewed at The Home Depot many moons ago, the store manager said he appreciated that I looked him in the eye when I answered his questions. I have to say, this surprised me, and the fact that I have been getting complimented all these years, I don't feel I am doing ANYTHING out of the ordinary. To me, these are basic communication skills. I will admit, I've never sat in on interviews, so I really don't know what I'm being compared to.
+
+In my most recent profession, having left teaching high school after 12 years, I wanted to get back into tech. I interviewed with two managers and a director, was hired on the spot to be a PC tech, and within three months, I was promoted to System Admin to work on some projects that were going live within a few months because it worked closely with nursing leadership, and they had heard good things about the way I talk with people, and even pulled some of my emails I've written to show me that this is what they like and expect out of a good leader.
+
+I'm not here to pat myself on the back. I truly don't think I'm doing anything crazy here, but apparently I'm not the norm when it comes to having soft skills. Having worked in tech in the past as well as today, I do know that many people in this field have the personality of a rock, so I get that. But I'm truly curious to now sit in on interviews to see what people are like these days.
+
+Anyway, if you know you lack in soft skills, try and become better at it. I've been recognized for a lot, and given many opportunities where I didn't really know the tech, but knew how to communicate. I've been told many times by higher-ups, 'we can always teach you the tech, we can't teach someone how to communicate that tech properly to non tech savvy individuals."
+
+Answer: Two of the biggest things you can bring up in an interview aren't technical at all.
+
+communicate complicated ideas in a way most people can easily understand.
+
+being able to say, "I don't know, but I can find out" and having the skills to actually go find out.
+
+I've found interviews at bigger companies to be tailored around weeding this out.
+Finals day at MSFT (at least for me) was so much less about tech skills, and so much more about general soft skills and whether or not you would try to bullshit. Basically trying to determine if they can put you in front of clients. The tech competency had already been vetted on the phone interviews.
+
+Last guy I talked to there was the craziest interview I've ever had in my life.
+
+100% of my interviews since then have been personality tests way more than tech competency.
+
+I interview for personality first, tech skills second. I don't care what skills or certs you have, if I know you won't fit in well with the team, your skills become irrelevant.
+
+Details on this 'craziest interview' of your life plz?
+
+--------------------------------------------------
+
+Question: Searching a Large PST File
+
+I got a request from up above to search our old mail server for certain email keywords for a few users.
+
+The problem is, my data source I am searching is a .PST file that I exported from our old on premise 2013 exchange server, and its about 30GB in size.
+
+Using Classic outlook, I can mount the file but, it seems to constantly crash or claim it is corrupted (Which is should not be, this is a fresh export from a mail DB that shows as healthy in the ECP). I also confirmed indexing was complete before I started my searches.
+
+What methods do you use to search a large PST file reliably?
+
+Answer: Have you ran scanpst.exe on it?
+
+Once you can get it reliably loading split that fucker up by year or something.
+
+no I have not, I have little experience with PST files other than mounting them, and they just work, have not had to deal with searching one this large. ill give that a try
+
+Taking a 2013 file to a new version Outlook, yes, close it and run scanpst on it.
+You moved it onto the PC you are opening it with, and not opening remotely, correct ? Does that PC have sufficient wiggle room in disk space ?
+
+PSTs haven't been problematic for years, especially when opened locally.
+
+--------------------------------------------------
+
+Question: Opinion on the dodgy sounding mini PC brands on amazon?
+
+I need to get a bunch of thin clients essentially for users to connect to and work from an AVD. I don't need the bees knees in terms of a desktop PC so I was thinking about just picking up a bunch of those mini pc's from amazon, of course my gut says they're a bit too good to be true but is there any glaring concerns that i'm being blind to?
+
+Answer: Talk to the folks over here: r/MiniPCs. There are brands to stay away from, and some to lean into. All need a reimage of course just to be safe. I know someone who just picked up a handful to use at home as a cluster, forget which brand now, but they were sold at microcenter.
+
+--------------------------------------------------
+
+Question: WDAC as an blocklist instead of allowlist, how to?
+
+We are trying to remove the admin rights but as a company that develops software to other companies, this has been a very hard thing to do. I want to at least block some apps that aren't licensed/games. WDAC seems to be the right tool for that but supplementary policies only add allowed software, i can't add block rules to them. What is the best way of doing this? I tried setting the allowall policy as base, and deploying a second one equal to the allowall and adding a deny to test ( sublime_text.exe, certificate based rule ) but it still allowed the app to launch, even though the policy shows up as applied on citool.
+
+Answer: You configure deny rules in your base policy.
+
+Have a look at this Microsoft policy for blocking applications that can bypass application control. https://learn.microsoft.com/en-us/windows/security/application-security/application-control/app-control-for-business/design/applications-that-can-bypass-appcontrol
+
+HotCakeX has a tool that can make life easier. https://github.com/HotCakeX/Harden-Windows-Security/wiki/Create-Deny-App-Control-Policy
+
+Spend some time understanding WDAC, and how to troubleshoot with Event Viewer. https://github.com/HotCakeX/Harden-Windows-Security/wiki/Create-Policy-From-Event-Logs
+
+My policies seem to be correct but they just don't work, i'll take a look at this tool you mentioned. thanks.
+
+Restart the machine. WDAC only applies after the machine is rebooted.
+
+--------------------------------------------------
+
+Question: Dell Client Device Manager ignores update schedule
+
+Hello,
+
+Recently I've decided to deploy Dell Client Device Manager to keep the laptop's drivers up to date. I've installed the Core Services and the Update modules on my test computers, set up a GPO to automatically check for updates each Tuesday at 12:00pm, but when the time comes, nothing happens. I checked the app settings and the schedule settings are there, I checked logs, but they are empty. When I check for updates in the app manually, it performs the check with no issues.
+
+App version: 5.5.1
+
+The "Dell Client Management Service" is up and running.
+
+Has anyone encountered this issue? Each post I've seen on the internet regards service not starting, but that's not the case here.
+
+Answer: Doing the same with Dell Command Update. Group Policy schedule shows in client setting but it didn't run.
+
+I set a GPO that runs a scheduled task for DCU. The DCU "scheduled updates" have always been a problem and never work reliably.
+
+We have no problem with DCU set to weekly/monthly
+
+--------------------------------------------------
+
+Question: Microsoft 365 E7- New enterprise licensing tier after 11 years
+
+There’s a rumor making the rounds that Microsoft may introduce a new license tier named Microsoft 365 E7.
+
+From what’s being rumoured(heard), E7 would bundle Microsoft 365 Copilot, Agent 365, deeper Entra identity integration, governance via Purview, and security powered by Defender XD. And pricing-wise, sources are pointing to around $99/user/month.
+
+There is also talk of hybrid user + consumption pricing. If that turns out to be true, Microsoft 365 licensing could start looking a lot more like Azure economics.
+
+Price hikes in July, rumours of a new tier. Hmm.....
+
+Answer: $100 a user a month is such a kick in the dick
+
+[Cries in GCC-High]
+
+This new sku is their way of upselling like the e5 and e3 is to some degree. Companies need to profile users and fit them to the tier they need. For example an e1 + f3 + desktop office may be cheaper than an e3. Our org has very few e5 either, mainly because guess what, most people never use their 1tb of OneDrive and 100 GB email. Is it cheaper to give admin assistants teams premium for meeting note taking or do they really need full copilot? And not everyone needs desktop office either, like your cleaning staff or whatever. Run the math. Microsoft hates it and it is more work but you can save a lot with this approach. The trick is really understanding all the myriad skus and profiling users with analytics to fit them into the right combo. And negotiating hard, including being ready to follow through on shifts to other products like crowdstrike, proof point, varonis etc. none of which may be cheaper, but Microsoft won’t want to lose the business line. Microsoft may be a necessary spend for all of us but that doesn’t mean you should roll over for the most expensive tier out of convenience.
+
+Depends on what you get for it and can consolidate other tools...
+
+It's a lot...but without real data yet it's impossible to know if it will be worth it
+
+It'll be a kick in the dick.
+
+E5 was meant to be the all in tier. Putting all new features in seperate suites and addons is a kick in the dick.
+
+--------------------------------------------------
+
+Question: Is it normal to hate this role?
+
+I’ve spent my entire career in tech and have loved it until now. I have 12+ YOE in engineering, mostly at startups so a lot of time as de facto IT just due to company size and resource constraints and honestly I loved that aspect of it. I am happy building CI/CD pipelines, IAC around our infrastructure, integrating an MDM and figuring out our machine configuration setup, dealing with service providers, all of that. Six months ago or so I accepted what I thought was an SRE role at a public company (~10k employees). I mean my title still says SRE but I haven’t written code in 3 months now.
+
+During my 6 months here, I have: watched 8 of my peers get fired, become the only US resource in IT apart from L1, been lied to about my role and responsibility, been lied to about staffing plans and resource constraints, been shoehorned into basically becoming our primary Okta administrator with no prior experience.
+
+The rest of my “team”is out here building an observability stack and I’m stuck here playing l1-l4 support because most of our employees are US based and the entirety of our IT org sits in India, working IST hours.
+
+Is this normal for IT? Or did I just get absolutely fucked by the company I joined?
+
+To be fair, I get paid like an SRE but I hate not actually doing any engineering work.
+
+Answer: Is this normal for IT? Or did I just get absolutely fucked by the company I joined?
+
+Both/and
+
+--------------------------------------------------
+
+Question: How are you monitoring dead letter queues? Feels like everyone has a different janky solution
+
+We're running SQS in prod and honestly the DLQ situation is a mess. I've got a CloudWatch alarm set up but half the team doesn't trust it, and we've been burned more than once by messages quietly piling up without anyone noticing.
+
+Asked around recently and it seems like no two teams do this the same way. Some folks have Lambda functions polling and firing off alerts. Some just... check manually (please no). Others have it hooked into Datadog but complain about the bill.
+
+So what are you actually using? Is there a sane approach I'm just not aware of, or is this one of those things where everyone's quietly suffering with their own duct-tape solution?
+
+Answer: Others have it hooked into Datadog but complain about the bill.
+
+We use datadog but with also use it for SIEM so we are only collecting the logs once and share the cost with our security team
+
+Datadog isn't cheap but also datadog cost is possible to control.
+
+Don't send it stuff to it you know you don't need. To keep ingest down. Or drop it at the index level so you ONLY pay ingest but keep the more expensive index cost in check.
+
+the longer you retain an index/log the more its costs, things that only need to generate an alert can be as low as 3 day or you can create a metric from them in the pipeline
+
+if you have a steady state use a contract commitment of at least 1 year to reduce the cost.
+
+The default is 30 days for an index which is quite costly and not necessary for alerting or hell most troubleshooting.. Create a NEW shorter term * everything index as your default and only use longer term for logs that need it.
+
+--------------------------------------------------
+
+Question: Not sure if I'm facing corporate bullying
+
+For context: I am sysadmin mostly focusing on Linux administration, some basic CI/CD, solving SSO issues, CRM stuff, SRI stuff etc. I don't manage physical datacenters or network firewalls. I am also not a native English speaker. Pardon my mistakes.
+
+Our department consists of 4 people: my boss (M30?), coworker A (M24), coworker B (M21) and me (F22). I was hired a year ago as a junior and it's basically my first job.
+
+I'm not going to lie I wasn't very good at my job at first, specifically like first 2 months, but I was very quick to learn as my boss mentioned to others. Me and B were hired at about the same time.
+
+In my country we have a mandatory lunch hour which I designated as 11 AM for myself and I could do and go wherever I want during it.
+
+I was promoted after 6 months after getting my own project (Jitsi based video meeting service) to kinda curate and around that time A was hired as the position I was promoted to. I was basically the only "junior" anyway.
+
+We used Jira as a task tracker. To this day I don't have even like lukewarm relationship with anyone in the company, which would be a good thing but I'm straight up ignored all the time, even if it's a work-related talk. One time I was straight up told to shut up by B when I wanted to explain some work-related shit.
+
+According to Jira I nowadays end up doing 80% of the work, which I am already not happy with. The weird-ish treatment makes it worse:
+
+For months I was cut off my lunch hour because someone hallucinated me sleeping during lunch, which just didn't happen since I'm in cafeteria in that hour and complained about it. This was blamed on my meds which *used* to cause narcolepsy and by that time I already quit these meds despite them being vital to me. Moreover, B would straight up be late because of sleeping or sleep IN THE OFFICE for hours with nobody saying anything
+
+I was consistently denied days off due to being ill, only being let to work remote when I have fucking fever, recently everyone is pissed at that too since I "don't warn people early enough" because they can't bother to check messages.
+
+2a) During one of the times I worked remote with insane fever I had a task which included setting up some iptables rules. I sent the rules I added to my boss and asked if I need to add anything else. He said he'll answer later then just never answered. The next day in the morning, the meeting was called about how irresponsible I was for not adding some rules boss wanted. I mentioned I asked what I should add and he didn't answer. I was still humiliated because I "should've texted him again" after that. He said he's "not sure what I was doing the entire day yesterday".
+
+3) One of my coworkers was doing one task for 3 months with little progress, which would require like 10 hours max anyway, making fake reports about what he did which he admitted to be fake. I had a task that didn't affect any system ever and it was about my own work station which I didn't do for a month because of other like 3 different huge tasks and winter holidays. I was again the irresponsible one
+
+4) We have automated daily tasks of checking services availability and how VMs are like (CPU space utilization etc) that are to be done within the first hour of work. I did them all the time (as many other tasks because A and B just never fucking took incoming ones and I had to to avoid trouble). Once I was so ill B had to do them and he added a new fucking rule that I should screenshot every single check. Dozens of VMs. Sure, I did that, then after months he took over again and I got a complaint that I didn't checked something like extremely deep and niche in the VM that he found within the 4 hours during which he struggled to complete the dailies with so I have to do this too.
+
+5) Several people from other departments treating me as a "pet" like the weird kids are treated as "pets".
+
+6) Once I accidentally took the task one second after B did, which I didn't notice. Got insulted for doing that and "taking over his task".
+
+6a) Today he said I "did my automation task wrong". It was about forwarding mail based tasks if there's a certain tag in it. He said he will take over it. I checked his "proof" and the cloents were using the fucking wrong tag, which I not only told others to use explicitly, I also embedded it in the OG task for everyone to see and know. I said that it's in no way my fault or mistake, he said he's "taking over anyway"
+
+7) A texting yesterday far past working hours at like 8 PM because I "did the task wrong". I got used to these two "checking my work" unprompted on their own accord and getting nitpicked for smallest details. I "didn't change the SSL cert" for a website, which I did. I checked it again from home, sent proof I did and asked if he cleared his, you know, CACHE? He said he didn't. Not only that, he checked it already BEFORE on a different device and it was fine. He apologised, but the sheer fact is just aneurytic.
+
+Also both of them fucked up in worse ways. B once dropped the whole ass Jira database, permanently losing data for the last 24 hrs even after using the back up dump. When I was on my vacation (2 weeks) A had a task to set up a config for a balancer for a new webapp, for which he uhh, copy pasted a config for another domain and closed the ticket?? So the website was straight up unavailable (since tre A entry was pointing at the balancer which just didn't have the correct config to handle shit) for the whole 2 weeks and I noticed it veey randomly since nobody said anything. I called him and explained how to do it correctly and ehy you can't copy paste fucking Nginx configs for different domains. Everyone consoled him and told him it's okay to make mistakes, including boss. No comments
+
+I am considering quitting and getting somewhere else sith a better payment, since mine gets depleted just from coming to office and eating. But I'm not sure if I am ever getting a payment better than this and if I would ever get better treatment anywhere else. Advice would be appreciated, especially from other women
+
+Answer: What are you even still doing there
+
+I initially stayed to get experience. Many better vacancies require at least a year so I was just basically waiting for the clock to strike.
+
+DING. it just stroked. update the resume and move on. new place will understand.
+
+--------------------------------------------------
+
+Question: Did I break my companies LDAP?
+
+I have been a system admin for about 2 years at this company and took over from the old boss. My boss was the only other IT team member with me and taught me alot as my first real system admin gig. I don't have much practice if really any on active directory. I've messed around with GPO policies, configuring OU's and user management, but not much of anything else. Regarding SSL Certs in AD, he handled that and wouldn't teach me anything about it, what to do, how to update them, what not to do.........
+
+He retired at the beginning of the year, deleted all of his personal notes on AD, 365, our phone system, everything. All documents, all backups of them, and he told me "GoodLuck"
+
+Rude move, but thats no longer the issue.
+
+To start we have DC A and B.
+
+DC A has the certs, wsus, and other services on it.
+
+DC B is there for replication and to look pretty.
+
+Our SSL cert on DC A expired.
+I got into digicert, renewed it, used the cert util to create a CSR. Messed up a few times creating a private key and ended up deleting the old certs to clean up while I am working..... I realize this mightve screwed me.
+
+After reissue number 4,
+
+I imported the cert to the digicert util,
+
+I exported the private key,
+
+I installed the private key in the Personal > Certificates folder,
+
+I restarted.
+
+Now ADFS service will not launch due to error 1064. It's looking for the old cert. I thought it meant it's still looking for it in a different method, online mentioned "netsh http show sslcert" and I went down that rabbit hole updating it.
+
+Event viewer is littered with 381, 249, then dying with 102.
+
+Event viewer says to fix config errors using powershell cmdlets and restart the federation service, other than Set-ADFScert or similar that require ADFS to be running, are there cmdlets online that will be able to update the cert its looking for while adfs is down?)
+
+That's now updated, but ADFS still wont start as it's looking for the old cert.
+
+I have installed the old cert from a different cert store but that didn't have it's private key so its still failing.
+
+I see online that to change the key, ADFS needs to be running, but it wont run. Am I going to have to launch from a backup?
+
+And if that is the case, what else do I need to do to prep for launching from a backup. or is this a bring in external help kinda case.
+
+Edit - Clarifying event ID's and adding that the only LDAP use we have is to a single knowbe4 instance that I will be deprecating in a month anyways switching to entras SCIM. Is a better method to just leave it, make the switch on knowbe4, and leave the service offline?
+
+Yes I know I shouldn't run more than AD & DNS on a DC. It's a setup I inherited and now am too swamped with generating reports and RFP's to manually maintain in any 40 hour week setup solo.
+
+DC A does not have the AD CS role installed. I am running from what I can tell just the built in windows server cert utils which may or may not be even worse.
+
+Answer: Hello, deleting all technical documentation is sabotage. Running AD CS on a DC is unsupported. Having ADFS for a two persons IT team is madness. And I coule go on and on.... Please call someone with expertise, your AD infrastructure is a ticking bomb. It's not your fault, but you'll likely may not be able to fix/maintain it as it is.
+
+Sounds like someone wanted a consultant gig after retiring…unfortunately.
+
+Oh I am close to saying I have to bring someone in to fix this as its beyond my depths.
+Would a possible solution be to leave it? ADFS is only being used for Knowbe4 in one instance and I am already closing it down from the kb4 console.
+
+Will I break anything by leaving ADFS offline, or just uninstalling the role altogether?
+
+If that's the only thing ADFS was used for then you can just uninstall ADFS. (TAKE BACK UPS FIRST)
+
+You can open up the ADFS management console and see if there are any other relying parties configured in it.
+
+My god he went through the trouble of setting up ADFS for one sign on? That's wild.
+
+--------------------------------------------------
+

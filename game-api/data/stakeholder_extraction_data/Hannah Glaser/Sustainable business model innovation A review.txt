@@ -1,0 +1,473 @@
+The capability to rapidly and successfully move into new business models is an important source of sustainable competitive advantage and a key leverage to improve the sustainability performance of or- ganisations. However, research suggests that many business model innovations fail. Despite the importance of the topic, the reasons for failure are relatively unexplored, and there is no comprehensive review of the sustainable business model innovation literature. This research provides a review of the literature, using a systematic database search and cross-reference snowballing. Its key contributions are:
+(1) a review of the key underlying concepts, discussing their similarities and differences and offer new de?nitions where there is an identi?ed need; (2) we identify a research gap; and (3) we deduct research questions to address the gap.
+(c) 2018 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY license
+(http://creativecommons.org/licenses/by/4.0/).
+
+
+Contents
+1. Introduction	401
+2. Method . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .	402
+3. Underlying concepts	402
+3.1. Business models	402
+3.2. Sustainable business models	403
+3.3. Business model innovation	404
+3.4. Sustainable business model innovation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .	406
+3.5. The design-implementation gap in sustainable business model innovation	407
+4. Research gap	408
+5. Research questions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .	410
+6. Discussion and conclusions	410
+Acknowledgements	410
+Considered business model definitions	411
+Considered sustainable business model definitions	412
+Considered business model innovation definitions	413
+Considered sustainable business model innovation definitions	414
+References	414
+1. Introduction
+
+  * Corresponding author. University of Cambridge, The Old Schools, Trinity Lane, Cambridge, CB2 1TN, UK.
+E-mail address: ml733@cam.ac.uk (M. Geissdoerfer).
+   
+Sustainability issues, like growing inequality (Piketty and Saez, 2014) and the deterioration of our natural livelihood (Rockstro?m, Steffen, and Noone, 2009) make the transformation to a more sustainable economic system increasingly desirable. To realise this
+
+https://doi.org/10.1016/j.jclepro.2018.06.240
+0959-6526/(c) 2018 The Authors. Published by Elsevier Ltd. This is an open access article under the CC BY license (http://creativecommons.org/licenses/by/4.0/).
+
+
+
+transition, private business is a pivotal stakeholder commanding the most resources and capabilities (Porter and Kramer, 2011). However, technological advances towards sustainability are increasingly incremental, and many companies ?nd it dif?cult to meet their sustainability targets. Therefore, innovation on the business model level is required to align incentives and revenue mechanisms to leverage sustainable solutions (Rashid et al., 2013). Business model innovations are suspected to yield higher returns than product or process innovations (Chesbrough, 2007; Lindgardt et al., 2009), and sustainable business models might have the additional bene?t of higher risk mitigation and resilience (Choi and Wang, 2009) and yield additional diversi?cation and value co- creation opportunities (Nidumolu et al., 2009; Porter and Kramer, 2011; Tukker and Tischner, 2006). To realise these advantages or- ganisations become increasingly interested in implementing sus-
+tainable solutions (Evans et al., 2009).
+   However, many business model innovations fail (Patel, 2015). This has serious economic implications for companies (Chesbrough, 2007) and leads to considerable delays in the adoption of sustain- able solutions (Geissdoerfer et al., 2017a, b). Despite the importance of these issues, the reasons for failure remain relatively unexplored. To explore this issue, we conducted a comprehensive review of the sustainable business model innovation literature. We identi?ed various de?nitions of the key underlying concepts, which we interpreted and synthesised into working de?nitions. We identi?ed essential research gaps and formulated research questions based on our analysis and thinking. We propose that these and similar questions are addressed by the development of research agendas
+based on the gap and the proposed working de?nitions.
+   The paper is structured as follows. First, the employed method for the literature review is described in section 2, before the key underlying concepts for this research are introduced in section 3. This is followed by a description of the research gap in section 4, based on which, research questions are formulated in section 5. The paper concludes with a short discussion of the ?ndings and some ?nal remarks in section 6.
+
+2. Method
+
+   The research was based on a structured literature review, following the recommendations of Creswell (2014), Easterby-Smith et al. (2015), and Tran?eld et al. (2003). A systematic database search was conducted, followed by cross-reference snowballing, as illustrated in Fig. 1.
+   In a ?rst step, a systematic literature search was conducted. As shown in Table 1, the search strings, "business model" in 'Title' respectively 'Article title' and "sustainable business model", "business model* for sustainability", "business model innovation" AND sustai- nab*, "business modelling" AND sustainab*, and "business model design" AND sustainab* in 'Topic' respectively 'Article title, Abstract, Keywords' were used to search for reviews or articles in English on the Thomson Reuters Web-of-Science and Elsevier Scopus data- bases. Subsequently, the abstracts of the identi?ed publications where scanned to de?ne an initial sample of relevant literature.
+   In a second step, relevant cross-references were identi?ed in this initial sample by ?rst scanning the publications' title in the reference section and their context and cited content in the text. The abstracts of the identi?ed additional publications were scan- ned to determine whether the paper was relevant. Relevant refer- ences were subsequently added to the sample and analogously scanned for relevant cross-references. This process was repeated until no further relevant cross-references could be identi?ed.
+   In a third step, the ?nal sample was integrated, synthesised, and compiled into the literature review presented in the following. The process was updated on the day of submission.
+3. 
+Underlying concepts
+
+   This section presents de?nitions of the concepts of business models, sustainable business models, business model innovation, and sustainable business model innovation, discusses their simi- larities and differences and synthesises new de?nitions where there is an identi?ed need. We also introduce the notion of the design-implementation gap of sustainable business model inno- vation identi?ed during the review. The ?rst four parts of this section are accompanied with a selection of different de?nitions, while an overview of all considered de?nitions can be found in Appendix A to D respectively.
+
+3.1. Business models
+
+   The business model concept gained popularity during the dotcom boom of the 1990's with a vibrant and diverse research activity more recently (Zott et al., 2011). This activity led to an extensive special issue in the Long Range Planning journal in 2010 and a considerable range of literature reviews, like Bieger and Reinhold (2011), George and Bock (2011), Massa et al. (2017), Schallmo (2013), and Zott et al. (2011), which were integrated, updated, and synthesised into this literature review, whose result is illustrated in Table 2.
+   During the e-commerce boom of the 1990's, new innovative revenue mechanisms were introduced. In this context, the business model concept was originally used to communicate complex busi- ness ideas to potential investors within a short time frame (Zott et al., 2011). From there, the purpose of the concept developed to be now seen as both a tool for the systemic analysis, planning, and commu- nication of the con?guration and implementation of one or more organisational units and relevant parts of their environment in face of organisational complexity (Doleski, 2015; Knyphausen-Aufsess and Meinhardt, 2002), as well as a strategic asset for competitive advantage and ?rm performance (Afuah, 2004; Casadesus-Masanell and Ricart, 2010; Chesbrough, 2007; Hamel, 2000; Magretta, 2002). For organisational decision-making and academic research in the context of emerging industrial phenomena, like Industry 4.0 (Bundesregierung, 2014) or Re-Distributed Manufacturing (Srai et al., 2016), the business model concept allows to extrapolate from potential customer and value chain bene?ts to the required con?guration and implementation of the other business model elements (Osterwalder et al., 2014; Yang et al., 2016). The resulting potential business models provide the necessary information about the implementation of phenomena's conceptual and technological implications that is required as a basis for further research in these. As these de?nitions show, there are three main groups of un- derstanding of the term business model, as illustrated in Fig. 2. The concept is either described as a model of an organisational system (e.g. Baden-Fuller and Morgan, 2010; Knyphausen-Aufsess and Meinhardt, 2002), as an abstract characteristic of an organisa- tional unit, (e.g. Osterwalder and Pigneur, 2010; Teece, 2010), or with a reduced scope that equates the term with individual ele- ments of other authors' de?nitions or reduce it to achieve certain means (e.g. Doganova and Eyquem-Renault, 2009). There is a central role of value in most de?nitions, roughly following the categorisation of Richardson (2008), value proposition, value cre- ation and delivery, and value capture, with some authors also
+adding the value network (e.g. Zott and Amit, 2010).
+Business model working de?nition
+   Based on this analysis, we de?ne business models as simpli?ed representations of the value proposition, value creation and delivery, and value capture elements and the interactions between these ele- ments within an organisational unit.
+   However, since there can be several representations of the same organisational unit, perceptions of the term must be considered
+
+
+
+
+Fig. 1. Literature review approach, illustration adapted from Geissdoerfer et al., (2017b.
+
+Table 1
+Literature search strings.
+
+Search string	Search ?eld	Number of non-exclusive results
+Web of ScienceScopusLast updated"business model*"Title/Article title1690231427/02/2018"sustainable business model*"Topic/Article title, Abstract, Keywords19027927/02/2018"business model* for sustainability"Topic/Article title, Abstract, Keywords222527/02/2018"business model innovation" AND sustainab*Topic/Article title, Abstract, Keywords9010927/02/2018"business modelling" AND sustainab*Topic/Article title, Abstract, Keywords910527/02/2018"business model design" AND sustainab*Topic/Article title, Abstract, Keywords81727/02/2018
+
+that assume an underlying abstract concept that is characteristic of the entity e analogue to capabilities, resources, or strategies, which can be documented in different ways without the document becoming the underlying concept. Not fully considered can be de?nitions with reduced scope that assume identity of the business model with one of its elements, for example, the revenue model.
+
+3.2. Sustainable business models
+
+   The academic and practitioner interest in sustainable business models has grown rapidly, culminating in special issues in Journal of Cleaner Production (Vol. 45, April 2013), and Organisation and the Environment (Vol. 29, Is. 1, March 2016), which provide an excellent overview over the topic. There is also a growing range of review articles by Bocken et al. (2014), Boons and Lüdeke-Freund (2013), Evans et al. (2017), and Schaltegger et al. (2016). Following on from this work, an updated and complemented literature review was conducted. An overview of the considered de?nitions is provided in Table 3.
+   When the concept was ?rst conceived, its main purpose was to put companies into the service of the transformation to a more sustainable economic system and to provide leverage for inte- grating sustainability considerations into organisations and helping companies to achieve their sustainability ambitions (Rashid et al., 2013; Stubbs and Cocklin, 2008; Wells, 2013). Today, the notion of sustainable business models is increasingly seen as a source of competitive advantage (Nidumolu et al., 2009; Porter and Kramer, 2011). Thus, it could be argued that the sustainable business model concept model might eventually supersede the business
+
+model concept much like sustainable competitive advantage has superseded competitive advantage (Grant, 2010).
+   The de?nitions in the literature have in common that they see sustainable business models as a modi?cation of the conventional business model concept, with certain characteristics and goals added to it; and, they either 1) incorporate concepts, principles, or goals that aim at sustainability; or 2) integrate sustainability into their value proposition, value creation and delivery activities, and/ or value capture mechanisms.
+   The literature describes different subcategories, archetypes, or generic strategies for sustainable business models, like product- service systems, base of the pyramid, or circular business models (Bocken et al., 2014). These types have additional characteristics. For example, circular business models are not only creating sus- tainable value, employing pro-active multi-stakeholder manage- ment, and have a long-term perspective, but also close, slow, intensify, dematerialise, and narrow resource loops (Bocken et al., 2016; Geissdoerfer et al., 2018a), as illustrated in Fig. 3.
+   However, because of potential trade-offs between these addi- tional characteristics and the characteristics that qualify a sustain- able business model, there may be cases that represent only the sub- category without being a sustainable business model as illustrated in Fig. 4. This could, for example, be caused by ef?ciency gains of a new technology that exceed the environmental bene?ts of closing the loop for an old technology, or negative consequences of going circular for the working conditions of employees (Geissdoerfer et al., 2017b).
+Sustainable business model working de?nition
+Based on this analysis, we de?ne sustainable business models as
+business models that incorporate pro-active multi-stakeholder
+
+
+Table 2
+Selected business model de?nitions.
+
+Source	De?nition
+
+Timmers, 1998	The business model is "an architecture of the product, service and information ?ows, including a description of the various business actors and their roles; a description of the potential bene?ts for the various business actors; a description of the sources of revenues" (p. 4)
+
+Chesbrough and Rosenbloom, 2002
+
+Knyphausen-Aufsess and Meinhardt, 2002
+
+The business model is "the heuristic logic that connects technical potential with the realization of economic value" (p. 529). "The business model provides a coherent framework that takes technological characteristics and potentials as inputs and converts them through customers and markets into economic outputs" (p. 532).
+A business model is a simpli?ed representation of a pro?t aimed venture, consisting of its essential elements and their interconnections.
+
+Magretta, 2002	"[Business models] are, at heart, storiesdstories that explain how enterprises work [and answer the following questions,] Who is the customer? And what does the customer value? It also answers the fundamental question every manager must ask: How do we make money in this business? What is the underlying economic logic that explains how we can deliver value to the customers at an appropriate cost?" (p. 87)
+Richardson, 2008	A business model is "a conceptual framework that helps to link the ?rm's strategy, or theory of how to compete, to its activities, or execution of the strategy. The business model framework can help to think strategically about the details of the way the ?rm does business." (p. 135) "The three major components of the framework d the value proposition, the value creation and delivery system, and value capture d re?ect the logic of strategic thinking about value. The essence of strategy is to create superior value for customers and capture a greater amount of that value than competitors." (p. 138)
+
+Doganova and Eyquem-Renault, 2009
+
+"The business model is a narrative and calculative device that allows entrepreneurs to explore a market and plays a performative role by contributing to the construction of the techno-economic network of an innovation." (p. 1559)
+
+Baden-Fuller and Morgan, 2010 "business models have a multivalent character as models. They can be found as exemplar role models that might be copied or presented as nutshell descriptions of a business organisation: simpli?ed, short-hand descriptions equivalent to scale models. We can think of them not only as capturing the characteristics of observed kinds in the world (within a taxonomy), but also as abstract ideal types (in a typology)" (p. 167)
+
+Casadesus-Masanell and Ricart, 2010)
+
+"A business model is [...] a re?ection of the ?rm's realized strategy" (p. 195).
+
+Osterwalder and Pigneur, 2010  "A business model describes the rationale of how an organisation creates, delivers, and captures value."(p. 14)
+Teece, 2010	"A business model articulates the logic, the data and other evidence that support a value proposition for the customer, and a viable structure of revenues and costs for the enterprise delivering that value" (p. 179).
+Zott and Amit, 2010	"we conceptualize a ?rm's business model as a system of interdependent activities that transcends the focal ?rm and spans its boundaries. The activity system enables the ?rm, in concert with its partners, to create value and also to appropriate a share of that value [and is de?ned by] design elements - content, structure and governance - that describe the architecture of an activity system; and design themes - novelty, lock-in, complementarities and ef?ciency e that describe the sources of the activity system's value creation." (p. 216).
+Geissdoerfer et al., 2016	"we describe business models as simpli?ed representations of the elements e and interactions between these elements e that an organisational unit chooses in order to create, deliver, capture, and exchange value." (p. 1218)
+Wirtz et al., 2016	"A business model is a simpli?ed and aggregated representation of the relevant activities of a company. It describes how marketable information, products and/or services are generated by means of a company's value-added component. In addition to the architecture of value creation, strategic as well as customer and market components are taken into consideration, in order to achieve the superordinate goal of generating, or rather, securing the competitive advantage. To ful?l this latter purpose, a current business model should always be critically regarded from a dynamic perspective, thus within the consciousness that there may be the need for business model evolution or business model innovation, due to internal or external changes over time." (p.41)
+Massa et al., 2017	"a business model is a description of an organisation and how that organisation functions in achieving its goals (e.g., pro?tability, growth, social impact, ...)." (p. 73)
+
+
+
+
+
+Fig. 2. Three types of business model de?nitions.
+
+
+management, the creation of monetary and non-monetary value for a broad range of stakeholders, and hold a long-term perspective.
+   The most prevalent framework underlying the different con- ceptualisation is the value proposition, value creation and delivery, and value capture structure of Richardson (2008), which we included in our working de?nition. In different modi?cations, it is used by most authors in our sample. While some of these
+
+modi?cations have accounted for the multi-stakeholder nature of sustainable business models in two of the elements, the focus on customer and monetary value of the value capture element endured. Since sustainable business model innovation focuses on stakeholder bene?t and stakeholder value rather than solely on customer bene?t or shareholder value the existing de?nition seems inadequate. We therefore propose the following de?nition: value capture describes how part of the value generated for a stakeholder can be transformed into value useful for the company. The value is useful for the company if it helps the company to achieve its purpose. Examples of useful value thus could be pro?t, strategic ?t, and employee motivation.
+
+3.3. Business model innovation
+
+   Business model innovation is a stream in the work on business models, and some authors of the latter assume it to be an implicit part of their conceptualisation. Schallmo (2013) and Foss and Saebi (2017) provided an extensive literature review on the topic, which was updated and complemented for this research. A resulting overview of different business model innovation de?nitions is provided in Table 4. The concept is investigated to understand and facilitate the analysis and planning of transformations from one business model to another (Schallmo, 2013). The capability for frequent and suc- cessful business model innovation can increase an organisation's resilience to changes in its environment and constitute a sustain-
+able competitive advantage (Mitchell and Coles, 2003).
+
+
+Table 3
+Selected sustainable business model de?nitions. Source	De?nition
+Stubbs and Cocklin, 2008  A sustainable business model is "a model where sustainability concepts shape the driving force of the ?rm and its decision making [so that] the
+dominant neoclassical model of the ?rm is transformed, rather than supplemented, by social and environmental priorities." (p. 103)
+Garetti and Taisch, 2012 Sustainable business models "have a global market perspective, taking into account the development of new industrialised countries as well as the need for more sustainable products and services." (p. 88)
+Schaltegger et al., 2012	Sustainable business models "create customer and social value by integrating social, environmental, and business activities" (p. 112)
+Bocken et al., 2013	"Sustainable business models seek to go beyond delivering economic value and include a consideration of other forms of value for a broader range of stakeholders." (p. 484)
+Boons and Lüdeke-Freund, A sustainable business model is different from a conventional one through four propositions, "1. The value proposition provides measurable
+
+2013
+
+ecological and/or social value in concert with economic value [...] 2. The supply chain involves suppliers who take responsibility towards their own as well as the focal company's stakeholders [...] 3. The customer interface motivates customers to take responsibility for their consumption as well as for the focal company's stakeholders. [...] 4. The ?nancial model re?ects an appropriate distribution of economic costs and bene?ts among actors involved in the business model and accounts for the company's ecological and social impacts" (p. 13)
+
+Wells, 2013	A business model for sustainability "would assists in the achievement of sustainability [by] following major principles [...] for sustainability", which Wells de?nes as 1) resource ef?ciency, 2) social relevance, 3) localisation and engagement, 4) longevity, 5) ethical sourcing, and 6) work enrichment. (p. 65)
+Upward and Jones, 2015 A (strongly) sustainable business model "is the de?nition by which an enterprise determines the appropriate inputs, resource ?ows, and value decisions and its role in ecosystems, [in a way that] sustainability measures [which] are those indicators that assess the outputs and effects of business model decisions [...] might be claimed as successfully sustainable." (p. 98)
+
+Abdelka? and Tauscher, 2016)
+
+Sustainable business models, "incorporate sustainability as an integral part of the company's value proposition and value creation logic. As such, [Business models for Sustainability] provide value to the customer and to the natural environment and/or society." (p. 75)
+
+Geissdoerfer et al., 2016) "we de?ne a sustainable business model as a simpli?ed representation of the elements, the interrelation between these elements, and the interactions with its stakeholders that an organisational unit uses to create, deliver, capture, and exchange sustainable value for, and in collaboration with, a broad range of stakeholders." (p. 1219)
+Evans et al., 2017	Sustainable business models are described with ?ve propositions, "1. Sustainable value incorporates economic, social and environmental bene?ts conceptualised as value forms. 2. Sustainable business models require a system of sustainable value ?ows among multiple stakeholders including the natural environment and society as primary stakeholders. 3. Sustainable business models require a value network with a new purpose, design and governance. 4. Sustainable business models require a systemic consideration of stakeholder interests and responsibilities for mutual value creation. 5.Internalizing externalities through product-service systems enables innovation towards sustainable business models." (p. 5ff)
+
+
+Fig. 3. Sustainable and circular business models (Geissdoerfer et al., 2018a).
+
+   These de?nitions refer to business model innovation as a change in the con?guration of either the entire business model or indi- vidual elements of it, either as a reaction to opportunities or chal- lenges in the organisation's environment or as a vehicle for diversi?cation and innovation. Consequently, the concept's main ?elds of application have been in corporate diversi?cation (Ansoff, 1957) and business venturing and start-up contexts. Based on the described business model innovation examples, four generic con- ?gurations of business model innovation can be distinguished. These comprise start-ups, business model transformation, business model diversi?cation, and business model acquisition (Fig. 5).
+   The differentiation between other forms of innovation and diversi?cation is not clearly de?ned by the reviewed publications. For example, Lindgardt et al., 2009 de?ne that at least two business
+
+model elements have to change for an innovation to qualify as a business model innovation. However, the thresholds for changes in a company's activities to qualify as a change in a business model element remain unclear, for instance, when a product innovation constitutes a new value proposition. Thus, it remains conceptually underexplored under what circumstances, for example, product innovation, service innovation, or changes in the supply chain qualify as a business mode innovation.1
+Business model innovation working de?nition
+Based on this analysis, we de?ne business model innovation as
+the conceptualisation and implementation of new business models.
+
+
+1 We have discussed this in more detail in Geissdoerfer et al., (2018b).
+
+
+
+
+
+
+Fig. 4. Imperfect overlap of sustainable business model concept and its subcategories like circular business models.
+
+
+This can comprise the development of entirely new business models, the diversi?cation into additional business models, the acquisition of new business models, or the transformation from one business model to another. The transformation can affect the entire business model or individual or a combination of its value proposition, value creation and deliver, and value capture elements, the interrelations between the elements, and the value network.
+
+3.4. Sustainable business model innovation
+
+   As a subset in the sustainable business model ?eld, research in sustainable business model innovation has started relatively recently, and there seems to be no comprehensive review of the literature yet. Therefore, this review was conducted, and an over- view of different de?nitions is presented in Table 5.
+   These de?nitions combine a business model innovation element with sustainability considerations. Similar to the understanding of
+
+conventional business model innovation scholars, business model innovation is seen as a process of business model exploration, adjustment, improvement, redesign, revision, creation, develop- ment, adoption, and transformation. The process quali?es as a sustainable business model innovation or a business model inno- vation for sustainability, when it aims at: 1) sustainable develop- ment or positive, respectively reduced, negative impacts for the environment, society, and the long-term prosperity of the organi- sation and its stakeholders or 2) adopting solutions or character- istics that foster sustainability in its value proposition, creation, and capture elements or its value-network.
+   Analogous to the discussion of conventional business model innovation in section 3.3, there are four types of sustainable busi- ness model innovation: (1) sustainable start-ups: a new organisa- tion with a sustainable business model is created; (2) sustainable business model transformation: the current business model is changed, resulting in a sustainable business model; (3) sustainable business model diversi?cation: without major changes in the existing business models of the organisation, and additional, sus- tainable business model is established; 4) Sustainable business model acquisition: an additional, sustainable business model is identi?ed, acquired, and integrated into the organisation.
+   Based on the discussion in section 3.2, these four innovations are expected to aim at implementing certain sustainable business model types and strategies. The types include circular business model innovation (Bocken et al., 2016), social enterprises (Defourny and Nyssens, 2010), bottom-of the pyramid businesses (Prahalad, 2009), and product-service systems (Tukker, 2004). The strategies were reviewed by Bocken et al. (2014) and recently updated by Ritala et al. (2018). They have synthesised nine generic sustainable business model strategies, they call "archetypes". The strategies comprise: (1) maximise material and energy ef?ciency; (2) closing resource loops; (3) substitute with renewables and natural pro- cesses; (4) deliver functionality rather than ownership; (5) adopt a stewardship role; (6) encourage suf?ciency; (7) repurpose for so- ciety or the environment; (8) inclusive value creation; and (9) develop sustainable scale up solutions.
+Sustainable business model innovation therefore aims at (1)
+
+
+Table 4
+Selected business model innovation de?nitions. Source	De?nition
+Mitchell and Coles, 2004 "By business model innovation, we mean business model replacements that provide product or service offerings to customers and end users
+that were not previously available. We also refer to the process of developing these novel replacements as business model innovation." (p. 17)
+Labbe? and Mazet, 2005	A business model innovation changes one or more dimensions of a business model (which are perceived by the authors as product-market combination, the architecture of the value creation, and the revenue model) so that a novel con?guration of the elements is created and implemented. (pp. 897 f.)
+Osterwalder and Pigneur, "Specifying a set of business model elements and building blocks, as well as their relationships to one another [...] a business model designer
+2005	[...] can experiment with these blocks and create completely new business models, limited only by imagination and the pieces supplied." (p. 24)
+Chesbrough, 2007	Business model innovation is to "advance [the] business model [...] from very basic (and not very valuable) models to far more advanced (and more valuable) models." (p.15)
+Lindgardt et al., 2009	"Innovation becomes BMI [business model innovation] when two or more elements of a business model are reinvented to deliver value in a new way. [...] BMI can provide companies a way to break out of intense competition, under which product or process innovations are easily imitated". (p. 2)
+Romero and Molina, 2009 "business models as de?ners of the value creation priorities in an organisation should be continuously reviewed in response to actual and possible changes in the perceived market conditions and evolve the enterprise strategy as the business environment and customers' needs change." (p. 3)
+Chesbrough, 2010	Business model innovation "[1] Articulates the value proposition (i.e., the value created for users by an offering based on technology); [2] Identi?es a market segment and specify the revenue generation mechanism (i.e., users to whom technology is useful and for what purpose); [3] De?nes the structure of the value chain required to create and distribute the offering and complementary assets needed to support position in the chain; [4] Details the revenue mechanism(s) by which the ?rm will be paid for the offering; [5] Estimates the cost structure and pro?t potential (given value proposition and value chain structure); [7] Describes the position of the ?rm within the value network linking suppliers and customers (incl. identifying potential complementors and competitors); and [8] Formulates the competitive strategy by which the innovating ?rm will gain and hold advantage over rivals." (p. 355, citing Chesbrough and Rosenbloom, 2002)
+Johnson, 2010	"[Seizing the white space] calls for the ability to innovate something more core than the core, to innovate the very theory of the business itself. I call that process business model innovation." (p. 13) "business model innovation is an iterative journey" (p. 114)
+Geissdoerfer et al., 2016 "Business model innovation describes either a process of transformation from one business model to another within incumbent companies or after mergers and acquisitions, or the creation of entirely new business models in start-ups." (p. 1220)
+
+
+
+
+Fig. 5. Types of business model innovation.
+
+Table 5
+Selected sustainable business model innovation de?nitions. Source	De?nition
+Boons and Lüdeke-Freund, Sustainable business model innovation is underststood as the adaption of the business model to overcome barriers within the company and its
+
+2013
+Loorbach and Wijsman, 2013
+
+environment to market sustainable process, product, or service innovations. (p. 13)
+Sustainable business model innovation describes businesses' "searching for ways to deal with unpredictable [...] wider societal changes and sustainability issues." (p. 20)
+
+Bocken et al., 2014	"Business model innovations for sustainability are de?ned as: Innovations that create signi?cant positive and/or signi?cantly reduced negative impacts for the environment and/or society, through changes in the way the organisation and its value-network create, deliver value and capture value (i.e. create economic value) or change their value propositions." (p. 44)
+Geissdoerfer et al., 2016  "Sustainable business innovation processes speci?cally aim at incorporating sustainable value and a pro-active management of a broad range of stakeholders into the business model." (p.1220)
+Roome and Louche, 2016 Sustainable business model innovation describes the "processes through which [...] new business models are developed by businesses and their managers [...] how companies revise and transform their business model in order to contribute to sustainable development." (p. 12)
+Schaltegger et al., 2016	Sustainable business model innovation describes the creation of "modi?ed and completely new business models [that] can help develop integrative and competitive solutions by either radically reducing negative and/or creating positive external effects for the natural environment and society" (p. 3)
+Yang et al., 2016	"Sustainable business model innovation can be more easily achieved by identifying the value uncaptured in current business models, and then turning this new understanding of the current business into value opportunities that can lead to new business models with higher sustainable value." (p. 2)
+
+
+characteristics of a sustainable business model e sustainable value creation, proactive multi-stakeholder management, and a long- term perspective. (2) four types of innovation e sustainable start- ups, sustainable business model transformation, sustainable busi- ness model diversi?cation, sustainable business model acquisition.
+(3) creating a sustainable business model type e circular business models, social enterprises, bottom of the pyramid solutions, or product-service systems. (4) the implementation of one or more sustainable business model strategies. An overview of sustainable business model innovation types, business model types and stra- tegies is provided in Table 6.
+Sustainable business model innovation working de?nition
+   Based on this, we de?ne sustainable business model innovation as the conceptualisation and implementation of sustainable business models. This can comprise the development of entirely new business models, the diversi?cation into additional business models, the acquisition of new business models, or the transformation from one business model to another.
+
+3.5. The design-implementation gap in sustainable business model innovation
+
+   There seems to be a three-fold problem in sustainable business model innovation: 1) many business model innovation meetings and workshops are conducted, but the ideas are not followed up, 2) even promising sustainable business model concepts are not implemented, and 3) most implemented business models,
+
+especially in the start-up context, fail in the market. This is caused by different challenges, some of which were identi?ed in a litera- ture review by Evans et al. (2017). These challenges are presented in Table 7.
+   These challenges are con?rmed by a range of authors in the business model innovation, strategic management, and change management literature.
+  Chesbrough (2010) remarks that business model innovation often does not take place because the organisation cannot identify the appropriate business model for new technologies or solution. Other authors, like Christensen (1997) and Christensen and Raynor (2003), see the problem further down the line in con?icts with the current business model and organisational logic that prevent implementation. These scholars see the dif?culties that disruptive technology pose for ?rms not in the identi?cation of the appro- priate business model to exploit it, but in the inertia to change the current business model. This inertia is caused by often higher gross margins of the incumbent technology in the crucial early phases, and the consequent misallocation of resources. Similarly, according to Amit and Zott (2001), novelty, lock-in complementarities and ef?ciency are inherent aspects of business model innovation that require changes in the current con?guration of assets. This causes con?icts with the managers of these assets who will consequently resist the innovation process.
+   This is reinforced by Prahalad and Bettis (1986) and Bettis and Prahalad (1995)'s concept of dominant logic that describes how organisations assess, select, and interpret information in often
+
+
+Table 6
+Overview of sustainable business model innovation types, business model types and strategies.
+
+Examples	Description
+
+Sustainable business model	1) Sustainable start-ups:	A new organisation with a sustainable business model is created
+
+innovation types
+2) 
+Sustainable business model transformation
+3) Sustainable business model diversi?cation
+4) Sustainable business model acquisition
+
+The current business model is changed, resulting in a sustainable business model
+
+Without major changes in the existing business models of the organisation, and additional, sustainable business model is established
+An additional, sustainable business model is identi?ed, acquired, and integrated into the organisation
+
+Sustainable business model types
+1) 
+Circular business models	Business models that are closing, slowing, intensifying, dematerialising, or narrowing resource loops
+2) Social enterprises	Business models that aim at social impact by generating pro?ts from economic activity or reinvesting them entirely
+3) Bottom of the pyramid solutions  Business models that aim at customers at the bottom of the income pyramid
+4) Product-service systems	Business models that integrate products and services into customer offerings that provide a product, a functionality, or a result
+
+Sustainable business model strategies
+1) 
+Maximise material and energy ef?ciency
+
+Aims at less material and energy input through more ef?cient processes
+
+2) Closing resource loops	Aims at closing resource loops through reuse, remanufacturing, and recycling
+
+3) Substitute with renewables and natural processes
+4) Deliver functionality rather than ownership
+
+Aims at replacing non-renewable resources with renewable ones and arti?cial processes with ones that     mimic     or     use     processes     in     nature Aims at providing the user with the functionality she requires without her owning the product that delivers the service
+
+5) Adopt a stewardship role	Aims at protecting natural systems by introducing a gatekeeper that controls access or incentivises certain behaviours
+6) Encourage suf?ciency	Aims at providing information and incentives that encourage less consumption
+
+7) Repurpose for society or the environment
+
+Aims at utilising organisational resources and capabilities to create societal or environmental bene?ts
+
+8) Inclusive value creation	Aims at delivering value to formerly unattended stakeholders or including them into the value creation process
+
+9) Develop sustainable scale up solutions
+
+Aims at scaling sustainable solutions and technologies
+
+
+
+
+Table 7
+Challenges for innovation towards sustainable business models (Evans et al., 2017).
+
+Challenges	Description	Authors
+
+Triple Bottom The co-creation of pro?ts, social and environmental bene?ts and the balance among them are challenging (Hart et al., 2003; Schaltegger et al., 2012;
+
+Line
+
+for moving towards sustainable business models.
+
+Stubbs and Cocklin, 2008)
+
+Mind-set	The business rules, guidelines, behavioural norms and performance metrics prevail the mind-set of ?rms (Boons and Lüdeke-Freund, 2013; Johnson
+and inhibit the introduction of new business models.	et al., 2008; Yu and Hang, 2010)
+Resources	Reluctance to allocate resources to business model innovation and recon?gure resources and processes for (Bjo?rkdahl and Holme?n, 2013; Chesbrough,
+
+
+Technology innovation
+External
+  relations Methods and
+tools
+
+new business models.
+Integrating technology innovation, e.g. clean technology, with business model innovation is multidimensional and complex.
+Engaging in extensive interaction with external stakeholders and business environment requires extra efforts.
+Existing business modelling methods and tools, e.g. Osterwalder and Pigneur (2010) and Johnson et al. (2008), are few and rarely sustainability driven.
+
+2010; C Zott et al., 2011)
+(Hart et al., 2003; Yu and Hang, 2010; Zott et al., 2011)
+(Boons and Lüdeke-Freund, 2013; Stubbs and Cocklin, 2008; Vladimirova, 2012)
+(Bjo?rkdahl and Holme?n, 2013; Girotra and Netessine, 2013; Yang et al., 2014)
+
+
+
+
+
+chaotic and uncertain environments. This can prevent companies to utilise value creation opportunities that are different from their current business model and its logic.
+   Similarly, the change management ?eld refers to organisational inertia as a reason why change efforts fail (Hughes, 2011). This inertia is caused by different barriers to organisational change, like insuf?cient top management involvement, job security concerns, power struggles, and agency problems (Burnes, 1996; Kegan and Lahey, 2001; Kotter, 2007) that also apply to business model innovation as a particularly comprehensive and complex change effort (Table 8).
+Working de?nition
+   Based on this review, we de?ne the design-implementation gap of sustainable business model innovation as the set of challenges that prevent organisations from successfully innovating their business model, due to insuf?cient follow-up on ideas, lack of implementation of concepts, and failure of businesses in the market.
+To conclude the literature review part, an overview of all
+
+working de?nitions that we develop in this section is illustrated in Table 9.
+
+4. Research gap
+
+   In our review, we identi?ed a research gap in the following three areas of sustainable business model innovation that undermine bridging its design-implementation gap: 1) the implementation of the business model innovation process; 2) its tools; and 3) its challenges.
+   Even though business model research is a relatively young ?eld in management studies (Baden-Fuller and Morgan, 2010; Zott et al., 2011), a broad discourse on business model innovation has evolved in the last decade (e.g. Chesbrough and Rosenbloom, 2002; Chesbrough, 2007, 2010; Mitchell and Coles, 2003, 2004; 2004; Demil and Lecocq, 2010; Johnson, 2010; Johnson et al., 2008; Teece, 2010; Zott et al., 2011). However, the way organisations actually implement new business models is still unexplored (Chesbrough,
+
+
+Table 8
+Change management stages, actions, and pitfalls (Kotter, 2006).
+
+Stage	Actions needed	Challenges
+
+Establish a sense of urgency	Examine market and competitive realities for potential crises and Underestimating the dif?culty of driving people from their comfort
+untapped opportunities.	zones.
+
+
+
+Form a powerful guiding
+
+Convince at least 75% of your managers that the status quo is more Becoming paralyzed by risks dangerous than the unknown.
+Assemble a group with shared commitment and enough power to No prior experience in teamwork at the top.
+
+coalition
+
+lead the change effort.
+
+Relegating team leadership to an HR, quality, or strategic-planning
+
+Encourage them to work as a team outside the normal hierarchy. executive rather than a senior line manager
+
+Create a vision	Create a vision to direct the change effort. Develop strategies for realizing that vision.
+Communicate the vision	Use every vehicle possible to communicate the new vision and
+strategies for achieving it.
+Teach new behaviours by the example of the guiding coalition.
+
+Presenting a vision that's too complicated or vague to be communicated in 5 min.
+Undercommunicating the vision.
+Behaving in ways antithetical to the vision.
+
+Empower others to act on the vision
+
+Plan for and create short-term wins
+
+Consolidate improvements and Produce more change
+
+Remove or alter systems or structures undermining the vision. Encourage risk taking and non-traditional ideas, activities, and actions.
+De?ne and engineer visible performance improvements. Recognize and reward employees contributing to those improvements.
+Use increased credibility from early wins to change systems, structures, and policies undermining the vision.
+Hire, promote, and develop employees who can implement the vision.
+Reinvigorate the change process with new projects and change agents.
+
+Failing to remove powerful individuals who resist the change effort.
+
+
+Leaving short-term successes up to chance.
+Failing to score successes early enough (12e24 months into the change effort)
+Declaring victory too soondwith the ?rst performance improvement.
+Allowing resistors to convince "troops" that the war has been won.
+
+Institutionalise new approaches Articulate connections between new behaviours and corporate
+success.
+Create leadership development and succession plans consistent with the new approach.
+
+Not creating new social norms and shared values consistent with changes.
+Promoting people into leadership positions who don't personify the new approach.
+
+
+
+
+2007; Foss and Saebi, 2017; Teece, 2006), despite some de?nitions of innovation requiring successful market introduction (Boons and Lüdeke-Freund, 2013). Even less research has been conducted on sustainable business model innovation, and the concept still re- mains underexplored (Boons and Lüdeke-Freund, 2013; Schaltegger et al., 2016; Wells, 2008).
+   In academic research, several tools and processes have been developed to support organisations in the design of business models. More recently the area of tool development that is aiming to enhance sustainability performance is emerging. This develop- ment primarily aims at products or takes a broad view on eco- innovation (Baumann et al., 2002; Bocken and Allwood, 2011; Byggeth and Hochschorner, 2006). Even more recent is the devel- opment of tools that combine both notions and focus on using business model innovation as a leverage point to support organi- sations in meeting their sustainability ambitions (Bocken et al., 2013; Evans et al., 2014; Geissdoerfer et al., 2016; Joyce et al., 2016; Upward and Jones, 2015; Yang et al., 2017). These ap- proaches are addressing single phases of the sustainable business
+
+model innovation process, with the notable exception of the work of Evans et al. (2014), which combines different individual tools into a more comprehensive process. While these tools can provide some support with the conceptual design of business models, they offer only limited guidance through most of the remaining business model innovation process.
+   Finally, in the reviewed literature, there seems to be little research on the challenges that business model innovation faces and on the reasons for low success rates in implementation. While the academic change management literature quotes failure rates of up to 70% (Hughes, 2011), there seem to be no comparable numbers for business model innovation. Popular and practitioner publica- tions suggest that it might be as high as 90 percent (Patel, 2015). While there are theoretical discussions on the causes of the design- implementation gap, e.g. by Amit and Zott (2001), Chesbrough (2010), Christensen (1997), and Christensen and Raynor (2003), there is little evidence-based research on the underlying failure modes and root causes.
+
+
+Table 9
+Summary of working de?nitions.
+
+Concept	De?nition
+
+Business model	A simpli?ed representation of the elements and the interactions between these elements that the unit employs for value proposition, creation, delivery, and capture. However, since there can be several representations of the same organisational unit, perceptions of the term must be considered that assume an underlying abstract concept that is characteristic of the entity e analogue to capabilities, resources, or strategies, which can be documented in different ways without the document becoming the underlying concept. Not fully considered can be de?nitions with reduced scope that assume identity of the business model with one of its elements, for example, the revenue model.
+Sustainable business model	A business model that incorporates pro-active multi-stakeholder management, the creation of monetary and non-monetary value for a broad range of stakeholders, and which holds a long-term perspective.
+Business model innovation	The transformation from one business model to another. It can affect the entire business model or individual or a combination of its elements.
+
+Sustainable business model innovation
+The design-implementation gap
+
+The analysis and planning of transformations to a more sustainable business model or from one sustainable business model to another. This comprises both the development of an entirely new business model and the transformation of an existing business model.
+The set of challenges that prevent organisations from successfully innovating their business model, due to insuf?cient follow-up on ideas, lack of implementation of concepts, and failure of businesses in the market.
+
+
+
+
+
+
+5. Research questions
+
+   The objective of this research project is to improve the under- standing of how organisations move to new, sustainable business models. The research addresses the theoretical research gap and the organisational management problem described in chapter 3.5. It investigates both the business model innovation process and the failure of organisations to successfully develop and launch sus- tainable business models. Consequently, the research's purpose is to help organisations bridge the design-implementation gap of sustainable business model innovation.
+   From this objective, the following central research question is derived (Creswell, 2014):
+
+RQ: How do organisations move from one business models to a more sustainable business model in practice?
+
+   To operationalise this research question, we break it down into three sub-questions:
+
+1. What phases does an organisation undergo when creating new, sustainable business models?
+2. What are the key activties in each of these phases?
+3. What are the challenges that an organisation faces when creating new, sustainable business models?
+
+   To address the underlying practitioner problem of how to help organisations bridge the design-implementation gap of sustainable business model innovation, two additional sub-questions are proposed:
+
+4. What are strategies to develop additional tools to support this process?
+5. How do organisations use these tools to solve the challenges that arise during the business model innovation process?
+
+
+6. Discussion and conclusions
+
+   This paper presents a comprehensive review of the sustainable business model innovation literature. We provide the raw data from the literature together with interpretations of this data and working de?nitions of the key underlying concepts and a clearly de?ned research gap. We also propose a range of research ques- tions to address this gap.
+   Sustainable business model innovation is a relatively nascent ?eld of research. This research has reviewed the ?eld and has synergised de?nitions for the key underlying concepts and identi- ?ed a research gap in the implementation of the business model innovation process, in the challenges of this process, and in the tools to address these challenges. Based on the research gap we have formulated a research question and broke it down into ?ve sub-questions. These research questions aim to generate descrip- tive knowledge about the process organisations undergo to move into new, sustainable business models, both in the start-up and corporate context. While this comprises the development of an entirely new business model from scratch in the context of start- ups, it describes the transformation from one business model to another, the acquisition and integration of new business models, or the process of business model diversi?cation in a corporate setting.
+  
+This also contributes to the more established ?eld of business model innovation. The literature reveals comprehensive advan- tages that sustainable business models have for organisations (Nidumolu et al., 2009; Porter and Kramer, 2011). The authors argue that these advantages will make the concept of non-sustainable business models obsolete and sustainable business models will eventually supersede the notion of business models, analogue to competitive advantage and sustainable competitive advantage. Therefore, the conceptual advances of this review will become increasingly relevant for the ?eld at large.
+   Deliberate, planned business model innovation process is also potentially required in many bigger innovation projects, like new product or service introductions, to align all elements of the busi- ness model optimally for exploitation and gain competitive ad- vantages compared to conventional diversi?cation activities (Mitchell and Coles, 2004). This indicates that sustainable business model innovation research might complement established stra- tegic management ?elds like corporate and product diversi?cation. Furthermore, we believe that business model innovation can replace some strategic mergers and acquisitions (M&A). Both the high failure rate of business model innovation and sinking trans- action costs (Coase, 1937) lead to both disruptive (Bower and Christensen, 1995) but also incremental innovation increasingly being developed in start-ups rather than within incumbent cor- porations. This has interestingly lead to a return of conglomerates (Manral and Harrigan, 2017) like Alphabet or Alibaba that have acquired the capability to identify, buy, and integrate start-ups strategically. As more and more corporates wake up to this approach, identifying and buying adequate start-ups becomes more dif?cult. This increases the costs and risks of these activities. Therefore, we propose business model diversi?cation through the development of in-house start-ups as a complement to this M&A
+approach to business model innovation.
+   The research questions aim at developing a sustainable business model innovation framework. This framework could guide com- panies through their business model innovation process by map- ping the necessary key activities, potential challenges, and available tools. This will be the basis for developing a tool development framework to develop individual management tools and combine them into comprehensive and potentially synergistic toolboxes.
+   Helping managers by proving guidance and the anticipation of challenges related to sustainable business model innovation would yield societal implications. It is intended to lead to a higher adop- tion rate of more sustainable business models and higher success rate of sustainable venturing and start-ups. This would allow more ef?cient and effective deployment of more sustainable solutions and technologies in industry (Rashid et al., 2013), generating more customer bene?t, shareholder value, and economic growth. In turn, the creation of more social, economic, and environmental value for a broader set of stakeholders might work towards the goal of all economic activity - increased happiness (Evans et al., 2014; Frey and Stutzer, 2001).

@@ -1,0 +1,51 @@
+{
+  "name": "mlops-serious-game-ui",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@chatscope/chat-ui-kit-react": "^2.1.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@headlessui/react": "^2.2.9",
+    "@iconify/react": "^6.0.2",
+    "@mui/material": "^7.3.9",
+    "@mui/system": "^7.3.9",
+    "@mui/x-charts": "^8.27.5",
+    "@types/intro.js": "^5.1.5",
+    "@types/video.js": "^7.3.58",
+    "bootstrap": "^5.3.8",
+    "chart.js": "^4.5.1",
+    "countup.js": "^2.10.0",
+    "iconify-icon": "^2.3.0",
+    "intro.js": "^8.3.2",
+    "intro.js-react": "^1.0.0",
+    "lodash.throttle": "^4.1.1",
+    "motion": "^12.30.0",
+    "react": "^19.2.0",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "^19.2.0",
+    "react-use-websocket": "^4.13.0",
+    "video.js": "^8.23.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4"
+  }
+}

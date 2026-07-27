@@ -1,0 +1,22 @@
+# TEMPLATE: Processed by envsubst in CI pipeline.
+# Sensitive values are substituted from GitLab CI/CD protected variables.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: ma-bela-veltrup
+  name: mlops-game-api-config
+data:
+  # -- MongoDB (internal k8s service, non-sensitive) --
+  MONGO_URI: "mongodb://philoagents:philoagents@mlops-game-mongodb:27017/?directConnection=true"
+  PYTHONUNBUFFERED: "1"
+
+  # -- Security & Admin Configuration (from GitLab CI/CD variables) --
+  ADMIN_USER: "${GAME_ADMIN_USER}"
+  ADMIN_KEY: "${GAME_ADMIN_KEY}"
+  SECRET_KEY: "${GAME_SECRET_KEY}"
+
+  # -- API Keys (from GitLab CI/CD variables) --
+  GROQ_API_KEY: "${GAME_GROQ_API_KEY}"
+  OPENAI_API_KEY: "${GAME_OPENAI_API_KEY}"
+  COMET_API_KEY: "${GAME_COMET_API_KEY}"
+  RWTH_API_KEY: "${GAME_RWTH_API_KEY}"

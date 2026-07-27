@@ -1,0 +1,441 @@
+Question: When businesses grow, booking pain often grows faster
+
+I’ve noticed a pattern in small businesses: what seems like a small operational pain early on can become a real bottleneck as they grow.
+
+One example is booking and availability. At first, many businesses handle it by email, calls, or simple calendars. It works… until it doesn’t.
+
+Eventually, double bookings, missed requests, and manual coordination eat time and revenue.
+
+I’m curious:
+
+For those here who run or advise small businesses, what operational pain grew fastest as the business scaled?
+Did you solve it with software, people, or process?
+
+Would love to hear real experiences.
+
+Answer: At first, the booking chaos was just a mild annoyance.People messaged, called, and we juggled calendars. It felt normal.
+
+Then one week we had overlapping reservations. Two clients showed up for the same slot. One left frustrated.
+
+That’s when the manual approach stopped being enough. We looked for a system that showed availability and blocked conflicts automatically.
+
+The relief was immediate.
+
+what did you use?
+
+We tried a couple of tools and ended up sticking with Reservety.
+
+Nothing dramatic. It just did what we needed. People could see what was free and book it. That alone stopped the constant “is this available?” messages.
+
+Before that, I was checking email, texts, and a calendar every time someone asked. It got old fast.
+
+Once everything moved into one place, the stress level dropped a lot.
+
+--------------------------------------------------
+
+Question: Help
+
+People say if u want
+
+super cars
+
+a really good house
+
+crazy abroad trips
+
+a lot of free time
+
+you either need to have ancestral wealth or need to set up a buisness
+
+im 16
+
+im intrested in setting up a buisness i feel like i do good in coding so is there anyway i csn start a buisness through coding
+
+can having extremely good skills and getting a good job help me acheive my dreams?
+
+i really need to start thinking financially i live in a rented house a house my dad owns is opposite to the citys developed side and my dad invested 1.5crore in a buisness but the buisness owners in the jail rn so yeah i neex to get even more serious🥲
+
+Answer: Stop watching Andrew Tate brainrot and focus on school
+
+I hate andrew tate dude
+
+--------------------------------------------------
+
+Question: Sort out infra headache
+
+If you dealing with AWS/GCP/Azure cloud infrastructure headaches like costs, pipelines, monitoring, security. I’ve seen a few good ways startups can clean this up sometimes even through partner credits.
+
+Answer: No one that owns a real business would ever pay anyone that uses “infra” as a business term. Gtfo
+
+If terminology is the biggest concern, I’d say the cloud bill isn’t the real problem
+
+--------------------------------------------------
+
+Question: Founders using AI seriously —
+
+what’s one AI-driven system in your business that directly increased revenue or cut major costs, and how much impact did it actually make?
+
+Answer: The system doesnt replace humans, but it makes every sales interaction more efficient.
+
+--------------------------------------------------
+
+Question: Sales lesson i got from train
+
+today morning in train i found 2 different guys selling news paper with 2 different sales.
+
+so the first guy who sold the news paper even though he is first no one bought his paper and i marly noticed him and also he was pritty fast walking without giving time for people to decide.
+
+After 2 minutes another news paper guy walk into cabin just shouting the main click bait headlines i saw people front of me buying paper.
+
+that made me think small tweak in energy and presentation that could bring more sales in the business.
+
+Answer: Same product, different vibe.
+
+The loud guy understood human psychology!
+
+--------------------------------------------------
+
+Question: Anyone done an Executive MBA where did you do it and was it worth it?
+
+Answer: Xavier University. Yes definitely! Not simply for immediate impact on employment (some got new jobs / promotions), but also because it equipped me to discuss and develop strategy, better understand executive decisions, and see cross functional relationships and opportunities.
+
+--------------------------------------------------
+
+Question: To all the experienced business owners out there, tell me your execution strategy.
+
+I want to know from experienced business owners how long you stay on one idea before pivoting to the next.
+
+I saw someone in another subreddit say that they execute an idea for a week, and if they dont get X amount of users by a certain point then they pivot and move to the next idea (for reference this person is in the tech space).
+
+I need to learn how to execute without emotion and just keep executing instead of thinking for months on how to go about a certain business, so tell me how you guys think of something, and what your plan is for however long before deciding to throw your current idea away.
+
+I am mainly looking asking for advice in terms of the tech space since I want to make a tech startup, but at the same time I am open to any advice.
+
+Answer: Dont think it as pivoting to next idea at X users. Start building and create value in it so that any next person would be interested to buy.
+
+I mean if its worth it for someone, its product for some one
+
+--------------------------------------------------
+
+Question: Novo Nordisk to slash GLP-1 list prices by up to 50% in U.S. starting in 2027, to cut costs for insured patients
+
+Answer: Yea, insurance and states keep cutting coverage
+
+--------------------------------------------------
+
+Question: It’s a Deal: Paramount and Warner Bros. Discovery Unveil $111 Billion Megamerger | In a major turn of events, Netflix backed away from its $87.2 billion deal on Thursday.
+
+Answer: Mm… AOL merger deja vu… with an extra dose of anti-trust violations…
+
+--------------------------------------------------
+
+Question: What is the movie/show for your industry?
+
+Odd question but I feel like every business has to have its own movie/show that people in the industry think is SO cool because it mentions their work. Dumb, but I work in the self storage industry so when the Minecraft movie came out with the storage scene it was all over my linked in. Same with the movie “cold storage”
+
+So what’s your businesses/industries screen time??
+
+Answer: Office space.
+
+--------------------------------------------------
+
+Question: Estate/company asset question
+
+Hi,
+
+I have a possible requirement for a forensic analysis of a Gibraltar based limited holding company. My partner is the beneficiary of the estate of her late uncle. The shares of the company were held on trust in the names of two nominee companies, with her late uncle as the beneficial owner. Now, we see the company accounts list "Investments", the executors provided us a Credit Suisse file that was in the testators personal name, however can I ask if this would be a separate asset altogether and not the company investments, since any personal assets can't be held by the limited company in this context? The company also owned a bungalow and the bungalow Deed showed the company name as the owner for example, so there is an apparent inconsistency. I would like to clarify these key points before we potentially decide to proceed with professional forensic services.
+
+Thanks,
+
+Answer: You’re right to question the separation. A limited company’s assets should be legally distinct from personal assets — unless the personal account was somehow pledged, loaned to, or reflected in the company books.
+
+If the bungalow deed lists the company as owner but the Credit Suisse account is in his personal name, they’re likely separate unless there’s documentation tying them together. Before forensic services, I’d request full company financial statements + shareholder loan disclosures to see how “Investments” are actually defined.
+
+Thank you very much for your kind advice, I will do exactly that.
+
+--------------------------------------------------
+
+Question: Seeking Successful Mobile App Business Mentor
+
+I'm building a personal development app, it's still early. I built a PWA for rapid iterations. I'm struggling to find real users to help test it out. I know the app is not perfect yet, but I'm really confident in it. It's something that may not have existed yet, but I believe we should have something like this. I know it's a tough battle, but I enjoyed the challenge to create something that is truly valuable.
+
+I'm looking for mentor/guidance on how to get traction on this. I'm a little lost to be honest. I believe this app will help a lot of people finding their path in life and achieving the goals they want. The positioning could use a little work in my opinion, and I'm not great with distributing and marketing the app.
+
+Is there a kind person out there who have successfully launched their app with massive traction who could help guide me through this? I'm very coachable and willing to do the work. Thanks so much!
+
+Answer: I’ve scaled tech ventures with massive traction before. The 'path in life' niche is tough but rewarding. Don't worry about the marketing yet; focus on your core user retention first. DM me, I might have some time to give you a quick direction good night...
+
+--------------------------------------------------
+
+Question: Block shares soar 24% in extended trading as company said it's laying off 4,000 employees, or slashes workforce by nearly half of its head count
+
+Answer: It's strange that some companies say 'AI AI we love AI' and their stock goes up
+
+And other companies do the same thing and their stock goes down
+
+Difference is between savings from using ai, and capex on ai.
+
+--------------------------------------------------
+
+Question: Walmart $100M Settlement Over Spark Driver Pay Claims
+
+Answer: Ah, the shadows of corporate giants revealing their flaws - like finding beauty in a cracked mirror. It’s intriguing how the dance of dollars can shift when the veil is lifted. Curious to see how this unfolds!
+
+--------------------------------------------------
+
+Question: Help ❤️
+
+Looking for someone — or someone who knows a collector or supplier of luxury coats. Buying bulk!
+
+Please PM me.
+
+- Loro Piana
+
+- Canada Goose
+
+- Moncler
+
+- Burberry
+
+- Max Mara
+
+- Prada
+
+- Valentino
+
+- Herno
+
+- Brunello Cucinelli
+
+- Yves Salomon
+
+Answer: I have a connect on a line of luxury fashionwear, any season of any brand. Message me on my IG and we can talk shop on there for more details. My IG is u/thesupplysurge
+
+What platforms you're selling on, how fast you need the product, how much you need, etc
+
+Hi, sent you a dm on IG
+
+What's your IG my friend
+
+--------------------------------------------------
+
+Question: Warren in '$1bn legal dispute' over Zuffa Boxing launch
+
+Answer: a $1bn legal fight before the launch is actually unhinged 😭
+
+boxing money is never just “let’s build a thing” it’s always lawsuits, contracts, someone feeling snaked
+lowkey feels like half the promotion in combat sports is just public beef and legal smoke
+
+either this kills the vibe… or it weirdly makes more people pay attention
+
+whole thing already sounds exhausting and it hasn’t even started lol
+
+--------------------------------------------------
+
+Question: The trust factor in 3PL partnerships
+
+Entrusting your inventory and data to an external company is a risk. What key performance indicators (KPIs) do you use to evaluate your logistics partner's performance?
+
+Answer: Actually you are essentially eliminating your risk of inventory mismanagement as if you are handling the operations on your own the you have no chance but to take hits of all mismatches and errors your team does. But if you have appointed a reputable 3PL partner, they essentially absorb all of this risk of yours as you can recover mismatches of physical and book inventory from the 3PL partner, depending upon the terms of your contract.
+
+As I see, this is a very efficient way to minimize risk for the company provided it’s outsourced to someone reputable.
+
+--------------------------------------------------
+
+Question: IonQ Surpasses $100 Million in Annual Revenue, Reports Quantum Sales Accelerating
+
+Answer: $100M in revenue for a quantum company is actually kinda wild.
+
+still early days for real world quantum use, so I’m curious how much of that is actual commercial demand vs gov contracts + research partnerships.
+“sales accelerating” sounds great, but the real question is repeatable use cases, not just pilot projects.
+
+cool milestone though. feels like the space is slowly moving from science experiment to actual business.
+
+--------------------------------------------------
+
+Question: Salesforce shares sink 5% on mixed guidance as company commits $50 billion for buybacks
+
+Answer: Buybacks? Lololololol
+
+Someone needs to buy all the shares Marc is dumping
+
+--------------------------------------------------
+
+Question: Most "Business Communities" are just people selling shovels to dreamers. Can we build something for the actual doers?
+
+I’ve been running my own business for 18 months now. It’s been my full-time source of income for 10 months, which is great, but it’s also quite lonely.
+
+I’ve spent time looking for a group, but I’ve realised that most online communities for business owners are broken. They fall into two categories:
+
+The Dream-Sellers: People glorifying the "lifestyle" without doing the work.
+
+The Shovel-Sellers: People just trying to sell you a course or a tool.
+
+It feels like a lot of people are stuck in the same spot chasing the next shiny object rather than moving forward. I don't think the "idea" even matters that much, look at YC most ideas pivot anyway. What matters is movement.
+
+I’m looking for a network that actually prioritises action over noise. I've been sketching out a tiered concept and want to know if I'm the only one who wants this:
+
+Level 0 (The Filter): A tiny barrier to entry (think $1) just to kill the bots and spam. No "shovels" allowed. Strictly advice and encouragement for people just trying to find their footing.
+
+Level 0.5 (The Movers): Entry is by application only. You have to show real, evidenced action over time (outreach, coding, sales). And you can't be building shovel to sell!
+
+Level 1 (The Peers): A proper, vetted community for established owners based on revenue or business age. Strict engagement rules (like mandated 1:1s, posting etc) so it doesn't become a ghost town.
+
+I want to talk to other founders who actually understand the grind, and what it's like to build something and are biased to action.
+
+Does this tiered, "engage-or-exit" model sound like something you'd actually use, or am I overcomplicating a simple problem?
+
+Answer: Join an insustry association if you want to meet people. Going to industry conferences is another great way to get and give peer support.
+
+--------------------------------------------------
+
+Question: Vinod Khosla says IT and BPO services will be gone by 2030. The business model, not just the jobs, is at risk.
+
+Khosla made a pretty sweeping claim at the India AI Impact Summit: IT services and BPO will "almost certainly disappear within five years." He's not talking about layoffs at the margins... he means the entire outsourcing model becomes economically irrelevant.
+
+The logic is simple. That model exists because of cost arbitrage. You offshore because human labor in certain markets is cheaper than at home. AI removes that equation entirely. An agent doesn't care where it's deployed, and its cost per task keeps dropping.
+
+Companies like Infosys, Wipro, and Accenture have built multi-billion dollar businesses on this arbitrage. Their clients are now the same companies investing heavily in AI to cut exactly the kind of spend those vendors depend on.
+
+The real question isn't whether some jobs disappear. It's whether the business model survives at scale, and what these firms pivot to before their core revenue erodes.
+
+Has anyone here been involved in vendor decisions where AI is already replacing what an IT or BPO contract used to cover?
+
+Answer: Well probably not entirely but moved up the value chain
+
+Exactly! I don’t think the services disappear, they shift.
+
+Lower-value repetitive work is what’s most exposed. But higher-value engineering, AI integration, and strategic execution become more important.
+
+We’re already seeing service providers reposition themselves from “task execution” to “AI-enabled capability partners.” The firms that survive will be the ones that combine automation with strong technical teams rather than competing purely on labor cost.
+
+You say that, but rpa and small automations have been around for decades and companies are still roaming around doing small rpa implementations.
+
+So you means gradually and then suddenly
+
+--------------------------------------------------
+
+Question: How AI Is Advancing Businesses: Real Achievements and What’s Next
+
+AI is no longer just a trend it’s becoming part of how many businesses work every day. From automating repetitive tasks to improving customer support with chatbots, companies are saving time and reducing costs. AI tools also help analyze data faster, so businesses can understand customers better and make smarter decisions.
+
+We’re also seeing AI support marketing, content creation, forecasting, and even product development. Small businesses now have access to tools that were once only available to large companies. This levels the playing field and opens new growth opportunities.
+
+Overall, AI isn’t replacing businesses it’s helping them work more efficiently, scale faster, and stay competitive in a changing market.
+
+Answer: Very well explained. AI assistants are becoming like digital team members handling customer support, content creation, and data analysis. The real advantage is how they help small businesses compete with larger companies without huge budgets.
+
+--------------------------------------------------
+
+Question: Events mess up attribution CMV
+
+Hey y'all, trying to get some honest opinions here
+
+Does anyone actually feel good about attribution when conferences are involved? We’ll have people show up in pipeline months later, and it’s always doubtful whether the event worked or not.
+
+Sales team swears the event mattered, marketing says it was nurture and on the other side leadership just wants numbers.
+
+I’m trying to build a better strategy for this in 2026 for the upcoming events. Any advice from experienced people? What could work? What to avoid?
+
+I'm all ears, thanks in advance!
+
+Answer: Track two separate things.
+
+First things first, meetings booked (real intent) and second, touches on target accounts. That way you’re not pretending badge scans are pipeline
+
+True... but it's easier said than done. If you want pre-event meetings, having attendee data early on makes it much much easier. You can either try to scrape some through LinkedIn or what not or use something like PullAList that gives you attendee lists in a CSV so reps can outreach before everything gets crowdy.
+
+Getting visibility early does seem like an unlock. If reps are waiting until the week of the event to figure out who’s going, it’s already too late.
+
+We’ve tried the manual LinkedIn route before and it just takes a lot of time but I can see how having a cleaner list earlier would make it easier for me and I'd have something to talk about. Thanks for the advice
+
+--------------------------------------------------
+
+Question: Anyone here with consulting experience open to a brief strategy discussion
+
+I’m working on a strategic idea and would like to discuss it with consultants who have experience at firms like Boston Consulting Group, Bain & Company, or McKinsey & Company.
+
+If anyone here is open to sharing perspectives or giving quick guidance, I’d appreciate connecting.
+
+Answer: I’m not from BCG/Bain/McKinsey, but I run an automation-focused IT company and work closely on business systems, growth strategy, and operational scaling.
+
+Happy to exchange perspectives if that’s helpful - sometimes operator insight complements consulting frameworks well. Feel free to DM.
+
+--------------------------------------------------
+
+Question: question about a $1 overage on invoice payment check
+
+I issued an invoice to a client for X amount and I received a payment check for an amount $1 more. What does this mean? Is this some kind of "message" or some bullshit business 4-D chess move for something that they are going to do later? I know this person in real life so this isn't a typical scam. Just wondering if this is a business "F U" kind of thing.
+
+Answer: Its almost definitely nothing. Most likely someone rounded wrong, typo’d the number or their accounting system added a dollar somewhere.
+
+Ok thanks. Yeah I’ve been getting responses in other threads I’ve started for this and they have all attributed to error too. Maybe I was just looking for a fight 🤣
+
+--------------------------------------------------
+
+Question: Netflix CEO Ted Sarandos Says James Cameron’s Disapproval Of Netflix-Warner Deal Is “Quite Confusing” & Paramount Offer Will Shrink Film Biz
+
+Answer: Why is Cameron holding water for the Ellison's
+
+Cameron hates Netflix due to it making theatre going less popular. Its not complicated.
+
+Sarandos said he's not changing anything regarding theater windows for WB
+
+No reason to believe Ellison any more than sarandos on the matter
+
+I dislike Cameron for making Avatar instead of remotely likable movies I would like to see in theatres
+
+Ellison has financed a bunch of his underwater bullshit. He's friends with the father and son.
+
+He's got a terminal case of rich guy brain.
+
+Birds of a feather…
+
+He's friends with them. He sucks.
+
+--------------------------------------------------
+
+Question: What’s the risk of relying on free survey tools for business?
+
+Answer: 2
+
+--------------------------------------------------
+
+Question: Advertising issues?
+
+Hello to whomever is reading this. I’ve started the realm of creating my own business and it’s a super odd topic. It’s “self pleasurable items”, while trying to keep it non vulgar.
+
+How exactly do I start advertising these types of things? I have social media, but what other key things can be used?
+
+It’s branded for men and women, no descrimation lol
+
+Answer: One thing I’d seriously recommend, especially for something like "self pleasurable items" lol, is having a really good website and making sure it’s SEO optimized. Since ad platforms can be weird about those types of products, your website ends up doing a lot of the heavy lifting.
+
+SEO helps your site show up higher on Google when people search for things related to your products, which means you can get consistent traffic without always paying for ads.
+
+I build websites myself, and I’ve seen how much of a difference good design and proper SEO can make. I can show you some of my work so you can see what I mean. When your site is built and optimized properly, it makes everything else like social media and advertising work way better.
+
+--------------------------------------------------
+
+Question: At what point did your business actually start feeling stable?
+
+Not profitable for one month.
+
+Not one good quarter.
+
+I mean actually stable.
+
+Predictable revenue.
+Clear processes.
+Less chaos.
+
+Was it a revenue number?
+A team size?
+A systems shift?
+
+Curious what “stability” looked like for you.
+
+Answer: After five years, my wife randomly picked up and read a copy of the annual accounts that my accountant had prepared for review - a week later she resigned from a high paid job to work for my company. Today we both run the business after 15 years. We take nothing for granted - the business is more demanding now than ever before for different reasons. Our stability mostly comes from long term and loyal customers - at the start I was searching for them.
+
+--------------------------------------------------
+

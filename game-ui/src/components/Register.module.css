@@ -1,0 +1,52 @@
+.registerContainer {
+
+    margin: 0 auto;
+    background: var(--card-bg-dark);
+
+    border: 1px solid var(--card-border-default);
+    border-radius: 1.25rem;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    max-width: 25vw;
+}
+
+.registerForm {
+    display: flex;
+    flex-direction: column;
+    margin-top: 3.0rem;
+    gap: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 15vw;
+}
+
+.registerTitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: white;
+}
+
+.registerSubtitle {
+    color: rgb(182, 182, 182);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.actionButton {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+}
+
+.actionButton:hover {
+    background: var(--secondary-bg);
+
+}

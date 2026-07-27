@@ -1,0 +1,107 @@
+Question: Time Series Themed Children’s Book
+
+For the parents out there's looking to share the joys of data collection, cleaning, time series modeling, and forecasting error with their little ones. Written completely in rhyme and all about using data to solve problems.
+
+Alternatively, Harry’s Lemonade Solution could be used to teach your parents a little bit about what you do 🙃
+
+Answer: Error generating reply.
+
+--------------------------------------------------
+
+Question: Should on get a Stats heavy DS degree or Data Science Tech Degree in Today's era
+
+I have done bsc data science. Now was looking for MSC options.
+
+I came across a good college and they have 2 course for MSc:
+
+1: MSc Statistics and Data Science
+
+2: Msc Data Science
+
+I went thorugh the coursework. Stats and DS is very Stats heavy course, and they have Deep learning as an elective in 3rd Sem. Where as for the DS course the ML,NLP, and "DL & GEN ai" are core subjects. Plain DS also has cloud.
+
+So now i am in a dillema.
+
+whether i should go with a course that will give me solid statistics foundation(as i dont have a stats bacground) but less DS related and AI stuff.
+
+Or i should take plain DS where the stats would still be at a very basic level, but they teach the modern stuff like ml,nlp, "DL & genai", cloud. I keep saying "DL & GenAI" because that is one subject in the plain msc.
+
+Goal: I dont want to become a researcher, My current aim is to become a Data Scientist, and also get into AI
+
+It would be really appreciated if someone can help me solve this dillema.
+
+Sharing the curriculum
+
+Answer: I am biased as I choose stats route (now work with more modern ML), but generally data science masters are not held the same regard as statistics. I have had hiring managers tell me this in interviews.
+
+I think this is because most data science masters present a dumbed down mediocre soup of courses. The stats coursework is not deep/ challenging, it adds in SQL which can easily be self taught, and then the deep learning genai courses are not that close to industry standards.
+
+On the other hand a proper stats masters will put you in a competitive position (where you know more about something than them) to many MLEs and some data scientists.
+
+The exception to this I would assume is if it truly is a top program where the lecturers actually have the industry experience to be teaching DL/ gen AI, and it is part of a larger series of courses.
+
+I agree with you, but I put it this way: stats heavy is teaching you the fundamentals of the output, but a tech heavy data science course will teach you modern tooling. When modern tooling moves on and you retrain, your degree will be obsolete, but with stats heavy at least you will have some grounding left.
+
+Of course, once in industry no one cares which one you chose. And my advice to op is to choose which one you’ll enjoy more, because it’s a decision that may drive your career and you may be trying to optimise too early.
+
+the thing is that when i see a lot of tech in the DS one, i think it is good because most of the jobs i see posted online want those skills.
+
+Whereas the Stats and DS one, i think having stats knowledge would be a thing. but im not sure what should i do.
+
+hello, i added the curriculum pics, just so it is easy to evaluate
+
+After looking at program, I’d double down on previous evaluation. Lots of courses focused on things that you can either self teach or will naturally pick up. Understanding the foundation is so much more difficult than databases, story telling, cloud, big data etc.. and that’s assuming the caliper of those classes is even close to industry which it won’t be
+
+Agreed, I have a masters in stats and it has served me very well. You can really sell the strong math background - and that you have an understanding of the statistical theory behind the models. My first job out of college was 85k after my masters.
+
+Should focus on heavy stats for education. however, keep in mind stat, in business, barely generate revenue (or not in a direct, quantifiable way).
+
+--------------------------------------------------
+
+Question: LLMs need ontologies, not semantic models
+
+Hey folks, this is your regular LLM PSA in a few bullet points from the messenger that doesn't mind being shot (dlthub cofounder).
+
+- You're feeding data models to LLMs
+- a data model is actually created based on raw data and business ontology
+- Once you encode ontology into it, most meaning is lost and remains with the architects (data literacy, or the map)
+
+When you ask a business question, you're asking an ontological question "Why did x go down?"
+
+Without the ontology map, models cannot answer these questions without guessing (using own ontology).
+
+If you give it the semantic layer, they can answer "how many X happened" which is not a reasoning question, but a retrieval question.
+
+So tldr, ontology driven data modeling is coming, i was already demonstrating it a couple weeks back on our blog (using 20 business questions is enough to bootstrap an ontology).
+
+What does this mean?
+
+Ontology + raw data + business questions = data stack, you will no longer be needed for classic stuff like your data literacy or modeling skills (great, who liked to type sql anyway right? let's do DS, ML instead). You'll be needed to set up these systems and keep them on track, manage their semantic drift, maintain the ontology
+
+What should you do?
+
+If you don't know what an ontology is and how its used to model data, start learning now. While there isn't much on ontology driven dimensional modeling (did i make this up?), you can find enough resources online to get you started.
+
+Is legacy a safe island we can sit on?
+Did you see IBM stock drop 13% in 1 day because cobol legacy now belongs to agents? My guess is legacy island is sinking.
+
+Hope you future proof yourselves and don't rationalize yourselves out of a job
+
+resources:
+blog about what an ontology does and how it relates to the data you know
+https://dlthub.com/blog/ontology
+blog demonstrating how using 20 questions can bootstrap an ontology and enable ontology driven data modeling
+https://dlthub.com/blog/dlt-ai-transform
+
+Are you being sold something here? Not really - we are open core company doing something unrelated, we are looking to leverage these things for ourselves.
+
+hope you enjoy the philosophy as much as I enjoyed writing it out.
+
+Answer: not a single mathematical equation. am i going mad or is this all just schizo babble?
+
+In good faith, we have always modeled data based on ontology. (Canonical models) But most folks don't readdata modeling theory so it sounds like babble. It's not, it's practical philosophy.
+
+Now because this was linguistics philosophy this was never automated. Now LLMs change that and since December's better models, in my experiments, I can declare ontology upfront and have the LLMs autofill the code (the ontology is the test case that lets agent brute force coding
+
+--------------------------------------------------
+

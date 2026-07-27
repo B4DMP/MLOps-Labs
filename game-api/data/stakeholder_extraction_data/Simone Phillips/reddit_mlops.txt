@@ -1,0 +1,322 @@
+Question: Advice regarding Databricks ML vs Azure ´ML
+
+Hi everyone,
+
+I am an MLOps engineer, and our team has been working with Azure ML for a long time, but now we want to migrate to Databricks ML as our data engineering team works mostly with it, and we could then be better integrated in the same platform, in addition to Databricks offering a robust ML framework with Spark, and also better ML flow integration. Only downside I heard from some colleagues who worked on it, said, that the Infrastructure as a code(IaC) is not easy to work with in Databricks as compared to Azure ML. Does anyone know more about it or have experience with it?
+
+Answer: You can terraform with the Databricks terraform provider. I don’t use Databricks but if I had to, this is what I would I’d look at as option 1 for IaC with Databricks.
+
+https://registry.terraform.io/providers/databricks/databricks/latest/docs
+
+--------------------------------------------------
+
+Question: How can I learn MLOps while working?
+
+I just started as an MLOps Jr. This is my first job, as my background and experience are more academic.
+
+I work at a startup where almost everyone is a Jr. We are just two MLOps and four DS. Our lead/manager/whatever is a DE, so they have more experience in that area rather than with models and productizing them.
+
+I feel things are done on the fly, and everything is messy. Model deployment, training, and monitoring are all manual... from what I have read, I would say we are more on a level 0 of MLOps.
+
+DS doesn't know much about deployment. Before I started working here, they deployed models on Jupyter Notebooks and didn't use something like MLflow.
+
+I mean, I get it, I'm just a junior, and all my coworkers might have more experience than me (since I don't have any).
+
+But how can I really learn? I mean, sure, I get paid and everything, and I'm also learning on the fly, but I feel I'm not learning and not contributing that much (I have only 4 months working).
+
+So, how do I really learn when my team doesn't know that much of MLOps? I have been reading some blogs and I'm doing some Datacamp courses but I feel is not enough:(
+
+Answer: You're on the wrong team. You don't know anything, your lead doesn't know anything and your colleague is just as green as you. You're going to pick up bad habits and not even know it.
+
+Small start-ups are not really fresher friendly. You need to put yourself onto an established team at an established firm that has been successfully deploying production models for a while to learn how its done.
+
+Where I'm from, it is a bit difficult to find entry-level jobs, so I don't know if I should quit or do something similar. I was hoping to at least stay a year and try to find another job.
+
+Is there something that I could do to identify bad practices? Reading some blogs have helped me, sometimes I discuss what I do with AI and ask for references, but still, don't think an LLM can help with best practices, yet
+
+I wouldn't quit unless you have something else lined up. Unfortunately you need a lead with experience. You don't know what you don't know. I highly recommend you look for a more established team willing to take on a Jr.
+
+--------------------------------------------------
+
+Question: how was your journey to become an mlops engineer
+
+hello, I've been wondering how to be or what path to follow to be an mlops engineer as i heard its not an entry level role
+
+Answer: Mine was rather unplanned.
+
+I graduated with a Master in ML in Sweden. Got an internship as an ML Engineer at a good company, doing machine learning for search model. I got a returned offer after the internship, but it was shortly rescinded as the team didn't have a budget for new engineers.
+
+Then the tech mass layoff happened. I couldn't find any job at those product companies. And I got into an AI engineer position at a small consulting company. There, only people with a PhD can work in the modelling part, so I learned to do MLOps there
+
+Since then, I've tried to apply for ML Engineer positions again and again, but so far have failed as I don't have enough skills and experiences building models for real business.
+
+At the same time, I've got better and better at MLOps, building infra for data scientists and ML engineers, landed Senior MLOps positions. So I keep doing MLOps.
+
+Hope someday I can do the model part of ML.
+
+--------------------------------------------------
+
+Question: DevOps Engineer collab with ML Engineer
+
+Hey everyone,
+
+I’m a DevOps Engineer looking to break into the MLOps space, and I figured the best way to do that is to find someone to collaborate with.
+
+What I bring to the table:
+
+I have hands-on experience building and managing Kubernetes clusters, GitOps workflows with ArgoCD, and full observability stacks (Prometheus, Grafana, Loki, ELK). I’m comfortable with infrastructure-as-code, Helm charts, Cert management, and CI/CD pipelines — essentially the full platform engineering toolkit.
+
+What I don’t have is a machine learning model that needs deploying. That’s where you come in.
+
+What I’m looking for:
+
+A data scientist or ML engineer who has models sitting in notebooks or local environments with no clear path to production. Someone who’s more interested in the data and the science than wrestling with Kubernetes manifests and deployment pipelines.
+
+What I can offer your project:
+
+∙ Model Serving Infrastructure — Containerised deployments on Kubernetes with proper resource management and GPU/TPU scheduling
+
+∙ CI/CD Pipelines — Automated training, testing, and deployment workflows so your model goes from commit to production reliably
+
+∙ Scaling — Horizontal and vertical autoscaling so your inference endpoints handle real traffic without falling over
+
+∙ Observability — Full monitoring stack covering model latency, error rates, resource utilisation, and custom metrics
+
+∙ Data & Model Drift Detection — Automated checks to flag when your model’s performance starts degrading against live data
+
+∙ Reproducibility — Versioned environments, tracked experiments, and infrastructure defined in code
+
+I’m not looking for payment — this is about building a portfolio of real MLOps work and learning the ML side of things along the way. Happy to work on anything from a side project to something more ambitious.
+
+If you’ve got a model gathering dust and want to see it running in production with proper infrastructure behind it, drop me a DM or comment below.
+
+Answer: goof
+
+--------------------------------------------------
+
+Question: [Hire Me] 3rd-Year IIT Roorkee Student ( ML builder) | Shipped End-to-End MLOps & RAG Pipelines | Seeking Paid ML/MLOps Internships
+
+Answer: I'm out of this sub
+
+At least this one actually knows what MLOps is...
+
+--------------------------------------------------
+
+Question: Guidance for choosing between fullstack vs ml infra
+
+I am working as a senior frontend engineer at a Robotics Company. Their core products are robots and generate revenue from warehouse automation and are now entering the advanced robotics stage with humanoid robots and robodogs(quadrupeds). They are fine tuning a 3 billion parameter Gemma model and diffusion and flow matching model for VLA(vision language action) for use in robots to work in manufacturing plants. Currently they are generating 0.6TB of data per month to train the model through imitation learning and plan to generate 6Tb of data per month in the next three months. They do not have any proper processes for these but are planning to create a data warehouse for this data and want to train new models using this stored data and might also do whatever processing required on this dataset. Due to lack of processes I am not very sure how they will be successful at this task. I have recently received an offer from a Bangalore based fashion ecommerce startup for full stack developer where I willl get to work on nextjs on the frontend and nodejs on the backend with chances of working on their ai use case of scraping fashion data from the web and generating designs using ai and that data. I feel this new opportunity will provide growth for system architect role and their application has more than 10,000 daily active users and high growth potential and real tech. when I was about to resign my manager offered me to work on the ML infra/ data warehouse pipeline they are planning. I am extremely confused as to what I should do now. Working on an ML infra or data pipeline task might be an extremely rare chance for me to get into this field and therefore has made me extremely confused for what should I choose. Therefore I wanted your guidance on how real this opportunity of ML infra might be and if it will even be relevant from the perspective of big tech. There is a single gpu that we have right now I guess it is nvidia A6000 and is being used to fine tune 3 billion parameter Gemma model and they will be buying more of such gpu and servers for storage. Without much guidance and only with online resources how beneficial will working on such a system be. Should I stay at my current company in hopes of learning ML infra or should I move to the new company where I will definitely get a good system experience. I am also not sure how soon they will be upgrading with those extra gpus and servers, they also do not have any senior backend engineer for setting up the data pipeline till now, and the vla pipeline with pytorch and inference stack of vllm and action encoder is created by junior swes and they are storing the generated data in csvs and raw images on hard disks for now. If I continue here and try to create these pipelines, will it be a valuable experience from big tech companies perspective or will it be like a college project which just uses my time and provides no ROI
+
+Answer: What do you what for your career ?
+
+i have always been fascinated by at scale systems, but there are too many fullstack engineers in the market with system knowledge, i guess ML infra would put me in a field with less competitors and more benefit, but i am not sure how beneficial this opportunity is from an ML infra or data engineering perspective. i definitely want ai proof skills, less competition, good compensation and challenging problems to solve as i get bored from repetition.
+
+do you have that scale systems in ML infra too, rigth now is a hot area. I will don't bet my career in just being a fullstack engineer.
+
+I'll be real, any sort of Infra is a better bet than plain full stack. AI is changing the field as we speak. Infra, while AI can write the code, still needs a lot more higher-level thinking and hands-on working than full-stack dev.
+
+--------------------------------------------------
+
+Question: If you're coming from infra/DevOps and confused about what vLLM actually solves — here's the before and after
+
+Had a pretty standard LLM setup, HuggingFace transformers, FastAPI, model on GPU. Worked great in dev. Then the prod traffic hit, and everything fell apart. Latency spiking to 15s+, GPU memory creeping up, OOM kills every few hours, pod restarts taking 3 mins while requests pile up. On-call was rough.
+
+What was actually going wrong:
+
+HuggingFace model.generate() is blocked. One request at a time. 10 users = 9 waiting.
+
+KV cache pre-allocates for the max sequence length, even if the user needs 50 tokens. Over time, fragmentation builds up → OOM. Same energy as over-provisioning PVCs on every pod.
+
+Static batching waits for the slowest request. A 500-token generation holds up a 20-token one.
+
+What fixed it:
+
+Swapped the serving layer to vLLM. Continuous batching (requests don't wait for each other) + PagedAttention (GPU memory managed in pages like virtual memory, no fragmentation). Core issues gone.
+
+The gotchas nobody talks about:
+
+Set gpu-memory-utilization to 0.85-0.90, not higher. Leave headroom.
+
+Model warm-up is real — first requests after startup are slow (CUDA kernel compilation). Send dummy requests before marking the pod ready.
+
+The readiness probe should check whether the model is loaded, not just whether the process is running. Ask me how I know.
+
+Set hard timeouts on generation length. One runaway request shouldn't block everything.
+
+Shadow traffic first, then canary at 10%, then ramp up. Boring but safe.
+
+Result: Latency 45s → 10-15s. Concurrency 2-3 → 15-20 per GPU. OOM crashes → zero. None of this needed transformer math, just infra skills applied to ML.
+
+Wrote a detailed version on Medium with diagrams and code: https://medium.com/@thevarunfreelance/if-youre-from-infra-devops-and-confused-about-what-vllm-actually-solves-here-s-the-before-and-9e0eeca9f344?postPublishedType=initial
+
+Also been through this transition myself, helped a few others with resumes and interview prep along the way. If you're on a similar path, DMs open or grab time here: topmate.io/varun_rajput_1914
+
+Answer: AI slop
+
+Yeah I’m so tired that every time I see this sub on my feed the post is 100% AI. Like I get we work with LLMs directly but can’t you just add some human touch at least
+
+I’m so tired of every post I click on being AI trash.
+
+--------------------------------------------------
+
+Question: At what point does "Generic GPU Instance" stop making sense for your inference costs?
+
+We all know GPU bills are spiraling. I'm trying to understand the threshold where teams shift from "just renting a T4/A100" to seeking deep optimization.
+
+If you could choose one for your current inference workload, which would be the bigger game-changer?
+
+A 70% reduction in TCO through custom hardware-level optimization (even if it takes more setup time).
+
+Surgical performance tuning (e.g., hitting a specific throughput/latency KPI that standard instances can't reach).
+
+Total Data Privacy: Moving to a completely isolated/private infrastructure without the "noisy neighbor" effect.
+
+Is the "one-size-fits-all" approach of major cloud providers starting to fail your specific use case?
+
+Answer: Others: no, you cannot generate more obvious, incoherent, illiterate vendor spam than LLM marketing campaigns.
+
+OP: hold me pipe!
+
+--------------------------------------------------
+
+Question: Is cloud latency killing "Physical AI"? How are you handling real-time inference?
+
+I’ve been looking into the bottlenecks of deploying AI in robotics and autonomous systems. It feels like public cloud jitter and variable latency make it almost impossible to run mission-critical, real-time loops.
+
+If you are working on "Physical AI" (drones, factory automation, etc.), what's your current workaround?
+
+Are you forced to go full On-Prem/Edge because of latency?
+
+Do you spend more time on model quantization/optimization than actual R&D?
+
+Would you value a dedicated, deterministic environment over raw compute power?
+
+Curious to hear from anyone who has moved away from standard cloud APIs for performance reasons.
+
+Answer: This is purpose, context, staffing dependent. Factory automation is quite different from drones. You could install a cabinet running kubernetes to solve many problems. There are many kubernetes vendors focused on different features like hardware, security, live failover instead of kubernetes HA controllers, etc..
+
+--------------------------------------------------
+
+Question: Wrote a guide to building an ML research cluster. Feedback appreciated.
+
+Sharing a resource we drafted -- a practical guide to building an ML research cluster from scratch, along with step-by-step details on setting up individual machines:
+
+https://github.com/transformerlab/build-a-machine-learning-research-cluster
+
+Background:
+
+My team and I spent a lot of time helping labs move to cohesive research platforms.
+
+Building a cluster for a research team is a different beast than building for production. While production environments prioritize 24/7 uptime and low latency, research labs have to optimize for "bursty" workloads, high node-to-node bandwidth for distributed training, and equitable resource access.
+
+We’ve been working with research labs to standardize these workflows and we’ve put together a public and open "Definitive Guide" based on those deployments.
+
+Technical blueprint for single “under-the-desk” GPU server to scaling university-wide cluster for 1,000+ users
+
+Tried and tested configurations for drivers, orchestration, storage, scheduling, and UI with a bias toward modern, simple tooling that is open source and easy to maintain.
+
+Step-by-step install guides (CUDA, ROCm, k3s, Rancher, SLURM/SkyPilot paths)
+
+The goal is to move away from fragile, manual setups toward a maintainable, unified environment. Check it out on GitHub (PRs/Issues welcome). Thanks everyone!
+
+Answer: This is nice. At a small startup we were working with a couple of machines in the "multiuser, single workstation" configuration and it was ok, but after buying a couple more machines working this way became very annoying. We worked towards something like what you are recommending here with k3s but never fully figured it out, probably could have used a guide like this!
+
+--------------------------------------------------
+
+Question: Why do agent testing frameworks assume developers will write all the test cases?
+
+Most AI testing tools I've seen are built for engineers to write test scripts and run evaluations. But in practice, the people who best understand what good AI behavior looks like are often domain experts, product managers, or subject matter specialists.
+
+For example, if you're building a customer service agent, your support team lead probably has better intuition about edge cases and problematic responses than your ML engineer. If you're building a legal document analyzer, your legal team knows what constitutes accurate analysis. Yet most testing workflows require technical people to translate domain knowledge into code.
+
+This creates a bottleneck and often loses important nuances in translation. Has anyone found good ways to involve non-technical stakeholders directly in the testing process?
+
+I'm thinking beyond just "review the results" but actually contributing to test design and acceptance criteria.
+
+Answer: the translation problem is real, but there's a second issue underneath it: even with good domain expert input, the test set usually only covers the cases they can articulate. the failures that matter are the ones nobody anticipated.
+
+what's worked for us: give domain experts access to simulated versions of their actual workflows and let them just run the agent. they don't need to write scenarios, they surface the gaps themselves as they go. 'it never should have done that' is better input than anything you'd get from a spec written in advance.
+
+--------------------------------------------------
+
+Question: Runtime overhead in AI workloads: where do you see biggest hidden cost leakage?
+
+I mostly see optimize prompt/model quality while missing runtime leakage (retries, model reloads, idle retention, escalation loops).
+
+Curious how others here track this in production. cost/output, retry escalation rate, execution time vs billed?
+
+Would love practical patterns from teams running real workloads. Special interest in agentic, but anyhting appreciated
+
+Answer: for agentic specifically, escalation loop rate is almost always the hardest to predict because it's driven by the input distribution hitting certain decision boundaries. we've had more luck simulating the task types before shipping to understand what actually triggers escalation vs. completion, rather than waiting for the cost spike in production.
+
+Thank you! Agree! predicting escalation rates from benchmarks alone is basically useless. you need your actual task distribution. we are currently runing production logs through a cascading setup first, see what escalates and why, tune confidence thresholds before going live. Way better than finding out from the bill.
+
+--------------------------------------------------
+
+Question: [D] Anyone measuring synthetic session ratio as a production data-quality metric?
+
+In behavioral ML systems (click models, engagement ranking, personalization), I’ve noticed something that doesn’t get talked about much.
+
+Non-human sessions:
+
+Accept cookies
+
+Fire analytics events
+
+Generate realistic click sequences
+
+Enter the feature store like any other user
+
+If they’re consistent, they don’t look like noise.
+
+They look like stable signal.
+
+Which means your input distribution shifts quietly — and training loops absorb it.
+
+By the time model performance changes, the baseline is already contaminated.
+
+For teams running behavioral systems in production:
+
+Do you track synthetic/non-human session ratio explicitly?
+
+Do you treat traffic integrity as a first-class data quality metric?
+
+Or does it get handled outside the ML pipeline entirely?
+
+Curious how others approach this.
+
+Answer: This is a massive pain point especially in e-commerce and adtech. If you have bots or scrapers that mimic human behavior consistently, they end up skewing your feature distributions in a way that looks like real organic growth.
+
+Most teams just look at volume spikes, but checking the entropy of session events or comparing click through rates against authenticated versus unauthenticated traffic is a better way to catch this before it poisons your training data.
+
+I actually cover these types of engineering and data quality challenges in my newsletter at machinelearningatscale.substack.com. I focus on the technical side of building systems that survive at scale. If you are interested in production infrastructure and real world case studies, it might be a helpful resource for you.
+
+Agreed. The dangerous ones aren’t noisy. They’re consistent.
+
+When synthetic sessions maintain stable entropy and realistic click paths, they stop looking like anomalies and start looking like baseline.
+
+That’s the part that worries me most — not spikes, but silent distribution drift.
+
+I’ve been thinking about whether session integrity should sit alongside schema validation and feature null checks as a formal data quality gate in behavioral systems.
+
+Curious how you’d instrument that in a production pipeline without introducing heavy friction upstream.
+
+--------------------------------------------------
+
+Question: OpenStack vs other entire stacks
+
+I've been looking around for the entire end to end stack for inference providing on hardware. There is OpenStack which gives a good end to end solution. I can't remember but there are others out there that have the entire end to end inference stack solution. Can anyone help me remember other stacks that are similar and opensource (even if they have the closed source add-ons for additional features).
+
+Answer: Lllm-d or Kserve?
+
+--------------------------------------------------
+
+Question: Need Data for MLFlow Agent
+
+Hi everyone,
+I'm working on a project involving making an agent that can interact with MLFlow logs and provide analysis and insights into experiment runs. So far, I've been using a bit of dummy data, but it would be great if anyone would help me understand where to get some real data from.
+I don't have compute to run a lot of DL experiments. If anyone has any logs lying around, or knows where I can find some, I'd be grateful if they can share.
+
+Answer: For this case, maybe, you should use a Pycaret to create experiments easier. What do you think ?
+
+--------------------------------------------------
+

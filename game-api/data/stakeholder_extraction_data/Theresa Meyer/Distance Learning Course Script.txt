@@ -1,0 +1,1238 @@
+
+1 Introduction
+1.1 Structure and concept of the study course
+The Bachelor's degree course in Business Administration [B. A.] is con- structed according to modular principles and has the following characteris- tics:
+* Relatively identical structure of the course scripts.
+* Coordinated contents and thus no unnecessary repetitions.
+* Generally, no overlapping of contents.
+
+The individual course script has the following sections:
+1. Introduction
+
+Course scripts begin with a classification of the topic in the modular structure of distance learning. Subsequently, the position of the topic covered in the context of business administration will be shown and the learning objectives of the course script will be presented.
+2. Core topic of the course script
+
+The second chapter of the course script deals with the essential study content in each case. Modules are the curricular contents of your dis- tance learning course. Examples of this are Fundamentals or Account- ing, which, depending on the extent, are communicated via several course scripts.
+Corresponding to your academic progress, the topics of course scripts are becoming increasingly more specific. The course of study is struc- tured like a tree that branches out more and more. This generally en- sures that you know which higher-level topic area you are in.
+
+Modular design
+
+Fig. 1:	Example of the gradual deepening of learning content
+3. Outlook on the following course scripts
+
+This chapter provides a summary of the more detailed topics that follow this module. This way, you will know what is coming up in the following course scripts and how the curricular content is further subdivided into sections.
+4. Exercise problems
+
+While the questions in Chapter 2 will serve to reflect on your learning, the exercises in this chapter will help you to review and deepen the most important content.
+5. Appendix
+
+In the appendix you will find a glossary of essential technical terms. The annotated bibliography is intended to provide you with information for specialist books that will help you to further explore the topics. The literature employed in the course script is also part of the 5th chapter. The course script ends with solution notes for the tasks given in Chap- ter 4.
+1.2 Categorization of the course script within the busi- ness administration distance learning degree course
+This course script "Fundamentals of Business Administration and Eco- nomics" is the starting point for your distance learning course in business administration. It is followed by in-depth modules in the following three ar- eas.
+
+Business Administration: In the research of phenomena and contexts, business administration focuses on a single company. The overwhelming number of modules will deal with problems in this area.
+
+Economics: This sub-discipline of economic science focuses primarily on macroeconomic contexts. It is needed for the study of business admin- istration to understand economic interrelationships within national econo- mies and the world economy.
+
+Supporting and adjacent fields of science: Knowledge in these areas is a prerequisite for working on business administration tasks and will sup- port the contents of the business administration modules in a meaningful way.
+Fig. 2:	Fields of economic science studies
+Technical terms
+1.3 
+Structure and concept of this course script
+The main purpose of this course script is to clarify basic concepts that play a role in both economics and business administration and which will be referred to repeatedly in the further course of studies.
+
+After the introduction, a brief historical summary and the classification of business administration as a science await you in the second chapter. Subsequently, key terms from business administration and economics are explained.
+
+The third chapter of the course script introduces the three areas of our business administration degree program. The two sub-disciplines business administration and economics and supporting and adjacent sciences.
+
+You can reflect on the contents you have worked through in the fourth chapter. Here you will be asked questions for your self-monitoring and will be given a case study for processing.
+
+1.4 Learning objectives of the course script
+* Knowing the similarities and differences between the two sub- disciplines of business administration and economics.
+* Be able to define business administration as an interdisciplinary sci- ence.
+* Know and illustrate the connection between wants, needs and de- mand.
+* Explain similarities and differences between the terms productivity, turnover, profit, profitability and return on investment.
+* Correct use of terms such as company, business, enterprise.
+* Know the different representation of production factors in the context of business administration and economics and explain the reasons for the deviation.
+* Explain the differences between the primary and supporting functions of a company.
+* Explain the difference between supporting functions and holistic man- agement tasks.
+
+2 Essential contents of economic sciences
+2.1 Development and classification of economic science
+2.1.1 Historical outline
+
+Economic sciences are a comparatively young discipline, the beginning of which can be dated back to the 17th and 18th centuries, a period in which the nation states developed in Europe. The first macroeconomic examina- tion of an economy falls exactly into this period in the "Tableau économique" by Quesnay in the form of the economic cycle.
+
+In 1776, Adam Smith published his work "Wealth of Nations", in which he elaborated on the importance of the market and thus laid the foundation for the market economy systems. His description of the division of labor based on the production of needles became virtually legendary:
+Beginnings
+
+"The greatest improvements in the productive powers of labor, and the greater part of the skill, dexterity, and judgment, with which it is anywhere directed, or applied, seem to have been the effects of the division of labor. [...] To take an example, therefore, from a very trifling manufacture, but one in which the division of labor has been very often tak- en notice of, the trade of a pin-maker: a workman not educated to this business (which the division of labor has rendered a distinct trade, nor acquainted with the use of the machinery employed in it (to the invention of which the same division of labor has prob- ably given occasion), could scarce, perhaps, with his utmost industry, make one pin in a day, and certainly could not make twenty. But in the way in which this business is now carried on, not only the whole work is a peculiar trade, but it is divided into a number of branches, of which the greater part are likewise peculiar trades. One man draws out the wire; another straights it; a third cuts it; a fourth points it; a fifth grinds it at the top for receiving the head; to make the head requires two or three distinct operations ; to put it on is a peculiar business; to whiten the pins is another ; it is even a trade by itself to put them into the paper ; and the important business of making a pin is, in this manner, di- vided into about eighteen distinct operations, which, in some manufactories, are all per- formed by distinct hands, though in others the same man will sometimes perform two or three of them. I have seen a small manufactory of this kind, where ten men only were employed, and where some of them consequently performed two or three distinct opera- tions. But though they were very poor, and therefore but indifferently accommodated with the necessary machinery, they could, when they exerted themselves, make among them about twelve pounds of pins in a day. There are in a pound upwards of four thou- sand pins of a middling size. Those ten persons, therefore, could make among them upwards of forty-eight thousand pins in a day. Each person, therefore, making a tenth part of forty-eight thousand pins, might be considered as making four thousand eight hundred pins in a day. But if they had all wrought separately and independently, and without any of them having been educated to this peculiar business, they certainly could not each of them have made twenty, perhaps not one pin in a day; that is, certainly, not the two hundred and fortieth, perhaps not the four thousand eight hundredth, part of what they are at present capable of performing, in consequence of a proper division and combination of their different operations.
+In every other art and manufacture, the effects of the division of labor are similar to what they are in this very trifling one, though, in many of them, the labor can neither be so much subdivided, nor reduced to so great a simplicity of operation. The division of labor, however, so far as it can be introduced, occasions, in every art, a proportionable in- crease of the productive powers of labor. The separation of different trades and em- ployments from one another, seems to have taken place in consequence of this ad- vantage. This separation, too, is generally carried furthest in those countries which en- joy the highest degree of industry and improvement."
+In the 19th and early 20th century, names such as Keynes, Ricardo, Mal- thus, John Stuart Mill or even Marx were associated with explanations and models that have lost none of their validity to this day.
+
+For example, Marx describes the trend towards concentration in free mar- ket economies. This means that companies are merging into ever larger complexes. This insight has been reflected in the legal regulations of many market economies and in the regulations of the European Union. In Ger- many, the corresponding regulations can be found in the so-called anti- trust law (Kartellgesetz). It subjects mergers of companies to the control of the Federal Cartel Office (Bundeskartellamt).
+
+The approach to compensate for a stagnating or declining economy by increasing government spending is based on Keynes. Ricardo's theorem of comparative cost advantages laid the foundation for the organization of international trade.
+
+Tasks that can be assigned to the field of business administration can al- ready be found in the years 3000-2800 BC. It has been proven that not only the first accounting document, but also the interest payment for the lending of monetary goods, originated from this period.
+
+The first complete presentation of the so-called double-entry accounting is by Luca Pacioli (ca. 1445-1514). This has not changed in its main features until today and appeared well before the times of Ricardo, Keynes or Marx, namely already in 1494, only two years after Columbus discovered the new world.
+could say that socialism has failed because it overruled double-entry bookkeeping, which was invented by an Italian monk in 1495". Bernhard Bellinger, a professor of business administration, said a little more soberly that Pacioli's importance lay above all in the fact that "unlike the usual accounts of his time, he separated the private household of the businessman from his business operations and made the latter independent in account- ing terms. The result of this process was the capitalist enterprise."
+
+At the beginning of the 16th century, it was still a long way to modern capitalism, but Pacioli certainly laid down its principle with impressive simplicity: the businessman only has to compare income and expenditure, consider both sides as rationally as possible and can thus calculate profit. Capitalism in a snap - with Pacioli's "Tractatus XI. Particu- laris de computis et scripturis", part of his main work "Summa de arithmetica geometria proportioni et proportionalita", published 1494 and not 1495, as Dürr thinks. [.  ]
+
+The life of the Italian monk Luca Pacioli has been known for as long as the authorship of his work is controversial. Only this is provable: The first printed representation of the dou- ble-entry bookkeeping - the "summa" - is undoubtedly from him. Pacioli was a mathema- tician of high rank, working intellectual, teacher and guest in Rome, at the courts of Peru- gia, Florence and Milan; he taught as a professor at the most important universities of Italy and was friends with Leonardo da Vinci. This illustrated Pacioli's important mathe- matical writings. Leonardo's letter drawings for the work of Pacioli are among the most beautiful and noble solutions to the problem ", the Munich art historian Richard Frieden- thal believes, to give new forms to the writing with compass and ruler. Through Pacioli, "Leonardo was also led to the proportions of the human body and its measurability in mathematical orders of magnitude".
+
+Except for the "summa", there is no proof that Pacioli really invented double-entry bookkeeping. A contemporary of the mathematician, Giorgio Vasari, the first serious art historian of the modern era, accused Pacioli even of plagiarism: the Franciscan had ap- propriated the work of his teacher, the painter and mathematician Piero della Francesca, after his death and published it as his own.
+
+[	]
+
+Irrespective of whether and from whom Pacioli has borrowed for the birth of capitalism, his "summa" contains the most systematic representation of accounting to date. For more than half a century, it was one of the most widely read mathematical works in Italy. This is mainly due to the simple language of the people that Pacioli used. In the dedication letter to the "Divina proportione", he writes: "May the native vernacular not offend you, for I will bring all the more benefit the greater the number of readers will be, especially since this is not eloquence, but acumen." He was vain too.
+
+Pacioli was the child of a time of stormy changes. The age of reason had begun, after darkness and the mysticism of the Middle Ages, the natural sciences began to free them- selves from theological precepts. This also applies to mathematics, which plays a central role in Pacioli's major work. "Summa" begins with arithmetic and algebra, followed by its application to commercial practice and accounting. The following topics are coins, dimen- sions and weight. In the end he returns to the beginning: pure and applied mathematics. However, the bookkeeping section contains everything that is still essential for every businessman today: journal, ledger, account statement, cancellation and balance sheet, correspondence, registrar.
+
+It was all nothing new back in 1494. Business administration has existed for 3000 years. Recipes for successful trading for merchants are known from antiquity. Accounting has developed continuously in the different cultures of the Mediterranean. The general ledger of the Italian company Averado de Medici e compagni from 1395 - one hundred years before the publication of Paciolis "Summa" - reveals all the essential features of double- entry bookkeeping.
+
+What then were Pacioli's accomplishments? Bernhard Bellinger sums them up:
+Development
+into an inde- pendent disci- pline
+Pathfinder
+
+With increasing industrialization in the 19th and 20th centuries, the pro- cesses in companies became more complex and required a more system- atic investigation. Around 1900, this finally led to the establishment of commercial colleges outside the universities, which can be regarded as the "birth of business administration".
+
+A scientific discipline of 'business administration' can generally only be described at the beginning of the 20th century, when Schmalenbach, Nick- lisch and Rieger laid the necessary methodical and professional founda- tion for the science of 'business administration'.
+
+Schmalenbach (1873-1955), the vehement advocate of the practical orien- tation of science, gave business administration its name and laid ground- breaking foundations (e.g. Schmalenbach's staircase) mainly in the areas of accounting, financing and cost accounting.
+
+Rieger (1878-1971), who emphasized the scientific character and thus the theoretical basis of business administration, placed the importance of prof- itability - as a comparable benchmark - at the centre of the considerations.
+
+Nicklisch (1876-1946) provided the first impulses that for successful entre- preneurial action, people and their needs must play a central role in busi- ness organisations.
+
+Exactly during this time - at the beginning of the 20th century - the first specialist journals in Germany for the subject "Business Administration" were published:
+* 1906 "Zeitschrift für handelswissenschaftliche Forschung" (ZfhF) - Schmalenbach - today "Schmalenbachs Zeitschrift für betriebswirt- schaftliche Forschung (ZfbF)".
+* 1908 "Zeitschrift für Handelswissenschaft und Handelspraxis (ZHH)" later "Die Betriebswirtschaft (DBW)".
+* 1924 "Zeitschrift für Betriebswirtschaft (ZfB)".
+
+Reflection problem 1 - Science Define the term science.
+2.1.2 Classification into the system of sciences
+
+As you can see in the following figure, the economic sciences are classi- fied as social, cultural, real and non-metaphysical sciences.
+
+Fig. 3:    Classification of economic sciences
+
+A classification as a non-metaphysical science is given, since economics, in contrast to philosophy and theology, deals with recognizable and expe- riential reasons and contexts of life.
+
+The economic sciences are classified as real science because they refer to real facts and their findings can therefore be verified in reality. Unlike mathematics, which consists of a logically comprehensible system of rules and signs, but does not have a real, tangible object of investigation.
+
+As cultural science, economics researches the results of human actions and thinking, so that under this overall term one classifies disciplines such as literature or ethnology in equal measure.
+
+Since economics deals with human behavior, they fall into the subgroup of the social sciences. Disciplines that observe and investigate the behavior itself are classified here. One example is the derivation of rules for an or- derly communal life in jurisprudence.
+
+Finally, there is a further narrowing down, because the economic sciences again deal only with a small section of human behavior, which occurs in a certain cultural field - the economic system - and can be observed on a concrete experience object.
+Non- metaphysical
+Real science
+
+Cultural science
+Social science
+
+Economic sciences
+Joint experi- ence object
+Characteris- tics 'company'
+Households and compa- nies
+2.1.3 
+Experience object: company
+
+Every science has its own special object of experience. In the two disci- plines of the economic sciences, it is the individual components of the economy that are called companies. A term that is much more widely de- fined in economics than the common usage of language.
+
+* Economical, because companies behave rationally and make reason- able efforts to use the resources available.
+* Technical, because they perform a production task and produce goods.
+* Social, because the processes take place in coexistence and coopera- tion with other people.
+* Environment oriented, because there is no isolated company, but there are many links to other companies, for example through the exchange of goods.
+
+Households and companies are variants of the enterprise and are there- fore called derived enterprises. Companies are a necessary institution to produce goods and services that satisfy needs.
+
+Both households and companies are places of goods production. They differ in the goal of their goods production. Whereas in companies, goods are manufactured primarily for meeting external requirements, the house- hold produces mainly for its own needs.1
+Fig. 4:	Companies and households
+
+1 In this context, there is also talk of consumption (households) and production (enter- prises) economies. This pair of terms, however, pushes the fact that households are also enterprises and are engaged in production into the background. For this reason, these terms are no longer used in the following.
+
+A further breakdown is possible if the "operator" of the enterprise, which can be private or public in both households and companies, is considered.
+
+The difference between private and public households derives from the question of whose needs, wishes and interests are at the forefront of goods production - those of the individual, or those of a small group such as a family respectively, or the interests of the public.
+
+The private household wants to satisfy its individual needs. From an economic point of view, this is an economic entity whose behavior is aimed at ensuring that it meets its requirements.
+
+In Germany, the public household is at first the subject of finance, but also more and more of administrative science. Unlike the private household, the public household targets the needs of the Community. In other words, the satisfaction of collective needs is in the foreground here.
+
+The company as a previously mentioned variant of the enterprise can also be subdivided more deeply:
+
+* private companies,
+
+* mixed-economy companies,
+
+* public companies.
+
+The difference between private, mixed economic and public companies is the ownership structure2 of the company in question.
+While private companies are owned by private individuals, the government is the sole or majority owner of public companies. There are also mixed forms between the two extremes. The government owns shares in this company, but less than 50%.3
+Private and public house- holds
+Private, mixed- economy and public compa- nies
+
+2	The legal concept of property is discussed in detail in the course script "Introduction to Law".
+3	For the term "legal person", see the explanations in the course script "Introduction to
+Law".
+
+Fig. 5:	Summary: enterprises - households - companies
+Reflection problem 2
+Please consider which goods are produced by private and public households, as well as by private and public companies. Give examples of mixed economy com- panies.
+
+2.1.4 Essential difference between the sub-disciplines
+
+The classification of the term "enterprise" clarifies the question as to what is meant by the object of experience "enterprise" and provides an initial indication of a difference between the sub-disciplines of business admin- istration and economics.
+
+Business administration is primarily concerned with companies and thus focuses on part of the companies. Households are essentially included as environmental factors. For example, as customers, employees, subsidiz- ers or legislators. Economics, on the other hand, analyzes tasks and pro- cesses in all enterprises.
+
+However, do not be tempted to completely exclude public households/ budgets from business administration. The fact that this is not a primary object of experience does not mean that the findings of business admin- istration in this area are not considered. All enterprises can be organized and controlled based on business administration knowledge.
+
+Another difference lies in the fact that in economics, it is not so much the individual enterprise that is at the forefront, but rather the aggregates, summaries of individual economic variables that have similar characteris- tics, e.g. all households or all companies of an economy. Between these aggregations, the macroeconomic interrelationships and the interactions between them are examined. In addition, economics observes and ana- lyzes how the economy in total can be managed and which framework conditions are to be set. It therefore also has a high political component.
+
+The difference between the sub-disciplines can be illustrated by a compar- ison of the bird and frog perspective. While the economist looks at the economy from a great height, in which the details disappear and the indi- vidual companies merge, the businessman perceives the individual com- pany and its details from below.
+
+Another approach sees business administration as a part of economics, because it conducts detailed considerations and tasks in areas that are considered part of economics. These two areas are highlighted in the fig- ure: Company Theory and Price Theory.
+Differences in the object of experience
+
+Frog and bird perspectives
+Business ad- ministration as part of economics
+Fig. 6:    Fields of economics
+
+In principle, the term pair "households" and "companies" is part of eco- nomics. Further delimitations are made in business administration. As a rule, the term "company" is used there.4
+The two sub-disciplines are characterized by several differences, but also by many similarities - above all the common object of insight, which is the subject of the following remarks. So, it is not surprising that a strict separa- tion is often rejected or even unknown, as in the Anglo-Saxon world.
+
+Business management studies gain their insights from the experience gained in enterprise operations, where, in contrast to economics, the focus is on the individual company.
+2.1.5 Common object of insight
+
+If the field of experience in economic science is the economy and the ob- served object of experience are enterprises or aggregations of the same, then the question remains, what is observed there and in which areas is new knowledge gained? This is the question of the object of insight.5
+
+4	See Chapter 2.2.5.
+5	Comment:
+There are divergent views on this statement. See Wöhe or Brede. For example, Brede points out that business administration deals with economics in individual economies, while the economy is concerned with the effects of government measures on these decisions. However, he later acknowledges that economics in the context of microeconomics also deals with decisions in individual economies.
+With this object of insight there is an object of investigation, which - under different questions - can be investigated in the whole field of experience, no matter what:
+* Enterprise form
+in clubs and associations as well as in business companies, social cen- ters, schools or private households
+* Size
+in private single-person households as well as in large corporations
+* Interests
+profit maximization or cost recovery
+* Economic ideology
+in market economy systems as well as in central administration econ- omies
+
+What is the meaning of the term "economic activity"?
+
+Economic activity serves to satisfy needs. Furthermore, it is based on the principle of economic efficiency. Ultimately, the economic efficiency princi- ple is the rational decision on the use of scarce resources. The question of why rational use of resources is important in all enterprises will be dis- cussed in the following sections
+2.2 Fundamentals of economic activity
+
+Existential needs
+Basic needs
+
+Luxury needs
+
+Classification
+2.2.1 
+Goods as a means of satisfying needs
+
+2.2.1.1 Needs
+
+The needs of the people are the cause of economic activity and thus the starting point for thinking about the concept of economic activity. These are desires that arise from a feeling of lack and can usually be satisfied with the help of goods. Even if an investigation into why and when needs arise lies outside the research area of economics and is more related to the fields of psychology and sociology, some fundamental statements should not be missing at this point. After all, business economists rely on this knowledge for different tasks. For example, a distinction is made be- tween existential, basic and luxury needs.
+
+Existential needs serve to maintain existence. Hunger as a sign of scarcity causes the need for food, which can be satisfied with the help of a good. The satisfaction of some of the needs is vital for survival.
+
+Basic needs arise depending on social and cultural life.
+
+In addition to people's immediate surroundings, the media have a major influence on the emergence of needs. Print media, television, social me- dia, etc. bring new ideas, not exclusively in the form of advertising, which can awaken new or different desires.6
+In addition to basic needs, there are many desires that rank among the luxury needs. Luxury needs symbolize success or status and require a high income. These are goods which are not needed for everyday life and which significantly increase the standard of living.
+
+The boundaries between existential, basic and luxury needs are fluid. In each country there are different goods in the different categories and even each individual in a society defines the respective types of goods different- ly.
+
+Needs are not limited to deficiencies that can be satisfied with goods. De- sires for education, belonging to a group and security can be classified in the same way.
+
+In the field of business administration, the needs that can be satisfied with sellable goods are of interest, since they form the basis for the achieve- ment of company goals - i.e. the generation of profits.
+
+6	Advertising is a sub-task of marketing.
+
+Reflection problem 3 - Needs
+Please ponder how companies can create needs.
+
+2.2.1.2 Goods and scarcity
+
+Economic entities (in private households, companies, government) are willing to make sacrifices for the acquisition of a good, usually in the form of money. You are prepared to pay a price if the good eliminates a existing feeling of lack and are not freely available.
+
+The following types of goods can be distinguished:
+* Free goods that are available and usable for everyone in such a large quantity that economic entities are not willing to pay a price for them (rainwater in Great Britain, sunlight in Italy or sand in the Sahara).
+* Scarce goods (economic goods) are only available in a limited quanti- ty ("scarcity axiom").
+
+The classification also depends on the region in which an economic entity is located. Anyone who needs sand for building houses in Germany natu- rally must purchase this raw material.
+
+The number of free goods is limited and continues to decline as industrial- ization, pollution and urbanization increase. Drinking water used to be a free commodity. Today, drinking water can usually only be obtained from a water supplier for a fee.
+
+The characteristic feature of economic goods is the lack of availability. A statement that does not necessarily make sense in view of filled super- market shelves. But the problem of scarcity is not at odds with the fact that Germany is an overabundance society. In highly developed economies, scarcity results from the procurement effort and the level of processing, as evidenced by the following statements.
+
+Free and
+scarce goods
+
+Scarcity
+* The fundamental problem of scarcity of economic goods: in the forests, everyone can collect berries and mushrooms. However, the number of foodstuffs available there would not be sufficient if the entire population were to come up with the idea of meeting their needs in the forest.
+* Effort: Apart from the limited quantity, the effort, for example driving to a distant forest area and spending time searching, is too high for many people.
+* Degree of processing: In addition, many the desired goods are in a processed to a degree that is not produced in households due to the complicated production process or the high costs involved, such as household sugar or strawberry yogurt.
+* Result: Berries and mushrooms are offered and bought in the super- market because they are scarce or not freely available in the desired condition.
+2.2.1.3 Kinds of goods
+Material goods
+
+Industrial and consumer goods
+
+Fig. 7:    Goods
+
+The concept of goods can be further differentiated in different ways. These are not exclusively material objects, tangible goods such as refrigerators or strawberries (material goods).
+
+Material goods can, for example, be divided into industrial and consumer goods. These terms do not cover different types of goods. The difference lies rather in the buyer of the goods. Industrial goods are the goods used in companies or public households to produce new goods. Consumer goods are purchased by private households. Paper purchased from a pri- vate individual is a consumer good. Paper, purchased by a company to print invoices, is an industrial good. This means that not only goods used directly in the production process, such as steel, are industrial goods, but
+
+also all goods used in companies to achieve the company's purpose. Con- sumer goods are used exclusively to meet individual needs in private households.
+
+Different goods, not different uses are described with the terms consuma- ble goods and investment or durable goods. The term consumable goods covers goods that are consumed in the short term. Investment or durable goods, on the other hand, are intended for long-term use.7
+Here, however, the terms consumable and durable goods are used for this difference.
+
+The subdivision into consumable and durable goods tells us something about the duration of the possible use. Durable consumer goods, such as refrigerators, are used for permanent use and can be used for many years for their original purpose - cooling foodstuffs. With paper, this is only pos- sible to a very limited extent. It can be used as note paper after the first writing. In the case of an apple, the situation is completely clear, it is con- sumed with a single use of the apple.
+
+Intangible goods are intangible assets that cannot be touched. These are divided into services and rights.
+
+Services are sellable. These include, for example, services provided by banks, security services, insurance companies and similar businesses.
+
+Not only services, but also rights can be sold or purchased for a price. These rights include:
+
+* Trademark rights,
+* Patents,
+* Utility models or patterns,
+* Copyrights,
+* Licenses,
+* etc.
+There are many rights that play a role in economic traffic, for example the permission to run an inn - the so-called concession. It is also possible to sell someone else the right to use a path on their own property - the right of way. The examples are manifold, and, in all cases, economic entities are willing to pay a price to obtain the benefit of a right. In all cases, the acquisition is beneficial. These are goods.
+
+Consumable and durable goods
+Immaterial goods
+
+Services
+Rights
+
+7	The term is used, for example, in the field of investment theory or capital goods mar- keting. See therefore in the course scripts "Investment", and "Marketing".
+Fig. 8:    Kinds of goods
+Reflection problem 4
+Investments can be made both in consumable goods and in durable goods. Con- sider what reasons could lead to an investment in consumable goods and what reasons could lead to an investment in durable goods.
+Demand
+2.2.2 
+Demand and supply
+
+Companies produce goods for other companies as well as private and public households, to meet their needs.
+
+However, the needs of economic entities are of relatively little interest to companies. Companies produce only if they can sell the goods against a corresponding remuneration. A prerequisite for this is not only that the economic entity decides on a particular good and thus specifies its needs in concrete terms. The economic operator must be prepared to pay a price and have the necessary financial means.
+
+If these prerequisites are met, then we do not speak of need, but of re- quirement.
+
+Fig. 9:	Requirements
+To generate revenue, all that is now needed is for the household to realize its requirements, i.e. to turn to a company to acquire the corresponding good. With the realization of the requirements on the market there is de- mand.
+
+Since economic entities generally tend not to channel their total purchas- ing power into demand, but to allocate part of their financial resources to savings, demand is in turn only part of their needs. How high this propor- tion is, depends on the propensity to save, expressed in terms of the so- called savings rate. It can cause problems for companies, especially in times of poor economic conditions, because the propensity to save is par- ticularly high in economically difficult situations. Households are reducing their consumer spending, companies are postponing investments. This means that a large part of the demand is missing, especially when it is most urgently necessary.
+
+Fig. 10:	Demand
+
+Reflection problem 5 - Creating demand
+Needs can be created, can a company also increase the demand, i.e. increase the purchasing power of households?
+Goods are manufactured using production factors. Regardless of whether raw materials, subcontracted products or services are involved, the crea- tion of goods requires the use of at least one production factor. For eco- nomic success, an optimal combination of these is necessary. What are production factors?
+2.2.3 Production factors
+
+2.2.3.1 Production factors in economics
+
+The classical production factors in economics are
+
+* Labor,
+
+* Land, und
+* Capital.
+
+In recent economic theory, these three production factors are supplement- ed by the factor Knowledge/ Entrepreneurship (education/technical knowledge/technical progress).
+
+Fig. 11:  Production factors in economics
+
+The factors of labor and land are referred to as original factors, since they are present in every society, in every human form of life, without interven- tion.
+
+Capital, on the other hand, is initially formed by the combination of land and labor and is a derivative secondary factor.
+
+The factor labor encompasses all forms of human activity. Land is all of the natural resources. In other words, it encompasses arable land and for- ests as well as mineral resources and climate (rain, wind, light or heat).
+
+Capital in the broadest sense refers to all goods already produced that have not yet been transferred to the private household sector. This means both industrial and consumer goods. The latter only if they have not yet been sold to private households, i.e. are still being stored.
+
+In the narrower sense, capital is understood to mean all goods used for production or that improve the production process. These are tools and machines or production facilities. This shows why capital is spoken of as a derivative factor. Capital must first be created by combining production factors. The drilling machine used as a tool in the company is a product of the combination of labor, land, capital and technical progress (knowledge). Land because the production site has a location. Capital, because tools and machines are used for production.
+
+The production detour - to create the tool first - serves to streamline the handling and design of the actual labor task. Capital is formed if the cost of production is at least compensated for by the subsequent increase in ef- fectiveness or if the goods cannot be produced without capital investment. The latter is a hallmark of most goods in highly developed economies. The capital intensity therefore indicates the level of development of an econo- my.
+
+The definition shows that money is not capital in this context. Money is merely the equivalent needed to acquire the factors of labor, land and cap- ital. It serves as a generally accepted means of exchange for the simplifi- cation of economic trade. However, money is not a commodity in the sense of a production factor. With money alone, nothing can be produced, only with the goods that are acquired with money.
+
+Knowledge (or information) is becoming increasingly important within the production process. The information itself is used as a resource in the product or service creation process and thus additional knowledge can be generated. This applies at least to information that is "consumed" after it has been input into production, i.e. loses its economic value.
+
+Reflection problem 6 - Production factors
+How do quality and quantity influence the development of an economy?
+
+Labor and Land
+Capital
+Knowledge
+Necessary, stronger dif- ferentiation
+Materials and equipment
+2.2.3.2 
+Production factors in business administration
+
+In business administration, production factors are more differentiated. For example, a division of land and capital is hardly of any interest to a com- pany. It is irrelevant that the original soil is present. It is important that it is available as a location, as a site for extraction or cultivation. It is of no in- terest whether the machine must be manufactured first and is therefore referred to as capital, it is important that it is available.
+
+The theory of income generation and distribution is not an object of study in business administration. National income is merely an influencing factor as a measure of the economic situation affecting every company. Busi- ness administration aims to optimize the processes within an individual company and therefore uses a different and more differentiated distinction.
+
+What are the goods or factors used for production?
+* Equipment: goods available in the long term and intended for perma- nent use. For example, machines, tools, production buildings, wa- rehouses.
+* Materials consumed or processed in the production process, such as raw materials, semi-finished and finished products as well as waste materials used in the manufacture of new products.
+* Human labor in object-related and dispositive aspects.
+
+Business administration divides into consumable and durable goods. A division that is much better suited to the tasks of business administration. Consider, for example, an agricultural enterprise.
+
+In an agricultural enterprise, the considerations and work activities associ- ated with the acquisition of arable land or a combine harvester are similar, although in one case it is land in economic terms and capital in the other. Both are used on a permanent basis, the purchase price is high, both are usually financed by taking out a long-term loan.
+
+Materials such as fertilizers, on the other hand - in a broader sense capi- tal, in the narrower sense not considered from an economic point of view at all - places completely different demands on the organization of the company as consumable goods:
+
+* regular purchasing,
+
+* warehousing,
+
+* short-term financing,
+
+* ensuring on-time availability.
+
+Reflection problem 7
+List typical equipment and materials of an industrial company.
+
+Hardly any good can be created without the use of object-related, human labor. This does not only mean the work of the production worker, who processes materials using equipment. The understanding of this term goes further. The term covers all activities that are carried out in the fol- lowing areas
+* directly with the generation of products and services
+* directly with the utilization of products and services and
+* related to the financial tasks of a company.
+
+Consideration of the factor of human labor is of special importance in business administration. Even the designation as an original factor as in economics is insufficient for detailed analysis purposes.
+
+In principle, only the unskilled worker is original. Every trained employee is the result of a production process. To carry out his or her work, the em- ployee had to take advantage of "school education" and "vocational train- ing". Strictly speaking, every skilled worker, as well as materials and equipment, is a combination of production factors.
+
+The technically advanced goods and equipment of Germany require well- trained specialists to maintain international competitiveness. And many companies have long been aware of their responsibility to invest in this factor, e.g. in the form of continuing education and training.
+
+The greatest deviation in the system of business administration production factors consists in the separation of the dispositive-directive human labor and its special significance for business analysis. The right time to hear from the intellectual father of business production factors.
+
+Object related human labor
+
+Special posi- tion of the factor labor
+
+Dispositive factor
+rooted in an irrational layer that is not accessible from a business administration point of view.
+
+However, no decision or operational undertaking can now be implemented without clear and systematic thought and anticipation. May this premeditation of possible operational and external events and the consequences to which they may lead be reflected in the rational forms of short- or long-range planning, or may it be reflected in what needs to be done, the multitude and diversity of company events cannot be brought into a form that is becoming increasingly prevalent in the unpredictability of technical or economic events without the mental rigor of planning rationality. Here the second, rational layer becomes visible, rooted in the business activity.
+
+It is incumbent on the management to not only plan what is to come, but also to make the plan become reality, i.e. to ensure that barriers and resistances are overcome that op- pose the objective. People and things must be linked together in such a way that the company activities are brought to a functioning unit. With this task of making the plan come into being, the third layer of business and operational activity becomes visible, the layer of the formative-implementing, in which the organizational functions are rooted that are inextricably linked with supreme decision-making authority.
+
+These three layers, those of the irrational, the rational and the formative-implementing constitute together the essence and the breadth of the dispositive factor. They form a unit and stand out clearly from the elementary factors due to their special structure and func- tion. Companies whose top priority is strong impulses, imagination, planning and organi- zational performance have favorable conditions for strong resilience in difficult times and healthy growth. Companies that lack one of these prerequisites stagnate or perish.
+
+Each activity of an elementary factor is always at the same time an activity of the disposi- tive factor. The productive yield that the elementary factors achieve is thus determined by the performance of the dispositive factor. This clearly shows the essentially dependent nature of each elementary factor and, at the same time, the dominant position of the fourth factor in the system of productive elements. Therefore, quantifying methods can only ever have a limited range for the analysis of this factor. As deep as these methods allow to penetrate the structure and confusing interdependencies of the operational con- texts and however great their successes may be - the dispositive freedom of the compa- ny management does not enter into any formula, because the company management does not react in the system of the axioms underlying the theoretical analysis, but always with a new system of combinatorial and organizational acts. The distance between reality and theoretical statement thus remains insurmountable. Here the limits of scientific en- deavor become visible, which do not lie in the methodology or the abilities of the individu- al researcher, but in the matter itself. The fourth factor is to block the last access to com- pany events by means of quantifying analysis, although there may not be any other pos- sibility to penetrate the inner connections of company events as deeply as with the help of these methods. But the fourth factor cannot be completely dissolved into rationality. And if there are so many objections to the overemphasis on accounting and quantitative methods, this fact is only proof that the fourth factor cannot be eliminated, despite the beneficial use of these methods, and that these methods are always only a means to make the management of companies more successful.
+
+This also applies to the application of decision-oriented information systems. Electronic data processing plays an important role in them. Computer-aided management infor- mation systems can lead to a level of information that cannot be achieved with traditional accounting and statistical analysis methods. However, no matter how great the achieve- ments of such systems may be in the future, they will not be able to replace decisive per- sonalities.
+Original and derivative dis- positive fac- tors
+If Gutenberg initially only speaks of the dispositive factor business and operating performance here, he later derives two further factors, planning and organization from them. Therefore, in the context of business admin- istration, there is also talk of primary and derivative factors.
+* original: company and operational management
+* derivative: planning and organization
+FactorsLayersCompany and operational ma- nagement
+Irrational layerPlanningRational layerOrganizationFormative-implementing layer
+Fig. 12:	Layers of the dispositive factor
+
+Reflection problem 8
+What does Gutenberg mean by the irrationality of the dispositive factor?
+
+Within the framework of the dispositive factor, planning takes on the task of preparing the implementation of the management's objectives. It anal- yses and arranges the necessary work steps with the aim of eliminating, as far as possible in advance, coincidences and inadequacies that could endanger the achievement of objectives. The organizational task consists of implementing the plan.
+
+The implementation of a control serves to check the plan versus imple- mentation. It is not explicitly stated as a factor in connection with the dis- positive factors. However, it is an indispensable part of further planning activities.
+Planning and organization
+
+Fig. 13:	Production factors in business administration
+
+True management decisions
+Derivation and reasoning
+
+From the "isolation" of the dispositive factor, it should never be assumed that the object-related labor is reduced to purely executing activities. The scope for decision making that each individual employee has is a question of the leadership styles practiced in the company and the management principles applied.
+
+For Gutenberg, there are only a few inherent tasks that lie solely in the disposition factor, the so-called true management decisions, which cannot be delegated for the following reasons:
+* Importance of the decision for the future of the company
+* Decision affecting the company in its entirety and not just individual areas
+
+Gutenberg lists exactly five types of true management decisions:
+* Defining the company's policy in a broad perspective;
+* Coordination of the large operational divisions;
+* Removal of disturbances of an exceptional nature in the ongoing oper- ational process;
+* Business measures of exceptional operational importance;
+* Filling management positions in the company.
+
+2.2.4 Economic principle
+
+The success of a company depends on its management. As the following remarks will show, the dispositive factor - especially the planning and or- ganizing work - is particularly important.
+
+The purpose of a company is usually to manufacture and sell goods. Eco- nomic entities feel a lack, goods are scarce and therefore economic enti- ties are willing to pay a price for them. However, and these are the two biggest problems facing companies,
+* no one is willing to pay an infinitely high price,
+* everyone buys, if possible, from the company that has the cheapest offer.
+
+These circumstances force companies to make rational use of the produc- tion factors, because they are only available to a limited extent and cause costs. This means that companies are forced to act economically to achieve their corporate purpose. The necessity of economic activity results directly from scarcity.
+
+Those who achieve their objectives in most favorable way act economical- ly. This can be achieved when
+* a specific objective is achieved by using the least possible expenditure (minimum principle), or
+* the maximum possible income is achieved with a given amount of ex- penditure (maximum principle), or
+* the most favorable ratio between expenditure and income (general ex- treme principle) is achieved.
+
+The "economic principle" in the three forms mentioned above is applied in companies. All economic entities strive to act rationally and economically.
+* Households endeavor to make the most of the financial resources available.
+* Companies endeavor to produce a certain quantity of production, which can also be sold, at the lowest possible cost.
+
+Reflection problem 9
+Are the above examples for the minimum or maximum principle? Find two further examples for the application of the minimum and maximum principles.
+2.2.5 Enterprise - Company
+
+Business, company, firm, and enterprise are often used synonymously in the common usage of language. These terms are partially defined differ- ently in business administration. Different countries and cultures also tend to differentiate differently, in Germany for example the terms are defined rather narrowly and are strongly delineated, whereas in the Anglo-Saxon countries the differences and delineations are much less strong, and sometimes not clear.
+
+It has already been explained in a previous section of the course script that the conceptual pair of enterprise and company is basically to be at- tributed to economics and the differences made there.8
+
+Reflection problem 10
+Please remind at this part all the important definitions which has been made so far.
+
+Two manifes- tations
+
+Examples
+
+8	See chapter 2.1.3.
+
+System indif- ferent factors
+
+System differ- entiated fac- tors
+
+Principles
+
+To delineate the concepts of enterprise and company, Gutenberg worked out characteristics that are dependent on the economic system (sys- tem-differentiated factors) and independent of the economic system (system-indifferent factors).
+
+Irrespective of the economic system, production factors are combined
+in an enterprise.
+
+An enterprise as a technical unit comprises the procurement of input goods, their combination and transformation into finished products or fin- ished services as well as sales services. Input goods and input services are called production factors or inputs. Finished goods or sales goods are called output.
+
+Regardless of the economic system, the principle of economic efficien- cy is followed in companies.
+
+A specific purpose (procurement quantity, production quantity, sales quan- tity) is to be achieved with a minimum of input. Or, however, with a certain input, maximum benefit or achievement of purpose should be achieved (economic principle). The operation is therefore a technical execution, which is controlled according to the economic principle.
+
+Irrespective of the economic system, companies follow the principle of financial balance.
+
+An enterprise plans in such a way that the available and reliably expected financial resources are at least sufficient to cover the payment require- ments to the enterprise. The essential feature of an enterprise is therefore that it strives for liquidity to achieve continuous solvency.9
+The enterprise in a market economy system, i.e. a company, is character- ized by the following system-differentiated factors.
+
+Companies plan and work autonomously. No one dictates to the individual company which products are to be produced and sold in which quantities. They identify and determine their market opportunities independently based on the researched and anticipated demand (autonomy principle).
+
+Enterprises work according to the commercial principle. This means that companies are striving to maximize profits with their activities.
+
+Economic work with the aim of maximizing profits while taking full entre- preneurial risk requires a further characteristic. Companies are privately owned, which is the only way to encourage risky entrepreneurial activity.
+
+Accordingly, government owned enterprises and enterprise in planned economic systems are characterized by
+9	Further information will follow in Chapter 2.2.6.4 "Liquidity".
+* (Body) organ principle
+* Principle of plan fulfillment
+* Principle of common property
+
+Enterprises in planned economic systems usually belong to the state and act as branches (organs) and executing assistants in the centrally defined business plans. The state prescribes the production plans, independent planning does not take place.
+
+Fig. 14:	Determinants of the enterprise
+This concludes the remarks on the concept of company, which we under- stand in Gutenberg's sense as an enterprise of the market economy sys- tem. The terms company and enterprise are used in the following defini- tion.
+2.2.6 Measurability of rational activity with key metrics
+
+Economic activity can be checked by means of key metrics. They provide important information about the development of a company in comparison with key metrics of other companies, in comparison with the industry aver- age or in a time comparison and thus form the basis of entrepreneurial decisions.
+
+Key performance indicators in the economic sciences are:
+* Productivity
+* Economic efficiency
+* Profitability
+* Liquidity
+
+Different key metrics
+2.2.6.1 
+Productivity
+
+Productivity is a measure of the quantitative yield of the individual produc- tion factors. Since this is a quantitative analysis, productivity must be de- termined for each individual factor type (labor productivity, material productivity, equipment productivity). The output quantity (output) is com- pared with the input quantity (input). For example, in the case of labor productivity, the number of units produced per worker or per hour worked is calculated. Considering productivity as a measure of its own does not lead to any statement. It is only possible to make a statement by compar- ing it with other "productivities", such as the data from previous periods.
+
+Fig. 15:	Productivity
+In the case of various time-consuming products, productivity is indicated by the inverse value, the so-called production coefficient. The production coefficient (also input coefficient or factor coefficient) is the ratio of the in- put factor to the output quantity.
+
+Fig. 16:	Production coefficient
+Note:
+
+Productivity is not only used in the field of business administration. This indicator also provides interesting information on the appropriate use of resources in an economy and its development.
+2.2.6.2 Economic efficiency
+
+Economic efficiency is a value-based consideration and operates based on income (increases in value of a period) and expenditure (decrease in value of a period).
+
+Examples from the view of a company:
+* Income: Revenues, interest income, income from speculation in secu- rities, rental income.
+* Expenses: Wages and salaries, cost of materials, energy, interest, insurance, depreciation and amortization.10
+
+The economic efficiency results from the quotient of income (or value cre- ated) and cost (or expenditures).
+Fig. 17:   Economic efficiency
+
+The result is a non-dimensional value which, when viewed alone, merely provides a statement as to whether the company has operated profitably.
+* Profitable companies have a ratio greater than 1.
+* Unprofitable companies have a ratio of less than 1.
+
+Significant for economics and business administration
+
+Fundamental metric
+
+Definition
+Statement
+10 Depreciation/ amortization is dealt with in the course script "Accounting and financial statements".
+
+ Advantage of the economic efficiency ratio
+
+Absolute values such as profit have a decisive disadvantage: they can only be compared with each other if the comparison figures are based on the same absolute figures, the same structures and quantity structures. This problem does not affect the key metric of economic efficiency.
+
+Example:
+
+A company reports the following results at the end of the 2017 financial year:
+* Revenue of 4,960,000,
+* Costs amounting to 3,887,000,
+* and thereby a
+* Profit of 1,073,000 .
+
+Due to production expansions, profit in 2018 was increased by 70% to
+1,820,600. The number results from
+* Revenues of 8.320.600  and
+* Costs of 6.500.000 .
+
+Has the company worked more economically in 2011, i.e. achieved a bet- ter ratio between income and expenses?
+
+No, in both cases the economic efficiency is 1.28. The profit increase is due to the increase in volume, not to an optimized combination of produc- tion factors.
+Reflection problem 11
+What influence do rising prices have on the economic efficiency indicator, how do you assess this fact?
+2.2.6.3 Profitability
+
+Profitability ratios are based on the profit achieved over a period. It is set in relation to a capital value or turnover.
+First, some explanations: A distinction is made between equity capital, debt capital and total capital. The total capital corresponds to the sum of all assets valued in cash in a company.
+
+The term equity is used to describe the portion of total capital that the owners have financed from their own funds. Simplified: Capital provided by the owners. Debt capital is defined as that part of the total capital that was financed with external funds, i.e. by creditors such as banks. Simpli- fied: Capital provided by creditors.
+
+The term capital is not synonymous with financial assets. Cash and bank deposits are only part of the capital. The term encompasses all other as- sets of the company as well as machinery, vehicle fleet, inventories, secu- rities and other assets.
+
+If the profit of a period is compared to the equity capital, then the return on the capital made available by the entrepreneur is the result. This is called equity profitability or return on equity. This is expressed as a percentage.
+Fig. 18:   Return on equity
+
+If the interest rate is used as a comparative figure, which could be ob- tained alternatively from a securities investment or a financial investment with the bank, it can be checked whether the entrepreneurial activity and the associated risk have been worthwhile.
+
+An interesting variable for investors who are considering in which compa- ny they would like to invest capital.
+
+The return on total capital shows the total capital of the company in the denominator and thus allows conclusions to be drawn as to whether all the capital available to the company has been used sensibly.
+
+Since the capital structure (ratio of equity to debt) changes over time and differs from one company to another, the structure is adjusted by taking the interest on debt into account in the numerator.
+
+With the help of the return on total capital (total capital profitability), it is possible to make statements as to which companies have worked better in line with the economic principle.
+
+Essential fig- ures
+Equity profita- bility
+
+Total capital profitability
+
+Fig. 19:	Return on total capital
+
+Two companies with the following data are compared.
+
+Company
+Equity capi- tal []
+Debt capital []
+Income []
+Costs []
+Profit []
+A
+3,600,000
+9,500,000
+2,890,000
+2,130,000
+760,000
+B
+13,100,000
+0
+2,890,000
+2,130,000
+760,000
+
+Tab. 1:   Return on total capital - base data
+
+The companies generate profits of the same amount but have an extreme- ly different composition of total capital. Company B works exclusively with equity capital.11
+If only the profit were to be compared with total capital, then the return on total capital would also be identical.
+
+The fact that this approach must be wrong becomes clear when you re- member that Company A's expenses must include a high amount of inter- est expense on debt. With an average interest rate of 6 %, for example, this amounts to 570,000. Company B does not have to bear this burden. Company A had to earn an additional 570,000 or in other words, in some way company B must have spent 570,000 more during the production process. Reasons could, for example, be poorer productivity due to under- utilization of the elementary factors used or errors in the planning factor.
+
+Tab. 2:  Return on total capital
+
+One thing is certain: an indicator must enable a realistic comparison to be made and by considering the interest on borrowed capital, the return on total capital meets this
+
+11  This unrealistic assumption serves only to explain the meaningfulness of profitability.
+requirement. Company A has worked more economically, and this fact is reflected in the key ratio.
+
+Reflection problem 12
+Can a company work unprofitable but economically efficient? Can a company be productive but not economically efficient? Explain the relationships between the three key metrics.
+
+2.2.6.4 Liquidity
+
+In addition to the combination of production factors in compliance with the economic principle, an enterprise must be able to meet its payment obliga- tions. It must ensure that it is able to meet in full all the requests for pay- ment justified in terms of their nature, amount and timing.
+
+Maintaining solvency - liquidity - is a permanent and daily task of the fi- nancial management in a company.12
+The liquidity ratios provide an assessment of solvency. However, they only reflect the picture on one day and do not indicate liquidity in the next year, month or week.
+
+Short-term liabilities are shown in the denominator of the liquidity ratios. Payment obligations which the company must meet in the short term, at the latest within one year. The three liquidity ratios are distinguished by the values in the numerator, which shows asset components. As assets are related to liabilities, we speak of relative liquidity.
+
+The first-degree liquidity ratio shows the liquid funds available at any time in the form of cash and bank balances (called monetary assets in the fig- ure). In the case of first degree liquidity, no coverage of short-term liabili- ties is to be expected or aimed for. Finally, the monetary assets in the de- nominator are compared with payment obligations that fall due in the course of a year. The money must be available on the due date and not weeks or months before.
+
+The counter is added in steps. The time horizons match for liquidity of the 2nd degree. Here, a result of 100 % is realistic.
+
+If the company only achieves 100 % liquidity with the 3rd degree of liquidi- ty, the situation could become critical. Here the stock of goods has been included in the ratio. If it is an industrial or craft business, this could mean that the company is forced to sell its materials to fully meet its payment obligations. This extreme case could be the end of the line for the compa- ny, as it is no longer possible to produce without materials.13
+Meaning
+
+Informative value
+Liquidity metrics
+1st degree liquidity
+2nd and 3rd degree liquidity
+
+12  See course script "Financing".
+13  Exact guideline values for the liquidity ratios cannot be specified. The amount de-
+pends particularly on the industry in question.
+
+Fig. 20:   Liquidities
+
+These key indicators can only be used to make meaningful statements if, for example, the change in liquidity is to be considered over time or if the liquidity of different sectors is to be compared with each other for general analysis. Liquidity is a permanent task in a company and cannot be meas- ured by a single key figure.
+
+Reflection problem 13
+Companies strive for optimum liquidity and profitability. Is there a conflict of objec- tives here?
+Goods and monetary flows
+2.2.7 
+The company and its relationships with the environment
+
+Let us return to the statement that no company works in isolation. Compa- nies are embedded in the economy and are linked to other economic enti- ties via numerous flows of goods and money.
+
+Companies and private households provide production factors. They are combined again and then sold to economic entities as sales goods.
+
+Money flows are flowing against the flow of goods. Customers pay for the acquired sales goods, suppliers and employees are paid or otherwise re- munerated (e.g. in goods).
+
+In addition, money flows connect companies with the government as well as the money and capital markets, whereby both the government and the economic entities of the money and capital markets can act equally on the procurement and sales markets.
+
+The flows are controlled by the information processes.
+
+Fig. 21:	Representation of the company under business administration aspects
+An additional area of increasing importance is the impact of entrepreneuri- al activity on the natural environment. Companies are occupying parts of the environment as production sites and are displacing other uses of this resource other than agricultural land, forests or residential areas - a prob- lem of the fact that land cannot be increased. Pollutants are released into the environment during the production process. Production and the prod- ucts themselves produce waste, and companies must assume ever great- er responsibility for their recycling or disposal. In connection with this issue of emissions and waste, there are additional points of contact with other companies, private households, waste disposal companies and the state.
+
+In addition to the organization, planning and execution of the actual pro- duction process, a company must take on many other tasks. Business administration thus has an extensive and varied field of research and tasks, which becomes even more varied due to the diversity of companies.
+2.2.8 Types of companies
+
+Both the organization of external relationships and the tasks in a company depend on the type of company under consideration. In the following, three different classification options are listed.
+
+The first step is to differentiate between companies by economic activity. This results in a rough classification, which is based on very important dif- ferences between companies. After that we differentiate:
+
+* Industrial companies,
+
+Natural envi- ronment
+Extensive range of tasks
+* Craft businesses,
+
+* Transport companies,
+
+* Banking operations,
+
+* Insurance companies and other service companies.
+
+It is also possible to classify according to the type of good created.
+Fig. 22:	Classification of companies by type of good
+
+Another alternative is the classification by sector.
+
+Fig. 23:	Classification of companies by sector
+Further subdivisions can be made according to the size of the establish- ment, location, mobility or legal form.14
+
+Reflection problem 14
+Consider what chain of companies is necessary to produce a loaf of bread. Classi- fy the companies in the appropriate sectors and comment on overlaps.
+
+2.2.9 Simple economic cycle
+
+It is not only the relationships of the individual company with its environ- ment that can be represented. In the field of economics, individual eco- nomic activities are generally grouped into so-called sectors. A total of four sectors can be formed in an overall economy: Private households, com- panies, government and foreign countries.
+
+In the simplest case, the overall economy can be represented with the aid of a simple closed-loop cycle model without government activity. Closed means that the model does not take foreign countries into account. The presentation is limited to two sectors: households and companies. To sim- plify, it is also assumed that the sectors will re-use all the financial re- sources generated.
+Sectors
+
+Simple eco- nomic cycle
+Fig. 24:   Simple economic cycle
+
+Because of the aggregation, all exchange relationships between individual economies within the sectors are eliminated. The relationships are re- duced to two flows of goods and two flows of money. Private households provide companies with production factors in the form of labor, land and
+14 The legal forms mentioned here are discussed in the course scripts "Commercial and Company Law".
+
+Insight
+
+capital (real capital such as buildings and machinery). The production fac- tors are combined in companies to form goods. The resulting output is sold to private households.
+
+Since the model is a representation of a so-called monetary economy, the real goods flows are opposed to money flows. Goods are not exchanged for other goods, as is customary in a natural economy, but for money. For the provision of production factors, private households in exchange re- ceive income in the form of wages, rents, leases and interest. Households pay for the types of goods demanded and purchased via prices. The sum of these fees is also referred to as the sum of consumption.
+
+A fundamental insight into economics can be derived from the simple model: The total output of goods corresponds to the total expenditure and total income of an economy.
+
+The simple model is gradually enriched with details. By adding additional components, it is possible to make statements about their effects and gain insights into the interaction of economic entities and sectors in the econo- my.
+3 Outlook on the subsequent course scripts
+The contents of this section give you an overview of the more in-depth modules for the respective course script. Since the course script "Funda- mentals of Business Administration and Economics" is the starting point for your studies, you can obtain an overview of all the contents of the de- gree course and gain a first insight into all areas of study in the following.
+
+3.1 Economics
+The sub-sectors of microeconomics and macroeconomics presented in Figure 6 of this teaching letter are explained here.
+
+Within the scope of these explanations, the simple closed-loop cycle mod- el is extended step by step, thus completing the economic accounting sys- tem. Differences between gross national product, gross domestic product and net products are derived. Other focal points are economic systems, supply and demand, market forms and pricing.
+3.2 Business administration
+Business administration is a part of the economic sciences that deals with the facts, problems and concepts common to all companies. It examines various aspects of business management in companies.
+
+Findings from corporate research and other scientific fields such as soci- ology, psychology and law play a major role in business administration and are therefore an integral part of this degree course.
+
+A distinction is made between general business administration and special business administration.
+
+General Business Administration deals with content that can be trans- ferred to companies from all industries. Fundamental tasks in planning, management, organization and control occur regardless of the type of company.
+
+No company can only function with departments that directly create value. You need the support of HR managers, organizers and controllers.
+
+The basis of these supporting functions is provided by the module Com- pany Management, in which, in addition to an introduction, the topics Con- trolling, Organization and Human Resources Management are covered.
+
+The course scripts of the module Classic Primary Functions deal with the classic functions, the main fields of activity of business administration - procurement, production, sales and distribution and the related logistical tasks.
+
+Primary field
+Supporting functions
+
+Holistic approaches
+
+Special busi- ness admin- istration
+Statistics/ Mathematics
+
+The objectives and tasks of the functional areas and the associated cost structures will be discussed. The dilemma of the materials-economical op- timum, manufacturing processes, minimum-cost combinations or distribu- tion channels and sales agents are just a few of the keywords that are ad- dressed and explained in this module.
+
+For years, business information technology has also been making an in- dispensable contribution to achieving the company's goals. Due to the scope and the different types of tasks involved, business information tech- nology is classified in the field of adjacent sciences within the framework of this distance learning course.
+
+The consideration of a purely function-oriented task in the company is not sufficient. The company's purpose, the production and distribution of goods, is a process that must be organized across functions, so that the business manager needs a holistic view. He or she must organize projects across functional boundaries (including departmental boundaries), ensure quality in all areas of the company, and optimize processes for shorter processing times.
+
+The course scripts of the modules Project/ Process Management as well as Quality Management allow an introduction to the holistic approaches of business administration. The Marketing module also pursues a holistic approach, because the successful sale of goods requires suitable market- ing measures throughout the entire production process and from all func- tions and employees. The course script will clarify the terms project, pro- cess, quality, and marketing, point out the areas of application, introduce the procedures and name the responsible parties.
+
+The module sector-specific business administration covers special busi- ness administration, i.e. the different tasks in the various branches of in- dustry. The contents are sector-specific solutions, processes/projects, in- dustry, trade, services.
+
+3.3 Adjacent and supporting sciences
+Business administration is adjacent to related disciplines. In some cases, overlaps also occur. From a business administration point of view, these are auxiliary sciences. Their insights are being used.
+
+In the second semester, the scientific fundamentals of statistics are dis- cussed in the course scripts about statistics. After all, the general validity of the gained insights depends on a scientifically based approach. Statis- tics also play an important role in business administration in the prepara- tion and underpinning of decisions, for example in material requirements planning or in connection with profit and sales forecasts. Topics will in- clude data collection, data preparation, data evaluation, forecasting and usability.
+
+In the 1st semester, the Mathematics course script imparts further im- portant knowledge, as many business administration decisions are pre- pared with the help of mathematical-economical models.
+
+Jurisprudence plays a decisive role in almost all areas and fields of activity of a business manager. The legal norms that must be observed regulate the relationships of the people in the individual company, the companies among themselves and the relationships of the company with the govern- ment authorities.
+
+Commercial law and its regulations, e.g. for the establishment of a com- pany or contract law, tax law and labor and social law are just a few ex- amples of important areas of law whose non-observance can have serious consequences for the continued existence of the company.
+
+The introductory course script introduces law with structure and areas of law. The various types of standards, the procedure for examining a legal norm and the principles of civil law, which are linked to terms such as nat- ural and legal persons, legal capacity, declarations of intent, legal transac- tions, types of contract, as well as disputes and invalidity, are clarified.
+
+In the meantime, business information technology has become just as much a natural tool of business administration as accounting. The course script Introduction to Business Information Technology will give you an overview of the various tasks involved.
+
+3.4 Working scientifically and key qualifications
+Studying should not only impart specialist knowledge. Graduates are also expected to have
+* the ability to acquire knowledge independently, in combination with a scientific approach, as well as
+* key qualifications/soft skills.
+
+These contents will be addressed in introductory course scripts - on scien- tific work, facilitation and presentation techniques - as well as in presence events and examinations.
+
+Law
+Business IT
+Problems
+In this part of your course scripts, we want to provide you with some ques- tions that you can use to check whether you have understood the subject matter covered. The solutions or solution hints can be found in the appen- dix of the course script. Please make it a rule to support each of your choices with two or three explanatory and substantiating sentences. In this way you can considerably increase the learning and deepening effect of these tasks.
+
+Note: generally, the plural is used for the questions, which does not imply any conclusion as to how many answers are correct.
+Problem 1
+
+Please decide which of the following enterprises represents a private household:
+1. A woman provides her sick and needy neighbor with food. A household that therefore does not produce exclusively for its own use.
+
+2. A pensioner takes over garden maintenance in the neighborhood for a fee.
+
+3. A mechanical engineering company manufactures the machines necessary for its own production itself and thus covers its own re- quirements.
+Problem 2
+
+Which of the following definition attempts come closest to the concept of liquidity?
+(1) To be able to pay the existing short-term liabilities on every day of the year.
+
+(2) Ability to meet due payment obligations without limitation.
+
+(3) The fact that the sum of all the assets of an enterprise could be used to offset its current liabilities.
+Problem 3
+
+Which of the following statements are correct?
+(1) A company that works productively is always profitable.
+(2) The economic efficiency indicator provides no information other than absolute profit.
+
+(3) The return on equity capital provides an indication of how useful the use of capital in the company was.
+
+(4) The productivity ratio is only meaningful when compared with other productivity ratios.
+
+(5) Key metrics are used exclusively in business administration, be- cause they serve to control the economical work in the individual com- pany.
+Problem 4
+
+In which case is the minimum-principle applied?
+(1) A budget of 80,000.00 is available to an event manager. The aim is to finance as many program points as possible.
+
+(2) The production manager maximizes the production volume while minimizing input factors.
+
+(3) A chef wants to produce as many meals as possible from the avail- able food.
+
+(4) A specific investment object should be realized with minimal costs.
+Problem 5
+
+Which of the following questions belong to the field of business administra- tion?
+(1) What taxes does a company have to pay?
+
+(2) What customs regulations apply to trade with the United Arab Emir- ates?
+
+(3) How does the increase in trade tariffs affect the export potential of the German economy?
+
+(4) What impact will the abolition of customs restrictions have on the economy?
+Problem 6
+
+Which of the following statements is/are correct?
+(1) The entire demand can be financed.
+
+(2) All requirements can be financed.
+
+(3) Demand can be financed.
+
+(4) Financing feasibility does not play a role in the distinction of these terms.
+Problem 7
+
+Which of the following statements is/are correct?
+(1) For business administration production factors, the equipment cor- responds to the factor land and the materials to the factor capital.
+
+(2) The use of production factors usually causes costs.
+
+(3) Economics divides the factor of labor into object-related and dispos- itive work performance.
+
+(4) The division of the factor labor into object-related and dispositive work performance has become obsolete, because decisions are made at all hierarchy levels.
+
+Problem 8
+
+Which of the following sentence completions is most appropriate? Busi- ness administration is an interdisciplinary science, because...
+(1) ... it is part of economics.
+
+(2) ... together with economics forms the economic sciences.
+
+(3) ... it uses the insights of other sciences
+
+(4) ... no clear demarcation from other sciences is possible.
+
+Problem 9
+
+Which statements are correct?
+(1) Business administration and economics have the same object of knowledge.
+
+(2) Due to its high degree of abstraction, economics is a formal sci- ence, whereas business administration is a real science because its findings can be verified in reality.
+(3) Business administration is primarily concerned with companies.
+
+(4) Economics deals primarily with households.
+Problem 10
+
+What is the prerequisite for the emergence of needs?
+(1) High income
+
+(2) Feeling of lack
+
+(3) Supply
+
+(4) Availability
+Problem 11
+
+Which of these statements are correct?
+(1) Economic goods are scarce.
+
+(2) Only if, without exception, all economic entities of an economy are willing to pay a price, one speaks of economic goods.
+
+(3) A durable good can be both consumer good and industrial good.
+
+(4) Investment goods are used exclusively by companies.
+Practice exercise: Key metrics Initial situation:
+The following table contains some data that has already been prepared for calculating key figures15. The stated interest on debt capital is based on an interest rate of 6%.
+Year010203Equity capital3,300,0003,500,0003,500,000Debt capital7,200,0007,150,0007,100,000Expenditures excl. DC interest1,566,2001,805,5001,933,800DC interest expenditures432,000429,000426,000Income2,354,6002,541,0002,520,000Cash11,43011,77310,478Bank29,20027,74033,288Receivables339,200322,240309,028Liabilities356,000388,040417,143Production quantity6,780,2007,458,2206,712,398Machine hours33,222,98033,561,99034,904,470Labor hours99,668,940100,685,970104,713,409Tab. 3:	Practice exercise data - initial situation
+Exercise part A:
+
+Based on the table, calculate the key figures listed here.
+Year010203ProfitEconomic efficiencyReturn on equity capitalReturn on total capitalMachine productivityLabor productivity1st degree liquidity2nd degree liquidityTab. 4:	Template exercise part A
+15 The preparation of the data and further information on key indicator analysis and in- vestment decisions based on key metrics follow in the course scripts: "Balance Sheet Analysis" and "Investment".
+Exercise part B:
+
+What has changed in comparison to the initial situation?
+
+Total capital remained unchanged, but its composition has changed. The share of equity capital has decreased. As a result, the share of debt capi- tal has increased significantly. This can be seen in the absolute figures or in the debt ratio shown below.
+
+In line with the increase in debt capital, of course, interest expenses on debt capital have also risen and the total amount of expenses has in- creased as a result. The underlying interest rate continues to be 6 %.
+Year010203Equity capital1,300,0001,500,0001,500,000Debt capital9,200,0009,150,0009,100,000Expenditures excl. DC interest1,566,2001,805,5001,933,800DC interest expenditures552,000549,000546,000
+Tab. 9:	Changes to the initial situation
+Year010203Total capital10,500,00010,650,00010,600,000Debt capital ratio in the initial situa- tion in %68.5767.1466.98Debt capital ratio now in %87.6285.9285.85
+Tab. 5:	Debt capital ratio
+Task:
+Develop the formula for calculating the debt ratio.
+
+Now calculate the following key figures again based on the changed data:
+
+Year010203ProfitEconomic efficiencyReturn on equity capitalReturn on total capitalTab. 6:	Template 1 exercise part B
+Compare the return on equity and total capital as calculated by you in the following table.
+
+Year010203Return on total capital -
+initial situationReturn on total capital -
+changed situationReturn on equity capital - initial situationReturn on equity capital - changed situationTab. 7:	Template 2 exercise part B
+a) How does the return on total capital change and why?
+
+b) How does the return on equity capital change and why? Note the dif- ference in the change in the years '01 and '02 and the change in the year '03? What could be the reason for this?
+
+Consider the underlying interest rate on debt capital.
+
+c) How would the situation change if the interest rate on debt capital were to be 8 % instead of 6 %?
+Appendix Glossary
+Annual net profit
+In commercial law, the term for the positive difference between income and expenses of a financial year, usually referred to as profit in the course script.
+
+Area monopoly
+When a company in a region is the sole supplier of a good.
+
+Central administration, planned economy
+An economic system that is characterized by a centralized management of the economy. A government agency decides on the entire production of an economy.
+
+Competition restrictions
+If competition on the market is restricted by government regulations or ac- tions of individual economic entities. Example: price-fixing agreements, so that the price cannot settle freely based on supply and demand, or prohibi- tion of activity in certain business areas because state monopolies exist,
+e.g. formerly at the postal service.
+Debt capital
+Debt capital is defined as that part of the total capital that is financed with external funds, i.e. by creditors, such as banks.
+Depreciation
+Expenditures to account for the depreciation of a good resulting from use, wear and tear, expiration of time, technical progress.
+Economic system
+Part of the social system. In contrast to real economies, economic sys- tems serve as models. A distinction is made between market economy and central administration. Both do not exist in reality. The difference lies in the way in which the economy is managed and whether it is managed at all.
+Equity capital
+Equity capital is defined as the portion of total capital that the owners have financed from their own funds.
+Expenditure
+Consumption of value that results, for example, from material consumption or in connection with salary payments.
+Group of companies
+Several companies with uniform management.
+Income
+Increase in assets resulting from, for example, sales revenue or higher inventories than in the previous year.16
+16 A more precise definition of the terms income and expenditures follows in the course script "Controlling".
+Liabilities
+Amounts that will have to be paid out to a creditor. For example, due to an open vendor invoice. (short-term here means less than one year.)
+
+Macroeconomics
+Macroeconomics deals with the effects of government activities on the ac- tivities of companies.
+
+Market economy
+An economic system that is not managed by the government, but func- tions based on the so-called free play of market forces and thus based on supply and demand. Households and companies plan their consumption and production entirely independently. Companies are in private hands.
+
+Market liberalization
+Here in the sense of privatization
+
+Microeconomics17
+Section of economics (see also macroeconomics). Microeconomics deals with the actions and decisions in and of companies, e.g. with price theory.
+
+Monetary assets
+Here: Cash and bank deposits. Cash and cash equivalents that are imme- diately available.
+
+Monopoly
+Sole supplier of a good.
+
+New Public Management
+Approach to shaping the structures and governance of public administra- tion processes
+
+Profit
+Positive difference between income and expenses.
+
+Receivables
+Amounts that can be expected as incoming payments based on an open invoice, for example. (short-term here means less than one year.)
+
+Revenue
+Revenues are calculated by multiplying the sales prices by the sales quan- tity.
+
+Total capital
+The total capital corresponds to the sum of all assets valued in cash in a company. It is the sum of debt and equity.
+17 More detailed explanations can be found in the course script "Introduction to Econom- ics".
+Solutions Reflection problems Solution hint 1 Science
+In contrast to assumptions, opinions and beliefs, knowledge is the epitome of understanding and insight, which is essentially based on experience and reason.
+
+Science is the sum of all findings in a certain field, for example in business administration. Findings obtained systematically and with the aid of scien- tific methods.
+
+According to Wöhe, science is characterized by the pursuit of knowledge, the constitution of a knowledge object, the application of research meth- ods and the systematic structure of knowledge.
+
+Only in the 20th century systematic, until then solutions of individually oc- curring problems as needed, overall perspective was missing.
+Solution hint 2
+
+Business enterprises: goods, insurance services, loans, ...
+
+Public households: Security and order through police, child education and schooling, water supply, ...
+
+Private households: Education of children, preparation of food, cleaning, labor, etc.
+Solution hint 3
+
+Advertising is intended to serve this purpose: Representation of happy, successful people, families who consume certain goods.
+
+Creation of brands. Brands convey to consumers the impression of an ad- ditional benefit, they satisfy not only the basic need, for example a sweater against the cold, but an additional benefit in the form of status, in the sense of: You are what you consume. Another significant benefit of brands is the feeling of trust in the quality of the product that the consumer has.
+Solution hint 4
+
+Purchase of larger quantities of a material in anticipation of rising prices or expected delivery difficulties - Inventories are referred to as investments.
+
+A classic example of an investment in consumer goods, including in the private sector, is wine. The price can rise with appropriate quality and proper storage.
+Solution hint 5
+
+The usual means is the offer of target, financial and installment purchases.
+
+In the case of targeted purchases, the buyer will only have to pay after a certain period. E.g.: Buy today - pay in six months.
+
+The total amount of financial resources will not be increased, but the de- mand will be shifted forward.
+
+Paying off credit comes easier for most customers than saving and paying in cash.
+
+The total often acts as a deterrent. Look at the advertising. Many electron- ics retailers, for example, often show the installment amount in its bro- chures bold and large and the total price very small. Small rates, low monthly charges give the impression that you can afford the goods.
+Solution hint 6
+
+Higher quantity and quality enables the production of large quantities of goods.
+
+High quality: a sign of extensive know-how, enabling the manufacture of more complex products. Simple goods such as agricultural products can be produced in almost any country, which means that high prices cannot be achieved. Internationally, the best sales prospects are seen with tech- nically high-value goods, as only a few countries are able to produce these.
+Solution hint 7 - Here at the example of a picture frame manufacturer
+
+Equipment: e.g. punching presses for the processing of back walls, glass cutting and grinding machines, assembly lines for assembling picture frames, saws and milling machines for cutting the frame bars, shrink tun- nels for film packaging, not to mention administration, production and warehouse buildings, computers, time recording equipment for working hours.
+Materials: e.g. wooden and plastic strips, glass plates, printed paper and graphic material for the inserts, foil and polystyrene sheets for packaging, rivets to hold the back walls, not forgetting all materials that must be used to operate the equipment (so-called operating materials), such as energy or lubricants.
+Solution hint 8
+
+To be understood in the sense of inexplicability, otherwise see again the text.
+Solution hint 9
+
+Text examples: Households - Maximum Principle, Employment Office - Maximum Principle, Company - Minimum Principle, Distance Learning - first Maximum Principle, then Minimum Principle
+
+further examples:
+
+In a period of 3 hours, as many people as possible are to be questioned properly during a market study. (maximum principle)
+
+An existing text should be typed by a typist with the highest possible num- ber of keystrokes per minute. (minimum principle)
+
+Among the investment alternatives available, the offer that causes the lowest operating costs is selected. (minimum principle)
+
+At a company party, the existing budget should be used to implement as many program points as possible.
+Solution hint 10
+
+Enterprise is the generic term for all households and companies, compa- nies work primarily to meet external needs, households work primarily to meet their own needs.
+Solution hint 11
+
+Rising prices of production factors increase the denominator value and reduce economic efficiency.
+
+If only the price of goods manufactured by the company increases be- cause of changing market conditions, economic efficiency increases.
+If the prices of the input factors and the prices of our own products in- crease, then no general statement is possible, then it depends on the ratio of the price increases.
+Solution hint 12
+
+Unprofitable but economical? In principle, no. Both ratios are based on profit.
+
+Productive but uneconomical: Yes. Productive work is done when the re- sult of the production process is only a single product, no matter how many input factors are needed to produce this one product. This has noth- ing to do with the fact that the expenses can be greater than the income and therefore a loss was generated. The same applies to the relationship between productivity and profitability.
+
+The term "unproductivity", if one should use it at all, only makes sense in comparisons: Not as productive as in recent years, less productive than the competition.
+Solution hint 13
+
+Yes, if high levels of cash and cash equivalents are held in reserve to en- sure solvency always, then these funds cannot be used profitably to make a promising investment in a new operating asset, for example, or to invest in a long-term investment with a higher interest rate.
+Solution hint 14
+
+Primary sector: Agricultural business. Secondary sector: Flour mill, bakery.
+Tertiary sector: Forwarding company delivering baked goods; supermarket offering baked goods for sale.
+
+Overlap: Many bakeries sell their products themselves. Overall, however, they are a production company in the secondary sector. It is necessary to focus on the main purpose of the activity and this is not the sale, as in the case of the supermarket, but the production of the goods.
+Solutions and solution hints
+For problem 1
+
+Please decide which of the following enterprises represents a private household:
+(1) A woman provides her sick and needy neighbor with food. A household that therefore does not produce exclusively for its own use.
+
+(2) A pensioner takes over garden maintenance in the neighborhood for a fee.
+For problem 2
+
+Which of the following definition attempts come closest to the concept of liquidity?
+(2) Ability to meet due payment obligations without limitation.
+For problem 3
+
+Which of the following statements are correct?
+(3) The return on equity capital provides an indication of how useful the use of capital in the company was.
+
+(4) The productivity ratio is only meaningful when compared with other productivity ratios.
+For problem 4
+
+In which case is the minimum-principle applied?
+(4) A specific investment object should be realized with minimal costs.
+For problem 5
+
+Which of the following questions belong to the field of business administra- tion?
+(1) What taxes does a company have to pay?
+
+(2) What customs regulations apply to trade with the United Arab Emir- ates?
+For problem 6
+
+Which of the following statements is/are correct?
+(1) The entire demand can be financed.
+
+(3) Demand can be financed.
+For problem 7
+
+Which of the following statements is/are correct?
+(2) The use of production factors usually causes costs.
+For problem 8
+
+Which of the following sentence completions is most appropriate? Busi- ness administration is an interdisciplinary science, because...
+(3) ... it uses the insights of other sciences
+For problem 9
+
+Which statements are correct?
+(1) Business administration and economics have the same object of knowledge.
+
+(3) Business administration is primarily concerned with companies.
+For problem 10
+
+What is the prerequisite for the emergence of needs?
+(2) Feeling of lack
+For problem 11
+
+Which of these statements are correct?
+(1) Economic goods are scarce.
+
+(3) A durable good can be both consumer good and industrial good.
+Solution of the exercise problem: Key figures Exercise part A:
+Tab. 8:	Solution exercise part A
+
+Part B:
+
+1. Develop the formula for calculating the debt ratio.
+
+2. Now calculate the following key figures again based on the changed data:
+
+Year010203Profit236,400186,50040,200Economic efficiency1.111.081.02Return on equity capital18.1812.432.68Return on total capital7.516.915.53Tab. 9:	Solution exercise part B-2
+2. Compare the return on equity and total capital calculated by you in the following table.
+Year010203Return on total capital - ini- tial situation7.516.915.53Return on total capital -
+changed situation7.516.915.53Return on equity capital -
+initial situation10.808.764.58Return on equity capital -
+changed situation18.1812.432.68
+Tab. 10:		Solution - Comparison of return on equity capital and return on total capital
+
+a) How does the return on total capital change and why?
+
+The return on total capital remains unchanged. The interest rates and thus the total sum of the expenses increase, since interest on borrowed capital and profit are added together in the numerator when calculating the total return on capital, there is no change.
+b) Wie verändert sich die Eigenkapitalrentabilität und warum? Note the difference in the change in the years 01 and 02 and the change in the year 03? What could be the reason for this?
+The return on equity capital is higher in the first two years than in the initial situation. In the third year, the return on equity has fallen rapidly in comparison with the initial situation.
+What you can see is the leverage effect. A leverage effect of the debt ratio on the return on equity capital.
+As long as the interest rate on debt is lower than the return on total capital employed, and this is the case in the first two years, the return on equity increases with an increasing debt ratio.
+
+In the third year, the interest rate is higher than the return on total capi- tal, with fatal consequences for the return on equity.
+Year010203Return on total capital7.516.915.53Debt capital interest rate6.006.006.00Debt capital ratio - initial68.5767.1466.98Debt capital ratio - now87.6285.9285.85Return on equity capital - initial10.808.764.58Return on equity capital - now18.1812.432.68
+Tab. 11:	Leverage-Effect
+
+c) How would the situation change if instead of 6 % debt capital interest rate 8 % were to be applied?
+At 8 %, the interest rate on debt capital in all years would be well above the return on total capital. The return on equity would deteriorate in all the years considered.

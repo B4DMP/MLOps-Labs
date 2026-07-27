@@ -1,0 +1,140 @@
+{
+  "metrics": [
+    {
+      "metric_color": "#3b82f6",
+      "metric_name": "Model",
+      "metric_icon": "lucide:brain-circuit",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        true
+      ],
+      "metric_desc": "Accuracy, robustness, and generalization of the model in both lab and real-world conditions.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the model's accuracy, robustness, or generalization. The metric is not affected if the proposed actions do not affect the model at all. The metric decreases if the proposed action degrade model performance (e.g. by reducing the amount of training data or choosing a less accurate model candidate)."
+    },
+    {
+      "metric_color": "#f97316",
+      "metric_name": "Automation",
+      "metric_icon": "lucide:settings",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        false,
+        true,
+        false,
+        false,
+        true,
+        false
+      ],
+      "metric_desc": "Degree to which workflows - from data pipelines to deployment - are automated.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the degree of automation of the ML system and workflows (e.g. by introducing CI/CD pipelines, automated testing, or automated deployment). The metric is not affected if the proposed actions do not affect the automation at all. The metric decreases if the proposed action degrade overall automation by introducing manual workflows. This should always happen when new complexity is introduced to the system without automation."
+    },
+    {
+      "metric_color": "#e11d48",
+      "metric_name": "Reliability",
+      "metric_icon": "lucide:battery-full",
+      "metric_value": 10,
+      "active": [
+        false,
+        true,
+        true,
+        false,
+        true,
+        true
+      ],
+      "max_value": 50,
+      "metric_desc": "Stability, scalability, and resilience of the deployed ML system in production.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the stability, scalability, or resilience of the ML system (e.g. by introducing monitoring, alerting, or automated recovery mechanisms). The metric is not affected if the proposed actions do not affect the reliability at all. The metric decreases if the proposed action increase the complexity of the system without sufficient regard to reliability."
+    },
+    {
+      "metric_color": "#10b981",
+      "metric_name": "Data",
+      "metric_icon": "lucide:database",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "metric_desc": "Integrity, representativeness, fairness, and traceability of datasets.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the integrity, representativeness, fairness, or traceability of the datasets (e.g. by introducing new diverse data sources, data validation, data versioning, or data quality checks). The metric is not affected if the proposed actions do not affect the data at all. The metric decreases if the proposed action degrade the data quality or data availability, e.g. by removing data sources or not addressing data quality issues."
+    },
+    {
+      "metric_color": "#8b5cf6",
+      "metric_name": "Requirements",
+      "metric_icon": "lucide:file-text",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "metric_desc": "Clarity, alignment, and completeness of business, ethical, and technical goals that guide ML development.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the clarity, alignment, or completeness of business, ethical, or technical goals that guide ML development. The metric is not affected if the proposed actions do not affect the requirements at all. The metric decreases if the proposed action introduce ambiguity or conflicts between requirements."
+    },
+    {
+      "metric_color": "#06b6d4",
+      "metric_name": "Efficiency",
+      "metric_icon": "lucide:trending-up",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
+    },
+    {
+      "metric_color": "#06b6d4",
+      "metric_name": "Efficiency (Intro)",
+      "metric_icon": "lucide:trending-up",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
+    },
+    {
+      "metric_color": "#3b82f6",
+      "metric_name": "Model (Intro)",
+      "metric_icon": "lucide:brain-circuit",
+      "metric_value": 10,
+      "max_value": 50,
+      "active": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "metric_desc": "Accuracy, robustness, and generalization of the model in both lab and real-world conditions.",
+      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the model's accuracy, robustness, or generalization. The metric is not affected if the proposed actions do not affect the model at all. The metric decreases if the proposed action degrade model performance (e.g. by reducing the amount of training data or choosing a less accurate model candidate)."
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: min(400px, 30vw);
+  height: auto;
+  width: min(350px, 20vw);
+  cursor: grab;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.cardContainer:active {
+  cursor: grabbing;
+}
+
+.cardContainer.not_interactable {
+  cursor: not-allowed;
+}
+
+.cardContainer:not(.not_interactable):hover {
+  transform: translateY(-2px);
+}
+
+.descriptionBox {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.cardImage {
+  height: 140px;
+  width: 100%;
+  object-fit: contain;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.cardList {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.metricList {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.cardItem {
+  border: none !important;
+  background-color: transparent !important;
+  padding: 2px !important;
+}
+
+.dropIndicator {
+  opacity: 0;
+}
+
+.dropIndicator:has(~ .cardContainer:hover),
+.dropIndicator:hover {
+  opacity: 1;
+}
+
+.metricDiv {
+  border: 1px solid;
+  border-radius: 12px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.metricIcon {
+  font-size: 18px !important;
+  flex-shrink: 0;
+}
+
+.metricValue {
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.highlighted {
+  transform: translateY(-10px) scale(1.05) !important;
+}
+
+.dragIcon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 1.2rem;
+  color: rgb(0, 0, 0);
+  pointer-events: none;
+  z-index: 10;
+}

@@ -1,0 +1,102 @@
+.chatWrapper {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-xl);
+}
+
+.ChatContainer :global(.cs-main-container) {
+    background-color: transparent !important;
+    border: none !important;
+    position: relative !important;
+}
+
+.ChatContainer :global(.cs-chat-container) {
+    background-color: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.5rem;
+}
+
+.ChatContainer :global(.cs-message-list) {
+    background-color: transparent !important;
+}
+
+.ChatContainer :global(.cs-message-input) {
+    background-color: var(--card-bg-dark) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.ChatContainer :global(.cs-message-input__content-editor-wrapper),
+.ChatContainer :global(.cs-message-input__content-editor-container),
+.ChatContainer :global(.cs-message-input__content-editor) {
+    background-color: transparent !important;
+    color: white !important;
+}
+
+.ChatContainer :global(.cs-message.cs-message--incoming .cs-message__content) {
+    background-color: var(--card-bg-dark) !important;
+    color: white !important;
+    animation: fade-in 1s ease-out;
+}
+
+.ChatContainer :global(.cs-message.cs-message--outgoing .cs-message__content) {
+    background-color: var(--primary-bg) !important;
+    color: white !important;
+    animation: fade-in 1s ease-out;
+}
+
+.ChatContainer :global(.cs-message-input__content-editor-wrapper) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem;
+    padding: 2px 10px;
+}
+
+
+.ChatContainer :global(.cs-message-input__content-editor[data-placeholder]:empty:before) {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.ChatContainer :global(.cs-typing-indicator) {
+    background-color: transparent !important;
+}
+
+.ChatContainer :global(.cs-typing-indicator__dot) {
+    background-color: white !important;
+}
+
+.ChatContainer :global(.cs-typing-indicator__text) {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.customMessageContainer {
+    position: absolute;
+    bottom: 55px;
+    left: 20px;
+    right: 20px;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.recommendationList {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 30px;
+    align-items: flex-end;
+    padding: 10px 10px 0px 10px;
+    margin: 0;
+    list-style: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.recommendationList::-webkit-scrollbar {
+    display: none;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

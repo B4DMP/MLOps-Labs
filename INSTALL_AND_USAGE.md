@@ -1,0 +1,174 @@
+
+
+# 🚀 Installation and Usage Guide
+
+This guide will help you set up and run the serious game.
+
+# 📑 Table of Contents
+
+- [📋 Prerequisites](#-prerequisites)
+- [🎯 Getting Started](#-getting-started)
+- [📁 Project Structure](#-project-structure)
+- [🏗️ Set Up Your Local Infrastructure](#-set-up-your-local-infrastructure)
+- [⚡️ Running the Code for Each Module](#️-running-the-code-for-each-module)
+- [🔧 Utlity Commands](#-utility-commands)
+
+# 📋 Prerequisites
+
+## Local Tools
+
+You'll need the following tools installed locally:
+
+| Tool | Version | Purpose | Installation Link |
+|------|---------|---------|------------------|
+| Python | 3.11 | Programming language runtime | [Download](https://www.python.org/downloads/) |
+| uv | ≥ 0.4.30 | Python package installer and virtual environment manager | [Download](https://github.com/astral-sh/uv) |
+| GNU Make | ≥ 3.81 | Build automation tool | [Download](https://www.gnu.org/software/make/) |
+| Git | ≥2.44.0 | Version control | [Download](https://git-scm.com/downloads) |
+| Docker | ≥27.4.0 | Containerization platform | [Download](https://www.docker.com/get-started/) |
+
+Windows users also need to install WSL
+
+## Cloud Services
+
+The game requires access to these cloud services. The authentication to these services is done by adding the corresponding environment variables to the `.env` file:
+
+| Service | Purpose | Cost | Environment Variable | Setup Guide 
+|---------|---------|------|---------------------|-------------|
+| [Groq](https://rebrand.ly/philoagents-groq) / [RWTHgpt](https://help.itc.rwth-aachen.de/service/1808737e10424937b76e564ed15d8028/) | LLM API that powers the agents | Free tier | `GROQ_API_KEY` / `RWTH_API_KEY` | [Quick Start Guide](https://rebrand.ly/philoagents-groq-quickstart) |
+| [Opik](https://rebrand.ly/philoagents-opik) | LLMOps | Free tier (Hosted on Comet - same API Key) | `COMET_API_KEY` | [Quick Start Guide](https://rebrand.ly/philoagents-opik-quickstart) |
+
+Note that RWTHgpt is an OpenAI proxy hosted by the RWTH Aachen University. In theory, any OpenAI-compatible API can be used by modifying the `RWTH_API_BASE` in config.py.
+
+When working locally, the infrastructure is set up using Docker. Thus, you can use the default values found in the [config.py](philoagents-api/src/philoagents/config.py) file for all the infrastructure-related environment variables.
+
+But, in case you want to deploy the code, you'll need to setup the following services with their corresponding environment variables:
+
+| Service | Purpose | Cost | Required Credentials | Setup Guide |
+|---------|---------|------|---------------------|-------------| 
+| [MongoDB](https://rebrand.ly/philoagents-mongodb) | Document database | Free tier | `MONGODB_URI` | 1. [Create a free MongoDB Atlas account](https://rebrand.ly/philoagents-mongodb-setup-1) <br> 2. [Create a Cluster](https://rebrand.ly/philoagents-mongodb-setup-2) </br> 3. [Add a Database User](https://rebrand.ly/philoagents-mongodb-setup-3) </br> 4. [Configure a Network Connection](https://rebrand.ly/philoagents-mongodb-setup-4) |
+
+# 🎯 Getting Started
+
+## 1. Clone the Repository
+
+Start by cloning the repository and navigating to the `game-api` project directory.
+Next, we have to prepare your Python environment and its dependencies.
+
+## 2. Installation
+
+Inside the `game-api` directory, to install the dependencies and activate the virtual environment, run the following commands:
+
+```bash
+uv venv .venv
+. ./.venv/bin/activate # or source ./.venv/bin/activate
+uv pip install -e .
+```
+
+Test that you have Python 3.11.9 installed in your new `uv` environment:
+```bash
+uv run python --version
+# Output: Python 3.11.9
+```
+
+This command will:
+- Create a virtual environment with the Python version specified in `.python-version` using `uv`
+- Activate the virtual environment
+- Install all dependencies from `pyproject.toml`
+
+## 3. Environment Configuration
+
+Before running any command, inside the `game-api` directory, you have to set up your environment:
+1. Create your environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Open `.env` and configure the required credentials following the inline comments and the recommendations from the [Cloud Services](#-prerequisites) section.
+
+# 📁 Project Structure
+
+The project is divided into two main applications and shared configuration:
+
+```bash
+.
+├── game-api/              
+│   ├── data/              # Stakeholder knowledge base and datasets
+│   ├── src/philoagents/   # Core application logic
+│   │   ├── application/   # Domain services (auth_service, admin_service, conversation_service)
+│   │   ├── domain/        # Game domain models & factories
+│   │   └── infrastructure/# API routes, MongoDB client, and unified WebSocket server
+│   │       ├── routes/    # REST endpoints (/api/auth, /api/admin)
+│   │       └── websocket/ # Unified WebSocket ConnectionManager, router (/ws), and event handlers
+│   ├── tools/             # Entrypoint scripts and utility tools
+│   ├── .env.example       # Environment variables template
+│   ├── Dockerfile         # API Docker image definition
+│   └── pyproject.toml     # Project dependencies
+├── game-ui/               
+│   ├── src/               # React components, styling, and services
+│   │   └── services/      # REST API clients & WebSocketProvider context
+│   ├── public/            # Static assets
+│   └── Dockerfile         # UI Docker image definition
+├── gameConfig/            # JSON files defining game phases, challenges, and metrics
+└── Makefile               # Project commands
+```
+
+
+# 🏗️ Set Up Your Local Infrastructure
+
+We use Docker to set up the local infrastructure (Game UI, Agent API, MongoDB).
+
+> [!WARNING]
+> Before running the command below, ensure you do not have any processes running on ports `27017` (MongoDB), `8000` (Agent API) and `8080` (Game UI).
+
+From the root directory, to start the Docker infrastructure, run:
+```bash
+make infrastructure-up
+```
+
+From the root directory, to stop the Docker infrastructure, run:
+```bash
+make infrastructure-stop
+```
+
+From the root directory, to build the Docker images (without running them), run:
+```bash
+make infrastructure-build
+```
+To access the game, type the following into your browser:
+```
+http://localhost:8080
+```
+
+## Long Term Memory
+
+From the root `MLOps Serious Game` directory, populate the long term memory within your MongoDB instance (required for agentic RAG) with the following command:
+```bash
+make create-long-term-memory
+```
+To delete the long term memory from your MongoDB instance, you can run the following command:
+```bash
+make delete-long-term-memory
+```
+> [!NOTE]
+> To visualize the raw and RAG data from MongoDB, we recommend using [MongoDB Compass](https://rebrand.ly/philoagents-mongodb-compass) or Mongo's official IDE plugin (e.g., `MongoDB for VS Code`). To connect to the working MongoDB instance, use the `MONGODB_URI` value from the `.env` file or found inside the [config.py](philoagents-api/src/philoagents/config.py) file.
+
+## Agent Evaluation
+
+We adapted the [PersonaGym evaluation tool](https://github.com/vsamuel2003/PersonaGym) to evaluate the consistency of our stakeholder representatives.
+
+To run the evaluation for a specific stakeholder, use the following command:
+
+```bash
+make evaluate-agent NAME=eval_name STAKEHOLDER_ID=stakeholder_id
+```
+
+with eval_name being the name of the evaluation run and stakeholder_id being the integer id of the stakeholder. For evaluation all available stakeholders in sequence, use 
+
+```bash
+make evaluate-agent NAME=eval_name STAKEHOLDER_ID=-1
+```
+
+### Manual Testing
+
+If you want to **directly call the agent bypassing the backend and UI logic**, you can do that by manually running the  [api_live_test.py](game-api\api_live_test.py).
+For a static test, run [action_card_generation_test.py](game-api\action_card_generation_test.py)

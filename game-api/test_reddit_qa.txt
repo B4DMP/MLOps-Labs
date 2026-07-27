@@ -1,0 +1,28 @@
+Question: Feedback request: small Python script to clean & standardize CSV files
+
+I’m building a small, reusable Python utility to clean and standardize messy CSV files:
+
+remove duplicate rows
+
+trim whitespace
+
+normalize column names (lowercase + underscores)
+
+export a cleaned CSV
+
+What would you improve in the approach (edge cases, structure, CLI args, performance)?
+
+If it helps, I can paste a minimal version of the code in a comment.
+
+Answer: Maybe make a feature to separate into separate individual csv files? By columns or by % of data
+
+--------------------------------------------------
+
+Question: As a beginner should I really appear for Python Institute (PCEP) Certification? Is it really worth it?
+
+I am a beginner and haven't worked much in Python, but from what I can see and read all over the internet, it is very helpful and useful, especially in the field of data engineering and data analytics. I want to understand if I should appear for PCEP and what should be the study materials I should refer in order to grasp the concepts quickly. Or what is the roadmap along with some useful websites, youtube channels, blogs, etc
+
+Answer: No. It has limited weight in hiring and no employer would accept it as solid proof. Code, just code. Basic tutorials your own mind
+
+--------------------------------------------------
+

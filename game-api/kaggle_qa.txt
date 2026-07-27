@@ -1,0 +1,132 @@
+Best Practices for Understanding Dataset Before Modeling?
+
+Hello all,
+
+I am currently learning exploratory data analysis and noticed that understanding the dataset properly often feels more difficult than model building itself.
+
+What steps do you usually follow before training your first model?
+Do you prioritize visualization, statistics, or feature relationships first?
+
+Any recommended workflow and Youtube resources would be very helpful for beginners like me.
+
+@aiexplorer77 Before training your first model, focus on clearly understanding the dataset. Start by identifying the problem type and the target variable. Then examine the dataset structure using basic summaries such as shape, data types, missing values, duplicates, and descriptive statistics. Analyze the target distribution to check for imbalance or outliers, and explore individual features (both numeric and categorical) to understand their distributions and detect any unusual patterns.
+
+Next, study the relationships between features and the target using correlations, group comparisons, and visualizations. This helps you identify important predictors and potential issues like skewness or multicollinearity. Only after understanding these patterns and cleaning the data should you begin modeling, as strong exploratory data analysis often improves results more than using complex algorithms.
+
+
+Guidance for using AI Generated Text on Kaggle
+
+Hello Kagglers,
+
+With the rise of popular text generating AI models such as ChatGPT and Bard we think it’s important to share clear rules and principles for their use on the Kaggle forums. You may have seen that Stack Overflow banned the use of ChatGPT, here is a quote from them which highlights their rationale:
+
+“The primary problem is that while the answers which ChatGPT produces have a high rate of being incorrect, they typically look like they might be good and the answers are very easy to produce.”
+
+At Kaggle our discussion forum is primarily a place for our community to connect, learn from each other, and get answers to specific questions. When these AI tools are used to post content that is incorrect, is off topic, or is spammy in general - it harms our community and makes our discussion forums a less useful place for everyone.
+
+As such we are publishing the following guidelines on the use of AI generated text on Kaggle:
+
+1. Posts must be verified and meaningful. All content shared on Kaggle must comply with our community guidelines, and this continues to be true for generated content. If you are using generated text to answer a question, it is your responsibility to ensure it is meaningful, verifiably true, and on topic. In particular we will be taking action against any user who generates a high volume of meaningless posts using these tools.
+
+2. All generated text must be labeled. Everyone deserves to know if they are reading a post written by a human or a computer. We are asking that all posts which use generated text must clearly state the tool they used to create the text at the start of the post. You should also include the prompt whenever that adds valuable context to the information you share. Labeling is required but is not sufficient to post generated text, you must also ensure your post is meaningful.
+
+As this is a rapidly evolving space, we expect our policies and community norms around the use of generative AI models to also evolve. Please continue to share your feedback on the relationship you’d like to see our community establish with this technology.
+
+Thank you!
+
+Thanks for the clear guidelines!  It's great that Kaggle is promoting responsible use of AI-generated text while maintaining the value of human interaction and verified content in the forums @mylesoneill
+
+
+about Machine Learning
+
+Hello Kaggle Friends,
+I want to ask you that I am a beginner in machine learning. I have completed Python(pandas,numpy,matplolib), math(statistics), then is You Please suggest me any YouTube channel and course that I can build my skills for the next level.
+
+If you already know this much, then just start reading other's notebooks. You will soon be able to understand ML. You can start with mine as well. @sushiogolaji
+
+
+how to get internships for ai / ml?
+
+anybody knows??
+
+Bro, one serious suggestion — let’s build our Kaggle profiles properly, like Grandmaster-level serious. When we apply for internships or companies in ML/Data Science, they actually check these things. A strong Kaggle profile can create a huge impact.
+
+I’m working on mine right now because I’m targeting internships in this field. I thought I should tell you too — if we’re already learning and building, why not showcase it in the best way possible?
+
+
+How Salesforce Professionals Can Use AI to Supercharge Productivity
+
+Discover how AI can supercharge productivity in Salesforce roles by automating mundane tasks, delivering intelligent insights, and optimizing workflows. From predictive lead scoring and personalized campaigns to faster customer service and more accurate sales forecasting, AI empowers salesforce professionals to work smarter and drive growth. Learn practical strategies to leverage Salesforce’s AI tools for greater efficiency and success.
+
+Read the blog: https://achieva.ai/blogs/ai-for-salesforce-to-supercharge-productivity/
+
+Could you shae any use case details along with data, architecture and code example. Also how salesforce using genai as well.
+
+
+What Type of AI/ML Projects Actually Teach Me a lot and Make Resume Stand Out in 2026?
+
+I am currently learning Data Science and ML seriously and I don’t want to build just generic projects like Titanic or basic regression models.
+In the current AI era where GenAI, LLMs and AI Agents are growing fast, I want to understand what type of projects actually make a strong impact on a CV for internships or ML roles.
+
+Should I focus more on:
+
+End-to-end ML pipelines?
+LLM + RAG projects?
+MLOps & deployment?
+Real-time data systems?
+Research-oriented projects?
+
+I want to build projects that give strong learning + real industry value.
+What would you recommend if someone wants to stand out in 2026?
+
+Do projects like 
+LLM & RAG Projects
+
+Enterprise Knowledge Assistant: RAG system for internal document search
+Text-to-SQL Agent: LLM-powered data analyst for business intelligence
+Multimodal RAG: Combine text, images, and audio for customer support
+AI-Powered Contract Analysis: Extract insights from legal documents using LLMs
+Personalized Content Generator: LLM-based system for tailored marketing content
+
+End-to-End ML Pipelines
+
+Predictive Maintenance Platform: ML pipeline for industrial IoT data
+Real-Time Fraud Detection: Streaming analytics for financial transactions
+Supply Chain Optimizer: ML-driven demand forecasting and logistics
+Customer Churn Prediction: End-to-end pipeline for telecom/customer data
+Smart Energy Consumption: ML for energy usage forecasting and optimization
+
+Real-Time Data Systems
+
+Voice AI Assistant: Low-latency chatbot with RAG capabilities
+Real-Time Sentiment Analysis: Social media monitoring and alert system
+Traffic Flow Prediction: ML for smart city traffic management
+Anomaly Detection Platform: Real-time monitoring for industrial processes
+Personalized Recommendations: Real-time ML for e-commerce/news platforms
+
+
+How should I study RNNs and LSTMs effectively in a project-based learning approach?
+
+Hi everyone,
+
+I recently shifted to a project-based learning approach for Deep Learning. Earlier, I was learning through books, official documentation, and GPT, and that worked smoothly for me.
+
+Now I’ve reached RNNs and LSTMs because my current project requires sequence modeling. However, I’m struggling with how to approach the topic properly. Just reading theory doesn’t feel sufficient, and many YouTube resources are 4–6 hours long per topic, which makes me unsure whether investing that much time is actually efficient.
+
+I’m confused about how to balance:
+    •   Mathematical intuition
+    •   Visual understanding of how RNN/LSTM works
+    •   Theoretical reading
+    •   Practical implementation in frameworks
+
+I don’t want to cram formulas, but I also don’t want to stay shallow.
+
+For someone aiming to build strong, professional-level ML systems (not necessarily research-focused), what would be the most effective way to learn RNNs and LSTMs?
+
+Would appreciate guidance from people who’ve gone through this stage.
+
+For the RNN and LSTM approaches, I would recommend you do projects that are inclined towards the finance domain or something related to historical data.
+Try approaching with a not very large dataset.
+And must read the documentation for each steps before executing in the project.
+
+

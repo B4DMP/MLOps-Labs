@@ -1,0 +1,992 @@
+﻿Received September 21, 2021, accepted October 1, 2021, date of publication October 4, 2021, date of current version October 13, 2021.
+Digital Object Identifier 10.1109/ACCESS.2021.3117989
+
+Challenges of Software Requirements Quality
+Assurance and Validation: A Systematic
+Literature Review
+ISSA ATOUM 1, MAHMOUD KHALID BAKLIZI1, IZZAT ALSMADI 2, AHMED ALI OTOOM3,
+TAHA ALHERSH 4, JAFAR ABABNEH 1, JAMEEL ALMALKI 5,
+AND SAEED MASOUD ALSHAHRANI 6
+1Faculty of Information Technology, The World Islamic Sciences and Education, Amman 11947, Jordan
+2Department of Computing and Cyber Security, Texas A&M University-San Antonio, San Antonio, TX 78224, USA
+3Faculty of Science and Information Technology, Irbid National University, Irbid 21110, Jordan
+4BioQuant, Heidelberg University, 9117 Heidelberg, Germany
+5Department of Computer Science, College of Computer in Al-Leith, Umm Al-Qura University, Mecca 24244, Saudi Arabia
+6Department of Computer Science, College of Computing and Information Technology, Shaqra University, Shaqra 11961, Saudi Arabia
+
+Corresponding author: Issa Atoum (issa.atoum@wise.edu.jo)
+
+ABSTRACT Validation of software requirements is a primary phase in requirements engineering that
+ensures requirements match the target system with the intended needs of the acquirer. It aims to detect
+and correct errors that prevail in the specified requirements. Although there are tremendous requirements
+validation approaches, some software may fail because of limited or ineffective requirements validation
+techniques and unreliable requirements’ quality characteristics. In this study, a systematic literature review
+of requirements validation is performed. The study analyzes the most adopted validation techniques, reports
+requirements quality characteristics, and discovers significant challenges of validation techniques. The
+review identified 66 relevant primary studies analyzed to derive deep insights into the following aspects of
+requirements validation: trends of requirements validation methods, including their subtechnique strengths
+and weaknesses, requirements quality characteristics categories, and adopted tools and datasets in these
+techniques. We grouped validation techniques into categories: prototyping, inspection, knowledge-oriented,
+test-oriented, modeling and assessment, and formal models. The analysis reported 19 validation techniques,
+27 tools, new requirements validation characteristics, and several challenges that prevailed through validation
+techniques. The trend of validation techniques is to those methods that apply machine learning techniques
+with knowledge from dictionaries and ontologies. Most challenges are about how to express the requirements
+and how to revert clients’ feedback. There is a strong relationship between validation techniques, software
+application domain, and requirements validation quality attributes. Thus, there is an immense need to unify
+the quality characteristics and domain-specific validation methods.
+
+INDEX TERMS Requirements validation, requirements analysis, requirements engineering, validation
+techniques, requirements quality, systematic literature review.
+
+I. INTRODUCTION are gathered from multiple stakeholders, they are commonly
+Requirements engineering (RE) involves discovering documented in a natural language to ease communication
+(gathering), eliciting, analyzing, evaluating and negotiat- between stakeholders in a common textual language form.
+ing, documenting, verifying and validating, and managing However, natural languages are prone to semantic and synap-
+requirements [1]. Research has shown that most software tic errors, as they do not adhere to a complete formal semantic
+failures are related to RE;most issues are triggered because of grammar [S62], [S63]. Consequently, requirements written
+‘‘inconsistent’’ or hidden requirements [2]. As requirements in a textual form, such as initial requirements or user sto-
+
+ries [3], are prone to errors that may lead to unacceptable
+The associate editor coordinating the review of this manuscript and systems. Additionally, the requirements specified in other
+
+approving it for publication was Sabah Mohammed . diagrammatic notations, such as use cases [S15], sequence
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 License.
+VOLUME 9, 2021 For more information, see https://creativecommons.org/licenses/by-nc-nd/4.0/ 137613
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+diagrams [S21], and behavior interaction diagrams [S08], (3) Report tools and datasets that should support require-
+are difficult to comprehend by nontechnical users. Moreover, ments analysis.
+the requirements specification notations depend on the sys- The main research question is as follows: What are the main
+tem type, application domain, requirements hierarchy, and challenges in requirements validation techniques in the con-
+the specification’s role as a communication medium between text of different application domains?
+stakeholders [4]. Thus, requirements validation is required The remainder of this paper is organized as follows.
+with various specification notations. Section II discusses the background of this study. Section III
+
+To this end and for clarity, we refer to RE as a combination presents the study’s research methodology, which is applied
+of several interleaved and recursive processes [5] that are in Section IV. Section V discusses the challenges of require-
+not separated [6]. We follow the classification as identified ments validation. Section VI explains the most critical
+by [7], which includes elicitation, modeling, analysis, and research challenges to requirements validation. Finally,
+verification and validation, which is also relatively similar to Section VII provides the conclusions and directions for future
+the grouping in [8]. Nuseibeh and Easterbrook [9] grouped research.
+the RE process, that is, eliciting requirements, modeling
+and analyzing requirements, communicating requirements, II. BACKGROUND
+agreeing requirements, and evolving requirements, whereas The requirements validation conceptual process is contextu-
+Bennaceur et al. [10] used the groups’ requirements elic- alized by requirements, organizational knowledge, and the
+itation, modeling, assurance, and management. This issue system context [S33]. Organizational knowledge includes
+of inconsistency in research methods and terminology has policies, lessons learned, requirements repository, require-
+recently been highlighted [11]. ments document templates, regularities, and legal aspects.
+
+This paper focuses on requirements analysis at the early Ignoring the context of the intended system may compli-
+stages of software development before an actual applica- cate the validation process and lead to unintended con-
+tion is coded or even before the requirements are approved. sequences [18]. The validation process outputs a list of
+The requirements analysis—(also referred to as validation discovered errors, agreed actions regarding each error, and
+in many references [12]–[14])—is the process of identifying recommendations. For example, stakeholders may report hid-
+errors to increase the quality of the requirements. Errors den requirements (incompleteness) or contradicting require-
+could be at the document level, context level, and agree- ments (inconsistencies). The list of agreed actions states
+ment between stakeholders [14]. Thus, we use the two terms corrective actions that should be taken to fix the detected
+(analysis or validation) interchangeably to mean ways problems. Consequently, the requirements analysis enables
+to enhance software requirement assurance. Consequently, requirements conformance to the stated or implied threshold
+we focus on requirements analysis and validation as described level of predefined quality indicators or characteristics [13].
+in [7] and follow the ‘‘agreeing requirements’’ described by In the requirements validation process, software engi-
+Nuseibeh and Easterbrook [9]. However, early requirements neers and stakeholders perform various checks (also called
+analysis during the elicitation analysis [15], [16] or discussing quality detection) to check requirements conformance to
+requirements analysis for purposes other than software devel- specified quality criteria. A study of 26 large financial
+opment [17] is outside the scope of this work. systems showed that 44% of the analyzed requirements
+
+Studies have reported that requirement defects constitute had errors due to specified requirements for subjective lan-
+32.65% of the significant sources of failure [S02]. Despite guage (34.6%) [19]. The most commonly used requirements
+the ever-increasing research on RE, little research has been characteristics are the 3C’s (completeness, correctness, and
+conducted on requirements validation. The literature reports consistency). According to research [20], incomplete and
+many RE books, journal articles, and relevant standards; incorrect requirements are marginally quality characteristics
+however, when it comes to requirements validation, no agreed (23.5%; 35.3%), whereas ‘‘inconsistent’’ requirements cover
+set of quality characteristics is universally adopted to support 5.9% of the cases. Additionally, ambiguity is one of the most
+requirements validations [S11], [S15], [S26]. It is also crucial reported defects in requirements validation and is considered
+to automate validation techniques using tools because of an inherent problem of natural languages [S63]. For exam-
+requirements subjectivity and limited tools [S29]. ple, the Oxford English dictionary reported that 23 mean-
+
+Thus, motivated by the software requirements research ings were used in the top 500 words. Although the research
+community, our primary objective is to analyze requirements community expands the list of requirements characteristics
+validation techniques and the quality of their accompanying starting from eight characteristics [1], [21] to 15 characteris-
+requirements characteristics to increase the overall software tics [22], it is common to have a different definition of the
+quality. Thus, the essential objectives of this study are as same quality characteristic, possibly with a different name.
+follows: However, the number and definitions of the characteristics
+(1) Identify state-of-the-art requirements validation tech- vary [1], [21], [22]. Table 1 presents a sample of these checks.
+
+niques and their weaknesses and strengths. Consequently, the problems related to requirements vali-
+(2) Analyze requirements checking characteristics. dation could be solved with research that aims to understand
+
+137614 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+and automate the validation process with tools reducing the TABLE 2. Research questions rationale.
+
+prevailed errors in requirements. The purpose of this study
+is to enhance the research community’s understanding of
+requirements validation at early software development. One
+of the research community goals is to measure the significant
+validation quality characteristics that result in a suitable and
+high-quality product. The research is considered significant
+as it is one of the latest systematic literature reviews (SLRs)
+in software requirements validation.
+
+III. RESEARCH METHOD
+As shown in Section II, requirements validation touches
+many aspects of RE, including software quality, software
+development, and software modeling. Consequently, explor-
+ing the validation dimensions is discussed via an SLR. SLR
+techniques allow the exploration, evaluation, and interpre-
+tation of research relevant to specific research questions.
+Therefore, an SLR is an excellent choice for summarizing
+research, identifying research gaps, and laying the ground for
+new research [23].
+
+The research method adopted in this research is based on A. PLANNING STAGE
+
+Kitchenham and Charters [23] , which has three major stages: The first phase in the adopted systematic literature review
+planning, conducting, and reporting. includes the research questions, related work, search strategy,
+
+The first stage highlights the need for review and devel- and search protocol.
+opment of the review protocol. We discuss in this stage
+the research questions that drive the search protocol and 1) RESEARCH QUESTIONS
+the search strategy. The conducting stage explains the study Our research questions investigate the discrepancy between
+selection and the data extraction. Finally, the reporting stage software requirements quality characteristics and the most
+provides the results and analyses of our review. prominent requirements validation technique in reviewed
+
+application domains. We specify the research questions (IV)
+TABLE 1. Requirements checking characteristics [24], [10]. that guide the research string and the inclusion/exclusion
+
+criteria. The overall rationale is to discuss the main chal-
+lenges concerning requirements validation in various soft-
+ware domains.
+
+2) SLRs IN REQUIREMENTS VALIDATION
+This research identified several software requirements vali-
+dation techniques, quality requirements characteristics, and
+tools (Table 2). Regardless of how the requirements were
+specified, we aim to discuss the techniques and tools used
+for validation [26].
+
+The work of Moketar et al. [27] is the one most related
+to this study. It investigates the requirements approaches
+and tools that are commonly used in the validation process.
+They found that prototyping was the most used requirements
+validation technique, and the 3C’s are still themost prominent
+requirements quality characteristics. Our approach expands
+and reinvestigates the techniques and quality factors compli-
+mentary with previous research.
+
+3) SEARCH STRATEGY
+First, we decided to find papers focused on software require-
+ments; thus, this study adopted the inclusion and exclusion
+criteria in Table 4. Second, the authors applied the title,
+
+IV. APPLICATION OF THE RESEARCH METHOD abstract, and keyword analysis criteria in continuous research
+This section details the adopted research method. meetings, laying the foundation for consistent information
+
+VOLUME 9, 2021 137615
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 3. Systematic literature reviews of software requirements datasets of software requirements. Hence, the search strings
+validation. for screening studies were limited for studies from Jan-
+
+uary 2016 to December 2020. The search string was devel-
+oped according to the following criteria: (1) careful analysis
+of the ISO 29148:2018 standard for potential keywords;
+(2) a sample of papers from the Requirements Engineering
+Journal as it is specialized in RE; and (3) informal search
+keywords on Google Scholar. The search string was used
+with little modification to include synonyms and to han-
+dle the requirements of the adopted databases. Moreover,
+snowballing was added to reduce the potential for missing
+reference papers. Snowballing technique enables to explore
+more studies by expanding the primary studies. Forward
+snowballing enables the addition of more studies based on the
+references section of a primary study, whereas the backward
+snowballing enables the acquisition of studies that cite a
+specific primary study.
+
+Hence, we decided to use the following primary search
+string for several reasons.
+(1) After several trials, including keywords that use terms
+
+from the research questions, they were not fruitful. For
+example, our findings showed that adding the expres-
+sion ‘‘AND (challenges OR datasets OR Tools)’’ to
+the end of the primary search string would reduce the
+number of research results by approximately 20% and
+result in the string being unacceptable by some litera-
+ture databases. Conversely, splitting the search query
+into more than one would retrieve a list of tools or
+
+TABLE 4. Inclusion and exclusion criteria. datasets that do not comply with the fourth research
+question; tools and datasets must be used alongside a
+validation technique.
+
+(2) We aim to find techniques and accompanied tools and
+datasets (if available); thus, finding tools and datasets
+in isolation of the validation technique does not comply
+with the research questions.
+
+(3) There is an issue concerning the requirements quality
+characteristics keywords. It was not practical to include
+quality checking keywords (such as incompleteness,
+correctness, and ambiguity) because there is no agree-
+ment in the literature on the complete list of quality
+keywords. Moreover, the list is more extensive than the
+capabilities of the adopted database engines.
+
+This study uses the following commonly used databases,
+which are also used in related works: ACM Digital Library,
+Springer Link, IEEE Xplore, and Science Direct. Conse-
+
+extraction. Consequently, following the criteria in Table 4, quently, the primary search string is as follows:
+studies describing software development frameworks are not (requirements engineering) AND (validationOR assurance
+considered unless they have sufficient details about require- OR analysis OR quality) AND (application OR software)
+ments validation (e.g., [31]).
+
+5) THREATS TO VALIDITY
+4) SEARCH PROTOCOL This study discusses reliability criteria, including external
+The current work builds upon previous work of validity, internal validity, construct validity, and conclusion
+Besrour et al. [32], which identifies critical challenges in validity. External validity includes how the results can be
+Software Engineering (1995–2016); Moketar et al. [27], generalized to other contexts. The collected papers come
+which shows trends in tools of requirements validation from well-known databases often used in software engineer-
+(2007–2016); and Zogaan et al. [33], which discusses ing research [30], [34]. One threat to validity is the restricted
+
+137616 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+FIGURE 1. Database search diagram following stages of Kitchenham and Charters [23].
+
+time search string interval, which was overcome by reporting overcome following [35] guidelines. Another threat was the
+related literature reviews matching research questions from threat of replication, which was overcome using Mendeley
+the previous periods. The other threat is inadequate primary and Microsoft Excel.
+studies, which were reduced using the snowballing method.
+
+Internal validity includes whether the evidence supports B. CONDUCTING SEARCH STAGE
+the truthfulness of the list of identified primary studies and We report the study selection, snowballing, article quality
+the reported validation challenges. For example, one threat assessment, and data extraction and analysis to conduct the
+could be improper research methods, which were overcome research.
+using well-known databases for software engineering papers.
+Therefore, each paper was analyzed following the method
+in [24], including the complete paper body analysis during 1) STUDY SELECTION
+the conducting stage. Moreover, thematic analysis [35] was Figure 1 illustrates the conducting phases of Kitchenham and
+applied to synthesize the higher-order validation categories. Charters [23]. First, all studies’ metadata, such as authors,
+Additionally, we applied a backward snowballing search to abstracts, keywords, and publications information, were col-
+retrieve as many relevant primary studies as possible to miti- lected with Mendeley software, which was also used to
+gate any potential threat to any of the primary studies. remove duplicates. We then conducted the first two steps
+
+Construct validity ensures that the study concepts are mea- of our approach (Figure 1) using several research meetings.
+sured to align with the research questions. One threat could However, the third step was conducted in joint meetings
+be imprecise SLR, which was overcome with a review pro- conducted for a random set of 100 studies from different
+tocol [23] and existing LR tools. Additionally, the threat of databases. The objective was to provide a consistent and
+incorrect keywords was overcome using keywords from ISO reliable process in the future. Next, studies that were not
+29148:2018 and previous works that aligned with the RQs. selected by at least three authors were excluded from the
+
+The validity of the conclusion confirms whether proper subsequent phases. Finally, when the abstract analysis was
+actions were taken to extract the literature. The literature insufficient, studies were delayed for a detailed analysis of
+review of primary studies was selected and extracted using the main body.
+a systematic literature review of software engineering [23];
+the threat could be biased in the selection. It was reduced 2) SNOWBALLING
+using literature review tools and reviewing studies several Following the snowballing guidelines for systematic reviews
+times on the basis of the researchers’ experience. Another of [36], the primary studies were expanded. We performed
+threat could be how primary studies were grouped, which was backward snowballing on the initial set of 62 studies using
+
+VOLUME 9, 2021 137617
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+FIGURE 2. Studies distribution. FIGURE 3. Quality assessment. conference and journal papers generally
+have a similar quality.
+
+their reference lists. We adhered to the search protocol
+and the search string during the snowballing process. The were carefully read to obtain a deeper understanding of
+snowballing results identified an initial of 15 new studies, the topics discussed. Then, important information related
+four were duplicated [S09], [S17], [S24], [S39], and one to the research questions was coded using content analysis.
+was excluded because it was a literature review paper [28], The codes were then converted into themes and higher-order
+whereas the rest did not pass the inclusion and exclusion crite- themes. Next, each researcher analyzed one group of studies
+ria. Hence, the snowballing process resulted in four additional on the basis of their experience and early feedback on the
+studies. previous step. As explained before, conducting 100 articles
+
+analysis on the basis of the article title, abstract, and keywords
+3) QUALITY ASSESSMENT was completed jointly, which is expected to provide consis-
+This study depends on rigor, relevant, and high-quality tent information extraction. During this phase, the researchers
+work [30], [34]; thus, we selected studies with clear and discuss their findings and regularly provide consistent extrac-
+comprehensive validation techniques as they often provide tions. The researchers were not obliged to use any soft-
+sufficient details related to the research questions. The quality ware tools; however, they provided patterns of papers they
+assessment criteria were as follows: analyzed regularly. Finally, several meetings’ sessions were
+(1) The aim of the study should address the research held to synthesize and approve the final list of higher-order
+
+questions (Rigor). themes.
+(2) The paper should have a consideration for threats to
+
+validity (Rigor). C. REPORTING STAGE
+(3) The presented approach should be transparent in the This research analyzes 66 primary studies in software require-
+
+paper (Relevance). ments validation that directly address the research questions.
+(4) The context of the study should be with software Additionally, studies are discussed on the basis of these
+
+RE (Relevance). research questions. A list of all the primary studies is provided
+The quality assessment scores for each paper were yes = 1, in Appendix A.
+partial = 0.5, and weak = 0. Thus, the minimum and maxi-
+mum scores for rigor and relevance were in the range of 0–2. 1) SUMMARY OF PRIMARY STUDIES
+Studies that scored below 1 for both relevance and rigor were Figure 2 depicts the number of primary studies according
+eliminated. to journal/conference versus year/database. The results show
+
+no strong evidence of a relative increase in articles by year.
+4) DATA EXTRACTION AND ANALYSIS PROCESS Expectedly, the most significant number of articles were from
+Following our approach in Figure 1, the following infor- the Requirements Engineering Journal and the International
+mation was extracted: all study metadata, including title, Conference on Requirements Engineering.
+abstract, keywords, and publisher; relevant data related to Figure 3 shows the results of the quality assessment.
+the research questions; and challenges concerning each tech- The figure shows that the papers are not entirely focused
+nique. The authors extracted this information from several on requirements validation. For example, the studies [S01],
+joint sessions. We used Excel to collect relevant information [S16] focus on requirements specification and validation,
+and Mendeley to track citations using tags and notes. whereas most of the other works have a complete model,
+
+Thematic analysis [35], an approach based on relationships starting from requirements specification until validation (for
+and recurring patterns, was used to synthesize the identified example, [S01], [S13], [S14]). Nonetheless, as the figure
+themes related to requirements validation. First, the papers shows, the conference and journal papers generally have
+
+137618 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 5. Validation techniques category descriptions.
+
+FIGURE 4. Validation techniques category distribution. Most of the
+validation techniques fall in knowledge-oriented methods.
+
+a similar quality, except in some cases where the threat is
+unclear, often in conference papers. When the quality assess-
+ment was applied, the highest scores for relevance and rigor
+(2 points) were 41.8% and 22.4%, respectively. Only 32.1%
+of the studies had the highest scores (relevance = 2 and
+rigor = 2). When applied to each selected study, 83.6%
+achieved high relevance (≥1.5 points), and 67.2% achieved
+high rigor (≥1.5 points). Studies that scored below 1 point
+conjointly for rigor and relevance were eliminated.
+
+This section assesses the validation techniques used
+to answer the first research question. For simplicity,
+in this study, a technique could be an approach, method,
+or framework. First, we summarize the validation techniques
+into logical groups: prototyping validation, knowledge-
+oriented validation, validation by inspection, testing-oriented
+validation, modeling and assessment, and formal modeling
+techniques. Table 5 presents the descriptions of each group.
+Please note that in Table 5, the category modeling and assess-
+ment are relatively different from ‘‘model checking,’’ which
+describes a formal method for verifying an abstract model
+relative to formal specification. However, in our context,
+we refer to modeling where requirements are specified and
+then assessed using structure diagrams (conceptual models),
+simulation models, goal-based models, and modified V&V
+frameworks. autogenerated prototypes [S05], [S11], [S18], [S47], reduc-
+
+Figure 4 shows that most of the validation techniques fall ing development rework and providing early detection of
+in knowledge-oriented methods (36.7%). requirements errors. By contrast, semimanual mockup pro-
+
+All techniques are discussed in the following subsections totypes were initially developed and implemented in gaming
+(2–7). Quality characteristics are discussed in subsection 8, applications [S24]. However, the prototyping generation is
+whereas tools and datasets are discussed in subsection 9. not helpful by itself unless it is combined with other tech-
+Finally, the applications and software process models are niques. Our review showed that prototyping was adopted
+discussed in subsection 10. along with knowledge-oriented approaches [S62], model-
+
+ing and assessment [S50], [S58], formal models [S29], and
+2) PROTOTYPING TECHNIQUES testing-oriented approaches [S20]. For example, the study
+Practical prototypes provide legitimate visualization, reduc- [S29] applied a hybrid approach; the iUML-B models were
+ing customers’ and developers’ efforts [S05]. Visualization used as a graphical model to generate Event-B models,
+was used to help medical experts validate the requirements whereas BMotion Studio was used as a concrete visualiza-
+specifications [S09], [S62]. Studies have shown an increase in tion of the HD machine. Thus, visualization techniques are
+
+VOLUME 9, 2021 137619
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+suitable for complex sequential processes with subprocess this category, most are not yet mature to reach 100% recall
+branches (e.g., preparation for hemodialysis). performance [S14]. Moreover, they do not fully automate the
+
+The studied prototyping techniques have several chal- error resolution, rather than detecting errors [S15]. It is not
+lenges. First, there will be some prototyping issues, where easy to generalize the results to different software contexts
+developers might need to add their code [S05]. Moreover, [S17], [S21] because tools usually target one to three quality
+prototyping a part of the requirements does not guarantee characteristics. Additionally, there are issues related to the
+that the remaining requirements are intended [S20]. More- current techniques; for example, it is unclear how the tension
+over, hybrid prototyping methods with formal models only matrix is automated in different situations (validations) and
+apply to specific domains (e.g., the signal temporal logic different domains [S27]. Additionally, it is unclear how stake-
+domain [S11]). Second, gaming applications and playability holder feedback affects current system requirements [S31].
+using a prototype are not entirely specified requirements Integrating ontologies for requirement classification and val-
+validation. For large communities, requirements vary; hence, idation can help in generating future porotypes [S07]. Thus,
+its validation is not trivial [S24]. Third, animators (as a there is much work in this category; however, to provide
+prototype) may still fail to execute a specification in certain better results, further enhancement is needed.
+situations, where simulation might be needed to resolve the
+issue [S30]. Finally, simple prototyping with word coloring 4) INSPECTION TECHNIQUES
+(or HTML form) does not provide enough feedback to stake- Requirements review is the most straightforward inspection
+holders; instead, it might confuse them [S15]. technique [S17]. The review technique ensures the discovery
+
+and solution of errors during the RE process [S26]. Checklists
+3) KNOWLEDGE-ORIENTED TECHNIQUES are a communal inspection method that provides consistency
+With existing language and domain knowledge, require- between compared requirements defects [S01] and saves time
+ments errors can be discovered by finding related require- by following a strict process. It also allows end users to
+ments concepts or indications of errors in a requirements provide feedback between domain experts and system mod-
+document (or item). These methods eliminate the compre- elers [S26]. Questionnaires (a subtechnique of inspection)
+hension of large requirements documents, thus reducing allow feedback from many stakeholders; however, they must
+the risk of failure [S02] and providing instant feedback to be carefully built.
+users [S14], [S21]. One benefit of the knowledge-oriented However, checklists or questionnaires are domain depen-
+approach is that it provides immediate requirements feedback dent and must be developed based on project types [S04].
+and provides stakeholders with shared guidelines for require- Furthermore, once a requirement error is discovered,
+ments artifacts [S06], [S17]. For instance, the study [S15] the stakeholders’ role in discovering the solution might not
+showed that they could provide 83% accuracy compared to be apparent in each technique [S01]. Additionally, it was
+users who achieved only 47% accuracy in error discovery. found that these methods are not among the top state-of-
+
+There are two general approaches in knowledge-oriented the-art methods because of the difficulty in automating the
+methods: rule-based and machine learning methods. The inspection process, which is often executed semi manually.
+first depends on expert rules (i.e., knowledge engineering)
+to identify the requirements’ errors without model training. 5) TESTING-ORIENTED TECHNIQUES
+Moreover, the rules ensure requirements quality on the basis The testing-oriented technique checks if the use cases built
+of expertly crafted patterns [S14], [S15] or writing rules from the requirement are helpful and easy to generate [S65].
+[S17], [S21]. By contrast, machine learning extracts knowl- If generating test cases is difficult or impossible, the require-
+edge from trained models on the requirements. For example, ments eventually lack information, are incomplete, hard to
+ontologies can capture generic static domain knowledge and be verifiable or modifiable, or are not measurable. Test case
+can be reused to share knowledge across stakeholders [S07]. generation provides early user feedback and guides soft-
+Additionally, with the help of ontologies, controlled vocab- ware developers to understand the system behavior [S28].
+ularies facilitate the automation of RE defect identification Generally, automated methods allow the generation of pro-
+that can be used to reduce requirements conflicts [S40] and totypes combined with the testing-oriented method, thereby
+ambiguities [S51], [S63]. Additionally, it was reported that providing stakeholders with the rationale of their intended
+feature diagrams enable stakeholders to control their perspec- needs [S20], [S46], [S59], [S62].
+tives and preferences concerning the software [S31]. However, the methods in this group usually generate a test
+
+The analysis shows that knowledge-oriented techniques case from the developer’s viewpoint; thus, requirement vali-
+are tightly linked to automated tools. With automated tools dation might be unsuccessful without collaboration between
+in knowledge-oriented techniques, conflicts in requirements customers and developers. In other words, customers must
+could be discovered based on resources, concepts contradic- have combined knowledge of business and some level of
+tions, directions to society laws, and operation matters [S27]. technical experience. Moreover, validating complex require-
+Other automated tools focus on predicting variabilities [S32], ments (e.g., usability or quality requirements) is difficult
+vulnerabilities [S19], inconsistencies [S33], and conflicting because of limited customer competence in RE and their time
+viewpoints [S45]. Although many automated tools are in and involvement constraints [S60]. Thus, human judgment
+
+137620 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+is needed to analyze requirements, for example, by ‘‘use Hence, it might be difficult for users to validate
+and misuse’’ diagrams that depend heavily on the software them [S16], [S20].
+engineer’s experience [S28].
+
+8) REQUIREMENTS QUALITY
+
+6) MODELING AND ASSESSMENT TECHNIQUES Checking the characteristics of the requirements would
+reduce potential requirement errors, indicating the rightful-
+
+This group specifies and validates the requirements as a
+ness requirements. It has been shown that with language
+
+complete solution for validation. For example, the Bayesian
+templates [S06], [S15], [S17], several characteristics such
+
+network model [S23] describes the quality characteristics of
+as ambiguity, consistency, and correctness can be predicted.
+
+reused, unexpected dependencies, and variability, indicating
+Quality checks of requirements using formal models often
+
+the probabilistic validity of the input requirements. Built
+target completeness [S16] and precision (correctness) [S20].
+
+models provide early assurance of consistency between the
+The interpretation and evaluation of these quality attributes
+
+requirements and design correctness; correct-by-construction
+vary, requiring flexible assessment and improvement tech-
+
+techniques limit the need for a posteriori model checking
+niques [S64]. To this end, a mapping in Table 6 is conducted
+
+[S08], [S22]. Combined with knowledge-oriented models,
+on the basis of the collected characteristics (Column 1) and
+
+conceptual models (i.e., a subtechnique) can provide more
+baseline requirements characteristics (Column 2). We chose
+
+meaningful domain knowledge to experts [S21]. In cases
+the ground baseline, ISO 29148; however, Hull et al. [37]
+
+where building a prototype is complicated or in a safety
+and Young [21] were used as alternatives when the char-
+
+model, simulation provides a solution to observe the system’s
+acteristics were unavailable in ISO 29148. Hull et al. [37]
+
+behavior under changeable environmental conditions [S12].
+and Young [21] lists are commonly cited as large lists of
+
+Goal models are considered to have a higher level of require-
+requirements characteristics. Note that four characteristics,
+
+ment specification models representing the underlying cus-
+namely, traceable, affordable, bounded, and implementation-
+
+tomer goals (i.e., goal-oriented engineering). It also ensures
+free, were removed from ISO 29148:2018 when compared
+
+that agents can maintain/achieve the required goals [S44],
+with ISO 29148:2011.
+
+[S48], [S50], [S57], [S58]. For example, using psychologi-
+Figure 5 shows the percentage of the most used quality
+
+cally driven goal models can interpret the meanings of human
+characteristics for requirements validation extracted from the
+
+behavior to facilitate the validation of requirements [S48].
+primary studies. The top-quality characteristics discussed
+
+Some drawbacks of modeling and assessment are domain
+were correctness, completeness, consistency, and ambiguity.
+
+knowledge representation, design reusability, and scalabil-
+This finding is similar to previous findings that reported
+
+ity [S08]. Conversely, it should be clear which quality factors
+that completeness and inconsistency are the most critical
+
+should be tested and expand use cases to generalize results
+qualities [38]. However, ambiguity is an additional quality
+
+[S12], [S21], [S22]. Finally, the most troublesome part is
+characteristic, as discussed in the literature. Ambiguity is
+
+solving the errors or exacting the error rather than providing
+seen as a complex and multilevel quality attribute [39] that
+
+an error occurrence probability [S23]. However, goal models
+should be predicted in cross domains, especially for large
+
+are not complete unless they are merged with testing-oriented
+scale applications [S66]. Conversely, additional character-
+
+models or other knowledge-oriented methods.
+istics that do not match the list of characteristics shown
+in Table 4 are understandability, reusability, unexpected
+
+7) FORMAL MODELS dependencies, variability, and testability, indicating that the
+The requirements are converted to a formal mathematical origin of the validation problem is not a compiled list of
+model to test a system property; consistency and com- characteristics. Moreover, fine-grained (application-specific)
+pleteness are the main quality requirements tested in this quality characteristics include specificity [S23] and vacu-
+approach. Although these quality attributes are merely used ity [S11]. Thus, the new characteristics were as low as 5.43%
+in requirements verification (as part of traceability), they (5/92) (including repetitions). Hence, further research on
+can provide system validity insight. For example, the sys- these newly identified characteristics is required.
+tem [S16] allows the search for complete and consistent
+services of the debugging controller device. Some models 9) TOOLS AND DATASETS
+provide a flexible language (signal temporal logic) to express Extracted information of tools and datasets (Appendix B)
+and validate requirements [S20]. The formal model approach eliminates datasets not available to the public [S14], [S15],
+becomes valuable when used in models that can easily com- [S17], [S63]. Several tools depend on NLP and machine
+prehend user diagrams [S38]. learning [S04], [S15], [S17], [S23], [S25]. Other tools are
+
+One major drawback of formal models is the expressive- considered converter tools [S05], [S14], [S31], [S29], assis-
+ness of the language requirements that users cannot easily tant tools [S06], [S21], or simulation tools [S20], [S22].
+understand. Furthermore, although formal models are robust, Notably, datasets were expressed in textual requirements
+they are effortless for high-level stakeholders (managerial [S06], [S17], [S25], use cases [S04], [S05], class dia-
+level) if no animation (or prototyping) is used. Additionally, grams [S04], and user stories [S14]. As stated earlier, most
+not all scenarios (or requirements) are easily implemented. tools depend on machine learning; thus, expectedly, they
+
+VOLUME 9, 2021 137621
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 6. Technique versus quality characteristics. TABLE 6. (Continued.) Technique versus quality characteristics1.
+
+often adopt a dataset in the knowledge-oriented validation
+category. Next, all other techniques have relatively similar
+tools, except for inspection (one tool only), indicating a lack
+of automated tools for the inspection process.
+
+The tools and datasets are detailed in Appendix B;
+however, we mentioned a few here. The Requirements to
+Prototype (RM2PT) tool [S05], [S47] helps to validate
+requirements by producing a prototype. Second, we have
+the requirements quality tools, for example, The Auto-
+mated Inconsistency Checker (MaramaAIC) [S15] and Test-
+MEReq [S62] tools. MaramaAIC is considered an excellent
+
+137622 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+FIGURE 6. Datasets and tools distribution more than half of discussed
+techniques are not provided with public tools.
+
+FIGURE 5. Distribution of studies across requirements quality
+characteristics. ∗ domain-specific characteristics, + additional
+characteristics, has a mapping in (Young list) [21], (Hull list) [37].
+
+tool to discover inconsistency between requirements, whereas
+TestMEReq is a comprehensive tool that includes correct-
+ness, completeness, and consistency. An advanced ambiguity
+detector tool in system design is The Adversarial Testing
+of Autonomous Vehicles (Sim-ATAV) [S20]. Sim-ATAV is
+a simulation-based adversarial testing framework for Cyber-
+Physical systems such as search-based test case generation
+and automated falsification for ambiguity detection.
+
+However, there is a lack of datasets, where a few depend on
+structured requirements [S39] or user comments [S45], [S57].
+
+Figure 6 shows the distribution of the primary studies
+on tools and datasets concerning techniques. It shows that
+(4.55% or three datasets) provided with this study has no
+specific tool [S39], [S45], [S57], whereas 15.15% of the
+studies were tools accompanied by datasets. The figure shows
+
+FIGURE 7. Distribution of validation techniques across application
+that more than half (54.55%) are techniques with no tools, domains. Most tools are adopted in knowledge-oriented validation
+indicating framework or approaches, tools not reported for the techniques.
+
+public, or using a programming language. Thus, requirements
+validation tools and datasets are scarce because developing applications (37.89% and 17.89%, respectively). Knowledge-
+such tools is time-consuming, especially fully automated oriented validation techniques have been adopted in nine
+ones. This finding is consistent with that only 39% of com- out of 11 reported application domains, showing that
+panies used recognized requirements management tools [40]. machine learning models could validate many application
+Consequently, there is a lack of datasets; our findings are domains [S15] instantly applying domain knowledge and
+consistent with previous work of Zogaan et al. [33]. However, ontologies. Similarly, modeling and assessment methods pro-
+many state-of-the-art studies on modeling and assessment vide early information to users using models and check-
+still lack more tools than knowledge-oriented models. Thus, ing techniques. Notably, the prototyping and inspection
+practitioners should select tools on the basis of their applica- approaches have approximately 15.79% and 11.58%, respec-
+tion capabilities [41]. tively. Thus, this tendency might be related to knowledge-
+
+oriented methods. Nevertheless, users still need to foresee
+10) SOFTWARE APPLICATIONS AND SOFTWARE the target application through prototypes for better visual-
+PROCESS MODELS ization [S29], [S30]. Hence, requirements validation models
+Our selected studies revealed a list of 11 different application are recommended to take care of domain-specific prop-
+domains grouped on the basis of the application’s generic erties [S06], [S11], [S23] and increase their applicability
+functional behavior, as shown in Figure 7. Knowledge- in other applications, especially in large scale integrated
+oriented modeling and checking techniques dominate several systems. However, the interpretation of the findings should
+
+VOLUME 9, 2021 137623
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+be interpreted cautiously, as the application grouping did not associated quality inspection checklists. Table 7 provides a
+conform to any well-known standard. further expanded list of weaknesses and strengths.
+
+Based on our primary studies, only 7.58% of validation
+techniques target the agile framework [S12], [S14], [S16], B. REQUIREMENTS QUALITY
+[S44], [S46], and approximately 15.15% target the nonagile We found no compromise agreement on the list of character-
+processmodel [S03], [S05], [S18], [S20], [S23], [S26], [S28], istics used to detect errors in requirements. However, reported
+[S29], [S31], [S51], [S52]. However, more than two-thirds of errors could not explain defect resources, such as process exe-
+the studies (74.24%) did not clarify which approachwas used, cution errors, methods usage errors, or management errors.
+whereas one article mentions the use of both development Management errors, for example, include errors that result
+approaches [S17]. Consequently, we infer that validation from inadequate or insufficient management processes [S07].
+techniques are less applied in agile development, and several To this end, finding requirements quality errors is primarily
+researchers do not consider the development process model dependent on contextual factors [45].
+while validating the requirements. Our study revealed that ambiguity is gaining attention,
+
+The primary studies that do not specify the development especially in natural language process models (e.g., [S04],
+techniques indicate that the category does not have any [S08], [S14], [S17], [S18], [S20], [S21], [S26], [S32], [S33]).
+relationship with software development. However, in agile With language patterns, requirements can be transformed
+development, validation complexity is related to stakehold- into semiformal specification domain ontologies, enabling
+ers’ expertise, requirements elicitation cycles, and change a semiformal validation of requirements qualities [46]. The
+management [34]. The most important quality factors for surveyed studies showed some characteristics that were
+agile requirements are simplicity and objectivity [42], which not discussed in previous state-of-the-art validation studies
+can be achieved by validating scenarios in patterns [S14]. The (Table 8): understandability, reusability, unexpected depen-
+stakeholders’ involvement in agile development is crucial as it dencies, variability, and testability.
+encompasses stakeholders’ vision and expectations, whereas The characteristic of understandably indicates the end
+validation is inherited in the agile development process [43]. users’ degree of cognitive load to figure out the implied
+With more stakeholder involvement, the quality of user sto- or intended requirements [47]. It was reported that user
+ries has rarely been assessed. Thus, many of the studies target stories specification has a limited impact on requirements
+nonagile software process models because of the availability quality and proposes a conceptual model that increases
+of requirements at early stages where completeness, cor- model understanding and reducing complexity [4].Moreover,
+rectness, and consistency could be detected along with the it was shown that extended UML case diagrams allow bet-
+entire SRS. ter game-related requirements representation, which will
+
+promote a common understanding among the development
+V. CHALLENGES OF REQUIREMENTS VALIDATION IN THE team [48].
+CONTEXT OF REQUIREMENTS ENGINEERING The characteristics of variability and reusability are related
+Compared with previous research of Moketar et al. [27], to dependability. A variable system results in new ways
+this study reported 51 techniques grouped into 19 methods, to combine components, whereas the reusability of exist-
+27 tools, 15 datasets, and 19 quality characteristics (five new ing requirements results in new systems composed of new
+quality characteristics that were not discussed in previous dependable components. Requirements variability is fre-
+studies). By contrast, Moketar et al. [27] reported 16 val- quently coupled with Cyber-Physical systems that frequently
+idation techniques, frameworks, and eight tools. Contrary evolve, resulting in newmulticomponents of software config-
+to Moketar et al. [27], prototyping is not the leading ured differently [49]. Assuring safety requirements (or goals)
+requirements evaluation technique; however, autogenerative results in an acceptable level of safety validation. A require-
+ones are promising. The present study and previous studies ment defect is discovered if the system is doing the wrong
+[27]–[29] insist on the need for further research on require- thing. Variability is recently studied as a possible conse-
+ment validation. quence of ambiguity based on syntactic rules of nouns and
+
+subordinate propositions [50].
+A. REQUIREMENTS VALIDATION TECHNIQUES Requirements reusability is critical to be validated as it
+Our investigation showed that 36.7% of the primary studies is directly related to handling issues of requirements depen-
+adopted knowledge-oriented techniques, whereas the low- dency [51]. Moreover, reusable requirements should pass the
+est was inspection methods (7.6%). Despite the reported correctness characteristics, where only valid requirements
+study that inspection could detect 50%–90% of requirements items are included in the requirements set of the target
+problems [44], it is infrequently discussed in the literature system.
+for applications where prototyping is favorable. One rea- The increased software requirements testability implies
+son is that an automated inspection tool requires automated a more leisurely development of software tests. It is
+reasoning to inspect the SRS quality [S64]. It might also expected that testable requirements are tightly coupled with
+require a knowledge repository of SRS, quality metrics, and other requirements characteristics, such as measurable and
+
+137624 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 7. Strengths and weaknesses of requirements techniques.
+
+complete requirements [52]. Testability comes into primary Not only the number of characteristics but also the soft-
+practice for safety-critical systems, where systems must be ware requirements industry context or the application domain
+early validated before implementation [53]. may indicate the quality of requirements or how to validate
+
+VOLUME 9, 2021 137625
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 8. New research directions to requirements quality. mobile applications, manufacturing applications, and
+research applications.
+
+When it comes to software process models, the software
+process models are often not specified in literature or are
+assumed to be traditional nonagile (waterfall) processes.
+Our analysis found that the provided solution deals with
+requirements regardless of how they are elicited; it assumes
+that all requirements are available to the proposed system.
+Consequently, it is not easy to achieve consistency and com-
+pleteness requirements quality given the iterative cycles of the
+agile process models. Thus, agile process models should have
+quality validation models that automate the agile process of
+requirements. However, each agile method embraces differ-
+ent practices; hence, RE should be suitable variability [56].
+
+VI. RESEARCH CHALLENGES
+The study of software requirements validation is considered
+challenging because of the following reasons:
+
+A. VALIDATION METHODS’ PERSPECTIVES
+Although several validation techniques provide many alter-
+natives to practitioners and the research communities, cur-
+rent techniques are often studied from one perspective. For
+example, prototype-oriented techniques [S05], [S11], [S15],
+[S18], [S20], [S24], [S29], [S30], [S47], [S56], [S62] focus
+on the functional requirements presented as a UX or UI to
+validate the expectation of customers, leaving out nonfunc-
+tional requirements for other techniques such as inspection
+techniques. Consequently, customers’ expectations might be
+distracted or underestimated. Conversely, most knowledge-
+
+such characteristics. For example, the RE of health applica- oriented techniques are directly linked with specified require-
+tions [S10] may focus more on correctness characteristics, ments (often in natural language (e.g., [S33], [S36], [S37],
+whereas the RE of an online shopping system attempts to [S39], [S25], [S40], [S51]) or use cases [S15]). Consequently,
+reduce ambiguity between application users [S01]. knowledge-oriented models attempt to detect errors on the
+
+basis of specification, which might restrict the nature of
+C. TOOLS AND DATASETS software under dynamic changing environments. Further-
+Our study reported 30 studies (44.45%) that proposed tools, more, a validation technique changes based on several fac-
+datasets, or both. Most tools depend on machine learning tors, including the stakeholders’ capabilities, team capacity,
+models; however, they inherit problems using machine learn- conflicting viewpoints, and organization assets. Therefore,
+ing techniques. They suffer from the ‘‘changing thing that validation techniques’ selection should be further studied
+changes everything’’ [54] problem and interpretability of considering such factors.
+results unless stakeholders are provided with visualization.
+It is evidenced (e.g., [S05], [S06], [S47]) that automated B. SUBJECTIVENESS OF REQUIREMENTS
+validation tools drive datasets for stakeholders’ perspective QUALITY CHARACTERISTICS
+critical decisions. Tools should consider the willingness of Current validation techniques are tightly coupled with quality
+humans to use them on the basis of their performance, usabil- characteristics to validate requirements (shown in Table 6).
+ity, or user-friendly aspects. Generally, tools are aged or However, in many cases [e.g., S23], the validation is subjec-
+obsolete because of their complexity and low accuracy [55]. tive, which means that thresholds of errors of quality charac-
+
+teristics could be too restrictive or emancipative. Moreover,
+D. SOFTWARE APPLICATIONS AND SOFTWARE studied quality characteristics are mainly discussed from
+PROCESS MODELS nonagile software process models, whereas agile-based qual-
+Our study revealed that most validation techniques target ity characteristics are rarely discussed [S12], [S14], [S16],
+demo applications as early proof concepts; however, few [S44], [S46]. By contrast, intuitively agile-based software
+studies have targeted large enterprise applications, such as systems have a series of incremental requirements validation
+critical-safety applications. Additionally, several applications that should have unique characteristics that imply traceability
+have not yet been discussed in the literature, including of requirements toward trends to better or worse systems
+
+137626 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+in the future. Consequently, the challenge is to balance TABLE 9. List of primary studies.
+
+sensitivity and specificity; not all requirements are trouble-
+some, some of them are intended to be ‘‘vague’’ for further
+expansions.
+
+C. SOFTWARE VARIANTS
+Software developers’ common practice is to support a wide
+range of users who could run software over different variants
+(e.g., web and mobile). However, few studies have focused
+on this issue [S05], [S47] to the best of our knowledge.
+Furthermore, studied requirements validation techniques do
+not impose constraints regarding software variants. Thus,
+proper validation methods should harmonize the target appli-
+cation requirements with fewer customer efforts and max-
+imum integration to overall project success. An increasing
+number of variants increases errors in requirements synchro-
+nization [57] and becomes unprofitable and less reused [58].
+Thus, validation techniques should automate the validation of
+similar requirements across variants.
+
+D. VALIDATION PROCESS INTEGRATION
+As a result of elicitation and negotiation, the requirements
+get further elaboration, making the requirements validation
+process a continuous and recursive process [5]. Consequently,
+automated validation techniques could handle this issue to
+reduce customer efforts and increase productivity (e.g., [S05],
+[S06], [S15], [S47]). Moreover, the validation works in silos
+with verification [S10], [S18], [S55], coding, and testing
+(e.g., [S04], [S20], [S46]). It is empirical that identifying
+conceptual links between requirements, involved stakehold-
+ers, software development process, and associated risks may
+result in software redesign because of traceability issues [59].
+Thus, validation should be studied from the customer toward
+the implementation and backward traced to requirements
+providing complete customer inceptions.
+
+E. LACK OF TOOLS AND DATASETS
+One major issue is the lack of open-source tools and bench-
+mark datasets, as shown in Appendix B and consistent with
+Zogaan et al. [33]. The research community should increase
+efforts to develop more tools and share more datasets.
+Most tools are designed to be used by software engineers,
+whereas customers should have their tools to resolve conflicts
+and specify requirements in more abstract forms. Mitigat-
+ing the risk of datasets is crucial for dataset development
+transparency and accountability, supporting data-driven deci-
+sions [60]. Thus, datasets should be credible, rigorous, and
+large enough for deep learningmodels. Tools should be robust
+and flexible to support various application domains. More-
+over, tools should target detected requirements errors, soft-
+ware processmodels, and functional project size. Researchers
+should also consider handling stakeholders’ privacy [61],
+service level agreements that support measurable customer-
+oriented services, and knowledge representation and sharing
+(e.g., [S02], [S07], [S13], [S19], [S25], [S31]–[S33], [S36]).
+
+VOLUME 9, 2021 137627
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 9. (Continued.) List of primary studies. TABLE 9. (Continued.) List of primary studies.
+
+137628 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 9. (Continued.) List of primary studies. TABLE 9. (Continued.) List of primary studies.
+
+VII. CONCLUSION AND DIRECTION TO
+FUTURE RESEARCH
+This section concludes the work and lists a research direction
+about requirements validation.
+
+A. CONCLUSION
+The leading role of requirements validation is to certify that
+requirements are acceptable descriptions of the target system.
+Checking requirements (a single or set) for errors entails
+an acceptable threshold for software validation require-
+ments. A systematic literature review following Kitchen-
+ham’s method [23] identified 66 primary studies; 36.7% of
+the validation methods adopted knowledge-oriented tech-
+niques (e.g., machine learning methods), and 17.7% adopted
+
+VOLUME 9, 2021 137629
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 10. Datasets and tools. TABLE 10. (Continued.) Datasets and tools.
+
+137630 VOLUME 9, 2021
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+TABLE 10. (Continued.) Datasets and tools. TABLE 10. (Continued.) Datasets and tools.
+
+modeling and assessment techniques (e.g., simulations).
+Contrary to the state of practice, inspection methods (7.6%)
+are less studied in the literature, whereas testing-oriented
+(11.4%) methods are generally less informative to end users.
+Formal models are often used in critical systems, but their
+usage is marginally less than the other methods; thus, it is
+challenging to establish an explicit shared understanding.
+Moreover, the studied requirements quality characteristics
+showed the usage of application-specific characteristics;
+therefore, they still necessitate proper knowledge-oriented
+validation techniques to handle their underlying semantics.
+Approximately three-quarters of the studies (74.24%) did
+not report the applicability of the validation technique
+over specific software process models (agile vs. nonagile);
+agile validation methods are scarce. Therefore, the primary
+studies showed that current validation techniques are con-
+sidered semi-automated and software domain dependent.
+Consequently, selecting a validation technique depends on
+the nature of the problem, stakeholder experience, and avail-
+ability of tools. Most validation techniques are related to
+expressing the requirements for detection errors and incor-
+porating clients’ feedback quickly.
+
+B. FUTURE RESEARCH DIRECTIONS
+This section presents research directions to resolve issues
+discussed in the previous section.
+
+1) COMBINING VALIDATION METHODS
+We anticipate fruitful results when integrating formal and
+prototype models that support prototype generation to pro-
+vide a sound output [S11], [S29]. Formal models sup-
+port automated proving, whereas prototypes provide instant
+
+VOLUME 9, 2021 137631
+
+
+
+I. Atoum et al.: Challenges of Software Requirements Quality Assurance and Validation: A SLR
+
+customer feedback. Additionally, testing-oriented techniques be themodifiedV&V [S18], [S55] and software requirements
+may enhance inspection techniques [S03]. For example, theory [3].
+the validation model of the automatic train protection system
+depends on a prototype generated from user scenarios [S03], APPENDIX A
+which is then followed by a report to visualize the test LIST OF PRIMARY STUDIES
+results. Reviews were then used to validate these require- See Table 9.
+ments. However, the requirements specification templates
+in [S03] do not solve behavior requirements issues in self- APPENDIX B
+adaptive or embedded systems [62]. Hence, the challenge is DATASETS AND TOOLS
+to specialize in requirements validation techniques as per the See Table 10.
+target application of interest.

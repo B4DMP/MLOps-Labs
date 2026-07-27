@@ -1,0 +1,36 @@
+:root {
+    --primary-bg: rgb(38, 102, 130);
+    --secondary-bg: rgb(17, 48, 62);
+
+    /* Phase colors */
+    --phase-bg-current: #5a6268;
+    --phase-bg-done: #28a745;
+    --bg-challenge-dropoff: rgba(106, 204, 129, 0.5);
+
+    /* Card backgrounds */
+    --card-bg-dark: rgba(33, 37, 41, 0.95);
+    --card-bg-locked: rgb(38, 40, 43);
+    --card-bg-active: rgba(19, 47, 89, 0.994);
+    --card-bg-done: rgb(23, 51, 38);
+
+    /* Card borders */
+    --card-border-default: rgba(255, 255, 255, 0.1);
+    --card-border-active: rgba(13, 110, 253, 0.5);
+    --card-border-done: rgba(25, 135, 84, 0.5);
+
+    /* Icon backgrounds */
+    --icon-bg-locked: rgba(255, 255, 255, 0.173);
+    --icon-bg-active: rgba(37, 85, 156, 0.869);
+    --icon-bg-done: rgba(47, 181, 118, 0.411);
+
+    /* Icon colors */
+    --icon-color-locked: #6c757d;
+    --icon-color-active: #0d6efd;
+    --icon-color-done: #198754;
+
+    /* Shadow colors */
+    --shadow-hover: rgba(0, 0, 0, 0.3);
+
+    /* Transitions */
+    --transition: 0.2s ease-in-out;
+}

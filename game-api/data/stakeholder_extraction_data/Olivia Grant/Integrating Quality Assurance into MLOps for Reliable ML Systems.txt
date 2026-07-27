@@ -1,0 +1,505 @@
+﻿
+Abstract: 
+
+Machine learning (ML) applications in critical sectors such as healthcare and finance face 
+significant reliability concerns despite advancements in automated development and deployment 
+pipelines. Conventional software quality assurance methods, which focus on code correctness, are 
+insufficient for dynamic ML systems that are susceptible to data drift, bias, and adversarial attacks. 
+This study addresses the fragmented systematic of quality assurance (QA) in machine learning 
+operations (MLOps) by proposing an integrated framework. This framework embeds lifecycle-
+wide QA modules spanning the data, model, and infrastructure layers into MLOps pipelines, 
+coordinated via continuous integration and deployment (CI/CD). Improved reliability was 
+demonstrated in a financial fraud detection case, as evidenced by fewer production incidents, rapid 
+drift detection, increased fairness scores, and steady accuracy. Therefore, the case study validates 
+that continuous and automated QA in MLOps significantly reduces operational risks and increases 
+trust, thereby posing QA as an indispensable integrated service rather than a post-deployment 
+afterthought for robust and ethical ML systems. We evaluate the framework on a financial-fraud 
+workload over 90 days, contrasting a baseline pipeline without QA and a QA-integrated pipeline. 
+The evaluation tracks fairness score (0–1), drift-detection latency, monthly production incident 
+rate, accuracy stability, and data-validation error rate. 
+
+
+INTRODUCTION 
+ML is currently behind critical applications in health, transport, and finance, with concerns regarding its 
+reliability, safety, and ethics. To address these issues, machine-learning operations (MLOps) merge data 
+engineering, model development, deployment, and monitoring into automated pipelines, thereby improving 
+scalability and efficiency [5]. However, MLOps do not guarantee quality assurance (QA). 
+
+Conventional QA is well-grounded in code correctness through unit, integration, and regression tests. 
+However, machine learning (ML) systems are nondeterministic in nature and evolve over time, facing 
+threats such as data drift, bias, adversarial threats, and model aging [2]. Even the slightest drop in quality 
+may have devastating financial and safety implications. Although MLOps have matured in terms of 
+industrial adoption [10], QA remains ad hoc. Scholars have suggested that QA should transcend pre-release 
+testing to be continuous and lifecycle-wide [1], [2]. 
+
+ML reliability was improved by embedding QA modules throughout the entire lifecycle. Potential QA 
+hazards in the ML lifecycle are depicted in Fig. 1, and QA in traditional and MLOps settings is compared 
+in Table I. 
+
+Contributions. This study advances the state of practice in QA for MLOps by: (i) proposing a system‑level 
+reference architecture that integrates data-, model-, and infra‑QA modules as first-class citizens in the 
+MLOps lifecycle; (ii) operationalizing QA triggers for retraining and rollback based on statistically 
+grounded drift, incident, and fairness monitors; and (iii) reporting a lifecycle‑wide empirical evaluation in 
+an industrial fraud‑detection setting with risk‑oriented metrics (incident rate, drift latency, and fairness 
+disparity) over multiple weeks. Compared with recent surveys and studies on MLOps architectures, 
+monitoring, and testing [23], [24], [25], [27], [28], our framework specifies concrete interfaces, thresholds, 
+and escalation paths that can be adopted without access to proprietary datasets or codes.  
+
+
+
+Summary based on [2], [17], [22].  
+Note: Entries on adversarial robustness and calibration are generalized practice; see robustness 
+discussions in the cited works. 
+
+We embed QA into MLOps pipelines and evaluate its impact (see Contributions above). The remainder of 
+this paper is structured as follows: Section II reviews related work; Section III outlines QA touchpoints; 
+Section IV presents the framework; Section V evaluates it using a case study; Section VI discusses the 
+results and limitations; and Section VII presents possible directions for future work. 
+
+• A CI/CD‑coordinated QA orchestration layer integrating data validation, drift detection, monitoring, 
+fairness and calibration checks, and incident workflow across the ML lifecycle (aligned with NIST AI RMF 
+1.0 and ISO/IEC 5338). 
+
+• Measured -35% drift-detection latency (from 18 h to 11.7 h) under identical SLO/SLA and alert thresholds 
+(Table III). 
+
+• Measured -43% monthly production incidents (14 → 8) after enabling QA orchestration (Table III). 
+
+• Measured +17% composite fairness score (0.71 → 0.83) and tighter accuracy stability over 90 days (±7% 
+→ ±3%) with no degradation of core accuracy metrics (Table III). 
+
+• Auditable governance mapping linking QA controls to risk categories and lifecycle processes (NIST AI 
+RMF, ISO/IEC 5338). 
+
+LITERATURE REVIEW 
+Prior work spans several themes. Technical debt analyses identify ML-specific risks such as entanglement, 
+undeclared consumers, and data dependencies (Sculley et al.) [32] (see Table II, row 'Sculley et al. [32]'). 
+Systematic surveys consolidate the testing landscape across properties, components, and workflows (Zhang 
+et al.) [1] (see Table II, row 'Zhang et al. [1]'). A complementary practice-driven rubric, the ML Test Score, 
+enumerates 28 concrete tests and monitors to raise production readiness (Breck et al.) [33] (see Table II, 
+row 'Breck et al. [33]'). At the platform level, TFX operationalizes production pipelines and data validation 
+at the Google scale (Baylor et al.; Polyzotis et al.) [10], [38] (see Table II, rows 'Baylor et al. [10]' and 
+'Polyzotis et al. [38]'). In data dynamics, concepts and dataset shifts are extensively covered (Gama et al.; 
+Suárez-Cetrulo et al.) [26], [34] (see Table II, rows 'Gama et al. [34]' and 'Suárez-Cetrulo et al. [26]'), and 
+prospective clinical evidence quantifies performance erosion under temporal and infrastructural shifts 
+(Mitchell et al.) [3]. Broad fairness surveys and reporting frameworks (Mehrabi et al.; Caton and Haas; 
+Mitchell et al.) [3], [35], [36] (see Table II, rows 'Mehrabi et al. [35]' and 'Caton and Haas [36]') emphasize 
+metrics and transparency. Our contribution is an end-to-end QA orchestration that coordinates these checks 
+inside the CI/CD, links them to governance controls (NIST AI RMF, ISO/IEC 5338), and demonstrates 
+measurable reliability and fairness gains (Table III). 
+
+The paradigm that operationalizes ML Systems with automation and scalability as the essential features is 
+known as MLOps [5], [9], [10]. Deployment works, however, studies rarely consider quality assurance 
+throughout the entire lifecycle. Traditional software QA checks whether a code is written according to the 
+specifications by running unit, integration, and regression tests [2]. However, these testing methods are 
+unsuitable for ML, and data quality, fairness, and robustness must be ensured. 
+
+Several studies have focused on the specific QA aspects. Renggli et al. [6] focused on data quality, whereas 
+Soni et al. [20] empirically demonstrated its direct link with the prediction performance. Ashmore et al. 
+[13] surveyed safety and reliability interventions throughout the lifecycle, whereas Tu et al. [19] proposed 
+
+
+
+ISSN: 3006-4023  (Online)                                                                                                                                                   Page: 547 
+
+historical validation for recurrent data pipelines. Corso et al. [14] checked for robustness and fault tolerance, 
+while Banerjee et al. [21] focused on the observability of real-time monitoring. Despite being interesting, 
+these remain separate solutions, each focusing on one stage rather than an integrated framework. Table II 
+summarizes the representative contributions of this study. 
+
+To the best of our knowledge, prior efforts remain fragmented and do not provide a single CI/CD-
+coordinated QA approach that spans data, models, and infrastructure layers; this gap motivates our 
+integrated framework. 
+
+TABLE II. SUMMARY OF RELATED WORK ON QA AND RELIABILITY IN MLOPS 
+ 
+
+Reference Focus Area Key Contribution Limitation 
+
+Santhanam [2] QA in ML systems Calls for ML-specific QA No automated integration 
+frameworks 
+
+Renggli et al. [6] Data quality in Emphasizes data–model Focused only on data 
+MLOps dependency 
+
+Ashmore et al. [13] ML assurance Survey’s safety/reliability Limited MLOps 
+methods integration 
+
+Soni et al. [20] Data quality impact Shows data quality → model Empirical, narrow scope 
+reliability 
+
+Nagarajan et al. [8] Data validation Proposes automated schema Limited to preprocessing 
+validation 
+
+Tu et al. [19] Pipeline QA Auto-Validate-by-History for Focuses on historical 
+recurring data issues execution 
+
+Garg et al. [22] CI/CD for ML Extends CI/CD to ML pipelines Covers deployment only 
+
+Corso et al. [14] ML robustness Groups methods for reliability Does not address 
+orchestration 
+
+Chatterjee et al. [17] Industrial QA Highlights need for automated QA Lacks generalizable 
+solution 
+
+Sculley et al. [32] ML technical debt Taxonomy of ML‑specific debt No end‑to‑end QA 
+risks orchestration 
+
+Zhang et al. [1] ML testing (survey) Systematic coverage of testing Limited production 
+properties and workflows integration 
+
+Breck et al. [33] Production readiness 28‑point ML Test Score rubric No governance mapping 
+Baylor et al. [10] MLOps platform Production‑scale ML platform Not QA‑specific / 
+
+(TFX) with pipelines fairness‑aware 
+Suárez‑Cetrulo et al. [26] Recurring drift Meta‑learning and reuse for Stream‑focus; limited 
+
+(survey) recurring drift system view 
+
+Gama et al. [34] Concept drift Algorithms and eval for adaptive No CI/CD integration 
+(survey) learning 
+
+Mehrabi et al. [35] Fairness (survey) Taxonomy of bias and mitigation No MLOps orchestration 
+
+Caton and Haas [36] Fairness (survey) Consolidated taxonomy; No pipeline‑level triggers 
+pre/in/post‑processing 
+
+
+
+ISSN: 3006-4023 (Online),         Journal of Artificial Intelligence General Science (JAIGS)     DOI: 10.60087        Page: 548 
+
+ 
+
+ 
+
+Li et al. [37] Industrial ML testing Empirical issues in data, No unified QA 
+execution, analysis framework 
+
+Summary based on [1], [2], [6], [8], [10], [13], [14], [17], [19], [20], [22], [26], [32], [33], [34], [35], 
+[36], [37], [38]]. 
+
+Note: Entries are condensed by the author; exact taxonomies may differ in the cited works. 
+
+Fairness metrics. Following foundational notions of individual and group fairness - Fairness Through 
+Awareness [29], Equalized Odds [30], and Disparate Impact [31]–we report the raw DPD/EOD/SRR and 
+an interpretable composite score. The sensitivity (±10%) shows that our conclusions are robust to weight 
+choice. 
+
+Risk and compliance baselines. We align our QA controls with the recognized frameworks NIST AI RMF 
+1.0 [27] and ISO/IEC 5338:2023 [28], mapping our monitors and approvals to governance functions. This 
+improves auditability and reproducibility without disclosing proprietary artifacts. 
+
+Testing ML systems. Industry reports highlight the gaps between traditional software testing and ML-
+specific validation [4]. We complement this line of work with ablations of QA modules and lifecycle-wide 
+risk metrics, rather than single-point accuracy. 
+
+Monitoring and observability. A multivocal review of monitoring ML systems and empirical studies of 
+testing in the wild [25] show fragmented practices, especially for cross-cutting signals (drift, incidents, and 
+fairness). Our framework unifies these signals into operational triggers (retrain, rollback, and human-in-
+the-loop) with clearly defined debounce windows and SLO-style thresholds. 
+
+MLOps Architecture and Governance. Recent surveys have consolidated the MLOps landscape, yet stop 
+short of prescribing QA-centric interfaces and escalation paths. Diaz-De-Arcaya et al. [23] synthesized 
+challenges and a roadmap across MLOps/AIOps, whereas Warnett et al. [24] analyzed the understandability 
+of MLOps system architectures. Complementary to this, we specify QA modules (data QA, model QA, and 
+infra QA) as first-class services with contract-level thresholds and roles. 
+
+BACKGROUND: QA IN THE ML LIFECYCLE 
+The ML lifecycle involves data acquisition, model development, deployment, and continuous monitoring. 
+Unlike traditional software, ML systems require ongoing QA owing to their dynamic environments. The 
+key QA concerns include the following: 
+
+1. Data ingestion - integrity, anomaly detection, bias auditing 
+2. Model training - reproducibility, robustness, adversarial testing 
+3. Evaluation - accuracy, calibration, interpretability, fairness 
+4. Deployment - pipeline stability, security 
+5. Production - Drift detection, anomaly detection, accuracy monitoring 
+6. Retraining - feedback verification and error prevention 
+
+Ongoing QA is critical for minimizing risks such as data drift, concept drift, bias, and model aging 
+throughout the ML lifecycle, as shown in Fig. 2.  
+This landscape motivates treating QA not as a one-time gate but as a continuous, automated service 
+embedded throughout the ML lifecycle. 
+
+
+
+ISSN: 3006-4023  (Online)                                                                                                                                                   Page: 549 
+
+ 
+
+ 
+
+Fig. 2. QA Touchpoints across the ML lifecycle in an MLOps pipeline 
+
+ 
+
+IV. MLOPS PIPELINES QA INTEGRATION FRAMEWORK 
+The weaknesses identified in previous methods indicate the necessity for an end-to-end integrated QA 
+system throughout the ML lifecycle. This section presents the proposed architecture, which includes the 
+data, models, and infrastructure QA modules in a holistic MLOps pipeline. Unlike traditional QA, which is 
+treated as a checkpoint task, this framework considers QA as an automated and continuous service. 
+
+A. Architectural Overview 
+
+The structure is designed in four layers: 
+
+• Data QA - data quality, bias, and drift. 
+
+• Model QA checks pre- and post-deployment performance, fairness, robustness, and interpretability. 
+
+• Infrastructure QA: Ensures code and system component reproducibility and reliability. 
+
+• Orchestration and Automation: Orchestrates QA modules using CI/CD-enabled pipelines. 
+
+QA modules are integrated into each MLOps stage with automated retraining triggers, as shown in Fig. 3. 
+
+
+
+ISSN: 3006-4023 (Online),         Journal of Artificial Intelligence General Science (JAIGS)     DOI: 10.60087        Page: 550 
+
+ 
+
+ 
+
+ 
+
+ 
+
+Fig. 3. Proposed QA-Integrated MLOps Pipeline Architecture 
+
+ 
+
+B. Data Quality Assurance 
+
+Data is the foundation for ML to be performed, and the QA process is a necessary step. The framework 
+supports schema validation, anomaly detection, and automated profiling [8]. Bias detection components 
+look for imbalances in the training data, thereby reducing ethical risks [4], [16]. Following Bayram et al. 
+[18], the system has a data-quality scoring module that constantly measures the production streams of data. 
+These checks are incorporated into the pipeline such that failure in the data stops downstream operations 
+until failure is addressed to avoid error propagation. 
+
+C. Model Quality Assurance 
+
+Pre-deployment QA involves accuracy metrics, stress testing for robustness, fairness, and interpretability 
+[12], [14], and reproducibility tests [2]. Post-deployment QA includes monitoring the concept drift, 
+anomalies, and performance decay [20], [21] with automatic retraining triggers. Banerjee et al. [21] 
+proposed observability modules for real-time health data. 
+
+ D. Code and Infrastructure QA 
+
+In addition to data and models, the reliability of the infrastructure is important. Code artifacts have version 
+control, unit tests, and integration tests, and are deployed via CI/CD [22]. The infrastructure-as-code was 
+tested for reproducibility and compliance with organizational standards. Dong et al. [15] argued that safety 
+arguments must be provided for ML components in critical systems, which can be accomplished through 
+automated compliance tests and security vulnerability scanning. 
+
+
+
+ISSN: 3006-4023  (Online)                                                                                                                                                   Page: 551 
+
+E. Orchestration and Automation 
+
+In MLOps pipelines, QA modules are managed by workflow coordinators (e.g., Kubeflow, MLflow, and 
+Airflow) [7]. QA checkpoints are embedded in automated steps, focusing on schema and drift detection. 
+Any failed QA can trigger an alarm or corrective action. Similarly, this automates reliability and quality 
+processes. In our case study, integrating QA checkpoints did not materially increase end-to-end 
+training/deployment time; however, the overhead depends on data volume and test configuration. In 
+summary, this allows MLOps to function as a reliability paradigm that addresses technical and ethical risks 
+throughout the lifecycle and provides managers with a means to ensure that ML systems are trustworthy, 
+maintainable, and compliant. 
+
+A compact side-by-side summary of the quantitative effects appears in Table III, with detailed context 
+provided in Section V. 
+
+TABLE III. PERFORMANCE COMPARISON OF BASELINE VS. QA-INTEGRATED PIPELINE 
+
+Metric Baseline Pipeline QA-Integrated Pipeline Improvement 
+
+Data validation errors 
+62% 91% +29 pp 
+
+detected 
+
+Drift detection time (hours) 18 11.7 -35% 
+
+Production incidents 
+14 8 -43% 
+
+(monthly avg.) 
+
+Fairness score (0–1) 0.71 0.83 +17% 
+
+Accuracy stability (over 90 
+±7% ±3% Reduced variance 
+
+days) 
+ 
+Source: Author’s implementation and evaluation; metrics defined in Sec. V-C.  
+Note: pp denotes percentage points. 
+
+The results support the assumption that the introduction of the QA concept into the lifecycle can reduce the 
+operational risks and improve the credibility of ML systems. In particular, reliability depends on proactive 
+data validation and automatic drift detection, whereas ethical conformity is ensured by using fairness 
+metrics. 
+
+CASE STUDY EVALUATION  
+A case study is conducted to demonstrate the efficacy of the proposed QA-integrated MLOps pipeline. We 
+selected a financial fraud detection system as a case study because high-stakes ML applications in the 
+finance domain are susceptible to critical financial and ethical risks due to errors or bias. 
+
+A. Case Study Background  
+
+The baseline fraud-detection pipeline implements a typical MLOps workflow with limited post-deployment 
+monitoring. It handles millions of transactions daily, and its performance degrades over time owing to data 
+drift, with challenges in anomaly detection and potential fairness issues across different customer segments. 
+The lack of systematic checks makes this a suitable case for applying the QA integration methodology. 
+
+B. Implementation Steps  
+
+The QA-enriched pipeline added the following QA modules: 
+
+
+
+ISSN: 3006-4023 (Online),         Journal of Artificial Intelligence General Science (JAIGS)     DOI: 10.60087        Page: 552 
+
+ 
+
+ 
+
+• Data QA – This includes schema validation, anomaly detection, and fairness auditing of the input 
+transaction data. 
+
+• Model QA – Performed robustness and interpretability tests pre-deployment and integrated drift 
+detection with automated model retraining alerts post-deployment. 
+
+• Infrastructure QA – Ensured reproducibility of infrastructure-as-code setups, performed 
+vulnerability scanning, and conducted CI/CD compliance tests. 
+
+• Orchestration – Leveraged CI/CD pipelines for automating and orchestrating QA-enriched 
+processes without compromising performance. 
+
+Data and Ethics. The fraud detection data used for evaluation consisted of fully anonymized, contract-
+restricted transaction records. All analyses were conducted under data handling agreements and internal 
+policies, and no personally identifiable information was processed outside the secured environment. The 
+reported aggregates were non-reversible. 
+
+C. Evaluation Methodology  
+
+We compared the performance of two pipelines for 90 days: 
+
+• Baseline pipeline – A standard MLOps workflow without QA integration. 
+
+• QA-integrated pipeline – The proposed QA-augmented MLOps framework.  
+
+ 
+
+Metrics for evaluation included:  
+
+• Error rate in data validation  
+
+• Latency in drift detection  
+
+• Monthly production incident rate  
+
+• Fairness score (0–1 scale, higher is better)  
+
+• Accuracy variance over 90 days  
+
+Operational definitions: Data quality uses a standard schema, range, domain, and cross-field checks on 
+hourly batches. Drift is monitored with the Population Stability Index (PSI) over fixed bins and a two-
+sample Kolmogorov-Smirnov (KS) test on prediction scores, with significant drift at PSI ≥ 0.25 or KS p < 
+0.01. Fairness was evaluated weekly via demographic parity difference (DPD) and equal opportunity 
+difference (EOD) with policy thresholds of DPD ≤ 0.10, EOD ≤ 0.10, and selection-rate ratio ≥ 0.80. 
+Accuracy stability refers to the rolling band of daily accuracy from delayed labels, whereas the 30-day 
+mean incident rate measures production reliability. 
+
+Reproducibility: Methods and windows are specified in the text, and standard tooling is used; therefore, 
+results can be reproduced without releasing configs or code. 
+
+Composite Fairness Score: We report a single 0-1 fairness score as an average of the normalized 
+components: fairness score = 1 - (|DPD|/0.10)*w1 - (|EOD|/0.10)*w2 - max(0, (0.80 - SRR )/0.80)*w3, 
+where w1 = w2 = w3 = 1/3. The scores are clipped to [0, 1]. In addition, we tracked the raw DPD, EOD, 
+and selection rate ratio (SRR) for transparency. 
+
+
+
+ISSN: 3006-4023  (Online)                                                                                                                                                   Page: 553 
+
+To aid replication without releasing internal configurations, we provided parameter ranges for PSI (bin 
+count 10-20), KS (two-sample, α=0.01), and drift alert debounce (30-60 minutes); implementation can rely 
+on standard libraries. 
+
+D. Summary of Findings  
+
+In Table III, we summarize the quantitative improvements: 
+
+ 
+
+• The QA-integrated pipeline detected 29 percentage points more data validation errors, thus 
+improving error resilience. 
+
+• QA-integrated pipeline reduced drift detection latency by 35%. 
+
+• QA-integrated pipeline had a 43% lower monthly production incident rate. 
+
+• The QA-integrated pipeline had a 17% higher fairness score, which enhanced the bias mitigation. 
+
+• The QA-integrated pipeline had a more stable accuracy, with a variance of ±3% compared to ±7% 
+for the baseline. 
+
+ 
+
+E. Key Takeaways  
+
+These metrics demonstrated the practical impact of the QA-augmented MLOps pipeline. This shows that 
+comprehensive QA checks not only mitigate pre-existing risks, but can also proactively prevent issues, 
+enhancing both model performance and system reliability. This serves as an empirical endorsement of the 
+framework, confirming that our design successfully incorporates scalability and rigour. 
+
+ 
+
+DISCUSSION 
+The case study findings indicate that QA, as an ingredient of the MLOps pipelines, yields a real increase in 
+the reliability, responsiveness, and stability of the models. The pipeline reduces data-related failures, 
+accelerates drift detection, and ensures performance stability by using QA modules at each lifecycle phase. 
+These findings agree with those reported by Renggli et al. [6], who discovered that data quality is key to 
+model reliability and is compatible with the emphasis on observability that Banerjee et al. [21] made central 
+to strong ML systems. 
+
+The framework advances ethical AI behavior by screening algorithms for bias and increasing fairness 
+scores. It enhances transparency and trust but also has its limitations: it is expensive to compute, its use is 
+limited to a few specific cases, and professionals need to supervise it. Notwithstanding these difficulties, 
+QA implementation in MLOps pipelines is a potential solution for successful, secure, and ethical ML 
+deployment [4, 12, 17]. 
+
+In practice, the solution is costly to compute, validated in a single case, and dependent on expert 
+supervision. 
+
+Threats to Validity. Internal: PSI binning and KS choice may bias drift detection. Construct: The composite 
+fairness score may over-aggregate; we also report DPD/EOD/SRR. External: single financial workload over 
+90 days; effects may not be generalized. 
+
+CONCLUSION AND FUTURE WORK 
+
+
+
+ISSN: 3006-4023 (Online),         Journal of Artificial Intelligence General Science (JAIGS)     DOI: 10.60087        Page: 554 
+
+ 
+
+ 
+
+The absent component of the current MLOps practices covered in this work was the lack of systematized, 
+lifecycle-spanning QA. Compared to traditional QA models that merely test for code correctness, an ML-
+applied model demands data quality, model robustness, fairness, and interpretability guarantees, in addition 
+to those related to infrastructure reliability. To resolve this problem, we have suggested a QA integration 
+model that integrates validation and monitoring modules at every step of the ML lifecycle, orchestrated by 
+pipelines enabled by CI/CD. A financial fraud detection case study demonstrated the practical advantages 
+of this framework, such as a reduction in the number of production incidents, quicker drift detection, better 
+fairness measures, and greater accuracy and stability. These findings substantiate the claim that QA, as an 
+automated service that should be treated as a continuous process, enhances technical reliability and ethical 
+trustworthiness in the deployment of ML systems. 
+
+The next phase of research should apply the framework to various domains, test its scaling under large-
+scale industrial scenarios, and establish common benchmarks for QA in MLOps. Further research on the 
+cost–benefit trade-offs of ongoing QA must be conducted before ubiquitous adoption. 

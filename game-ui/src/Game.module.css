@@ -1,0 +1,14 @@
+.roundOverAnimActive {
+    animation: fade-out 0.25s ease-out;
+    opacity: 0;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}

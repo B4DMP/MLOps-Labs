@@ -1,0 +1,62 @@
+.adminContainer {
+  margin: 0 auto;
+  background: var(--card-bg-dark);
+  border: 1px solid var(--card-border-default);
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  width: 90%;
+  max-width: 1200px;
+}
+
+.adminForm {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 15vw;
+}
+
+.adminTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+
+
+.expandButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  border: 1px solid var(--secondary-bg);
+  background: var(--primary-bg);
+  color: white;
+  font-weight: 600;
+  transition: all var(--transition);
+  width: 8rem;
+  height: 3rem;
+  margin-left: 0.7rem;
+  margin-right: 0.1rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+
+.expandButton:hover {
+  background: var(--secondary-bg);
+}
+
+.adminInput {
+  background-color: #1a1d21 !important;
+  color: white !important;
+  border-color: #3d444d !important;
+}
+
+.adminInput::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}

@@ -1,0 +1,31 @@
+.actionButton {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+    width: 15rem;
+}
+
+.actionButton:hover {
+    background: var(--secondary-bg);
+}
+
+.linkButton {
+    color: var(--primary-bg);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.linkButton:hover {
+    color: var(--secondary-bg);
+}

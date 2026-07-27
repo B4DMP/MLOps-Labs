@@ -1,0 +1,21 @@
+.stakeholderListItem {
+    margin-right: 2rem;
+    position: relative;
+    overflow: visible;
+}
+
+.stakeholderListItem:last-child {
+    margin-right: 0;
+}
+
+.stakeholderName {
+    font-weight: bold;
+    margin-bottom: -10%;
+}
+
+.chatMessageContainer {
+    position: absolute;
+    top: 40px;
+    right: -35px;
+    z-index: 10;
+}

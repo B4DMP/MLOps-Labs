@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: ma-bela-veltrup
+  name: mlops-game-mongo-express-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+  - hosts:
+    - mlops-lab-db.cluster.dbis.rwth-aachen.de
+    secretName: wildcard-tls-secret
+  rules:
+  - host: mlops-lab-db.cluster.dbis.rwth-aachen.de
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: mlops-game-mongo-express
+            port:
+              number: 8081
