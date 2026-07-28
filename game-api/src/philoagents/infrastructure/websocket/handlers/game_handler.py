@@ -1,7 +1,9 @@
 import datetime
 from typing import Any
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 from pydantic import BaseModel, Field
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from philoagents.config import settings
 from philoagents.domain.Challenge import Challenge
@@ -10,9 +12,12 @@ from philoagents.domain.metric_factory import MetricFactory
 from philoagents.domain.question_factory import QuestionFactory
 from philoagents.domain.stakeholder_factory import StakeholderFactory
 from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.infrastructure.mongo.client import MongoClientWrapper
-from philoagents.application.conversation_service.reset_conversation import reset_conversation_state
-from motor.motor_asyncio import AsyncIOMotorClient
+from philoagents.infrastructure.database import (
+    GameProgression,
+    GameSession,
+    async_engine,
+    get_session,
+)
 
 from ..manager import manager
 
@@ -37,11 +42,14 @@ class GameProgressionData(BaseModel):
 
 
 async def reset_thread(thread_id: str):
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB_NAME]
-    await db[settings.MONGO_STATE_CHECKPOINT_COLLECTION].delete_many({"thread_id": thread_id})
-    await db[settings.MONGO_STATE_WRITES_COLLECTION].delete_many({"thread_id": thread_id})
-    client.close()
+
+
+    # Note: Direct SQL is used because checkpoint tables are managed internally by LangGraph
+    
+    async with async_engine.begin() as conn:
+        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id"), {"thread_id": thread_id})
 
 
 def get_metrics() -> dict[str, Any]:
@@ -85,24 +93,26 @@ async def handle_game_init(
 
     # Fetch user progression index from db
     game_progress_index = 0
-    with MongoClientWrapper(model=GameProgressionData, collection_name=settings.MONGO_PROGRESSION_DATA_COLLECTION) as mongo:
-        query = {"userName": username}
-        results: list[GameProgressionData] = mongo.fetch_documents(limit=100, query=query)
+    with get_session() as session:
+        results = session.scalars(
+            select(GameProgression).where(GameProgression.user_name == username)
+        ).all()
         for r in results:
-            if r.gameProgressIndex > game_progress_index:
-                game_progress_index = r.gameProgressIndex
+            if r.game_progress_index > game_progress_index:
+                game_progress_index = r.game_progress_index
 
     last_gamestate_id = [0, 0]
     initial_metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
 
-    with MongoClientWrapper(model=GameData, collection_name=settings.MONGO_GAME_DATA_COLLECTION) as mongo:
-        query = {"userName": username}
-        results: list[GameData] = mongo.fetch_documents(limit=100, query=query)
+    with get_session() as session:
+        results = session.scalars(
+            select(GameSession).where(GameSession.user_name == username)
+        ).all()
         for r in results:
-            if r.phaseIndex > last_gamestate_id[0] or (r.phaseIndex == last_gamestate_id[0] and r.challengeIndex > last_gamestate_id[1]):
-                last_gamestate_id = [r.phaseIndex, r.challengeIndex]
-                initial_metric_values = r.metricValues
-
+            if r.phase_index > last_gamestate_id[0] or (r.phase_index == last_gamestate_id[0] and r.challenge_index > last_gamestate_id[1]):
+                last_gamestate_id = [r.phase_index, r.challenge_index]
+                if isinstance(r.metric_values, list):
+                    initial_metric_values = r.metric_values
 
     await send_progress_index_payload(websocket, game_progress_index, last_gamestate_id, initial_metric_values)
     return (last_gamestate_id[0], last_gamestate_id[1])
@@ -171,16 +181,16 @@ async def handle_progress_update(
     game_progress_index = payload.get("value", payload.get("index", 0))
     additional_data = payload.get("additional_data", [])
 
-    # Store in MongoDB
-    with MongoClientWrapper(model=GameProgressionData, collection_name=settings.MONGO_PROGRESSION_DATA_COLLECTION) as mongo:
-        mongo.ingest_documents([
-            GameProgressionData(
-                userName=username,
-                gameProgressIndex=game_progress_index,
-                timeStamp=datetime.datetime.now(),
+    # Store in PostgreSQL via SQLAlchemy
+    with get_session() as session:
+        session.add(
+            GameProgression(
+                user_name=username,
+                game_progress_index=game_progress_index,
+                time_stamp=datetime.datetime.utcnow(),
                 additional_data=additional_data
             )
-        ])
+        )
 
     last_gamestate_id = payload.get("last_gamestate_id", [0, 0])
     initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
@@ -219,18 +229,18 @@ async def handle_state_request(
             change = ac_changes.get(m_name, 0) + next_challenge_changes.get(m_name, 0)
             new_metric_values.append(cur_val + change)
 
-        with MongoClientWrapper(model=GameData, collection_name=settings.MONGO_GAME_DATA_COLLECTION) as mongo:
-            mongo.ingest_documents([
-                GameData(
-                    userName=username,
-                    phaseIndex=target_phase,
-                    challengeIndex=target_challenge,
-                    actionCard=action_card,
-                    metricValues=new_metric_values,
-                    timeStamp=datetime.datetime.now(),
+        with get_session() as session:
+            session.add(
+                GameSession(
+                    user_name=username,
+                    phase_index=target_phase,
+                    challenge_index=target_challenge,
+                    action_card=action_card,
+                    metric_values=new_metric_values,
+                    time_stamp=datetime.datetime.utcnow(),
                     messages=messages
                 )
-            ])
+            )
 
         if next_challenge is None:
             await manager.send_event(

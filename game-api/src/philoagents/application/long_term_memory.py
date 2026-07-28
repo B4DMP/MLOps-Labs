@@ -2,66 +2,64 @@ from langchain_core.documents import Document
 from loguru import logger
 
 from philoagents.application.data import deduplicate_documents, get_extraction_generator
-from philoagents.application.rag.retrievers import Retriever, get_retriever
+from philoagents.application.rag.retrievers import get_embedding_model, get_retriever, get_vectorstore
 from philoagents.application.rag.splitters import Splitter, get_splitter
 from philoagents.config import settings
 from philoagents.domain.stakeholder import Stakeholder
-from philoagents.infrastructure.mongo import MongoClientWrapper, MongoIndex
 
 
 class LongTermMemoryCreator:
-    def __init__(self, retriever: Retriever, splitter: Splitter) -> None:
+    def __init__(self, retriever, splitter: Splitter, vectorstore) -> None:
         self.retriever = retriever
         self.splitter = splitter
+        self.vectorstore = vectorstore
 
     @classmethod
     def build_from_settings(cls) -> "LongTermMemoryCreator":
-        retriever = get_retriever(
-            embedding_model_id=settings.RAG_TEXT_EMBEDDING_MODEL_ID,
-            k=settings.RAG_TOP_K,
-            device=settings.RAG_DEVICE,
+        embedding_model = get_embedding_model(
+            settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_DEVICE
         )
+        vectorstore = get_vectorstore(embedding_model)
+        retriever = vectorstore.as_retriever(search_kwargs={"k": settings.RAG_TOP_K})
         splitter = get_splitter(chunk_size=settings.RAG_CHUNK_SIZE)
 
-        return cls(retriever, splitter)
+        return cls(retriever, splitter, vectorstore)
 
     def __call__(self, stakeholders: list[Stakeholder]) -> None:
         if len(stakeholders) == 0:
             logger.warning("No stakeholders to extract. Exiting.")
-
             return
 
-        # First drop the long term memory collection to clear documents and indexes.
-        with MongoClientWrapper(
-            model=Document, collection_name=settings.MONGO_LONG_TERM_MEMORY_COLLECTION
-        ) as client:
-            client.collection.drop()
+        # Clear existing tables if present
+        try:
+            self.vectorstore.drop_tables()
+        except Exception:
+            pass
+        self.vectorstore.create_tables_if_not_exists()
+        try:
+            self.vectorstore.create_collection()
+        except Exception:
+            pass
 
         extraction_generator = get_extraction_generator(stakeholders)
         for _, docs in extraction_generator:
             chunked_docs = self.splitter.split_documents(docs)
-
             chunked_docs = deduplicate_documents(chunked_docs, threshold=0.7)
+            if chunked_docs:
+                # Batch document ingestion in chunks of 100 to avoid exceeding PostgreSQL query parameter limits
+                batch_size = 100
+                for i in range(0, len(chunked_docs), batch_size):
+                    batch = chunked_docs[i : i + batch_size]
+                    # Sanitize document text by stripping NUL (0x00) bytes invalid in PostgreSQL TEXT fields
+                    for doc in batch:
+                        doc.page_content = doc.page_content.replace("\x00", "")
+                    self.vectorstore.add_documents(batch)
 
-            self.retriever.vectorstore.add_documents(chunked_docs)
-
-        self.__create_index()
-
-    def __create_index(self) -> None:
-        with MongoClientWrapper(
-            model=Document, collection_name=settings.MONGO_LONG_TERM_MEMORY_COLLECTION
-        ) as client:
-            self.index = MongoIndex(
-                retriever=self.retriever,
-                mongodb_client=client,
-            )
-            self.index.create(
-                is_hybrid=True, embedding_dim=settings.RAG_TEXT_EMBEDDING_MODEL_DIM
-            )
+        logger.info("Successfully ingested long term memory into PostgreSQL (PGVector).")
 
 
 class LongTermMemoryRetriever:
-    def __init__(self, retriever: Retriever) -> None:
+    def __init__(self, retriever) -> None:
         self.retriever = retriever
 
     @classmethod

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   namespace: ma-bela-veltrup
-  name: mlops-game-mongodb-pvc
+  name: mlops-game-postgres-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -15,37 +15,36 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: ma-bela-veltrup
-  name: mlops-game-mongodb
+  name: mlops-game-postgres
   labels:
-    app: mlops-game-mongodb
+    app: mlops-game-postgres
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: mlops-game-mongodb
+      app: mlops-game-postgres
   template:
     metadata:
       labels:
-        app: mlops-game-mongodb
+        app: mlops-game-postgres
     spec:
       containers:
-      - name: mongodb
-        image: mongo:4.4.6
-        args:
-          - "--wiredTigerCacheSizeGB"
-          - "1.0"
+      - name: postgres
+        image: pgvector/pgvector:pg16
         ports:
-        - containerPort: 27017
+        - containerPort: 5432
         env:
-        - name: MONGO_INITDB_ROOT_USERNAME
-          value: "philoagents"
-        - name: MONGO_INITDB_ROOT_PASSWORD
-          value: "philoagents"
+        - name: POSTGRES_USER
+          value: "mlops_labs"
+        - name: POSTGRES_PASSWORD
+          value: "mlops_labs"
+        - name: POSTGRES_DB
+          value: "mlops_labs"
         volumeMounts:
-        - name: mongodb-storage
-          mountPath: /data/db
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
         resources:
           requests:
             cpu: "100m"
@@ -54,19 +53,19 @@ spec:
             cpu: "500m"
             memory: "2Gi"
       volumes:
-      - name: mongodb-storage
+      - name: postgres-storage
         persistentVolumeClaim:
-          claimName: mlops-game-mongodb-pvc
+          claimName: mlops-game-postgres-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mlops-game-mongodb
+  name: mlops-game-postgres
   namespace: ma-bela-veltrup
 spec:
   selector:
-    app: mlops-game-mongodb
+    app: mlops-game-postgres
   ports:
     - protocol: TCP
-      port: 27017
-      targetPort: 27017
+      port: 5432
+      targetPort: 5432

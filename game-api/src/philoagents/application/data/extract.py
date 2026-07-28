@@ -62,7 +62,8 @@ def extract(
                     "stakeholder_id": stakeholder.id,
                     "stakeholder_name": stakeholder.name
                 }
-                content = f.read_text(encoding="utf-8")
+                # Sanitize text by stripping NUL (0x00) bytes which cause PostgreSQL DataError exceptions
+                content = f.read_text(encoding="utf-8", errors="ignore").replace("\x00", "")
                 documents.append(Document(page_content=content, metadata=metadata))
             except Exception as e:
                 print(f"Skipping {f}: {e}")

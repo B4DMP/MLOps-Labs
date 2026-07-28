@@ -17,7 +17,6 @@ async def handle_chat_message(
     challenge_context = payload.get("challenge", "")
     phase_id = payload.get("phase_id", 0)
     selection_mask = payload.get("selectionmask", [])
-    print("Selection Mask: ", selection_mask)
     
     async def callback(ws: WebSocket = None, state: dict = None, websocket: WebSocket = None, **kwargs):
         ws = websocket or ws

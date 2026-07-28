@@ -1,53 +1,45 @@
 import click
+from langchain_postgres import PGVector
 from loguru import logger
-from pymongo import MongoClient
-from pymongo.database import Database
 
+from philoagents.application.rag.embeddings import get_embedding_model
 from philoagents.config import settings
 
 
 @click.command()
 @click.option(
-    "--collection-name",
-    "-c",
-    default=settings.MONGO_LONG_TERM_MEMORY_COLLECTION,
-    help="Name of the collection to delete",
+    "--table-name",
+    "-t",
+    default=settings.POSTGRES_LONG_TERM_MEMORY_TABLE,
+    help="Name of the table to delete",
 )
 @click.option(
-    "--mongo-uri",
+    "--postgres-uri",
     "-u",
-    default=settings.MONGO_URI,
-    help="MongoDB connection URI",
+    default=settings.POSTGRES_URI,
+    help="PostgreSQL connection URI",
 )
-@click.option(
-    "--db-name",
-    "-d",
-    default=settings.MONGO_DB_NAME,
-    help="Name of the database",
-)
-def main(collection_name: str, mongo_uri: str, db_name: str) -> None:
-    """Command line interface to delete a MongoDB collection.
+def main(table_name: str, postgres_uri: str) -> None:
+    """Command line interface to delete a PGVector collection in PostgreSQL.
 
     Args:
-        collection_name: Name of the collection to delete.
-        mongo_uri: The MongoDB connection URI string.
-        db_name: The name of the database containing the collection.
+        table_name: Name of the table/collection to delete.
+        postgres_uri: The PostgreSQL connection URI string.
     """
-    # Create MongoDB client
-    client = MongoClient(mongo_uri)
-
-    # Get database
-    db: Database = client[db_name]
-
-    # Delete collection if it exists
-    if collection_name in db.list_collection_names():
-        db.drop_collection(collection_name)
-        logger.info(f"Successfully deleted '{collection_name}' collection.")
-    else:
-        logger.info(f"'{collection_name}' collection does not exist.")
-
-    # Close the connection
-    client.close()
+    embedding_model = get_embedding_model(
+        settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_DEVICE
+    )
+    vectorstore = PGVector(
+        embeddings=embedding_model,
+        collection_name=table_name,
+        connection=postgres_uri,
+        use_jsonb=True,
+    )
+    try:
+        vectorstore.drop_tables()
+        logger.info(f"Successfully deleted '{table_name}' vector memory.")
+    except Exception as e:
+        logger.error(f"Error dropping vector table '{table_name}': {e}")
 
 
 if __name__ == "__main__":

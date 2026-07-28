@@ -3,7 +3,7 @@ from typing import Any, AsyncGenerator, Union
 
 from philoagents.config import settings
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
-from langgraph.checkpoint.mongodb.aio import AsyncMongoDBSaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from opik.integrations.langchain import OpikTracer
 
 from philoagents.application.conversation_service.workflow.graph import (
@@ -37,12 +37,8 @@ async def get_response(
     input_messages_amount=0
 
     try:
-        async with AsyncMongoDBSaver.from_conn_string(
-            conn_string=settings.MONGO_URI,
-            db_name=settings.MONGO_DB_NAME,
-            checkpoint_collection_name=settings.MONGO_STATE_CHECKPOINT_COLLECTION,
-            writes_collection_name=settings.MONGO_STATE_WRITES_COLLECTION,
-        ) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+            await checkpointer.setup()
             graph = graph_builder.compile(checkpointer=checkpointer)
             opik_tracer = OpikTracer(
                 project_name="MLOps serious game",
@@ -99,12 +95,8 @@ async def get_streaming_response(
     graph_builder = create_workflow_graph()
 
     try:
-        async with AsyncMongoDBSaver.from_conn_string(
-            conn_string=settings.MONGO_URI,
-            db_name=settings.MONGO_DB_NAME,
-            checkpoint_collection_name=settings.MONGO_STATE_CHECKPOINT_COLLECTION,
-            writes_collection_name=settings.MONGO_STATE_WRITES_COLLECTION,
-        ) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+            await checkpointer.setup()
             graph = graph_builder.compile(checkpointer=checkpointer)
             thread_id = "challenge_graph"
             opik_tracer = OpikTracer(

@@ -14,12 +14,15 @@ from philoagents.infrastructure.routes.auth_routes import router as auth_router
 from philoagents.infrastructure.routes.admin_routes import router as admin_router
 from philoagents.infrastructure.websocket.router import router as websocket_router
 
+from philoagents.infrastructure.database import init_db
+
 configure()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the API."""
+    init_db()
     yield
     opik_tracer = OpikTracer()
     opik_tracer.flush()

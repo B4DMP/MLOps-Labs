@@ -3,8 +3,9 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 from langchain_core.messages import HumanMessage, AIMessage
-from langgraph.checkpoint.mongodb.aio import AsyncMongoDBSaver
-from motor.motor_asyncio import AsyncIOMotorClient
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 from philoagents.domain.stakeholder_factory import StakeholderFactory
 import asyncio
 from opik.integrations.langchain import OpikTracer
@@ -15,21 +16,12 @@ from philoagents.application.conversation_service.workflow.graph import (
 from philoagents.config import settings
 
 
-# Override MongoDB connection string
-settings.MONGO_URI = (
-    "mongodb://philoagents:philoagents@localhost:27017/?directConnection=true"
-)
-
 graph_builder = create_workflow_graph()
 
 
 async def generate_response_with_memory(messages: list, challenge: str):
-    async with AsyncMongoDBSaver.from_conn_string(
-        conn_string=settings.MONGO_URI,
-        db_name=settings.MONGO_DB_NAME,
-        checkpoint_collection_name=settings.MONGO_STATE_CHECKPOINT_COLLECTION,
-        writes_collection_name=settings.MONGO_STATE_WRITES_COLLECTION,
-    ) as checkpointer:
+    async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+        await checkpointer.setup()
         graph = graph_builder.compile(checkpointer=checkpointer)
         opik_tracer = OpikTracer(
             graph=graph.get_graph(xray=True), thread_id="api_action_card_test"
@@ -50,17 +42,12 @@ async def generate_response_with_memory(messages: list, challenge: str):
 
 
 async def reset_thread(thread_id: str):
-    client = AsyncIOMotorClient(settings.MONGO_URI)
-    db = client[settings.MONGO_DB_NAME]
-
-    await db[settings.MONGO_STATE_CHECKPOINT_COLLECTION].delete_many(
-        {"thread_id": thread_id}
-    )
-
-    await db[settings.MONGO_STATE_WRITES_COLLECTION].delete_many(
-        {"thread_id": thread_id}
-    )
-    client.close()
+    async_engine = create_async_engine(settings.POSTGRES_ASYNC_URI)
+    async with async_engine.begin() as conn:
+        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+    await async_engine.dispose()
 
 
 BLACK = "\033[30m"

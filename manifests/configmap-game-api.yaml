@@ -6,8 +6,9 @@ metadata:
   namespace: ma-bela-veltrup
   name: mlops-game-api-config
 data:
-  # -- MongoDB (internal k8s service, non-sensitive) --
-  MONGO_URI: "mongodb://philoagents:philoagents@mlops-game-mongodb:27017/?directConnection=true"
+  # -- PostgreSQL (internal k8s service, non-sensitive) --
+  POSTGRES_URI: "postgresql+psycopg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
+  POSTGRES_ASYNC_URI: "postgresql+asyncpg://mlops_labs:mlops_labs@mlops-game-postgres:5432/mlops_labs"
   PYTHONUNBUFFERED: "1"
 
   # -- Security & Admin Configuration (from GitLab CI/CD variables) --

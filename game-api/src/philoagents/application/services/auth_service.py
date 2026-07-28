@@ -1,12 +1,13 @@
 import datetime
 from datetime import timedelta, timezone
+from typing import Optional
 import jwt
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
-from typing import Optional
+from sqlalchemy import select
 
 from philoagents.config import settings
-from philoagents.infrastructure.mongo.client import MongoClientWrapper
+from philoagents.infrastructure.database import Campaign, User, get_session
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
@@ -49,11 +50,11 @@ def authenticate_user(username: str) -> dict:
     if not username or not username.strip():
         return {"success": False, "error": "Username cannot be empty."}
 
-    with MongoClientWrapper(model=UserData, collection_name=settings.MONGO_USER_DATA_COLLECTION) as mongo:
-        query = {"user_name": username.strip()}
-        results: list[UserData] = mongo.fetch_documents(limit=1, query=query)
-        if len(results) > 0:
-            return {"success": True, "username": username.strip()}
+    clean_username = username.strip()
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == clean_username))
+        if user is not None:
+            return {"success": True, "username": clean_username}
         else:
             return {"success": False, "error": "Username not found."}
 
@@ -76,19 +77,15 @@ def register_user(username: str, campaign_key: str) -> dict:
             "token": access_token
         }
 
-    with MongoClientWrapper(model=CampaignData, collection_name=settings.MONGO_CAMPAIGN_DATA_COLLECTION) as campaign_mongo:
-        campaign_query = {"campaign_key": campaign_key}
-        c_results: list[CampaignData] = campaign_mongo.fetch_documents(limit=1, query=campaign_query)
-        if len(c_results) == 0:
+    with get_session() as session:
+        campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
+        if campaign is None:
             return {"success": False, "error": "Campaign key not found."}
 
-    with MongoClientWrapper(model=UserData, collection_name=settings.MONGO_USER_DATA_COLLECTION) as user_mongo:
-        username_query = {"user_name": username}
-        u_results: list[UserData] = user_mongo.fetch_documents(limit=1, query=username_query)
-        if len(u_results) > 0:
+        existing_user = session.scalar(select(User).where(User.user_name == username))
+        if existing_user is not None:
             return {"success": False, "error": "This username already exists. Please choose another username."}
 
-        user_mongo.ingest_documents([
-            UserData(user_name=username, campaign_key=campaign_key)
-        ])
+        new_user = User(user_name=username, campaign_key=campaign_key)
+        session.add(new_user)
         return {"success": True, "is_admin": False, "username": username}

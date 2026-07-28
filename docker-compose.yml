@@ -1,15 +1,16 @@
 services:
-  local_dev_atlas:
-    image: mongodb/mongodb-atlas-local:8.0
-    hostname: local_dev_atlas
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    hostname: postgres
     ports:
-      - 27017:27017
+      - "5432:5432"
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=philoagents
-      - MONGODB_INITDB_ROOT_PASSWORD=philoagents
+      - POSTGRES_USER=mlops_labs
+      - POSTGRES_PASSWORD=mlops_labs
+      - POSTGRES_DB=mlops_labs
     volumes:
-      - data:/data/db
-      - config:/data/configdb
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - philoagents-network
   api:
@@ -21,7 +22,8 @@ services:
       additional_contexts:
         - gameconfig=./gameConfig
     environment:
-      - MONGO_URI=mongodb://philoagents:philoagents@local_dev_atlas:27017/?directConnection=true
+      - POSTGRES_URI=postgresql+psycopg://mlops_labs:mlops_labs@postgres:5432/mlops_labs
+      - POSTGRES_ASYNC_URI=postgresql+asyncpg://mlops_labs:mlops_labs@postgres:5432/mlops_labs
       - PYTHONUNBUFFERED=1
     ports:
       - "8000:8000"
@@ -29,6 +31,8 @@ services:
       - ./game-api/.env
     volumes:
       - ./gameConfig:/gameConfig
+    depends_on:
+      - postgres
     networks:
       - philoagents-network
   ui:
@@ -48,8 +52,7 @@ services:
       - philoagents-network
 
 volumes:
-  data:
-  config:
+  postgres_data:
 
 networks:
   philoagents-network:

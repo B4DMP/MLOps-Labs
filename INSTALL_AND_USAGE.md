@@ -45,8 +45,7 @@ When working locally, the infrastructure is set up using Docker. Thus, you can u
 But, in case you want to deploy the code, you'll need to setup the following services with their corresponding environment variables:
 
 | Service | Purpose | Cost | Required Credentials | Setup Guide |
-|---------|---------|------|---------------------|-------------| 
-| [MongoDB](https://rebrand.ly/philoagents-mongodb) | Document database | Free tier | `MONGODB_URI` | 1. [Create a free MongoDB Atlas account](https://rebrand.ly/philoagents-mongodb-setup-1) <br> 2. [Create a Cluster](https://rebrand.ly/philoagents-mongodb-setup-2) </br> 3. [Add a Database User](https://rebrand.ly/philoagents-mongodb-setup-3) </br> 4. [Configure a Network Connection](https://rebrand.ly/philoagents-mongodb-setup-4) |
+| PostgreSQL | Relational database & vector store | Free / Self-hosted | `POSTGRES_URI`, `POSTGRES_ASYNC_URI` | Run PostgreSQL with pgvector via Docker Compose |
 
 # 🎯 Getting Started
 
@@ -96,7 +95,7 @@ The project is divided into two main applications and shared configuration:
 │   ├── src/philoagents/   # Core application logic
 │   │   ├── application/   # Domain services (auth_service, admin_service, conversation_service)
 │   │   ├── domain/        # Game domain models & factories
-│   │   └── infrastructure/# API routes, MongoDB client, and unified WebSocket server
+│   │   └── infrastructure/# API routes, PostgreSQL database layer, and unified WebSocket server
 │   │       ├── routes/    # REST endpoints (/api/auth, /api/admin)
 │   │       └── websocket/ # Unified WebSocket ConnectionManager, router (/ws), and event handlers
 │   ├── tools/             # Entrypoint scripts and utility tools
@@ -115,10 +114,10 @@ The project is divided into two main applications and shared configuration:
 
 # 🏗️ Set Up Your Local Infrastructure
 
-We use Docker to set up the local infrastructure (Game UI, Agent API, MongoDB).
+We use Docker to set up the local infrastructure (Game UI, Agent API, PostgreSQL with pgvector).
 
 > [!WARNING]
-> Before running the command below, ensure you do not have any processes running on ports `27017` (MongoDB), `8000` (Agent API) and `8080` (Game UI).
+> Before running the command below, ensure you do not have any processes running on ports `5432` (PostgreSQL), `8000` (Agent API) and `5173` (Game UI).
 
 From the root directory, to start the Docker infrastructure, run:
 ```bash
@@ -136,21 +135,37 @@ make infrastructure-build
 ```
 To access the game, type the following into your browser:
 ```
-http://localhost:8080
+http://localhost:5173
 ```
 
 ## Long Term Memory
 
-From the root `MLOps Serious Game` directory, populate the long term memory within your MongoDB instance (required for agentic RAG) with the following command:
+From the root `MLOps Serious Game` directory, populate the long term memory within your PostgreSQL instance (required for agentic RAG with pgvector) with the following command:
 ```bash
 make create-long-term-memory
 ```
-To delete the long term memory from your MongoDB instance, you can run the following command:
+To delete the long term memory from your PostgreSQL instance, you can run the following command:
 ```bash
 make delete-long-term-memory
 ```
 > [!NOTE]
-> To visualize the raw and RAG data from MongoDB, we recommend using [MongoDB Compass](https://rebrand.ly/philoagents-mongodb-compass) or Mongo's official IDE plugin (e.g., `MongoDB for VS Code`). To connect to the working MongoDB instance, use the `MONGODB_URI` value from the `.env` file or found inside the [config.py](philoagents-api/src/philoagents/config.py) file.
+> To visualize the raw and RAG data from PostgreSQL, we recommend using pgAdmin or DBeaver. To connect to the working PostgreSQL instance, use the `POSTGRES_URI` value from the `.env` file or found inside the [config.py](game-api/src/philoagents/config.py) file.
+
+## 🗄️ Database & Schema Migrations (PostgreSQL + Alembic)
+
+### Managing Schema Changes with Alembic
+Modifying SQLAlchemy model classes in `game-api/src/philoagents/infrastructure/database/models.py` does not automatically update live database tables. To update your PostgreSQL schema:
+
+1. **Autogenerate a new migration script**:
+   ```bash
+   cd game-api
+   alembic revision --autogenerate -m "Describe your schema changes"
+   ```
+2. **Apply the migration to PostgreSQL**:
+   ```bash
+   cd game-api
+   alembic upgrade head
+   ```
 
 ## Agent Evaluation
 

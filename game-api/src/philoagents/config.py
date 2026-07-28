@@ -42,19 +42,29 @@ class Settings(BaseSettings):
     CLAUDE_API_KEY: str | None = None
     LLAMA_API_KEY: str | None = None
 
-    # --- MongoDB Configuration ---
-    MONGO_URI: str = Field(
-        default="mongodb://philoagents:philoagents@localhost:27017/?directConnection=true",
-        description="Connection URI for the local MongoDB Atlas instance.",
+    # --- PostgreSQL Configuration ---
+    POSTGRES_URI: str = Field(
+        default="postgresql+psycopg://mlops_labs:mlops_labs@localhost:5432/mlops_labs",
+        description="Synchronous connection URI for PostgreSQL instance.",
     )
-    MONGO_DB_NAME: str = "philoagents"
-    MONGO_STATE_CHECKPOINT_COLLECTION: str = "stakeholder_state_checkpoints"
-    MONGO_STATE_WRITES_COLLECTION: str = "stakeholder_state_writes"
-    MONGO_LONG_TERM_MEMORY_COLLECTION: str = "stakeholder_long_term_memory"
-    MONGO_GAME_DATA_COLLECTION: str= "game_data"
-    MONGO_PROGRESSION_DATA_COLLECTION: str= "game_progression_data"
-    MONGO_CAMPAIGN_DATA_COLLECTION: str= "campaign_data"
-    MONGO_USER_DATA_COLLECTION: str= "user_data"
+    POSTGRES_ASYNC_URI: str = Field(
+        default="postgresql+asyncpg://mlops_labs:mlops_labs@localhost:5432/mlops_labs",
+        description="Asynchronous connection URI for PostgreSQL instance.",
+    )
+    POSTGRES_DB_NAME: str = "mlops_labs"
+    POSTGRES_LONG_TERM_MEMORY_TABLE: str = "stakeholder_long_term_memory"
+    POSTGRES_GAME_DATA_TABLE: str = "game_data"
+    POSTGRES_PROGRESSION_DATA_TABLE: str = "game_progression_data"
+    POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
+    POSTGRES_USER_DATA_TABLE: str = "user_data"
+
+    @property
+    def POSTGRES_CHECKPOINTER_URI(self) -> str:
+        """Standard PostgreSQL URI (postgresql://...) for psycopg / AsyncPostgresSaver."""
+        return (
+            self.POSTGRES_ASYNC_URI.replace("postgresql+asyncpg://", "postgresql://")
+            .replace("postgresql+psycopg://", "postgresql://")
+        )
     # --- Comet ML & Opik Configuration ---
     COMET_API_KEY: str | None = Field(
         default=None, description="API key for Comet ML and Opik services."
