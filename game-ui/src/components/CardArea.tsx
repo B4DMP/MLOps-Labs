@@ -65,9 +65,9 @@ function CardArea({
     const dc_id = dragCards.findIndex((el) => el.id === cardId);
 
     let is_card_playable = true;
-    metrics.forEach((m) => {
+    Object.values(metrics).forEach((m) => {
       if (m.value !== undefined) {
-        if (m.value + (dragCards[dc_id].ac.metric_changes[m.name] ?? 0) < 0) {
+        if (m.value + (dragCards[dc_id].ac.metric_changes[m.id] ?? 0) < 0) {
           is_card_playable = false;
         }
       }
@@ -215,12 +215,12 @@ function CardArea({
               if (item["type"] == "text") {
                 return <span key={index}>{item["value"]} </span>;
               } else if (item["type"] == "id") {
-                const st = stakeholders.find(s => s.name === item["value"]);
+                const st = Object.values(stakeholders).find(s => s.name === item["value"]);
                 if (!st) return <span key={index}>{item["value"]}</span>;
                 return (
                   <HoverTooltip
                     key={index}
-                    description={st.division_description.join(" ")}
+                    description={st.division_description}
                   >
                     <span
                       style={{

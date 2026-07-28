@@ -27,7 +27,7 @@ async def handle_chat_message(
         for s_id in StakeholderFactory.get_available_stakeholders():
             st = StakeholderFactory.get_stakeholder(s_id)
             if state["messages"][-1].content.startswith(f"[{st.division}-{st.name}]"):
-                st_index_str = st.stakeholder_index
+                st_index_str = st.id
                 break
 
         content = state["messages"][-1].content.split("]", 1)[1].lstrip() if "]" in state["messages"][-1].content else state["messages"][-1].content
@@ -39,7 +39,7 @@ async def handle_chat_message(
                 for card in state["action_cards"]
             ]
             all_stakeholders = [StakeholderFactory.get_stakeholder(s_id) for s_id in StakeholderFactory.get_available_stakeholders()]
-            name_to_index = {st.name: st.stakeholder_index for st in all_stakeholders}
+            name_to_index = {st.name: st.id for st in all_stakeholders}
 
             for card in action_cards:
                 if "stakeholder_names" in card:

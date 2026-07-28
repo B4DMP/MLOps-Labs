@@ -1,6 +1,7 @@
 {
   "metrics": [
     {
+      "id": "model",
       "metric_color": "#3b82f6",
       "metric_name": "Model",
       "metric_icon": "lucide:brain-circuit",
@@ -18,6 +19,7 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the model's accuracy, robustness, or generalization. The metric is not affected if the proposed actions do not affect the model at all. The metric decreases if the proposed action degrade model performance (e.g. by reducing the amount of training data or choosing a less accurate model candidate)."
     },
     {
+      "id": "automation",
       "metric_color": "#f97316",
       "metric_name": "Automation",
       "metric_icon": "lucide:settings",
@@ -35,6 +37,7 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the degree of automation of the ML system and workflows (e.g. by introducing CI/CD pipelines, automated testing, or automated deployment). The metric is not affected if the proposed actions do not affect the automation at all. The metric decreases if the proposed action degrade overall automation by introducing manual workflows. This should always happen when new complexity is introduced to the system without automation."
     },
     {
+      "id": "reliability",
       "metric_color": "#e11d48",
       "metric_name": "Reliability",
       "metric_icon": "lucide:battery-full",
@@ -52,6 +55,7 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the stability, scalability, or resilience of the ML system (e.g. by introducing monitoring, alerting, or automated recovery mechanisms). The metric is not affected if the proposed actions do not affect the reliability at all. The metric decreases if the proposed action increase the complexity of the system without sufficient regard to reliability."
     },
     {
+      "id": "data",
       "metric_color": "#10b981",
       "metric_name": "Data",
       "metric_icon": "lucide:database",
@@ -69,6 +73,7 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the integrity, representativeness, fairness, or traceability of the datasets (e.g. by introducing new diverse data sources, data validation, data versioning, or data quality checks). The metric is not affected if the proposed actions do not affect the data at all. The metric decreases if the proposed action degrade the data quality or data availability, e.g. by removing data sources or not addressing data quality issues."
     },
     {
+      "id": "requirements",
       "metric_color": "#8b5cf6",
       "metric_name": "Requirements",
       "metric_icon": "lucide:file-text",
@@ -86,6 +91,7 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the clarity, alignment, or completeness of business, ethical, or technical goals that guide ML development. The metric is not affected if the proposed actions do not affect the requirements at all. The metric decreases if the proposed action introduce ambiguity or conflicts between requirements."
     },
     {
+      "id": "efficiency",
       "metric_color": "#06b6d4",
       "metric_name": "Efficiency",
       "metric_icon": "lucide:trending-up",
@@ -103,8 +109,9 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
     },
     {
+      "id": "efficiency_intro",
       "metric_color": "#06b6d4",
-      "metric_name": "Efficiency (Intro)",
+      "metric_name": "Efficiency",
       "metric_icon": "lucide:trending-up",
       "metric_value": 10,
       "max_value": 50,
@@ -120,8 +127,9 @@
       "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
     },
     {
+      "id": "model_intro",
       "metric_color": "#3b82f6",
-      "metric_name": "Model (Intro)",
+      "metric_name": "Model",
       "metric_icon": "lucide:brain-circuit",
       "metric_value": 10,
       "max_value": 50,

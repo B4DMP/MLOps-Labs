@@ -44,14 +44,14 @@ async def reset_thread(thread_id: str):
     client.close()
 
 
-def get_metrics() -> list[Any]:
+def get_metrics() -> dict[str, Any]:
     metrics_list = [MetricFactory.get_metric(m) for m in MetricFactory.get_available_metrics()]
-    return [m.model_dump() if hasattr(m, 'model_dump') else m for m in metrics_list]
+    return {m.id: (m.model_dump() if hasattr(m, 'model_dump') else m) for m in metrics_list}
 
 
-def get_stakeholders() -> list[Any]:
+def get_stakeholders() -> dict[str, Any]:
     stakeholder_list = [StakeholderFactory.get_stakeholder(s) for s in StakeholderFactory.get_available_stakeholders()]
-    return [s.model_dump() if hasattr(s, 'model_dump') else s for s in stakeholder_list]
+    return {s.id: (s.model_dump() if hasattr(s, 'model_dump') else s) for s in stakeholder_list}
 
 
 def get_intro_questions() -> list[Any]:
@@ -95,17 +95,14 @@ async def handle_game_init(
     last_gamestate_id = [0, 0]
     initial_metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
 
-    if username != "demo":
-        with MongoClientWrapper(model=GameData, collection_name=settings.MONGO_GAME_DATA_COLLECTION) as mongo:
-            query = {"userName": username}
-            results: list[GameData] = mongo.fetch_documents(limit=100, query=query)
-            for r in results:
-                if r.phaseIndex > last_gamestate_id[0] or (r.phaseIndex == last_gamestate_id[0] and r.challengeIndex > last_gamestate_id[1]):
-                    last_gamestate_id = [r.phaseIndex, r.challengeIndex]
-                    initial_metric_values = r.metricValues
-    else:
-        game_progress_index = 2
-        last_gamestate_id = [1, 0]
+    with MongoClientWrapper(model=GameData, collection_name=settings.MONGO_GAME_DATA_COLLECTION) as mongo:
+        query = {"userName": username}
+        results: list[GameData] = mongo.fetch_documents(limit=100, query=query)
+        for r in results:
+            if r.phaseIndex > last_gamestate_id[0] or (r.phaseIndex == last_gamestate_id[0] and r.challengeIndex > last_gamestate_id[1]):
+                last_gamestate_id = [r.phaseIndex, r.challengeIndex]
+                initial_metric_values = r.metricValues
+
 
     await send_progress_index_payload(websocket, game_progress_index, last_gamestate_id, initial_metric_values)
     return (last_gamestate_id[0], last_gamestate_id[1])

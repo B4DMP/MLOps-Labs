@@ -10,8 +10,8 @@
           "challenge_description": "#Jimmy Roberts# proposes a complex ML model for maximizing accuracy. #Ester Simons# argues that a simpler model would be sufficient and could generate more business value.",
           "round_introduction_text": "This sample challenge introduces you to the game and its mechanics.",
           "metric_changes": {
-            "Model (Intro)": 0,
-            "Efficiency (Intro)": 0
+            "model_intro": 0,
+            "efficiency_intro": 0
           },
           "Source": "-"
         }
@@ -27,10 +27,10 @@
           "challenge_description": "For minimizing the development effort, #Willis Slif# proposes to use a cloud-based 3rd-party managed MLOps platform. #Branson Mcnail# warns that the platform may not fully meet the projects requirements and instead argues for designing and developing a custom platform that fits the projects requirements.",
           "round_introduction_text": "Moving to system and architecture design, the team faces a fundamental dilemma: should they build a custom platform or buy a managed solution?",
           "metric_changes": {
-            "Automation": 0,
-            "Reliability": 0,
-            "Requirements": 0,
-            "Efficiency": 0
+            "automation": 0,
+            "reliability": 0,
+            "requirements": 0,
+            "efficiency": 0
           },
           "Source": "Eken"
         }
@@ -46,10 +46,10 @@
           "challenge_description": "#Jimmy Everick# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #Daniel Whitaker# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
           "round_introduction_text": "During data analysis, it was revealed that a data source changes its behavior over time.",
           "metric_changes": {
-            "Reliability": -2,
-            "Data": -1,
-            "Requirements": 0,
-            "Efficiency": 0
+            "reliability": -2,
+            "data": -1,
+            "requirements": 0,
+            "efficiency": 0
           },
           "Source": "Hidden Technical Debt in Machine Learning Systems"
         }
@@ -65,10 +65,10 @@
           "challenge_description": " #Jimmy Everick# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, #Jimmy Everick# proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #Michigal Sellner# warns that this would come with a higher complexity and may hurt the model's performance.",
           "round_introduction_text": "With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system.",
           "metric_changes": {
-            "Model": 0,
-            "Data": 0,
-            "Requirements": 0,
-            "Efficiency": 0
+            "model": 0,
+            "data": 0,
+            "requirements": 0,
+            "efficiency": 0
           },
           "Source": "Hidden Technical Debt in Machine Learning Systems"
         }
@@ -84,10 +84,10 @@
           "challenge_description": "To comply with CI/CD, #Emily Brooks# proposes a fully automated deployment and validation process. #Olivia Grant# warns that an automated validation may violate responsible AI practices as fairness and bias identification may fall short.",
           "round_introduction_text": "A ML model that matches the performance goals has been selected for production, but scaling it introduces new hurdles. As the team prepares the deployment pipeline, a conflict arises over how to safely push the model without compromising ethical standards.",
           "metric_changes": {
-            "Automation": 0,
-            "Reliability": 0,
-            "Requirements": 0,
-            "Efficiency": 0
+            "automation": 0,
+            "reliability": 0,
+            "requirements": 0,
+            "efficiency": 0
           },
           "Source": "Eken"
         }
@@ -103,10 +103,10 @@
           "challenge_description": "The deployed model shows declining accuracy as live data drifts away from training data. #Willis Slif# is concerned about business impact and requests a rapid retraining. #Mathis Berger# argues that a quick quick damage control without diagnosis and validation risks locking in bad patterns and increase instability.",
           "round_introduction_text": "The ML solution has been running successfully in production until a subtle but concerning trend emerges.",
           "metric_changes": {
-            "Model": -4,
-            "Reliability": 0,
-            "Requirements": 0,
-            "Efficiency": 0
+            "model": -4,
+            "reliability": 0,
+            "requirements": 0,
+            "efficiency": 0
           },
           "Source": "Learning in Nonstationary Environments: A Survey."
         }

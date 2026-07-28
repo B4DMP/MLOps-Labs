@@ -1,57 +1,54 @@
-import { useContext } from "react";
-import { StakeholderContext } from "./StakeholderProvider";
-import { MetricsContext } from "./MetricProvider";
+import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
 import styles from "./ActionCardComponent.module.css";
 import HoverTooltip from "./HoverToolTip";
-import { Icon } from "@iconify/react";
+import { MetricsContext } from "./MetricProvider";
+import { useContext } from "react";
+import { StakeholderContext } from "./StakeholderProvider";
 
-export type DragCardType = {
-  id: string;
+interface ActionCardProps {
+  id: string | number;
   ac: ActionCard;
   current_phase: number;
-};
-
-export default function ActionCardComponent({
-  ac,
-  id,
-  current_phase,
-  highlight,
-  showValues = false,
-  interactable = true,
-  tutorial_card,
-  displayMetrics = false,
-  hasDropIndicator = true,
-}: {
-  ac: ActionCard;
-  id: string;
-  current_phase: number;
-  highlight?: boolean;
-  showValues?: boolean;
-  interactable?: boolean;
   tutorial_card?: boolean;
   displayMetrics?: boolean;
+  showValues?: boolean;
+  highlight?: boolean;
+  interactable?: boolean;
   hasDropIndicator?: boolean;
-}) {
-  const { stakeholders } = useContext(StakeholderContext);
+}
+
+export default function ActionCardComponent({
+  id,
+  ac,
+  current_phase,
+  tutorial_card = false,
+  displayMetrics = true,
+  showValues = false,
+  highlight = false,
+  interactable = true,
+  hasDropIndicator = true,
+}: ActionCardProps) {
   const { metrics } = useContext(MetricsContext);
-  const handleDragStart = (e: React.DragEvent, card: DragCardType) => {
+  const { stakeholders } = useContext(StakeholderContext);
+
+  const handleDragStart = (
+    e: React.DragEvent,
+    card: { id: string; ac: ActionCard; current_phase: number },
+  ) => {
     e.dataTransfer.setData("cardId", card.id);
   };
 
   let is_card_playable = true;
-  metrics.forEach((m) => {
+  Object.values(metrics).forEach((m) => {
     if (m.value !== undefined) {
-      if (m.value + (ac.metric_changes[m.name] ?? 0) < 0) {
+      if (m.value + (ac.metric_changes[m.id] ?? 0) < 0) {
         is_card_playable = false;
       }
     }
   });
 
-  const getStakeholder = (st_index: string) => {
-    return stakeholders.find((s) => s.stakeholder_index === st_index);
-  };
-  const primaryStakeholder = ac.stakeholder_ids.length > 0 ? getStakeholder(ac.stakeholder_ids[0]) : null;
+  const primaryStakeholder = ac.stakeholder_ids.length > 0 ? stakeholders[ac.stakeholder_ids[0]] : null;
 
   return (
     <>
@@ -82,10 +79,10 @@ export default function ActionCardComponent({
             <p className="text-muted small text-center">
               by{" "}
               {ac.stakeholder_ids.map((st_id, index) => {
-                const st = getStakeholder(st_id);
+                const st = stakeholders[st_id];
                 if (!st) return null;
                 return (
-                  <span key={st.stakeholder_index || st.name}>
+                  <span key={st.id || st.name}>
                     <span
                       className="badge"
                       style={{
@@ -130,7 +127,7 @@ export default function ActionCardComponent({
                 {...(tutorial_card && displayMetrics
                   ? {
                     "data-intro-group": "intro5",
-                    "data-intro": `Each generated card will change the game metrics in some way. To discourage players from choosing cards based solely on numbers, the cards only display the total amount of change, not whether it will be positive or negative. For example, this card will change the metric ${metrics.filter((m) => m.phases[current_phase])[0]?.name ?? "the metrics"} by a total of ${Math.abs(ac.metric_changes[metrics.filter((m) => m.phases[current_phase])[0]?.name ?? ""]) ?? "-"}. The exact values of the changes will be revealed after the card has been played.`,
+                    "data-intro": `Each generated card will change the game metrics in some way. To discourage players from choosing cards based solely on numbers, the cards only display the total amount of change, not whether it will be positive or negative. For example, this card will change the metric ${Object.values(metrics).filter((m) => m.phases[current_phase])[0]?.name ?? "the metrics"} by a total of ${Math.abs(ac.metric_changes[Object.values(metrics).filter((m) => m.phases[current_phase])[0]?.id ?? ""]) ?? "-"}. The exact values of the changes will be revealed after the card has been played.`,
                     "data-step": "4",
                     "data-position": "bottom",
                   }
@@ -143,12 +140,12 @@ export default function ActionCardComponent({
                     }
                     : {})}
               >
-                {displayMetrics && metrics.map(
-                  (metric, index) =>
+                {displayMetrics && Object.values(metrics).map(
+                  (metric) =>
                     metric.phases[current_phase] && (
                       <li
                         className={`list-group-item ${styles.cardItem}`}
-                        key={metric.name}
+                        key={metric.id}
                       >
                         <HoverTooltip
                           description={
@@ -165,8 +162,8 @@ export default function ActionCardComponent({
                             }}
                           >
                             {(showValues ||
-                              (metrics[index].value ?? 0) +
-                              (ac.metric_changes[metric.name] ?? 0) <
+                              (metric.value ?? 0) +
+                              (ac.metric_changes[metric.id] ?? 0) <
                               0) && (
                                 <>
                                   <Icon
@@ -177,29 +174,29 @@ export default function ActionCardComponent({
                                     className={styles.metricValue}
                                     style={{
                                       color:
-                                        (metrics[index].value ?? 0) +
-                                          (ac.metric_changes[metric.name] ?? 0) >=
+                                        (metric.value ?? 0) +
+                                          (ac.metric_changes[metric.id] ?? 0) >=
                                           0
                                           ? "inherit"
                                           : "red",
                                     }}
                                   >
-                                    {(ac.metric_changes[metric.name] ?? 0) > 0 &&
+                                    {(ac.metric_changes[metric.id] ?? 0) > 0 &&
                                       "+"}
-                                    {ac.metric_changes[metric.name] ?? 0}
+                                    {ac.metric_changes[metric.id] ?? 0}
                                   </span>
                                 </>
                               )}
                             {!showValues &&
-                              (metrics[index].value ?? 0) +
-                              (ac.metric_changes[metric.name] ?? 0) >=
+                              (metric.value ?? 0) +
+                              (ac.metric_changes[metric.id] ?? 0) >=
                               0 && (
                                 <div className="d-flex align-items-center gap-1">
-                                  {(ac.metric_changes[metric.name] ?? 0) != 0 &&
+                                  {(ac.metric_changes[metric.id] ?? 0) != 0 &&
                                     [
                                       ...Array(
                                         Math.abs(
-                                          ac.metric_changes[metric.name] ?? 0,
+                                          ac.metric_changes[metric.id] ?? 0,
                                         ),
                                       ),
                                     ].map((_, i) => (
@@ -212,7 +209,7 @@ export default function ActionCardComponent({
                                         }}
                                       />
                                     ))}
-                                  {(ac.metric_changes[metric.name] ?? 0) ===
+                                  {(ac.metric_changes[metric.id] ?? 0) ===
                                     0 && "-"}
                                 </div>
                               )}

@@ -17,30 +17,25 @@ class Stakeholder(BaseModel):
     """
 
     id: str = Field(description="Unique identifier for the stakeholder")
-    stakeholder_index: str = Field(default="", description="Unique string index for the stakeholder")
     name: str = Field(description="Name of the stakeholder")
     division: str = Field(description="Organizational division the stakeholder represents")
-    responsibilities: List[str] = Field(description="Core responsibilities of the stakeholder")
-    priorities: List[str] = Field(description="Primary goals and priorities guiding decisions")
-    requirements: List[str] = Field(description="Requirements on the development environment")
-    division_description: List[str]=Field(description="Description of the Stakeholder division")
-    metric_id: int= Field(description="associated metric")
+    responsibilities: str = Field(description="Core responsibilities of the stakeholder")
+    priorities: str = Field(description="Primary goals and priorities guiding decisions")
+    requirements: str = Field(description="Requirements on the development environment")
+    division_description: str = Field(description="Description of the Stakeholder division")
+    metric_id: str = Field(description="associated metric")
     stakeholder_color:str =Field(description="RGB color of the stakeholder")
-    metric_expertise_values: list[int]= Field(description="expertise value for each metric")
+    metric_expertise_values: dict[str, int]= Field(description="expertise value for each metric")
     active: list[bool]= Field(description="active status for each game phase")
 
     def get_profile_string(self)-> str:
-        description_str = " ".join(self.division_description)
-        responsibilities_str = " ".join(self.responsibilities)
-        priorities_str = " ".join(self.priorities)
-        requirements_str = " ".join(self.requirements)
         return f"""
             Stakeheholder in a MLOps project environment.
             Name: {self.name}
-            Representative of {self.division} ({description_str})
-            Responsibilities: {responsibilities_str}
-            Priorities: {priorities_str}
-            Requirements: {requirements_str}
+            Representative of {self.division} ({self.division_description})
+            Responsibilities: {self.responsibilities}
+            Priorities: {self.priorities}
+            Requirements: {self.requirements}
         """
 
     def __str__(self) -> str:

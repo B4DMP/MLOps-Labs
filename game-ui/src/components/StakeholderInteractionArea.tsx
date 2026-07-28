@@ -14,7 +14,7 @@ import { StakeholderContext } from "./StakeholderProvider";
 
 import { useContext } from "react";
 import styles from "./StakeholderInteractionArea.module.css";
-export type ChatMsg = { stakeholder_index: string; message: string; ac_id: number };
+export type ChatMsg = { id: string; message: string; ac_id: number };
 import CustomChatMessage from "./customChatMessage";
 import type { ActionCard } from "../types/ActionCard";
 import introJs from "intro.js";
@@ -89,10 +89,10 @@ export default function StakeholderInteractionArea({
               }
             >
               {chatMsgs.map((item, index) => {
-                const isUser = !item.stakeholder_index || item.stakeholder_index === "user";
+                const isUser = !item.id || item.id === "user";
                 const st = isUser
                   ? null
-                  : stakeholders.find((s) => s.stakeholder_index === item.stakeholder_index);
+                  : stakeholders[item.id];
 
                 return (
                   <React.Fragment key={index}>
@@ -119,40 +119,40 @@ export default function StakeholderInteractionArea({
                         />
                       )}
                     </Message>
-                {item.ac_id !== -1 && (
-                  <div
-                    className={`d-flex justify-content-center align-items-center w-100 ${item.ac_id === 0 && "intro5"}`}
-                    {...(item.ac_id === 0 ? {
-                      "data-intro-group": "intro5",
-                      "data-intro": "If one or multiple stakeholders propose a concrete action plan to mitigate the challenge, the game automatically generates an action card that reflects the stakeholders' proposals.",
-                      "data-step": "2",
-                      "data-position": "bottom"
-                    } : {})}
-                    style={{ margin: "15px 0" }}
-                  >
-                    <div
-                      className="transparent-div"
-                      style={{ height: "40px", display: "flex", alignItems: "center" }}
-                    >
-                      <p
-                        className="text-center m-0"
-                        style={{ color: "#c3c3c3ff" }}
+                    {item.ac_id !== -1 && (
+                      <div
+                        className={`d-flex justify-content-center align-items-center w-100 ${item.ac_id === 0 && "intro5"}`}
+                        {...(item.ac_id === 0 ? {
+                          "data-intro-group": "intro5",
+                          "data-intro": "If one or multiple stakeholders propose a concrete action plan to mitigate the challenge, the game automatically generates an action card that reflects the stakeholders' proposals.",
+                          "data-step": "2",
+                          "data-position": "bottom"
+                        } : {})}
+                        style={{ margin: "15px 0" }}
                       >
-                        generated action card{" "}
-                        <span
-                          style={{ fontWeight: "bold", cursor: "pointer" }}
-                          onMouseEnter={() => onHoverCard?.(item.ac_id)}
-                          onMouseLeave={() => onHoverCard?.(null)}
+                        <div
+                          className="transparent-div"
+                          style={{ height: "40px", display: "flex", alignItems: "center" }}
                         >
-                          {actionCards[item.ac_id].ac_title}
-                        </span>{" "}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
+                          <p
+                            className="text-center m-0"
+                            style={{ color: "#c3c3c3ff" }}
+                          >
+                            generated action card{" "}
+                            <span
+                              style={{ fontWeight: "bold", cursor: "pointer" }}
+                              onMouseEnter={() => onHoverCard?.(item.ac_id)}
+                              onMouseLeave={() => onHoverCard?.(null)}
+                            >
+                              {actionCards[item.ac_id].ac_title}
+                            </span>{" "}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
               <div style={{ height: '80px', flexShrink: 0 }} />
             </MessageList>
             <MessageInput className="intro5"

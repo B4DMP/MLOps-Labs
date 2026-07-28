@@ -22,6 +22,7 @@ class MetricFactory:
 
         for j in data["metrics"]:
             st = Metric(
+                id=j["id"],
                 name=j["metric_name"],
                 start_value=j["metric_value"],
                 phases=j["active"],
@@ -50,7 +51,7 @@ class MetricFactory:
             raise MetricNameNotFound(id)
 
         for metric in cls.metrics:
-            if(metric.name==id):
+            if(metric.id==id):
                 return metric
 
     @classmethod
@@ -62,7 +63,7 @@ class MetricFactory:
         """
         ret=[]
         for metric in cls.metrics:
-            ret.append(metric.name)
+            ret.append(metric.id)
         
         return ret
     

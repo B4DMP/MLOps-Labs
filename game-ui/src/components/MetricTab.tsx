@@ -26,11 +26,11 @@ function MetricTab({
       <div className="row justify-content-end">
         <div className="col-auto">
           <div className="d-flex flex-nowrap gap-3">
-            {metrics.map(
-              (item, i) =>
+            {Object.values(metrics).map(
+              (item) =>
                 item.phases[current_phase] && (
                   <div
-                    key={item.name}
+                    key={item.id}
                     className="stat-card hover-card p-2  text-white rounded"
                     style={{
                       minWidth: "180px",
@@ -53,7 +53,7 @@ function MetricTab({
                         <span className="fw-semibold">{item.name}</span>
                       </div>
 
-                      <span className="fw-bold fs-5" id={`metric-value-${i}`}>
+                      <span className="fw-bold fs-5" id={`metric-value-${item.id}`}>
                         {item.value ?? item.start_value}
                       </span>
                       {!showMetricValueChanges && (
@@ -66,15 +66,15 @@ function MetricTab({
                           className={styles.metricChangeText}
                           style={{
                             color:
-                              (last_ac.metric_changes[item.name] ?? 0) == 0
+                              (last_ac.metric_changes[item.id] ?? 0) == 0
                                 ? "black"
-                                : (last_ac.metric_changes[item.name] ?? 0) > 0
+                                : (last_ac.metric_changes[item.id] ?? 0) > 0
                                   ? "green"
                                   : "red",
                           }}
                         >
-                          {(last_ac.metric_changes[item.name] ?? 0) >= 0 && "+"}
-                          {(last_ac.metric_changes[item.name] ?? 0)}
+                          {(last_ac.metric_changes[item.id] ?? 0) >= 0 && "+"}
+                          {(last_ac.metric_changes[item.id] ?? 0)}
                         </span>
                       )}
                     </div>

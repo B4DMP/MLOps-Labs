@@ -1,0 +1,108 @@
+# MLOps Serious Game — CI/CD Pipeline
+# This file is included from the root .gitlab-ci.yml
+
+variables:
+  GAME_DIR: "MLOps Serious Game"
+  GAME_API_IMAGE: "$CI_REGISTRY_IMAGE/mlops-game/game-api"
+  GAME_UI_IMAGE: "$CI_REGISTRY_IMAGE/mlops-game/game-ui"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_DRIVER: overlay2
+
+# ---------------------------------------------------------------------------
+# BUILD STAGE
+# ---------------------------------------------------------------------------
+
+build-game-api:
+  stage: build
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build --build-context gameconfig="$GAME_DIR/gameConfig" -t $GAME_API_IMAGE -f "$GAME_DIR/game-api/Dockerfile" "$GAME_DIR/game-api/"
+    - docker save $GAME_API_IMAGE > game-api-image.tar
+  artifacts:
+    paths:
+      - game-api-image.tar
+    expire_in: 30 mins
+  tags:
+    - did
+
+build-game-ui:
+  stage: build
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build
+        --build-arg VITE_API_HOST=public.cluster.dbis.rwth-aachen.de/mlops-lab-api
+        --build-arg VITE_BASE_PATH=/mlops-lab/
+        -t $GAME_UI_IMAGE
+        -f "$GAME_DIR/game-ui/Dockerfile.prod"
+        "$GAME_DIR/game-ui/"
+    - docker save $GAME_UI_IMAGE > game-ui-image.tar
+  artifacts:
+    paths:
+      - game-ui-image.tar
+    expire_in: 30 mins
+  tags:
+    - did
+
+# ---------------------------------------------------------------------------
+# DEPLOY STAGE
+# ---------------------------------------------------------------------------
+
+push-game-images:
+  stage: deploy
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker load < game-api-image.tar
+    - docker load < game-ui-image.tar
+    - docker push $GAME_API_IMAGE
+    - docker push $GAME_UI_IMAGE
+  needs:
+    - job: build-game-api
+      artifacts: true
+    - job: build-game-ui
+      artifacts: true
+  only:
+    - main
+  tags:
+    - did
+  when: on_success
+
+deploy-game-to-k8s:
+  stage: deploy
+  image: alpine:3.19
+  tags:
+    - did
+  before_script:
+    - apk add --no-cache kubectl gettext  # provides envsubst
+  script:
+    - kubectl config use-context i5/infrastructure/kubernetes:housekeeping
+    # Apply templated manifests (substitute GitLab CI/CD variables)
+    - envsubst < "$GAME_DIR/manifests/configmap-game-api.yaml" | kubectl apply -f -
+    - envsubst < "$GAME_DIR/manifests/deployment-mongo-express.yaml" | kubectl apply -f -
+    # Apply static manifests
+    - kubectl apply -f "$GAME_DIR/manifests/deployment-mongodb.yaml"
+    - kubectl apply -f "$GAME_DIR/manifests/deployment-game-api.yaml"
+    - kubectl apply -f "$GAME_DIR/manifests/deployment-game-ui.yaml"
+    - kubectl apply -f "$GAME_DIR/manifests/ingress-game-api.yaml"
+    - kubectl apply -f "$GAME_DIR/manifests/ingress-game-ui.yaml"
+    - kubectl apply -f "$GAME_DIR/manifests/ingress-mongo-express.yaml"
+    # Restart deployments to pick up latest images
+    - kubectl rollout -n ma-bela-veltrup restart deployment mlops-game-api
+    - kubectl rollout -n ma-bela-veltrup restart deployment mlops-game-ui
+  needs:
+    - job: push-game-images
+      artifacts: false
+  only:
+    - main

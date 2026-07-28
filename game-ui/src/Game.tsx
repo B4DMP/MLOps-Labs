@@ -25,21 +25,21 @@ import ErrorDialog from "./components/ErrorDialog";
 
 interface Stakeholder {
   id: string;
-  stakeholder_index: string;
   name: string;
   division: string;
-  responsibilities: string[];
-  priorities: string[];
-  constraints: string[];
-  division_description: string[];
+  responsibilities: string;
+  priorities: string;
+  constraints: string;
+  division_description: string;
   is_selected: boolean;
-  metric_id: number;
+  metric_id: string;
   stakeholder_color: string;
-  metric_expertise_values: number[];
+  metric_expertise_values: Record<string, number>;
   active: boolean[];
 }
 
 interface Metric {
+  id: string;
   value?: number;
   name: string;
   description: string;
@@ -73,12 +73,12 @@ function App({ username }: AppProps) {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [phases, setPhases] = useState([]);
-  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [metrics, setMetrics] = useState<Record<string, Metric>>({});
   const [challengeNumber, setChallengeNumber] = useState(0);
   const [challengeMetricChanges, setChallengeMetricChanges] = useState<
     Record<string, number>
   >({});
-  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
+  const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
   const [ac_count, setac_count] = useState(-1);
   const [chat_msgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [actionCards, setActionCards] = useState<ActionCard[]>(
@@ -88,12 +88,12 @@ function App({ username }: AppProps) {
           ac_title: "test_card",
           ac_descr: "test_description",
           metric_changes: {
-            Reliability: 1,
-            Data: -5,
-            Requirements: 3,
-            Efficiency: -2,
+            reliability: 1,
+            data: -5,
+            requirements: 3,
+            efficiency: -2,
           },
-          stakeholder_ids: [],
+          stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
           ac_image: "",
         },
       ]
@@ -112,9 +112,9 @@ function App({ username }: AppProps) {
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
 
-  const stakeholdersRef = useRef<Stakeholder[]>([]);
+  const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
-  const metricsRef = useRef<Metric[]>([]);
+  const metricsRef = useRef<Record<string, Metric>>({});
   const currentPhaseRef = useRef<number>(0);
   const currentChallengeRef = useRef<number>(0);
   const isintro5DoneRef = useRef<boolean>(false);
@@ -157,12 +157,12 @@ function App({ username }: AppProps) {
       message:
         "Welcome to the meeting! Please propose a concrete action or technical strategy that strictly prioritizes your specific professional requirements and interests, even if it disregards other perspectives. Write no more than two sentences.",
       stakeholder_ids: ["st0"],
-      selectionmask: stakeholders.filter((s) => s.is_selected).map((s) => s.stakeholder_index),
+      selectionmask: Object.values(stakeholders).filter((s) => s.is_selected).map((s) => s.id),
     });
     setChatMsgs((prevMsgs) => [
       ...prevMsgs,
       {
-        stakeholder_index: "",
+        id: "",
         message: `Welcome to the meeting, everyone. What is your opinion about "${challengeTitle}"?`,
         ac_id: -1,
       },
@@ -171,13 +171,11 @@ function App({ username }: AppProps) {
     setac_count(0);
   };
 
-  const selectStakeholder = (stakeholder_index: string) => {
+  const selectStakeholder = (id: string) => {
     setStakeholders((prev) =>
-      prev.map((s) =>
-        s.stakeholder_index === stakeholder_index
-          ? { ...s, is_selected: !s.is_selected }
-          : s,
-      ),
+      prev[id]
+        ? { ...prev, [id]: { ...prev[id], is_selected: !prev[id].is_selected } }
+        : prev,
     );
   };
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
@@ -210,8 +208,8 @@ function App({ username }: AppProps) {
 
     const unsubscribe = subscribe("*", (data: any) => {
       if (data.type === "init" || data.event === "game:init_data") {
-        setStakeholders(data["stakeholders"]);
-        setMetrics(data["metrics"]);
+        setStakeholders(data["stakeholders"] || {});
+        setMetrics(data["metrics"] || {});
         setPhases(data["phases"]);
       } else if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
@@ -239,7 +237,7 @@ function App({ username }: AppProps) {
             setChatMsgs((prevMsgs) => [
               ...prevMsgs,
               ...data.messages.map((msg: any) => ({
-                stakeholder_index: msg.stakeholder_id,
+                id: msg.stakeholder_id,
                 message: msg.message,
                 ac_id: _ac_id,
               })),
@@ -248,20 +246,20 @@ function App({ username }: AppProps) {
               const mappedCards = data.action_cards.map((card: any) => {
                 const stakeholder_ids = card.stakeholder_names.map(
                   (name: string) => {
-                    const st = stakeholdersRef.current.find(
+                    const st = Object.values(stakeholdersRef.current).find(
                       (s) => s.name === name,
                     );
-                    return st ? st.stakeholder_index : "";
+                    return st ? st.id : "";
                   },
                 );
 
                 return {
                   ac_title: card.title,
                   ac_descr: card.short_description,
-                  metric_changes: metricsRef.current.reduce(
+                  metric_changes: Object.values(metricsRef.current).reduce(
                     (acc, m) => {
-                      if (card[m.name] !== undefined) {
-                        acc[m.name] = card[m.name];
+                      if (card[m.id] !== undefined) {
+                        acc[m.id] = card[m.id];
                       }
                       return acc;
                     },
@@ -279,10 +277,10 @@ function App({ username }: AppProps) {
                     ac_title: "test_card",
                     ac_descr: "test_description",
                     metric_changes: {
-                      Reliability: 1,
-                      Data: -5,
-                      Requirements: 3,
-                      Efficiency: -2,
+                      reliability: 1,
+                      data: -5,
+                      requirements: 3,
+                      efficiency: -2,
                     },
                     stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
                     ac_image: "",
@@ -291,16 +289,27 @@ function App({ username }: AppProps) {
               }
             }
           } else if (data.type === "state") {
-            setMetrics((prevMetrics) =>
-              prevMetrics.map((metric, i) => ({
-                ...metric,
-                value: data.metric_values[i],
-              })),
-            );
+            setMetrics((prevMetrics) => {
+              const updated = { ...prevMetrics };
+              const metricIds = Object.keys(updated);
+              metricIds.forEach((id, i) => {
+                if (updated[id]) {
+                  updated[id] = {
+                    ...updated[id],
+                    value: data.metric_values[i],
+                  };
+                }
+              });
+              return updated;
+            });
 
-            setStakeholders((prevStakeholders) =>
-              prevStakeholders.map((s) => ({ ...s, is_selected: false })),
-            );
+            setStakeholders((prevStakeholders) => {
+              const updated = { ...prevStakeholders };
+              Object.keys(updated).forEach((id) => {
+                updated[id] = { ...updated[id], is_selected: false };
+              });
+              return updated;
+            });
 
             setChallengeTitle(data["name"]);
             setChallengeIntro(data["roundIntroduction"]);
@@ -423,10 +432,10 @@ function App({ username }: AppProps) {
           ac_title: "test_card",
           ac_descr: "test_description",
           metric_changes: {
-            Reliability: 1,
-            Data: -5,
-            Requirements: 3,
-            Efficiency: -2,
+            reliability: 1,
+            data: -5,
+            requirements: 3,
+            efficiency: -2,
           },
           stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
           ac_image: "",
@@ -454,16 +463,17 @@ function App({ username }: AppProps) {
     SetRoundOverAnimActive(true);
     setLastAc(ac);
 
-    const nextMetricsValues = metrics.map(
-      (m) => (m.value ?? m.start_value) + (ac.metric_changes[m.name] ?? 0),
-    );
+    const updatedMetrics: Record<string, Metric> = {};
+    const metricsList = Object.values(metrics);
+    metricsList.forEach((m) => {
+      const nextVal = (m.value ?? m.start_value) + (ac.metric_changes[m.id] ?? 0);
+      updatedMetrics[m.id] = {
+        ...m,
+        value: nextVal,
+      };
+    });
 
-    setMetrics(
-      metrics.map((metric, i) => ({
-        ...metric,
-        value: nextMetricsValues[i],
-      })),
-    );
+    setMetrics(updatedMetrics);
 
     if (currentChallenge === 0 && currentPhase === 0) {
       setTimeout(() => {
@@ -481,13 +491,17 @@ function App({ username }: AppProps) {
     setTimeout(() => {
       setRevealAc(true);
       setShowMetricValueChanges(true);
-      nextMetricsValues.forEach((val, i) => {
-        const el = document.getElementById(`metric-value-${i}`);
+      metricsList.forEach((m) => {
+        const el = document.getElementById(`metric-value-${m.id}`);
         if (el) {
-          const countUp = new CountUp(el, val, {
-            startVal: metrics[i].value ?? metrics[i].start_value,
-            duration: 5,
-          });
+          const countUp = new CountUp(
+            el,
+            updatedMetrics[m.id]?.value ?? m.start_value,
+            {
+              startVal: m.value ?? m.start_value,
+              duration: 5,
+            },
+          );
           if (!countUp.error) {
             countUp.start();
           }
@@ -499,7 +513,7 @@ function App({ username }: AppProps) {
   const requestNextChallenge = (ac: ActionCard) => {
     let _metric_values: any = [];
 
-    metrics.forEach((x) => {
+    Object.values(metrics).forEach((x) => {
       _metric_values.push(x.value ?? 0);
     });
 
@@ -518,13 +532,13 @@ function App({ username }: AppProps) {
   const handleSend = (textContent: string) => {
     setChatMsgs((prevMsgs) => [
       ...prevMsgs,
-      { stakeholder_index: "", message: textContent, ac_id: -1 },
+      { id: "", message: textContent, ac_id: -1 },
     ]);
     sendJsonMessage({
       type: "message",
       message: textContent,
       stakeholder_ids: ["st0"],
-      selectionmask: stakeholders.filter((s) => s.is_selected).map((s) => s.stakeholder_index),
+      selectionmask: Object.values(stakeholders).filter((s) => s.is_selected).map((s) => s.id),
     });
     setIsChatEnabled(false);
   };
