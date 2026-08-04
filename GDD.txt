@@ -1,0 +1,953 @@
+## 🧑🏻‍💼 Executive Summary & Game Vision
+
+<aside>
+💡
+
+**Concept**
+An interactive, web-based serious game where players step into the shoes of an **MLOps Project Manager / Consultant**. 
+Players navigate the social and technical realities of machine learning projects by analyzing stakeholder motives, negotiating technical/business trade-offs, and executing strategic actions to bring ML models safely to production.
+
+</aside>
+
+### 🎯 Main Objectives *("The Why")*
+
+1. **Teach Stakeholder Engagement in MLOps (***EDUCATIONAL GOAL***)**
+Teach players how technical choices (e.g., model quantization, retraining frequency) trigger human and business friction.
+    
+    > *"Information isn't free. As a Project Manager, your **attention is your most scarce resource**. Investigating stakeholders thoroughly reduces risk, but spending too much time over-analyzing leaves you with fewer resources when execution hits.”*
+    > 
+2. **Evaluate the CAPTURE Lifecycle Framework (***EVALUATIONAL GOAL***)**
+Operationalize and evaluate the **CAPTURE** framework (*Consult, Articulate, Protocol, Terraform, Utilize, Reify, Evolve*) as an active, machine-verifiable governance system for human-oriented AI deployment.
+
+### 👥 Target Audience & Platform
+
+- 🧑🏻‍💼 **Target Audience:** MLOps practitioners, AI project managers, IT consultants, computer science/data science students, executive AI leadership.
+- 🛠️ **Platform & Tech Stack:** Web Application powered by **LLM Stakeholder Agents**.
+- 🎨 **Presentation style**: Mainly **text**, possibly later text-to-speech and audio snippets
+- ⏱️ **Target Gameplay Length**: less than **1h per session**. 
+Replayability and continuing saved games should be possible.
+
+### 🕹️ Genres
+
+- Serious Game
+- Detective-Style
+- Tycoon Manager (GameDev Tycoon?)
+
+### 🛑 Limts and Boundaries (*”what we DON’T want”*)
+
+1. We don’t want to blackmail our stakeholders (even if one of the LLMs suggested that as an effective way of convincing 🫣).
+2. We don’t want to investigate the stakeholder’s personal lifes (e.g. have social media snippets), the engagement should be purely professional. Even if in real life, bonding over hobbies or interest can be a powerful tool.
+3. We don’t want to overwhelm our players with walls of text or technical jargon.
+Possibly, we should add an action to ‘*explain this concept to me*’. 
+
+## 👾 Gameplay
+
+<aside>
+💭
+
+The examples of gameplay elements (*mlops phases, typical stakeholder roles, typical project challenges, project management best practices*) are literature-based.  
+
+</aside>
+
+```mermaid
+flowchart TD
+    classDef analyze fill:#e1f5fe,stroke:#0288d1,color:black,stroke-width:2px;
+    classDef strategize fill:#fff3e0,stroke:#f57c00,color:black,stroke-width:2px;
+    classDef debate fill:#f3e5f5,stroke:#7b1fa2,color:black,stroke-width:2px;
+    classDef override fill:#ffcccc,stroke:#dd0000,color:black,stroke-width:2px;
+    classDef sim fill:#e8f5e9,stroke:#388e3c,color:black,stroke-width:2px;
+    linkStyle default stroke:#000,stroke-width:2px;
+    subgraph PHASE1 ["<strong>🔍 1. ANALYZE PHASE</strong><br/><span style='color:#000;'>(Consult & Protocol)</span>"]
+        direction LR
+
+        A1["<strong>📄 Raw Project Snippets</strong>"]
+
+        A1 --> A2["<strong>📊 Map Stakeholders</strong><br/><span style='color:#000;'>Power (High/Low) • Interest (High/Low)</span>"]
+    end
+
+    subgraph PHASE2 ["<strong>💡 2. STRATEGIZE PHASE</strong><br/><span style='color:#000;'>(Articulate & Terraform)</span>"]
+        direction LR
+
+        S1["<strong>💰 Spend Attention Tokens</strong>"]
+
+        S1 --> S2["<strong>💭 Generate Questions</strong><br/><span style='color:#000;'>(Generic & Intelligence-Based)</span>"]
+
+        S2 --> S3["<strong>💬 Interview Stakeholders</strong><br/><span style='color:#000;'>& Gather Intelligence</span>"]
+
+        S3 --> S4["<strong>🃏 Build Action Card</strong><br/><span style='color:#000;'>Merge Collected Intelligence</span>"]
+    end
+
+    subgraph PHASE3 ["<strong>⚖️ 3. PITCH DEBATE</strong>"]
+        direction LR
+
+        D1["<strong>🗣️ Present Action Proposal</strong>"]
+
+        D1 --> D2["<strong>🎯 Convince Stakeholders</strong><br/><span style='color:#000;'>or Add Addendum</span>"]
+
+        D2 --> D3{"<strong>🗳️ Vote</strong>"}
+
+        D3 -- "<strong>Veto / Block</strong>" --> D4["<strong>🚨 Escalation Override</strong>"]
+        %% D4 --> D1
+    end
+
+    subgraph PHASE4 ["<strong>⚡ 4. SIMULATION & GOVERNANCE</strong>"]
+        direction LR
+
+        M1["<strong>📈 Execute Action</strong>"]
+
+        M1 --> M2["<strong>🧪 Shift MLOps Metrics</strong>"]
+
+        M2 --> M3["<strong>✨ Shift Stakeholder Metrics</strong>"]
+
+        M3 --> M4["<strong>🚪 CAPTURE Gate 7</strong><br/><span style='color:#000;'>Pivot Check</span>"]
+    end
+
+    PHASE1 --> PHASE2
+    PHASE2 --> PHASE3
+    D3 -- "<strong>Pass / Soft Fail</strong>" --> PHASE4
+
+    %% implied, otherwise the graph gets rendered weirdly
+    %% M2 --> PHASE1
+
+    class A1,A2 analyze;
+    class S1,S2,S3,S4 strategize;
+    class D1,D2,D3 debate;
+    class D4 override;
+    class M1,M2,M3,M4 sim;
+```
+
+### 🧪 Player Goals
+
+The player's main goal is to progress through all phases of the MLOps lifecycle by overcoming a series of challenges representing technical, organizational, and cultural problems in MLOps. To do so, they must actively engage and negotiate with the relevant stakeholders for each challenge, selecting proposals or fostering cooperation between them to craft an effective response. Success requires balancing this stakeholder engagement with maintaining the game's metrics, since resolving challenges without genuinely involving diverse stakeholder perspectives risks unbalanced or suboptimal outcomes.
+
+### 🧩 Gameplay Elements
+
+- 🧑🏻‍🚀 **Stakeholder**
+    
+    Role in a typical MLOps project environment with individual Priorities, Requirements and Responsibilities.
+    
+    #### Power-Interest Alignment (Matrix)
+    
+    In alignment with ‘good old’ Project Management best practice, stakeholders can have Low and High levels of Power and Interest in the project. These values can shift between phases and/or be influenced by player actions.
+    
+    ![Power-Interest Matrix with 4 Quadrants: 
+      1. 🔸Low Power,  🔹Low Interest: **Monitor**
+      2. 🔸Low Power,  🔷High Interest: **Keep informed**
+      3. 🔶High Power, 🔹Low Interest: **Keep satisfied**
+      4. 🔶High Power, 🔷High Interest: **Manage closely**](attachment:26b6e8f6-e343-4cae-b36e-53fc5fa319ea:image.png)
+    
+    Power-Interest Matrix with 4 Quadrants: 
+      1. 🔸Low Power,  🔹Low Interest: **Monitor**
+      2. 🔸Low Power,  🔷High Interest: **Keep informed**
+      3. 🔶High Power, 🔹Low Interest: **Keep satisfied**
+      4. 🔶High Power, 🔷High Interest: **Manage closely**
+    
+    - **Stakeholder Satisfaction**
+        
+        Stakeholder satisfaction measures the degree of happiness of a stakeholder with regard to the current direction of the pitch debate. Satisfaction is measured in a likert-scale between 0 and 5.
+        
+        | $satisfaction∈{0,1,2}$  | When satisfaction is very bad, bad or neutral, the stakeholders are **resistant** regarding the current action proposal  |
+        | --- | --- |
+        | $satisfaction∈{3,4,5}$ | When satisfaction is decent, good or very good, the stakeholders are **commited** to the current action proposal |
+        
+        for more information on how stakeholder satisfaction is simulated, see *stakeholder personas.*
+        
+    
+    #### Convincer Profile
+    
+    Each stakeholder has a hidden "Convincer Profile" that model their personality and influence how their satisfaction can be increased.
+    
+    - For example:
+        - *The CFO* is only convinced by **Risk-Mitigation Data** or **ROI Metrics**.
+        - *The Engineering Lead* is only convinced by **Resource Autonomy** or **Scope Reduction**.
+        - *The Client* is only convinced by **Visual Prototypes** or **SLA Guarantees**.
+    - If the player responds with a dialogue option that matches the stakeholder’s hidden driver, their hesitation drops. If they play the wrong type (e.g., offering a CFO a promise of "a great user experience" instead of financial data), resistance increases.
+    
+    #### Convincer Archetypes
+    
+    | **Convincer Type** | **Description** | **Effective Communication Strategy** |
+    | --- | --- | --- |
+    | **Technical Excellence** | Convinced by technical quality, engineering best practices, empirical evidence, innovation, benchmarks, and sound technical reasoning. | Explain *how* the solution works using technical details, data, trade-offs, and objective evidence rather than promises or business rhetoric. |
+    | **Business Value** | Convinced by measurable business outcomes such as ROI, cost savings, productivity, customer value, or competitive advantage. | Frame every proposal in terms of business impact, quantifiable benefits, strategic goals, and return on investment. |
+    | **Safety & Reliability** | Convinced by reducing risk through security, compliance, reliability, resilience, monitoring, and contingency planning. | Emphasize risk mitigation, safeguards, testing, compliance, SLAs, monitoring, and fallback plans to build confidence. |
+    | **Control & Governance** | Convinced by ownership, decision-making authority, transparency, approval processes, and organizational oversight. | Highlight governance structures, approval gates, reporting mechanisms, and how stakeholders retain visibility and control over the project. |
+    | **People & Trust** | Convinced through credibility, honest communication, collaboration, and strong professional relationships. | Communicate openly, acknowledge concerns, demonstrate empathy, and build trust through transparency and collaboration rather than hard facts alone. |
+    | **Autonomy** | Convinced when their team retains independence, flexibility, and freedom to make technical or organizational decisions. | Present the proposal as empowering rather than restricting, emphasizing flexibility, delegated ownership, and local decision-making. |
+    | **Pragmatism** | Convinced by practical, low-complexity solutions that solve today's problem without unnecessary sophistication. | Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering. |
+    
+    The following graph summarizes how the stakeholder’s properties interact and influence each other
+    
+    ```mermaid
+    flowchart TD
+    
+        classDef matrix fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px;
+        classDef convincer fill:#e0f7fa,stroke:#00acc1,stroke-width:2px;
+        classDef state fill:#fff3e0,stroke:#fb8c00,stroke-width:2px;
+    
+        linkStyle default stroke:#000,stroke-width:2px;
+    
+        subgraph POWER_INTEREST ["<strong>📊 Power-Interest Alignment Matrix</strong>"]
+            direction TB
+    
+            P1["<strong>⚡ High Power / Low Interest</strong><br/><span style='color:#000;'>(Keep Satisfied • High Veto Risk)</span>"]
+    
+            P2["<strong>🔥 High Power / High Interest</strong><br/><span style='color:#000;'>(Manage Closely • Key Ally / Opponent)</span>"]
+    
+            P3["<strong>👀 Low Power / Low Interest</strong><br/><span style='color:#000;'>(Monitor)</span>"]
+    
+            P4["<strong>📢 Low Power / High Interest</strong><br/><span style='color:#000;'>(Keep Informed • Sabotage / Delay Risk)</span>"]
+    
+        end
+    
+        subgraph CONVINCER_TYPES ["<strong>🧠 Hidden Convincer Archetypes</strong>"]
+            direction TB
+    
+            C1["<strong>🛠️ Technical Excellence</strong>"]
+    
+            C2["<strong>💼 Business Value & ROI</strong>"]
+    
+            C3["<strong>🛡️ Safety & Reliability</strong>"]
+    
+            C4["<strong>🏛️ Control & Governance</strong>"]
+    
+            C5["<strong>🤝 People & Trust</strong>"]
+    
+            C6["<strong>🦅 Autonomy</strong>"]
+    
+            C7["<strong>⚡ Pragmatism</strong>"]
+    
+        end
+    
+        subgraph MOOD_ENGINE ["<strong>📈 Emotional & Satisfaction Engine</strong>"]
+            direction TB
+    
+            Emotions["<strong>🎭 Emotional Metrics</strong><br/><span style='color:#000;'>(Trust • Stress • Engagement)</span>"]
+    
+            State["<strong>💬 Emotional State</strong><br/><span style='color:#000;'>(e.g., Confident)</span>"]
+    
+            Likert["<strong>📊 Likert Scale</strong><br/><span style='color:#000;'>0 - 5 Satisfaction Level</span>"]
+    
+            Resistant["<strong>🔴 0 - 2: Resistant</strong><br/><span style='color:#000;'>(Veto if High Power<br/>Sabotage if Low Power)</span>"]
+    
+            Committed["<strong>🟢 3 - 5: Committed</strong><br/><span style='color:#000;'>(Flawless Implementation)</span>"]
+    
+            Emotions --> State
+            State --> Likert
+    
+            Likert --> Resistant
+            Likert --> Committed
+    
+        end
+    
+        POWER_INTEREST --> MOOD_ENGINE
+    
+        CONVINCER_TYPES --> MOOD_ENGINE
+    
+        class P1,P2,P3,P4 matrix;
+        class C1,C2,C3,C4,C5,C6,C7 convincer;
+        class Likert,Resistant,Committed,Emotions,State state;
+    ```
+    
+- 💪🏻 **Challenge**
+    
+    A MLOps-specfic challenge that is based in a stakeholder conflict and needs to be resolved by the player. 
+    
+    A challenge could include a proposed action card by one of the stakeholders and/or a conflicting second action card by another stakeholder. 
+    
+    Examples of a challenge could include ‘Model Accuracy Drops’ or ‘Domain Expert Resistance’. 
+    
+- 🔄 **Lifecycle Phase**
+    
+    A section of the MLOps lifecycle detailed in **CAPTURE** (and/*or following other MLOps literature*) ****that contains a set of **Challenges**.
+    
+    The basic phases we decided to use in our game are: 
+    
+    - Requirement Engineering
+    - Data Engineering
+    - Model Engineering
+    - Model Deployment
+    - Monitoring/ Usage
+- 📑 **Snippet**
+    
+    Artifacts of the project environment such as emails, Slack messages, meeting transcripts, incident reports, budget requests, or monitoring dashboards that may contain stakeholder-specific intel. By categorizing/tagging a snippet, the player obtains a **Stakeholder-Specific Intel** *.*
+    
+- 📝 **Stakeholder Dossier**
+    
+    For each stakeholder, the player can manage a stakeholder dossier that summarizes intel-based information about them. The dossier is made up from **Stakeholder-Specific Intel** that can be **tagged** to extract information. 
+    
+    - **Stakeholder-Specific Intel**
+        
+        An assumption about a stakeholder's stance to the current challenge, stored in their dossier, covering either 
+        
+        - Power/Interest (revealed by a few snippets shown at the start of each round) , or
+        - Requirements/Constraints (revealed by snippets encountered during the meeting, functioning like Engagement Cards).
+    - **Snippet Tagging**
+        
+        Do obtain a **Dossier Item**, players need to tag a **Snippet** by the **Metric** that it relates to and the underlying motivation such as
+        
+        - **Requirement** (a stated project/technical need)
+        - **Hard Constraint** *(non-negotiable; high veto risk)*
+        - **Negotiable Preference**
+        - **Personal Friction** *(communication, trust, workload, fairness, etc.)*
+        
+        or the stakeholder’s level of power or interest
+        
+    - **Tagging - correct and incorrect**
+        - **Correct Hypothesis Tagging:** If the player tags the snippet correctly, it unlocks a high-impact **Intel-Based Question** in the During-Phase that precisely targets the stakeholders's hidden trigger and may generate an **Action Card Addendum** or convince the stakeholder of an **Action Proposal**
+        - **Incorrect Hypothesis Tagging:** If the player misinterprets the snippet (e.g., tagging it as a *Business/Budget* concern) and asks an intel question based on that wrong assumption, the target stakeholder reacts with confusion or irritation .
+        - **Token Investment (Verification):** If the player doesn't want to guess, they can spend x **Attention Tokens** to *"Run Background Check / Verify Intel"*, which automatically reveals the true tag.
+    - **Confidence**
+        
+        Dossier Items carry an Information Certainty Level that progresses as follows:
+        
+        - **Unconfirmed:** default state right after tagging a snippet; the item is purely the player's hypothesis.
+        - **Inferred:** a dialog option that is based on an unconfirmed tag is used and the stakeholder's reaction implicitly supports it. The system upgrades the item automatically based on this indirect feedback.
+        - **Verified:** used when the player either has either spent Attention Tokens on a direct verification action or the Intel has been obtained through an **Engagement Card**.
+        
+        A wrongly inferred tag can also be downgraded back to Unconfirmed once the stakeholder's negative reaction reveals the mismatch, prompting the player to re-tag or verify.
+        
+    
+    The following figure illustrates how raw project artifacts are processed through multi-dimensional tagging into verified dossier intel, unlocking dialogue options with confident states.  
+    
+    ```mermaid
+    flowchart TD
+        classDef raw fill:#eceff1,stroke:#455a64,stroke-width:2px;
+        classDef tag fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+        classDef certainty fill:#fff8e1,stroke:#ffa000,stroke-width:2px;
+        classDef unlocked fill:#e8f5e9,stroke:#388e3c,stroke-width:2px;
+    
+        linkStyle default stroke:#000,stroke-width:2px;
+    
+        subgraph INPUT ["<strong>📄 Raw Artifact Ingestion</strong>"]
+    
+            Artifacts["<strong>📄 Project Snippets</strong><br/><span style='color:#000;'>(Slack • Emails • Incident Reports)</span>"]
+    
+        end
+    
+        Artifacts --> Tagging["<strong>🏷️ Tagging Mechanism</strong>"]
+    
+        subgraph DIMENSIONS ["<strong>🏷️ Tagging Dimensions</strong>"]
+            direction TB
+    
+            Domain["<strong>🌐 Layer</strong><br/><span style='color:#000;'>Technical • Business • Human-Political</span>"]
+    
+            Intent["<strong>🎯 Intent</strong><br/><span style='color:#000;'>Hard Constraint • Negotiable Preference • Personal Friction</span>"]
+    
+            Domain --- Intent
+        end
+    
+        Tagging --> DIMENSIONS
+    
+        DIMENSIONS --> Unconfirmed["<strong>❓ Unconfirmed Hypothesis</strong><br/><span style='color:#000;'>(Default State After Tagging)</span>"]
+    
+        subgraph PROGRESSION ["<strong>📈 Certainty Progression & Intel Verification</strong>"]
+            direction TB
+    
+            Unconfirmed -- "<strong>Spend Attention Tokens</strong><br/><span style='color:#000;'>Play Engagement Card</span>" -->
+                Verified["<strong>✅ Verified Intel</strong>"]
+    
+            Verified --> Inferred["<strong>💡 Inferred Certainty</strong>"]
+    
+            Refuted -- "<strong>Re-Tag</strong><br/><span style='color:#000;'>Cross-Reference</span>" -->
+                Unconfirmed
+    
+        end
+    
+        Unconfirmed -->
+            Available["<strong>🔓 Hypothesis-Based Dialogue Options</strong>"]
+    
+        Available -- "<strong>Correct Hypothesis</strong>" -->
+            Actions["<strong>🔓 Intel-Based Dialogue Options</strong><br/><span style='color:#000;'>May convince stakeholders or generate addendums</span>"]
+    
+        Available -- "<strong>Wrong Hypothesis</strong>" -->
+            Refuted["<strong>❌ Hypothesis Refuted</strong><br/><span style='color:#000;'>(Trust Penalty & Free Re-Tag)</span>"]
+    
+        Inferred --> Actions
+    
+        class Artifacts raw;
+        class Tagging,Domain,Intent tag;
+        class Unconfirmed,Inferred,Verified,Refuted certainty;
+        class Available,Actions unlocked;
+    ```
+    
+- 🪙 **Attention Token**
+    
+    A currency that represents the finite time/attention of a Project Manager. 
+    The player can spend a given number of attention tokens in every round for purchasing **Engagement Cards.**
+    
+- **ℹ️ Engagement Card**
+    
+    Player-purchased actions (spending Attention Tokens) that reveal a stakeholder's priorities, red lines, buy-in thresholds, constraints, or risks. Engagement cards can be used during the Online Intel Gathering Phase.
+    
+    Each revealed piece of intel becomes a **Dossier Intel Item**, updating the **stakeholder's dossier** and unlocking corresponding Intel-Based dialogue options. 
+    
+    Cards range from light/broad (cheap, quick, less precise, cover more stakeholders) to deep/focused (costly, high-leverage), letting the player balance broad coverage against targeted insight.
+    
+    - 👑 **1-on-1 Meeting with Stakeholder** *(engagement card)*
+        
+        Players can spend a lot of Attention Tokens on a single stakeholder to get a 1-on-1 meeting with them. This allows for a few questions to the stakeholder, possibly even an (almost) free-form one. 
+        
+        - When preparing for the 1-on-1, the interface could give you a question template with empty slots:
+            
+            > *"I understand that [ **Dossier Snippet A** ] is a major concern. 
+            If we guarantee [ **Dossier Snippet B** ], would that give you the confidence to approve [ **Project Milestone** ]?"*
+            > 
+        - **For example:**
+            - Slot A = **Stakeholder Fear** (e.g., *Department Budget Cuts*)
+            - Slot B = **Strategic Incentive** (e.g., *Headcount Allocation in Q4*)
+        - If the player pairs the right fear with the right incentive, they trigger an automatic breakthrough in the meeting! If the player misreads the stakeholder’s fear, they feel misunderstood and their trust drops.
+- 💬 **Dialogue Options**
+    
+    The player can interact with the stakeholders during the challenge resolution meeting by choosing one of several dialogue options that consist of: 
+    
+    - **Generic Questions**
+        
+        Questions that are always available and have little impact on the stakeholders.
+        
+        **The Result:** The LLM stakeholder gives a polished, PR-approved corporate answer. It yields baseline facts, but completely hides true motivations, fears, or alliances.
+        
+    - **Intel-Based Questions**
+        
+        Questions that are based in **Stakeholder-Specific Intel** that was previously aquired by the player through playing an **Engagement Card** on the stakeholder or by tagging a **snippet**.
+        
+        Selecting an intel-based question may convince a stakeholder of a proposal or generate an **Action Card Addendum**
+        
+        <aside>
+        💭
+        
+        **Example -** *Player plays Card:* **"Budget Friction History"**
+        
+        - **Unlocked Fixed Question***:* *"I noticed your department took a 15% funding cut last quarter. How will this project's timeline impact your remaining resource pool?"*
+        - **LLM Reaction***:* *Because the player referenced specific intel, the LLM stakeholder's system prompt shifts from "Defensive PR Mode" to "Guarded Honesty Mode," revealing key trade-off tolerances.*
+        </aside>
+        
+- 🧬 **Metric**
+    
+    The quantifiable project dimensions (*Model, Data, Requirements, Automation, Reliability, Efficiency*) that represent overall MLOps project health. 
+    
+    They shift based on which action proposals get played — a played action card can raise one metric while lowering another, reflecting real trade-offs (*e.g., cutting data for speed boosts Efficiency but hurts Data*).
+    
+- ⏱️ **Time**
+    
+    The challenge resolution meeting (’strategize’ phase incl. pitch) is scheduled to take an hour of in-game time, with every stakeholder interaction reducing the time that is left. Only interacting with stakeholders makes time pass, updating the dossier or thinking does not affect it. 
+    
+    When a solution is not found during the specified timeframe, the meeting goes into **overtime**, where the patience of stakeholders is reduced with every interaction
+    
+- **🛠️ Action Cards**
+    - **Base Action Card**
+        
+        An MLOps specific game element representing a concrete strategy to mitigate the current challenge (e.g., "Implement Online Feature Store," "Scale up Serving Compute") . 
+        
+        Each action card has **Metric** effects and can have stakeholder effects. 
+        The examples follow from literature (e.g. Kreuzberger et al.)
+        
+        Base action cards can be **generated** by the player by merging intel items from the stakeholder dossier.
+        
+    - **Action Card Addendum**
+        
+        A modifier that stakeholders generate during the pitch debate to attach to a **Base** **Action Card**, following the pattern "execute this action , but also do X." 
+        
+        The player can combine one **Action Card** with a small amount of addendums to tailor an **Action Proposal** to multiple stakeholders' concerns.
+        
+    - **Action Proposal**
+        
+        The combination of a **Base** **Action Card** plus x **Addendums** during the pitch debate.
+        
+        **Accepted Action Proposal**
+        
+        An action proposal that has passed the pitch debate without being vetoed. Its implementation and its effects on the MLOps Environment are simulated 
+        
+- 🕹️ **Gameplay Mechanics and Minigames**
+    - 🔍 **Offline Intel Gathering Phase (’analyze’)**
+        
+        This phase takes place at the beginning of each round. The player is confronted with Snippets and needs to tag them to obtain stakeholder-specifc intel.
+        
+    - 🧐 **Online Intel Gathering Phase (’strategize’)**
+        
+        This phase takes place after the Offline Intel Gathering Phase. The player can ask questions to the stakeholders and purchase/play Engagement Cards to obtain stakeholder-specific intel.
+        
+    - 🃏 **Pitch Debate** (*convincing stakeholders of the proposal*)
+        
+        To make pitching the proposal feel interactive and tense rather than a static form submission, this minigame could play like a **poker-style negotiation round** around a council table.
+        
+        The pitch debate takes place after the ****Online Intel Gathering Phase and is started when the player merges stakeholder-specific intel items to create a base action card.  
+        
+        If that did not happen within the first 45 minutes of the stakeholder meeting, it is started automatically. 
+        
+        The player is not able to play engagement cards or spend attention tokens in this phase.
+        
+        1. All key stakeholders sit around the table with visible **Resistance/Satisfaction Meters** and hidden **Convincer Profiles.** 
+        2. The player presents their **Action Proposal.** 
+        3. The stakeholders raise their **Objections**. 
+        These are as detailed/verbatim as the amount of intel we gathered on that stakeholder during this phase. 
+        The objections are not worded before the pitch debate.
+        4. For each Objection, the player has to pick a **presentation style** to match a query that is based on stakeholder-specific intel to the key stakeholder’s Convincer Profile. In return, an action card addendum is generated that can be attached to the action proposal to clear the stakeholder’s objection. 
+        
+        <aside>
+        💡
+        
+        If the player does not posess good intel about the stakeholder, the addendum will resolve the stakeholder’s objection but have little effects on the stakeholders satisfaction.
+        
+        </aside>
+        
+        1. Each of the stakeholders react to the combo of addendum+framing:
+            - **Direct Hit (Right Frame):** If you pick the frame matching their profile, their objection breaks instantly, and their trust increases.
+            - **Partial Hit:** Softens the objection, but they demand a minor Addendum to seal the deal.
+            - **Miss (Wrong Frame):** They view you as out-of-touch (e.g., lecturing a CFO on UX). Their resistance hardens, and room tension rises. A ‘miss’ on a high-power stakeholder results in a **veto**.
+        
+        Once the player submits the **Action Proposal**, we calculate a score total. 
+        The score is the weighted average of all **stakeholder powers * their reaction**. 
+        This triggers:
+        
+        - **Pass:** The proposal executes. The game moves into the **Simulation Phase**, where backend logic updates the Metrics.
+        - **Soft Failure:** Passed with low-power objections. The action executes, but the neglected low-power stakeholder may cause friction or minor delays in later phases.
+        - **Veto/ Block:** Player failed to clear a High-Power Veto. They can either use a veto-breaker or need to replay the pitch debate. This requires them to build a new action card from different intel items and reduces the patience of the involved stakeholders.
+        
+        ```mermaid
+        flowchart TD
+            classDef input fill:#e3f2fd,stroke:#1565c0,color:#000,stroke-width:2px;
+            classDef frame fill:#fff3e0,stroke:#ef6c00,color:#000,stroke-width:2px;
+            classDef pass fill:#e8f5e9,stroke:#2e7d32,color:#000,stroke-width:2px;
+            classDef fail fill:#ffebee,stroke:#c62828,color:#000,stroke-width:2px;
+        
+            linkStyle default stroke:#000,stroke-width:2px;
+        
+            subgraph SETUP ["<strong>📦 Proposal Assembly</strong>"]
+        
+                BaseCard["<strong>🃏 Base Action Card</strong><br/><span style='color:#000;'>(Merged from Intel)</span>"]
+        
+                Addendums["<strong>🧩 Action Card Addendums</strong><br/><span style='color:#000;'>(Stakeholder Modifiers)</span>"]
+        
+                BaseCard --> Proposal["<strong>📦 Action Proposal Submitted</strong>"]
+        
+                Addendums --> Proposal
+        
+            end
+        
+            Proposal --> Objections["<strong>🗣️ Stakeholders Raise Objections</strong>"]
+        
+            subgraph FRAMING ["<strong>🎯 Framing Match & Addendum Generation</strong>"]
+        
+                Objections --> Match["<strong>⚖ Match Presentation Style</strong><br/><span style='color:#000;'>to Convincer Profile</span>"]
+        
+                Match --> MatchChoice{"<strong>Frame Match?</strong>"}
+        
+                MatchChoice -- "<strong>Direct Hit</strong><br/><span style='color:#000;'>(Right Frame)</span>" -->
+                    R1["<strong>🟢 Objection Breaks Instantly</strong><br/><span style='color:#000;'>(Trust Increased & Objection Cleared)</span>"]
+        
+                MatchChoice -- "<strong>Partial Hit</strong>" -->
+                    R2["<strong>🟡 Objection Softened</strong><br/><span style='color:#000;'>(New Addendum Required)</span>"]
+        
+                MatchChoice -- "<strong>Miss</strong><br/><span style='color:#000;'>(Wrong Frame)</span>" -->
+                    R3["<strong>🔴 Resistance Hardens</strong><br/><span style='color:#000;'>(Room Tension / High-Power Veto Risk)</span>"]
+        
+            end
+        
+            R1 & R2 & R3 -->
+                Score["<strong>🧮 Weighted Score</strong><br/><span style='color:#000;'>Σ (Power × Reaction)</span>"]
+        
+            Score --> Outcome{"<strong>Score Check</strong>"}
+        
+            Outcome -- "<strong>Pass</strong>" -->
+                PassExec["<strong>🟢 Pass: Flawless Execution</strong><br/><span style='color:#000;'>Simulation Successful</span>"]
+        
+            Outcome -- "<strong>Soft Failure</strong>" -->
+                SoftFail["<strong>🟡 Soft Fail: Partial Execution</strong><br/><span style='color:#000;'>(Low-Power Sabotage / Delays)</span>"]
+        
+            Outcome -- "<strong>Veto / Block</strong>" -->
+                HighVeto["<strong>🔴 High-Power Veto Triggered</strong>"]
+        
+            HighVeto --> Override{"<strong>Play Escalation</strong><br/><strong>Move?</strong>"}
+        
+            Override -- "<strong>Yes</strong><br/><span style='color:#000;'>(Veto Breaker / Emergency Addendum)</span>" -->
+                Breaker["<strong>⚡ Override Veto</strong><br/><span style='color:#000;'>(Stakeholder Trust Reduced • Forces Pass)</span>"]
+        
+            Breaker --> PassExec
+        
+            Override -- "<strong>No</strong>" -->
+                Replay["<strong>🔄 Replay Pitch Debate</strong><br/><span style='color:#000;'>(Rebuild Action Card & Deplete Patience)</span>"]
+        
+            Replay --> SETUP
+        
+            class BaseCard,Addendums,Proposal,Objections input;
+            class Match,MatchChoice,R1,R2,R3,Score frame;
+            class PassExec,SoftFail pass;
+            class HighVeto,Breaker,Replay fail;
+        ```
+        
+    - 🧮 **Simulation Phase**
+        
+        When an action proposal has passed the pitch debate without being vetoed (accepted action proposal), its implementation and the effects to the MLOps environment are simulated. 
+        
+        **Simulating the Action Card Implementation**
+        
+        - If all stakeholders were commited to the accepted action card, its implementation is flawless
+        - if a stakeholder was resistant but had not enough power to veto the action proposal, he or she might sabotage or delay the implementation
+        
+        this means that action proposals may only be partially realized as some addendums are not implemented due to stakeholder sabotages. This can worsen the overall state of the project environment and has negative effects on affected stakeholders.
+        
+        **Simulating the Effects on the MLOps Project Environment**
+        
+        The project environment is modelled by a set of MLOps components that are connected through workflows or pipelines and contain MLOps artifacts. This model of the MLOps environment is grounded in MLOps literature and updated based on the result of the action card implementation simulation. For more information, see *Action Card Simulation.*
+        
+    - 🎩 **Stakeholder Override Move**
+        
+        An option used to react to surprises during the pitch debate, such as a sudden veto or newly surfaced objection by a stakeholder for which the player does not have sufficient intel. 
+        
+        Two variants: 
+        
+        - **Emergency Addendum** (draft a new addendum on the fly to address an objection)
+        - **Veto Breaker** (overrule a veto of a high power stakeholder).
+        
+        Playing a stakeholder override move costs **Escalation Points**, of which the player has only 3 for the entire game. Additionally, overriding stakeholders will negatively impact their satisfaction
+        
+
+---
+
+### 🎛️ Origins of Gameplay Elements
+
+All gameplay elements operate across two primary dimensions: **Lifecycle Phase** (Vertical) and **Entity Origin** (Horizontal).
+
+#### 🔍 Analyze Phase *(Consult & Protocol)*
+
+| Element | Origin | Description |
+| --- | --- | --- |
+| Project Snippets | System Generated | Raw project artifacts containing hidden intel |
+| Challenge Context | System Generated | Current MLOps challenge scenario |
+| Stakeholder Personas | System Generated | Agent roles, priorities, and constraints |
+| Dossier Items | Shared / Derived State | Extracted stakeholder intelligence |
+| Intel Confidence State | Shared / Derived State | Unconfirmed → Inferred → Verified |
+| Power–Interest Alignment Matrix | Shared / Derived State | Stakeholder influence mapping |
+| Attention Tokens | User Interactable | Investigation resource |
+| Snippet Tagging | User Interactable | Classifying artifact information |
+| Latent Agendas | Stakeholder Generated | Hidden stakeholder motivations |
+
+#### 💡 Strategize Phase *(Articulate & Terraform)*
+
+| Element | Origin | Description |
+| --- | --- | --- |
+| Engagement Cards | System Generated | Stakeholder investigation actions |
+| Generic Questions | System Generated | Baseline dialogue options |
+| Intel-Based Questions | System Generated | Context-aware dialogue options |
+| Stakeholder Intel | Shared / Derived State | Updated stakeholder knowledge |
+| Active Hypothesis State | Shared / Derived State | Current assumptions |
+| Convincer Profile Match | Shared / Derived State | Persuasion alignment |
+| Dialogue Options | User Interactable | Stakeholder interaction choices |
+| Base Action Card Creation | User Interactable | Building solution proposals |
+| Stakeholder Requirements | Stakeholder Generated | Revealed needs and constraints |
+
+#### ⚖️ Pitch Debate  *(Negotiation & Alignment)*
+
+| Element | Origin | Description |
+| --- | --- | --- |
+| Action Proposal | Shared / Derived State | Base Action Card + Addendums |
+| Stakeholder Satisfaction Meter | Shared / Derived State | Stakeholder approval level |
+| Stakeholder Resistance State | Shared / Derived State | Commitment and opposition state |
+| Proposal Evaluation Logic | System Generated | Outcome calculation |
+| Objections | Stakeholder Generated | Stakeholder concerns |
+| Action Card Addendums | Stakeholder Generated | Requested proposal modifications |
+| Presentation Framing | User Interactable | Communication approach selection |
+| Override Moves | User Interactable | Emergency negotiation actions |
+| Debate Outcome | Shared / Derived State | Pass, Soft Failure, or Veto |
+
+#### ⚡ Simulation Phase *(Utilize & Reify)*
+
+| Element | Origin | Description |
+| --- | --- | --- |
+| Environment Graph | System Generated | MLOps system representation |
+| Action Implementation Simulation | System Generated | Execution outcome |
+| MLOps Components | System Generated | Technical infrastructure state |
+| Metric Changes | Shared / Derived State | Project health updates |
+| Technical Debt State | Shared / Derived State | Accumulated compromises |
+| Stakeholder Sentiment Shifts | Stakeholder Generated | Long-term stakeholder changes |
+| Future Challenge Generation | System Generated | Next challenge triggers |
+
+#### 🎯 CAPTURE Gate 7  *(Evolve)*
+
+| Element | Origin | Description |
+| --- | --- | --- |
+| Stakeholder Satisfaction | Stakeholder Generated | Power-weighted stakeholder alignment |
+| Metrics | Shared / Derived State | Final MLOps metric state |
+| Gate Evaluation | System Generated | Determines CAPTURE evolution path |
+| Evolution Path | System Generated | 7a–7e outcome classification |
+| Cycle Continuation | User Interactable | Starting the next CAPTURE cycle |
+
+### 🔁 **Core Gameplay Loop**
+
+The core experience revolves around a 3-phase loop that maps directly to MLOps management needs and the CAPTURE lifecycle.
+
+```jsx
++-----------------------------------------------------------------------+
+| ANALYZE PHASE (Offline Intel Gathering)   CAPTURE: Consult & Protocol |
+|                                                                       |
+|   - Uncover raw artifacts (Slack, Mails, Budgets)                     |
+|   - Tag Snippets into Stakeholder-Specific Intel (Dossier Items)      |
+|   - Map Stakeholder Power/Interest Alignment                          |
++-----------------------------------------------------------------------+
+                                    |
+                                    v
++-----------------------------------------------------------------------+
+| STRATEGIZE PHASE                      CAPTURE: Articulate & Terraform |
+|                                                                       |
+|   Challenge is presented to the player                                |
+|                                                                       |
+|   -- Online Intel Gathering --                                        |
+|   - Allocate Attention Tokens to Stakeholders                         |
+|   - Ask Generic/Intel-Based Questions, purchase Engagement Cards      |
+|     (gather intel on how stakeholders need to be convinced)           |
+|   - Player merges Dossier Intel Items into a Base Action Card         |
+|                                                                       |
+|   -- Pitch Debate --                                                  |
+|   - Player presents the Action Proposal (Action Card + Addendums)     |
+|   - Stakeholders raise Objections                                     |
+|   - Player matches presentation style to each stakeholder's           |
+|     Convincer Profile -> generates Action Card Addendums              |
+|   - Stakeholders react: Direct Hit / Partial Hit / Miss               |
+|   - Score is calculated -> Pass / Soft Failure / Veto                 |
++-----------------------------------------------------------------------+
+                                    |
+                                    v
++-----------------------------------------------------------------------+
+| SIMULATION PHASE                    CAPTURE: Utilize, Reify & Evolve  |
+|                                                                       | 
+|   - Simulate Metrics & Technical MLOps Impact of Actions              |
+|   - Metrics are updated                                               |
++-----------------------------------------------------------------------+
+```
+
+## 🪩 **Deep-Dive Game Mechanics**
+
+### 🧠 Stakeholder Dossier & Intel Verification
+
+- **Unverified Signals:** The system auto-adds snippets from project artifacts (Slack channels, budget sheets, email chains, incident reports) into the player's Dossier Deck. Content is partially redacted or fuzzy.
+- **Hypothesis Tagging:** Players must tag each snippet across three dimensions before it can be used:
+    1. *Domain Layer:* **Technical** (Latency/Accuracy/Drift), **Business** (Costs/SLAs/Scope), or **Human/Political** (Autonomy/Status/Burnout).
+    2. *Intent:* Hard Constraint (Veto Risk), Negotiable Preference, or Personal Friction.
+- **Intel Verification & Correction:**
+    - *Verification:* Spend **1 Attention Token** in the Pre-Phase to verify and un-redact an item.
+    - *Mid-Interview Pivot:* If a player asks an Intel-Based Question derived from a mis-tagged item, the stakeholder pushes back. The item is flagged as "Hypothesis Refuted," allowing an instant free re-tag at the cost of the token spent and a minor trust penalty.
+    - *Retrospective Audit:* Mis-tagged items can be audited during the Pivot Gate using saved tokens or team velocity.
+    - *Cross-Referencing:* Connecting two related dossier items auto-corrects tags for free.
+
+### 👥 Stakeholder Personas
+
+Stakeholder personas are LLM agents with a set of individual requirements, responsibilities, and priorities. They additionally posses a level of power and interest in relation to the current challenge. 
+The stakeholder’s emotions are modelled by a set of emotion metrics like stress, trust, or engagement. These emotion metrics persist across rounds and change constantly based on the stakeholder’s approval of the conversation. The emotion metrics result in the stakeholder’s emotional state. For instance, hight trust + high engagement +low stress leads to the state “confident” which influences how a stakeholder communicates and reacts to action proposals.  
+
+**Stakeholder Reactions to MLOps Actions**
+
+High power stakeholders can veto action proposals, which necessitates sufficient stakeholder aligment. Low power stakeholder cannot veto action cards, but may escalate or sabotage their execution if they are neglected. Given an action proposal in the form of an action card + a set of addendums, stakeholders can:
+
+- **Agree:** Alignment with personal agendas and project constraints.
+- **Slightly Disagree:** Requires minor concessions or causes a small trust penalty if ignored.
+- **Soft Failure:** A low power stakeholder rejects the idea and sabotages the implementation without vetoing it, resulting in only partial realisation
+- **Veto:** Hard stop on the action. The action cannot execute unless the Veto is cleared via an **Action Addendum** or bypassed via an **Escalation Card**.
+
+### 📊 Action Proposal Implementation & Technical Debt Simulation
+
+Once an **Action Proposal** has successfully passed the Pitch Debate, it enters the **Simulation Phase**, where the backend computes both its immediate implementation effects and its long-term consequences on the simulated MLOps environment. The simulation therefore represents not only *whether* an action was approved, but also *how successfully* it is executed given stakeholder commitment and the existing technical landscape.
+
+### 🕸️ Environment Graph
+
+The backend maintains the complete MLOps project as a directed graph.
+
+- **Nodes** represent MLOps components (e.g., Feature Store, Model Registry, CI/CD Pipeline) which were formalized by Kreuzberger et al.
+- **Edges** represent technical workflows or dependencies (training pipelines, deployment pipelines, lineage links, monitoring feedback loops, etc.).
+- Every node and edge has an implementation state:
+    - **Planned**
+    - **Realized**
+
+Components additionally contain project artifacts such as datasets, models, features, experiments, or deployment configurations.
+
+The graph therefore represents the current technical maturity of the entire MLOps project rather than merely the current challenge.
+
+---
+
+### ⚙️ Step 1 - Action Simulation
+
+Action Proposals represent modifications to one or more components or edges within the Environment Graph.
+
+Examples:
+
+| Action Proposal | Graph Modification |
+| --- | --- |
+| Implement Feature Store | Create Feature Store node → Realized |
+| Introduce Model Registry | Create Model Registry node → Realized |
+| Deploy Model | Create Serving workflow between Registry and Serving |
+| Add Monitoring Dashboard | Create Monitoring Component and feedback edge |
+| Automate Training Pipeline | Connect CI/CD → Training Infrastructure |
+
+---
+
+### 👥 Step 2 - Stakeholder Execution Simulation
+
+Accepted Action Cards are not guaranteed to be implemented perfectly - the implementation quality depends on the involved stakeholders’ satisfaction. 
+
+| Stakeholder State | Simulation Effect |
+| --- | --- |
+| Committed | Implements assigned work completely |
+| Resistant (Low Power) | Partial implementation (Soft Failure) |
+| Resistant (High Power) | Already prevented during Pitch Debate (Veto) |
+
+Partial implementation may result in
+
+- missing workflow edges,
+- skipped addendums,
+- incomplete automation,
+- missing metadata,
+- delayed deployment,
+- reduced monitoring coverage.
+
+Consequently, the realized Environment Graph may differ from the originally approved Action Proposal. This extends the simulation of flawless versus sabotaged implementations described earlier into concrete graph changes.
+
+---
+
+### 📈 Step 3 - Metric Simulation
+
+After the graph has been updated, project metrics are recalculated.
+
+Each graph component contributes positively or negatively to one or more project metrics.
+
+Example relationships:
+
+| Component | Primary Metric Influence |
+| --- | --- |
+| Feature Store | Data, Efficiency |
+| CI/CD | Automation, Reliability |
+| Model Registry | Reliability |
+| Monitoring | Reliability |
+| Serving | Efficiency |
+| Training Infrastructure | Model |
+
+Action Cards therefore rarely improve every metric simultaneously.
+
+Example:
+
+> **Increase Retraining Frequency from Monthly to Daily**
+> 
+
+Effects:
+
+- ↑ Model (fresher models adapt more quickly to changing data)
+- ↑ Automation (greater value from automated pipelines)
+- ↓ Efficiency (higher compute and infrastructure costs)
+
+---
+
+### ⏳ Technical Debt
+
+The effects of an accepted Action Proposal are not limited to the current challenge. As the Environment Graph evolves over time, some challenges are chosen based on its current technical state.
+
+The backend continuously analyzes the graph for architectural weaknesses in the form of predefined graph-antipatterns. These may arise because stakeholders rejected parts of an Action Proposal, implementation was only partially successful, or strategic trade-offs postponed infrastructure improvements.
+
+Examples include:
+
+|  Graph Antipattern | Possible Future Challenge |
+| --- | --- |
+| Model Serving realized, Monitoring still planned | Undetected Model Drift |
+| Multiple deployed models, Model Registry still planned | Model Version Confusion |
+| Automated training without Metadata Store | Irreproducible Training Run |
+| Production deployment without CI/CD automation | Deployment Failure |
+| Duplicated feature engineering across pipelines | Feature Inconsistency |
+| Increasing workflow complexity with manual hand-offs | Pipeline Refactoring Required |
+
+As a result, players experience how seemingly reasonable short-term compromises may create architectural weaknesses that only become apparent in later lifecycle phases. 
+
+---
+
+### 🔁 Environment Evolution
+
+As the game focuses on MLOps challenges and stakeholder engagement, we do not want players to spend time implementing universally accepted best practices such as setting up a Source Code Repository or creating a Model Registry. Instead, the Environment Graph evolves automatically as the project progresses through its lifecycle. At the beginning of each challenge, the backend updates the graph to reflect the technical context in which the challenge occurs, automatically realizing the components and workflows that would reasonably exist at that stage of an MLOps project.
+
+For example, the challenge **"The Entanglement Problem"** is introduced as follows:
+
+> *"With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system."*
+> 
+
+Before the challenge begins, the backend advances the Environment Graph to this stage of the project. The **Source Code Repository**, **Workflow Orchestration Component**, and **Model Training Infrastructure** are marked as **realized**, while the corresponding data ingestion, training workflows and artifacts are created automatically. Components associated with later lifecycle stages—such as **Model Serving**, **Monitoring**, or parts of the deployment infrastructure—remain **planned**. 
+
+### 🎯 CAPTURE Gate 7 (Pivot / Adaptation Gate)
+
+By playing through all phases and challenges of the game sequentially, the player has traversed one **one CAPTURE cycle**. This allows us to map the evaluation of the serious game playthrough to the CAPTURE `EVOLVE` phase looking back at the entire playthrough as accumulated evidence, rather than judging any single decision in isolation. 
+
+In capture, the progression after the EVOLVE phase is determined as follows:
+
+!grafik.png
+
+We can can adapt this logic to our game by computing the CAPTURE quality metrics from our serious game environment as follows:
+
+- **Stakeholder Satisfaction (`s_stakeholder`)** — power-weighted average of final Satisfaction values across all stakeholders encountered.
+- **Metric Compliance (`r_KPI`)** — how many of the six project Metrics (Model, Data, Requirements, Automation, Reliability, Efficiency) ended within their target range.
+- **Change Scope (`Δr`)** — derived from the Environment Graph: the proportion of components still marked `planned` rather than `realized`, especially those tied to Soft Failures or overridden Vetoes. A high proportion signals that requirements or infrastructure never actually stabilized.
+- **Drift Magnitude (`d_drift`)** — accumulated Delayed Technical Debt flags attached to `realized` components that were built on compromised Action Proposals (e.g., addendums that cleared an objection but introduced latent risk).
+
+This results in the following logic regarding player feedback after a playthrough:
+
+| Path | Trigger | Result |
+| --- | --- | --- |
+| **7d — Continuous Monitoring** | No significant drift, no unresolved requirement gaps | **Win** — the project reached a stable, sustainable state |
+| **7b — Minor Iteration** | Requirements partially unstable, but stakeholders remain aligned | **Win, with debt** — the project succeeded but leaves refinement work for a next cycle |
+| **7c — Model Update** | Drift/technical debt exceeds threshold, but infrastructure & stakeholder alignment hold | **Win, with debt** — technical rework needed, but the foundation is sound |
+| **7a — Major Iteration** | Change scope too large — fundamental assumptions or stakeholder landscape misjudged | **Loss** — the project would require restarting from Consult |
+| **7e — Retirement** | Stakeholder satisfaction or metric compliance below viability threshold | **Loss** — the project is not viable to continue |
+
+Following CAPTURE, the EVOLVE phase does not mark the end of the game. Instead, players may begin the next cycle, with their starting point determined by the outcome of the previous cycle’s EVOLVE phase.
+
+```mermaid
+flowchart TD
+    classDef exec fill:#ede7f6,stroke:#512da8,stroke-width:2px;
+    classDef sim fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef gate fill:#fff8e1,stroke:#f57f17,stroke-width:2px;
+
+    linkStyle default stroke:#000,stroke-width:2px;
+
+    Proposal["<strong>⚙️ Accepted Action Proposal</strong>"]
+        --> Engine["<strong>🖥️ Environment Graph Backend</strong>"]
+
+    subgraph GRAPH_SIM ["<strong>Graph & Metric Execution</strong>"]
+
+        GraphMod["<strong>🕸️ Nodes & Workflow Edges Updated</strong><br/><span style='color:#000;'>(Planned → Realized)</span>"]
+
+        SabotageCheck{"<strong>Stakeholders</strong><br/><span style='color:#000;'>Committed?</span>"}
+
+        GraphMod --> SabotageCheck
+
+        SabotageCheck -- "<strong>Committed</strong>" -->
+            FullImpl["<strong>✅ Flawless Graph Implementation</strong>"]
+
+        SabotageCheck -- "<strong>Resistant</strong><br/><span style='color:#000;'>(Low Power)</span>" -->
+            PartialImpl["<strong>⚠️ Partial Implementation</strong><br/><span style='color:#000;'>(e.g. Missing Edges or Metadata)</span>"]
+
+        FullImpl & PartialImpl -->
+            Metrics["<strong>📊 Project Health Metrics Updated</strong>"]
+
+        PartialImpl -->
+            AntiPatterns["<strong>⚠️ Graph Antipatterns Triggered</strong><br/><span style='color:#000;'>(Technical Debt)</span>"]
+
+    end
+
+    Engine --> GRAPH_SIM
+
+    Metrics & AntiPatterns -->
+        Gate7["<strong>🚪 CAPTURE Gate 7</strong><br/><span style='color:#000;'>(EVOLVE Phase)</span>"]
+
+    subgraph GATE_OPTIONS ["<strong>CAPTURE Gate 7 Outcomes</strong>"]
+
+        G7d["<strong>🚀 7d: Continuous Monitoring</strong><br/><span style='color:#000;'>Win</span>"]
+
+        G7b["<strong>📐 7b: Minor Iteration</strong><br/><span style='color:#000;'>Win with Technical Debt</span>"]
+
+        G7c["<strong>🔧 7c: Model Update</strong><br/><span style='color:#000;'>Win with Technical Debt</span>"]
+
+        G7a["<strong>🔄 7a: Major Iteration</strong><br/><span style='color:#000;'>Loss – Reset to Consult</span>"]
+
+        G7e["<strong>🛑 7e: Retirement</strong><br/><span style='color:#000;'>Loss – System Unviable</span>"]
+
+    end
+
+    Gate7 --> G7d & G7b & G7c & G7a & G7e
+
+    class Proposal,Engine exec;
+    class GraphMod,SabotageCheck,FullImpl,PartialImpl,Metrics,AntiPatterns sim;
+    class Gate7,G7a,G7b,G7c,G7d,G7e gate;
+```
