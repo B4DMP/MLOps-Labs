@@ -41,10 +41,9 @@ def main() -> None:
             for q in questions:
                 response= asyncio.run(run_stakeholder_graph(StakeholderFactory.get_stakeholder(st).name,f"Hello {StakeholderFactory.get_stakeholder(st).name}, it is requried that you and ONLY YOU answer the following question: {q['question']}"))
                 print(f" Question: {q} \n Response: {response}")
-                try:
-                    response=response.split("]",2)[1]
-                finally:
-                    q_a.append({"question":q["question"], "answer":response})
+                if "]" in response:
+                    response = response.split("]", 1)[1].strip()
+                q_a.append({"question": q["question"], "answer": response})
             #store question response pairs
             st_rag_path = data_dir / "stakeholder_extraction_data" / StakeholderFactory.get_stakeholder(st).name / "personaLTM.txt"
             os.makedirs(st_rag_path.parent, exist_ok=True)

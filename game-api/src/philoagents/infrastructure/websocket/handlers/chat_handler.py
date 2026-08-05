@@ -23,13 +23,13 @@ async def handle_chat_message(
         json_response = []
         action_cards = []
         st_index_str = ""
-        for s_id in StakeholderFactory.get_available_stakeholders():
-            st = StakeholderFactory.get_stakeholder(s_id)
-            if state["messages"][-1].content.startswith(f"[{st.division}-{st.name}]"):
-                st_index_str = st.id
-                break
+        last_msg_content = state["messages"][-1].content
+        if last_msg_content.startswith("[") and "]" in last_msg_content:
+            st_index_str = last_msg_content.split("]", 1)[0].lstrip("[")
+            content = last_msg_content.split("]", 1)[1].lstrip()
+        else:
+            content = last_msg_content
 
-        content = state["messages"][-1].content.split("]", 1)[1].lstrip() if "]" in state["messages"][-1].content else state["messages"][-1].content
         json_response.append({"message": content, "stakeholder_id": st_index_str})
 
         if "action_cards" in state:

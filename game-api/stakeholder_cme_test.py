@@ -371,7 +371,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     )
 
     named_response = AIMessage(
-        content=f"[{st.division}-{st.name}] {response.content}",
+        content=f"[{st.id}] {response.content}",
         additional_kwargs={
             **response.additional_kwargs,
             "emotion_values": st_emotion_values.model_dump(),
@@ -614,11 +614,17 @@ async def stakeholder_cme_test():
             m_content = m.get("content", "") if isinstance(m, dict) else getattr(m, "content", "")
             m_content_safe = m_content.encode('ascii', errors='replace').decode('ascii')
             
-            match = re.match(r"^\[(.*)-(.*)\]\s*(.*)$", m_content_safe, re.DOTALL)
+            match = re.match(r"^\[(.*?)\]\s*(.*)$", m_content_safe, re.DOTALL)
             if match:
-                division, name, message = match.groups()
-                division = division.strip()
-                name = name.strip()
+                st_id_parsed, message = match.groups()
+                st_id_parsed = st_id_parsed.strip()
+                try:
+                    st_obj = StakeholderFactory.get_stakeholder(st_id_parsed)
+                    division = st_obj.division
+                    name = st_obj.name
+                except Exception:
+                    name = st_id_parsed
+                    division = "Stakeholder"
                 
                 add_kwargs = getattr(m, "additional_kwargs", {}) or {}
                 ev_dict = add_kwargs.get("emotion_values")
@@ -627,7 +633,7 @@ async def stakeholder_cme_test():
                 if ev_dict and delta_dict:
                     st_ev = EmotionValues(**ev_dict)
                     current_emotion = derive_emotional_state(st_ev)
-                    color = determine_stakeholder_color(name)
+                    color = determine_stakeholder_color(st_id_parsed)
                     
                     print(f"{DARK_GRAY}────────────────────────────────────────────────────────────{RESET}")
                     print(f"{BRIGHT_CYAN}📊 Emotion State & Changes for {color}{name}{RESET}{BRIGHT_CYAN} ({division}):{RESET}")
@@ -655,10 +661,9 @@ async def stakeholder_cme_test():
                     print(f"{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
                 else:
                     emotion_values_map = output_state.get("emotion_values", {})
-                    st_id = next((k for k in emotion_values_map.keys() if name.lower() in k.replace('_', ' ')), name)
-                    st_emotion_values = emotion_values_map.get(st_id, emotion_values_map.get(name, EmotionValues()))
+                    st_emotion_values = emotion_values_map.get(st_id_parsed, EmotionValues())
                     current_emotion = derive_emotional_state(st_emotion_values)
-                    color = determine_stakeholder_color(name)
+                    color = determine_stakeholder_color(st_id_parsed)
                     print(f"\n{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
 
             elif m_content_safe.strip():

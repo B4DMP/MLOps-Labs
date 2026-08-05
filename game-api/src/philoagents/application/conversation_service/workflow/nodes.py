@@ -62,7 +62,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     )
 
     named_response = AIMessage(
-        content=f"[{st.division}-{st.name}] {response.content}",
+        content=f"[{st.id}] {response.content}",
         additional_kwargs=response.additional_kwargs,
         response_metadata=response.response_metadata,
         id=response.id,
