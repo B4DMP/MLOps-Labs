@@ -60,7 +60,7 @@ async def reset_thread(thread_id: str):
 BLACK = '\033[30m'
 RED = '\033[31m'
 GREEN = '\033[32m'
-YELLOW = '\033[33m' # orange on some systems
+YELLOW = '\033[33m' 
 BLUE = '\033[34m'
 MAGENTA = '\033[35m'
 CYAN = '\033[36m'
@@ -105,8 +105,7 @@ def determine_stakeholder_color(stakeholder: str):
     available_ids = StakeholderFactory.get_available_stakeholders()
     index=0
     for i in range(len(StakeholderFactory.get_available_stakeholders())):
-        #only compares the first few characters, dirty fix (change routing)
-        if StakeholderFactory.get_available_stakeholders()[i][:4]==stakeholder[:4]:
+        if StakeholderFactory.get_available_stakeholders()[i]==stakeholder:
            index=i
            break
 
