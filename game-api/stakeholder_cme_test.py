@@ -236,6 +236,26 @@ class ChallengeState(MessagesState):
     emotion_deltas: dict[str, EmotionDelta]
 
 
+def format_message_for_eval(m) -> str:
+    m_type = type(m).__name__
+    m_content = getattr(m, "content", str(m))
+    if m_type == "HumanMessage" or getattr(m, "type", "") == "human":
+        return f"User: {m_content}"
+    elif m_type == "AIMessage" or getattr(m, "type", "") == "ai":
+        match = re.match(r"^\[(.*?)\]\s*(.*)$", m_content, re.DOTALL)
+        if match:
+            st_id_parsed, text = match.groups()
+            try:
+                st_obj = StakeholderFactory.get_stakeholder(st_id_parsed.strip())
+                return f"{st_obj.name} ({st_obj.division}): {text}"
+            except Exception:
+                return f"{st_id_parsed}: {text}"
+        return f"Stakeholder: {m_content}"
+    elif m_type == "ToolMessage":
+        return f"Tool Output: {m_content}"
+    return str(m_content)
+
+
 def get_emotion_evaluator_chain():
     model = get_chat_model()
     structured_model = model.with_structured_output(EmotionDelta)
@@ -245,15 +265,22 @@ def get_emotion_evaluator_chain():
             (
                 "system",
                 "You are an expert psychological appraisal engine for stakeholders in an MLOps serious game.\n"
-                "Analyze ONLY the latest incoming user message provided below. Determine how this message changes the targeted stakeholder's emotional values.\n"
-                "Do NOT consider existing emotion values. Evaluate strictly based on the tone, content, fairness, pressure, and risk implied in the message.\n"
+                "Analyze all NEW MESSAGES THAT OCCURRED SINCE THIS STAKEHOLDER LAST PARTICIPATED in the conversation (provided below).\n"
+                "Use the provided prior conversation history strictly for context to understand the dialogue background.\n"
+                "Evaluate the net emotional impact of ONLY the new messages on tone, content, fairness, procedural justice, pressure, and risk.\n"
+                "Pay close attention to disrespect, exclusion of team members, broken agreements, or risky decisions in the new messages.\n"
+                "Do NOT consider existing numeric emotion values.\n\n"
                 "Target Stakeholder: {{stakeholder_name}} ({{stakeholder_division}})\n"
                 "Responsibilities: {{stakeholder_responsibilities}}\n"
                 "Priorities: {{stakeholder_priorities}}\n"
                 "Challenge Context: {{challenge}}\n\n"
-                "Output emotional deltas between -0.3 (strong negative impact) and +0.3 (strong positive impact) for each psychological dimension.",
+                "Output emotional deltas between -0.5 (strong negative impact) and +0.5 (strong positive impact) for each psychological dimension.",
             ),
-            ("human", "Latest User Message:\n{{last_message}}"),
+            (
+                "human",
+                "Prior Conversation History:\n{{history}}\n\n"
+                "New Messages Since Stakeholder Last Participated (Evaluate these for emotional impact):\n{{new_messages}}",
+            ),
         ],
         template_format="jinja2",
     )
@@ -265,13 +292,27 @@ async def emotion_node(state: ChallengeState, config: RunnableConfig):
     if not messages:
         return {}
 
-    # Extract strictly the last message
-    last_msg = messages[-1]
-    last_message_content = last_msg.content if hasattr(last_msg, "content") else str(last_msg)
-
     stakeholder_ids = state.get("stakeholder_ids", [])
     stakeholder_id = stakeholder_ids[-1] if stakeholder_ids else "willis_slif_business_manager"
     st = StakeholderFactory.get_stakeholder(stakeholder_id)
+
+    # Find the index of the last message produced by this specific stakeholder
+    last_st_index = -1
+    for i, m in enumerate(messages):
+        m_content = getattr(m, "content", "")
+        if isinstance(m_content, str) and m_content.startswith(f"[{st.id}]"):
+            last_st_index = i
+
+    # Messages up to last_st_index serve as prior history context
+    history_msgs = messages[: last_st_index + 1] if last_st_index != -1 else []
+    # Messages after last_st_index are the new messages to evaluate
+    new_msgs = messages[last_st_index + 1 :] if last_st_index != -1 else messages
+
+    if not new_msgs:
+        return {}
+
+    history_str = "\n".join([format_message_for_eval(m) for m in history_msgs]) if history_msgs else "(No prior conversation history)"
+    new_msgs_str = "\n".join([format_message_for_eval(m) for m in new_msgs])
 
     _split = state["challenge"].split("#")
     challenge_text = "".join(_split)
@@ -279,7 +320,8 @@ async def emotion_node(state: ChallengeState, config: RunnableConfig):
     chain = get_emotion_evaluator_chain()
     delta: EmotionDelta = await chain.ainvoke(
         {
-            "last_message": last_message_content,
+            "history": history_str,
+            "new_messages": new_msgs_str,
             "stakeholder_name": st.name,
             "stakeholder_division": st.division,
             "stakeholder_responsibilities": st.responsibilities,
@@ -560,10 +602,44 @@ async def stakeholder_cme_test():
         "willis_slif_business_manager",
         "mathis_berger_operational_engineer",
     ]
-    initial_emotion_values = {st_id: EmotionValues() for st_id in selectionmask}
+    
+    # Manually set initial emotion values for involved stakeholders to reflect challenge context ("Model Accuracy Drops")
+    initial_emotion_values = {
+        "willis_slif_business_manager": EmotionValues(
+            trust=0.45,
+            interest=0.85,
+            stress=0.75,
+            confidence=0.35,
+            perceived_risk=0.70,
+            sense_of_control=0.35,
+            fairness=0.50,
+        ),
+        "mathis_berger_operational_engineer": EmotionValues(
+            trust=0.35,
+            interest=0.75,
+            stress=0.65,
+            confidence=0.50,
+            perceived_risk=0.65,
+            sense_of_control=0.40,
+            fairness=0.35,
+        ),
+    }
 
     cursor = 0
     print('\n Starting Stakeholder CME Chat Live Test. Write "exit" to stop. \n')
+    print("Initial Stakeholder Emotional States:")
+    for st_id, ev in initial_emotion_values.items():
+        try:
+            st_obj = StakeholderFactory.get_stakeholder(st_id)
+            st_name = st_obj.name
+            st_div = st_obj.division
+        except Exception:
+            st_name = st_id
+            st_div = "Stakeholder"
+        emo = derive_emotional_state(ev)
+        color = determine_stakeholder_color(st_id)
+        print(f"  • {color}{st_name}{RESET} ({st_div}): Initial Emotion -> {BRIGHT_MAGENTA}{emo}{RESET}")
+    print()
 
     while True:
         msg = input('Enter message to stakeholder chat:\n')
