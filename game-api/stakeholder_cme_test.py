@@ -345,18 +345,18 @@ CONVINCER_ITEM_WILLIS_1 = StakeholderIntelItem(
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
     correct_layer=StakeholderIntelItemLayer.BUSINESS,
     correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
-    correct_description="Willis requires strict quarterly infrastructure budget limits and immediate ROI projections before approving model redeployment.",
-    categorized_description="Willis requires strict quarterly infrastructure budget limits and immediate ROI projections before approving model redeployment."
+    correct_description="Willis requires a clear cost-benefit assessment and ROI projection before committing resources to model retraining, refusing unbudgeted rapid retraining cycles.",
+    categorized_description="Willis requires a clear cost-benefit assessment and ROI projection before committing resources to model retraining, refusing unbudgeted rapid retraining cycles."
 )
 
 CONVINCER_ITEM_WILLIS_2 = StakeholderIntelItem(
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
-    categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
+    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
     correct_layer=StakeholderIntelItemLayer.BUSINESS,
-    correct_intent=StakeholderIntelItemIntent.PREFERENCE,
-    correct_description="Willis prefers bi-weekly executive summaries showing SLA uptime and customer impact metrics.",
-    categorized_description="Willis prefers bi-weekly executive summaries showing SLA uptime and customer impact metrics."
+    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_description="Willis requires automated rollback triggers and real-time SLA uptime dashboards to ensure drift-related accuracy loss does not cause unmonitored business revenue degradation.",
+    categorized_description="Willis requires automated rollback triggers and real-time SLA uptime dashboards to ensure drift-related accuracy loss does not cause unmonitored business revenue degradation."
 )
 
 CONVINCER_ITEM_MATHIS_1 = StakeholderIntelItem(
@@ -365,68 +365,102 @@ CONVINCER_ITEM_MATHIS_1 = StakeholderIntelItem(
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
     correct_layer=StakeholderIntelItemLayer.TECHNICAL,
     correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
-    correct_description="Mathis mandates that automated retraining pipelines must pass sub-200ms latency benchmarks and zero-downtime deployment checks.",
-    categorized_description="Mathis mandates that automated retraining pipelines must pass sub-200ms latency benchmarks and zero-downtime deployment checks."
+    correct_description="Mathis mandates root-cause data drift diagnosis and automated pre-deployment validation checks before any retrained model image is pushed to production.",
+    categorized_description="Mathis mandates root-cause data drift diagnosis and automated pre-deployment validation checks before any retrained model image is pushed to production."
 )
 
 CONVINCER_ITEM_MATHIS_2 = StakeholderIntelItem(
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
+    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_layer=StakeholderIntelItemLayer.TECHNICAL,
+    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_description="Mathis mandates sub-200ms inference latency benchmarks and zero-downtime regression testing to ensure retraining does not compromise pipeline stability.",
+    categorized_description="Mathis mandates sub-200ms inference latency benchmarks and zero-downtime regression testing to ensure retraining does not compromise pipeline stability."
+)
+
+WILLIS_PREFERENCE_1 = StakeholderIntelItem(
+    stakeholder_id="willis_slif_business_manager",
+    categorized_layer=StakeholderIntelItemLayer.BUSINESS,
+    categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
+    correct_layer=StakeholderIntelItemLayer.BUSINESS,
+    correct_intent=StakeholderIntelItemIntent.PREFERENCE,
+    correct_description="Willis prefers bi-weekly executive summaries showing SLA uptime and customer impact metrics over technical data pipeline logs.",
+    categorized_description="Willis prefers bi-weekly executive summaries showing SLA uptime and customer impact metrics over technical data pipeline logs."
+)
+
+MATHIS_PREFERENCE_1 = StakeholderIntelItem(
+    stakeholder_id="mathis_berger_operational_engineer",
+    categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
     correct_layer=StakeholderIntelItemLayer.TECHNICAL,
     correct_intent=StakeholderIntelItemIntent.PREFERENCE,
-    correct_description="Mathis prefers open-source Prometheus/Grafana monitoring over proprietary vendor SaaS platforms.",
-    categorized_description="Mathis prefers open-source Prometheus/Grafana monitoring over proprietary vendor SaaS platforms."
+    correct_description="Mathis prefers open-source Prometheus/Grafana drift monitoring dashboards over proprietary SaaS platforms.",
+    categorized_description="Mathis prefers open-source Prometheus/Grafana drift monitoring dashboards over proprietary SaaS platforms."
 )
 
-STAKEHOLDER_CONVINCER_PROFILES: dict[str, list[StakeholderIntelItem]] = {
-    "willis_slif_business_manager": [CONVINCER_ITEM_WILLIS_1, CONVINCER_ITEM_WILLIS_2],
-    "mathis_berger_operational_engineer": [CONVINCER_ITEM_MATHIS_1, CONVINCER_ITEM_MATHIS_2],
-}
+WILLIS_MISCATEGORIZED_1 = StakeholderIntelItem(
+    stakeholder_id="willis_slif_business_manager",
+    categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
+    categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
+    correct_layer=StakeholderIntelItemLayer.BUSINESS,
+    correct_intent=StakeholderIntelItemIntent.PREFERENCE,
+    correct_description="Willis prioritizes financial risk controls and SLA reports over low-level infrastructure code reviews.",
+    categorized_description="Willis insists that data engineers manually review memory allocation on model-serving nodes before retraining."
+)
+
+WILLIS_MISCATEGORIZED_2 = StakeholderIntelItem(
+    stakeholder_id="willis_slif_business_manager",
+    categorized_layer=StakeholderIntelItemLayer.BUSINESS,
+    categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
+    correct_layer=StakeholderIntelItemLayer.BUSINESS,
+    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_description="Willis requires strict financial audit gates before model redeployment to ensure corporate compliance.",
+    categorized_description="Willis holds a deep personal grudge against the data science team and actively tries to block their retraining proposals."
+)
+
+MATHIS_MISCATEGORIZED_1 = StakeholderIntelItem(
+    stakeholder_id="mathis_berger_operational_engineer",
+    categorized_layer=StakeholderIntelItemLayer.POLITICAL,
+    categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
+    correct_layer=StakeholderIntelItemLayer.TECHNICAL,
+    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_description="Mathis requires strict container security vulnerability scans before any image is pushed to production.",
+    categorized_description="Mathis enforces container security vulnerability scans purely to undermine executive authority."
+)
+
+MATHIS_MISCATEGORIZED_2 = StakeholderIntelItem(
+    stakeholder_id="mathis_berger_operational_engineer",
+    categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
+    categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
+    correct_layer=StakeholderIntelItemLayer.TECHNICAL,
+    correct_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
+    correct_description="Mathis experiences severe frustration when unvalidated hotfixes are deployed directly to production environments.",
+    categorized_description="Mathis experiences severe frustration when unvalidated hotfixes are deployed directly to production environments."
+)
 
 GENERAL_INTEL_ITEMS: list[StakeholderIntelItem] = [
     CONVINCER_ITEM_WILLIS_1,
     CONVINCER_ITEM_WILLIS_2,
+    WILLIS_PREFERENCE_1,
     CONVINCER_ITEM_MATHIS_1,
     CONVINCER_ITEM_MATHIS_2,
-
-    StakeholderIntelItem(
-        stakeholder_id="willis_slif_business_manager",
-        categorized_layer=StakeholderIntelItemLayer.TECHNICAL,  # Wrong layer
-        categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
-        correct_layer=StakeholderIntelItemLayer.BUSINESS,
-        correct_intent=StakeholderIntelItemIntent.PREFERENCE,
-        correct_description="Willis prioritizes commercial SLA reports and financial returns over low-level technical infrastructure logs.",
-        categorized_description="Willis insists that data scientists manually review C++ memory allocations for model serving nodes."
-    ),
-    StakeholderIntelItem(
-        stakeholder_id="willis_slif_business_manager",
-        categorized_layer=StakeholderIntelItemLayer.BUSINESS,
-        categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,  # Wrong intent
-        correct_layer=StakeholderIntelItemLayer.BUSINESS,
-        correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
-        correct_description="Willis requires strict financial audit gates to ensure compliance with corporate governance policies.",
-        categorized_description="Willis holds a deep personal grudge against the data science team and actively tries to block their proposals."
-    ),
-    StakeholderIntelItem(
-        stakeholder_id="mathis_berger_operational_engineer",
-        categorized_layer=StakeholderIntelItemLayer.POLITICAL,  # Wrong layer
-        categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,  # Wrong intent
-        correct_layer=StakeholderIntelItemLayer.TECHNICAL,
-        correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
-        correct_description="Mathis requires strict container security vulnerability scans before any image is pushed to production.",
-        categorized_description="Mathis enforces container security scans purely to undermine the business manager's executive authority."
-    ),
-    StakeholderIntelItem(
-        stakeholder_id="mathis_berger_operational_engineer",
-        categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
-        categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
-        correct_layer=StakeholderIntelItemLayer.TECHNICAL,
-        correct_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
-        correct_description="Mathis experiences severe frustration when data scientists deploy unvalidated hotfixes directly to production environments.",
-        categorized_description="Mathis experiences severe frustration when data scientists deploy unvalidated hotfixes directly to production environments."
-    )
+    MATHIS_PREFERENCE_1,
+    WILLIS_MISCATEGORIZED_1,
+    WILLIS_MISCATEGORIZED_2,
+    MATHIS_MISCATEGORIZED_1,
+    MATHIS_MISCATEGORIZED_2,
 ]
+
+# Convincer profiles dynamically built from ALL intel items of type HARD_CONSTRAINT
+STAKEHOLDER_CONVINCER_PROFILES: dict[str, list[StakeholderIntelItem]] = {}
+for _item in GENERAL_INTEL_ITEMS:
+    if _item.correct_intent == StakeholderIntelItemIntent.HARD_CONSTRAINT:
+        _st_id = _item.stakeholder_id
+        if _st_id not in STAKEHOLDER_CONVINCER_PROFILES:
+            STAKEHOLDER_CONVINCER_PROFILES[_st_id] = []
+        if _item not in STAKEHOLDER_CONVINCER_PROFILES[_st_id]:
+            STAKEHOLDER_CONVINCER_PROFILES[_st_id].append(_item)
 
 
 class ChallengeState(MessagesState):
@@ -653,18 +687,28 @@ async def emotion_node(state: ChallengeState, config: RunnableConfig):
     }
 
 
+STAKEHOLDER_CHARACTER_CARD_APPENDIX = """
+ADDITIONAL GAME RULES & SECRECY DIRECTIVES:
+1. USER IDENTITY: The Human user sending messages in the chat is the MLOps Project Manager leading the meeting. Other names in the conversation history (e.g. Willis, Mathis) are your fellow colleagues participating in the meeting. Always respond to the Human user as the Project Manager, and refer to your colleagues in the 3rd person. NEVER call or address the Human user by a colleague's name!
+2. INTEL & REQUIREMENT SECRECY RULE: You know your underlying priorities and requirements. However, DO NOT directly state, list, or blurt out what your specific requirements/solutions are unless:
+   (a) The Project Manager has just played a dialogue option that satisfies your requirement (in which case you confirm and praise it), OR
+   (b) The Project Manager stated a false assumption about you (in which case you correct them and reveal your true requirement).
+   Otherwise, discuss your general concerns, risks, and feelings about the situation without giving away the exact solution.
+"""
+
 def get_stakeholder_response_chain():
     model = get_chat_model()
     model = model.bind_tools(tools)
-    system_message = STAKEHOLDER_CHARACTER_CARD
+    system_prompt_text = STAKEHOLDER_CHARACTER_CARD.prompt + "\n\n" + STAKEHOLDER_CHARACTER_CARD_APPENDIX
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", system_message.prompt),
+            ("system", system_prompt_text),
             MessagesPlaceholder(variable_name="messages"),
             (
                 "human",
-                "[GAME MASTER] Stakeholder {{stakeholder_name}} (Current Emotional State: {{current_emotion}}. Guidance: {{emotion_instruction}})."
+                "[GAME MASTER] Stakeholder {{stakeholder_name}} (Current Emotional State: {{current_emotion}}. Guidance: {{emotion_instruction}}).\n"
+                "You are responding directly to the MLOps Project Manager leading the meeting. Respond to the Project Manager and refer to your colleagues (e.g. Willis, Mathis) in the 3rd person if mentioning them. NEVER call the Project Manager by a colleague's name!\n"
                 "{% if intel_instruction %}\n{{intel_instruction}}\n{% endif %} DO NOT USE TOOLS!",
             ),
         ],
@@ -690,22 +734,39 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     current_emotion = derive_emotional_state(st_emotion_values)
     emotion_instruction = EMOTION_PROMPT_APPENDIX.get(current_emotion, "")
     
+    # Gather all intel items belonging to this stakeholder for private context (correct_intent + correct_description)
+    all_intel_items = list(state.get("intel_items", []) or GENERAL_INTEL_ITEMS)
+    st_intel_items = [item for item in all_intel_items if item.stakeholder_id == st.id]
+    private_intel_lines = []
+    for item in st_intel_items:
+        private_intel_lines.append(f"- [{item.correct_intent.value}]: {item.correct_description}")
+    private_intel_context = "\n".join(private_intel_lines) if private_intel_lines else "None"
+
     last_selected_intel = state.get("last_selected_intel")
     intel_instruction = ""
     if last_selected_intel and st.id == last_selected_intel.stakeholder_id:
         if not last_selected_intel.is_correct_intel():
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The player's latest response is based on MISCATEGORIZED intel!\n"
+                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The player's latest response expressed a MISCATEGORIZED intel assumption!\n"
                 f"The player falsely assumed: '{last_selected_intel.categorized_description}'\n"
-                f"Your ACTUAL requirement is: '{last_selected_intel.correct_description}'\n"
-                f"You MUST react negatively! Express confusion, frustration, or irritation at their false claim, "
-                f"explicitly correct their misunderstanding, and demand that they listen to your actual needs."
+                f"Your ACTUAL requirement is: [{last_selected_intel.correct_intent.value}] '{last_selected_intel.correct_description}'\n"
+                f"You MUST react negatively! Express frustration or irritation at their false claim, "
+                f"explicitly correct their misunderstanding, and EXPLICITLY REVEAL your actual requirement to demand that it is met."
             )
         else:
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - ACCURATE INTEL]: The player correctly addressed your priority: '{last_selected_intel.correct_description}'. "
-                f"Acknowledge their understanding positively and build on this alignment!"
+                f"[GAME MASTER SPECIAL INSTRUCTION - REQUIREMENT SATISFIED]: The player's dialogue option correctly satisfied your requirement: "
+                f"[{last_selected_intel.correct_intent.value}] '{last_selected_intel.correct_description}'.\n"
+                f"Acknowledge their understanding positively, express satisfaction/relief, and confirm that your requirement has been addressed!"
             )
+    else:
+        intel_instruction = (
+            f"[GAME MASTER SPECIAL INSTRUCTION - SECRECY RULE ACTIVE]:\n"
+            f"Your private underlying requirements and preferences are:\n{private_intel_context}\n"
+            f"DO NOT directly state, list, or blurt out what your specific requirements/solutions are yet! "
+            f"Voice your general concerns, emotional anxieties, or technical skepticism regarding the situation, but keep your specific requirements hidden "
+            f"until the Project Manager plays a dialogue option that satisfies them or addresses a misconception."
+        )
 
     conversation_chain = get_stakeholder_response_chain()
     input_messages = state["messages"]
@@ -714,6 +775,9 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     challenge_text = ""
     for i in range(len(_split)):
         challenge_text += _split[i]
+
+    # Combine static requirements with dynamic private_intel_context
+    combined_requirements = f"{st.requirements}\n\nPrivate Intel Requirements:\n{private_intel_context}"
 
     response = await conversation_chain.ainvoke(
         {
@@ -724,7 +788,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
             "stakeholder_division": st.division,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
-            "stakeholder_requirements": st.requirements,
+            "stakeholder_requirements": combined_requirements,
             "current_emotion": current_emotion,
             "emotion_instruction": emotion_instruction,
             "intel_instruction": intel_instruction,
@@ -751,13 +815,28 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     return {"messages": named_response, "stakeholder_ids": new_stakeholder_ids}
 
 
+class IntelOptionSpec(BaseModel):
+    text: str = Field(
+        description=(
+            "The intel dialogue option text in 1st person ('I', 'We') directly responding to the meeting context. "
+            "MUST explicitly address the target stakeholder BY FIRST NAME and voice, state, or act upon the specific claim, constraint, "
+            "or belief described in its corresponding assigned intel item in a clean, natural, and professional manner."
+        )
+    )
+
 class CorporateNoiseSpec(BaseModel):
-    text: str = Field(description="The corporate noise dialogue option text in 1st person ('I', 'We') directly responding to stakeholder concerns in context following the assigned archetype strategy.")
+    text: str = Field(
+        description=(
+            "The corporate noise dialogue option text in 1st person ('I', 'We') directly addressing the stakeholder's concerns "
+            "following the assigned archetype strategy. MUST stay high-level, vague, descriptive of current alignment, or reassuring "
+            "WITHOUT proposing new concrete actions, pilots, technical solutions, or process implementations."
+        )
+    )
     archetype_name: str = Field(description="The exact name of the Convincer Archetype that this option was styled after.")
 
 class GeneratedDialogueOptions(BaseModel):
-    intel_option_texts: list[str] = Field(
-        description="A list of natural dialogue options spoken by the player in 1st person ('I', 'We') that fit the meeting discussion, each EXPLICITLY expressing or stating the specific claim/belief described in its corresponding intel item."
+    intel_option_specs: list[IntelOptionSpec] = Field(
+        description="A list of intel dialogue option specs, maintaining the exact same order as the assigned Intel Items."
     )
     corporate_noise_specs: list[CorporateNoiseSpec] = Field(
         description="A list of corporate noise dialogue options, each paired with its assigned archetype name."
@@ -772,23 +851,28 @@ def get_dialogue_option_generator_chain():
             (
                 "system",
                 "You are an expert dialogue designer for an MLOps serious game.\n"
-                "Your task is to generate 4 dialogue options for the player (MLOps Project Manager) in an ongoing meeting.\n\n"
+                "Your task is to generate 4 natural, immersive dialogue options for the player (MLOps Project Manager) in an ongoing meeting.\n\n"
                 "Challenge Context: {{challenge}}\n"
+                "Active Speaker: {{active_speaker_name}}\n"
+                "LATEST STAKEHOLDER STATEMENT (Primary context to respond to):\n{{latest_statement}}\n\n"
                 "Target Stakeholder Intel Context:\n{{intel_description}}\n\n"
                 "Corporate Noise Archetype Instructions:\n{{archetype_instructions}}\n\n"
-                "CRITICAL INSTRUCTIONS FOR 'intel_option_texts':\n"
-                "1. For EACH target stakeholder intel item listed above, generate exactly 1 dialogue option spoken in 1st person ('I', 'We').\n"
-                "2. Each option MUST EXPLICITLY ADDRESS the target stakeholder BY NAME (e.g. 'Willis, ...' or 'Mathis, ...') AND MUST EXPLICITLY VOICE, STATE, OR ACT UPON the specific claim, constraint, or belief in that intel item's description!\n"
-                "3. DO NOT generate generic pleasantries or unrelated promises. The option MUST explicitly contain the target stakeholder's name and the specific intel claim!\n\n"
+                "CRITICAL INSTRUCTIONS FOR 'intel_option_specs':\n"
+                "1. Generate 1 IntelOptionSpec for EACH assigned intel item listed in 'Target Stakeholder Intel Context', maintaining the exact same order.\n"
+                "2. The dialogue option MUST explicitly address the target stakeholder BY FIRST NAME (e.g. 'Willis, ...' or 'Mathis, ...') and state, voice, or act upon the specific claim/belief described in that intel item.\n"
+                "3. The option MUST fit naturally into the conversation as a realistic, professional response to the LATEST STAKEHOLDER STATEMENT.\n"
+                "4. Keep the sentence clean, natural, and direct. DO NOT construct convoluted, accusatory, or run-on sentences. Express the claim or belief simply and naturally in 1st person ('I', 'We').\n\n"
                 "CRITICAL INSTRUCTIONS FOR 'corporate_noise_specs':\n"
-                "1. Generate 1 corporate noise spec for EACH assigned archetype listed above in 'Corporate Noise Archetype Instructions'.\n"
-                "2. Each noise option MUST directly respond to stakeholder concerns in context while strictly adopting the assigned archetype's communication strategy.\n"
-                "3. STRICT BAN ON NEW CONCRETE PROPOSALS: Do NOT introduce new technical mechanisms (e.g. no shadow deployments, rollbacks, etc.). Keep it as high-level reassurance or procedural noise.\n"
-                "4. Set 'archetype_name' to the exact name of the assigned archetype.",
+                "1. Generate 1 corporate noise spec for EACH assigned archetype listed in 'Corporate Noise Archetype Instructions'.\n"
+                "2. Each noise option MUST directly engage with the specific concern/topic raised in the LATEST STAKEHOLDER STATEMENT using the assigned archetype's communication strategy.\n"
+                "3. STRICT BAN ON PROPOSING NEW CONCRETE ACTIONS OR PILOTS: Corporate noise options MUST NOT propose new pilots, implementations, technical safeguards, tools, or new process steps. They MUST remain vague, high-level, descriptive of current alignment/status, or offer corporate reassurance without committing to new concrete actions.\n"
+                "4. STRICT BAN ON UNRELATED TOPICS: Do NOT introduce unreferenced past topics (e.g. no model drift, KL-divergence, CABs, or shadow deployments unless explicitly mentioned in the latest statement).\n"
+                "5. Set 'archetype_name' to the exact name of the assigned archetype.",
             ),
             (
                 "human",
                 "Recent Discussion History:\n{{history}}\n\n"
+                "LATEST STAKEHOLDER STATEMENT TO RESPOND TO:\n{{latest_statement}}\n\n"
                 "Generate the dialogue options now.",
             ),
         ],
@@ -804,6 +888,26 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
     _split = state.get("challenge", "").split("#")
     challenge_text = "".join(_split)
     
+    last_msg = messages[-1] if messages else None
+    if last_msg:
+        latest_statement = format_message_for_eval(last_msg)
+        content_str = getattr(last_msg, "content", str(last_msg))
+        match = re.match(r"^\[(.*?)\]\s*(.*)$", content_str, re.DOTALL)
+        if match:
+            active_speaker_id = match.group(1).strip()
+            try:
+                st_obj = StakeholderFactory.get_stakeholder(active_speaker_id)
+                active_speaker_name = st_obj.name
+            except Exception:
+                active_speaker_name = active_speaker_id
+        else:
+            active_speaker_id = None
+            active_speaker_name = "the stakeholder"
+    else:
+        latest_statement = "(Meeting started)"
+        active_speaker_id = None
+        active_speaker_name = "the stakeholder"
+
     history_msgs = messages[-6:] if len(messages) >= 6 else messages
     history_str = "\n".join([format_message_for_eval(m) for m in history_msgs]) if history_msgs else "(Meeting started)"
     
@@ -817,8 +921,14 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
                 st_name = f"{st_obj.name} ({st_obj.division})"
             except Exception:
                 st_name = item.stakeholder_id
+            
+            if active_speaker_id and item.stakeholder_id == active_speaker_id:
+                target_type = "Direct Target (Active Speaker)"
+            else:
+                target_type = f"Bridge Target (Pivot from {active_speaker_name})"
+
             intel_desc_list.append(
-                f"Intel Item {idx} (Target: {st_name}):\n"
+                f"Intel Item {idx} [{target_type} - Target: {st_name}]:\n"
                 f"  - Specific Claim/Belief to Voice: \"{item.categorized_description}\""
             )
         intel_desc = "\n\n".join(intel_desc_list)
@@ -840,6 +950,8 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
     gen_result: GeneratedDialogueOptions = await chain.ainvoke(
         {
             "challenge": challenge_text,
+            "active_speaker_name": active_speaker_name,
+            "latest_statement": latest_statement,
             "intel_description": intel_desc,
             "archetype_instructions": archetype_instructions,
             "history": history_str,
@@ -848,7 +960,8 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
     )
 
     options: list[DialogueOption] = []
-    gen_intel_texts = gen_result.intel_option_texts or []
+    intel_specs = gen_result.intel_option_specs or []
+
     for idx, item in enumerate(selected_intels):
         try:
             st_obj = StakeholderFactory.get_stakeholder(item.stakeholder_id)
@@ -856,8 +969,9 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
         except Exception:
             st_first_name = item.stakeholder_id
 
-        if idx < len(gen_intel_texts) and gen_intel_texts[idx]:
-            text = gen_intel_texts[idx]
+        text = intel_specs[idx].text if idx < len(intel_specs) else None
+
+        if text:
             if st_first_name.lower() not in text.lower():
                 text = f"{st_first_name}, {text}"
         else:
@@ -886,14 +1000,57 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
 
 
 async def custom_router_node(state: ChallengeState, config: RunnableConfig):
+    last_selected_option = state.get("last_selected_option")
     last_selected_intel = state.get("last_selected_intel")
-    if last_selected_intel:
-        # Route directly to the stakeholder that the intel item is about
+    messages = state.get("messages", [])
+
+    convincer_profiles = state.get("stakeholder_convincer_profile") or STAKEHOLDER_CONVINCER_PROFILES
+    all_stakeholders = list(convincer_profiles.keys()) if convincer_profiles else ["willis_slif_business_manager", "mathis_berger_operational_engineer"]
+
+    # Rule 1: At the beginning of the discussion (no dialogue option chosen yet), route to everyone
+    if not last_selected_option and len(messages) <= 1:
+        return {"stakeholder_ids": all_stakeholders}
+
+    # Rule 2: When an intel item-based dialogue option is chosen, route ONLY to the target stakeholder
+    if last_selected_option:
+        if last_selected_option.intel_item:
+            target_id = last_selected_option.intel_item.stakeholder_id
+            return {"stakeholder_ids": [target_id]}
+    elif last_selected_intel:
         target_id = last_selected_intel.stakeholder_id
         return {"stakeholder_ids": [target_id]}
-    
-    # Otherwise run standard router LLM chain
-    return await router_node(state, config)
+
+    # Rule 3: Corporate noise should be routed to 1) the stakeholder that wrote the last message and 2) a random different stakeholder
+    last_speaker_id = None
+    for msg in reversed(messages):
+        # Skip the current human message and find the most recent stakeholder message
+        if isinstance(msg, AIMessage) or getattr(msg, "type", "") == "ai":
+            content_str = getattr(msg, "content", str(msg))
+            match = re.match(r"^\[(.*?)\]", content_str)
+            if match:
+                last_speaker_id = match.group(1).strip()
+                break
+
+    if not last_speaker_id and len(messages) >= 2:
+        prev_msg = messages[-2]
+        content_str = getattr(prev_msg, "content", str(prev_msg))
+        match = re.match(r"^\[(.*?)\]", content_str)
+        if match:
+            last_speaker_id = match.group(1).strip()
+
+    if not last_speaker_id:
+        last_speaker_id = all_stakeholders[0] if all_stakeholders else "willis_slif_business_manager"
+
+    other_stakeholders = [st_id for st_id in all_stakeholders if st_id != last_speaker_id]
+    if other_stakeholders:
+        random_other_id = random.choice(other_stakeholders)
+        # Processed in LIFO stack order in graph: [random_other_id, last_speaker_id]
+        # pops last_speaker_id first (1), then random_other_id second (2)
+        routed_stakeholders = [random_other_id, last_speaker_id]
+    else:
+        routed_stakeholders = [last_speaker_id]
+
+    return {"stakeholder_ids": routed_stakeholders}
 
 
 def has_more_stakeholders(state: ChallengeState):
@@ -975,10 +1132,10 @@ async def generate_response_with_memory(
             input_data["intel_items"] = intel_items
         if stakeholder_convincer_profile is not None:
             input_data["stakeholder_convincer_profile"] = stakeholder_convincer_profile
-        if last_selected_intel is not None:
-            input_data["last_selected_intel"] = last_selected_intel
-        if last_selected_option is not None:
-            input_data["last_selected_option"] = last_selected_option
+        
+        # Always set last_selected_intel and last_selected_option so previous turn selections are cleared when corporate noise is played
+        input_data["last_selected_intel"] = last_selected_intel
+        input_data["last_selected_option"] = last_selected_option
 
         output_state = await graph.ainvoke(
             input=input_data,
@@ -1146,6 +1303,34 @@ async def stakeholder_cme_test():
         stakeholder_convincer_profile=current_convincer_profiles,
     )
 
+    def print_stakeholder_emotion_box(name, division, color, ev_dict, delta_dict, current_emotion):
+        dimensions = [
+            ("Trust", "trust", "trust_delta"),
+            ("Interest", "interest", "interest_delta"),
+            ("Stress", "stress", "stress_delta"),
+            ("Confidence", "confidence", "confidence_delta"),
+            ("Perceived Risk", "perceived_risk", "perceived_risk_delta"),
+            ("Sense Of Control", "sense_of_control", "sense_of_control_delta"),
+            ("Fairness", "fairness", "fairness_delta"),
+        ]
+
+        parts = []
+        for label, dim, delta_key in dimensions:
+            val = ev_dict.get(dim, 0.5) if ev_dict else 0.5
+            d_val = delta_dict.get(delta_key, 0.0) if delta_dict else 0.0
+            d_str = f"+{d_val:.2f}" if d_val > 0 else f"{d_val:.2f}"
+            d_color = BRIGHT_GREEN if d_val > 0 else (BRIGHT_RED if d_val < 0 else DARK_GRAY)
+            part = f"{LIGHT_GRAY}{label}:{RESET} {val:.2f} ({d_color}{d_str}{RESET})"
+            parts.append(part)
+
+        dims_line = f"  {DARK_GRAY}│{RESET} ".join(parts)
+        sep_line = f"{DARK_GRAY}" + ("─" * 125) + f"{RESET}"
+
+        print(sep_line)
+        print(f"{BRIGHT_CYAN}📊 Emotion State & Changes for {color}{name}{RESET}{BRIGHT_CYAN} ({division}) {DARK_GRAY}──>{RESET} {LIGHT_GRAY}Resulting Emotion:{RESET} {BRIGHT_MAGENTA}{current_emotion}{RESET}")
+        print(f"  {dims_line}")
+        print(sep_line)
+
     def print_new_responses(state, curr_cursor):
         nonlocal action_card_count
         all_messages = state.get("messages", [])
@@ -1196,37 +1381,15 @@ async def stakeholder_cme_test():
                     st_ev = EmotionValues(**ev_dict)
                     current_emotion = derive_emotional_state(st_ev)
                     color = determine_stakeholder_color(st_id_parsed)
-
-                    print(f"{DARK_GRAY}────────────────────────────────────────────────────────────{RESET}")
-                    print(f"{BRIGHT_CYAN}📊 Emotion State & Changes for {color}{name}{RESET}{BRIGHT_CYAN} ({division}):{RESET}")
-
-                    dimensions = [
-                        ("trust", "trust_delta"),
-                        ("interest", "interest_delta"),
-                        ("stress", "stress_delta"),
-                        ("confidence", "confidence_delta"),
-                        ("perceived_risk", "perceived_risk_delta"),
-                        ("sense_of_control", "sense_of_control_delta"),
-                        ("fairness", "fairness_delta"),
-                    ]
-
-                    for dim, delta_key in dimensions:
-                        val = ev_dict.get(dim, 0.5)
-                        d_val = delta_dict.get(delta_key, 0.0)
-                        d_str = f"+{d_val:.2f}" if d_val > 0 else f"{d_val:.2f}"
-                        d_color = BRIGHT_GREEN if d_val > 0 else (BRIGHT_RED if d_val < 0 else DARK_GRAY)
-                        dim_name = dim.replace('_', ' ').title().ljust(18)
-                        print(f"  {LIGHT_GRAY}{dim_name}:{RESET} {val:.2f} ({d_color}{d_str}{RESET})")
-
-                    print(f"  {LIGHT_GRAY}Resulting Emotion :{RESET} {BRIGHT_MAGENTA}{current_emotion}{RESET}")
-                    print(f"{DARK_GRAY}────────────────────────────────────────────────────────────{RESET}")
+                    print_stakeholder_emotion_box(name, division, color, ev_dict, delta_dict, current_emotion)
                     print(f"{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
                 else:
                     emotion_values_map = state.get("emotion_values", {})
                     st_emotion_values = emotion_values_map.get(st_id_parsed, EmotionValues())
                     current_emotion = derive_emotional_state(st_emotion_values)
                     color = determine_stakeholder_color(st_id_parsed)
-                    print(f"\n{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
+                    print_stakeholder_emotion_box(name, division, color, st_emotion_values.model_dump(), {}, current_emotion)
+                    print(f"{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
 
             elif m_content_safe.strip():
                 print(f"\n{m_content_safe}\n")
