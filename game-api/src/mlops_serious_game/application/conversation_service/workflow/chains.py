@@ -1,4 +1,4 @@
-from philoagents.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 from typing import Annotated, Literal
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -6,11 +6,11 @@ from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, merge_message_runs
 
-from philoagents.application.conversation_service.workflow.tools import tools
-from philoagents.config import settings
-from philoagents.domain.metric_factory import MetricFactory
+from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.metric_factory import MetricFactory
 
-from philoagents.domain.prompts import (
+from mlops_serious_game.domain.prompts import (
     CONTEXT_SUMMARY_PROMPT,
     EXTEND_SUMMARY_PROMPT,
     STAKEHOLDER_CHARACTER_CARD,
@@ -21,7 +21,7 @@ from philoagents.domain.prompts import (
     CHECK_CARD_GENERATION_PROMPT,
     ANTICHEAT_PROMPT
 )
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from pydantic import BaseModel, Field, field_validator,create_model
 
 use_rwth_key=True

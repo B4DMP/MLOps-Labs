@@ -6,8 +6,8 @@ import numpy as np
 from together import Together
 import anthropic
 
-from philoagents.config import settings
-from philoagents.application.conversation_service.workflow.graph import (
+from mlops_serious_game.config import settings
+from mlops_serious_game.application.conversation_service.workflow.graph import (
     create_workflow_graph,
 )
 

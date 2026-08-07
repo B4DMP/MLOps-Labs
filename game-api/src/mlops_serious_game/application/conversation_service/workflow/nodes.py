@@ -3,9 +3,9 @@ import asyncio
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 from langchain_core.messages import RemoveMessage
-from philoagents.application.conversation_service.workflow.chains import (
+from mlops_serious_game.application.conversation_service.workflow.chains import (
     get_context_summary_chain,
     get_conversation_summary_chain,
     get_stakeholder_response_chain,
@@ -15,14 +15,14 @@ from philoagents.application.conversation_service.workflow.chains import (
     get_anticheat_chain,
     get_rogue_stakeholder_response_chain
 )
-from philoagents.application.conversation_service.workflow.state import ChallengeState
-from philoagents.application.conversation_service.workflow.tools import tools
-from philoagents.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
-from philoagents.domain.stakeholder_factory import StakeholderFactory
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.metric_factory import MetricFactory
-from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.domain.metric import Metric
+from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.metric_factory import MetricFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.metric import Metric
 import random
 
 retriever_node = ToolNode(tools)

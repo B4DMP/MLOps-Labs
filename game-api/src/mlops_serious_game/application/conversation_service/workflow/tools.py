@@ -3,8 +3,8 @@ from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 from loguru import logger
 
-from philoagents.application.rag.retrievers import get_embedding_model, get_vectorstore
-from philoagents.config import settings
+from mlops_serious_game.application.rag.retrievers import get_embedding_model, get_vectorstore
+from mlops_serious_game.config import settings
 
 
 _vectorstore = None

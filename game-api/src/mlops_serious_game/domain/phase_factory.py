@@ -1,12 +1,12 @@
 from pathlib import Path
 import json
 
-from philoagents.domain.Challenge import Challenge
-from philoagents.domain.exceptions import (
+from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.exceptions import (
     StakeholderNameNotFound,
 )
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.Phase import Phase
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.Phase import Phase
 
 class PhaseFactory:
     phases: list[Phase] = []

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session, sessionmaker
 from loguru import logger
 
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 from .models import Base
 
 # Sync Engine & Session

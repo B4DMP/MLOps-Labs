@@ -2,8 +2,8 @@ import click
 from langchain_postgres import PGVector
 from loguru import logger
 
-from philoagents.application.rag.embeddings import get_embedding_model
-from philoagents.config import settings
+from mlops_serious_game.application.rag.embeddings import get_embedding_model
+from mlops_serious_game.config import settings
 
 
 @click.command()

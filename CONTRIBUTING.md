@@ -1,4 +1,4 @@
-# Contributing to the PhiloAgents Course
+# Contributing to the MLOps Serious Game Course
 
 Welcome to one of the most comprehensive open-source courses on Agents 👋
 
@@ -39,7 +39,7 @@ Found a problem or have a suggestion? Please create an issue on GitHub, providin
 
 📍 [Official Guide on creating a pull request from a forked GitHub repository](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork) or use an LLM for more detailed instructions.
 
-Congratulations! You're now a contributor to the PhiloAgents open-source course. 🔥 
+Congratulations! You're now a contributor to the MLOps Serious Game open-source course. 🔥 
 
 ## Code Quality and Readability
 

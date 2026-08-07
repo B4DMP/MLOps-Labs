@@ -5,9 +5,9 @@ from langchain_community.document_loaders import WebBaseLoader, WikipediaLoader
 from langchain_core.documents import Document
 from tqdm import tqdm
 
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.stakeholder_factory import StakeholderFactory
-from philoagents.config import settings
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.config import settings
 
 def get_extraction_generator(
     stakeholders: list[str],

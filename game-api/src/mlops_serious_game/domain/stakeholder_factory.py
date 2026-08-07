@@ -1,12 +1,12 @@
 from pathlib import Path
 import json
 
-from philoagents.domain.exceptions import (
+from mlops_serious_game.domain.exceptions import (
     StakeholderNameNotFound,
 )
 
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 
 class StakeholderFactory:

@@ -8,9 +8,9 @@ from .personas import *
 import logging
 import re
 from pathlib import Path
-from philoagents.config import settings
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 _BASE_DIR = Path(__file__).parent.parent  # = persona_gym/
 

@@ -6,14 +6,14 @@ from langchain_core.messages import HumanMessage, AIMessage
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 import asyncio
 from opik.integrations.langchain import OpikTracer
 
-from philoagents.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.workflow.graph import (
     create_workflow_graph,
 )
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 
 
 graph_builder = create_workflow_graph()

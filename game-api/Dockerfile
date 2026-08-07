@@ -10,10 +10,10 @@ WORKDIR /app
 COPY pyproject.toml README.md ./
 RUN uv pip install --no-cache --system torch --index-url https://download.pytorch.org/whl/cpu
 # Copy the application into the container.
-COPY src/philoagents philoagents/
+COPY src/mlops_serious_game mlops_serious_game/
 COPY tools tools/
 COPY --from=gameconfig . /gameConfig
 
 RUN uv pip install --no-cache --system .
 
-CMD ["fastapi", "run", "philoagents/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "run", "mlops_serious_game/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]

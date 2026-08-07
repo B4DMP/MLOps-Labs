@@ -2,7 +2,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_postgres import PGVector
 from loguru import logger
 
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 from .embeddings import get_embedding_model
 
 

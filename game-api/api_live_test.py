@@ -5,17 +5,17 @@ from langchain_core.messages import HumanMessage
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 import asyncio
 import datetime
 from opik.integrations.langchain import OpikTracer
 import random
-from philoagents.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.workflow.graph import (
     create_workflow_graph,
 )
-from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.config import settings
-from philoagents.infrastructure.opik_utils import configure
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.opik_utils import configure
 
 
 configure()
@@ -101,7 +101,7 @@ Efficiency: {action_card.get('Efficiency', 0)}
 def determine_stakeholder_color(stakeholder: str):
     if not stakeholder:
         return RESET
-    from philoagents.domain.stakeholder_factory import StakeholderFactory
+    from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
     available_ids = StakeholderFactory.get_available_stakeholders()
     index=0
     for i in range(len(StakeholderFactory.get_available_stakeholders())):

@@ -7,14 +7,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from opik.integrations.langchain import OpikTracer
 
-from philoagents.application.conversation_service.reset_conversation import reset_conversation_state
+from mlops_serious_game.application.conversation_service.reset_conversation import reset_conversation_state
 from .opik_utils import configure
 
-from philoagents.infrastructure.routes.auth_routes import router as auth_router
-from philoagents.infrastructure.routes.admin_routes import router as admin_router
-from philoagents.infrastructure.websocket.router import router as websocket_router
+from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_router
+from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
+from mlops_serious_game.infrastructure.websocket.router import router as websocket_router
 
-from philoagents.infrastructure.database import init_db
+from mlops_serious_game.infrastructure.database import init_db
 
 configure()
 

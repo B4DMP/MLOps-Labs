@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - philoagents-network
+      - mlops-serious-game-network
   api:
     image: game-api
     container_name: game-api
@@ -34,7 +34,7 @@ services:
     depends_on:
       - postgres
     networks:
-      - philoagents-network
+      - mlops-serious-game-network
   ui:
     image: game-ui
     container_name: game-ui
@@ -49,11 +49,11 @@ services:
     depends_on:
       - api
     networks:
-      - philoagents-network
+      - mlops-serious-game-network
 
 volumes:
   postgres_data:
 
 networks:
-  philoagents-network:
-    name: philoagents-network
+  mlops-serious-game-network:
+    name: mlops-serious-game-network

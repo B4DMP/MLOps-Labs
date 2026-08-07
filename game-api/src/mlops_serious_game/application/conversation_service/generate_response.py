@@ -1,15 +1,15 @@
 import uuid
 from typing import Any, AsyncGenerator, Union
 
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from opik.integrations.langchain import OpikTracer
 
-from philoagents.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.workflow.graph import (
     create_workflow_graph,
 )
-from philoagents.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
 
 
 async def get_response(

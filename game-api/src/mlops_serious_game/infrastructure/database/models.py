@@ -3,7 +3,7 @@ from typing import Any
 from sqlalchemy import DateTime, Integer, String, JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 
 
 class Base(DeclarativeBase):

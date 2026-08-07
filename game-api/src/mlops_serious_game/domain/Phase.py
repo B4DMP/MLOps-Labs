@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from philoagents.domain.Challenge import Challenge
+from mlops_serious_game.domain.Challenge import Challenge
 
 class Phase(BaseModel):
     """A class representing a game Phase

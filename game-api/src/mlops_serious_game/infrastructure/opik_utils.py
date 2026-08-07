@@ -4,8 +4,8 @@ import opik
 from loguru import logger
 from opik.configurator.configure import OpikConfigurator
 
-from philoagents.config import settings
-from philoagents.domain.gameConfigLoader import GameConfigLoader
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.gameConfigLoader import GameConfigLoader
 
 def configure() -> None:
 

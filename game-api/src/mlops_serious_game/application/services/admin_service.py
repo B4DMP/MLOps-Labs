@@ -2,10 +2,10 @@ import datetime
 from typing import Any
 from sqlalchemy import delete, func, select
 
-from philoagents.config import settings
-from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.domain.question_factory import QuestionFactory
-from philoagents.infrastructure.database import Campaign, GameProgression, GameSession, User, get_session
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.question_factory import QuestionFactory
+from mlops_serious_game.infrastructure.database import Campaign, GameProgression, GameSession, User, get_session
 
 
 def get_campaign_users(campaign_key: str) -> list[str]:

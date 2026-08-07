@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import click
-from philoagents.config import settings
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from persona_gym.code.run import main as persona_gym_main
 from persona_gym.code.run import save_scores
 

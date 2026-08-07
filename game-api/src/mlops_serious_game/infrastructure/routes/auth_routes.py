@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from philoagents.application.services.auth_service import (
+from mlops_serious_game.application.services.auth_service import (
     authenticate_user,
     register_user
 )

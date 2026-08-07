@@ -10,7 +10,7 @@
             "cwd": "${workspaceFolder}/game-api",
             "justMyCode": false,
             "env": {
-                "MONGO_URI": "mongodb://philoagents:philoagents@localhost:27017/?directConnection=true"
+                "MONGO_URI": "mongodb://mlops_serious_game:mlops_serious_game@localhost:27017/?directConnection=true"
             }
         },
         {
@@ -22,7 +22,7 @@
             "args": [],
             "justMyCode": false,
             "env": {
-                "MONGO_URI": "mongodb://philoagents:philoagents@localhost:27017/?directConnection=true"
+                "MONGO_URI": "mongodb://mlops_serious_game:mlops_serious_game@localhost:27017/?directConnection=true"
             }
         },
         {
@@ -34,7 +34,7 @@
             "args": [],
             "justMyCode": false,
             "env": {
-                "MONGO_URI": "mongodb://philoagents:philoagents@localhost:27017/?directConnection=true"
+                "MONGO_URI": "mongodb://mlops_serious_game:mlops_serious_game@localhost:27017/?directConnection=true"
             }
         },
         {
@@ -46,7 +46,7 @@
             "args": [],
             "justMyCode": false,
             "env": {
-                "MONGO_URI": "mongodb://philoagents:philoagents@localhost:27017/?directConnection=true"
+                "MONGO_URI": "mongodb://mlops_serious_game:mlops_serious_game@localhost:27017/?directConnection=true"
             }
         }
     ]

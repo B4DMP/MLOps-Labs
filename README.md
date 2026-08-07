@@ -5,7 +5,7 @@
 </p>
 </div>
 
-This repository is a fork of the [Philoagents simulation engine](https://github.com/neural-maze/philoagents-course).
+This repository is a fork of the [MLOps Serious Game simulation engine](https://github.com/neural-maze/mlops_serious_game-course).
 </br>
 
 ## 🏗️ Project Structure

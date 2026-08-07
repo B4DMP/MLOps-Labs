@@ -1,11 +1,11 @@
 from langchain_core.documents import Document
 from loguru import logger
 
-from philoagents.application.data import deduplicate_documents, get_extraction_generator
-from philoagents.application.rag.retrievers import get_embedding_model, get_retriever, get_vectorstore
-from philoagents.application.rag.splitters import Splitter, get_splitter
-from philoagents.config import settings
-from philoagents.domain.stakeholder import Stakeholder
+from mlops_serious_game.application.data import deduplicate_documents, get_extraction_generator
+from mlops_serious_game.application.rag.retrievers import get_embedding_model, get_retriever, get_vectorstore
+from mlops_serious_game.application.rag.splitters import Splitter, get_splitter
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder import Stakeholder
 
 
 class LongTermMemoryCreator:

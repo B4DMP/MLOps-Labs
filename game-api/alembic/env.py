@@ -8,8 +8,8 @@ from alembic import context
 # Ensure app package is importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from philoagents.config import settings
-from philoagents.infrastructure.database.models import Base
+from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.database.models import Base
 
 config = context.config
 

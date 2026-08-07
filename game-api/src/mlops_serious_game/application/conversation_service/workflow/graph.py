@@ -3,13 +3,13 @@ from functools import lru_cache
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import tools_condition
 
-from philoagents.application.conversation_service.workflow.edges import (
+from mlops_serious_game.application.conversation_service.workflow.edges import (
     should_summarize_conversation,
     has_more_stakeholders,
     should_generate_action_card,
     passed_anticheat
 )
-from philoagents.application.conversation_service.workflow.nodes import (
+from mlops_serious_game.application.conversation_service.workflow.nodes import (
     conversation_node,
     summarize_conversation_node,
     retriever_node,
@@ -21,7 +21,7 @@ from philoagents.application.conversation_service.workflow.nodes import (
     send_message_connector_node,
     anticheat_node
 )
-from philoagents.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
 
 
 @lru_cache(maxsize=1)

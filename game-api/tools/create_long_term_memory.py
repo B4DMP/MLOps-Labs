@@ -2,10 +2,10 @@ from pathlib import Path
 
 import click
 
-from philoagents.application import LongTermMemoryCreator
-from philoagents.config import settings
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.application import LongTermMemoryCreator
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 def main() -> None:
     """CLI command to create long-term memory for stakeholders.

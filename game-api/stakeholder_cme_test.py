@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-from philoagents.application.conversation_service.workflow.nodes import router_node
+from mlops_serious_game.application.conversation_service.workflow.nodes import router_node
 
 
 from langchain_core.messages import HumanMessage
@@ -24,18 +24,18 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 from langchain_core.messages import RemoveMessage
-from philoagents.application.conversation_service.workflow.tools import tools
-from philoagents.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
-from philoagents.domain.stakeholder_factory import StakeholderFactory
-from philoagents.domain.stakeholder import Stakeholder
-from philoagents.domain.metric_factory import MetricFactory
-from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.domain.metric import Metric
-from philoagents.domain.prompts import __STAKEHOLDER_CHARACTER_CARD, Prompt
-from philoagents.application.conversation_service.workflow.chains import get_chat_model
-from philoagents.application.conversation_service.workflow.graph import create_workflow_graph
+from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.domain.metric_factory import MetricFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.metric import Metric
+from mlops_serious_game.domain.prompts import __STAKEHOLDER_CHARACTER_CARD, Prompt
+from mlops_serious_game.application.conversation_service.workflow.chains import get_chat_model
+from mlops_serious_game.application.conversation_service.workflow.graph import create_workflow_graph
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END, START, StateGraph,MessagesState
 from enum import Enum
@@ -1209,7 +1209,7 @@ Efficiency: {action_card.get('Efficiency', 0)}
 def determine_stakeholder_color(stakeholder: str):
     if not stakeholder:
         return RESET
-    from philoagents.domain.stakeholder_factory import StakeholderFactory
+    from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
     available_ids = StakeholderFactory.get_available_stakeholders()
     index = 0
     for i in range(len(available_ids)):

@@ -2,7 +2,7 @@ from loguru import logger
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from philoagents.config import settings
+from mlops_serious_game.config import settings
 
 
 async def reset_conversation_state() -> dict:

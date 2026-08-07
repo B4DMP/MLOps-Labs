@@ -6,8 +6,8 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from philoagents.config import settings
-from philoagents.infrastructure.database import Campaign, User, get_session
+from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.database import Campaign, User, get_session
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120

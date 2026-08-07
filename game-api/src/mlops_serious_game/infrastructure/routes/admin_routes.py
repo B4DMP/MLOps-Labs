@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
 
-from philoagents.application.services.auth_service import verify_admin_token
-from philoagents.application.services.admin_service import (
+from mlops_serious_game.application.services.auth_service import verify_admin_token
+from mlops_serious_game.application.services.admin_service import (
     get_admin_dashboard_data,
     add_campaign,
     remove_campaign

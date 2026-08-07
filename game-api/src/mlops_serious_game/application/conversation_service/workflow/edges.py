@@ -1,11 +1,11 @@
-from philoagents.domain.exceptions import RoutingStakeholderNotFound
+from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound
 from typing_extensions import Literal
 
 from langgraph.graph import END
 
-from philoagents.application.conversation_service.workflow.state import ChallengeState
-from philoagents.config import settings
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 def should_summarize_conversation(
     state: ChallengeState,

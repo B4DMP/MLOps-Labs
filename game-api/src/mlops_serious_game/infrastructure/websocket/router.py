@@ -12,7 +12,7 @@ from .handlers.game_handler import (
     reset_thread
 )
 from .handlers.system_handler import handle_ping
-from philoagents.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 router = APIRouter()
 

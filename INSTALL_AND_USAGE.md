@@ -35,12 +35,12 @@ The game requires access to these cloud services. The authentication to these se
 
 | Service | Purpose | Cost | Environment Variable | Setup Guide 
 |---------|---------|------|---------------------|-------------|
-| [Groq](https://rebrand.ly/philoagents-groq) / [RWTHgpt](https://help.itc.rwth-aachen.de/service/1808737e10424937b76e564ed15d8028/) | LLM API that powers the agents | Free tier | `GROQ_API_KEY` / `RWTH_API_KEY` | [Quick Start Guide](https://rebrand.ly/philoagents-groq-quickstart) |
-| [Opik](https://rebrand.ly/philoagents-opik) | LLMOps | Free tier (Hosted on Comet - same API Key) | `COMET_API_KEY` | [Quick Start Guide](https://rebrand.ly/philoagents-opik-quickstart) |
+| [Groq](https://rebrand.ly/mlops_serious_game-groq) / [RWTHgpt](https://help.itc.rwth-aachen.de/service/1808737e10424937b76e564ed15d8028/) | LLM API that powers the agents | Free tier | `GROQ_API_KEY` / `RWTH_API_KEY` | [Quick Start Guide](https://rebrand.ly/mlops_serious_game-groq-quickstart) |
+| [Opik](https://rebrand.ly/mlops_serious_game-opik) | LLMOps | Free tier (Hosted on Comet - same API Key) | `COMET_API_KEY` | [Quick Start Guide](https://rebrand.ly/mlops_serious_game-opik-quickstart) |
 
 Note that RWTHgpt is an OpenAI proxy hosted by the RWTH Aachen University. In theory, any OpenAI-compatible API can be used by modifying the `RWTH_API_BASE` in config.py.
 
-When working locally, the infrastructure is set up using Docker. Thus, you can use the default values found in the [config.py](philoagents-api/src/philoagents/config.py) file for all the infrastructure-related environment variables.
+When working locally, the infrastructure is set up using Docker. Thus, you can use the default values found in the [config.py](mlops_serious_game-api/src/mlops_serious_game/config.py) file for all the infrastructure-related environment variables.
 
 But, in case you want to deploy the code, you'll need to setup the following services with their corresponding environment variables:
 
@@ -92,7 +92,7 @@ The project is divided into two main applications and shared configuration:
 .
 ├── game-api/              
 │   ├── data/              # Stakeholder knowledge base and datasets
-│   ├── src/philoagents/   # Core application logic
+│   ├── src/mlops_serious_game/   # Core application logic
 │   │   ├── application/   # Domain services (auth_service, admin_service, conversation_service)
 │   │   ├── domain/        # Game domain models & factories
 │   │   └── infrastructure/# API routes, PostgreSQL database layer, and unified WebSocket server
@@ -149,12 +149,12 @@ To delete the long term memory from your PostgreSQL instance, you can run the fo
 make delete-long-term-memory
 ```
 > [!NOTE]
-> To visualize the raw and RAG data from PostgreSQL, we recommend using pgAdmin or DBeaver. To connect to the working PostgreSQL instance, use the `POSTGRES_URI` value from the `.env` file or found inside the [config.py](game-api/src/philoagents/config.py) file.
+> To visualize the raw and RAG data from PostgreSQL, we recommend using pgAdmin or DBeaver. To connect to the working PostgreSQL instance, use the `POSTGRES_URI` value from the `.env` file or found inside the [config.py](game-api/src/mlops_serious_game/config.py) file.
 
 ## 🗄️ Database & Schema Migrations (PostgreSQL + Alembic)
 
 ### Managing Schema Changes with Alembic
-Modifying SQLAlchemy model classes in `game-api/src/philoagents/infrastructure/database/models.py` does not automatically update live database tables. To update your PostgreSQL schema:
+Modifying SQLAlchemy model classes in `game-api/src/mlops_serious_game/infrastructure/database/models.py` does not automatically update live database tables. To update your PostgreSQL schema:
 
 1. **Autogenerate a new migration script**:
    ```bash

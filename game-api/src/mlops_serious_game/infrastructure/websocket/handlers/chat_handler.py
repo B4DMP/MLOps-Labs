@@ -2,8 +2,8 @@ from typing import Any
 from fastapi import WebSocket, WebSocketDisconnect
 from opik.integrations.langchain import OpikTracer
 
-from philoagents.application.conversation_service.generate_response import get_response
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.application.conversation_service.generate_response import get_response
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from ..manager import manager
 
 

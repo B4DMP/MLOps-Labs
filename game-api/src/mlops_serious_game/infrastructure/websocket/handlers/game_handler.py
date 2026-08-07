@@ -5,14 +5,14 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from philoagents.config import settings
-from philoagents.domain.Challenge import Challenge
-from philoagents.domain.briefing_factory import BriefingFactory
-from philoagents.domain.metric_factory import MetricFactory
-from philoagents.domain.question_factory import QuestionFactory
-from philoagents.domain.stakeholder_factory import StakeholderFactory
-from philoagents.domain.phase_factory import PhaseFactory
-from philoagents.infrastructure.database import (
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.briefing_factory import BriefingFactory
+from mlops_serious_game.domain.metric_factory import MetricFactory
+from mlops_serious_game.domain.question_factory import QuestionFactory
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.infrastructure.database import (
     GameProgression,
     GameSession,
     async_engine,

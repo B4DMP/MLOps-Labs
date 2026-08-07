@@ -4,12 +4,12 @@ import os
 import sys
 from pathlib import Path
 
-# Add src to sys.path so philoagents can be imported
+# Add src to sys.path so mlops_serious_game can be imported
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
 import click
-from philoagents.config import settings
-from philoagents.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 from persona_gym.code.utils import *
 

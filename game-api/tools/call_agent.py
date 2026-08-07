@@ -3,7 +3,7 @@ from functools import wraps
 
 import click
 
-from philoagents.application.conversation_service.generate_response import (
+from mlops_serious_game.application.conversation_service.generate_response import (
     get_streaming_response,
 )
 

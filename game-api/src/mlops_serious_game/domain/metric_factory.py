@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
-from philoagents.domain.exceptions import (
+from mlops_serious_game.domain.exceptions import (
     MetricNameNotFound,
     MetricDescriptionNotFound,
     MetricStakeholderNotFound,
     MetricPhasesNotFound
 )
-from philoagents.domain.metric import Metric
+from mlops_serious_game.domain.metric import Metric
 
 class MetricFactory:
     metrics=[]
@@ -14,7 +14,7 @@ class MetricFactory:
 
     @classmethod
     def load_metrics(cls, metric_config: Path) -> None:
-        from philoagents.domain.stakeholder_factory import StakeholderFactory
+        from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
         with metric_config.open("r", encoding="utf-8") as f:
             data = json.load(f)
 

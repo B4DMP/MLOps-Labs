@@ -1,7 +1,7 @@
 import click
 from sqlalchemy import select
 
-from philoagents.infrastructure.database import GameProgression, GameSession, get_session
+from mlops_serious_game.infrastructure.database import GameProgression, GameSession, get_session
 
 
 @click.command()

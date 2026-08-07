@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
-from philoagents.domain.exceptions import (
+from mlops_serious_game.domain.exceptions import (
     QuestionNameNotFound
 )
 
-from philoagents.domain.question import Question
+from mlops_serious_game.domain.question import Question
 
 class QuestionFactory:
     intro_questions=[]
