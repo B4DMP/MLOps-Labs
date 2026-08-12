@@ -114,6 +114,10 @@ async def handle_game_init(
                 if isinstance(r.metric_values, list):
                     initial_metric_values = r.metric_values
 
+    #DEBUG skip intro questions
+    if last_gamestate_id[0]==0 and last_gamestate_id[1]==0 and game_progress_index==2:
+        last_gamestate_id[1]=1
+
     await send_progress_index_payload(websocket, game_progress_index, last_gamestate_id, initial_metric_values)
     return (last_gamestate_id[0], last_gamestate_id[1])
 
@@ -124,6 +128,7 @@ async def send_progress_index_payload(
     last_gamestate_id: list[int],
     initial_metric_values: list[int]
 ) -> None:
+
     if index == 0:
         await manager.send_event(
             websocket=websocket,
