@@ -6,11 +6,11 @@ class StakeholderNameNotFound(Exception):
         super().__init__(self.message)
 
 
-class StakeholderDivisionNotFound(Exception):
-    """Exception raised when a stakeholder's division is not found."""
+class StakeholderRoleDescriptionNotFound(Exception):
+    """Exception raised when a stakeholder's role description is not found."""
 
     def __init__(self, stakeholder_id: str):
-        self.message = f"Stakeholder division for {stakeholder_id} not found."
+        self.message = f"Stakeholder role description for {stakeholder_id} not found."
         super().__init__(self.message)
 
 

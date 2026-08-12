@@ -53,7 +53,6 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
             "summary":summary,
             "challenge": challenge_text,
             "stakeholder_name": st.name,
-            "stakeholder_division":st.division,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
             "stakeholder_requirements": st.requirements,
@@ -126,11 +125,11 @@ def get_stakeholders_text(state: ChallengeState, config: RunnableConfig):
     if phase_id is not None and selectionmask is not None:
         for st_id in StakeholderFactory.get_active_stakeholders(phase_id,selectionmask):
             st = StakeholderFactory.get_stakeholder(st_id)
-            stakeholders+=(f"- {st.division} ({st.name})\n")
+            stakeholders+=(f"- {st.name}\n")
     else:
         for st_id in StakeholderFactory.get_available_stakeholders():
             st = StakeholderFactory.get_stakeholder(st_id)
-            stakeholders+=(f"- {st.division} ({st.name})\n")
+            stakeholders+=(f"- {st.name}\n")
         
     return stakeholders
 
@@ -158,7 +157,7 @@ async def router_node(state: ChallengeState, config: RunnableConfig):
         st_ids = StakeholderFactory.get_active_stakeholders(state.get("phase_id"),config["configurable"].get("selectionmask")) if state.get("phase_id") is not None else StakeholderFactory.get_available_stakeholders()
         for st_id in st_ids:
             st = StakeholderFactory.get_stakeholder(st_id)
-            target = f"{st.division} ({st.name})".strip().lower()
+            target = st.name.strip().lower()
 
             if selected.strip().lower() == target:
                 selected_stakeholder_ids.append(st_id)

@@ -2,12 +2,17 @@ import { useState, useEffect, useContext } from "react";
 import type { ActionCard } from "../types/ActionCard";
 import ActionCardComponent, {
   DropIndicator,
-  type DragCardType,
 } from "./ActionCardComponent";
 import styles from "./CardArea.module.css";
 import { MetricsContext } from "./MetricProvider";
 import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
+
+interface DragCardType {
+  id: string;
+  ac: ActionCard;
+  current_phase: number;
+}
 
 
 interface CardAreaProps {
@@ -220,7 +225,7 @@ function CardArea({
                 return (
                   <HoverTooltip
                     key={index}
-                    description={st.division_description}
+                    description={st.role_description}
                   >
                     <span
                       style={{
@@ -228,7 +233,7 @@ function CardArea({
                         fontWeight: "bold",
                       }}
                     >
-                      {st.name + " (" + st.division + ")"}
+                      {st.name}
                     </span>
                   </HoverTooltip>
                 );

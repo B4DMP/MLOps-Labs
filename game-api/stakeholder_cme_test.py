@@ -505,7 +505,7 @@ def format_message_for_eval(m) -> str:
             st_id_parsed, text = match.groups()
             try:
                 st_obj = StakeholderFactory.get_stakeholder(st_id_parsed.strip())
-                return f"{st_obj.name} ({st_obj.division}): {text}"
+                return f"{st_obj.name}: {text}"
             except Exception:
                 return f"{st_id_parsed}: {text}"
         return f"Stakeholder: {m_content}"
@@ -528,7 +528,7 @@ def get_emotion_evaluator_chain():
                 "Evaluate the net emotional impact of ONLY the new messages on tone, content, fairness, procedural justice, pressure, and risk.\n"
                 "Pay close attention to disrespect, exclusion of team members, broken agreements, or risky decisions in the new messages.\n"
                 "Do NOT consider existing numeric emotion values.\n\n"
-                "Target Stakeholder: {{stakeholder_name}} ({{stakeholder_division}})\n"
+                "Target Stakeholder: {{stakeholder_name}}\n"
                 "Responsibilities: {{stakeholder_responsibilities}}\n"
                 "Priorities: {{stakeholder_priorities}}\n"
                 "Challenge Context: {{challenge}}\n"
@@ -785,7 +785,6 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
             "summary": summary,
             "challenge": challenge_text,
             "stakeholder_name": st.name,
-            "stakeholder_division": st.division,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
             "stakeholder_requirements": combined_requirements,
@@ -918,7 +917,7 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
         for idx, item in enumerate(selected_intels, 1):
             try:
                 st_obj = StakeholderFactory.get_stakeholder(item.stakeholder_id)
-                st_name = f"{st_obj.name} ({st_obj.division})"
+                st_name = f"{st_obj.name}"
             except Exception:
                 st_name = item.stakeholder_id
             
@@ -1271,17 +1270,14 @@ async def stakeholder_cme_test():
     print(f"{BRIGHT_YELLOW}════════════════════════════════════════════════════════════{RESET}\n")
 
     print("Initial Stakeholder Emotional States:")
-    for st_id, ev in initial_emotion_values.items():
         try:
             st_obj = StakeholderFactory.get_stakeholder(st_id)
             st_name = st_obj.name
-            st_div = st_obj.division
         except Exception:
             st_name = st_id
-            st_div = "Stakeholder"
         emo = derive_emotional_state(ev)
         color = determine_stakeholder_color(st_id)
-        print(f"  • {color}{st_name}{RESET} ({st_div}): Initial Emotion -> {BRIGHT_MAGENTA}{emo}{RESET}")
+        print(f"  • {color}{st_name}{RESET}: Initial Emotion -> {BRIGHT_MAGENTA}{emo}{RESET}")
     print()
 
     # Automatically start the meeting with welcome message
@@ -1303,7 +1299,7 @@ async def stakeholder_cme_test():
         stakeholder_convincer_profile=current_convincer_profiles,
     )
 
-    def print_stakeholder_emotion_box(name, division, color, ev_dict, delta_dict, current_emotion):
+    def print_stakeholder_emotion_box(name, color, ev_dict, delta_dict, current_emotion):
         dimensions = [
             ("Trust", "trust", "trust_delta"),
             ("Interest", "interest", "interest_delta"),
@@ -1327,7 +1323,7 @@ async def stakeholder_cme_test():
         sep_line = f"{DARK_GRAY}" + ("─" * 125) + f"{RESET}"
 
         print(sep_line)
-        print(f"{BRIGHT_CYAN}📊 Emotion State & Changes for {color}{name}{RESET}{BRIGHT_CYAN} ({division}) {DARK_GRAY}──>{RESET} {LIGHT_GRAY}Resulting Emotion:{RESET} {BRIGHT_MAGENTA}{current_emotion}{RESET}")
+        print(f"{BRIGHT_CYAN}📊 Emotion State & Changes for {color}{name}{RESET} {DARK_GRAY}──>{RESET} {LIGHT_GRAY}Resulting Emotion:{RESET} {BRIGHT_MAGENTA}{current_emotion}{RESET}")
         print(f"  {dims_line}")
         print(sep_line)
 
@@ -1367,11 +1363,9 @@ async def stakeholder_cme_test():
                 st_id_parsed = st_id_parsed.strip()
                 try:
                     st_obj = StakeholderFactory.get_stakeholder(st_id_parsed)
-                    division = st_obj.division
                     name = st_obj.name
                 except Exception:
                     name = st_id_parsed
-                    division = "Stakeholder"
 
                 add_kwargs = getattr(m, "additional_kwargs", {}) or {}
                 ev_dict = add_kwargs.get("emotion_values")
@@ -1381,15 +1375,15 @@ async def stakeholder_cme_test():
                     st_ev = EmotionValues(**ev_dict)
                     current_emotion = derive_emotional_state(st_ev)
                     color = determine_stakeholder_color(st_id_parsed)
-                    print_stakeholder_emotion_box(name, division, color, ev_dict, delta_dict, current_emotion)
-                    print(f"{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
+                    print_stakeholder_emotion_box(name, color, ev_dict, delta_dict, current_emotion)
+                    print(f"{color}{name} ([{current_emotion}]){RESET} {message}\n")
                 else:
                     emotion_values_map = state.get("emotion_values", {})
                     st_emotion_values = emotion_values_map.get(st_id_parsed, EmotionValues())
                     current_emotion = derive_emotional_state(st_emotion_values)
                     color = determine_stakeholder_color(st_id_parsed)
-                    print_stakeholder_emotion_box(name, division, color, st_emotion_values.model_dump(), {}, current_emotion)
-                    print(f"{color}{name} ({division} [{current_emotion}]){RESET} {message}\n")
+                    print_stakeholder_emotion_box(name, color, st_emotion_values.model_dump(), {}, current_emotion)
+                    print(f"{color}{name} ([{current_emotion}]){RESET} {message}\n")
 
             elif m_content_safe.strip():
                 print(f"\n{m_content_safe}\n")

@@ -42,9 +42,8 @@ class StakeholderFactory:
         cls.stakeholders.clear()
 
         for j in data["stakeholders"]:
-            name = j.get("name") or j.get("stakeholder_name")
-            div = j.get("division") or j.get("stakeholder_division_name")
-            st_idx = j.get("id") or j.get("stakeholder_index") or f"{name.lower().replace(' ', '_')}_{div.lower().replace(' ', '_').replace('/', '_')}"
+            name = j["name"]
+            st_id = j["id"]
             
             def to_str(val):
                 if isinstance(val, list):
@@ -52,13 +51,12 @@ class StakeholderFactory:
                 return str(val or "")
 
             st = Stakeholder(
-                id=st_idx,
+                id=st_id,
                 name=name,
-                division=div,
-                responsibilities=to_str(j.get("responsibilities") or j.get("stakeholder_responsibilities")),
-                priorities=to_str(j.get("priorities") or j.get("stakeholder_priorities")),
-                requirements=to_str(j.get("requirements") or j.get("stakeholder_requirements")),
-                division_description=to_str(j.get("division_description") or j.get("stakeholder_division_name_desc")),
+                responsibilities=to_str(j["responsibilities"]),
+                priorities=to_str(j["priorities"]),
+                requirements=to_str(j["requirements"]),
+                role_description=to_str(j["role_description"]),
                 metric_id=j["metric_id"],
                 stakeholder_color=j["stakeholder_color"],
                 metric_expertise_values=j["metric_expertise_values"],

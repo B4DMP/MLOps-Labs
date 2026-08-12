@@ -26,11 +26,10 @@ import ErrorDialog from "./components/ErrorDialog";
 interface Stakeholder {
   id: string;
   name: string;
-  division: string;
   responsibilities: string;
   priorities: string;
   constraints: string;
-  division_description: string;
+  role_description: string;
   is_selected: boolean;
   metric_id: string;
   stakeholder_color: string;
@@ -58,7 +57,7 @@ function getRandomInt(max: number) {
   return Math.floor(Math.random() * max);
 }
 
-function App({ username }: AppProps) {
+function App({ username: _username }: AppProps) {
   const debug: boolean = false;
   const { emit, subscribe } = useGameWebSocket();
 
@@ -371,8 +370,9 @@ function App({ username }: AppProps) {
             }
 
             //define message recommendations
-            if (stakeholdersRef.current.filter((s) => s.is_selected).length !== 0) {
-              const selectedSts = stakeholdersRef.current.filter((s) => s.is_selected);
+            const allSts = Object.values(stakeholdersRef.current);
+            if (allSts.filter((s) => s.is_selected).length !== 0) {
+              const selectedSts = allSts.filter((s) => s.is_selected);
               const msg_recommendations = [
                 `${selectedSts[getRandomInt(selectedSts.length)].name.split(" ")[0]}, can you agree to this?`,
                 `${selectedSts[getRandomInt(selectedSts.length)].name.split(" ")[0]}, do you have any concerns?`,

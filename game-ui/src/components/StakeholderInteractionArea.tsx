@@ -41,7 +41,7 @@ export default function StakeholderInteractionArea({
   selected_mgs
 }: StakeholderInteractionAreaProps) {
   const { stakeholders } = useContext(StakeholderContext);
-  const [isintro4Done, setIsintro4Done] = useState(false);
+  const [_isintro4Done, setIsintro4Done] = useState(false);
   const isintro4DoneRef = useRef(false);
 
   useEffect(() => {

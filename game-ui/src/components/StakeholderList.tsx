@@ -48,18 +48,14 @@ function StakeholderList({
                     message="ask"
                   />
                 </div>
-                <h6 className={styles.stakeholderName}>{item.name}</h6>
                 <HoverTooltip
                   description={
-                    item.division_description || "DESCRIPTION PLACEHOLDER"
+                    item.role_description || "DESCRIPTION PLACEHOLDER"
                   }
                 >
-                  <br />
-                  <span
-                    style={{ color: item.stakeholder_color }}
-                  >
-                    {item.division}
-                  </span>
+                  <h6 className={styles.stakeholderName} style={{ color: item.stakeholder_color }}>
+                    {item.name}
+                  </h6>
                 </HoverTooltip>
               </li>
             );

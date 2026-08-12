@@ -1,10 +1,12 @@
-export enum ReadyState {
-  CONNECTING = 0,
-  OPEN = 1,
-  CLOSING = 2,
-  CLOSED = 3,
-  UNINSTANTIATED = -1,
-}
+export const ReadyState = {
+  CONNECTING: 0,
+  OPEN: 1,
+  CLOSING: 2,
+  CLOSED: 3,
+  UNINSTANTIATED: -1,
+} as const;
+
+export type ReadyState = typeof ReadyState[keyof typeof ReadyState];
 
 export interface WSEvent<T = any> {
   event: string;

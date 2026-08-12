@@ -6,11 +6,10 @@ type StakeholderContextType = {
     {
       id: string;
       name: string;
-      division: string;
       responsibilities: string;
       priorities: string;
       constraints: string;
-      division_description: string;
+      role_description: string;
       is_selected: boolean;
       metric_id: string;
       stakeholder_color: string;

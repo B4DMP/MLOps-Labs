@@ -1,5 +1,5 @@
 from .evaluation import EvaluationDataset, EvaluationDatasetSample
-from .exceptions import StakeholderRequirementsNotFound,StakeholderNameNotFound,StakeholderDivisionNotFound,StakeholderPrioritiesNotFound,StakeholderResponsibilitiesNotFound
+from .exceptions import StakeholderRequirementsNotFound,StakeholderNameNotFound,StakeholderRoleDescriptionNotFound,StakeholderPrioritiesNotFound,StakeholderResponsibilitiesNotFound
 from .stakeholder import Stakeholder
 from .stakeholder_factory import StakeholderFactory
 from .prompts import Prompt
@@ -11,7 +11,7 @@ __all__ = [
     "StakeholderFactory",
     "Stakeholder",
     "StakeholderNameNotFound",
-    "StakeholderDivisionNotFound",
+    "StakeholderRoleDescriptionNotFound",
     "StakeholderResponsibilitiesNotFound",
     "StakeholderPrioritiesNotFound",
     "StakeholderRequirementsNotFound",

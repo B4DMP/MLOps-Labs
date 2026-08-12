@@ -15,8 +15,8 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
 
   const socketRef = useRef<WebSocket | null>(null);
   const listenersRef = useRef<Map<string, Set<EventCallback>>>(new Map());
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const messageQueueRef = useRef<string[]>([]);
 
   const API_HOST = import.meta.env.VITE_API_HOST || (import.meta.env.MODE === "development" ? "localhost:8000" : window.location.host);

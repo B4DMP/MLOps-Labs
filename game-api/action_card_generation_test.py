@@ -76,62 +76,62 @@ messages = [
         content="I’m seeing signs that the ML product’s performance has degraded recently. Can you collaborate to assess what’s happening and determine a path forward?"
     ),
     AIMessage(
-        name="Marcus Turner",
+        name="Efficiency Emilia",
         content="From a business perspective, this is concerning if forecasts are becoming less reliable. Before we talk solutions, I’d like to understand whether this is a temporary anomaly or a structural issue.",
     ),
     AIMessage(
-        name="Olivia Grant",
+        name="Requirements Reuben",
         content="From QA monitoring, this is structural. Our evaluation dashboards show a consistent performance drop across recent data slices. This points to data or concept drift rather than noise.",
     ),
     AIMessage(
-        name="Daniel Whitaker",
+        name="Data Dave",
         content="I agree. I’ve analyzed feature distributions, and they’ve shifted significantly compared to the training data. The model is behaving as expected given the drift—it’s the environment that changed.",
     ),
     AIMessage(
-        name="Emily Brooks",
+        name="Automation Alex",
         content="Infrastructure-wise, pipelines and deployments are stable. No failures or latency spikes. This confirms the issue is model validity, not system reliability.",
     ),
     AIMessage(
-        name="Jason Fletcher",
+        name="Requirements Reuben",
         content="If the model is operating outside its validated assumptions, that raises governance concerns. We need to mitigate risk and ensure transparency if decisions are affected.",
     ),
     HumanMessage(
         content="Given these constraints and priorities, what actions would you recommend collectively?"
     ),
     AIMessage(
-        name="Olivia Grant",
+        name="Requirements Reuben",
         content="First, we should formalize drift detection with thresholds and alerts. That allows us to catch this earlier and prevents silent degradation.",
     ),
     AIMessage(
-        name="Daniel Whitaker",
+        name="Data Dave",
         content="Agreed. In parallel, we should retrain the model using recent data that reflects the new patterns. I’d also recommend scheduled retraining rather than ad hoc updates.",
     ),
     AIMessage(
-        name="Emily Brooks",
+        name="Automation Alex",
         content="Monthly retraining is acceptable if we automate it and control compute costs. I also suggest a rollback or fallback mechanism when drift exceeds safe limits.",
     ),
     AIMessage(
-        name="Jason Fletcher",
+        name="Requirements Reuben",
         content="From a compliance standpoint, we must document the drift event, the retraining decision, and notify stakeholders that a model update is occurring.",
     ),
     AIMessage(
-        name="Marcus Turner",
+        name="Efficiency Emilia",
         content="This sounds reasonable as long as the cost-benefit balance holds. Improved accuracy protects credibility, and automation keeps costs predictable.",
     ),
     AIMessage(
-        name="Daniel Whitaker",
+        name="Data Dave",
         content="Synthesizing this, the technical response would be: automated drift detection, immediate retraining with recent data, and more frequent scheduled updates.",
     ),
     AIMessage(
-        name="Olivia Grant",
+        name="Requirements Reuben",
         content="With the addition of a fallback mechanism and formal evaluation checkpoints before redeployment.",
     ),
     AIMessage(
-        name="Jason Fletcher",
+        name="Requirements Reuben",
         content="And mandatory documentation and transparent communication to reduce regulatory and reputational risk.",
     ),
     AIMessage(
-        name="Emily Brooks",
+        name="Automation Alex",
         content="All of this is operationally feasible within our constraints.",
     ),
     HumanMessage(
@@ -147,7 +147,7 @@ def determine_stakeholder_color(stakeholder: str):
     index = 0
     for i in range(len(available_ids)):
         # only compares the first few characters, dirty fix (change routing)
-        if available_ids[i][:4] == stakeholder[:4]:
+        if available_ids[i][:4].lower() == stakeholder[:4].lower():
             index = i
             break
 

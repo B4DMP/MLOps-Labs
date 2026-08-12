@@ -174,11 +174,11 @@ def _get_routing_options(phase_id: int | None, selectionmask: list[str]|None):
     if phase_id is None or selectionmask is None:
         for st_id in StakeholderFactory.get_available_stakeholders():
             st = StakeholderFactory.get_stakeholder(st_id)
-            stakeholders.append(f"{st.division} ({st.name})")
+            stakeholders.append(f"{st.name}")
     else:
         for st_id in StakeholderFactory.get_active_stakeholders(phase_id,selectionmask):
             st = StakeholderFactory.get_stakeholder(st_id)
-            stakeholders.append(f"{st.division} ({st.name})")
+            stakeholders.append(f"{st.name}")
     
     return tuple(stakeholders)
 

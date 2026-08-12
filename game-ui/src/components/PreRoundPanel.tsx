@@ -12,11 +12,10 @@ const darkTheme = createTheme({ palette: { mode: "dark" } });
 interface Stakeholder {
   id: string;
   name: string;
-  division: string;
   responsibilities: string;
   priorities: string;
   constraints: string;
-  division_description: string;
+  role_description: string;
   is_selected: boolean;
   stakeholder_color: string;
   metric_expertise_values: Record<string, number>;
@@ -142,7 +141,7 @@ export default function PreRoundPanel({
                     return (
                       <HoverTooltip
                         key={index}
-                        description={st.division_description}
+                        description={st.role_description}
                       >
                         <span
                           style={{
@@ -150,7 +149,7 @@ export default function PreRoundPanel({
                             fontWeight: "bold",
                           }}
                         >
-                          {st.name + " (" + st.division + ")"}
+                          {st.name}
                         </span>
                       </HoverTooltip>
                     );
@@ -256,20 +255,12 @@ export default function PreRoundPanel({
                       <div className="d-flex flex-row align-items-center w-100 mb-2">
                         <div className={styles.compactContent}>
                           <div className="d-flex align-items-baseline gap-2 flex-wrap">
-                            <h5 className="card-title m-0">
+                            <h5 className="card-title m-0" style={{ color: st.stakeholder_color }}>
                               {st.name}
                             </h5>
-                            <h6
-                              className="m-0"
-                              style={{
-                                color: st.stakeholder_color,
-                              }}
-                            >
-                              {st.division}
-                            </h6>
                           </div>
                           <p className="small m-0 mt-1">
-                            {st.division_description}
+                            {st.role_description}
                           </p>
                         </div>
                       </div>
