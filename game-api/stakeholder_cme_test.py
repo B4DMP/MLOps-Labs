@@ -1,3 +1,5 @@
+#uv run --project game-api python game-api/stakeholder_cme_test.py
+
 import enum
 import sys
 import os
