@@ -696,6 +696,36 @@ ADDITIONAL GAME RULES & SECRECY DIRECTIVES:
    Otherwise, discuss your general concerns, risks, and feelings about the situation without giving away the exact solution.
 """
 
+def quantize_emotion_value(val: float) -> str:
+    """Quantizes continuous emotion value [0.0, 1.0] into discrete levels:
+    'very low', 'low', 'medium', 'high', 'very high'
+    """
+    if val <= 0.2:
+        return "very low"
+    elif val <= 0.4:
+        return "low"
+    elif val <= 0.6:
+        return "medium"
+    elif val <= 0.8:
+        return "high"
+    else:
+        return "very high"
+
+
+def format_quantized_emotion_values(ev: EmotionValues) -> str:
+    """Formats EmotionValues as a string of quantized labels for prompt insertion."""
+    quants = {
+        "Trust": quantize_emotion_value(ev.trust),
+        "Interest": quantize_emotion_value(ev.interest),
+        "Stress": quantize_emotion_value(ev.stress),
+        "Confidence": quantize_emotion_value(ev.confidence),
+        "Perceived Risk": quantize_emotion_value(ev.perceived_risk),
+        "Sense of Control": quantize_emotion_value(ev.sense_of_control),
+        "Fairness": quantize_emotion_value(ev.fairness),
+    }
+    return ", ".join([f"{k}: {v}" for k, v in quants.items()])
+
+
 def get_stakeholder_response_chain():
     model = get_chat_model()
     model = model.bind_tools(tools)
@@ -717,6 +747,32 @@ def get_stakeholder_response_chain():
 
     return prompt | model
 
+
+def get_quantized_stakeholder_response_chain():
+    model = get_chat_model()
+    model = model.bind_tools(tools)
+    system_prompt_text = STAKEHOLDER_CHARACTER_CARD.prompt + "\n\n" + STAKEHOLDER_CHARACTER_CARD_APPENDIX
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt_text),
+            MessagesPlaceholder(variable_name="messages"),
+            (
+                "human",
+                "[GAME MASTER] Stakeholder {{stakeholder_name}}.\n"
+                "Your current psychological emotion values are quantized as follows:\n"
+                "{{quantized_emotion_values}}\n\n"
+                "INSTRUCTION: You MUST adapt your tone, attitude, level of skepticism, stress, trust, and response style according to these emotion values.\n"
+                "You are responding directly to the MLOps Project Manager leading the meeting. Respond to the Project Manager and refer to your colleagues (e.g. Willis, Mathis) in the 3rd person if mentioning them. NEVER call the Project Manager by a colleague's name!\n"
+                "{% if intel_instruction %}\n{{intel_instruction}}\n{% endif %} DO NOT USE TOOLS!",
+            ),
+        ],
+        template_format="jinja2",
+    )
+
+    return prompt | model
+
+
 async def conversation_node(state: ChallengeState, config: RunnableConfig):
 
     summary = state.get("summary", "")
@@ -731,8 +787,10 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     emotion_deltas_map = state.get("emotion_deltas", {})
     st_emotion_values = emotion_values_map.get(st.id, EmotionValues())
     st_emotion_delta = emotion_deltas_map.get(st.id, EmotionDelta())
+
     current_emotion = derive_emotional_state(st_emotion_values)
     emotion_instruction = EMOTION_PROMPT_APPENDIX.get(current_emotion, "")
+    quantized_emotions_str = format_quantized_emotion_values(st_emotion_values)
     
     # Gather all intel items belonging to this stakeholder for private context (correct_intent + correct_description)
     all_intel_items = list(state.get("intel_items", []) or GENERAL_INTEL_ITEMS)
@@ -769,6 +827,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
         )
 
     conversation_chain = get_stakeholder_response_chain()
+    quantized_conversation_chain = get_quantized_stakeholder_response_chain()
     input_messages = state["messages"]
     
     _split = state["challenge"].split("#")
@@ -779,40 +838,65 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     # Combine static requirements with dynamic private_intel_context
     combined_requirements = f"{st.requirements}\n\nPrivate Intel Requirements:\n{private_intel_context}"
 
-    response = await conversation_chain.ainvoke(
-        {
-            "messages": input_messages,
-            "summary": summary,
-            "challenge": challenge_text,
-            "stakeholder_name": st.name,
-            "stakeholder_division": st.division,
-            "stakeholder_responsibilities": st.responsibilities,
-            "stakeholder_priorities": st.priorities,
-            "stakeholder_requirements": combined_requirements,
-            "current_emotion": current_emotion,
-            "emotion_instruction": emotion_instruction,
-            "intel_instruction": intel_instruction,
-        },
-        config,
+    payload_base = {
+        "messages": input_messages,
+        "summary": summary,
+        "challenge": challenge_text,
+        "stakeholder_name": st.name,
+        "stakeholder_division": st.division,
+        "stakeholder_responsibilities": st.responsibilities,
+        "stakeholder_priorities": st.priorities,
+        "stakeholder_requirements": combined_requirements,
+        "intel_instruction": intel_instruction,
+    }
+
+    payload_1 = {
+        **payload_base,
+        "current_emotion": current_emotion,
+        "emotion_instruction": emotion_instruction,
+    }
+
+    payload_2 = {
+        **payload_base,
+        "quantized_emotion_values": quantized_emotions_str,
+    }
+
+    response_1, response_2 = await asyncio.gather(
+        conversation_chain.ainvoke(payload_1, config),
+        quantized_conversation_chain.ainvoke(payload_2, config),
+    )
+
+    marked_content = (
+        f"=== [SYSTEM 1: CURRENT RULE-BASED EMOTION SYSTEM ({current_emotion})] ===\n"
+        f"[{st.id}] {response_1.content}\n\n"
+        f"==================================================\n\n"
+        f"=== [SYSTEM 2: QUANTIZED LLM-BASED EMOTION SYSTEM] ===\n"
+        f"Quantized Emotion Values: {quantized_emotions_str}\n"
+        f"[{st.id}] {response_2.content}"
     )
 
     named_response = AIMessage(
-        content=f"[{st.id}] {response.content}",
+        content=marked_content,
         additional_kwargs={
-            **response.additional_kwargs,
+            **response_1.additional_kwargs,
             "emotion_values": st_emotion_values.model_dump(),
             "emotion_delta": st_emotion_delta.model_dump(),
+            "system_1_response": response_1.content,
+            "system_2_response": response_2.content,
+            "quantized_emotion_values": quantized_emotions_str,
+            "derived_emotion": current_emotion,
         },
-        response_metadata=response.response_metadata,
-        id=response.id,
+        response_metadata=response_1.response_metadata,
+        id=response_1.id,
         name="Stakeholder",
-        tool_calls=response.tool_calls,
+        tool_calls=response_1.tool_calls or response_2.tool_calls,
     )
     if named_response.tool_calls:
         return {"messages": named_response}
     # Remove the last stakeholder_id after processing
     new_stakeholder_ids = state["stakeholder_ids"][:-1]
     return {"messages": named_response, "stakeholder_ids": new_stakeholder_ids}
+
 
 
 class IntelOptionSpec(BaseModel):
