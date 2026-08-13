@@ -1,26 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { MetricsContext } from "./components/MetricProvider";
-import MetricTab from "./components/MetricTab";
-import StakeholderInteractionArea, {
-  type ChatMsg,
-} from "./components/StakeholderInteractionArea";
-import { StakeholderContext } from "./components/StakeholderProvider";
 import { useGameWebSocket } from "./services/websocket/useGameWebSocket";
-import CardArea from "./components/CardArea";
 import type { ActionCard } from "./types/ActionCard";
-import { PhasesContext } from "./components/PhaseProvider";
-import PhaseOverview from "./components/PhaseOverview";
-import PrePhaseDialog from "./components/PrePhaseDialog";
 import Questionaire from "./Questionaire";
 import type { Briefing } from "./types/Briefing";
 import type { Question } from "./types/Question";
 import BriefingPage from "./BriefingPage";
-import styles from "./Game.module.css";
-import AcRevealPanel from "./components/AcRevealPanel";
 import introJs from "intro.js";
 import "intro.js/introjs.css";
 import EndPage from "./EndPage";
-import ErrorDialog from "./components/ErrorDialog";
+import OfflineIntelGathering from "./components/offline_intel_gathering";
+import OnlineIntelGathering from "./components/online_intel_gathering";
+import PitchDebate from "./components/pitch_debate";
+import AcSimulation from "./components/ac_simulation";
+import type { ChatMsg } from "./components/StakeholderInteractionArea";
 
 interface Stakeholder {
   id: string;
@@ -61,16 +53,16 @@ function App({ username: _username }: AppProps) {
     let eventName = data.event || data.type;
     if (eventName === "message") eventName = "chat:send_message";
     if (eventName === "progressIndexUpdate") eventName = "game:progress_update";
-    if (eventName === "stateRequest") eventName = "game:state_request";
+    if (eventName === "stateRequest") eventName = "game:state_update_request";
     emit(eventName, data);
   };
 
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState(0);
-  const [phases, setPhases] = useState([]);
+  const [phases, setPhases] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
   const [challengeNumber, setChallengeNumber] = useState(0);
-  const [challengeMetricChanges, setChallengeMetricChanges] = useState<
+  const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
     Record<string, number>
   >({});
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
@@ -105,6 +97,7 @@ function App({ username: _username }: AppProps) {
   const [isIntro1Started, setIsIntro1Started] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
+  const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
@@ -245,6 +238,7 @@ function App({ username: _username }: AppProps) {
                 );
 
                 return {
+                  id: card.id,
                   ac_title: card.title,
                   ac_descr: card.short_description,
                   metric_changes: Object.values(metricsRef.current).reduce(
@@ -302,6 +296,9 @@ function App({ username: _username }: AppProps) {
             setChallengeNumber(data["challenges_amount"]);
             setChallengeMetricChanges(data["metric_changes"]);
             setActionCards([]);
+            if (data.challenge_loop_id !== undefined) {
+              setChallengeLoopId(data.challenge_loop_id);
+            }
             if (data["challenge_id"] === 0) {
               if (data["phase_id"] === 0) {
                 if (!isIntro1StartedRef.current) {
@@ -432,15 +429,65 @@ function App({ username: _username }: AppProps) {
     }
 
     requestNextChallenge(ac);
-    //game completed check
+  };
+
+  const handleOfflineIntelGatheringContinue = () => {
+    let _metric_values: any = [];
+    Object.values(metrics).forEach((x) => {
+      _metric_values.push(x.value ?? 0);
+    });
+
+    sendJsonMessage({
+      type: "stateRequest",
+      challenge_id: currentChallenge,
+      phase_id: currentPhase,
+      challenge_loop_index: 0,
+      metric_values: _metric_values,
+      action_card_id: null,
+      messages: [],
+    });
+  };
+
+  const handleOnlineIntelGatheringContinue = () => {
+    let _metric_values: any = [];
+    Object.values(metrics).forEach((x) => {
+      _metric_values.push(x.value ?? 0);
+    });
+
+    sendJsonMessage({
+      type: "stateRequest",
+      challenge_id: currentChallenge,
+      phase_id: currentPhase,
+      challenge_loop_index: 1,
+      metric_values: _metric_values,
+      action_card_id: null,
+      messages: [],
+    });
+  };
+
+  const handleAcSimulationContinue = () => {
     if (
-      currentPhase == phases.length - 1 &&
-      currentChallenge == challengeNumber - 1
+      currentPhase === phases.length - 1 &&
+      currentChallenge === challengeNumber - 1
     ) {
-      //game completed, ask for questions
       sendJsonMessage({
         type: "progressIndexUpdate",
         value: 3,
+      });
+    } else {
+      let _metric_values: any = [];
+      Object.values(metrics).forEach((x) => {
+        _metric_values.push(x.value ?? 0);
+      });
+
+      sendJsonMessage({
+        type: "stateRequest",
+        challenge_id: currentChallenge,
+        phase_id: currentPhase,
+        challenge_loop_index: 3,
+        metric_values: _metric_values,
+        action_card_id: null,
+        messages: [],
       });
     }
   };
@@ -507,10 +554,11 @@ function App({ username: _username }: AppProps) {
 
     sendJsonMessage({
       type: "stateRequest",
-      challenge_id: currentChallenge + 1,
+      challenge_id: currentChallenge,
       phase_id: currentPhase,
+      challenge_loop_index: 2,
       metric_values: _metric_values,
-      action_card: ac,
+      action_card_id: ac.id,
       messages: chat_msgs,
     });
     setChatMsgs([]);
@@ -537,117 +585,53 @@ function App({ username: _username }: AppProps) {
   return (
     <>
       {progressionIndex == 2 && (
-        <PhasesContext.Provider
-          value={{ currentPhase, setCurrentPhase, phases, setPhases }}
-        >
-          <MetricsContext.Provider value={{ metrics, setMetrics }}>
-            <StakeholderContext.Provider
-              value={{ stakeholders, setStakeholders }}
-            >
-              <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-              <PrePhaseDialog
-                isOpen={isPhaseDialogueOpen}
-                setIsOpen={setIsPhaseDialogueOpen}
-                setIsRoundOpen={() => {
-                  startRound(challengeTitle);
-                }}
-              />
-
-              <div className="game-container">
-                <nav
-                  className="navbar navbar-expand-lg flex-shrink-0"
-                  style={{ backgroundColor: "var(--primary-bg)" }}
-                >
-                  <div
-                    className="container-fluid d-flex align-items-stretch py-1"
-                    style={{ gap: "1rem" }}
-                    data-bs-theme="dark"
-                  >
-                    <div
-                      className="transparent-div"
-                      style={{ flex: "0 0 50%" }}
-                    >
-                      <span
-                        className="transparent-div-label intro1"
-                        data-intro-group="intro1"
-                        data-intro="Welcome to the MLOps Serious Game! This short introduction will explain essential game mechanics and the serious game environment. You play as a project manager of a Machine Learning project that uses MLOps guidelines."
-                        data-step="1"
-                        data-position="bottom"
-                      >
-                        📋 Phase Overview
-                      </span>
-                      <PhaseOverview />
-                    </div>
-                    <div
-                      className="transparent-div intro1"
-                      style={{ flex: "1 1 0" }}
-                      data-intro-group="intro1"
-                      data-intro="The metrics panel shows the currently active metrics. Metrics quantify aspects of the game's Environment like the project's model quality or the general efficiency of the development. As a project manager, your goal is to maximize the metrics while keeping them balanced as unbalanced metrics can complicate the development process."
-                      data-step="3"
-                      data-position="middle-aligned"
-                    >
-                      <span className="transparent-div-label">
-                        📊 Performance Metrics
-                      </span>
-                      <MetricTab
-                        current_phase={currentPhase}
-                        showMetricValueChanges={showMetricValueChanges}
-                        last_ac={last_ac}
-                      />
-                    </div>
-                  </div>
-                </nav>
-                <div
-                  className={`container-fluid flex-grow-1 d-flex flex-column overflow-hidden position-relative `}
-                  style={{
-                    backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${(currentChallenge + currentPhase) % 4}.png")`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                  }}
-                >
-                  {!revealAc && (
-                    <div
-                      className={`row flex-grow-1 overflow-hidden ${roundOverAnimActive && styles.roundOverAnimActive}`}
-                    >
-                      <StakeholderInteractionArea
-                        handleSend={handleSend}
-                        chatMsgs={chat_msgs}
-                        current_phase={currentPhase}
-                        current_challenge={currentChallenge}
-                        isEnabled={isChatEnabled}
-                        actionCards={actionCards}
-                        onHoverCard={setHoveredCardId}
-                        selected_mgs={selected_mgs}
-                      />
-                      <div className="col-7 p-3 bg d-flex flex-column">
-                        <CardArea
-                          onPlayCard={playActionCard}
-                          challenge_descr={challengeDescription}
-                          challenge_intro={challengeIntro}
-                          challenge_title={challengeTitle}
-                          challenge_id={currentChallenge}
-                          challenge_number={challengeNumber}
-                          action_cards={actionCards}
-                          current_phase={currentPhase}
-                          hoveredCardId={hoveredCardId}
-                          isStakeholderTyping={!isChatEnabled}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {revealAc && last_ac && (
-                    <AcRevealPanel
-                      last_ac={last_ac}
-                      current_phase={currentPhase}
-                      goToNextChallenge={() => getNextChallenge(last_ac)}
-                    />
-                  )}
-                </div>
-              </div>
-            </StakeholderContext.Provider>
-          </MetricsContext.Provider>
-        </PhasesContext.Provider>
+        <>
+          {challengeLoopId === 0 && (
+            <OfflineIntelGathering onContinue={handleOfflineIntelGatheringContinue} />
+          )}
+          {challengeLoopId === 1 && (
+            <OnlineIntelGathering onContinue={handleOnlineIntelGatheringContinue} />
+          )}
+          {challengeLoopId === 3 && (
+            <AcSimulation onContinue={handleAcSimulationContinue} />
+          )}
+          {challengeLoopId === 2 && (
+            <PitchDebate
+              currentPhase={currentPhase}
+              setCurrentPhase={setCurrentPhase}
+              phases={phases}
+              setPhases={setPhases}
+              metrics={metrics}
+              setMetrics={setMetrics}
+              stakeholders={stakeholders}
+              setStakeholders={setStakeholders}
+              lastError={lastError}
+              isInErrorUi={isInErrorUi}
+              setIsInErrorUi={setIsInErrorUi}
+              isPhaseDialogueOpen={isPhaseDialogueOpen}
+              setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
+              challengeTitle={challengeTitle}
+              challengeDescription={challengeDescription}
+              challengeIntro={challengeIntro}
+              currentChallenge={currentChallenge}
+              challengeNumber={challengeNumber}
+              revealAc={revealAc}
+              last_ac={last_ac}
+              roundOverAnimActive={roundOverAnimActive}
+              showMetricValueChanges={showMetricValueChanges}
+              isChatEnabled={isChatEnabled}
+              actionCards={actionCards}
+              hoveredCardId={hoveredCardId}
+              setHoveredCardId={setHoveredCardId}
+              selected_mgs={selected_mgs}
+              chat_msgs={chat_msgs}
+              startRound={startRound}
+              playActionCard={playActionCard}
+              getNextChallenge={getNextChallenge}
+              handleSend={handleSend}
+            />
+          )}
+        </>
       )}
       {progressionIndex == 0 && (
         <Questionaire

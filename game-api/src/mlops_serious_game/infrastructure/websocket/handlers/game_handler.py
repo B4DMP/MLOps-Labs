@@ -1,3 +1,4 @@
+from fastapi import websockets
 import datetime
 from typing import Any
 from fastapi import WebSocket
@@ -73,7 +74,6 @@ def get_outro_questions() -> list[Any]:
 def get_phases() -> list[Any]:
     return [{"phase_name": p.name, "phase_desc": p.description} for p in PhaseFactory.get_phases()]
 
-
 async def handle_game_init(
     websocket: WebSocket,
     username: str,
@@ -101,8 +101,8 @@ async def handle_game_init(
             if r.game_progress_index > game_progress_index:
                 game_progress_index = r.game_progress_index
 
-    last_gamestate_id = [0, 0]
-    initial_metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
+    last_gamestate_id = [0, 0, 0]
+    metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
 
     with get_session() as session:
         results = session.scalars(
@@ -110,23 +110,45 @@ async def handle_game_init(
         ).all()
         for r in results:
             if r.phase_index > last_gamestate_id[0] or (r.phase_index == last_gamestate_id[0] and r.challenge_index > last_gamestate_id[1]):
-                last_gamestate_id = [r.phase_index, r.challenge_index]
+                last_gamestate_id = [r.phase_index, r.challenge_index, r.challenge_loop_index]
                 if isinstance(r.metric_values, list):
-                    initial_metric_values = r.metric_values
+                    metric_values = r.metric_values
 
     #DEBUG skip intro questions
     if last_gamestate_id[0]==0 and last_gamestate_id[1]==0 and game_progress_index==2:
         last_gamestate_id[1]=1
 
-    await send_progress_index_payload(websocket, game_progress_index, last_gamestate_id, initial_metric_values)
-    return (last_gamestate_id[0], last_gamestate_id[1])
+    await send_progress_index_payload(websocket, game_progress_index)
+
+    if(game_progress_index==2):
+        curr_challenge: Challenge = PhaseFactory.get_challenge_by_index(
+            challenge_index=last_gamestate_id[1],
+            phase_index=last_gamestate_id[0]
+        )
+        await manager.send_event(
+            websocket=websocket,
+            event="game:state_update",
+            payload={
+                "progressionIndex": 2,
+                "type": "state",
+                "phases_amount": len(PhaseFactory.get_phases()),
+                "challenges_amount": len(PhaseFactory.get_phases()[curr_challenge.phase_id].challenges),
+                "phase_id": curr_challenge.phase_id,
+                "challenge_id": curr_challenge.id,
+                "challenge_loop_id": last_gamestate_id[2],
+                "name": curr_challenge.name,
+                "description": curr_challenge.description,
+                "roundIntroduction": curr_challenge.roundIntroduction,
+                "metric_values": metric_values,
+            }
+        )
+
+    return (last_gamestate_id[0], last_gamestate_id[1], last_gamestate_id[2])
 
 
 async def send_progress_index_payload(
     websocket: WebSocket,
     index: int,
-    last_gamestate_id: list[int],
-    initial_metric_values: list[int]
 ) -> None:
 
     if index == 0:
@@ -141,29 +163,6 @@ async def send_progress_index_payload(
             event="game:progress_change",
             payload={"progressionIndex": 1, "type": "briefing", "content": BriefingFactory.briefing}
         )
-    elif index == 2:
-        curr_challenge: Challenge = PhaseFactory.get_challenge_by_index(
-            challenge_index=last_gamestate_id[1],
-            phase_index=last_gamestate_id[0]
-        )
-        if curr_challenge:
-            await manager.send_event(
-                websocket=websocket,
-                event="game:state_update",
-                payload={
-                    "progressionIndex": 2,
-                    "type": "state",
-                    "phases_amount": len(PhaseFactory.get_phases()),
-                    "challenges_amount": len(PhaseFactory.get_phases()[curr_challenge.phase_id].challenges),
-                    "phase_id": curr_challenge.phase_id,
-                    "challenge_id": curr_challenge.id,
-                    "name": curr_challenge.name,
-                    "description": curr_challenge.description,
-                    "roundIntroduction": curr_challenge.roundIntroduction,
-                    "metric_values": initial_metric_values,
-                    "metric_changes": curr_challenge.metric_changes
-                }
-            )
     elif index == 3:
         await manager.send_event(
             websocket=websocket,
@@ -197,64 +196,163 @@ async def handle_progress_update(
             )
         )
 
-    last_gamestate_id = payload.get("last_gamestate_id", [0, 0])
-    initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
-    await send_progress_index_payload(websocket, game_progress_index, last_gamestate_id, initial_metric_values)
-
-
-async def handle_state_request(
-    websocket: WebSocket,
-    username: str,
-    payload: dict
-) -> tuple[int, int]:
-    try:
-        phase_id = payload.get("phase_id", 0)
-        challenge_id = payload.get("challenge_id", 0)
-        metric_values = payload.get("metric_values", [])
-        action_card = payload.get("action_card", {})
-        messages = payload.get("messages", [])
-
-        next_challenge: Challenge = PhaseFactory.get_challenge_by_index(
-            challenge_index=challenge_id,
-            phase_index=phase_id
+    if game_progress_index == 2:
+        last_gamestate_id = payload.get("last_gamestate_id", [0, 0, 0])
+        #DEBUG skip intro questions
+        if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0:
+            last_gamestate_id[1] = 1
+            
+        initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
+        curr_challenge: Challenge = PhaseFactory.get_challenge_by_index(
+            challenge_index=last_gamestate_id[1],
+            phase_index=last_gamestate_id[0]
         )
+        if curr_challenge:
+            await manager.send_event(
+                websocket=websocket,
+                event="game:state_update",
+                payload={
+                    "progressionIndex": 2,
+                    "type": "state",
+                    "phases_amount": len(PhaseFactory.get_phases()),
+                    "challenges_amount": len(PhaseFactory.get_phases()[curr_challenge.phase_id].challenges),
+                    "phase_id": curr_challenge.phase_id,
+                    "challenge_id": curr_challenge.id,
+                    "challenge_loop_id": last_gamestate_id[2] if len(last_gamestate_id) > 2 else 0,
+                    "name": curr_challenge.name,
+                    "description": curr_challenge.description,
+                    "roundIntroduction": curr_challenge.roundIntroduction,
+                    "metric_values": initial_metric_values,
+                }
+            )
+    else:
+        await send_progress_index_payload(websocket, game_progress_index)
 
-        if challenge_id == 0 and phase_id == 0:
-            metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
 
-        target_phase = next_challenge.phase_id if next_challenge else phase_id
-        target_challenge = next_challenge.id if next_challenge else challenge_id
 
-        ac_changes = action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}
-        next_challenge_changes = next_challenge.metric_changes if next_challenge else {}
-
-        new_metric_values = []
-        for i, m_name in enumerate(MetricFactory.get_available_metrics()):
-            cur_val = metric_values[i] if i < len(metric_values) else 0
-            change = ac_changes.get(m_name, 0) + next_challenge_changes.get(m_name, 0)
-            new_metric_values.append(cur_val + change)
-
+async def store_or_update_challenge(
+    challenge: Challenge,
+    challenge_loop_id: int,
+    action_card: dict,
+    metric_values: list[int],
+    messages: list[str],
+    username: str,
+) -> None:
+    if challenge_loop_id == 0:
         with get_session() as session:
             session.add(
                 GameSession(
                     user_name=username,
-                    phase_index=target_phase,
-                    challenge_index=target_challenge,
+                    phase_index=challenge.phase_id,
+                    challenge_index=challenge.id,
+                    challenge_loop_index=challenge_loop_id,
                     action_card=action_card,
-                    metric_values=new_metric_values,
+                    metric_values=metric_values,
                     time_stamp=datetime.datetime.utcnow(),
                     messages=messages
                 )
             )
+    else:
+        with get_session() as session:
+            stmt = select(GameSession).where(
+                GameSession.user_name == username,
+                GameSession.phase_index == challenge.phase_id,
+                GameSession.challenge_index == challenge.id
+            ).order_by(GameSession.id.desc())
+            
+            existing = session.scalars(stmt).first()
+            if existing:
+                existing.challenge_loop_index = challenge_loop_id
+                existing.action_card = action_card
+                existing.metric_values = metric_values
+                existing.messages = messages
+                existing.time_stamp = datetime.datetime.utcnow()
+            else:
+                session.add(
+                    GameSession(
+                        user_name=username,
+                        phase_index=challenge.phase_id,
+                        challenge_index=challenge.id,
+                        challenge_loop_index=challenge_loop_id,
+                        action_card=action_card,
+                        metric_values=metric_values,
+                        time_stamp=datetime.datetime.utcnow(),
+                        messages=messages
+                    )
+                )
 
-        if next_challenge is None:
-            await manager.send_event(
-                websocket=websocket,
-                event="game:progress_change",
-                payload={"progressionIndex": 3, "type": "questions", "questions": get_outro_questions()}
-            )
-            return (phase_id, challenge_id)
+async def handle_state_update_request(
+    websocket: WebSocket,
+    username: str,
+    payload: dict,
+) -> tuple[int, int, int]:
+    try:
+        phase_id = payload.get("phase_id", 0)
+        challenge_id = payload.get("challenge_id", 0)
+        challenge_loop_index = payload.get("challenge_loop_index", 0)
+        metric_values = payload.get("metric_values", [])
+        action_card = payload.get("action_card", {})
+        messages = payload.get("messages", [])
+        
+        #challenge loop index 0 - offline intel gathering
+        #challenge loop index 1 - online intel gathering
+        #challenge loop inde: 2 - pitch debate
+        #challenge loop index 3 - simulation
+        challenge_loop_index+=1
+        match challenge_loop_index:
+            case 1:
+                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                    challenge_index=challenge_id,
+                    phase_index=phase_id
+                )
+            case 2:
+                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                    challenge_index=challenge_id,
+                    phase_index=phase_id
+                )
+            case 3:
+                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                    challenge_index=challenge_id,
+                    phase_index=phase_id
+                )
+            case _:
+                #next challenge
+                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                    challenge_index=challenge_id+1,
+                    phase_index=phase_id
+                )
 
+                if challenge is None:
+                    await manager.send_event(
+                        websocket=websocket,
+                        event="game:progress_change",
+                        payload={"progressionIndex": 4}
+                    )
+                    return (phase_id,challenge_id+1,0)
+                
+                #calculate new metric values
+                new_metric_values=[]    
+
+                ac_changes = action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}
+                
+                for i, m_name in enumerate(MetricFactory.get_available_metrics()):
+                    cur_val = metric_values[i] if i < len(metric_values) else 0
+                    change = ac_changes.get(m_name, 0) + challenge.metric_changes.get(m_name, 0)
+                    new_metric_values.append(cur_val + change)
+
+                metric_values = new_metric_values
+                challenge_loop_index = 0
+
+        await store_or_update_challenge(
+            challenge=challenge,
+            challenge_loop_id=challenge_loop_index,
+            action_card=action_card,
+            metric_values=metric_values,
+            messages=messages,
+            username=username,
+        )
+
+        
         await manager.send_event(
             websocket=websocket,
             event="game:state_update",
@@ -262,18 +360,20 @@ async def handle_state_request(
                 "progressionIndex": 2,
                 "type": "state",
                 "phases_amount": len(PhaseFactory.get_phases()),
-                "challenges_amount": len(PhaseFactory.get_phases()[next_challenge.phase_id].challenges),
-                "phase_id": next_challenge.phase_id,
-                "challenge_id": next_challenge.id,
-                "name": next_challenge.name,
-                "description": next_challenge.description,
-                "roundIntroduction": next_challenge.roundIntroduction,
-                "metric_values": new_metric_values,
-                "metric_changes": next_challenge.metric_changes
+                "challenges_amount": len(PhaseFactory.get_phases()[challenge.phase_id].challenges),
+                "phase_id": challenge.phase_id,
+                "challenge_id": challenge.id,
+                "challenge_loop_id": challenge_loop_index,
+                "name": challenge.name,
+                "description": challenge.description,
+                "roundIntroduction": challenge.roundIntroduction,
+                "metric_values": metric_values,
             }
         )
-        return (next_challenge.phase_id, next_challenge.id)
+    
+    
+        return (challenge.phase_id, challenge.id, challenge_loop_index)
     except Exception as e:
         print(f"[GameStateHandler Error] {e}")
         await manager.send_error(websocket, str(e))
-        return (0, 0)
+        return (0, 0, 0)

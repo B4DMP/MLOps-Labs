@@ -57,6 +57,7 @@ def upgrade() -> None:
         sa.Column('user_name', sa.String(length=255), nullable=False),
         sa.Column('phase_index', sa.Integer(), nullable=False),
         sa.Column('challenge_index', sa.Integer(), nullable=False),
+        sa.Column('challenge_loop_index', sa.Integer(), nullable=False),
         sa.Column('action_card', sa.JSON(), nullable=False),
         sa.Column('metric_values', sa.JSON(), nullable=False),
         sa.Column('time_stamp', sa.DateTime(), nullable=False),

@@ -45,6 +45,7 @@ class GameSession(Base):
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    challenge_loop_index: Mapped[int] = mapped_column(Integer, nullable=False)
     action_card: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     metric_values: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     time_stamp: Mapped[datetime.datetime] = mapped_column(

@@ -1,4 +1,5 @@
 export type ActionCard = {
+  id?: string;
   ac_title: string;
   ac_descr: string;
   metric_changes: Record<string, number>;

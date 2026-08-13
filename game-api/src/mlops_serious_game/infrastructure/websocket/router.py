@@ -1,28 +1,30 @@
-import json
-from typing import Callable, Awaitable, Dict
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 
-from .manager import manager
-from .schemas import WSEvent
+import json
+from collections.abc import Awaitable, Callable
+
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+
+from mlops_serious_game.domain.phase_factory import PhaseFactory
+
 from .handlers.chat_handler import handle_chat_message
 from .handlers.game_handler import (
     handle_game_init,
     handle_progress_update,
-    handle_state_request,
-    reset_thread
+    handle_state_update_request,
+    reset_thread,
 )
 from .handlers.system_handler import handle_ping
-from mlops_serious_game.domain.phase_factory import PhaseFactory
+from .manager import manager
 
 router = APIRouter()
 
 HandlerFunc = Callable[[WebSocket, str, dict], Awaitable[None]]
 
 # Event Registry mapping unified event names to handler functions
-EVENT_REGISTRY: Dict[str, HandlerFunc] = {
+EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "game:init": handle_game_init,
     "game:progress_update": handle_progress_update,
-    "game:state_request": handle_state_request,
+    "game:state_update_request": handle_state_update_request,
     "chat:send_message": handle_chat_message,
     "system:ping": handle_ping,
 }
@@ -54,8 +56,33 @@ async def unified_websocket_endpoint(
                     handler = EVENT_REGISTRY[event_name]
                     if event_name == "game:init":
                         last_gamestate_id = list(await handle_game_init(websocket, username, payload))
-                    elif event_name == "game:state_request":
-                        last_gamestate_id = list(await handle_state_request(websocket, username, payload))
+                    elif event_name == "game:state_update_request":
+                        action_card_id = payload.get("action_card_id")
+                        action_card = {}
+                        #retrieve action card from langGraph state
+                        if action_card_id:
+                            from langgraph.checkpoint.postgres.aio import (
+                                AsyncPostgresSaver,
+                            )
+
+                            from mlops_serious_game.application.conversation_service.workflow.graph import (
+                                create_workflow_graph,
+                            )
+                            from mlops_serious_game.config import settings
+
+                            graph_builder = create_workflow_graph()
+                            async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+                                await checkpointer.setup()
+                                graph = graph_builder.compile(checkpointer=checkpointer)
+                                config = {"configurable": {"thread_id": session_id}}
+                                state_snapshot = await graph.aget_state(config)
+                                action_cards = state_snapshot.values.get("action_cards", []) if state_snapshot.values else []
+                                for card in action_cards:
+                                    if card.get("id") == action_card_id:
+                                        action_card = card
+                                        break
+                        payload["action_card"] = action_card
+                        last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                         await reset_thread(session_id)
                     elif event_name == "chat:send_message":
                         curr_challenge = PhaseFactory.get_challenge_by_index(last_gamestate_id[0], last_gamestate_id[1])
@@ -80,7 +107,7 @@ async def unified_websocket_endpoint(
                 import traceback
                 traceback.print_exc()
                 try:
-                    await manager.send_error(websocket, f"Internal server error: {str(e)}")
+                    await manager.send_error(websocket, f"Internal server error: {e!s}")
                 except:
                     pass
     finally:

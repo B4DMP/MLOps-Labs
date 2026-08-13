@@ -1,29 +1,32 @@
 import asyncio
+import random
 
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, RemoveMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
-from mlops_serious_game.config import settings
-from langchain_core.messages import RemoveMessage
+
 from mlops_serious_game.application.conversation_service.workflow.chains import (
+    get_anticheat_chain,
+    get_card_gen_chain,
+    get_card_gen_checker_chain,
     get_context_summary_chain,
     get_conversation_summary_chain,
-    get_stakeholder_response_chain,
+    get_rogue_stakeholder_response_chain,
     get_router_chain,
-    get_card_gen_checker_chain,
-    get_card_gen_chain,
-    get_anticheat_chain,
-    get_rogue_stakeholder_response_chain
+    get_stakeholder_response_chain,
 )
-from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.application.conversation_service.workflow.state import (
+    ChallengeState,
+)
 from mlops_serious_game.application.conversation_service.workflow.tools import tools
-from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
-from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.domain.stakeholder import Stakeholder
+from mlops_serious_game.config import settings
+from mlops_serious_game.domain.exceptions import (
+    NoStakeholderRoute,
+    RoutingStakeholderNotFound,
+)
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.metric import Metric
-import random
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 retriever_node = ToolNode(tools)
 
@@ -264,7 +267,9 @@ async def card_gen_node(state: ChallengeState, config: RunnableConfig):
     print(f"generated new action card: {response}")
 
     #solves pydantic error
+    import uuid
     card_dict = response.model_dump() if hasattr(response, "model_dump") else dict(response)
+    card_dict["id"] = str(uuid.uuid4())
     
     new_action_cards=[]
     if "action_cards" in state:
