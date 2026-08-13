@@ -169,36 +169,36 @@ def get_context_summary_chain():
     return prompt | model
 
 # Dynamically generate routing options from available stakeholders
-def _get_routing_options(phase_id: int | None, selectionmask: list[str]|None):
+def _get_routing_options(phase_id: int | None):
     stakeholders = []
-    if phase_id is None or selectionmask is None:
+    if phase_id is None:
         for st_id in StakeholderFactory.get_available_stakeholders():
             st = StakeholderFactory.get_stakeholder(st_id)
             stakeholders.append(f"{st.name}")
     else:
-        for st_id in StakeholderFactory.get_active_stakeholders(phase_id,selectionmask):
+        for st_id in StakeholderFactory.get_active_stakeholders(phase_id):
             st = StakeholderFactory.get_stakeholder(st_id)
             stakeholders.append(f"{st.name}")
     
     return tuple(stakeholders)
 
 #find stakeholders for card generation from available stakeholders
-def _get_action_card_stakeholders(phase_id: int | None, selectionmask: list[str]|None):
+def _get_action_card_stakeholders(phase_id: int | None):
     stakeholders = []
-    if phase_id is None or selectionmask is None:  
+    if phase_id is None:  
         for st_id in StakeholderFactory.get_available_stakeholders():
             st = StakeholderFactory.get_stakeholder(st_id)
             stakeholders.append(f"{st.name}")
     else: 
-        for st_id in StakeholderFactory.get_active_stakeholders(phase_id,selectionmask):
+        for st_id in StakeholderFactory.get_active_stakeholders(phase_id):
             st = StakeholderFactory.get_stakeholder(st_id)
             stakeholders.append(f"{st.name}")
     return tuple(stakeholders)
 
 # Dynamically build router schema from available stakeholders
-def build_stakeholder_router_schema(phase_id: int | None, selectionmask: list[str]|None):
+def build_stakeholder_router_schema(phase_id: int | None):
     
-    routing_options = _get_routing_options(phase_id,selectionmask)
+    routing_options = _get_routing_options(phase_id)
     if not routing_options:
         raise ValueError("No stakeholders available for routing.")
     StakeholderLiteral = Literal[routing_options]
@@ -215,12 +215,12 @@ def build_stakeholder_router_schema(phase_id: int | None, selectionmask: list[st
     )
     return RouterSchema
 
-def get_router_chain(phase_id: int | None , selectionmask: list[str]|None):
+def get_router_chain(phase_id: int | None):
     
     if use_rwth_key:
-        model = get_routing_model().with_structured_output(build_stakeholder_router_schema(phase_id,selectionmask))
+        model = get_routing_model().with_structured_output(build_stakeholder_router_schema(phase_id))
     else:
-        model = get_routing_model().with_structured_output(build_stakeholder_router_schema(phase_id,selectionmask), method="json_schema", strict=True)
+        model = get_routing_model().with_structured_output(build_stakeholder_router_schema(phase_id), method="json_schema", strict=True)
     
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -258,9 +258,9 @@ def get_card_gen_checker_chain():
     
     return prompt | model
 
-def build_action_card_schema(phase_id: int| None, selectionmask: list[str]|None):
+def build_action_card_schema(phase_id: int| None):
     
-    routing_options = _get_action_card_stakeholders(phase_id,selectionmask)
+    routing_options = _get_action_card_stakeholders(phase_id)
     StakeholderLiteral = Literal[routing_options]
     ActionCardImage = Literal[tuple(PhaseFactory.action_card_images)]
 
@@ -298,11 +298,11 @@ def build_action_card_schema(phase_id: int| None, selectionmask: list[str]|None)
     return ActionCard
 
 
-def get_card_gen_chain(phase_id: int | None, selectionmask: list[str]|None):
+def get_card_gen_chain(phase_id: int | None):
     if use_rwth_key:
-        model = get_card_gen_model().with_structured_output(build_action_card_schema(phase_id,selectionmask))
+        model = get_card_gen_model().with_structured_output(build_action_card_schema(phase_id))
     else:
-        model = get_card_gen_model().with_structured_output(build_action_card_schema(phase_id,selectionmask), method="json_schema", strict=True)
+        model = get_card_gen_model().with_structured_output(build_action_card_schema(phase_id), method="json_schema", strict=True)
     
     prompt = ChatPromptTemplate.from_messages(
     [

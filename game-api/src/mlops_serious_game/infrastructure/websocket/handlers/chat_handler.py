@@ -16,7 +16,6 @@ async def handle_chat_message(
     message_text = payload.get("message", "")
     challenge_context = payload.get("challenge", "")
     phase_id = payload.get("phase_id", 0)
-    selection_mask = payload.get("selectionmask", [])
     
     async def callback(ws: WebSocket = None, state: dict = None, websocket: WebSocket = None, **kwargs):
         ws = websocket or ws
@@ -63,8 +62,7 @@ async def handle_chat_message(
             _thread_id=session_id,
             phase_id=phase_id,
             ws=websocket,
-            callback=callback,
-            selectionmask=selection_mask
+            callback=callback
         )
 
         is_cheating = output_state.get("cheating_detected") == True

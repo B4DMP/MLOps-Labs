@@ -10,11 +10,8 @@ type StakeholderContextType = {
       priorities: string;
       constraints: string;
       role_description: string;
-      is_selected: boolean;
       metric_id: string;
       stakeholder_color: string;
-      metric_expertise_values: Record<string, number>;
-      active: boolean[];
     }
   >;
   setStakeholders: React.Dispatch<React.SetStateAction<any>>;

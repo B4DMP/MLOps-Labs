@@ -121,9 +121,8 @@ async def send_message_connector_node(state: ChallengeState, config: RunnableCon
 def get_stakeholders_text(state: ChallengeState, config: RunnableConfig):
     stakeholders:str = ""
     phase_id = state.get("phase_id")
-    selectionmask = config["configurable"].get("selectionmask")
-    if phase_id is not None and selectionmask is not None:
-        for st_id in StakeholderFactory.get_active_stakeholders(phase_id,selectionmask):
+    if phase_id is not None:
+        for st_id in StakeholderFactory.get_active_stakeholders(phase_id):
             st = StakeholderFactory.get_stakeholder(st_id)
             stakeholders+=(f"- {st.name}\n")
     else:
@@ -137,7 +136,7 @@ def get_stakeholders_text(state: ChallengeState, config: RunnableConfig):
 async def router_node(state: ChallengeState, config: RunnableConfig):
     
     phase_id = state.get("phase_id")
-    router_chain = get_router_chain(phase_id, config["configurable"].get("selectionmask"))
+    router_chain = get_router_chain(phase_id)
 
     decision = await router_chain.ainvoke(
         {
@@ -154,7 +153,7 @@ async def router_node(state: ChallengeState, config: RunnableConfig):
 
     for selected in decision.stakeholders:
         found = False
-        st_ids = StakeholderFactory.get_active_stakeholders(state.get("phase_id"),config["configurable"].get("selectionmask")) if state.get("phase_id") is not None else StakeholderFactory.get_available_stakeholders()
+        st_ids = StakeholderFactory.get_active_stakeholders(state.get("phase_id")) if state.get("phase_id") is not None else StakeholderFactory.get_available_stakeholders()
         for st_id in st_ids:
             st = StakeholderFactory.get_stakeholder(st_id)
             target = st.name.strip().lower()
@@ -225,7 +224,7 @@ async def anticheat_node(state: ChallengeState, config: RunnableConfig):
     
 async def card_gen_node(state: ChallengeState, config: RunnableConfig):
     phase_id = state.get("phase_id")
-    card_gen_chain = get_card_gen_chain(phase_id, config["configurable"].get("selectionmask"))
+    card_gen_chain = get_card_gen_chain(phase_id)
     currencies_explanation=""
     for m_id in MetricFactory.get_available_metrics():
         currencies_explanation+=(f"currency name:{MetricFactory.get_metric(m_id).name}; currency prompt:{MetricFactory.get_metric(m_id).metric_prompt}; active: {MetricFactory.get_metric(m_id).phases[phase_id]} \n,")
@@ -249,7 +248,7 @@ async def card_gen_node(state: ChallengeState, config: RunnableConfig):
             break
 
     # Get allowed stakeholder names for the prompt
-    st_ids = StakeholderFactory.get_active_stakeholders(state.get("phase_id"),config["configurable"].get("selectionmask")) if state.get("phase_id") is not None else StakeholderFactory.get_available_stakeholders()
+    st_ids = StakeholderFactory.get_active_stakeholders(state.get("phase_id")) if state.get("phase_id") is not None else StakeholderFactory.get_available_stakeholders()
     allowed_names = ", ".join([StakeholderFactory.get_stakeholder(st_id).name for st_id in st_ids])
 
     response = await card_gen_chain.ainvoke(
@@ -266,13 +265,6 @@ async def card_gen_node(state: ChallengeState, config: RunnableConfig):
 
     #solves pydantic error
     card_dict = response.model_dump() if hasattr(response, "model_dump") else dict(response)
-    selectionmask = config["configurable"].get("selectionmask") or []
-    selected_count = len(selectionmask) if isinstance(selectionmask, list) else 0
-    if selected_count > 4:
-        malus = selected_count - 4
-        card_dict['Efficiency'] -= malus
-        if card_dict['Efficiency'] < -5:
-            card_dict['Efficiency'] = -5
     
     new_action_cards=[]
     if "action_cards" in state:

@@ -1,26 +1,7 @@
 {
   "stakeholders": [
     {
-      "stakeholder_color": "#6BA205",
       "metric_id": "data",
-      "metric_expertise_values": {
-        "model": 3,
-        "automation": 2,
-        "reliability": 2,
-        "data": 3,
-        "requirements": 2,
-        "efficiency": 1,
-        "efficiency_intro": 0,
-        "model_intro": 0
-      },
-      "active": [
-        false,
-        true,
-        true,
-        true,
-        true,
-        true
-      ],
       "id": "data_dave",
       "name": "Data Dave",
       "role_description": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
@@ -29,26 +10,7 @@
       "requirements": "Calls for diverse data sources and data legality. Requires building robust storage infrastructures and pipelines. Data management that ensures data quality, consistency and documentation and includes clear ownership and versioning of data assets. Calls for reproducibility and methodological soundness during Model and Data related tasks."
     },
     {
-      "stakeholder_color": "#2563eb",
       "metric_id": "model",
-      "metric_expertise_values": {
-        "model": 3,
-        "automation": 2,
-        "reliability": 1,
-        "data": 2,
-        "requirements": 1,
-        "efficiency": 1,
-        "efficiency_intro": 1,
-        "model_intro": 3
-      },
-      "active": [
-        true,
-        false,
-        false,
-        true,
-        true,
-        true
-      ],
       "id": "model_monica",
       "name": "Model Monica",
       "role_description": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
@@ -57,26 +19,7 @@
       "requirements": "Infrastructure and services that supports efficient model training, experimentation, and deployment including model versioning tools, and performance monitoring systems. Calls for reproducibility and methodological soundness during Model and Data related tasks."
     },
     {
-      "stakeholder_color": "#CF14AF",
       "metric_id": "requirements",
-      "metric_expertise_values": {
-        "model": 2,
-        "automation": 2,
-        "reliability": 3,
-        "data": 3,
-        "requirements": 3,
-        "efficiency": 2,
-        "efficiency_intro": 0,
-        "model_intro": 0
-      },
-      "active": [
-        false,
-        true,
-        true,
-        true,
-        true,
-        true
-      ],
       "id": "requirements_reuben",
       "name": "Requirements Reuben",
       "role_description": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
@@ -85,26 +28,7 @@
       "requirements": "Development workflow must allow for testing and validation, enabling automated tests for ML pipelines, models, and services. Secure development environments with strict access control, auditing, vulnerability scanning, threat detection, encryption management, and secure data handling. Systems and regulatory frameworks that support compliance with data protection regulations and enforce governance policies. Flexible and scalable infrastructure that supports modular system architecture and integration with cloud services."
     },
     {
-      "stakeholder_color": "#0891b2",
       "metric_id": "efficiency",
-      "metric_expertise_values": {
-        "model": 2,
-        "automation": 1,
-        "reliability": 2,
-        "data": 2,
-        "requirements": 3,
-        "efficiency": 3,
-        "efficiency_intro": 3,
-        "model_intro": 1
-      },
-      "active": [
-        true,
-        true,
-        true,
-        false,
-        false,
-        true
-      ],
       "id": "efficiency_emilia",
       "name": "Efficiency Emilia",
       "role_description": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
@@ -113,26 +37,7 @@
       "requirements": "The environment should make it easy to incorporate domain knowledge into the ML development process. Clear documentation, KPIs and reporting capabilities to evaluate whether ML solutions meet business objectives. Monitoring tools that provide clear insights into system performance, costs, and business impact. Transparent documentation and progress tracking to support oversight of development and operational activities. Development monitoring and progress tracking using product roadmaps and issue management systems."
     },
     {
-      "stakeholder_color": "#fb923c",
       "metric_id": "automation",
-      "metric_expertise_values": {
-        "model": 1,
-        "automation": 3,
-        "reliability": 2,
-        "data": 1,
-        "requirements": 1,
-        "efficiency": 2,
-        "efficiency_intro": 0,
-        "model_intro": 0
-      },
-      "active": [
-        false,
-        true,
-        false,
-        false,
-        true,
-        true
-      ],
       "id": "automation_alex",
       "name": "Automation Alex",
       "role_description": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
@@ -141,26 +46,7 @@
       "requirements": "Automated pipelines, version control, and continuous integration and deployment. Orchestration of services across cloud and container platforms. Calls for stability while handling frequent deployments. Needs to construct and test reliable applications."
     },
     {
-      "stakeholder_color": "#BE1229",
       "metric_id": "reliability",
-      "metric_expertise_values": {
-        "model": 2,
-        "automation": 3,
-        "reliability": 3,
-        "data": 1,
-        "requirements": 1,
-        "efficiency": 2,
-        "efficiency_intro": 0,
-        "model_intro": 0
-      },
-      "active": [
-        false,
-        false,
-        false,
-        false,
-        true,
-        true
-      ],
       "id": "reliability_ruth",
       "name": "Reliability Ruth",
       "role_description": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",

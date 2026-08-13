@@ -17,15 +17,19 @@ class StakeholderFactory:
         return [st.id for st in cls.stakeholders]
 
     @classmethod
-    def get_active_stakeholders(cls, phase_id: int, selectionmask: list[str]) -> list[str]:
-        if not selectionmask:
-            return []
-        selected_set = set(selectionmask)
-        return [
-            st.id
-            for st in cls.stakeholders
-            if st.active[phase_id] and st.id in selected_set
-        ]
+    def get_active_stakeholders(cls, phase_id: int) -> list[str]:
+        from mlops_serious_game.domain.metric_factory import MetricFactory
+        active_ids = []
+        for st in cls.stakeholders:
+            is_active = False
+            for m in MetricFactory.metrics:
+                if m.id == st.metric_id or m.id == f"{st.metric_id}_intro":
+                    if phase_id < len(m.phases) and m.phases[phase_id]:
+                        is_active = True
+                        break
+            if is_active:
+                active_ids.append(st.id)
+        return active_ids
 
     @classmethod
     def get_stakeholder(cls, id: str) -> Stakeholder:
@@ -57,9 +61,6 @@ class StakeholderFactory:
                 priorities=to_str(j["priorities"]),
                 requirements=to_str(j["requirements"]),
                 role_description=to_str(j["role_description"]),
-                metric_id=j["metric_id"],
-                stakeholder_color=j["stakeholder_color"],
-                metric_expertise_values=j["metric_expertise_values"],
-                active=j["active"]
+                metric_id=j["metric_id"]
             )
             cls.stakeholders.append(st)

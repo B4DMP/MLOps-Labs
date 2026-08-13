@@ -23,9 +23,6 @@ class Stakeholder(BaseModel):
     requirements: str = Field(description="Requirements on the development environment")
     role_description: str = Field(description="Description of the Stakeholder role")
     metric_id: str = Field(description="associated metric")
-    stakeholder_color:str =Field(description="RGB color of the stakeholder")
-    metric_expertise_values: dict[str, int]= Field(description="expertise value for each metric")
-    active: list[bool]= Field(description="active status for each game phase")
 
     def get_profile_string(self)-> str:
         return f"""

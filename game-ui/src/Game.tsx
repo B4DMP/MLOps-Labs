@@ -10,7 +10,6 @@ import CardArea from "./components/CardArea";
 import type { ActionCard } from "./types/ActionCard";
 import { PhasesContext } from "./components/PhaseProvider";
 import PhaseOverview from "./components/PhaseOverview";
-import PreRoundDialog from "./components/PreRoundPanel";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import Questionaire from "./Questionaire";
 import type { Briefing } from "./types/Briefing";
@@ -30,11 +29,8 @@ interface Stakeholder {
   priorities: string;
   constraints: string;
   role_description: string;
-  is_selected: boolean;
   metric_id: string;
   stakeholder_color: string;
-  metric_expertise_values: Record<string, number>;
-  active: boolean[];
 }
 
 interface Metric {
@@ -102,7 +98,6 @@ function App({ username: _username }: AppProps) {
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeIntro, setChallengeIntro] = useState("");
   const [progressionIndex, setProgressionIndex] = useState(0);
-  const [isStartDialogueOpen, setIsStartDialogueOpen] = useState(false);
   const [isPhaseDialogueOpen, setIsPhaseDialogueOpen] = useState(false);
   const [isChatEnabled, setIsChatEnabled] = useState(true);
   const [hoveredCardId, setHoveredCardId] = useState<number | null>(null);
@@ -147,35 +142,24 @@ function App({ username: _username }: AppProps) {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
-  const onStakeholderSelectionDone = () => {
-    setIsStartDialogueOpen(false);
-
+  const startRound = (cTitle?: string) => {
     //send intial message
     sendJsonMessage({
       type: "message",
       message:
         "Welcome to the meeting! Please propose a concrete action or technical strategy that strictly prioritizes your specific professional requirements and interests, even if it disregards other perspectives. Write no more than two sentences.",
       stakeholder_ids: ["st0"],
-      selectionmask: Object.values(stakeholders).filter((s) => s.is_selected).map((s) => s.id),
     });
     setChatMsgs((prevMsgs) => [
       ...prevMsgs,
       {
         id: "",
-        message: `Welcome to the meeting, everyone. What is your opinion about "${challengeTitle}"?`,
+        message: `Welcome to the meeting, everyone. What is your opinion about "${cTitle || challengeTitle}"?`,
         ac_id: -1,
       },
     ]);
     setIsChatEnabled(false);
     setac_count(0);
-  };
-
-  const selectStakeholder = (id: string) => {
-    setStakeholders((prev) =>
-      prev[id]
-        ? { ...prev, [id]: { ...prev[id], is_selected: !prev[id].is_selected } }
-        : prev,
-    );
   };
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
     sendJsonMessage({
@@ -207,8 +191,16 @@ function App({ username: _username }: AppProps) {
 
     const unsubscribe = subscribe("*", (data: any) => {
       if (data.type === "init" || data.event === "game:init_data") {
-        setStakeholders(data["stakeholders"] || {});
-        setMetrics(data["metrics"] || {});
+        const rawStakeholders = data["stakeholders"] || {};
+        const rawMetrics = data["metrics"] || {};
+        const enrichedStakeholders = { ...rawStakeholders };
+        Object.keys(enrichedStakeholders).forEach((stId) => {
+          const st = enrichedStakeholders[stId];
+          const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
+          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
+        });
+        setStakeholders(enrichedStakeholders);
+        setMetrics(rawMetrics);
         setPhases(data["phases"]);
       } else if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
@@ -302,14 +294,6 @@ function App({ username: _username }: AppProps) {
               return updated;
             });
 
-            setStakeholders((prevStakeholders) => {
-              const updated = { ...prevStakeholders };
-              Object.keys(updated).forEach((id) => {
-                updated[id] = { ...updated[id], is_selected: false };
-              });
-              return updated;
-            });
-
             setChallengeTitle(data["name"]);
             setChallengeIntro(data["roundIntroduction"]);
             setChallengeDescription(data["description"]);
@@ -352,7 +336,7 @@ function App({ username: _username }: AppProps) {
                 setIsPhaseDialogueOpen(true);
               }
             } else {
-              setIsStartDialogueOpen(true);
+              startRound(data["name"]);
             }
           } else if (data.type === "graph_completed") {
             setIsChatEnabled(true);
@@ -371,11 +355,15 @@ function App({ username: _username }: AppProps) {
 
             //define message recommendations
             const allSts = Object.values(stakeholdersRef.current);
-            if (allSts.filter((s) => s.is_selected).length !== 0) {
-              const selectedSts = allSts.filter((s) => s.is_selected);
+            const activeSts = allSts.filter((st) => {
+              const metric = metricsRef.current[st.metric_id] || Object.values(metricsRef.current).find((m) => m.id === st.metric_id);
+              const metricIntro = metricsRef.current[`${st.metric_id}_intro`] || Object.values(metricsRef.current).find((m) => m.id === `${st.metric_id}_intro`);
+              return (metric && metric.phases[currentPhaseRef.current]) || (metricIntro && metricIntro.phases[currentPhaseRef.current]);
+            });
+            if (activeSts.length !== 0) {
               const msg_recommendations = [
-                `${selectedSts[getRandomInt(selectedSts.length)].name.split(" ")[0]}, can you agree to this?`,
-                `${selectedSts[getRandomInt(selectedSts.length)].name.split(" ")[0]}, do you have any concerns?`,
+                `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, can you agree to this?`,
+                `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, do you have any concerns?`,
                 "Can everybody agree?",
                 "Do we got any other ideas?",
                 "What does the rest of the team think about this?",
@@ -538,7 +526,6 @@ function App({ username: _username }: AppProps) {
       type: "message",
       message: textContent,
       stakeholder_ids: ["st0"],
-      selectionmask: Object.values(stakeholders).filter((s) => s.is_selected).map((s) => s.id),
     });
     setIsChatEnabled(false);
   };
@@ -562,18 +549,7 @@ function App({ username: _username }: AppProps) {
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={setIsPhaseDialogueOpen}
                 setIsRoundOpen={() => {
-                  setIsStartDialogueOpen(true);
-                  if (currentPhase === 0) {
-                    setTimeout(() => {
-                      introJs()
-                        .setOptions({
-                          group: "intro3",
-                          exitOnEsc: false,
-                          exitOnOverlayClick: false,
-                        })
-                        .start();
-                    }, 100);
-                  }
+                  startRound(challengeTitle);
                 }}
               />
 
@@ -630,7 +606,7 @@ function App({ username: _username }: AppProps) {
                     backgroundRepeat: "no-repeat",
                   }}
                 >
-                  {!revealAc && !isStartDialogueOpen && (
+                  {!revealAc && (
                     <div
                       className={`row flex-grow-1 overflow-hidden ${roundOverAnimActive && styles.roundOverAnimActive}`}
                     >
@@ -658,19 +634,6 @@ function App({ username: _username }: AppProps) {
                           isStakeholderTyping={!isChatEnabled}
                         />
                       </div>
-                    </div>
-                  )}
-                  {isStartDialogueOpen && (
-                    <div className="container-fluid flex-grow-1 d-flex flex-column overflow-hidden transparent-div">
-                      <PreRoundDialog
-                        onStakeholderSelectionDone={onStakeholderSelectionDone}
-                        challenge_title={challengeTitle}
-                        challenge_desc={challengeDescription}
-                        rount_intro_txt={challengeIntro}
-                        metric_changes={challengeMetricChanges}
-                        current_phase={currentPhase}
-                        selectStakeholder={selectStakeholder}
-                      />
                     </div>
                   )}
                   {revealAc && last_ac && (

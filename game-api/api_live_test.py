@@ -22,7 +22,7 @@ configure()
 
 graph_builder = create_workflow_graph()
 
-async def generate_response_with_memory( messages: list, challenge: str, phase_id: int, _thread_id: str, selectionmask: list[bool]):
+async def generate_response_with_memory( messages: list, challenge: str, phase_id: int, _thread_id: str):
     async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
         await checkpointer.setup()
         graph = graph_builder.compile(checkpointer=checkpointer)
@@ -33,8 +33,7 @@ async def generate_response_with_memory( messages: list, challenge: str, phase_i
 
         config = {
             "configurable": {
-                "thread_id": "api_live_test",
-                "selectionmask": selectionmask
+                "thread_id": "api_live_test"
             },
             "callbacks": [opik_tracer],
             "recursion_limit": 150
@@ -123,9 +122,8 @@ async def api_live_test():
     test_challenge = curr_challenge.name + ": " + curr_challenge.roundIntroduction + curr_challenge.description
     
     all_available = StakeholderFactory.get_available_stakeholders()
-    active_in_phase = StakeholderFactory.get_active_stakeholders(phase_index, all_available)
+    active_in_phase = StakeholderFactory.get_active_stakeholders(phase_index)
     
-    selectionmask = random.sample(active_in_phase, min(4, len(active_in_phase)))
     cursor = 0
     print('\n Starting with stakeholder chat live test. Write "exit" to stop. \n')
     while(True):
@@ -134,7 +132,7 @@ async def api_live_test():
             break
         
         new_messages = [HumanMessage(content=msg)]
-        output_state = await generate_response_with_memory(new_messages, test_challenge, phase_index, thread_id, selectionmask)
+        output_state = await generate_response_with_memory(new_messages, test_challenge, phase_index, thread_id)
         
         all_messages = output_state["messages"]
         if(len(all_messages)<cursor):
