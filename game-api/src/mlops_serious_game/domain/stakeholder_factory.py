@@ -23,6 +23,7 @@ class StakeholderFactory:
         for st in cls.stakeholders:
             is_active = False
             for m in MetricFactory.metrics:
+                #account for intro stakeholders
                 if m.id == st.metric_id or m.id == f"{st.metric_id}_intro":
                     if phase_id < len(m.phases) and m.phases[phase_id]:
                         is_active = True

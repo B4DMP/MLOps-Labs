@@ -43,7 +43,7 @@
       "challenges": [
         {
           "challenge_title": "The Data Instability",
-          "challenge_description": "#Data Dave# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #Data Dave# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
+          "challenge_description": "#Data Dave# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #Reliability Ruth# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
           "round_introduction_text": "During data analysis, it was revealed that a data source changes its behavior over time.",
           "metric_changes": {
             "reliability": -2,
@@ -62,7 +62,7 @@
       "challenges": [
         {
           "challenge_title": "The Entanglement Problem",
-          "challenge_description": " #Data Dave# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, #Data Dave# proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #Model Monica# warns that this would come with a higher complexity and may hurt the model's performance.",
+          "challenge_description": " #Data Dave# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, he proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #Model Monica# warns that this would come with a higher complexity and may hurt the model's performance.",
           "round_introduction_text": "With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system.",
           "metric_changes": {
             "model": 0,
