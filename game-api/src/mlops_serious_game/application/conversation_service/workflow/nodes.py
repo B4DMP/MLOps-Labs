@@ -50,6 +50,15 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
     for i in range( len(_split)):
         challenge_text += _split[i]
 
+    # Fetch challenge-specific requirements
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+    challenge_id = state.get("challenge_id", 0)
+    reqs = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, st.id)
+    if reqs:
+        reqs_str = "\n".join([f"- [{req.type.value.upper()}] {req.description}" for req in reqs])
+    else:
+        reqs_str = st.requirements
+
     response = await conversation_chain.ainvoke(
         {
             "messages": input_messages,
@@ -58,7 +67,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
             "stakeholder_name": st.name,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
-            "stakeholder_requirements": st.requirements,
+            "stakeholder_requirements": reqs_str,
         },
         config,
     )

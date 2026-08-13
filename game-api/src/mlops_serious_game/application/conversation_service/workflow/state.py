@@ -18,6 +18,7 @@ class ChallengeState(MessagesState):
     generate_card: bool
     action_cards: list
     phase_id: int
+    challenge_id: int
     cheating_detected: bool
 
 def state_to_str(state: ChallengeState) -> str:

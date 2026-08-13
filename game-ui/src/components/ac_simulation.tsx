@@ -1,9 +1,18 @@
 
+import { useState } from "react";
+
 interface LoopPlaceholderProps {
   onContinue: () => void;
 }
 
 export default function AcSimulation({ onContinue }: LoopPlaceholderProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    setLoading(true);
+    onContinue();
+  };
+
   return (
     <div
       className="d-flex flex-column align-items-center justify-content-center text-center text-white p-5 min-vh-100"
@@ -53,18 +62,27 @@ export default function AcSimulation({ onContinue }: LoopPlaceholderProps) {
           Simulating the impact of the selected action card on the system. Review metrics progression and finalize the challenge outcomes.
         </p>
         <button
-          onClick={onContinue}
-          className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg"
+          onClick={handleClick}
+          disabled={loading}
+          className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2"
           style={{
             background: "linear-gradient(45deg, #3b82f6, #8b5cf6)",
             border: "none",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            boxShadow: "0 4px 14px 0 rgba(139, 92, 246, 0.4)"
+            boxShadow: "0 4px 14px 0 rgba(139, 92, 246, 0.4)",
+            opacity: loading ? 0.7 : 1
           }}
-          onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-          onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          onMouseOver={(e) => (!loading && (e.currentTarget.style.transform = "scale(1.03)"))}
+          onMouseOut={(e) => (!loading && (e.currentTarget.style.transform = "scale(1)"))}
         >
-          Continue
+          {loading ? (
+            <>
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              Loading...
+            </>
+          ) : (
+            "Continue"
+          )}
         </button>
       </div>
     </div>

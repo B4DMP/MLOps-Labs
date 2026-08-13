@@ -43,14 +43,16 @@ class GameProgressionData(BaseModel):
 
 
 async def reset_thread(thread_id: str):
-
-
     # Note: Direct SQL is used because checkpoint tables are managed internally by LangGraph
-    
     async with async_engine.begin() as conn:
-        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        await conn.execute(
+            text("""
+                DELETE FROM checkpoints WHERE thread_id = :thread_id;
+                DELETE FROM checkpoint_writes WHERE thread_id = :thread_id;
+                DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id;
+            """),
+            {"thread_id": thread_id}
+        )
 
 
 def get_metrics() -> dict[str, Any]:
@@ -121,7 +123,7 @@ async def handle_game_init(
     await send_progress_index_payload(websocket, game_progress_index)
 
     if(game_progress_index==2):
-        curr_challenge: Challenge = PhaseFactory.get_challenge_by_index(
+        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
             challenge_index=last_gamestate_id[1],
             phase_index=last_gamestate_id[0]
         )
@@ -203,7 +205,7 @@ async def handle_progress_update(
             last_gamestate_id[1] = 1
             
         initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
-        curr_challenge: Challenge = PhaseFactory.get_challenge_by_index(
+        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
             challenge_index=last_gamestate_id[1],
             phase_index=last_gamestate_id[0]
         )
@@ -301,23 +303,23 @@ async def handle_state_update_request(
         challenge_loop_index+=1
         match challenge_loop_index:
             case 1:
-                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id,
                     phase_index=phase_id
                 )
             case 2:
-                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id,
                     phase_index=phase_id
                 )
             case 3:
-                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id,
                     phase_index=phase_id
                 )
             case _:
                 #next challenge
-                challenge: Challenge = PhaseFactory.get_challenge_by_index(
+                challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id+1,
                     phase_index=phase_id
                 )

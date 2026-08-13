@@ -72,7 +72,6 @@ async def unified_websocket_endpoint(
 
                             graph_builder = create_workflow_graph()
                             async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
-                                await checkpointer.setup()
                                 graph = graph_builder.compile(checkpointer=checkpointer)
                                 config = {"configurable": {"thread_id": session_id}}
                                 state_snapshot = await graph.aget_state(config)
@@ -85,7 +84,7 @@ async def unified_websocket_endpoint(
                         last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                         await reset_thread(session_id)
                     elif event_name == "chat:send_message":
-                        curr_challenge = PhaseFactory.get_challenge_by_index(last_gamestate_id[0], last_gamestate_id[1])
+                        curr_challenge = PhaseFactory.get_challenge_by_id(last_gamestate_id[1])
                         if curr_challenge:
                             payload["challenge"] = payload.get(
                                 "challenge",
@@ -93,6 +92,8 @@ async def unified_websocket_endpoint(
                             )
                             if "phase_id" not in payload:
                                 payload["phase_id"] = curr_challenge.phase_id
+                            if "challenge_id" not in payload:
+                                payload["challenge_id"] = curr_challenge.id
                         payload["session_id"] = session_id
                         await handle_chat_message(websocket, username, payload)
                     else:

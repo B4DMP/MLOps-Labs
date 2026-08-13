@@ -14,7 +14,7 @@ from mlops_serious_game.application.conversation_service.workflow.state import C
 
 async def get_response(
     messages: str | list[str] | list[dict[str, Any]],
-    challenge: str,_thread_id: str, phase_id: int, ws=None, callback=None
+    challenge: str, _thread_id: str, phase_id: int, challenge_id: int = 0, ws=None, callback=None
 ) -> tuple[str, ChallengeState]:
     """Run a conversation through the workflow graph.
 
@@ -55,7 +55,8 @@ async def get_response(
                 input={
                     "messages": __format_messages(messages=messages),
                     "challenge": challenge,
-                    "phase_id":phase_id
+                    "phase_id": phase_id,
+                    "challenge_id": challenge_id,
                 },
                 config=config,
             )

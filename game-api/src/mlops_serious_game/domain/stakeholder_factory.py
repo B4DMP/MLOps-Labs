@@ -58,10 +58,10 @@ class StakeholderFactory:
             st = Stakeholder(
                 id=st_id,
                 name=name,
-                responsibilities=to_str(j["responsibilities"]),
-                priorities=to_str(j["priorities"]),
-                requirements=to_str(j["requirements"]),
-                role_description=to_str(j["role_description"]),
-                metric_id=j["metric_id"]
+                responsibilities=to_str(j.get("responsibilities", "")),
+                priorities=to_str(j.get("priorities", "")),
+                requirements=to_str(j.get("requirements", "")),
+                role_description=to_str(j.get("role_description", j.get("division_description", ""))),
+                metric_id=j.get("metric_id", "")
             )
             cls.stakeholders.append(st)

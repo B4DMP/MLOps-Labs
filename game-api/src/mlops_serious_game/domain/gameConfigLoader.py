@@ -5,6 +5,7 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.requirement_factory import RequirementFactory
 
 
 class GameConfigLoader:
@@ -22,6 +23,16 @@ class GameConfigLoader:
             phases_path = (base_dir / "../../../../gameConfig/GameProgression.json").resolve()
             PhaseFactory.load_phases(phases_path)
             print(f"loaded phases.")
+            requirements_path = (base_dir / "../../../../gameConfig/RequirementObjects.json").resolve()
+            RequirementFactory.load_requirements(requirements_path)
+            
+            # Run validation
+            challenges = []
+            for p in PhaseFactory.phases:
+                challenges.extend(p.challenges)
+            RequirementFactory.validate_requirements(challenges)
+            print(f"loaded and validated requirements.")
+            
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)
             print(f"loaded questions.")

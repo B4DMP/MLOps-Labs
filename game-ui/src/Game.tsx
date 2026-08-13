@@ -13,6 +13,11 @@ import OnlineIntelGathering from "./components/online_intel_gathering";
 import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
+import { MetricsContext } from "./components/MetricProvider";
+import { StakeholderContext } from "./components/StakeholderProvider";
+import { PhasesContext } from "./components/PhaseProvider";
+import PrePhaseDialog from "./components/PrePhaseDialog";
+import ErrorDialog from "./components/ErrorDialog";
 
 interface Stakeholder {
   id: string;
@@ -134,6 +139,14 @@ function App({ username: _username }: AppProps) {
   useEffect(() => {
     acCountRef.current = ac_count;
   }, [ac_count]);
+
+  useEffect(() => {
+    if (progressionIndex === 2 && challengeLoopId === 2) {
+      if (chat_msgs.length === 0) {
+        startRound(challengeTitle);
+      }
+    }
+  }, [progressionIndex, challengeLoopId, challengeTitle, chat_msgs.length]);
 
   const startRound = (cTitle?: string) => {
     //send intial message
@@ -291,11 +304,18 @@ function App({ username: _username }: AppProps) {
             setChallengeTitle(data["name"]);
             setChallengeIntro(data["roundIntroduction"]);
             setChallengeDescription(data["description"]);
-            setCurrentPhase(data["phase_id"]);
-            setCurrentChallenge(data["challenge_id"]);
+
+            // If we transitioned to a new challenge, clear local state
+            if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
+              setCurrentPhase(data["phase_id"]);
+              setCurrentChallenge(data["challenge_id"]);
+              setChatMsgs([]);
+              setActionCards([]);
+              setac_count(0);
+            }
+
             setChallengeNumber(data["challenges_amount"]);
             setChallengeMetricChanges(data["metric_changes"]);
-            setActionCards([]);
             if (data.challenge_loop_id !== undefined) {
               setChallengeLoopId(data.challenge_loop_id);
             }
@@ -332,8 +352,6 @@ function App({ username: _username }: AppProps) {
               } else {
                 setIsPhaseDialogueOpen(true);
               }
-            } else {
-              startRound(data["name"]);
             }
           } else if (data.type === "graph_completed") {
             setIsChatEnabled(true);
@@ -585,53 +603,69 @@ function App({ username: _username }: AppProps) {
   return (
     <>
       {progressionIndex == 2 && (
-        <>
-          {challengeLoopId === 0 && (
-            <OfflineIntelGathering onContinue={handleOfflineIntelGatheringContinue} />
-          )}
-          {challengeLoopId === 1 && (
-            <OnlineIntelGathering onContinue={handleOnlineIntelGatheringContinue} />
-          )}
-          {challengeLoopId === 3 && (
-            <AcSimulation onContinue={handleAcSimulationContinue} />
-          )}
-          {challengeLoopId === 2 && (
-            <PitchDebate
-              currentPhase={currentPhase}
-              setCurrentPhase={setCurrentPhase}
-              phases={phases}
-              setPhases={setPhases}
-              metrics={metrics}
-              setMetrics={setMetrics}
-              stakeholders={stakeholders}
-              setStakeholders={setStakeholders}
-              lastError={lastError}
-              isInErrorUi={isInErrorUi}
-              setIsInErrorUi={setIsInErrorUi}
-              isPhaseDialogueOpen={isPhaseDialogueOpen}
-              setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
-              challengeTitle={challengeTitle}
-              challengeDescription={challengeDescription}
-              challengeIntro={challengeIntro}
-              currentChallenge={currentChallenge}
-              challengeNumber={challengeNumber}
-              revealAc={revealAc}
-              last_ac={last_ac}
-              roundOverAnimActive={roundOverAnimActive}
-              showMetricValueChanges={showMetricValueChanges}
-              isChatEnabled={isChatEnabled}
-              actionCards={actionCards}
-              hoveredCardId={hoveredCardId}
-              setHoveredCardId={setHoveredCardId}
-              selected_mgs={selected_mgs}
-              chat_msgs={chat_msgs}
-              startRound={startRound}
-              playActionCard={playActionCard}
-              getNextChallenge={getNextChallenge}
-              handleSend={handleSend}
-            />
-          )}
-        </>
+        <PhasesContext.Provider
+          value={{ currentPhase, setCurrentPhase, phases, setPhases }}
+        >
+          <MetricsContext.Provider value={{ metrics, setMetrics }}>
+            <StakeholderContext.Provider
+              value={{ stakeholders, setStakeholders }}
+            >
+              <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
+              <PrePhaseDialog
+                isOpen={isPhaseDialogueOpen}
+                setIsOpen={setIsPhaseDialogueOpen}
+                setIsRoundOpen={() => {
+                  // The useEffect hook starts the round when the user transitions to challengeLoopId === 2 (Pitch Debate)
+                }}
+              />
+              {challengeLoopId === 0 && (
+                <OfflineIntelGathering onContinue={handleOfflineIntelGatheringContinue} />
+              )}
+              {challengeLoopId === 1 && (
+                <OnlineIntelGathering onContinue={handleOnlineIntelGatheringContinue} />
+              )}
+              {challengeLoopId === 3 && (
+                <AcSimulation onContinue={handleAcSimulationContinue} />
+              )}
+              {challengeLoopId === 2 && (
+                <PitchDebate
+                  currentPhase={currentPhase}
+                  setCurrentPhase={setCurrentPhase}
+                  phases={phases}
+                  setPhases={setPhases}
+                  metrics={metrics}
+                  setMetrics={setMetrics}
+                  stakeholders={stakeholders}
+                  setStakeholders={setStakeholders}
+                  lastError={lastError}
+                  isInErrorUi={isInErrorUi}
+                  setIsInErrorUi={setIsInErrorUi}
+                  isPhaseDialogueOpen={isPhaseDialogueOpen}
+                  setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
+                  challengeTitle={challengeTitle}
+                  challengeDescription={challengeDescription}
+                  challengeIntro={challengeIntro}
+                  currentChallenge={currentChallenge}
+                  challengeNumber={challengeNumber}
+                  revealAc={revealAc}
+                  last_ac={last_ac}
+                  roundOverAnimActive={roundOverAnimActive}
+                  showMetricValueChanges={showMetricValueChanges}
+                  isChatEnabled={isChatEnabled}
+                  actionCards={actionCards}
+                  hoveredCardId={hoveredCardId}
+                  setHoveredCardId={setHoveredCardId}
+                  selected_mgs={selected_mgs}
+                  chat_msgs={chat_msgs}
+                  startRound={startRound}
+                  playActionCard={playActionCard}
+                  getNextChallenge={getNextChallenge}
+                  handleSend={handleSend}
+                />
+              )}
+            </StakeholderContext.Provider>
+          </MetricsContext.Provider>
+        </PhasesContext.Provider>
       )}
       {progressionIndex == 0 && (
         <Questionaire

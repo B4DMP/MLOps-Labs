@@ -16,6 +16,7 @@ async def handle_chat_message(
     message_text = payload.get("message", "")
     challenge_context = payload.get("challenge", "")
     phase_id = payload.get("phase_id", 0)
+    challenge_id = payload.get("challenge_id", 0)
     
     async def callback(ws: WebSocket = None, state: dict = None, websocket: WebSocket = None, **kwargs):
         ws = websocket or ws
@@ -61,6 +62,7 @@ async def handle_chat_message(
             challenge=challenge_context,
             _thread_id=session_id,
             phase_id=phase_id,
+            challenge_id=challenge_id,
             ws=websocket,
             callback=callback
         )
