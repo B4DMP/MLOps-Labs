@@ -52,3 +52,12 @@ class GameSession(Base):
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
     messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+
+
+class IntelItem(Base):
+    __tablename__ = settings.POSTGRES_INTEL_DATA_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    intel_item_data: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    

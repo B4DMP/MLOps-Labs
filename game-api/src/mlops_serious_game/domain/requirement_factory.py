@@ -10,6 +10,12 @@ class RequirementFactory:
     @classmethod
     def get_requirements(cls) -> List[StakeholderRequirement]:
         return cls.requirements
+    @classmethod
+    def get_requirement(cls, id:str)->StakeholderRequirement:
+        for req in cls.requirements:
+            if req.id==id:
+                return req
+        return None
 
     @classmethod
     def get_requirements_for_challenge(cls, challenge_id: int) -> List[StakeholderRequirement]:

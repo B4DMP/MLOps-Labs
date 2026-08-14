@@ -2,6 +2,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from typing import Annotated, Literal
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, merge_message_runs
@@ -19,7 +20,9 @@ from mlops_serious_game.domain.prompts import (
     STAKEHOLDER_DETERMINATION_PROMPT,
     CARD_GENERATOR_PROMPT,
     CHECK_CARD_GENERATION_PROMPT,
-    ANTICHEAT_PROMPT
+    ANTICHEAT_PROMPT,
+    WRONG_INTEL_PROMPT,
+    INTEL_ARTIFACT_PROMPT,
 )
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from pydantic import BaseModel, Field, field_validator,create_model
@@ -108,6 +111,39 @@ def get_anticheat_model(model_name: str = settings.RWTH_LLM_MODEL_ROUTER)-> Chat
             temperature=0,
             top_p=0.01
     )
+
+def get_wrong_intel_model(model_name: str = settings.RWTH_LLM_MODEL_WRONG_INTEL_GEN)-> ChatOpenAI | ChatGroq:
+    if use_rwth_key:
+        return ChatOpenAI(
+            api_key=settings.RWTH_API_KEY,
+            base_url=settings.RWTH_API_BASE,
+            model_name=model_name,
+            temperature=0,
+            top_p=0.01
+        )
+    else:
+        return ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model_name=settings.GROQ_LLM_MODEL_CARD_GEN,
+            temperature=0,
+            top_p=0.01
+    )
+
+def get_intel_artifact_model(model_name: str = settings.RWTH_LLM_MODEL_WRONG_INTEL_GEN)-> ChatOpenAI | ChatGroq:
+    if use_rwth_key:
+        return ChatOpenAI(
+            api_key=settings.RWTH_API_KEY,
+            base_url=settings.RWTH_API_BASE,
+            model_name=model_name,
+            temperature=0.7,
+        )
+    else:
+        return ChatGroq(
+            api_key=settings.GROQ_API_KEY,
+            model_name=settings.GROQ_LLM_MODEL_CARD_GEN,
+            temperature=0.7,
+    )
+
 def get_stakeholder_response_chain():
     model = get_chat_model()
     model = model.bind_tools(tools)
@@ -330,3 +366,25 @@ def get_anticheat_chain():
     ],template_format="jinja2",)
     
     return prompt | model
+
+def get_wrong_intel_chain():
+    model = get_wrong_intel_model()
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", WRONG_INTEL_PROMPT.prompt),
+            ("human", "[GAME MASTER] Generate the single-sentence wrong intel description now.")
+        ],
+        template_format="jinja2",
+    )
+    return prompt | model | StrOutputParser()
+
+def get_intel_artifact_chain():
+    model = get_intel_artifact_model()
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", INTEL_ARTIFACT_PROMPT.prompt),
+            ("human", "[GAME MASTER] Generate the intel item artifact content now.")
+        ],
+        template_format="jinja2",
+    )
+    return prompt | model | StrOutputParser()

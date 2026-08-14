@@ -7,6 +7,12 @@ class RequirementType(str, Enum):
     NEGOTIABLE_PREFERENCE = "negotiable_preference"
     PERSONAL_FRICTION = "personal_friction"
 
+class ArtifactType(str, Enum):
+    EMAIL = "email"
+    SLACK_MESSAGE="slack_message"
+    MEETING_NOTES = "meeting_notes"
+    DOCUMENT="document"
+
 class StakeholderRequirement(BaseModel):
     """A class representing a stakeholder's requirement/stance in a challenge"""
     id: str = Field(description="Unique identifier for the requirement")
@@ -14,3 +20,19 @@ class StakeholderRequirement(BaseModel):
     stakeholder_id: str = Field(description="The ID of the stakeholder this requirement belongs to")
     type: RequirementType = Field(description="Type of the requirement")
     description: str = Field(description="Description of the requirement stance")
+
+class StakeholderIntelItem(BaseModel):
+    """A class representing a categorized stakeholder requirement"""
+    id: str = Field(description="Unique identifier of the intel item")
+    requirement_id: str= Field(description="id of the associated requirement item")
+    categorized_type: RequirementType = Field(description="The categorized requirement type")
+    description: str = Field(description="Description of the categorized requirement")
+    
+class StakeholderIntelItemArtifact(BaseModel):
+    """A class representing a MLOps artifact associated with a stakeholder intel_item"""
+    id: str = Field(description="Unique identifier of the artifact")
+    intel_item_id: str = Field(description="id of the associated intel_item")
+    type: ArtifactType = Field(description="Type of the artifact")
+    content: str = Field(description="Content of the artifact")
+    
+    

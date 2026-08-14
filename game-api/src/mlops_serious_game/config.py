@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     RWTH_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     RWTH_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    RWTH_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
 
     # -- Persona Gym Configuration --
     SETTINGS_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
@@ -62,6 +63,7 @@ class Settings(BaseSettings):
     POSTGRES_PROGRESSION_DATA_TABLE: str = "game_progression_data"
     POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
     POSTGRES_USER_DATA_TABLE: str = "user_data"
+    POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
 
     @property
     def POSTGRES_CHECKPOINTER_URI(self) -> str:

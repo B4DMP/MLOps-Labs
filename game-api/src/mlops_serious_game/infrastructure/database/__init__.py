@@ -1,5 +1,5 @@
 from .connection import Base, engine, async_engine, get_session, get_async_session, init_db
-from .models import User, Campaign, GameProgression, GameSession
+from .models import User, Campaign, GameProgression, GameSession, IntelItem
 
 __all__ = [
     "Base",
@@ -12,4 +12,6 @@ __all__ = [
     "Campaign",
     "GameProgression",
     "GameSession",
+    "IntelItem",
 ]
+

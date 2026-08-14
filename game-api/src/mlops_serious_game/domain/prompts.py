@@ -324,3 +324,66 @@ ANTICHEAT_PROMPT = Prompt(
     name="anticheat_prompt",
     prompt=__ANTICHEAT_PROMPT,
 )
+
+# --- Wrong Intel Generation ---
+
+__WRONG_INTEL_PROMPT = """
+You are an AI game designer creating miscategorized intel descriptions for an MLOps serious game.
+Your task is to generate a wrong intel description for a stakeholder based on an incorrect categorization of their requirement or stance.
+
+Context:
+- Team Challenge: {{challenge}}
+- Stakeholder Name: {{stakeholder_name}}
+- Stakeholder Profile / Responsibilities: {{stakeholder_profile}}
+- Correct Intel Description: {{correct_description}}
+- Categorized Intel Type / Layer: {{categorized_type}}
+
+Instructions:
+1. Distort or refactor the correct description to match the falsely assigned categorization ({{categorized_type}}):
+   - If categorized as personal or 'personal_friction': Frame the stance around personal animosity, emotional friction, or personal grudges (e.g., "{{stakeholder_name}} holds a personal grudge against...", or "{{stakeholder_name}} enforces... purely to undermine executive authority").
+   - If categorized as 'technical': Frame the stance around low-level engineering mechanics, code reviews, container security, or node memory allocations.
+   - If categorized as 'business': Frame the stance around financial audit gates, budget controls, ROI metrics, executive summaries, or revenue impact.
+   - If categorized as 'political': Frame the stance around organizational power dynamics, governance control, or corporate politics.
+   - If categorized as 'hard_constraint': Frame the stance as a mandatory, non-negotiable rule.
+   - If categorized as 'preference' or 'negotiable_preference': Frame the stance as an optional tool preference or personal workflow choice.
+2. The wrong description MUST fit into the context of the team challenge, maintain thematic relevance to the correct description, and align naturally with the stakeholder's profile.
+3. The description MUST be exactly one sentence long.
+4. Output ONLY the generated single-sentence wrong intel description without any additional text, quotes, formatting labels, or preamble.
+"""
+
+WRONG_INTEL_PROMPT = Prompt(
+    name="wrong_intel_prompt",
+    prompt=__WRONG_INTEL_PROMPT,
+)
+
+# --- Intel Artifact Generation ---
+
+__INTEL_ARTIFACT_PROMPT = """
+You are an AI game designer generating an MLOps environment artifact document (e.g., Email, Slack Message, Meeting Notes, Document) for a serious game.
+Artifacts are workplace documents from the MLOps environment that reveal information (intel) about a stakeholder's stance on the project.
+
+Context:
+- Team Challenge: {{challenge}}
+- Stakeholder Name: {{stakeholder_name}}
+- Stakeholder Profile: {{stakeholder_profile}}
+- True Requirement Stance: {{requirement_description}}
+- True Requirement Type: {{requirement_type}}
+- Artifact Type: {{artifact_type}}
+
+Instructions:
+1. Generate realistic content for an MLOps document of type '{{artifact_type}}' written by or involving {{stakeholder_name}}.
+2. The artifact's content must reveal {{stakeholder_name}}'s stance ("{{requirement_description}}") in a way that allows the player to correctly categorize the artifact into its requirement type ("{{requirement_type}}"):
+   - hard_constraint: Non-negotiable regulatory, compliance, security, or mandatory technical constraint.
+   - requirement: High-priority operational or technical requirement essential for project success.
+   - negotiable_preference: Desirable tool, framework, or workflow choice that is flexible/open to negotiation.
+   - personal_friction: Interpersonal tension, emotional friction, or personal grievance regarding team members or dynamics.
+3. The content MUST NOT exceed 5 sentences in length.
+4. Output ONLY the generated artifact content text without any surrounding explanation, quotes, or markdown wrappers (unless standard for the document format).
+"""
+
+INTEL_ARTIFACT_PROMPT = Prompt(
+    name="intel_artifact_prompt",
+    prompt=__INTEL_ARTIFACT_PROMPT,
+)
+
+
