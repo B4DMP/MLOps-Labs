@@ -378,7 +378,8 @@ Instructions:
    - negotiable_preference: Desirable tool, framework, or workflow choice that is flexible/open to negotiation.
    - personal_friction: Interpersonal tension, emotional friction, or personal grievance regarding team members or dynamics.
 3. The content MUST NOT exceed 5 sentences in length.
-4. Output ONLY the generated artifact content text without any surrounding explanation, quotes, or markdown wrappers (unless standard for the document format).
+4. Output ONLY the generated artifact content text without any surrounding explanation, quotes, or markdown wrappers.
+5. CRITICAL: Do NOT mention the requirement type, do NOT output any 'Game Master' comments, explanations, solutions, or requirement classification spoilers! The player must deduce the requirement type themselves from reading the document.
 """
 
 INTEL_ARTIFACT_PROMPT = Prompt(

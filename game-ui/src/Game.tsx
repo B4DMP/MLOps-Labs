@@ -18,6 +18,7 @@ import { StakeholderContext } from "./components/StakeholderProvider";
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
+import StakeholderDossier, { type StakeholderDossierEntry } from "./components/StakeholderDossier";
 
 interface Stakeholder {
   id: string;
@@ -103,6 +104,9 @@ function App({ username: _username }: AppProps) {
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
+  const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
+  const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
@@ -417,7 +421,26 @@ function App({ username: _username }: AppProps) {
       }
     });
 
-    return () => unsubscribe();
+    const unsubDossier = subscribe("intel:dossier_data", (payload: any) => {
+      console.log("[WS] Received intel:dossier_data:", payload);
+      if (payload && payload.dossier) {
+        setDossierData(payload.dossier);
+      }
+    });
+
+    const unsubTagged = subscribe("intel:tagged_ack", (payload: any) => {
+      console.log("[WS] Received intel:tagged_ack:", payload);
+      emit("intel:get_dossier", {
+        phase_id: currentPhaseRef.current,
+        challenge_id: currentChallengeRef.current,
+      });
+    });
+
+    return () => {
+      unsubscribe();
+      unsubDossier();
+      unsubTagged();
+    };
   }, [emit, subscribe, debug]);
 
   let [roundOverAnimActive, SetRoundOverAnimActive] = useState(false);
@@ -618,14 +641,78 @@ function App({ username: _username }: AppProps) {
                   // The useEffect hook starts the round when the user transitions to challengeLoopId === 2 (Pitch Debate)
                 }}
               />
+              {/* Global Floating Bottom-Right Stakeholder Dossier Button */}
+              <button
+                onClick={() => {
+                  emit("intel:get_dossier", {
+                    phase_id: currentPhase,
+                    challenge_id: currentChallenge,
+                  });
+                  setIsDossierOpen((prev) => !prev);
+                }}
+                style={{
+                  position: "fixed",
+                  bottom: "24px",
+                  right: "24px",
+                  zIndex: 9998,
+                  background: "linear-gradient(135deg, #4a382c, #2b1e16)",
+                  color: "#f3e9dc",
+                  border: "2px solid #8c6d58",
+                  borderRadius: "30px",
+                  padding: "10px 22px",
+                  fontFamily: "'Caveat', cursive, sans-serif",
+                  fontWeight: "bold",
+                  fontSize: "1.25rem",
+                  cursor: "pointer",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.06) translateY(-2px)")}
+                onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              >
+                📓 Stakeholder Dossier
+              </button>
+
+              <StakeholderDossier
+                isOpen={isDossierOpen}
+                onClose={() => setIsDossierOpen(false)}
+                dossierData={dossierData}
+                activeStakeholderId={activeStakeholderId}
+              />
               {challengeLoopId === 0 && (
-                <OfflineIntelGathering onContinue={handleOfflineIntelGatheringContinue} />
+                <OfflineIntelGathering
+                  onContinue={handleOfflineIntelGatheringContinue}
+                  currentPhase={currentPhase}
+                  currentChallenge={currentChallenge}
+                  showMetricValueChanges={showMetricValueChanges}
+                  last_ac={last_ac}
+                  onTagArtifact={(stId) => setActiveStakeholderId(stId)}
+                  isDossierOpen={isDossierOpen}
+                  setIsDossierOpen={setIsDossierOpen}
+                  dossierData={dossierData}
+                  activeStakeholderId={activeStakeholderId}
+                />
               )}
               {challengeLoopId === 1 && (
-                <OnlineIntelGathering onContinue={handleOnlineIntelGatheringContinue} />
+                <OnlineIntelGathering
+                  onContinue={handleOnlineIntelGatheringContinue}
+                  currentPhase={currentPhase}
+                  currentChallenge={currentChallenge}
+                  showMetricValueChanges={showMetricValueChanges}
+                  last_ac={last_ac}
+                />
               )}
               {challengeLoopId === 3 && (
-                <AcSimulation onContinue={handleAcSimulationContinue} />
+                <AcSimulation
+                  onContinue={handleAcSimulationContinue}
+                  currentPhase={currentPhase}
+                  currentChallenge={currentChallenge}
+                  showMetricValueChanges={showMetricValueChanges}
+                  last_ac={last_ac}
+                />
               )}
               {challengeLoopId === 2 && (
                 <PitchDebate

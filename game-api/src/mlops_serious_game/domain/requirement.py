@@ -7,6 +7,11 @@ class RequirementType(str, Enum):
     NEGOTIABLE_PREFERENCE = "negotiable_preference"
     PERSONAL_FRICTION = "personal_friction"
 
+class ConfidenceType(str, Enum):
+    UNCONFIRMED = "unconfirmed"
+    VERIFIED = "verified"
+    INFERRED = "inferred"
+
 class ArtifactType(str, Enum):
     EMAIL = "email"
     SLACK_MESSAGE="slack_message"
@@ -25,6 +30,7 @@ class StakeholderIntelItem(BaseModel):
     """A class representing a categorized stakeholder requirement"""
     id: str = Field(description="Unique identifier of the intel item")
     requirement_id: str= Field(description="id of the associated requirement item")
+    intel_type: ConfidenceType = Field(description="The type of the intel")
     categorized_type: RequirementType = Field(description="The categorized requirement type")
     description: str = Field(description="Description of the categorized requirement")
     

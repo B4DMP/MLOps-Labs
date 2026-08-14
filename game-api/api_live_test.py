@@ -118,7 +118,7 @@ async def api_live_test():
 
     phase_index = 2
     challenge_index = 1
-    curr_challenge = PhaseFactory.get_challenge_by_index(phase_index, challenge_index)
+    curr_challenge = PhaseFactory.translate_challenge_index(phase_index, challenge_index)
     test_challenge = curr_challenge.name + ": " + curr_challenge.roundIntroduction + curr_challenge.description
     
     all_available = StakeholderFactory.get_available_stakeholders()

@@ -1,11 +1,23 @@
+import React, { useState } from "react";
+import PhaseOverview from "./PhaseOverview";
+import MetricTab from "./MetricTab";
+import type { ActionCard } from "../types/ActionCard";
 
-import { useState } from "react";
-
-interface LoopPlaceholderProps {
+interface AcSimulationProps {
   onContinue: () => void;
+  currentPhase?: number;
+  currentChallenge?: number;
+  showMetricValueChanges?: boolean;
+  last_ac?: ActionCard;
 }
 
-export default function AcSimulation({ onContinue }: LoopPlaceholderProps) {
+export default function AcSimulation({
+  onContinue,
+  currentPhase = 0,
+  currentChallenge = 0,
+  showMetricValueChanges = false,
+  last_ac,
+}: AcSimulationProps) {
   const [loading, setLoading] = useState(false);
 
   const handleClick = () => {
@@ -13,77 +25,106 @@ export default function AcSimulation({ onContinue }: LoopPlaceholderProps) {
     onContinue();
   };
 
+  const bgIndex = (currentChallenge + currentPhase) % 4;
+
   return (
-    <div
-      className="d-flex flex-column align-items-center justify-content-center text-center text-white p-5 min-vh-100"
-      style={{
-        background: "linear-gradient(135deg, #141e30, #243b55)",
-        fontFamily: "'Inter', sans-serif"
-      }}
-    >
-      <div
-        className="card p-5 shadow-lg border-0"
-        style={{
-          background: "rgba(255, 255, 255, 0.08)",
-          backdropFilter: "blur(12px)",
-          borderRadius: "24px",
-          maxWidth: "500px",
-          width: "100%",
-          boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
-          border: "1px solid rgba(255, 255, 255, 0.1)"
-        }}
+    <div className="game-container">
+      {/* Top Navbar Header matching PitchDebate */}
+      <nav
+        className="navbar navbar-expand-lg flex-shrink-0"
+        style={{ backgroundColor: "var(--primary-bg)" }}
       >
         <div
-          className="mb-4 d-inline-flex align-items-center justify-content-center"
-          style={{
-            width: "80px",
-            height: "80px",
-            background: "rgba(255, 255, 255, 0.1)",
-            borderRadius: "50%",
-            fontSize: "2rem"
-          }}
+          className="container-fluid d-flex align-items-stretch py-1"
+          style={{ gap: "1rem" }}
+          data-bs-theme="dark"
         >
-          🚀
+          <div className="transparent-div" style={{ flex: "0 0 50%" }}>
+            <span className="transparent-div-label">📋 Phase Overview</span>
+            <PhaseOverview />
+          </div>
+          <div className="transparent-div" style={{ flex: "1 1 0" }}>
+            <span className="transparent-div-label">📊 Performance Metrics</span>
+            <MetricTab
+              current_phase={currentPhase}
+              showMetricValueChanges={showMetricValueChanges}
+              last_ac={last_ac}
+            />
+          </div>
         </div>
-        <h2 className="mb-2 fw-bold text-white" style={{ letterSpacing: "-0.5px" }}>
-          Simulation
-        </h2>
-        <span
-          className="badge mb-4 py-2 px-3 fs-6"
+      </nav>
+
+      {/* Main Content Area over Game Background Canvas */}
+      <div
+        className="container-fluid flex-grow-1 d-flex align-items-center justify-content-center overflow-auto p-4 position-relative"
+        style={{
+          backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Transparent Div Wrapper (matching Phase Overview style) */}
+        <div
+          className="transparent-div p-3 p-md-4 shadow-lg"
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.15)",
-            borderRadius: "12px",
-            color: "#e2e8f0"
+            maxWidth: "800px",
+            width: "100%",
+            borderRadius: "16px",
           }}
         >
-          Loop Index: 3
-        </span>
-        <p className="mb-5 text-secondary-white" style={{ fontSize: "1.1rem", opacity: 0.85, lineHeight: "1.6" }}>
-          Simulating the impact of the selected action card on the system. Review metrics progression and finalize the challenge outcomes.
-        </p>
-        <button
-          onClick={handleClick}
-          disabled={loading}
-          className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2"
-          style={{
-            background: "linear-gradient(45deg, #3b82f6, #8b5cf6)",
-            border: "none",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            boxShadow: "0 4px 14px 0 rgba(139, 92, 246, 0.4)",
-            opacity: loading ? 0.7 : 1
-          }}
-          onMouseOver={(e) => (!loading && (e.currentTarget.style.transform = "scale(1.03)"))}
-          onMouseOut={(e) => (!loading && (e.currentTarget.style.transform = "scale(1)"))}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              Loading...
-            </>
-          ) : (
-            "Continue"
-          )}
-        </button>
+          <span className="transparent-div-label fs-6 mb-3 d-flex align-items-center gap-2">
+            🚀 System Action Simulation
+          </span>
+
+          {/* Bootswatch Journal Theme Card */}
+          <div
+            className="card border-secondary shadow-sm text-start w-100"
+            style={{
+              borderRadius: "12px",
+              overflow: "hidden",
+            }}
+          >
+            <div className="card-header bg-dark text-white d-flex align-items-center justify-content-between py-3 px-4">
+              <div className="d-flex align-items-center gap-2">
+                <span style={{ fontSize: "1.5rem" }}>🚀</span>
+                <h4 className="mb-0 fw-bold text-white">System Action Simulation</h4>
+              </div>
+              <span className="badge bg-secondary text-white fw-bold px-3 py-2 fs-6">
+                Loop 3 of 4
+              </span>
+            </div>
+
+            <div className="card-body bg-light p-4 p-md-5">
+              <div className="alert alert-warning border-warning mb-4" role="alert">
+                <h5 className="alert-heading fw-bold mb-1">⚡ Simulation Objective</h5>
+                <p className="mb-0 fs-6" style={{ lineHeight: "1.6" }}>
+                  Simulating the technical and operational impact of your selected action card on the enterprise environment.
+                </p>
+              </div>
+
+              <p className="text-muted fs-6 mb-4">
+                Review metric value progressions and assess stakeholder satisfaction outcomes before advancing to the next challenge phase.
+              </p>
+
+              <button
+                onClick={handleClick}
+                disabled={loading}
+                className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+                style={{ fontSize: "1.1rem" }}
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                    Advancing...
+                  </>
+                ) : (
+                  "Finalize Challenge & Continue ▶"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

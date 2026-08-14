@@ -13,6 +13,11 @@ from .handlers.game_handler import (
     handle_state_update_request,
     reset_thread,
 )
+from .handlers.intel_handler import (
+    handle_get_offline_artifacts,
+    handle_tag_item,
+    handle_get_dossier,
+)
 from .handlers.system_handler import handle_ping
 from .manager import manager
 
@@ -27,6 +32,9 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "game:state_update_request": handle_state_update_request,
     "chat:send_message": handle_chat_message,
     "system:ping": handle_ping,
+    "intel:get_offline_artifacts": handle_get_offline_artifacts,
+    "intel:tag_item": handle_tag_item,
+    "intel:get_dossier": handle_get_dossier,
 }
 
 

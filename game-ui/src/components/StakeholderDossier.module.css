@@ -1,0 +1,610 @@
+/* ==========================================================================
+   AUTHENTIC STAKEHOLDER DOSSIER SKETCHBOOK STYLESHEET
+   Universal Font: 'Caveat', cursive
+   ========================================================================== */
+
+/* Overlay Container */
+.dossierOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Outer Sketchbook Window Frame */
+.sketchbookWindow {
+  position: absolute;
+  width: 820px;
+  max-width: 92vw;
+  height: 650px;
+  max-height: 88vh;
+  background: #2a211b; /* Leather exterior binding color */
+  border-radius: 12px;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.65), 
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 3px #1a1410,
+    inset 0 0 0 6px #4a382c;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* Allow 3D page flips without window clipping */
+  font-family: 'Caveat', cursive, sans-serif;
+  user-select: none;
+}
+
+/* Leather Header Bar & Drag Handle */
+.binderHeader {
+  background: linear-gradient(180deg, #3d2d23 0%, #251b14 100%);
+  color: #f5ebd9;
+  padding: 10px 18px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid #140d09;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 10px 10px 0 0;
+  z-index: 30;
+}
+
+.binderHeader:active {
+  cursor: grabbing;
+}
+
+.binderTitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #f7eedc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Close Wax Stamp Button */
+.closeButton {
+  background: radial-gradient(circle, #b91c1c 0%, #7f1d1d 100%);
+  border: 2px solid #571212;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s ease, filter 0.2s ease;
+  position: relative;
+  z-index: 150;
+}
+
+.closeButton:hover {
+  transform: scale(1.1) rotate(6deg);
+  filter: brightness(1.2);
+}
+
+/* Notebook Binding Ring Strip (Left Spiral) */
+.notebookBindingContainer {
+  display: flex;
+  flex: 1;
+  position: relative;
+  overflow: visible; /* Prevent 3D page flip clipping */
+  background: #1c140e;
+  z-index: 40; /* Higher than header, tabs, and footer so flipping page stays on top */
+}
+
+.spiralRings {
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  pointer-events: none;
+}
+
+.ringLoop {
+  width: 34px;
+  height: 12px;
+  background: linear-gradient(180deg, #d1d5db 0%, #6b7280 50%, #374151 100%);
+  border-radius: 6px;
+  box-shadow: 
+    0 3px 5px rgba(0, 0, 0, 0.6),
+    inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  transform: rotate(-5deg);
+}
+
+/* Bookmark Sticky Tabs (Top Bar) */
+.tabsContainer {
+  display: flex;
+  background: #251c15;
+  padding: 6px 16px 0 54px;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 2px solid #140d09;
+  z-index: 28;
+}
+
+.tabButton {
+  background: #d8c8b4;
+  border: 1px solid #9c8a74;
+  border-bottom: none;
+  padding: 6px 18px 4px 18px;
+  border-radius: 8px 8px 0 0;
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3b2d23;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.15);
+  position: relative;
+}
+
+.tabButton:nth-child(odd) {
+  transform: rotate(-1deg);
+  background: #f3e5d0;
+}
+
+.tabButton:nth-child(even) {
+  transform: rotate(1.5deg);
+  background: #e2d1bc;
+}
+
+.tabButton:hover {
+  transform: translateY(-2px) rotate(0deg);
+  background: #fdf5e6;
+  color: #1a0f08;
+}
+
+.activeTab {
+  background: #f7f4ea !important;
+  color: #1a120b !important;
+  font-family: 'Caveat', cursive !important;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  border-color: #7c6853 !important;
+  margin-bottom: -2px;
+  padding-bottom: 8px;
+  z-index: 20;
+  transform: rotate(0deg) scale(1.05) !important;
+  box-shadow: 0 -4px 8px rgba(0,0,0,0.2) !important;
+}
+
+/* 3D Flip Canvas Wrapper */
+.flipBookWrapper {
+  flex: 1;
+  position: relative;
+  perspective: 1400px;
+  background: #eadecc; /* Desk background behind notebook */
+  overflow: visible; /* Crucial: allow 3D page rotation without clipping! */
+  margin-left: 10px; /* Leave space for left spiral rings */
+  border-left: 4px solid #3d2d23;
+  z-index: 40;
+}
+
+/* Base static page resting underneath */
+.pageBase {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  box-shadow: 
+    inset 25px 0 20px -15px rgba(0, 0, 0, 0.25), /* Spine shadow fold */
+    inset -5px 0 15px rgba(0, 0, 0, 0.05),
+    4px 0 10px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  padding: 24px 28px 24px 44px;
+  background-color: #f7f4ea;
+  background-image: 
+    linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
+    repeating-linear-gradient(
+      #f7f4ea,
+      #f7f4ea 29px,
+      #cbd5e1 30px
+    );
+  line-height: 30px;
+  color: #26211e;
+}
+
+/* Flipping animated top page */
+.pageFlipping {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 100; /* Float above top tabs, header bar, and page footer controls */
+  transform-origin: left center;
+  backface-visibility: hidden;
+  transition: transform 0.75s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.75s ease;
+  overflow-y: auto;
+  padding: 24px 28px 24px 44px;
+  background-color: #f7f4ea;
+  background-image: 
+    linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
+    repeating-linear-gradient(
+      #f7f4ea,
+      #f7f4ea 29px,
+      #cbd5e1 30px
+    );
+  line-height: 30px;
+  color: #26211e;
+}
+
+/* Forward Flip (turning right to left): starts at 0deg, animates to -180deg */
+.flipForwardStart {
+  transform: rotateY(0deg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.flipForwardEnd {
+  transform: rotateY(-180deg);
+  box-shadow: -15px 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+/* Backward Flip (turning left to right back): starts at -180deg, animates to 0deg */
+.flipBackwardStart {
+  transform: rotateY(-180deg);
+  box-shadow: -15px 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+.flipBackwardEnd {
+  transform: rotateY(0deg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Stakeholder Header Area (Polaroid + Hand Scribbles) */
+.sketchbookHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px dashed #b5a48b;
+}
+
+/* Taped Polaroid Snapshot */
+.polaroidFrame {
+  width: 100px;
+  background: #ffffff;
+  padding: 8px 8px 10px 8px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: rotate(-3deg);
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.sellotape {
+  position: absolute;
+  top: -10px;
+  left: 18px;
+  width: 60px;
+  height: 20px;
+  background: rgba(245, 230, 180, 0.65);
+  border: 1px solid rgba(210, 190, 140, 0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transform: rotate(-6deg);
+  backdrop-filter: blur(1px);
+}
+
+.avatarBox {
+  width: 84px;
+  height: 84px;
+  background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Caveat', cursive;
+  font-size: 2.8rem;
+  font-weight: 700;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Stakeholder Main Info */
+.stakeholderMainInfo {
+  flex: 1;
+}
+
+.stakeholderName {
+  font-family: 'Caveat', cursive;
+  font-size: 2.3rem;
+  font-weight: 700;
+  color: #1a120b;
+  margin: 0 0 4px 0;
+  line-height: 1.1;
+}
+
+.highlightYellow {
+  background: linear-gradient(180deg, transparent 50%, rgba(254, 240, 138, 0.85) 50%);
+  padding: 0 6px;
+  border-radius: 2px;
+}
+
+.stakeholderRole {
+  font-family: 'Caveat', cursive;
+  font-size: 1.45rem;
+  color: #1a120b; /* Black text */
+  font-weight: 700;
+  margin: 6px 0 10px 0;
+}
+
+.highlightRed {
+  background: linear-gradient(180deg, transparent 50%, rgba(252, 165, 165, 0.8) 50%);
+  padding: 2px 8px;
+  border-radius: 2px;
+  color: #1a120b; /* Black text with authentic red marker background */
+}
+
+/* Section Titles */
+.sectionTitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #27272a;
+  margin: 18px 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 2px dashed #d1d5db;
+  padding-bottom: 4px;
+}
+
+.doodleIcon {
+  font-size: 1.4rem;
+}
+
+/* Category Sticky Note Groups */
+.categoryGroup {
+  margin-bottom: 20px;
+}
+
+.categoryTagMarker {
+  display: inline-block;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.25rem;
+  padding: 2px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transform: rotate(-1deg);
+}
+
+.catHardConstraintMarker {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px dashed #f87171;
+}
+
+.catRequirementMarker {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px dashed #60a5fa;
+}
+
+.catNegotiableMarker {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px dashed #4ade80;
+}
+
+.catFrictionMarker {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px dashed #fbbf24;
+}
+
+/* Authentic Sticky Note Items */
+.stickyNoteGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@keyframes fadeInStickyNote {
+  0% {
+    opacity: 0;
+    transform: var(--note-rotate, rotate(-1deg)) scale(0.82) translateY(18px);
+  }
+  60% {
+    opacity: 0.95;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1.04) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1) translateY(0);
+  }
+}
+
+.stickyNote {
+  background: #fef08a; /* Post-it Yellow */
+  padding: 14px 18px;
+  border-radius: 2px;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.12),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: box-shadow 0.2s ease;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  animation: fadeInStickyNote 0.95s cubic-bezier(0.22, 1, 0.36, 1) ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.stickyNote:nth-child(odd) {
+  --note-rotate: rotate(-1.2deg);
+  transform: var(--note-rotate);
+  background: #fef08a; /* Yellow */
+}
+
+.stickyNote:nth-child(even) {
+  --note-rotate: rotate(1deg);
+  transform: var(--note-rotate);
+  background: #bae6fd; /* Pastel Blue */
+}
+
+.stickyNote:hover {
+  transform: translateY(-4deg) rotate(0deg) scale(1.01);
+  box-shadow: 
+    0 10px 20px rgba(0, 0, 0, 0.18),
+    0 3px 6px rgba(0, 0, 0, 0.1);
+  z-index: 15;
+}
+
+/* Paperclip detail on sticky notes */
+.paperclip {
+  position: absolute;
+  top: -8px;
+  right: 24px;
+  width: 14px;
+  height: 28px;
+  border: 3px solid #94a3b8;
+  border-radius: 8px;
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  background: transparent;
+}
+
+.intelText {
+  font-family: 'Caveat', cursive;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1c1917;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+/* Distressed Ink Rubber Stamps for Confidence Levels */
+.stampContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rubberStamp {
+  display: inline-block;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  transform: rotate(-5deg);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+
+.stampVerified {
+  color: #15803d;
+  border: 2px dashed #15803d;
+  background: rgba(220, 252, 231, 0.55);
+  transform: rotate(-5deg);
+}
+
+.stampInferred {
+  color: #1d4ed8;
+  border: 2px dashed #1d4ed8;
+  background: rgba(219, 234, 254, 0.55);
+  transform: rotate(4deg);
+}
+
+.stampUnconfirmed {
+  color: #b91c1c;
+  border: 2px dotted #b91c1c;
+  background: rgba(254, 226, 226, 0.55);
+  transform: rotate(-7deg);
+}
+
+/* Empty State Note */
+.emptyStateNote {
+  background: #fffbeb;
+  border: 2px dashed #f59e0b;
+  padding: 20px;
+  border-radius: 6px;
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #92400e;
+  transform: rotate(-1deg);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+/* Margins Annotation Doodle */
+.marginDoodleNote {
+  margin-top: 24px;
+  padding: 10px 16px;
+  background: rgba(254, 243, 199, 0.6);
+  border-left: 4px solid #d97706;
+  border-radius: 4px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #78350f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Notebook Footer (Page Controls) */
+.pageFooter {
+  background: #251c15;
+  border-top: 3px solid #140d09;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 0 0 10px 10px;
+  z-index: 30;
+}
+
+.navButton {
+  background: linear-gradient(180deg, #574234 0%, #3d2d23 100%);
+  color: #f7eedc;
+  border: 1px solid #7c6853;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.navButton:hover:not(:disabled) {
+  background: linear-gradient(180deg, #705644 0%, #4f3b2e 100%);
+  transform: translateY(-2px);
+  color: #ffffff;
+}
+
+.navButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pageIndicator {
+  font-family: 'Caveat', cursive;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #d8c8b4;
+}

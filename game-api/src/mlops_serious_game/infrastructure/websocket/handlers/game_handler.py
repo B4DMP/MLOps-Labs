@@ -13,6 +13,7 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.application.intel_dossier import clear_intel_items_for_user
 from mlops_serious_game.infrastructure.database import (
     GameProgression,
     GameSession,
@@ -45,14 +46,9 @@ class GameProgressionData(BaseModel):
 async def reset_thread(thread_id: str):
     # Note: Direct SQL is used because checkpoint tables are managed internally by LangGraph
     async with async_engine.begin() as conn:
-        await conn.execute(
-            text("""
-                DELETE FROM checkpoints WHERE thread_id = :thread_id;
-                DELETE FROM checkpoint_writes WHERE thread_id = :thread_id;
-                DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id;
-            """),
-            {"thread_id": thread_id}
-        )
+        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
+        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
 
 
 def get_metrics() -> dict[str, Any]:
@@ -319,6 +315,7 @@ async def handle_state_update_request(
                 )
             case _:
                 #next challenge
+                await clear_intel_items_for_user(websocket)
                 challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id+1,
                     phase_index=phase_id

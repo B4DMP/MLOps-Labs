@@ -1270,6 +1270,7 @@ async def stakeholder_cme_test():
     print(f"{BRIGHT_YELLOW}════════════════════════════════════════════════════════════{RESET}\n")
 
     print("Initial Stakeholder Emotional States:")
+    for st_id, ev in stakeholder_emotions.items():
         try:
             st_obj = StakeholderFactory.get_stakeholder(st_id)
             st_name = st_obj.name
