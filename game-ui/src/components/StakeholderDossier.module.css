@@ -210,16 +210,16 @@
     inset -5px 0 15px rgba(0, 0, 0, 0.05),
     4px 0 10px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
-  padding: 24px 28px 24px 44px;
+  padding: 16px 22px 16px 36px;
   background-color: #f7f4ea;
   background-image: 
     linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
     repeating-linear-gradient(
       #f7f4ea,
-      #f7f4ea 29px,
-      #cbd5e1 30px
+      #f7f4ea 23px,
+      #cbd5e1 24px
     );
-  line-height: 30px;
+  line-height: 24px;
   color: #26211e;
 }
 
@@ -235,16 +235,16 @@
   backface-visibility: hidden;
   transition: transform 0.75s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.75s ease;
   overflow-y: auto;
-  padding: 24px 28px 24px 44px;
+  padding: 16px 22px 16px 36px;
   background-color: #f7f4ea;
   background-image: 
     linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
     repeating-linear-gradient(
       #f7f4ea,
-      #f7f4ea 29px,
-      #cbd5e1 30px
+      #f7f4ea 23px,
+      #cbd5e1 24px
     );
-  line-height: 30px;
+  line-height: 24px;
   color: #26211e;
 }
 
@@ -274,18 +274,18 @@
 .sketchbookHeader {
   display: flex;
   align-items: flex-start;
-  gap: 22px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 2px dashed #b5a48b;
 }
 
 /* Taped Polaroid Snapshot */
 .polaroidFrame {
-  width: 100px;
+  width: 76px;
   background: #ffffff;
-  padding: 8px 8px 10px 8px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 6px 6px 8px 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
   transform: rotate(-3deg);
   position: relative;
   flex-shrink: 0;
@@ -294,10 +294,10 @@
 
 .sellotape {
   position: absolute;
-  top: -10px;
-  left: 18px;
-  width: 60px;
-  height: 20px;
+  top: -8px;
+  left: 12px;
+  width: 48px;
+  height: 16px;
   background: rgba(245, 230, 180, 0.65);
   border: 1px solid rgba(210, 190, 140, 0.5);
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -306,15 +306,15 @@
 }
 
 .avatarBox {
-  width: 84px;
-  height: 84px;
+  width: 64px;
+  height: 64px;
   background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
   color: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Caveat', cursive;
-  font-size: 2.8rem;
+  font-size: 2.2rem;
   font-weight: 700;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
 }
@@ -326,10 +326,10 @@
 
 .stakeholderName {
   font-family: 'Caveat', cursive;
-  font-size: 2.3rem;
+  font-size: 1.8rem;
   font-weight: 700;
   color: #1a120b;
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   line-height: 1.1;
 }
 
@@ -341,10 +341,11 @@
 
 .stakeholderRole {
   font-family: 'Caveat', cursive;
-  font-size: 1.45rem;
-  color: #1a120b; /* Black text */
+  font-size: 1.2rem;
+  color: #1a120b;
   font-weight: 700;
-  margin: 6px 0 10px 0;
+  margin: 2px 0 4px 0;
+  line-height: 1.15;
 }
 
 .highlightRed {
@@ -357,67 +358,161 @@
 /* Section Titles */
 .sectionTitle {
   font-family: 'Caveat', cursive;
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: #27272a;
-  margin: 18px 0 14px 0;
+  margin: 8px 0 6px 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   border-bottom: 2px dashed #d1d5db;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .doodleIcon {
   font-size: 1.4rem;
 }
 
-/* Category Sticky Note Groups */
-.categoryGroup {
-  margin-bottom: 20px;
+/* Category Sticky Note Badges & Interactive Re-tagging UI */
+.noteTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
-.categoryTagMarker {
-  display: inline-block;
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: 'Caveat', cursive;
   font-weight: 700;
-  font-size: 1.25rem;
-  padding: 2px 12px;
+  font-size: 1.15rem;
+  padding: 3px 10px;
   border-radius: 4px;
-  margin-bottom: 10px;
+  cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-  transform: rotate(-1deg);
+  transition: all 0.2s ease;
+  user-select: none;
+  background: none;
 }
 
-.catHardConstraintMarker {
+.categoryBadge:hover {
+  transform: scale(1.04);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.categoryBadgeStatic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  user-select: none;
+  cursor: default;
+}
+
+.tagHardConstraint {
   background: #fee2e2;
   color: #991b1b;
   border: 1px dashed #f87171;
 }
 
-.catRequirementMarker {
+.tagRequirement {
   background: #dbeafe;
   color: #1e40af;
   border: 1px dashed #60a5fa;
 }
 
-.catNegotiableMarker {
+.tagNegotiable {
   background: #dcfce7;
   color: #166534;
   border: 1px dashed #4ade80;
 }
 
-.catFrictionMarker {
+.tagFriction {
   background: #fef3c7;
   color: #92400e;
   border: 1px dashed #fbbf24;
+}
+
+.reTagPrompt {
+  font-size: 0.95rem;
+  opacity: 0.75;
+  margin-left: 4px;
+}
+
+.retagActive {
+  z-index: 50 !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25) !important;
+}
+
+.retagPopover {
+  background: #ffffff;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 6px 0 12px 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  z-index: 60;
+  position: relative;
+  animation: fadeInRetag 0.2s ease-out;
+}
+
+@keyframes fadeInRetag {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.retagPopoverTitle {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.retagOptionsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.retagOptionBtn {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.retagOptionBtn:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+  border-color: #94a3b8;
+}
+
+.activeOptionBtn {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
 }
 
 /* Authentic Sticky Note Items */
 .stickyNoteGrid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 @keyframes fadeInStickyNote {
@@ -437,7 +532,7 @@
 
 .stickyNote {
   background: #fef08a; /* Post-it Yellow */
-  padding: 14px 18px;
+  padding: 8px 12px;
   border-radius: 2px;
   box-shadow: 
     0 4px 10px rgba(0, 0, 0, 0.12),
@@ -483,13 +578,24 @@
   background: transparent;
 }
 
+.intelBody {
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.stampFloat {
+  float: right;
+  margin-left: 8px;
+  margin-bottom: 2px;
+}
+
 .intelText {
   font-family: 'Caveat', cursive;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1c1917;
-  line-height: 1.35;
-  margin-bottom: 8px;
+  line-height: 1.2;
+  margin-bottom: 0;
 }
 
 /* Distressed Ink Rubber Stamps for Confidence Levels */
@@ -501,13 +607,13 @@
 .rubberStamp {
   display: inline-block;
   font-family: 'Caveat', cursive;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  padding: 2px 10px;
+  padding: 1px 6px;
   border-radius: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  transform: rotate(-5deg);
+  letter-spacing: 0.6px;
+  transform: rotate(-4deg);
   box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
   user-select: none;
 }

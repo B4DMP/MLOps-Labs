@@ -9,7 +9,8 @@ from mlops_serious_game.application.services.admin_service import (
     remove_campaign,
     list_config_files,
     get_config_file,
-    save_and_reload_config_file
+    save_and_reload_config_file,
+    trigger_generate_offline_intel_artifacts
 )
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -97,4 +98,14 @@ async def update_config(filename: str, req: ConfigUpdateRequest, _: str = Depend
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-offline-intel")
+async def generate_offline_intel(_: str = Depends(check_admin_token)):
+    try:
+        result = await trigger_generate_offline_intel_artifacts()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 

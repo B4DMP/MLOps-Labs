@@ -11,6 +11,7 @@ import {
   fetchAdminConfigs,
   fetchAdminConfigFile,
   saveAdminConfigFile,
+  generateOfflineIntelArtifacts,
   type ConfigFileInfo
 } from "../services/api/admin";
 import styles from "./Admin.module.css";
@@ -164,8 +165,95 @@ const metricChangesControlEntry = {
   renderer: withJsonFormsControlProps(MetricChangesControl),
 };
 
+const WrongDescriptionsControl = (props: ControlProps) => {
+  const { data, path, handleChange, label } = props;
+  const currentMap: Record<string, string> = data && typeof data === "object" ? data : {};
+
+  const handleValueChange = (key: string, val: string) => {
+    const newMap = { ...currentMap, [key]: val };
+    handleChange(path, newMap);
+  };
+
+  const handleRemoveKey = (key: string) => {
+    const newMap = { ...currentMap };
+    delete newMap[key];
+    handleChange(path, newMap);
+  };
+
+  const handleAddKey = () => {
+    const keyName = window.prompt("Enter miscategorization requirement type to add (e.g. hard_constraint, requirement, negotiable_preference, personal_friction):");
+    if (keyName && keyName.trim()) {
+      const cleanKey = keyName.trim();
+      if (!(cleanKey in currentMap)) {
+        handleChange(path, { ...currentMap, [cleanKey]: "" });
+      }
+    }
+  };
+
+  const entries = Object.entries(currentMap);
+
+  return (
+    <div className="mb-4 p-3 rounded bg-dark border border-secondary">
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <label className="fw-bold text-info m-0 fs-6">{label || "Miscategorization Wrong Descriptions"}</label>
+        <Button
+          variant="outlined"
+          color="info"
+          size="small"
+          startIcon={<AddIcon />}
+          onClick={handleAddKey}
+          sx={{ fontWeight: "bold", textTransform: "none" }}
+        >
+          Add Miscategorization Description
+        </Button>
+      </div>
+
+      {entries.length > 0 ? (
+        <div className="d-flex flex-column gap-2 mt-2">
+          {entries.map(([key, val]) => (
+            <div
+              key={key}
+              className="p-3 rounded border border-secondary text-light d-flex flex-column gap-2"
+              style={{ backgroundColor: "#0f172a" }}
+            >
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="fw-bold text-info" style={{ fontSize: "0.9rem" }}>
+                  Wrong Description for Category: <code className="text-light">{key}</code>
+                </span>
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => handleRemoveKey(key)}
+                  title={`Remove ${key}`}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </div>
+              <textarea
+                className="form-control form-control-sm bg-dark text-light border-secondary"
+                rows={3}
+                value={val}
+                onChange={(e) => handleValueChange(key, e.target.value)}
+                placeholder={`Enter wrong description for ${key}...`}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-muted small mb-0 fst-italic">No miscategorization descriptions configured.</p>
+      )}
+    </div>
+  );
+};
+
+const wrongDescriptionsControlEntry = {
+  tester: rankWith(10, scopeEndsWith("wrong_descriptions")),
+  renderer: withJsonFormsControlProps(WrongDescriptionsControl),
+};
+
 const renderers = [
   metricChangesControlEntry,
+  wrongDescriptionsControlEntry,
   ...(materialRenderers || []),
   ...(vanillaRenderers || [])
 ];
@@ -188,6 +276,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
   const [viewMode, setViewMode] = useState<"form" | "json">("form");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isGeneratingIntel, setIsGeneratingIntel] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<{
     text: string;
     type: "success" | "danger" | "info";
@@ -252,6 +341,39 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     }
     setSelectedFilename(filename);
     await loadSingleConfig(filename);
+  };
+
+  const handleGenerateOfflineIntel = async () => {
+    const confirmGen = window.confirm(
+      "This will trigger LLM generation for all offline intel artifacts and miscategorization descriptions across all requirements and save them to OfflineIntelArtifacts.json. Continue?"
+    );
+    if (!confirmGen) return;
+
+    setIsGeneratingIntel(true);
+    setStatusMessage({
+      text: "Generating offline intel artifacts via LLM in parallel (this may take 1-2 minutes)...",
+      type: "info",
+    });
+
+    try {
+      const res = await generateOfflineIntelArtifacts(adminToken);
+      setStatusMessage({
+        text: res.message || "Successfully generated offline intel artifacts!",
+        type: "success",
+      });
+      // Reload config files and select OfflineIntelArtifacts.json
+      const files = await fetchAdminConfigs(adminToken);
+      setConfigFiles(files);
+      setSelectedFilename("OfflineIntelArtifacts.json");
+      await loadSingleConfig("OfflineIntelArtifacts.json");
+    } catch (err: any) {
+      setStatusMessage({
+        text: err.message || "Failed to generate offline intel artifacts.",
+        type: "danger",
+      });
+    } finally {
+      setIsGeneratingIntel(false);
+    }
   };
 
   const handleJsonChange = (text: string) => {
@@ -321,13 +443,13 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     <div className="mt-3">
       {/* Header & Controls Bar */}
       <div className="row g-3 align-items-center mb-3">
-        <div className="col-md-5 d-flex align-items-center gap-2">
+        <div className="col-md-4 d-flex align-items-center gap-2">
           <label className="fw-bold me-2 text-nowrap">Select Config File:</label>
           <select
             className="form-select form-select-sm bg-dark text-light border-secondary"
             value={selectedFilename}
             onChange={(e) => handleSelectFile(e.target.value)}
-            disabled={isLoading || isSaving}
+            disabled={isLoading || isSaving || isGeneratingIntel}
           >
             {configFiles.map((file) => (
               <option key={file.filename} value={file.filename}>
@@ -337,15 +459,22 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
           </select>
         </div>
 
-        <div className="col-md-3 d-flex align-items-center justify-content-center gap-2">
-          <span className="fw-semibold">Status:</span>
-          {isModified ? (
-            <span className="badge bg-warning text-dark px-2 py-1">
-              Unsaved Changes
-            </span>
-          ) : (
-            <span className="badge bg-success px-2 py-1">All Changes Saved</span>
-          )}
+        <div className="col-md-4 d-flex align-items-center justify-content-center gap-2">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-warning fw-bold text-nowrap"
+            onClick={handleGenerateOfflineIntel}
+            disabled={isLoading || isSaving || isGeneratingIntel}
+          >
+            {isGeneratingIntel ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                Generating Intel...
+              </>
+            ) : (
+              "Generate Offline Intel Artifacts"
+            )}
+          </button>
         </div>
 
         <div className="col-md-4 d-flex align-items-center justify-content-end gap-2">

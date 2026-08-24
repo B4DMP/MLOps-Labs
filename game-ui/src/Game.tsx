@@ -681,6 +681,8 @@ function App({ username: _username }: AppProps) {
                 onClose={() => setIsDossierOpen(false)}
                 dossierData={dossierData}
                 activeStakeholderId={activeStakeholderId}
+                currentPhase={currentPhase}
+                currentChallenge={currentChallenge}
               />
               {challengeLoopId === 0 && (
                 <OfflineIntelGathering

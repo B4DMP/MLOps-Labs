@@ -3,6 +3,7 @@ import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
+import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 
 export interface IntelEntry {
   id: string;
@@ -28,13 +29,15 @@ interface StakeholderDossierProps {
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  currentPhase?: number;
+  currentChallenge?: number;
 }
 
-const CATEGORY_META: Record<string, { label: string; styleClass: string }> = {
-  hard_constraint: { label: "📌 Hard Constraint", styleClass: styles.catHardConstraintMarker },
-  requirement: { label: "📋 Core Requirement", styleClass: styles.catRequirementMarker },
-  negotiable_preference: { label: "💬 Negotiable Preference", styleClass: styles.catNegotiableMarker },
-  personal_friction: { label: "⚡ Personal Friction", styleClass: styles.catFrictionMarker },
+const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
+  hard_constraint: { label: "Hard Constraint", icon: "📌", styleClass: styles.tagHardConstraint },
+  requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
+  negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
+  personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
 };
 
 export default function StakeholderDossier({
@@ -42,10 +45,17 @@ export default function StakeholderDossier({
   onClose,
   dossierData,
   activeStakeholderId,
+  currentPhase: propPhase,
+  currentChallenge: propChallenge = 0,
 }: StakeholderDossierProps) {
+  const { emit } = useGameWebSocket();
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
-  const { currentPhase } = useContext(PhasesContext) || { currentPhase: 0 };
+  const { currentPhase: contextPhase } = useContext(PhasesContext) || { currentPhase: 0 };
+  const currentPhase = propPhase ?? contextPhase ?? 0;
+  const currentChallenge = propChallenge;
+
+  const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
@@ -63,6 +73,8 @@ export default function StakeholderDossier({
   const dragStartRef = useRef({ x: 0, y: 0 });
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
+  const prevIsOpenRef = useRef<boolean>(isOpen);
+  const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
   // Derive active stakeholders
   const allSts = Object.values(stakeholders || {});
@@ -140,7 +152,10 @@ export default function StakeholderDossier({
 
   // Auto-switch page when opened or when activeStakeholderId changes
   useEffect(() => {
-    if (isOpen) {
+    const justOpened = isOpen && !prevIsOpenRef.current;
+    const activeStChanged = activeStakeholderId !== prevActiveStIdRef.current;
+
+    if (isOpen && (justOpened || activeStChanged)) {
       if (activeStakeholderId) {
         const foundIdx = effectiveDossierData.findIndex(
           (st) =>
@@ -150,10 +165,12 @@ export default function StakeholderDossier({
         );
         if (foundIdx !== -1) {
           setCurrentPageIndex(foundIdx);
-          return;
         }
       }
     }
+
+    prevIsOpenRef.current = isOpen;
+    prevActiveStIdRef.current = activeStakeholderId;
   }, [isOpen, activeStakeholderId, effectiveDossierData]);
 
   // Detect when artifact tagging adds new intel to a stakeholder & auto-switch to their page
@@ -218,25 +235,22 @@ export default function StakeholderDossier({
     return <div className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}>? UNCONFIRMED</div>;
   };
 
+  const handleReTagIntel = (requirementId: string, newType: string) => {
+    setActiveRetagNoteId(null);
+    emit("intel:tag_item", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      requirement_id: requirementId,
+      categorized_type: newType,
+    });
+    emit("intel:get_dossier", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+    });
+  };
+
   const renderPageContent = (st: StakeholderDossierEntry) => {
     if (!st) return null;
-
-    const groupedIntel: Record<string, IntelEntry[]> = {
-      hard_constraint: [],
-      requirement: [],
-      negotiable_preference: [],
-      personal_friction: [],
-    };
-
-    if (st && st.intel_items) {
-      st.intel_items.forEach((item) => {
-        const typeKey = item.categorized_type || "requirement";
-        if (!groupedIntel[typeKey]) {
-          groupedIntel[typeKey] = [];
-        }
-        groupedIntel[typeKey].push(item);
-      });
-    }
 
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
 
@@ -268,36 +282,78 @@ export default function StakeholderDossier({
           <span className={styles.doodleIcon}>✏️</span> Intelligence
         </div>
 
-        {/* Categorized Sticky Notes */}
+        {/* Sticky Notes Grid (Note-level intel type badge & re-tagging) */}
         {hasIntelEntries ? (
-          Object.keys(CATEGORY_META).map((catKey) => {
-            const items = groupedIntel[catKey] || [];
-            const catMeta = CATEGORY_META[catKey];
+          <div className={styles.stickyNoteGrid}>
+            {st.intel_items.map((item, idx) => {
+              const typeKey = item.categorized_type || "requirement";
+              const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
+              const noteId = item.id || item.requirement_id || `note-${idx}`;
+              const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
+              const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
 
-            if (items.length === 0) return null;
+              return (
+                <div
+                  key={`${st.stakeholder_id}-${noteId}`}
+                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""}`}
+                >
+                  <div className={styles.paperclip} />
 
-            return (
-              <div key={catKey} className={styles.categoryGroup}>
-                <div className={`${styles.categoryTagMarker} ${catMeta.styleClass}`}>
-                  {catMeta.label} ({items.length})
-                </div>
-                <div className={styles.stickyNoteGrid}>
-                  {items.map((item, idx) => (
-                    <div
-                      key={`${st.stakeholder_id}-${item.id || item.requirement_id || idx}-${items.length}`}
-                      className={styles.stickyNote}
-                    >
-                      <div className={styles.paperclip} />
-                      <div className={styles.intelText}>"{item.description}"</div>
-                      <div className={styles.stampContainer}>
-                        {renderRubberStamp(item.intel_type)}
+                  {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
+                  <div className={styles.noteTopBar}>
+                    {isUnconfirmed ? (
+                      <button
+                        className={`${styles.categoryBadge} ${catMeta.styleClass}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveRetagNoteId(isRetagging ? null : noteId);
+                        }}
+                        title="Click to re-tag this intel item's category"
+                      >
+                        <span>{catMeta.icon} {catMeta.label}</span>
+                        <span className={styles.reTagPrompt}>✏️ Re-tag</span>
+                      </button>
+                    ) : (
+                      <div
+                        className={`${styles.categoryBadgeStatic} ${catMeta.styleClass}`}
+                        title="Category is locked once intel is confirmed/verified"
+                      >
+                        <span>{catMeta.icon} {catMeta.label}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Interactive Re-tag Picker Popover */}
+                  {isRetagging && (
+                    <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
+                      <div className={styles.retagPopoverTitle}>Re-tag intel stance category:</div>
+                      <div className={styles.retagOptionsGrid}>
+                        {Object.entries(CATEGORY_META).map(([typeOptKey, metaOpt]) => (
+                          <button
+                            key={typeOptKey}
+                            className={`${styles.retagOptionBtn} ${typeOptKey === typeKey ? styles.activeOptionBtn : ""}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReTagIntel(item.requirement_id, typeOptKey);
+                            }}
+                          >
+                            {metaOpt.icon} {metaOpt.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
+
+                  <div className={styles.intelBody}>
+                    <div className={styles.stampFloat}>
+                      {renderRubberStamp(item.intel_type)}
+                    </div>
+                    <div className={styles.intelText}>"{item.description}"</div>
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         ) : (
           <div className={styles.emptyStateNote}>
             📝 <em>No intel collected for <strong>{st.name}</strong> yet!</em>

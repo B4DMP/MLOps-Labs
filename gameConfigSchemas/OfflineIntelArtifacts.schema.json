@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Offline Intel Artifacts Configuration",
+  "required": ["artifacts"],
+  "properties": {
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "requirement_id",
+          "challenge_id",
+          "stakeholder_id",
+          "stakeholder_name",
+          "stakeholder_role",
+          "artifact_type",
+          "content",
+          "wrong_descriptions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Artifact ID"
+          },
+          "requirement_id": {
+            "type": "string",
+            "title": "Requirement ID"
+          },
+          "challenge_id": {
+            "type": "integer",
+            "title": "Challenge ID"
+          },
+          "stakeholder_id": {
+            "type": "string",
+            "title": "Stakeholder ID"
+          },
+          "stakeholder_name": {
+            "type": "string",
+            "title": "Stakeholder Name"
+          },
+          "stakeholder_role": {
+            "type": "string",
+            "title": "Stakeholder Role"
+          },
+          "artifact_type": {
+            "type": "string",
+            "title": "Artifact Type",
+            "enum": ["email", "slack_message", "meeting_notes", "document"]
+          },
+          "content": {
+            "type": "string",
+            "title": "Artifact Content"
+          },
+          "wrong_descriptions": {
+            "type": "object",
+            "title": "Miscategorization Wrong Descriptions",
+            "properties": {
+              "hard_constraint": {
+                "type": "string",
+                "title": "Wrong Description (Hard Constraint)"
+              },
+              "requirement": {
+                "type": "string",
+                "title": "Wrong Description (Requirement)"
+              },
+              "negotiable_preference": {
+                "type": "string",
+                "title": "Wrong Description (Negotiable Preference)"
+              },
+              "personal_friction": {
+                "type": "string",
+                "title": "Wrong Description (Personal Friction)"
+              }
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -32,7 +32,7 @@ services:
     volumes:
       - ./gameConfig:/gameConfig
       - ./gameConfigSchemas:/gameConfigSchemas
-      - ./gameJsonSchemas:/gameJsonSchemas
+      - ./gameJConfigUISchemas:/gameConfigUISchemas
     depends_on:
       - postgres
     networks:

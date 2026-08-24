@@ -18,6 +18,8 @@ from sqlalchemy import select
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
+from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.application.conversation_service.workflow.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
@@ -100,26 +102,65 @@ async def _generate_single_artifact(curr_challenge: Challenge, req: StakeholderR
 
 
 async def generate_offline_intel_artifacts(curr_challenge: Challenge) -> List[Dict[str, Any]]:
-    """Generates 5 random intel artifacts in parallel for the offline intel gathering phase."""
+    """Loads 5 offline intel artifacts from OfflineIntelArtifactFactory for the offline intel gathering phase."""
     reqs = select_reqs_for_offl_intel_gathering(curr_challenge)
-    artifact_types = list(ArtifactType)
-    tasks = [
-        _generate_single_artifact(curr_challenge, req, random.choice(artifact_types))
-        for req in reqs
-    ]
-    results = await asyncio.gather(*tasks)
-    return list(results)
+    results = []
+    missing_reqs = []
+
+    for req in reqs:
+        pre_artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(req.id)
+        if pre_artifact:
+            stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
+            results.append({
+                "id": pre_artifact.id,
+                "requirement_id": req.id,
+                "stakeholder_id": req.stakeholder_id,
+                "stakeholder_name": stakeholder.name,
+                "stakeholder_role": stakeholder.role_description,
+                "artifact_type": pre_artifact.artifact_type.value if isinstance(pre_artifact.artifact_type, ArtifactType) else str(pre_artifact.artifact_type),
+                "content": pre_artifact.content,
+            })
+        else:
+            missing_reqs.append(req)
+
+    if missing_reqs:
+        artifact_types = list(ArtifactType)
+        tasks = [
+            _generate_single_artifact(curr_challenge, req, random.choice(artifact_types))
+            for req in missing_reqs
+        ]
+        fallback_results = await asyncio.gather(*tasks)
+        results.extend(list(fallback_results))
+
+    return results
 
 
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Stores or updates an intel item in the database."""
     with get_session() as session:
-        record = IntelItem(
-            user_name=ws.query_params["username"],
-            intel_item_data=intel_item.model_dump()
-        )
-        session.add(record)
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
+        ).all()
+
+        target_record = None
+        for record in records:
+            if isinstance(record.intel_item_data, dict):
+                req_id = record.intel_item_data.get("requirement_id")
+                item_id = record.intel_item_data.get("id")
+                if req_id == intel_item.requirement_id or (intel_item.id and item_id == intel_item.id):
+                    target_record = record
+                    break
+
+        if target_record:
+            target_record.intel_item_data = intel_item.model_dump()
+        else:
+            new_record = IntelItem(
+                user_name=ws.query_params["username"],
+                intel_item_data=intel_item.model_dump()
+            )
+            session.add(new_record)
         session.commit()
+
 
 
 async def clear_intel_items_for_user(ws: WebSocket) -> None:
@@ -154,12 +195,19 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
 
 
 async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
-    """handles the categorization of intel items"""
+    """Handles the categorization of intel items using pre-generated descriptions when available."""
     req = RequirementFactory.get_requirement(intel_item.requirement_id)
     if intel_item.categorized_type == req.type:
         intel_item.description = req.description
     else:
-        intel_item.description = await create_wrong_intel_item_description(curr_challenge, intel_item)
+        wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(
+            intel_item.requirement_id,
+            intel_item.categorized_type.value if hasattr(intel_item.categorized_type, "value") else str(intel_item.categorized_type)
+        )
+        if wrong_desc:
+            intel_item.description = wrong_desc
+        else:
+            intel_item.description = await create_wrong_intel_item_description(curr_challenge, intel_item)
     await store_intel_item(curr_challenge, ws, intel_item)
 
 async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_item: StakeholderIntelItem) -> str:
@@ -182,21 +230,124 @@ async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_i
     return res.strip()
 
 
+async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
+    """Generates offline intel artifacts and all possible miscategorizations for all requirements and saves to config."""
+    from pathlib import Path
+    import json
+    from mlops_serious_game.domain.gameConfigLoader import GameConfigLoader
+
+    all_reqs = RequirementFactory.get_requirements()
+    if not all_reqs:
+        return {"status": "error", "message": "No requirement objects found to generate artifacts for."}
+
+    artifact_types = list(ArtifactType)
+    semaphore = asyncio.Semaphore(10)
+
+    async def _process_requirement(req: StakeholderRequirement) -> Dict[str, Any]:
+        async with semaphore:
+            curr_challenge = PhaseFactory.get_challenge_by_id(req.challenge_id)
+            if not curr_challenge:
+                phases = PhaseFactory.get_phases()
+                curr_challenge = phases[0].challenges[0]
+            
+            stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
+            art_type = random.choice(artifact_types)
+
+            temp_item = StakeholderIntelItem(
+                id=str(uuid.uuid4()),
+                requirement_id=req.id,
+                intel_type=ConfidenceType.UNCONFIRMED,
+                categorized_type=req.type,
+                description=req.description
+            )
+
+            # 1. Generate main artifact content
+            try:
+                content = await generate_intel_item_artifact_content(curr_challenge, temp_item, art_type)
+            except Exception as e:
+                print(f"[Offline Intel Generator Warning] Content generation failed for {req.id}: {e}")
+                content = f"Stakeholder Note from {stakeholder.name} ({stakeholder.role_description}): {req.description}"
+
+            # 2. Generate wrong descriptions for all 3 miscategorizations
+            wrong_descriptions: Dict[str, str] = {}
+            possible_types = [t for t in RequirementType if t != req.type]
+
+            for wrong_type in possible_types:
+                temp_wrong_item = StakeholderIntelItem(
+                    id=str(uuid.uuid4()),
+                    requirement_id=req.id,
+                    intel_type=ConfidenceType.UNCONFIRMED,
+                    categorized_type=wrong_type,
+                    description=""
+                )
+                try:
+                    wrong_desc = await create_wrong_intel_item_description(curr_challenge, temp_wrong_item)
+                except Exception as e:
+                    print(f"[Offline Intel Generator Warning] Wrong desc generation failed for {req.id} ({wrong_type.value}): {e}")
+                    wrong_desc = f"Misinterpreted Stance regarding {curr_challenge.name}: {req.description}"
+                
+                wrong_descriptions[wrong_type.value] = wrong_desc
+
+            return {
+                "id": f"art_{req.id}",
+                "requirement_id": req.id,
+                "challenge_id": req.challenge_id,
+                "stakeholder_id": req.stakeholder_id,
+                "stakeholder_name": stakeholder.name,
+                "stakeholder_role": stakeholder.role_description,
+                "artifact_type": art_type.value,
+                "content": content,
+                "wrong_descriptions": wrong_descriptions
+            }
+
+    tasks = [_process_requirement(req) for req in all_reqs]
+    generated_artifacts = await asyncio.gather(*tasks)
+
+    # Save to gameConfig/OfflineIntelArtifacts.json
+    base_dir = Path(__file__).parent
+    target_path = (base_dir / "../../../../gameConfig/OfflineIntelArtifacts.json").resolve()
+    
+    output_data = {
+        "artifacts": list(generated_artifacts)
+    }
+
+    with target_path.open("w", encoding="utf-8") as f:
+        json.dump(output_data, f, indent=2, ensure_ascii=False)
+
+    # Re-initialize GameConfigLoader to refresh in-memory factory
+    GameConfigLoader.initialize()
+
+    return {
+        "status": "success",
+        "count": len(generated_artifacts),
+        "message": f"Successfully generated and saved {len(generated_artifacts)} offline intel artifacts to OfflineIntelArtifacts.json!"
+    }
+
+
 async def handle_intel_tagging(
     curr_challenge: Challenge,
     ws: WebSocket,
     requirement_id: str,
     categorized_type: str,
 ) -> StakeholderIntelItem:
-    """Processes tagging of an intel artifact by the player, creating an unconfirmed intel item."""
-    req = RequirementFactory.get_requirement(requirement_id)
-    intel_item = StakeholderIntelItem(
-        id=str(uuid.uuid4()),
-        requirement_id=requirement_id,
-        intel_type=ConfidenceType.UNCONFIRMED,
-        categorized_type=RequirementType(categorized_type),
-        description=""
-    )
+    """Processes tagging or re-tagging of an intel artifact by the player, creating or updating an intel item."""
+    collected_items = await retrieve_intel_items(curr_challenge, ws)
+    existing_item = next((item for item in collected_items if item.requirement_id == requirement_id), None)
+
+    if existing_item:
+        item_conf = existing_item.intel_type.value if hasattr(existing_item.intel_type, "value") else str(existing_item.intel_type)
+        if item_conf.lower() != "unconfirmed":
+            return existing_item
+        existing_item.categorized_type = RequirementType(categorized_type)
+        intel_item = existing_item
+    else:
+        intel_item = StakeholderIntelItem(
+            id=str(uuid.uuid4()),
+            requirement_id=requirement_id,
+            intel_type=ConfidenceType.UNCONFIRMED,
+            categorized_type=RequirementType(categorized_type),
+            description=""
+        )
 
     await handle_intel_item_categorization(curr_challenge, ws, intel_item)
     return intel_item

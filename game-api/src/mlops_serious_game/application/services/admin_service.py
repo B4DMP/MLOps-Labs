@@ -479,7 +479,7 @@ def remove_campaign(campaign_key: str) -> None:
 def get_game_config_dir():
     from pathlib import Path
     base_dir = Path(__file__).parent
-    return (base_dir / "../../../../gameConfig").resolve()
+    return (base_dir / "../../../../../gameConfig").resolve()
 
 
 def list_config_files() -> list[dict[str, Any]]:
@@ -500,13 +500,13 @@ def list_config_files() -> list[dict[str, Any]]:
 def get_game_config_schemas_dir():
     from pathlib import Path
     base_dir = Path(__file__).parent
-    return (base_dir / "../../../../gameConfigSchemas").resolve()
+    return (base_dir / "../../../../../gameConfigSchemas").resolve()
 
 
-def get_game_json_schemas_dir():
+def get_game_config_uischemas_dir():
     from pathlib import Path
     base_dir = Path(__file__).parent
-    return (base_dir / "../../../../gameJsonSchemas").resolve()
+    return (base_dir / "../../../../../gameConfigUISchemas").resolve()
 
 
 def load_json_schema(filename: str) -> dict[str, Any]:
@@ -515,13 +515,21 @@ def load_json_schema(filename: str) -> dict[str, Any]:
     
     safe_name = Path(filename).name
     schema_filename = safe_name.replace(".json", ".schema.json")
-    schema_path = get_game_json_schemas_dir() / schema_filename
+    schema_path = get_game_config_schemas_dir() / schema_filename
     
     if not schema_path.exists():
-        raise FileNotFoundError(f"JSON Schema file '{schema_filename}' not found in gameJsonSchemas directory.")
+        return {}
     
-    with schema_path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with schema_path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+async def trigger_generate_offline_intel_artifacts() -> dict[str, Any]:
+    from mlops_serious_game.application.intel_dossier import generate_and_save_all_offline_intel_artifacts
+    return await generate_and_save_all_offline_intel_artifacts()
 
 
 def load_uischema(filename: str) -> dict[str, Any] | None:
@@ -530,7 +538,7 @@ def load_uischema(filename: str) -> dict[str, Any] | None:
     
     safe_name = Path(filename).name
     schema_filename = safe_name.replace(".json", ".uischema.json")
-    schema_path = get_game_config_schemas_dir() / schema_filename
+    schema_path = get_game_config_uischemas_dir() / schema_filename
     
     if schema_path.exists():
         try:

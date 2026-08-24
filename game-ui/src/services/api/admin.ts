@@ -162,3 +162,23 @@ export async function saveAdminConfigFile(
   return response.json();
 }
 
+export async function generateOfflineIntelArtifacts(
+  token: string
+): Promise<{ status: string; count?: number; message: string }> {
+  const response = await fetch(`${BASE_URL}/api/admin/generate-offline-intel`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to generate offline intel artifacts.");
+  }
+
+  return response.json();
+}
+
+

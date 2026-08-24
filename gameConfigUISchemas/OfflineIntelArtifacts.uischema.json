@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Offline Intel Artifacts Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/artifacts",
+      "options": {
+        "elementLabelProp": "requirement_id"
+      }
+    }
+  ]
+}

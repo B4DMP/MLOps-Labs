@@ -6,6 +6,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
 
 class GameConfigLoader:
@@ -33,6 +34,10 @@ class GameConfigLoader:
             RequirementFactory.validate_requirements(challenges)
             print(f"loaded and validated requirements.")
             
+            offline_intel_path = (base_dir / "../../../../gameConfig/OfflineIntelArtifacts.json").resolve()
+            OfflineIntelArtifactFactory.load_artifacts(offline_intel_path)
+            print(f"loaded offline intel artifacts.")
+
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)
             print(f"loaded questions.")
