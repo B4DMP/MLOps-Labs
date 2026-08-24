@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Game Card Images Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/ActionCardImages",
+      "options": {
+        "elementLabelProp": "description"
+      }
+    }
+  ]
+}

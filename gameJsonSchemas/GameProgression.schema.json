@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Game Progression Configuration",
+  "properties": {
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "phase_introduction"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Phase ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Phase Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Phase Description"
+          },
+          "phase_introduction": {
+            "type": "string",
+            "title": "Phase Introduction"
+          }
+        }
+      }
+    },
+    "challenges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "phase_id", "name", "description", "roundIntroduction", "metric_changes", "stakeholders"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Challenge ID"
+          },
+          "phase_id": {
+            "type": "integer",
+            "title": "Phase ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Challenge Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "roundIntroduction": {
+            "type": "string",
+            "title": "Round Introduction"
+          },
+          "metric_changes": {
+            "type": "object",
+            "title": "Metric Changes Matrix"
+          },
+          "stakeholders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["stakeholder_id", "power", "interest"],
+              "properties": {
+                "stakeholder_id": {
+                  "type": "string",
+                  "title": "Stakeholder ID",
+                  "enum": ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"]
+                },
+                "power": {
+                  "type": "string",
+                  "title": "Power Level",
+                  "enum": ["high", "low"]
+                },
+                "interest": {
+                  "type": "string",
+                  "title": "Interest Level",
+                  "enum": ["high", "low"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "ActionCardImages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "image"],
+        "properties": {
+          "description": { "type": "string", "title": "Card Description" },
+          "image": { "type": "string", "title": "Image Path" }
+        }
+      }
+    }
+  }
+}

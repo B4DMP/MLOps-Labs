@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Requirement Objects Configuration",
+  "required": ["requirements"],
+  "properties": {
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "challenge_id", "stakeholder_id", "type", "description"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Requirement ID"
+          },
+          "challenge_id": {
+            "type": "integer",
+            "title": "Challenge ID"
+          },
+          "stakeholder_id": {
+            "type": "string",
+            "title": "Stakeholder ID",
+            "enum": ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"]
+          },
+          "type": {
+            "type": "string",
+            "title": "Requirement Type",
+            "enum": ["hard_constraint", "requirement", "negotiable_preference", "personal_friction"]
+          },
+          "description": {
+            "type": "string",
+            "title": "Requirement Description"
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,7 +5,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, merge_message_runs
+from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, merge_message_runs
+from langchain_core.runnables import RunnableLambda
 
 from mlops_serious_game.application.conversation_service.workflow.tools import tools
 from mlops_serious_game.config import settings
@@ -144,12 +145,17 @@ def get_intel_artifact_model(model_name: str = settings.RWTH_LLM_MODEL_WRONG_INT
             temperature=0.7,
     )
 
+def _is_last_message_tool(messages: list) -> bool:
+    if not messages:
+        return False
+    return isinstance(messages[-1], ToolMessage) or getattr(messages[-1], "type", None) == "tool"
+
 def get_stakeholder_response_chain():
     model = get_chat_model()
     model = model.bind_tools(tools)
     system_message = STAKEHOLDER_CHARACTER_CARD
 
-    prompt = ChatPromptTemplate.from_messages(
+    prompt_with_human = ChatPromptTemplate.from_messages(
         [
             ("system", system_message.prompt),
             MessagesPlaceholder(variable_name="messages"),
@@ -158,23 +164,51 @@ def get_stakeholder_response_chain():
         template_format="jinja2",
     )
 
-    return prompt | model
+    prompt_without_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_message.prompt + "\n\n[GAME MASTER] Stakeholder {{stakeholder_name}}, please provide your response or use tools if necessary."),
+            MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+
+    def select_prompt(inputs: dict):
+        messages = inputs.get("messages", [])
+        if _is_last_message_tool(messages):
+            return prompt_without_human.invoke(inputs)
+        return prompt_with_human.invoke(inputs)
+
+    return RunnableLambda(select_prompt) | model
 
 def get_rogue_stakeholder_response_chain():
     model = get_chat_model()
     model = model.bind_tools(tools)
     system_message = ROGUE_STAKEHOLDER_CHARACTER_CARD
 
-    prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", system_message.prompt),
-        MessagesPlaceholder(variable_name="messages"),
-        ("human", "[GAME MASTER] Stakeholder {{stakeholder_name}}, please provide your response or use tools if necessary."),
-    ],
-    template_format="jinja2",
+    prompt_with_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_message.prompt),
+            MessagesPlaceholder(variable_name="messages"),
+            ("human", "[GAME MASTER] Stakeholder {{stakeholder_name}}, please provide your response or use tools if necessary."),
+        ],
+        template_format="jinja2",
     )
 
-    return prompt | model
+    prompt_without_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_message.prompt + "\n\n[GAME MASTER] Stakeholder {{stakeholder_name}}, please provide your response or use tools if necessary."),
+            MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+
+    def select_prompt(inputs: dict):
+        messages = inputs.get("messages", [])
+        if _is_last_message_tool(messages):
+            return prompt_without_human.invoke(inputs)
+        return prompt_with_human.invoke(inputs)
+
+    return RunnableLambda(select_prompt) | model
 
 
 def get_conversation_summary_chain(summary: str = ""):
@@ -184,8 +218,8 @@ def get_conversation_summary_chain(summary: str = ""):
 
     prompt = ChatPromptTemplate.from_messages(
         [
+            ("system", summary_message.prompt),
             MessagesPlaceholder(variable_name="messages"),
-            ("human", summary_message.prompt),
         ],
         template_format="jinja2",
     )
@@ -258,16 +292,30 @@ def get_router_chain(phase_id: int | None):
     else:
         model = get_routing_model().with_structured_output(build_stakeholder_router_schema(phase_id), method="json_schema", strict=True)
     
-    prompt = ChatPromptTemplate.from_messages(
+    prompt_with_human = ChatPromptTemplate.from_messages(
         [
             ("system", STAKEHOLDER_DETERMINATION_PROMPT.prompt),
             MessagesPlaceholder(variable_name="messages"),
-            ("human", "[GAME MASTER] Based on the conversation, determine the next stakeholders to route to.")
+            ("human", "[GAME MASTER] Based on the conversation, determine the next stakeholders to route to."),
         ],
         template_format="jinja2",
     )
 
-    return prompt | model
+    prompt_without_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", STAKEHOLDER_DETERMINATION_PROMPT.prompt + "\n\n[GAME MASTER] Based on the conversation, determine the next stakeholders to route to."),
+            MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+
+    def select_prompt(inputs: dict):
+        messages = inputs.get("messages", [])
+        if _is_last_message_tool(messages):
+            return prompt_without_human.invoke(inputs)
+        return prompt_with_human.invoke(inputs)
+
+    return RunnableLambda(select_prompt) | model
 
 class CardCheckResult(BaseModel):
     status: Literal[
@@ -283,16 +331,30 @@ def get_card_gen_checker_chain():
     else:
         model = get_card_check_model().with_structured_output(CardCheckResult, method="json_schema", strict=True)
 
-    prompt = ChatPromptTemplate.from_messages(
+    prompt_with_human = ChatPromptTemplate.from_messages(
         [
             ("system", CHECK_CARD_GENERATION_PROMPT.prompt),
             MessagesPlaceholder(variable_name="messages"),
-            ("human", "[GAME MASTER] Evaluate the conversation. Should we generate an action card? Return status 'accept' or 'reject'.")
+            ("human", "[GAME MASTER] Evaluate the conversation. Should we generate an action card? Return status 'accept' or 'reject'."),
         ],
         template_format="jinja2",
     )
-    
-    return prompt | model
+
+    prompt_without_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", CHECK_CARD_GENERATION_PROMPT.prompt + "\n\n[GAME MASTER] Evaluate the conversation. Should we generate an action card? Return status 'accept' or 'reject'."),
+            MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+
+    def select_prompt(inputs: dict):
+        messages = inputs.get("messages", [])
+        if _is_last_message_tool(messages):
+            return prompt_without_human.invoke(inputs)
+        return prompt_with_human.invoke(inputs)
+
+    return RunnableLambda(select_prompt) | model
 
 def build_action_card_schema(phase_id: int| None):
     
@@ -358,14 +420,30 @@ class AnticheatResult(BaseModel):
 
 def get_anticheat_chain():
     model = get_anticheat_model().with_structured_output(AnticheatResult)
-    prompt = ChatPromptTemplate.from_messages(
-    [
-        ("system", ANTICHEAT_PROMPT.prompt),
-        MessagesPlaceholder(variable_name="messages"),
-        ("human", "[GAME MASTER] Check if the user's input fits into the serious game context. Return status 'accept' or 'reject'.")
-    ],template_format="jinja2",)
-    
-    return prompt | model
+    prompt_with_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", ANTICHEAT_PROMPT.prompt),
+            MessagesPlaceholder(variable_name="messages"),
+            ("human", "[GAME MASTER] Check if the user's input fits into the serious game context. Return status 'accept' or 'reject'."),
+        ],
+        template_format="jinja2",
+    )
+
+    prompt_without_human = ChatPromptTemplate.from_messages(
+        [
+            ("system", ANTICHEAT_PROMPT.prompt + "\n\n[GAME MASTER] Check if the user's input fits into the serious game context. Return status 'accept' or 'reject'."),
+            MessagesPlaceholder(variable_name="messages"),
+        ],
+        template_format="jinja2",
+    )
+
+    def select_prompt(inputs: dict):
+        messages = inputs.get("messages", [])
+        if _is_last_message_tool(messages):
+            return prompt_without_human.invoke(inputs)
+        return prompt_with_human.invoke(inputs)
+
+    return RunnableLambda(select_prompt) | model
 
 def get_wrong_intel_chain():
     model = get_wrong_intel_model()

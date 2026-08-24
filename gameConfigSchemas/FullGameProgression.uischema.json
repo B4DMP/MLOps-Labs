@@ -1,0 +1,44 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Phases",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/phases",
+          "options": {
+            "elementLabelProp": "name"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Challenges",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/challenges",
+          "options": {
+            "elementLabelProp": "name"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Action Card Images",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/ActionCardImages",
+          "options": {
+            "elementLabelProp": "description"
+          }
+        }
+      ]
+    }
+  ]
+}

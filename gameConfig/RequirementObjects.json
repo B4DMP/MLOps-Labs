@@ -15,11 +15,11 @@
       "id": "req_0_model_monica_requirement_1"
     },
     {
-      "challenge_id": 0,
       "stakeholder_id": "model_monica",
       "type": "negotiable_preference",
       "description": "Prefers PyTorch over other machine learning frameworks.",
-      "id": "req_0_model_monica_negotiable_preference_2"
+      "id": "req_0_model_monica_negotiable_preference_2",
+      "challenge_id": 0
     },
     {
       "challenge_id": 0,

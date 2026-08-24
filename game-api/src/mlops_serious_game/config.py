@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     # -- RWTH Proxy Configuration
     RWTH_API_KEY: str | None = None
     RWTH_API_BASE: str | None = "https://llm.hpc.itc.rwth-aachen.de/"
-    RWTH_LLM_MODEL: str = "openai/gpt-oss-120b"  
+    RWTH_LLM_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_ROUTER: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     RWTH_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  

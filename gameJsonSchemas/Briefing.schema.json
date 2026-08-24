@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Briefing Configuration",
+  "required": ["briefing"],
+  "properties": {
+    "briefing": {
+      "type": "object",
+      "required": ["briefing_title", "briefing_description"],
+      "properties": {
+        "briefing_title": {
+          "type": "string",
+          "title": "Title"
+        },
+        "briefing_description": {
+          "type": "string",
+          "title": "Description"
+        }
+      }
+    }
+  }
+}

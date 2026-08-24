@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Evaluation Questions Configuration",
+  "properties": {
+    "intro_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "answers", "knowledge_question", "notes", "inputField"],
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question Text"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "taxonomy": {
+            "type": "string",
+            "title": "Taxonomy Level"
+          },
+          "knowledge_question": {
+            "type": "boolean",
+            "title": "Knowledge Question?"
+          },
+          "notes": {
+            "type": "boolean",
+            "title": "Enable Notes?"
+          },
+          "inputField": {
+            "type": "boolean",
+            "title": "Enable Text Input?"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "text": { "type": "string" },
+                "expert": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "outro_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "answers", "knowledge_question", "notes", "inputField"],
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question Text"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "taxonomy": {
+            "type": "string",
+            "title": "Taxonomy Level"
+          },
+          "knowledge_question": {
+            "type": "boolean",
+            "title": "Knowledge Question?"
+          },
+          "notes": {
+            "type": "boolean",
+            "title": "Enable Notes?"
+          },
+          "inputField": {
+            "type": "boolean",
+            "title": "Enable Text Input?"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "text": { "type": "string" },
+                "expert": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

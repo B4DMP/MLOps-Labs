@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Requirement Objects Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/requirements",
+      "options": {
+        "elementLabelProp": "id"
+      }
+    }
+  ]
+}

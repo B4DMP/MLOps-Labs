@@ -81,3 +81,84 @@ export async function removeAdminCampaign(
 
   return response.json();
 }
+
+export interface ConfigFileInfo {
+  filename: string;
+  size: number;
+  modified: string;
+}
+
+export interface ConfigFileData {
+  filename: string;
+  data: any;
+  schema: any;
+  uischema?: any;
+}
+
+export interface ConfigUpdateResponse {
+  type: string;
+  message: string;
+  file: ConfigFileData;
+  dashboard?: AdminDashboardData;
+}
+
+export async function fetchAdminConfigs(token: string): Promise<ConfigFileInfo[]> {
+  const response = await fetch(`${BASE_URL}/api/admin/configs`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to fetch config files list.");
+  }
+
+  const data = await response.json();
+  return data.files || [];
+}
+
+export async function fetchAdminConfigFile(
+  token: string,
+  filename: string
+): Promise<ConfigFileData> {
+  const response = await fetch(`${BASE_URL}/api/admin/configs/${encodeURIComponent(filename)}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to fetch config file ${filename}.`);
+  }
+
+  return response.json();
+}
+
+export async function saveAdminConfigFile(
+  token: string,
+  filename: string,
+  content: any
+): Promise<ConfigUpdateResponse> {
+  const response = await fetch(`${BASE_URL}/api/admin/configs/${encodeURIComponent(filename)}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ data: content }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to save configuration file ${filename}.`);
+  }
+
+  return response.json();
+}
+

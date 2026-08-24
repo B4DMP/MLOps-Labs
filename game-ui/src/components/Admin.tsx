@@ -24,6 +24,8 @@ ChartJS.register(
   Legend
 );
 
+import { ConfigEditor } from "./ConfigEditor";
+
 interface Campaign {
   name: string;
   key: string
@@ -40,6 +42,8 @@ interface Player {
 }
 
 interface AdminProps {
+  adminToken?: string;
+  onDashboardUpdate?: (data: any) => void;
   campaigns: Campaign[];
   players: Player[];
   addCampaign: (campaignName: string, campaignKey: string) => void;
@@ -52,12 +56,22 @@ interface AdminProps {
   questionaire_results: any;
 }
 
-export function Admin({ campaigns, players, addCampaign, removeCampaign, finished_players_amount, sum_per_challenge, sum_per_challenge_increase, intro_questionaire_average, outro_questionaire_average, questionaire_results }: AdminProps) {
+export function Admin({
+  adminToken = "",
+  onDashboardUpdate,
+  campaigns,
+  players,
+  addCampaign,
+  removeCampaign,
+  finished_players_amount,
+  sum_per_challenge,
+  sum_per_challenge_increase,
+  intro_questionaire_average,
+  outro_questionaire_average,
+  questionaire_results
+}: AdminProps) {
 
-  const [isCampaignExpanded, setIsCampaignExpanded] = useState(false);
-  const [isPlayersExpanded, setIsPlayersExpanded] = useState(false);
-  const [isQuestionaireResultsExpanded, setIsQuestionaireResultsExpanded] = useState(false);
-  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis">("config");
   const [campaignName, setCampaignName] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
 
@@ -124,7 +138,7 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
 
   return (
     <div
-      className={`container-fluid vh-100 d-flex flex-column align-items-center py-5 overflow-y-auto position-relative `}
+      className={`container-fluid vh-100 d-flex flex-column align-items-center py-4 overflow-y-auto position-relative `}
       style={{
         backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3.png")`,
         backgroundSize: "cover",
@@ -133,23 +147,65 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
       }}
     >
       <div className={`${styles.adminContainer}`}>
-        <h1 className={`${styles.adminTitle} text-center`}>
-          Admin View
+        <h1 className={`${styles.adminTitle} text-center mb-3`}>
+          Admin Panel
         </h1>
-        <div className="card shadow-sm p-4 mb-3">
-          <div
-            className="d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }}
-            onClick={() => setIsCampaignExpanded(!isCampaignExpanded)}
-          >
-            <h5 className="mb-0">Manage Campaigns</h5>
-            <button className={styles.expandButton} onClick={() => setIsCampaignExpanded(!isCampaignExpanded)}>
-              {isCampaignExpanded ? "click to collapse" : "click to expand"}
+
+        {/* Top Horizontal Subpage Navigation Bar */}
+        <div className="d-flex justify-content-center mb-4 w-100">
+          <div className="btn-group p-1 rounded-3 border border-secondary shadow-lg" style={{ backgroundColor: "#1e293b" }} role="group">
+            <button
+              type="button"
+              className={`btn px-4 py-2 fw-bold ${
+                activeSubpage === "config"
+                  ? "btn-info text-dark shadow"
+                  : "btn-outline-light border-0"
+              }`}
+              onClick={() => setActiveSubpage("config")}
+            >
+              Config Editor
+            </button>
+            <button
+              type="button"
+              className={`btn px-4 py-2 fw-bold ${
+                activeSubpage === "manager"
+                  ? "btn-info text-dark shadow"
+                  : "btn-outline-light border-0"
+              }`}
+              onClick={() => setActiveSubpage("manager")}
+            >
+              Campaign & Player Manager
+            </button>
+            <button
+              type="button"
+              className={`btn px-4 py-2 fw-bold ${
+                activeSubpage === "analysis"
+                  ? "btn-info text-dark shadow"
+                  : "btn-outline-light border-0"
+              }`}
+              onClick={() => setActiveSubpage("analysis")}
+            >
+              Analysis & Statistics
             </button>
           </div>
+        </div>
 
-          {isCampaignExpanded && (
-            <div className="mt-4">
+        {/* SUBPAGE 1: CONFIG EDITOR */}
+        {activeSubpage === "config" && (
+          <div className="card shadow-lg p-4 mb-3 bg-dark text-light border-secondary">
+            <h4 className="mb-3 text-info fw-bold">Game Configuration Editor</h4>
+            <ConfigEditor
+              adminToken={adminToken}
+              onDashboardUpdate={onDashboardUpdate}
+            />
+          </div>
+        )}
+
+        {/* SUBPAGE 2: CAMPAIGN & PLAYER MANAGER */}
+        {activeSubpage === "manager" && (
+          <div className="d-flex flex-column gap-4">
+            <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+              <h5 className="mb-3 text-info fw-bold">Manage Campaigns</h5>
               <table className="table table-hover table-dark table-striped rounded-3 overflow-hidden">
                 <thead>
                   <tr>
@@ -174,7 +230,7 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
               </table>
 
               <div className="mt-4 p-3 border border-secondary rounded">
-                <h6 className="mb-3">Add New Campaign</h6>
+                <h6 className="mb-3 text-light">Add New Campaign</h6>
                 <div className="row g-2">
                   <div className="col-md-5">
                     <input value={campaignName} onChange={(e) => setCampaignName(e.target.value)} className={`form-control ${styles.adminInput}`} placeholder="Campaign Name" />
@@ -188,23 +244,9 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        <div className="card shadow-sm p-4 mb-3">
-          <div
-            className="d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }}
-            onClick={() => setIsPlayersExpanded(!isPlayersExpanded)}
-          >
-            <h5 className="mb-0">Manage Players</h5>
-            <button className={styles.expandButton} onClick={() => setIsPlayersExpanded(!isPlayersExpanded)}>
-              {isPlayersExpanded ? "click to collapse" : "click to expand"}
-            </button>
-          </div>
-
-          {isPlayersExpanded && (
-            <div className="mt-4">
+            <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+              <h5 className="mb-3 text-info fw-bold">Manage Players</h5>
               <table className="table table-hover table-dark table-striped rounded-3 overflow-hidden">
                 <thead>
                   <tr>
@@ -230,29 +272,61 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-
-        <div className="card shadow-sm p-4 mb-3">
-          <div
-            className="d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }}
-            onClick={() => setIsQuestionaireResultsExpanded(!isQuestionaireResultsExpanded)}
-          >
-            <h5 className="mb-0">
-              Questionaire Results <small className="text-muted fw-normal fs-6" style={{ fontSize: '0.8rem' }}>(Test accounts are filtered out)</small></h5>
-            <button className={styles.expandButton} onClick={() => setIsQuestionaireResultsExpanded(!isQuestionaireResultsExpanded)}>
-              {isQuestionaireResultsExpanded ? "click to collapse" : "click to expand"}
-            </button>
           </div>
+        )}
 
-          {isQuestionaireResultsExpanded && (
-            <div className="mt-4">
-              <h5 className="mb-3">Intro Questionnaire Results</h5>
+        {/* SUBPAGE 3: ANALYSIS & STATISTICS */}
+        {activeSubpage === "analysis" && (
+          <div className="d-flex flex-column gap-4">
+            <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+              <h5 className="mb-3 text-info fw-bold">Overall Statistics <small className="text-muted fw-normal fs-6">(Test accounts filtered out)</small></h5>
+              <div className="d-flex flex-wrap gap-3">
+                <div className="card border-secondary mb-3" style={{ minWidth: "15rem", backgroundColor: "#1e293b" }}>
+                  <div className="card-body">
+                    <h6 className="card-title text-secondary">Total Player Amount</h6>
+                    <p className="card-text fs-4 fw-bold text-light">{players.length}</p>
+                  </div>
+                </div>
+                <div className="card border-secondary mb-3" style={{ minWidth: "15rem", backgroundColor: "#1e293b" }}>
+                  <div className="card-body">
+                    <h6 className="card-title text-secondary">Finished Player Amount</h6>
+                    <p className="card-text fs-4 fw-bold text-light">{finished_players_amount}</p>
+                  </div>
+                </div>
+                <div className="card border-secondary mb-3" style={{ minWidth: "15rem", backgroundColor: "#1e293b" }}>
+                  <div className="card-body">
+                    <h6 className="card-title text-secondary">Average Intro Questionnaire Score</h6>
+                    <p className="card-text fs-4 fw-bold text-light">{intro_questionaire_average}%</p>
+                  </div>
+                </div>
+                <div className="card border-secondary mb-3" style={{ minWidth: "15rem", backgroundColor: "#1e293b" }}>
+                  <div className="card-body">
+                    <h6 className="card-title text-secondary">Average Outro Questionnaire Score</h6>
+                    <p className="card-text fs-4 fw-bold text-light">{outro_questionaire_average}%</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <h6 className="card-title text-secondary mb-3">Average Sum Of Metrics Per Challenge</h6>
+                <div style={{ height: '300px' }}>
+                  <Line data={SumchartData} options={chartOptions} />
+                </div>
+                <h6 className="card-title text-secondary mb-3 mt-4">Average Sum Of Metrics Increase Per Challenge</h6>
+                <div style={{ height: '300px' }}>
+                  <Line data={SumIncreasechartData} options={chartOptions} />
+                </div>
+              </div>
+            </div>
+
+            <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+              <h5 className="mb-3 text-info fw-bold">Questionnaire Detailed Results <small className="text-muted fw-normal fs-6">(Test accounts filtered out)</small></h5>
+              
+              <h6 className="mb-3 text-secondary">Intro Questionnaire Results</h6>
               <div className="mb-5">
                 {questionaire_results["intro"] && questionaire_results["intro"].length > 0 ? (
                   questionaire_results["intro"].map((q: any, qIdx: number) => (
-                    <div className="card bg-dark border-0 mb-4 shadow-sm rounded-3" key={qIdx}>
+                    <div className="card bg-dark border border-secondary mb-4 shadow-sm rounded-3" key={qIdx}>
                       <div className="card-body">
                         <h6 className="card-title text-info mb-3 fw-bold">{qIdx + 1}. {q["question"]}</h6>
                         <div className="table-responsive rounded-3 overflow-hidden">
@@ -309,11 +383,11 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
                 )}
               </div>
 
-              <h5 className="mb-3 ">Outro Questionnaire Results</h5>
+              <h6 className="mb-3 text-secondary">Outro Questionnaire Results</h6>
               <div>
                 {questionaire_results["outro"] && questionaire_results["outro"].length > 0 ? (
                   questionaire_results["outro"].map((q: any, qIdx: number) => (
-                    <div className="card bg-dark border-0 mb-4 shadow-sm rounded-3" key={qIdx}>
+                    <div className="card bg-dark border border-secondary mb-4 shadow-sm rounded-3" key={qIdx}>
                       <div className="card-body">
                         <h6 className="card-title text-info mb-3 fw-bold">{qIdx + 1}. {q["question"]}</h6>
                         <div className="table-responsive rounded-3 overflow-hidden">
@@ -370,65 +444,12 @@ export function Admin({ campaigns, players, addCampaign, removeCampaign, finishe
                 )}
               </div>
             </div>
-          )}
-        </div>
-
-        <div className="card shadow-sm p-4 mb-3">
-          <div
-            className="d-flex justify-content-between align-items-center"
-            style={{ cursor: "pointer" }}
-            onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-          >
-            <h5 className="mb-0">Statistics <small className="text-muted fw-normal fs-6" style={{ fontSize: '0.8rem' }}>(Test accounts are filtered out)</small></h5>
-            <button className={styles.expandButton} onClick={() => setIsStatsExpanded(!isStatsExpanded)}>
-              {isStatsExpanded ? "click to collapse" : "click to expand"}
-            </button>
           </div>
-
-          {isStatsExpanded && (<>
-            <div className="d-flex flex-wrap gap-3">
-              <div className="card border-secondary mb-3" style={{ minWidth: "15rem" }}>
-                <div className="card-body">
-                  <h6 className="card-title text-secondary">Total Player Amount</h6>
-                  <p className="card-text fs-4 fw-bold">{players.length}</p>
-                </div>
-              </div>
-              <div className="card border-secondary mb-3" style={{ minWidth: "15rem" }}>
-                <div className="card-body">
-                  <h6 className="card-title text-secondary">Finished Player Amount</h6>
-                  <p className="card-text fs-4 fw-bold">{finished_players_amount}</p>
-                </div>
-              </div>
-              <div className="card border-secondary mb-3" style={{ minWidth: "15rem" }}>
-                <div className="card-body">
-                  <h6 className="card-title text-secondary">Average Intro Questioniare Score</h6>
-                  <p className="card-text fs-4 fw-bold">{intro_questionaire_average}%</p>
-                </div>
-              </div>
-              <div className="card border-secondary mb-3" style={{ minWidth: "15rem" }}>
-                <div className="card-body">
-                  <h6 className="card-title text-secondary">Average Outro Questioniare Score</h6>
-                  <p className="card-text fs-4 fw-bold">{outro_questionaire_average}%</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <h6 className="card-title text-secondary mb-3">Average Sum Of Metrics Per Challenge</h6>
-              <div style={{ height: '300px' }}>
-                <Line data={SumchartData} options={chartOptions} />
-              </div>
-              <h6 className="card-title text-secondary mb-3">Average Sum Of Metrics Increase Per Challenge</h6>
-              <div style={{ height: '300px' }}>
-                <Line data={SumIncreasechartData} options={chartOptions} />
-              </div>
-            </div></>
-          )}
-
-        </div>
+        )}
 
       </div>
     </div>
 
   );
 }
+

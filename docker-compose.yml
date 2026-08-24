@@ -31,6 +31,8 @@ services:
       - ./game-api/.env
     volumes:
       - ./gameConfig:/gameConfig
+      - ./gameConfigSchemas:/gameConfigSchemas
+      - ./gameJsonSchemas:/gameJsonSchemas
     depends_on:
       - postgres
     networks:

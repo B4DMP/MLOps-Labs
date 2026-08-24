@@ -137,6 +137,8 @@ function App() {
         } else if (isInAdminUi) {
           return (
             <Admin
+              adminToken={adminToken}
+              onDashboardUpdate={updateAdminState}
               campaigns={campaigns}
               players={players}
               sum_per_challenge_increase={sumPerChallengeIncrease}

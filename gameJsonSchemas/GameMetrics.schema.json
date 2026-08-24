@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Game Metrics Configuration",
+  "required": ["metrics"],
+  "properties": {
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "metric_name", "metric_color", "metric_icon", "metric_value", "active", "metric_desc", "metric_prompt"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Metric ID",
+            "enum": ["model", "automation", "reliability", "data", "requirements", "efficiency", "efficiency_intro", "model_intro"]
+          },
+          "metric_color": {
+            "type": "string",
+            "title": "Color Code"
+          },
+          "metric_name": {
+            "type": "string",
+            "title": "Metric Name"
+          },
+          "metric_icon": {
+            "type": "string",
+            "title": "Icon Key"
+          },
+          "metric_value": {
+            "type": "integer",
+            "title": "Start Value"
+          },
+          "max_value": {
+            "type": "integer",
+            "title": "Max Value"
+          },
+          "active": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            },
+            "title": "Active Phases"
+          },
+          "metric_desc": {
+            "type": "string",
+            "title": "Description"
+          },
+          "metric_prompt": {
+            "type": "string",
+            "title": "AI Evaluator Prompt"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Game Metrics Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/metrics",
+      "options": {
+        "elementLabelProp": "metric_name"
+      }
+    }
+  ]
+}

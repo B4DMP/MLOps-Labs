@@ -1,0 +1,31 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Intro Questionnaire",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/intro_questions",
+          "options": {
+            "elementLabelProp": "title"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Outro Questionnaire",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/outro_questions",
+          "options": {
+            "elementLabelProp": "title"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -46,9 +46,9 @@ export default function StakeholderDossier({
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const { currentPhase } = useContext(PhasesContext) || { currentPhase: 0 };
-  
+
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  
+
   // 3D Two-Layer Page Flip animation state
   const [flippingState, setFlippingState] = useState<{
     fromIndex: number;
@@ -110,7 +110,7 @@ export default function StakeholderDossier({
   const triggerPageFlip = (targetIndex: number) => {
     if (targetIndex === currentPageIndex || targetIndex < 0 || targetIndex >= totalPages) return;
     const direction = targetIndex > currentPageIndex ? "forward" : "backward";
-    
+
     // Set initial animation state
     setFlippingState({
       fromIndex: currentPageIndex,
@@ -210,12 +210,12 @@ export default function StakeholderDossier({
   const renderRubberStamp = (conf: string) => {
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
     if (lower === "verified") {
-      return <div className={`${styles.rubberStamp} ${styles.stampVerified}`}>✓ VERIFIED INTEL</div>;
+      return <div className={`${styles.rubberStamp} ${styles.stampVerified}`}>✓ VERIFIED</div>;
     }
     if (lower === "inferred") {
-      return <div className={`${styles.rubberStamp} ${styles.stampInferred}`}>≈ INFERRED LOGIC</div>;
+      return <div className={`${styles.rubberStamp} ${styles.stampInferred}`}>≈ INFERRED</div>;
     }
-    return <div className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}>? UNCONFIRMED RUMOR</div>;
+    return <div className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}>? UNCONFIRMED</div>;
   };
 
   const renderPageContent = (st: StakeholderDossierEntry) => {
@@ -265,7 +265,7 @@ export default function StakeholderDossier({
 
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>
-          <span className={styles.doodleIcon}>✏️</span> Intelligence & Sticky Notes
+          <span className={styles.doodleIcon}>✏️</span> Intelligence
         </div>
 
         {/* Categorized Sticky Notes */}
@@ -357,9 +357,8 @@ export default function StakeholderDossier({
             {effectiveDossierData.map((st, idx) => (
               <button
                 key={st.stakeholder_id || idx}
-                className={`${styles.tabButton} ${
-                  idx === (flippingState ? flippingState.toIndex : currentPageIndex) ? styles.activeTab : ""
-                }`}
+                className={`${styles.tabButton} ${idx === (flippingState ? flippingState.toIndex : currentPageIndex) ? styles.activeTab : ""
+                  }`}
                 onClick={() => triggerPageFlip(idx)}
               >
                 {st.name}

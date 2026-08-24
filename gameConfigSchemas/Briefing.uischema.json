@@ -1,0 +1,20 @@
+{
+  "type": "Group",
+  "label": "Briefing Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/briefing/properties/briefing_title",
+      "label": "Title"
+    },
+    {
+      "type": "Control",
+      "scope": "#/properties/briefing/properties/briefing_description",
+      "label": "Description",
+      "options": {
+        "multi": true,
+        "rows": 6
+      }
+    }
+  ]
+}

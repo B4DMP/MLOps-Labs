@@ -474,3 +474,133 @@ def remove_campaign(campaign_key: str) -> None:
             session.execute(delete(Campaign).where(Campaign.campaign_key == campaign_key))
     except Exception:
         pass
+
+
+def get_game_config_dir():
+    from pathlib import Path
+    base_dir = Path(__file__).parent
+    return (base_dir / "../../../../gameConfig").resolve()
+
+
+def list_config_files() -> list[dict[str, Any]]:
+    config_dir = get_game_config_dir()
+    if not config_dir.exists():
+        return []
+    
+    files = []
+    for file_path in sorted(config_dir.glob("*.json")):
+        files.append({
+            "filename": file_path.name,
+            "size": file_path.stat().st_size,
+            "modified": datetime.datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
+        })
+    return files
+
+
+def get_game_config_schemas_dir():
+    from pathlib import Path
+    base_dir = Path(__file__).parent
+    return (base_dir / "../../../../gameConfigSchemas").resolve()
+
+
+def get_game_json_schemas_dir():
+    from pathlib import Path
+    base_dir = Path(__file__).parent
+    return (base_dir / "../../../../gameJsonSchemas").resolve()
+
+
+def load_json_schema(filename: str) -> dict[str, Any]:
+    from pathlib import Path
+    import json
+    
+    safe_name = Path(filename).name
+    schema_filename = safe_name.replace(".json", ".schema.json")
+    schema_path = get_game_json_schemas_dir() / schema_filename
+    
+    if not schema_path.exists():
+        raise FileNotFoundError(f"JSON Schema file '{schema_filename}' not found in gameJsonSchemas directory.")
+    
+    with schema_path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def load_uischema(filename: str) -> dict[str, Any] | None:
+    from pathlib import Path
+    import json
+    
+    safe_name = Path(filename).name
+    schema_filename = safe_name.replace(".json", ".uischema.json")
+    schema_path = get_game_config_schemas_dir() / schema_filename
+    
+    if schema_path.exists():
+        try:
+            with schema_path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return None
+
+
+def get_config_file(filename: str) -> dict[str, Any]:
+    from pathlib import Path
+    import json
+    
+    safe_name = Path(filename).name
+    if not safe_name.endswith(".json"):
+        raise ValueError("Invalid configuration file format. Must be a .json file.")
+    
+    target_path = get_game_config_dir() / safe_name
+    if not target_path.exists():
+        raise FileNotFoundError(f"Configuration file '{safe_name}' not found.")
+    
+    with target_path.open("r", encoding="utf-8") as f:
+        content = json.load(f)
+    
+    schema = load_json_schema(safe_name)
+    uischema = load_uischema(safe_name)
+    return {
+        "filename": safe_name,
+        "data": content,
+        "schema": schema,
+        "uischema": uischema
+    }
+
+
+
+
+
+def save_and_reload_config_file(filename: str, new_content: Any) -> None:
+    from pathlib import Path
+    import json
+    from mlops_serious_game.domain.gameConfigLoader import GameConfigLoader
+    
+    safe_name = Path(filename).name
+    if not safe_name.endswith(".json"):
+        raise ValueError("Invalid configuration file format. Must be a .json file.")
+    
+    target_path = get_game_config_dir() / safe_name
+    if not target_path.exists():
+        raise FileNotFoundError(f"Configuration file '{safe_name}' not found.")
+    
+    # Read backup
+    with target_path.open("r", encoding="utf-8") as f:
+        original_content = f.read()
+    
+    try:
+        # Save updated json nicely formatted
+        with target_path.open("w", encoding="utf-8") as f:
+            json.dump(new_content, f, indent=2, ensure_ascii=False)
+        
+        # Trigger runtime reload
+        GameConfigLoader.initialize()
+    except Exception as e:
+        # Restore backup if reload or validation fails
+        with target_path.open("w", encoding="utf-8") as f:
+            f.write(original_content)
+        # Try re-initializing original config
+        try:
+            GameConfigLoader.initialize()
+        except Exception:
+            pass
+        raise ValueError(f"Failed to apply configuration update: {str(e)}")
+

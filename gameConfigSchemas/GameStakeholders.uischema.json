@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Stakeholders Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/stakeholders",
+      "options": {
+        "elementLabelProp": "name"
+      }
+    }
+  ]
+}

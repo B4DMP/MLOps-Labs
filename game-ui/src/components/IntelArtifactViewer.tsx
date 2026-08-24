@@ -80,7 +80,6 @@ export default function IntelArtifactViewer({
             Regards,
             <br />
             <div className={styles.sigName}>{name}</div>
-            <div className={styles.sigTitle}>{role}</div>
             <div className={styles.sigCompany}>Enterprise AI & Data Operations Division</div>
             <div className={styles.disclaimer}>
               This communication is intended solely for internal enterprise deployment teams. Containment of proprietary infrastructure constraints apply.
@@ -116,7 +115,6 @@ export default function IntelArtifactViewer({
             <div>
               <div className={styles.chatUserMeta}>
                 <span className={styles.chatUserName}>{name}</span>
-                <span className={styles.roleBadge}>{role}</span>
                 <span className={styles.chatTime}>Today at 10:42 AM</span>
               </div>
             </div>
@@ -158,7 +156,6 @@ export default function IntelArtifactViewer({
 
           <div className={styles.metaRow}>
             <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
-            <span className={styles.metaChip}>💼 Role: {role}</span>
             <span className={styles.metaChip}>📅 Date: Q3 Alignment Sync</span>
           </div>
 
@@ -197,7 +194,7 @@ export default function IntelArtifactViewer({
           Technical Architecture Specification & Requirement Memo
         </h3>
         <div className={styles.specAuthorLine}>
-          Author: <strong>{name}</strong> ({role}) | Department: MLOps Infrastructure
+          Author: <strong>{name}</strong> | Department: MLOps Infrastructure
         </div>
 
         <div className={styles.specContentBox}>{cleanText}</div>

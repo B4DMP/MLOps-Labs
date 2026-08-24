@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Game Card Images Configuration",
+  "properties": {
+    "ActionCardImages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "image"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Card Description"
+          },
+          "image": {
+            "type": "string",
+            "title": "Image Path"
+          }
+        }
+      }
+    }
+  }
+}
