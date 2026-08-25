@@ -188,7 +188,6 @@ export default function OfflineIntelGathering({
             <span className="transparent-div-label fs-6 mb-0 d-flex align-items-center gap-2">
               🔍 Offline Intel Gathering
             </span>
-            <span className="badge bg-primary px-3 py-2 fs-7 fw-bold">Loop 0 of 4</span>
           </div>
 
           {/* Bootswatch Journal Card */}
@@ -199,109 +198,109 @@ export default function OfflineIntelGathering({
               overflow: "hidden",
             }}
           >
-          {loading ? (
-            <div className="card-body bg-light p-5 text-center my-4">
-              <div className="spinner-border text-primary mb-3" style={{ width: "3rem", height: "3rem" }} role="status" />
-              <h5 className="fw-bold text-dark mb-2">Generating Offline Intel Artifacts...</h5>
-              <p className="text-muted fs-6 mb-0">Analyzing scenario specifications across 5 stakeholder items.</p>
-            </div>
-          ) : isFinished ? (
-            /* Completion State */
-            <div className="card-body bg-light p-5 text-center">
-              <div
-                className="mx-auto mb-4 d-flex align-items-center justify-content-center"
-                style={{
-                  width: "80px",
-                  height: "80px",
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  borderRadius: "50%",
-                  fontSize: "2.2rem",
-                  boxShadow: "0 8px 20px rgba(16, 185, 129, 0.4)",
-                  color: "#ffffff"
-                }}
-              >
-                ✓
+            {loading ? (
+              <div className="card-body bg-light p-5 text-center my-4">
+                <div className="spinner-border text-primary mb-3" style={{ width: "3rem", height: "3rem" }} role="status" />
+                <h5 className="fw-bold text-dark mb-2">Generating Offline Intel Artifacts...</h5>
+                <p className="text-muted fs-6 mb-0">Analyzing scenario specifications across 5 stakeholder items.</p>
               </div>
-              <h3 className="fw-bold text-dark mb-2">All Intel Artifacts Tagged!</h3>
-              <p className="text-muted mb-4 fs-6" style={{ maxWidth: "480px", margin: "0 auto" }}>
-                Your tagged requirement stances have been logged as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier.
-              </p>
-              <button
-                onClick={handleFinalContinue}
-                disabled={isSubmitting}
-                className="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-sm"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" />
-                    Proceeding...
-                  </>
-                ) : (
-                  "Continue to Online Intel Gathering ▶"
-                )}
-              </button>
-            </div>
-          ) : currentArtifact ? (
-            /* Active Tagging View */
-            <div>
-              {/* Card Header */}
-              <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3 px-4">
-                <span className="fw-bold fs-6">
-                  Artifact {currentIndex + 1} of {artifacts.length}
-                </span>
-                <span className="badge bg-secondary text-white fw-bold">
-                  {currentArtifact.artifact_type.toUpperCase()}
-                </span>
+            ) : isFinished ? (
+              /* Completion State */
+              <div className="card-body bg-light p-5 text-center">
+                <div
+                  className="mx-auto mb-4 d-flex align-items-center justify-content-center"
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    borderRadius: "50%",
+                    fontSize: "2.2rem",
+                    boxShadow: "0 8px 20px rgba(16, 185, 129, 0.4)",
+                    color: "#ffffff"
+                  }}
+                >
+                  ✓
+                </div>
+                <h3 className="fw-bold text-dark mb-2">All Intel Artifacts Tagged!</h3>
+                <p className="text-muted mb-4 fs-6" style={{ maxWidth: "480px", margin: "0 auto" }}>
+                  Your tagged requirement stances have been logged as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier.
+                </p>
+                <button
+                  onClick={handleFinalContinue}
+                  disabled={isSubmitting}
+                  className="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow-sm"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" />
+                      Proceeding...
+                    </>
+                  ) : (
+                    "Continue to Online Intel Gathering ▶"
+                  )}
+                </button>
               </div>
-
-              <div className="card-body bg-light p-4">
-                {/* Formatted MLOps Intel Artifact Viewer */}
-                <div className="mb-4">
-                  <IntelArtifactViewer
-                    content={currentArtifact.content}
-                    artifactType={currentArtifact.artifact_type}
-                    stakeholderName={currentArtifact.stakeholder_name}
-                    stakeholderRole={currentArtifact.stakeholder_role}
-                  />
+            ) : currentArtifact ? (
+              /* Active Tagging View */
+              <div>
+                {/* Card Header */}
+                <div className="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3 px-4">
+                  <span className="fw-bold fs-6">
+                    Artifact {currentIndex + 1} of {artifacts.length}
+                  </span>
+                  <span className="badge bg-secondary text-white fw-bold">
+                    {currentArtifact.artifact_type.toUpperCase()}
+                  </span>
                 </div>
 
-                {/* Tagging Prompt & Buttons */}
-                <div className="card border-secondary p-3 bg-white shadow-sm">
-                  <h6 className="fw-bold text-dark mb-2 text-center">
-                    Categorize {currentArtifact.stakeholder_name}'s stance into a requirement category:
-                  </h6>
+                <div className="card-body bg-light p-4">
+                  {/* Formatted MLOps Intel Artifact Viewer */}
+                  <div className="mb-4">
+                    <IntelArtifactViewer
+                      content={currentArtifact.content}
+                      artifactType={currentArtifact.artifact_type}
+                      stakeholderName={currentArtifact.stakeholder_name}
+                      stakeholderRole={currentArtifact.stakeholder_role}
+                    />
+                  </div>
 
-                  <div className="row g-2">
-                    {REQUIREMENT_TAGS.map((tag) => (
-                      <div key={tag.type} className="col-6">
-                        <button
-                          onClick={() => handleTagArtifact(tag.type)}
-                          className={`btn ${tag.color} w-100 p-3 text-start rounded-3 shadow-sm h-100 d-flex flex-column justify-content-between`}
-                        >
-                          <div className="fw-bold d-flex align-items-center gap-2 fs-6 mb-1">
-                            <span>{tag.icon}</span> {tag.label}
-                          </div>
-                          <small className="d-block opacity-75" style={{ fontSize: "0.78rem", lineHeight: "1.3" }}>
-                            {tag.description}
-                          </small>
-                        </button>
-                      </div>
-                    ))}
+                  {/* Tagging Prompt & Buttons */}
+                  <div className="card border-secondary p-3 bg-white shadow-sm">
+                    <h6 className="fw-bold text-dark mb-2 text-center">
+                      Categorize {currentArtifact.stakeholder_name}'s stance into a requirement category:
+                    </h6>
+
+                    <div className="row g-2">
+                      {REQUIREMENT_TAGS.map((tag) => (
+                        <div key={tag.type} className="col-6">
+                          <button
+                            onClick={() => handleTagArtifact(tag.type)}
+                            className={`btn ${tag.color} w-100 p-3 text-start rounded-3 shadow-sm h-100 d-flex flex-column justify-content-between`}
+                          >
+                            <div className="fw-bold d-flex align-items-center gap-2 fs-6 mb-1">
+                              <span>{tag.icon}</span> {tag.label}
+                            </div>
+                            <small className="d-block opacity-75" style={{ fontSize: "0.78rem", lineHeight: "1.3" }}>
+                              {tag.description}
+                            </small>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="card-body bg-light p-5 text-center">
-              <p className="text-muted">No artifacts available for this challenge.</p>
-              <button onClick={handleFinalContinue} className="btn btn-primary">
-                Continue
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="card-body bg-light p-5 text-center">
+                <p className="text-muted">No artifacts available for this challenge.</p>
+                <button onClick={handleFinalContinue} className="btn btn-primary">
+                  Continue
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

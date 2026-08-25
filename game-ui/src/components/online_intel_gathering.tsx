@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import type { ActionCard } from "../types/ActionCard";
+import StakeholderList from "./StakeholderList";
 
 interface OnlineIntelGatheringProps {
   onContinue: () => void;
@@ -85,19 +86,10 @@ export default function OnlineIntelGathering({
               overflow: "hidden",
             }}
           >
-            <div className="card-header bg-primary text-white d-flex align-items-center justify-content-between py-3 px-4">
-              <div className="d-flex align-items-center gap-2">
-                <span style={{ fontSize: "1.5rem" }}>🌐</span>
-                <h4 className="mb-0 fw-bold text-white">Online Intel Gathering</h4>
-              </div>
-              <span className="badge bg-light text-dark fw-bold px-3 py-2 fs-6">
-                Loop 1 of 4
-              </span>
-            </div>
-
             <div className="card-body bg-light p-4 p-md-5">
               <div className="alert alert-info border-info mb-4" role="alert">
                 <h5 className="alert-heading fw-bold mb-1">🔍 Phase Objective</h5>
+                <StakeholderList current_phase={currentPhase} />
                 <p className="mb-0 fs-6" style={{ lineHeight: "1.6" }}>
                   Research live industry patterns and gather data online. Compare the project state against standard MLOps best practices and formulate concrete technical proposals.
                 </p>

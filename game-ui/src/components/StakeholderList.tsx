@@ -32,7 +32,7 @@ function StakeholderList({
               <li
                 className={`list-group-item rounded ${styles.stakeholderListItem}`}
                 key={item.id}
-                onClick={() => {}}
+                onClick={() => { }}
                 style={{
                   backgroundColor: "var(--card-bg-dark)",
                   color: "white",
@@ -47,7 +47,7 @@ function StakeholderList({
                     onClick={() =>
                       handleSend(
                         item.name.split(" ")[0] +
-                          ", what is your opinion?",
+                        ", what is your opinion?",
                       )
                     }
                     message="ask"
