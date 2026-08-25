@@ -31,6 +31,8 @@ interface StakeholderDossierProps {
   activeStakeholderId?: string;
   currentPhase?: number;
   currentChallenge?: number;
+  canClose?: boolean;
+  isEmbedded?: boolean;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
@@ -47,6 +49,8 @@ export default function StakeholderDossier({
   activeStakeholderId,
   currentPhase: propPhase,
   currentChallenge: propChallenge = 0,
+  canClose = true,
+  isEmbedded = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
@@ -388,87 +392,113 @@ export default function StakeholderDossier({
     }
   }
 
-  return (
-    <div className={styles.dossierOverlay}>
-      <div
-        className={styles.sketchbookWindow}
-        style={{
-          top: `${Math.max(10, position.y)}px`,
-          left: `${Math.max(10, position.x)}px`,
-        }}
-      >
-        {/* Header Drag Handle */}
-        <div className={styles.binderHeader} onMouseDown={handleMouseDown}>
-          <div className={styles.binderTitle}>
-            📓 STAKEHOLDER DOSSIER
-          </div>
+  const windowContent = (
+    <div
+      className={styles.sketchbookWindow}
+      style={
+        isEmbedded
+          ? {
+              position: "relative",
+              top: "0px",
+              left: "0px",
+              width: "100%",
+              height: "100%",
+              maxWidth: "100%",
+              maxHeight: "100%",
+            }
+          : {
+              top: `${Math.max(10, position.y)}px`,
+              left: `${Math.max(10, position.x)}px`,
+            }
+      }
+    >
+      {/* Header Drag Handle */}
+      <div className={styles.binderHeader} onMouseDown={isEmbedded ? undefined : handleMouseDown}>
+        <div className={styles.binderTitle}>
+          📓 STAKEHOLDER DOSSIER
+        </div>
+        {canClose && (
           <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
             ✕
           </button>
-        </div>
-
-        {/* Physical Bookmark Tabs (Top Bar) */}
-        {effectiveDossierData.length > 0 && (
-          <div className={styles.tabsContainer}>
-            {effectiveDossierData.map((st, idx) => (
-              <button
-                key={st.stakeholder_id || idx}
-                className={`${styles.tabButton} ${idx === (flippingState ? flippingState.toIndex : currentPageIndex) ? styles.activeTab : ""
-                  }`}
-                onClick={() => triggerPageFlip(idx)}
-              >
-                {st.name}
-              </button>
-            ))}
-          </div>
         )}
+      </div>
 
-        {/* Main Notebook Binding Container with Left Spiral Rings */}
-        <div className={styles.notebookBindingContainer}>
-          {/* Left Wire Spiral Rings (12 rings) */}
-          <div className={styles.spiralRings}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className={styles.ringLoop} />
-            ))}
-          </div>
+      {/* Physical Bookmark Tabs (Top Bar) */}
+      {effectiveDossierData.length > 0 && (
+        <div className={styles.tabsContainer}>
+          {effectiveDossierData.map((st, idx) => (
+            <button
+              key={st.stakeholder_id || idx}
+              className={`${styles.tabButton} ${idx === (flippingState ? flippingState.toIndex : currentPageIndex) ? styles.activeTab : ""
+                }`}
+              onClick={() => triggerPageFlip(idx)}
+            >
+              {st.name}
+            </button>
+          ))}
+        </div>
+      )}
 
-          {/* 3D Two-Layer Paper Flip Canvas */}
-          <div className={styles.flipBookWrapper}>
-            {/* Stationary Base Page Underneath */}
-            <div className={styles.pageBase}>
-              {renderPageContent(basePageEntry)}
-            </div>
-
-            {/* Flipping Top Page Layer (Rendered only when turning) */}
-            {flippingState && flippingPageEntry && (
-              <div className={`${styles.pageFlipping} ${flippingAnimClass}`}>
-                {renderPageContent(flippingPageEntry)}
-              </div>
-            )}
-          </div>
+      {/* Main Notebook Binding Container with Left Spiral Rings */}
+      <div className={styles.notebookBindingContainer}>
+        {/* Left Wire Spiral Rings (12 rings) */}
+        <div className={styles.spiralRings}>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className={styles.ringLoop} />
+          ))}
         </div>
 
-        {/* Page Turning Footer Controls */}
-        <div className={styles.pageFooter}>
-          <button
-            className={styles.navButton}
-            disabled={currentPageIndex <= 0}
-            onClick={() => triggerPageFlip(currentPageIndex - 1)}
-          >
-            ◀ Turn Page
-          </button>
-          <span className={styles.pageIndicator}>
-            📖 Page {totalPages > 0 ? (flippingState ? flippingState.toIndex + 1 : currentPageIndex + 1) : 0} of {totalPages} — Stakeholder Dossier
-          </span>
-          <button
-            className={styles.navButton}
-            disabled={currentPageIndex >= totalPages - 1}
-            onClick={() => triggerPageFlip(currentPageIndex + 1)}
-          >
-            Next Page ▶
-          </button>
+        {/* 3D Two-Layer Paper Flip Canvas */}
+        <div className={styles.flipBookWrapper}>
+          {/* Stationary Base Page Underneath */}
+          <div className={styles.pageBase}>
+            {renderPageContent(basePageEntry)}
+          </div>
+
+          {/* Flipping Top Page Layer (Rendered only when turning) */}
+          {flippingState && flippingPageEntry && (
+            <div className={`${styles.pageFlipping} ${flippingAnimClass}`}>
+              {renderPageContent(flippingPageEntry)}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Page Turning Footer Controls */}
+      <div className={styles.pageFooter}>
+        <button
+          className={styles.navButton}
+          disabled={currentPageIndex <= 0}
+          onClick={() => triggerPageFlip(currentPageIndex - 1)}
+        >
+          ◀ Turn Page
+        </button>
+        <span className={styles.pageIndicator}>
+          📖 Page {totalPages > 0 ? (flippingState ? flippingState.toIndex + 1 : currentPageIndex + 1) : 0} of {totalPages} — Stakeholder Dossier
+        </span>
+        <button
+          className={styles.navButton}
+          disabled={currentPageIndex >= totalPages - 1}
+          onClick={() => triggerPageFlip(currentPageIndex + 1)}
+        >
+          Next Page ▶
+        </button>
+      </div>
+    </div>
+  );
+
+  if (isEmbedded) {
+    return (
+      <div style={{ width: "100%", height: "100%", minHeight: "450px", position: "relative", pointerEvents: "auto" }}>
+        {windowContent}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.dossierOverlay}>
+      {windowContent}
     </div>
   );
 }

@@ -139,30 +139,6 @@ export default function OfflineIntelGathering({
 
   return (
     <div className="game-container">
-      {/* Top Navbar Header matching PitchDebate */}
-      <nav
-        className="navbar navbar-expand-lg flex-shrink-0"
-        style={{ backgroundColor: "var(--primary-bg)" }}
-      >
-        <div
-          className="container-fluid d-flex align-items-stretch py-1"
-          style={{ gap: "1rem" }}
-          data-bs-theme="dark"
-        >
-          <div className="transparent-div" style={{ flex: "0 0 50%" }}>
-            <span className="transparent-div-label">📋 Phase Overview</span>
-            <PhaseOverview />
-          </div>
-          <div className="transparent-div" style={{ flex: "1 1 0" }}>
-            <span className="transparent-div-label">📊 Performance Metrics</span>
-            <MetricTab
-              current_phase={currentPhase}
-              showMetricValueChanges={showMetricValueChanges}
-              last_ac={last_ac}
-            />
-          </div>
-        </div>
-      </nav>
 
       {/* Main Content Area over Game Background Canvas */}
       <div

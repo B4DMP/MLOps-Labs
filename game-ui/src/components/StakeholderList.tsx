@@ -8,14 +8,14 @@ import styles from "./StakeholderList.module.css";
 
 interface StakeholderListProps {
   current_phase: number;
-  handleSend: (textContent: string) => void;
-  isEnabled: boolean;
+  handleSend?: (textContent: string) => void;
+  isEnabled?: boolean;
 }
 
 function StakeholderList({
   current_phase,
   handleSend,
-  isEnabled,
+  isEnabled = false,
 }: StakeholderListProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { metrics } = useContext(MetricsContext);
@@ -45,7 +45,7 @@ function StakeholderList({
                   <CustomChatMessage
                     is_active={isEnabled}
                     onClick={() =>
-                      handleSend(
+                      handleSend?.(
                         item.name.split(" ")[0] +
                         ", what is your opinion?",
                       )

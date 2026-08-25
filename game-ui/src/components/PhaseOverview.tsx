@@ -51,8 +51,13 @@ export default function PhaseOverview() {
               <span className="fw-semibold">{phase.phase_name}</span>
             </div>
             <small
-              className="text-muted"
-              style={{ fontSize: "0.75rem", lineHeight: "1.2" }}
+              style={{
+                color: "rgba(255, 255, 255, 0.95)",
+                fontSize: "0.78rem",
+                lineHeight: "1.25",
+                fontWeight: 400,
+                display: "block",
+              }}
             >
               {phase.phase_desc ?? "Phase description"}
             </small>

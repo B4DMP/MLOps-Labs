@@ -7,7 +7,7 @@ import styles from "./MetricTab.module.css";
 interface MetricTabProps {
   current_phase: number;
   showMetricValueChanges: boolean;
-  last_ac: ActionCard;
+  last_ac?: ActionCard;
 }
 
 function MetricTab({
@@ -17,8 +17,9 @@ function MetricTab({
 }: MetricTabProps) {
   const { metrics } = useContext(MetricsContext);
 
-  const calculateProgress = (current: number): number => {
-    return Math.min(Math.max((current / 100) * 100, 0), 100);
+  const calculateProgress = (current: number, max: number = 50): number => {
+    const maxVal = max && max > 0 ? max : 50;
+    return Math.min(Math.max((current / maxVal) * 100, 0), 100);
   };
 
   return (
@@ -31,7 +32,7 @@ function MetricTab({
                 item.phases[current_phase] && (
                   <div
                     key={item.id}
-                    className="stat-card hover-card p-2  text-white rounded"
+                    className="stat-card hover-card p-2 text-white rounded shadow-sm"
                     style={{
                       minWidth: "180px",
                       backgroundColor: item.metric_color,
@@ -53,38 +54,41 @@ function MetricTab({
                         <span className="fw-semibold">{item.name}</span>
                       </div>
 
-                      <span className="fw-bold fs-5" id={`metric-value-${item.id}`}>
-                        {item.value ?? item.start_value}
-                      </span>
-                      {!showMetricValueChanges && (
-                        <span style={{ fontSize: "0.8rem", lineHeight: 1 }}>
-                          /{item.max_value ?? "x"}
+                      <div className="d-flex align-items-baseline gap-1">
+                        <span className="fw-bold fs-5" id={`metric-value-${item.id}`}>
+                          {item.value ?? item.start_value}
                         </span>
-                      )}
+                        {!showMetricValueChanges && (
+                          <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: 1 }}>
+                            /{item.max_value ?? 50}
+                          </span>
+                        )}
+                      </div>
                       {last_ac && showMetricValueChanges && (
                         <span
                           className={styles.metricChangeText}
                           style={{
                             color:
-                              (last_ac.metric_changes[item.id] ?? 0) == 0
+                              (last_ac?.metric_changes[item.id] ?? 0) == 0
                                 ? "black"
                                 : (last_ac.metric_changes[item.id] ?? 0) > 0
                                   ? "green"
                                   : "red",
                           }}
                         >
-                          {(last_ac.metric_changes[item.id] ?? 0) >= 0 && "+"}
-                          {(last_ac.metric_changes[item.id] ?? 0)}
+                          {(last_ac?.metric_changes[item.id] ?? 0) >= 0 && "+"}
+                          {(last_ac?.metric_changes[item.id] ?? 0)}
                         </span>
                       )}
                     </div>
 
                     <div className="mt-2">
                       <small
-                        className="text-muted"
                         style={{
-                          fontSize: "0.75rem",
-                          lineHeight: "1.2",
+                          color: "rgba(255, 255, 255, 0.95)",
+                          fontSize: "0.78rem",
+                          lineHeight: "1.25",
+                          fontWeight: 400,
                           display: "block",
                         }}
                       >
@@ -92,15 +96,26 @@ function MetricTab({
                       </small>
                     </div>
 
-                    <div className="progress mt-2" style={{ height: "6px" }}>
+                    <div
+                      className="progress mt-2"
+                      style={{
+                        height: "8px",
+                        backgroundColor: "rgba(0, 0, 0, 0.35)",
+                        borderRadius: "4px",
+                        overflow: "hidden",
+                      }}
+                    >
                       <div
                         className="progress-bar"
                         role="progressbar"
                         style={{
                           width: `${calculateProgress(
                             item.value ?? item.start_value,
+                            item.max_value ?? 50,
                           )}%`,
-                          backgroundColor: "white",
+                          backgroundColor: "#ffffff",
+                          boxShadow: "0 0 6px rgba(255, 255, 255, 0.8)",
+                          transition: "width 0.3s ease",
                         }}
                       />
                     </div>

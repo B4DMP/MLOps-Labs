@@ -28,6 +28,9 @@ interface StakeholderInteractionAreaProps {
   actionCards: ActionCard[];
   onHoverCard: (id: number | null) => void;
   selected_mgs: string[];
+  className?: string;
+  showStakeholderList?: boolean;
+  showInput?: boolean;
 }
 
 export default function StakeholderInteractionArea({
@@ -38,7 +41,10 @@ export default function StakeholderInteractionArea({
   isEnabled,
   actionCards,
   onHoverCard,
-  selected_mgs
+  selected_mgs,
+  className = "col-5",
+  showStakeholderList = true,
+  showInput = true,
 }: StakeholderInteractionAreaProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const [_isintro4Done, setIsintro4Done] = useState(false);
@@ -62,16 +68,18 @@ export default function StakeholderInteractionArea({
 
   return (
     <div
-      className={`col-5 p-3 h-100 d-flex flex-column rounded transparent-div ${styles.ChatContainer}`}
+      className={`${className} p-3 h-100 d-flex flex-column rounded transparent-div ${styles.ChatContainer}`}
       data-intro-group="intro5"
       data-intro="This is the chat area where you can communicate with the previously selected stakeholders in order to find a solution for the current challenge. You can also use the chat to ask questions about MLOps or the content of the challenge."
       data-step="1"
       data-position="bottom"
     >
       <h6 className="transparent-div-label">
-        💬​ Stakeholder Interaction Area
+        💬 Stakeholder Interaction Area
       </h6>
-      <StakeholdersList isEnabled={isEnabled} current_phase={current_phase} handleSend={handleSend} />
+      {showStakeholderList && (
+        <StakeholdersList isEnabled={isEnabled} current_phase={current_phase} handleSend={handleSend} />
+      )}
 
       <div className={`flex-grow-1 overflow-hidden rounded mt-3`}>
         <MainContainer
@@ -153,29 +161,36 @@ export default function StakeholderInteractionArea({
                   </React.Fragment>
                 );
               })}
-              <div style={{ height: '80px', flexShrink: 0 }} />
+              <div style={{ height: showInput ? '80px' : '20px', flexShrink: 0 }} />
             </MessageList>
-            <MessageInput className="intro5"
-              data-intro-group="intro5"
-              data-intro="Now it is your turn to negotiate with the stakeholders and decide for an action to take. This challenge is only an example, whose outcome will have no effect for the game."
-              data-step="5"
-              data-position="bottom"
-              placeholder="Type message here"
-              autoFocus={true}
-              attachButton={false}
-              onSend={handleSend}
-              disabled={!isEnabled}
-            />
+            {showInput && (
+              <MessageInput className="intro5"
+                data-intro-group="intro5"
+                data-intro="Now it is your turn to negotiate with the stakeholders and decide for an action to take. This challenge is only an example, whose outcome will have no effect for the game."
+                data-step="5"
+                data-position="bottom"
+                placeholder="Type message here"
+                autoFocus={true}
+                attachButton={false}
+                onSend={handleSend}
+                disabled={!isEnabled}
+              />
+            )}
 
           </ChatContainer>
 
-          <div className={styles.customMessageContainer}>
-            <div className={styles.recommendationList}>
-              {selected_mgs.map((item) => {
-                return <CustomChatMessage key={item} is_active={isEnabled} onClick={() => handleSend(item)} message={item} />
-              })}
+          {selected_mgs && selected_mgs.length > 0 && (
+            <div
+              className={styles.customMessageContainer}
+              style={!showInput ? { bottom: "10px" } : undefined}
+            >
+              <div className={styles.recommendationList}>
+                {selected_mgs.map((item) => {
+                  return <CustomChatMessage key={item} is_active={isEnabled} onClick={() => handleSend(item)} message={item} />
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
         </MainContainer>
 

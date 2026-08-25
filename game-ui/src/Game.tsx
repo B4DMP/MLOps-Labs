@@ -642,39 +642,40 @@ function App({ username: _username }: AppProps) {
                 }}
               />
               {/* Global Floating Bottom-Right Stakeholder Dossier Button */}
-              <button
-                onClick={() => {
-                  emit("intel:get_dossier", {
-                    phase_id: currentPhase,
-                    challenge_id: currentChallenge,
-                  });
-                  setIsDossierOpen((prev) => !prev);
-                }}
-                style={{
-                  position: "fixed",
-                  bottom: "24px",
-                  right: "24px",
-                  zIndex: 9998,
-                  background: "linear-gradient(135deg, #4a382c, #2b1e16)",
-                  color: "#f3e9dc",
-                  border: "2px solid #8c6d58",
-                  borderRadius: "30px",
-                  padding: "10px 22px",
-                  fontFamily: "'Caveat', cursive, sans-serif",
-                  fontWeight: "bold",
-                  fontSize: "1.25rem",
-                  cursor: "pointer",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.06) translateY(-2px)")}
-                onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-              >
-                📓 Stakeholder Dossier
-              </button>
+              {(challengeLoopId == 0 || challengeLoopId == 2) && <>
+                <button
+                  onClick={() => {
+                    emit("intel:get_dossier", {
+                      phase_id: currentPhase,
+                      challenge_id: currentChallenge,
+                    });
+                    setIsDossierOpen((prev) => !prev);
+                  }}
+                  style={{
+                    position: "fixed",
+                    bottom: "24px",
+                    right: "24px",
+                    zIndex: 9998,
+                    background: "linear-gradient(135deg, #4a382c, #2b1e16)",
+                    color: "#f3e9dc",
+                    border: "2px solid #8c6d58",
+                    borderRadius: "30px",
+                    padding: "10px 22px",
+                    fontFamily: "'Caveat', cursive, sans-serif",
+                    fontWeight: "bold",
+                    fontSize: "1.25rem",
+                    cursor: "pointer",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.06) translateY(-2px)")}
+                  onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  📓 Stakeholder Dossier
+                </button></>}
 
               <StakeholderDossier
                 isOpen={isDossierOpen}
@@ -705,6 +706,12 @@ function App({ username: _username }: AppProps) {
                   currentChallenge={currentChallenge}
                   showMetricValueChanges={showMetricValueChanges}
                   last_ac={last_ac}
+                  challengeTitle={challengeTitle}
+                  challengeDescription={challengeDescription}
+                  challengeIntro={challengeIntro}
+                  challengeNumber={challengeNumber}
+                  dossierData={dossierData}
+                  activeStakeholderId={activeStakeholderId}
                 />
               )}
               {challengeLoopId === 3 && (
