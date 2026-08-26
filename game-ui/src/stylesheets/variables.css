@@ -33,4 +33,20 @@
 
     /* Transitions */
     --transition: 0.2s ease-in-out;
+
+    /* Engagement Cards Theme (5 Colors Max) */
+    --engagement-bg: #212529;
+    /* 1. Main card, container & preview background */
+    --engagement-accent: #a02222;
+    /* 2. Primary accent for borders, icons & active elements */
+    --engagement-accent-text: #111111;
+    /* 3. High-contrast text on accent buttons */
+    --engagement-text: #ffffff;
+    /* 4. Universal text for titles, body, labels */
+    --engagement-muted: #6c757d;
+    /* 5. Muted / disabled state for borders, icons, badges & buttons */
+
+    /* Attention Token Theme */
+    --token-color: #ffc107;
+    /* Outline of token cost pill, token icons & token amount text */
 }

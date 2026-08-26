@@ -7,6 +7,7 @@ from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
+from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 
 
 class GameConfigLoader:
@@ -43,6 +44,12 @@ class GameConfigLoader:
             print(f"loaded questions.")
             briefing_path= (base_dir/ "../../../../gameConfig/Briefing.json")
             BriefingFactory.load_briefing(briefing_path)
+
+            cards_path = (base_dir / "../../../../gameConfig/GameEngagementCards.json").resolve()
+            if cards_path.exists():
+                EngagementCardFactory.load_cards(cards_path)
+                print(f"loaded engagement cards.")
+
         except Exception as e:
             raise ConfigLoaderError(e)
 

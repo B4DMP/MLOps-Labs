@@ -8,6 +8,8 @@ from .Phase import Phase
 from .phase_factory import PhaseFactory
 from .requirement import StakeholderRequirement
 from .requirement_factory import RequirementFactory
+from .engagementCard import EngagementCard
+from .engagementCardFactory import EngagementCardFactory
 
 __all__ = [
     "Prompt",
@@ -29,4 +31,7 @@ __all__ = [
     "PhaseFactory",
     "StakeholderRequirement",
     "RequirementFactory",
+    "EngagementCard",
+    "EngagementCardFactory",
 ]
+

@@ -130,7 +130,7 @@ async def handle_game_init(
                 "progressionIndex": 2,
                 "type": "state",
                 "phases_amount": len(PhaseFactory.get_phases()),
-                "challenges_amount": len(PhaseFactory.get_phases()[curr_challenge.phase_id].challenges),
+                "challenges_amount": (sum(len(p.challenges) for p in PhaseFactory.get_phases())),
                 "phase_id": curr_challenge.phase_id,
                 "challenge_id": curr_challenge.id,
                 "challenge_loop_id": last_gamestate_id[2],

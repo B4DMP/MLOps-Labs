@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Game Engagement Cards Configuration",
+  "required": ["engagement_cards"],
+  "properties": {
+    "engagement_cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "icon",
+          "token_cost",
+          "description",
+          "stakeholder_selection_amount",
+          "target_type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Card ID"
+          },
+          "title": {
+            "type": "string",
+            "title": "Card Title"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Iconify Icon Name"
+          },
+          "token_cost": {
+            "type": "integer",
+            "title": "Attention Token Cost",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "stakeholder_selection_amount": {
+            "type": "integer",
+            "title": "Stakeholder Selection Amount (-1 for all, 0 for intel, >0 for exact count)"
+          },
+          "target_type": {
+            "type": "string",
+            "title": "Target Type",
+            "enum": ["stakeholder", "intel"]
+          },
+          "response_snippet": {
+            "type": "string",
+            "title": "Response Snippet"
+          },
+          "max_plays_per_phase": {
+            "type": "integer",
+            "title": "Max Plays Per Phase (-1 for unlimited, >0 for limit)"
+          }
+        }
+      }
+    }
+  }
+}

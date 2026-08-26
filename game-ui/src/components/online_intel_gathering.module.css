@@ -21,7 +21,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
 }
 
 .challengeBanner {
@@ -63,7 +62,7 @@
   background: radial-gradient(ellipse at center, rgba(180, 40, 40, 0.25) 0%, rgba(20, 20, 35, 0.6) 75%);
   border: 3px solid rgba(220, 53, 69, 0.5);
   border-radius: 50% / 30%;
-  box-shadow: 0 0 30px rgba(220, 53, 69, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,7 +110,7 @@
 
 .avatarCircleActive {
   border-color: #ffc107 !important;
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
 }
 
 .speechBubble {
@@ -164,25 +163,30 @@
 }
 
 .actionCardGreyedOut:hover {
-  border-color: #ffc107;
-  color: white;
+  border-color: var(--engagement-accent);
+  color: var(--engagement-text);
   transform: scale(1.03);
-  box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .questionMarkIcon {
   font-size: 2.8rem;
   line-height: 1;
-  color: #ffc107;
+  color: var(--engagement-accent);
   margin-bottom: 0.4rem;
-  filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.5));
 }
 
 .actionCardConfigured {
   background: #ffffff;
   border: 2px solid #0d6efd;
   color: #212529;
-  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.actionCardConfigured:hover {
+  border-color: var(--engagement-accent);
+  transform: scale(1.03);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 /* Modal Overlay Backdrop */
@@ -200,7 +204,11 @@
   justify-content: center;
   z-index: 1050;
   padding: 1.5rem;
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.modalBackdropClosing {
+  animation: fadeOut 0.2s ease-in forwards !important;
 }
 
 .intelModal {
@@ -216,6 +224,11 @@
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(0, 0, 0, 0.15);
+  animation: modalScaleIn 0.2s ease-out forwards;
+}
+
+.intelModalClosing {
+  animation: modalScaleOut 0.2s ease-in forwards !important;
 }
 
 .modalHeader {
@@ -294,7 +307,18 @@
 .intelItemSelected {
   border-color: #198754 !important;
   background: rgba(25, 135, 84, 0.06) !important;
-  box-shadow: 0 0 12px rgba(25, 135, 84, 0.2) !important;
+}
+
+.intelItemDisabled {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  background: #f8f9fa !important;
+  border-color: #e2e8f0 !important;
+}
+
+.intelItemDisabled:hover {
+  border-color: #e2e8f0 !important;
+  transform: none !important;
 }
 
 @keyframes fadeIn {
@@ -304,4 +328,100 @@
   to {
     opacity: 1;
   }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalScaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+}
+
+/* Stakeholder Target Selection Card in Modal */
+.stakeholderTargetCard {
+  background: #f8f9fa;
+  border: 2px solid #ced4da;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  color: #212529;
+}
+
+.stakeholderTargetCard:hover {
+  border-color: #0d6efd;
+  background: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stakeholderTargetSelected {
+  border-color: var(--engagement-accent) !important;
+  background: rgba(255, 193, 7, 0.12) !important;
+}
+
+.centeredCardPreview {
+  width: 240px;
+  border-radius: 14px;
+  background: var(--engagement-bg);
+  border: 2px solid var(--engagement-accent);
+  color: var(--engagement-text);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Active Drag-and-Drop Target Highlights */
+.dropTargetActive {
+  border: 3px dashed var(--engagement-accent) !important;
+  background: rgba(255, 193, 7, 0.2) !important;
+  box-shadow: inset 0 0 15px rgba(255, 193, 7, 0.3) !important;
+  transition: all 0.2s ease;
+}
+
+.dropTargetActiveChat {
+  border: 3px dashed #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  border-radius: 12px;
+  box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.3) !important;
+  transition: all 0.2s ease;
+}
+
+/* Single Unified Drop Zone Active Highlight (Triggers immediately on drag start) */
+.singleDropZoneActive {
+  border: 3px dashed var(--engagement-accent) !important;
+  background: rgba(255, 193, 7, 0.14) !important;
+  border-radius: 16px;
+  box-shadow: 0 0 30px rgba(255, 193, 7, 0.25), inset 0 0 20px rgba(255, 193, 7, 0.15) !important;
+  transition: all 0.2s ease-in-out;
 }

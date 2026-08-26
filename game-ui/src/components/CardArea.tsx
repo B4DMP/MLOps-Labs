@@ -220,7 +220,9 @@ function CardArea({
               if (item["type"] == "text") {
                 return <span key={index}>{item["value"]} </span>;
               } else if (item["type"] == "id") {
-                const st = Object.values(stakeholders).find(s => s.name === item["value"]);
+                const st = Object.values(stakeholders || {}).find(
+                  (s: any) => s.id === item["value"]
+                );
                 if (!st) return <span key={index}>{item["value"]}</span>;
                 return (
                   <HoverTooltip

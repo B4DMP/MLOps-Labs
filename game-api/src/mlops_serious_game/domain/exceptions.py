@@ -96,3 +96,11 @@ class ConfigLoaderError(Exception):
     def __init__(self, cause=""):
         self.message = f"Error while loading config: {cause}" 
         super().__init__(self.message)
+
+
+class EngagementCardNotFound(Exception):
+    """Exception raised when an engagement card is not found."""
+
+    def __init__(self, card_id: str):
+        self.message = f"Engagement card with ID '{card_id}' not found."
+        super().__init__(self.message)

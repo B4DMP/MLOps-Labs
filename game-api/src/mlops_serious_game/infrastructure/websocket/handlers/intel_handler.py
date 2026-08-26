@@ -4,6 +4,7 @@ from mlops_serious_game.application.intel_dossier import (
     clear_intel_items_for_user,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
+    handle_intel_verification,
     retrieve_dossier_data,
 )
 from ..manager import manager
@@ -93,6 +94,40 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
     if not curr_challenge:
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
+
+    dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
+    await manager.send_event(
+        websocket=websocket,
+        event="intel:dossier_data",
+        payload={
+            "dossier": dossier_data
+        }
+    )
+
+
+async def handle_verify_item(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Handles verifying an intel item during online intel gathering phase."""
+    phase_id = payload.get("phase_id", 0)
+    challenge_id = payload.get("challenge_id", 0)
+    intel_item_id = payload.get("intel_item_id")
+    print(f"[WS Handler] handle_verify_item: user={username}, intel_item_id={intel_item_id}, phase={phase_id}, challenge={challenge_id}")
+
+    curr_challenge = PhaseFactory.translate_challenge_index(
+        challenge_index=challenge_id,
+        phase_index=phase_id
+    )
+    if not curr_challenge:
+        phases = PhaseFactory.get_phases()
+        curr_challenge = phases[0].challenges[0]
+
+    result = await handle_intel_verification(curr_challenge, websocket, intel_item_id)
+    print(f"[WS Handler] handle_intel_verification result: {result}")
+    
+    await manager.send_event(
+        websocket=websocket,
+        event="intel:verified_res",
+        payload=result
+    )
 
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
     await manager.send_event(

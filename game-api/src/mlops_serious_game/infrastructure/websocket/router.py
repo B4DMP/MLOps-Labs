@@ -17,6 +17,7 @@ from .handlers.intel_handler import (
     handle_get_offline_artifacts,
     handle_tag_item,
     handle_get_dossier,
+    handle_verify_item,
 )
 from .handlers.system_handler import handle_ping
 from .manager import manager
@@ -35,6 +36,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:get_offline_artifacts": handle_get_offline_artifacts,
     "intel:tag_item": handle_tag_item,
     "intel:get_dossier": handle_get_dossier,
+    "intel:verify_item": handle_verify_item,
 }
 
 

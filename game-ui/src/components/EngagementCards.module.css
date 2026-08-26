@@ -1,0 +1,158 @@
+/* EngagementCards.module.css - Inspired by ActionCardComponent styling */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.tokenBar {
+  background: var(--engagement-bg);
+  border: 1px solid var(--engagement-muted);
+  border-radius: 30px;
+  padding: 6px 18px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 2;
+}
+
+.tokenBarLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--engagement-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tokenBadge {
+  background: transparent;
+  border: 1px solid var(--token-color);
+  border-radius: 20px;
+  padding: 3px 12px;
+  color: var(--token-color);
+  font-weight: 800;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardsContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem 0.5rem 1rem 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--engagement-accent) transparent;
+}
+
+.cardsContainer::-webkit-scrollbar {
+  height: 6px;
+}
+
+.cardsContainer::-webkit-scrollbar-thumb {
+  background: var(--engagement-accent);
+  border-radius: 3px;
+}
+
+/* Action-Card-inspired outer container */
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 270px;
+  width: 220px;
+  min-width: 220px;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition, 0.2s ease-in-out);
+}
+
+.cardContainer:not(.not_interactable):hover {
+  transform: translateY(-4px);
+}
+
+.not_interactable {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.cardImage {
+  height: 90px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.cardContainer:hover:not(.not_interactable) .cardImageIcon {
+  transform: scale(1.1);
+}
+
+.cardImageIcon {
+  transition: transform 0.2s ease;
+}
+
+.descriptionBox {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.cardList {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+}
+
+.actionFooterBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.actionFooterPlayable {
+  background: var(--engagement-accent);
+  color: var(--engagement-accent-text);
+}
+
+.actionFooterDisabled {
+  background: var(--engagement-muted);
+  color: var(--engagement-text);
+}
+
+.dragIcon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 1.1rem;
+  color: var(--engagement-text);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.dragging {
+  opacity: 0 !important;
+  pointer-events: none;
+}

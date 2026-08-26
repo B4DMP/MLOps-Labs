@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
@@ -9,10 +9,13 @@ import styles from "./online_intel_gathering.module.css";
 
 function parseChallengeDescription(description?: string) {
   if (!description) return [];
-  const parts = description.split(/(\{.*?\})/);
+  const parts = description.split(/(#[^#]+#|\{[^{}]+\})/);
   return parts
     .map((part) => {
-      if (part.startsWith("{") && part.endsWith("}")) {
+      if (
+        (part.startsWith("#") && part.endsWith("#")) ||
+        (part.startsWith("{") && part.endsWith("}"))
+      ) {
         return { type: "id", value: part.slice(1, -1) };
       }
       return { type: "text", value: part };
@@ -30,7 +33,7 @@ interface OnlineIntelHelpOverlayProps {
   challengeTitle?: string;
   challengeDescription?: string;
   challengeIntro?: string;
-  challengeNumber?: number;
+  challengeAmount?: number;
 }
 
 export default function OnlineIntelHelpOverlay({
@@ -43,22 +46,52 @@ export default function OnlineIntelHelpOverlay({
   challengeTitle = "",
   challengeDescription = "",
   challengeIntro = "",
-  challengeNumber = 1,
+  challengeAmount = 1,
 }: OnlineIntelHelpOverlayProps) {
   const { stakeholders } = useContext(StakeholderContext);
 
-  if (!isOpen) return null;
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      setIsClosing(false);
+    } else if (shouldRender && !isClosing) {
+      setIsClosing(true);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setIsClosing(false);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+      setShouldRender(false);
+    }, 200);
+  };
+
+  if (!shouldRender && !isOpen) return null;
 
   const challenge_desc_cutted = parseChallengeDescription(challengeDescription);
   const challenge_title = challengeTitle;
   const challenge_id = currentChallenge;
-  const challenge_number = challengeNumber;
+  const challenge_amount = challengeAmount;
   const challenge_intro = challengeIntro;
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
+    <div
+      className={`${styles.modalBackdrop} ${isClosing ? styles.modalBackdropClosing : ""}`}
+      onClick={handleClose}
+    >
       <div
-        className={styles.intelModal}
+        className={`${styles.intelModal} ${isClosing ? styles.intelModalClosing : ""}`}
         onClick={(e) => e.stopPropagation()}
         style={{ width: "80vw", maxWidth: "80vw", height: "80vh", maxHeight: "80vh" }}
       >
@@ -69,7 +102,7 @@ export default function OnlineIntelHelpOverlay({
           <button
             type="button"
             className="btn-close btn-close-white"
-            onClick={onClose}
+            onClick={handleClose}
           />
         </div>
 
@@ -80,7 +113,7 @@ export default function OnlineIntelHelpOverlay({
               <Icon icon="ph:clipboard-text-bold" style={{ color: "#dc3545", fontSize: "1.8rem" }} /> Phase Overview
             </h6>
             <div className="p-3 rounded-3 shadow-sm" style={{ background: "#f8f9fa", border: "1px solid #dee2e6" }}>
-              <PhaseOverview current_phase={currentPhase} />
+              <PhaseOverview />
             </div>
           </div>
 
@@ -115,7 +148,7 @@ export default function OnlineIntelHelpOverlay({
                   className="text small ms-2"
                   style={{ color: "rgba(255, 255, 255, 0.85)", fontSize: "0.85rem" }}
                 >
-                  (Challenge {challenge_id + 1}/{challenge_number})
+                  (Challenge {challenge_id + 1}/{challengeAmount})
                 </span>
               </h5>
               <div className="card-body bg-white text-dark">
@@ -127,10 +160,10 @@ export default function OnlineIntelHelpOverlay({
                 <p className="card-text text-center text-dark fs-6">
                   {challenge_desc_cutted.map((item, index) => {
                     if (item.type === "text") {
-                      return <span key={index}>{item.value} </span>;
+                      return <span key={index}>{item.value}</span>;
                     } else if (item.type === "id") {
-                      const st = Object.values(stakeholders).find(
-                        (s) => s.name === item.value || s.id === item.value
+                      const st = Object.values(stakeholders || {}).find(
+                        (s: any) => s.id === item.value || s.name === item.value
                       );
                       if (!st) return <span key={index}>{item.value}</span>;
                       return (

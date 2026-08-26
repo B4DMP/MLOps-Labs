@@ -135,6 +135,8 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge) -> List[Di
     return results
 
 
+from sqlalchemy.orm.attributes import flag_modified
+
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Stores or updates an intel item in the database."""
     with get_session() as session:
@@ -151,12 +153,14 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
                     target_record = record
                     break
 
+        item_dict = intel_item.model_dump(mode="json") if hasattr(intel_item, "model_dump") else intel_item
         if target_record:
-            target_record.intel_item_data = intel_item.model_dump()
+            target_record.intel_item_data = dict(item_dict)
+            flag_modified(target_record, "intel_item_data")
         else:
             new_record = IntelItem(
                 user_name=ws.query_params["username"],
-                intel_item_data=intel_item.model_dump()
+                intel_item_data=dict(item_dict)
             )
             session.add(new_record)
         session.commit()
@@ -353,6 +357,64 @@ async def handle_intel_tagging(
     return intel_item
 
 
+async def handle_intel_verification(
+    curr_challenge: Challenge,
+    ws: WebSocket,
+    intel_item_id: str,
+) -> Dict[str, Any]:
+    """Handles verification of an intel item.
+    If correctly categorized: mark as verified.
+    If incorrectly categorized: correct the categorized_type to true req.type, set true description, and mark as verified.
+    Returns result details for frontend popup.
+    """
+    collected_items = await retrieve_intel_items(curr_challenge, ws)
+    target_item = next(
+        (item for item in collected_items if item.id == intel_item_id or item.requirement_id == intel_item_id),
+        None
+    )
+    req = None
+    if target_item:
+        req = RequirementFactory.get_requirement(target_item.requirement_id)
+    else:
+        req = RequirementFactory.get_requirement(intel_item_id)
+        if not req:
+            all_reqs = RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
+            req = next((r for r in all_reqs if r.id == intel_item_id), None)
+
+        if not req:
+            return {"status": "error", "message": f"Intel requirement '{intel_item_id}' not found."}
+
+        target_item = StakeholderIntelItem(
+            id=str(uuid.uuid4()),
+            requirement_id=req.id,
+            intel_type=ConfidenceType.UNCONFIRMED,
+            categorized_type=req.type,
+            description=req.description,
+        )
+
+    stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
+
+    old_categorized_type = target_item.categorized_type.value if hasattr(target_item.categorized_type, "value") else str(target_item.categorized_type)
+    true_categorized_type = req.type.value if hasattr(req.type, "value") else str(req.type)
+
+    # Perform verification & correction
+    target_item.intel_type = ConfidenceType.VERIFIED
+    target_item.categorized_type = req.type
+    target_item.description = req.description
+
+    await store_intel_item(curr_challenge, ws, target_item)
+
+    return {
+        "status": "success",
+        "old_categorized_type": old_categorized_type,
+        "true_categorized_type": true_categorized_type,
+        "requirement_id": target_item.requirement_id,
+        "stakeholder_name": stakeholder.name,
+        "description": target_item.description,
+        "intel_item": target_item.model_dump(mode="json"),
+    }
+
+
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
     """Retrieves full dossier summary data for all stakeholders in the current challenge."""
     collected_items = await retrieve_intel_items(curr_challenge, ws)
@@ -364,11 +426,13 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             st_id = req.stakeholder_id
             if st_id not in stakeholder_intel_map:
                 stakeholder_intel_map[st_id] = []
+            intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
+            cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
             stakeholder_intel_map[st_id].append({
                 "id": item.id,
                 "requirement_id": item.requirement_id,
-                "intel_type": item.intel_type.value,
-                "categorized_type": item.categorized_type.value,
+                "intel_type": intel_type_val,
+                "categorized_type": cat_type_val,
                 "description": item.description,
             })
 

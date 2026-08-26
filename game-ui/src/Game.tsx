@@ -9,7 +9,7 @@ import introJs from "intro.js";
 import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
-import OnlineIntelGathering from "./components/online_intel_gathering";
+import OnlineIntelGathering, { type IntelItem } from "./components/online_intel_gathering";
 import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
@@ -53,21 +53,17 @@ function getRandomInt(max: number) {
 
 function App({ username: _username }: AppProps) {
   const debug: boolean = false;
-  const { emit, subscribe } = useGameWebSocket();
+  const { emit, subscribe, isConnected } = useGameWebSocket();
 
   const sendJsonMessage = (data: any) => {
-    let eventName = data.event || data.type;
-    if (eventName === "message") eventName = "chat:send_message";
-    if (eventName === "progressIndexUpdate") eventName = "game:progress_update";
-    if (eventName === "stateRequest") eventName = "game:state_update_request";
-    emit(eventName, data);
+    emit(data.type, data);
   };
 
   const [currentPhase, setCurrentPhase] = useState(0);
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [phases, setPhases] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<Record<string, Metric>>({});
-  const [challengeNumber, setChallengeNumber] = useState(0);
+  const [challengeAmount, setChallengeAmount] = useState(0);
   const [_challengeMetricChanges, setChallengeMetricChanges] = useState<
     Record<string, number>
   >({});
@@ -106,6 +102,7 @@ function App({ username: _username }: AppProps) {
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
+  const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
@@ -155,7 +152,7 @@ function App({ username: _username }: AppProps) {
   const startRound = (cTitle?: string) => {
     //send intial message
     sendJsonMessage({
-      type: "message",
+      type: "chat:send_message",
       message:
         "Welcome to the meeting! Please propose a concrete action or technical strategy that strictly prioritizes your specific professional requirements and interests, even if it disregards other perspectives. Write no more than two sentences.",
       stakeholder_ids: ["st0"],
@@ -173,7 +170,7 @@ function App({ username: _username }: AppProps) {
   };
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
     sendJsonMessage({
-      type: "progressIndexUpdate",
+      type: "game:progress_update",
       value: nextProgressIndex,
       additional_data: answers,
     });
@@ -181,7 +178,7 @@ function App({ username: _username }: AppProps) {
 
   const onBriefingCompleted = () => {
     sendJsonMessage({
-      type: "progressIndexUpdate",
+      type: "game:progress_update",
       value: 2,
     });
   };
@@ -228,7 +225,7 @@ function App({ username: _username }: AppProps) {
         }
 
         if (data.progressionIndex === 2) {
-          if (data.type === "message") {
+          if (data.type === "chat:send_message") {
             let _ac_id = -1;
             if (acCountRef.current !== data["action_cards"].length) {
               setac_count(data["action_cards"].length);
@@ -318,7 +315,7 @@ function App({ username: _username }: AppProps) {
               setac_count(0);
             }
 
-            setChallengeNumber(data["challenges_amount"]);
+            setChallengeAmount(data["challenges_amount"]);
             setChallengeMetricChanges(data["metric_changes"]);
             if (data.challenge_loop_id !== undefined) {
               setChallengeLoopId(data.challenge_loop_id);
@@ -425,6 +422,14 @@ function App({ username: _username }: AppProps) {
       console.log("[WS] Received intel:dossier_data:", payload);
       if (payload && payload.dossier) {
         setDossierData(payload.dossier);
+        const directIntelItems: IntelItem[] = (payload.dossier || []).flatMap((entry: any) =>
+          (entry.intel_items || []).map((intel: any) => ({
+            ...intel,
+            stakeholder_id: entry.stakeholder_id,
+            stakeholder_name: entry.name,
+          }))
+        );
+        setIntelItems(directIntelItems);
       }
     });
 
@@ -442,6 +447,16 @@ function App({ username: _username }: AppProps) {
       unsubTagged();
     };
   }, [emit, subscribe, debug]);
+
+  // Fetch initial dossier & intel items when connected or when currentPhase/currentChallenge changes (e.g. restoring saved game)
+  useEffect(() => {
+    if (isConnected) {
+      emit("intel:get_dossier", {
+        phase_id: currentPhase,
+        challenge_id: currentChallenge,
+      });
+    }
+  }, [isConnected, currentPhase, currentChallenge, emit]);
 
   let [roundOverAnimActive, SetRoundOverAnimActive] = useState(false);
   let [showMetricValueChanges, setShowMetricValueChanges] = useState(false);
@@ -479,7 +494,7 @@ function App({ username: _username }: AppProps) {
     });
 
     sendJsonMessage({
-      type: "stateRequest",
+      type: "game:state_update_request",
       challenge_id: currentChallenge,
       phase_id: currentPhase,
       challenge_loop_index: 0,
@@ -496,7 +511,7 @@ function App({ username: _username }: AppProps) {
     });
 
     sendJsonMessage({
-      type: "stateRequest",
+      type: "game:state_update_request",
       challenge_id: currentChallenge,
       phase_id: currentPhase,
       challenge_loop_index: 1,
@@ -507,30 +522,21 @@ function App({ username: _username }: AppProps) {
   };
 
   const handleAcSimulationContinue = () => {
-    if (
-      currentPhase === phases.length - 1 &&
-      currentChallenge === challengeNumber - 1
-    ) {
-      sendJsonMessage({
-        type: "progressIndexUpdate",
-        value: 3,
-      });
-    } else {
-      let _metric_values: any = [];
-      Object.values(metrics).forEach((x) => {
-        _metric_values.push(x.value ?? 0);
-      });
 
-      sendJsonMessage({
-        type: "stateRequest",
-        challenge_id: currentChallenge,
-        phase_id: currentPhase,
-        challenge_loop_index: 3,
-        metric_values: _metric_values,
-        action_card_id: null,
-        messages: [],
-      });
-    }
+    let _metric_values: any = [];
+    Object.values(metrics).forEach((x) => {
+      _metric_values.push(x.value ?? 0);
+    });
+
+    sendJsonMessage({
+      type: "game:state_update_request",
+      challenge_id: currentChallenge,
+      phase_id: currentPhase,
+      challenge_loop_index: 3,
+      metric_values: _metric_values,
+      action_card_id: null,
+      messages: [],
+    });
   };
 
   const playActionCard = async (ac: ActionCard) => {
@@ -594,7 +600,7 @@ function App({ username: _username }: AppProps) {
     });
 
     sendJsonMessage({
-      type: "stateRequest",
+      type: "game:state_update_request",
       challenge_id: currentChallenge,
       phase_id: currentPhase,
       challenge_loop_index: 2,
@@ -612,7 +618,7 @@ function App({ username: _username }: AppProps) {
       { id: "", message: textContent, ac_id: -1 },
     ]);
     sendJsonMessage({
-      type: "message",
+      type: "chat:send_message",
       message: textContent,
       stakeholder_ids: ["st0"],
     });
@@ -709,9 +715,33 @@ function App({ username: _username }: AppProps) {
                   challengeTitle={challengeTitle}
                   challengeDescription={challengeDescription}
                   challengeIntro={challengeIntro}
-                  challengeNumber={challengeNumber}
+                  challengeAmount={challengeAmount}
                   dossierData={dossierData}
                   activeStakeholderId={activeStakeholderId}
+                  intelItems={intelItems}
+                  onUpdateIntelItems={(items) => {
+                    setIntelItems(items);
+                    setDossierData((prevDossier) => {
+                      if (!prevDossier || prevDossier.length === 0) return prevDossier;
+                      return prevDossier.map((st) => ({
+                        ...st,
+                        intel_items: (st.intel_items || []).map((item) => {
+                          const matchingUpdated = items.find(
+                            (u) => u.id === item.id || u.requirement_id === item.requirement_id
+                          );
+                          if (matchingUpdated) {
+                            return {
+                              ...item,
+                              intel_type: matchingUpdated.intel_type,
+                              categorized_type: matchingUpdated.categorized_type,
+                              description: matchingUpdated.description,
+                            };
+                          }
+                          return item;
+                        }),
+                      }));
+                    });
+                  }}
                 />
               )}
               {challengeLoopId === 3 && (
@@ -742,7 +772,7 @@ function App({ username: _username }: AppProps) {
                   challengeDescription={challengeDescription}
                   challengeIntro={challengeIntro}
                   currentChallenge={currentChallenge}
-                  challengeNumber={challengeNumber}
+                  challengeNumber={challengeAmount}
                   revealAc={revealAc}
                   last_ac={last_ac}
                   roundOverAnimActive={roundOverAnimActive}

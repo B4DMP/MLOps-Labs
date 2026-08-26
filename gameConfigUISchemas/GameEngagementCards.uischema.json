@@ -1,0 +1,13 @@
+{
+  "type": "Group",
+  "label": "Engagement Cards Configuration",
+  "elements": [
+    {
+      "type": "Control",
+      "scope": "#/properties/engagement_cards",
+      "options": {
+        "elementLabelProp": "title"
+      }
+    }
+  ]
+}

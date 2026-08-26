@@ -31,7 +31,7 @@ class ConnectionManager:
     ) -> bool:
         response = WSResponse(event=event, payload=payload)
         try:
-            await websocket.send_json(response.model_dump())
+            await websocket.send_json(response.model_dump(mode="json"))
             return True
         except (WebSocketDisconnect, RuntimeError):
             return False
