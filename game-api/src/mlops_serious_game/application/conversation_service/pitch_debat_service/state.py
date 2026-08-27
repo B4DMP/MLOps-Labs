@@ -1,6 +1,6 @@
 from langgraph.graph import MessagesState
 
-class ChallengeState(MessagesState):
+class PitchDebateState(MessagesState):
     """State class for the LangGraph workflow. It keeps track of the information necessary to maintain a coherent
     conversation between the Stakeholder and the user.
 
@@ -21,7 +21,7 @@ class ChallengeState(MessagesState):
     challenge_id: int
     cheating_detected: bool
 
-def state_to_str(state: ChallengeState) -> str:
+def state_to_str(state: PitchDebateState) -> str:
     if "summary" in state and bool(state["summary"]):
         conversation = state["summary"]
     elif "messages" in state and bool(state["messages"]):
@@ -30,7 +30,7 @@ def state_to_str(state: ChallengeState) -> str:
         conversation = ""
 
     return f"""
-ChallengeState(
+PitchDebateState(
     challenge={state["challenge"]}, 
     conversation={conversation}
 )

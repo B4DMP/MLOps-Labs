@@ -1,5 +1,5 @@
 import StakeholdersList from "./StakeholderList";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
@@ -12,9 +12,22 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import { StakeholderContext } from "./StakeholderProvider";
 
-import { useContext } from "react";
 import styles from "./StakeholderInteractionArea.module.css";
-export type ChatMsg = { id: string; message: string; ac_id: number };
+export type RevealedIntel = {
+  id?: string;
+  requirement_id?: string;
+  description: string;
+  categorized_type?: string;
+  intel_type?: string;
+  stakeholder_id?: string;
+  stakeholder_name?: string;
+};
+export type ChatMsg = {
+  id: string;
+  message: string;
+  ac_id: number;
+  revealed_intel?: RevealedIntel[];
+};
 import CustomChatMessage from "./customChatMessage";
 import type { ActionCard } from "../types/ActionCard";
 import introJs from "intro.js";
@@ -127,6 +140,39 @@ export default function StakeholderInteractionArea({
                         />
                       )}
                     </Message>
+                    {item.revealed_intel && item.revealed_intel.length > 0 && (
+                      <div
+                        className="d-flex flex-column justify-content-center align-items-center w-100 gap-2"
+                        style={{ margin: "12px 0" }}
+                      >
+                        {item.revealed_intel.map((intel, idx) => (
+                          <div
+                            key={intel.id || intel.requirement_id || idx}
+                            className="transparent-div"
+                            style={{ height: "40px", display: "flex", alignItems: "center", padding: "0 16px" }}
+                          >
+                            <p
+                              className="text-center m-0"
+                              style={{ color: "#c3c3c3ff" }}
+                            >
+                              revealed intel item{" "}
+                              <span
+                                style={{ fontWeight: "bold", color: "#60a5fa" }}
+                                title={intel.description}
+                              >
+                                {intel.description.length > 50 ? `${intel.description.slice(0, 50)}...` : intel.description}
+                              </span>{" "}
+                              <span
+                                className="badge bg-secondary ms-1"
+                                style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
+                              >
+                                inferred
+                              </span>
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {item.ac_id !== -1 && (
                       <div
                         className={`d-flex justify-content-center align-items-center w-100 ${item.ac_id === 0 && "intro5"}`}

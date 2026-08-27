@@ -8,6 +8,8 @@ export interface EngagementCardConfig {
   target_type: "stakeholder" | "intel";
   response_snippet?: string;
   max_plays_per_phase?: number;
+  intel_reveal_count?: number;
+  allowed_requirement_types?: string[];
 }
 
 export interface PlayedEngagementCardState {

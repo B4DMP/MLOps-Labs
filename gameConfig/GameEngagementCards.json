@@ -9,7 +9,9 @@
       "stakeholder_selection_amount": 0,
       "target_type": "intel",
       "response_snippet": "Intel verified successfully.",
-      "max_plays_per_phase": -1
+      "max_plays_per_phase": -1,
+      "intel_reveal_count": 0,
+      "allowed_requirement_types": []
     },
     {
       "id": "eng_1",
@@ -20,7 +22,9 @@
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
       "response_snippet": "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
-      "max_plays_per_phase": -1
+      "max_plays_per_phase": -1,
+      "intel_reveal_count": 2,
+      "allowed_requirement_types": []
     },
     {
       "id": "eng_2",
@@ -31,7 +35,9 @@
       "stakeholder_selection_amount": 2,
       "target_type": "stakeholder",
       "response_snippet": "Probed requirements with selected stakeholders.",
-      "max_plays_per_phase": -1
+      "max_plays_per_phase": -1,
+      "intel_reveal_count": 1,
+      "allowed_requirement_types": ["hard_constraint", "requirement"]
     },
     {
       "id": "eng_3",
@@ -42,7 +48,9 @@
       "stakeholder_selection_amount": -1,
       "target_type": "stakeholder",
       "response_snippet": "Synced up with all team members to align perspectives.",
-      "max_plays_per_phase": 1
+      "max_plays_per_phase": 1,
+      "intel_reveal_count": 1,
+      "allowed_requirement_types": []
     },
     {
       "id": "eng_4",
@@ -53,7 +61,9 @@
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
       "response_snippet": "Gauged general sentiment and high-level priorities.",
-      "max_plays_per_phase": -1
+      "max_plays_per_phase": -1,
+      "intel_reveal_count": 1,
+      "allowed_requirement_types": ["personal_friction", "negotiable_preference"]
     }
   ]
 }

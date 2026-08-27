@@ -6,16 +6,16 @@ from langchain_core.messages import AIMessage, AIMessageChunk, HumanMessage
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from opik.integrations.langchain import OpikTracer
 
-from mlops_serious_game.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
     create_workflow_graph,
 )
-from mlops_serious_game.application.conversation_service.workflow.state import ChallengeState
+from mlops_serious_game.application.conversation_service.pitch_debat_service.state import PitchDebateState
 
 
 async def get_response(
     messages: str | list[str] | list[dict[str, Any]],
     challenge: str, _thread_id: str, phase_id: int, challenge_id: int = 0, ws=None, callback=None
-) -> tuple[str, ChallengeState]:
+) -> tuple[str, PitchDebateState]:
     """Run a conversation through the workflow graph.
 
     Args:
@@ -23,7 +23,7 @@ async def get_response(
         challenge: the current MLOps challenge
 
     Returns:
-        tuple[str, ChallengeState]: A tuple containing:
+        tuple[str, PitchDebateState]: A tuple containing:
             - The content of the last message in the conversation.
             - The final state after running the workflow.
 

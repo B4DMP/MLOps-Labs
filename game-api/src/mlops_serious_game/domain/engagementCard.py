@@ -38,6 +38,14 @@ class EngagementCard(BaseModel):
         default=-1,
         description="Maximum allowed plays per phase (-1 for unlimited, >0 for exact play limit)",
     )
+    intel_reveal_count: int = Field(
+        default=1,
+        description="Number of undiscovered intel items to reveal per stakeholder",
+    )
+    allowed_requirement_types: list[str] = Field(
+        default_factory=list,
+        description="Allowed requirement types to reveal (empty for all)",
+    )
 
     def __str__(self) -> str:
         return f"EngagementCard(id={self.id}, title={self.title}, cost={self.token_cost})"

@@ -10,7 +10,7 @@ import asyncio
 import datetime
 from opik.integrations.langchain import OpikTracer
 import random
-from mlops_serious_game.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
     create_workflow_graph,
 )
 from mlops_serious_game.domain.phase_factory import PhaseFactory

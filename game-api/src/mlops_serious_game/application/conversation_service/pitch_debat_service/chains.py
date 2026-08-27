@@ -8,7 +8,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, AIMessage, ToolMessage, merge_message_runs
 from langchain_core.runnables import RunnableLambda
 
-from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.application.conversation_service.pitch_debat_service.tools import tools
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.metric_factory import MetricFactory
 

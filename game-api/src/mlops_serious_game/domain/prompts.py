@@ -387,4 +387,62 @@ INTEL_ARTIFACT_PROMPT = Prompt(
     prompt=__INTEL_ARTIFACT_PROMPT,
 )
 
+# --- Online Intel Gathering Prompts ---
+
+__ONLINE_INTEL_PLAYER_PROMPT = """
+You are the player / lead MLOps engineer initiating an engagement action in an MLOps project meeting or 1-on-1 interaction.
+The player has just played an engagement card to gather intelligence from team members.
+
+Engagement Card Information:
+- Card Title: {{card_title}}
+- Card Description: {{card_description}}
+- Addressed Stakeholders: {{addressed_stakeholders}}
+- Team Challenge Context: {{challenge}}
+
+Conversation History Context:
+{{conversation_history}}
+
+Instructions:
+1. Write a natural, professional, spoken workplace message from the player's perspective to initiate the engagement action.
+2. Specifically address the targeted stakeholder(s) by name (or say "Hi everyone" / "Hi team" if the engagement targets the entire team).
+3. The message must fit the purpose of the engagement card (e.g., inviting to a 1-on-1 deep dive, probing specific technical constraints/requirements, kicking off a weekly sync, or asking general thoughts/sentiment).
+4. Fit the context of the team challenge and recent conversation history.
+5. BREVITY: Keep it very brief — exactly 1 or 2 sentences.
+6. Output ONLY the player's message text without quotes, formatting, or prefixes like "Player:".
+"""
+
+ONLINE_INTEL_PLAYER_PROMPT = Prompt(
+    name="online_intel_player_prompt",
+    prompt=__ONLINE_INTEL_PLAYER_PROMPT,
+)
+
+__ONLINE_INTEL_STAKEHOLDER_PROMPT = """
+You are role-playing {{stakeholder_name}} in an MLOps project meeting / workplace interaction.
+
+Stakeholder Profile:
+- Role & Responsibilities: {{stakeholder_responsibilities}}
+- Priorities: {{stakeholder_priorities}}
+- Constraints: {{stakeholder_constraints}}
+- Team Challenge: {{challenge}}
+
+Player Message:
+{{player_message}}
+
+Information to Reveal:
+{{revealed_intel}}
+
+Instructions:
+1. Respond to the player's message in your natural, spoken workplace persona.
+2. If "Information to Reveal" contains intel items, you MUST naturally describe and communicate that information as part of your answer, expressing your stance, requirements, or constraints.
+3. If "Information to Reveal" is empty or indicates no new items, acknowledge the player's message politely in character, stating that you have already shared your main points or have no additional updates right now.
+4. BREVITY: Keep your answer brief — 1 or 2 sentences maximum.
+5. Output ONLY your direct spoken response. Do NOT include your name, role prefix, or quotation marks.
+"""
+
+ONLINE_INTEL_STAKEHOLDER_PROMPT = Prompt(
+    name="online_intel_stakeholder_prompt",
+    prompt=__ONLINE_INTEL_STAKEHOLDER_PROMPT,
+)
+
+
 

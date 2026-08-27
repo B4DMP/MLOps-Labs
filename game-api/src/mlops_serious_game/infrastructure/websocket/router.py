@@ -18,6 +18,7 @@ from .handlers.intel_handler import (
     handle_tag_item,
     handle_get_dossier,
     handle_verify_item,
+    handle_play_engagement_card,
 )
 from .handlers.system_handler import handle_ping
 from .manager import manager
@@ -37,6 +38,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:tag_item": handle_tag_item,
     "intel:get_dossier": handle_get_dossier,
     "intel:verify_item": handle_verify_item,
+    "intel:play_engagement_card": handle_play_engagement_card,
 }
 
 
@@ -75,7 +77,7 @@ async def unified_websocket_endpoint(
                                 AsyncPostgresSaver,
                             )
 
-                            from mlops_serious_game.application.conversation_service.workflow.graph import (
+                            from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
                                 create_workflow_graph,
                             )
                             from mlops_serious_game.config import settings

@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-from mlops_serious_game.application.conversation_service.workflow.nodes import router_node
+from mlops_serious_game.application.conversation_service.pitch_debat_service.nodes import router_node
 
 
 from langchain_core.messages import HumanMessage
@@ -463,7 +463,7 @@ for _item in GENERAL_INTEL_ITEMS:
             STAKEHOLDER_CONVINCER_PROFILES[_st_id].append(_item)
 
 
-class ChallengeState(MessagesState):
+class PitchDebateState(MessagesState):
     """State class for the LangGraph workflow. It keeps track of the information necessary to maintain a coherent
     conversation between the Stakeholder and the user.
 
@@ -630,7 +630,7 @@ def calculate_system_emotion_deltas(
     )
 
 
-async def emotion_node(state: ChallengeState, config: RunnableConfig):
+async def emotion_node(state: PitchDebateState, config: RunnableConfig):
     messages = state.get("messages", [])
     if not messages:
         return {}
@@ -717,7 +717,7 @@ def get_stakeholder_response_chain():
 
     return prompt | model
 
-async def conversation_node(state: ChallengeState, config: RunnableConfig):
+async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     summary = state.get("summary", "")
     
@@ -880,7 +880,7 @@ def get_dialogue_option_generator_chain():
     return prompt | structured_model
 
 
-async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
+async def dialogue_option_node(state: PitchDebateState, config: RunnableConfig):
     messages = state.get("messages", [])
     intel_items = list(state.get("intel_items", []) or GENERAL_INTEL_ITEMS)
     
@@ -998,7 +998,7 @@ async def dialogue_option_node(state: ChallengeState, config: RunnableConfig):
     return {"dialogue_options": options, "intel_items": intel_items}
 
 
-async def custom_router_node(state: ChallengeState, config: RunnableConfig):
+async def custom_router_node(state: PitchDebateState, config: RunnableConfig):
     last_selected_option = state.get("last_selected_option")
     last_selected_intel = state.get("last_selected_intel")
     messages = state.get("messages", [])
@@ -1052,14 +1052,14 @@ async def custom_router_node(state: ChallengeState, config: RunnableConfig):
     return {"stakeholder_ids": routed_stakeholders}
 
 
-def has_more_stakeholders(state: ChallengeState):
+def has_more_stakeholders(state: PitchDebateState):
     if len(state.get("stakeholder_ids", [])) > 0:
         return "emotion_node"
     return "dialogue_option_node"
 
 
 def create_workflow_graph():
-    graph_builder = StateGraph(ChallengeState)
+    graph_builder = StateGraph(PitchDebateState)
 
     # Add all nodes
     graph_builder.add_node("router", custom_router_node)

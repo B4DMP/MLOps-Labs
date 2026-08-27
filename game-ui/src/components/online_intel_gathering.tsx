@@ -58,6 +58,8 @@ const defaultEngagementCards: EngagementCardConfig[] = [
     stakeholder_selection_amount: 0,
     target_type: "intel",
     response_snippet: "Intel verified successfully.",
+    intel_reveal_count: 0,
+    allowed_requirement_types: [],
   },
   {
     id: "eng_1",
@@ -68,6 +70,8 @@ const defaultEngagementCards: EngagementCardConfig[] = [
     stakeholder_selection_amount: 1,
     target_type: "stakeholder",
     response_snippet: "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
+    intel_reveal_count: 2,
+    allowed_requirement_types: [],
   },
   {
     id: "eng_2",
@@ -78,6 +82,8 @@ const defaultEngagementCards: EngagementCardConfig[] = [
     stakeholder_selection_amount: 2,
     target_type: "stakeholder",
     response_snippet: "Probed requirements with selected stakeholders.",
+    intel_reveal_count: 1,
+    allowed_requirement_types: ["hard_constraint", "requirement"],
   },
   {
     id: "eng_3",
@@ -88,6 +94,9 @@ const defaultEngagementCards: EngagementCardConfig[] = [
     stakeholder_selection_amount: -1,
     target_type: "stakeholder",
     response_snippet: "Synced up with all team members to align perspectives.",
+    max_plays_per_phase: 1,
+    intel_reveal_count: 1,
+    allowed_requirement_types: [],
   },
   {
     id: "eng_4",
@@ -98,6 +107,8 @@ const defaultEngagementCards: EngagementCardConfig[] = [
     stakeholder_selection_amount: 1,
     target_type: "stakeholder",
     response_snippet: "Gauged general sentiment and high-level priorities.",
+    intel_reveal_count: 1,
+    allowed_requirement_types: ["personal_friction", "negotiable_preference"],
   },
 ];
 
@@ -133,18 +144,7 @@ export default function OnlineIntelGathering({
   });
 
   // Conversation History Chat Messages
-  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([
-    {
-      id: "st_security",
-      message: "We must ensure strict data privacy before approving any deployment pipeline.",
-      ac_id: -1,
-    },
-    {
-      id: "st_data_sci",
-      message: "Our model latency needs to remain under 50ms for live inferencing.",
-      ac_id: -1,
-    },
-  ]);
+  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
 
   // Pitch Overlay Modal & Intel Selection State
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
@@ -160,12 +160,13 @@ export default function OnlineIntelGathering({
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
   const [isDraggingCard, setIsDraggingCard] = useState(false);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const { emit, subscribe } = useGameWebSocket();
 
   // Intel Verification Result Modal State
   const [verificationResultModal, setVerificationResultModal] = useState<IntelVerificationResultData | null>(null);
 
-  // Subscribe to intel:verified_res WebSocket event
+  // Subscribe to intel WebSocket events
   useEffect(() => {
     if (!subscribe) return;
     const unsubscribe = subscribe("intel:verified_res", (payload: any) => {
@@ -180,8 +181,66 @@ export default function OnlineIntelGathering({
         });
       }
     });
-    return () => unsubscribe();
-  }, [subscribe]);
+
+    const unsubMsgReceived = subscribe("intel:message_received", (payload: any) => {
+      console.log("[WS] Received intel:message_received in component:", payload);
+      if (!payload) return;
+
+      if (payload.type === "player_message" && payload.message) {
+        setChatMsgs((prev) => [
+          ...prev,
+          {
+            id: "user",
+            message: payload.message,
+            ac_id: -1,
+          },
+        ]);
+      } else if (payload.type === "stakeholder_message" && payload.message) {
+        setChatMsgs((prev) => [
+          ...prev,
+          {
+            id: payload.stakeholder_id,
+            message: payload.message,
+            ac_id: -1,
+            revealed_intel: payload.revealed_intel_items || [],
+          },
+        ]);
+        if (payload.stakeholder_id) {
+          setStakeholderResponses((prev) => ({
+            ...prev,
+            [payload.stakeholder_id]: payload.message,
+          }));
+        }
+      }
+    });
+
+    const handleEngagementFinished = (payload: any) => {
+      console.log("[WS] Received engagement complete in component:", payload);
+      setIsWaitingForResponse(false);
+      if (!payload) return;
+
+      if (payload.dossier && onUpdateIntelItems) {
+        const directIntelItems: IntelItem[] = (payload.dossier || []).flatMap((entry: any) =>
+          (entry.intel_items || []).map((intel: any) => ({
+            ...intel,
+            stakeholder_id: entry.stakeholder_id,
+            stakeholder_name: entry.name,
+          }))
+        );
+        onUpdateIntelItems(directIntelItems);
+      }
+    };
+
+    const unsubComplete = subscribe("intel:engagement_complete", handleEngagementFinished);
+    const unsubResponse = subscribe("intel:engagement_response", handleEngagementFinished);
+
+    return () => {
+      unsubscribe();
+      unsubMsgReceived();
+      unsubComplete();
+      unsubResponse();
+    };
+  }, [subscribe, onUpdateIntelItems]);
 
   const handleCloseCardModal = () => {
     setIsClosingCardModal(true);
@@ -244,24 +303,17 @@ export default function OnlineIntelGathering({
     if (card.stakeholder_selection_amount === -1) {
       setAttentionTokens((prev) => prev - card.token_cost);
       setPlayedCardIdsInPhase((prev) => [...prev, card.id]);
-
-      const snippet = card.response_snippet || "Synced up with the entire team to align perspectives.";
+      setIsWaitingForResponse(true);
 
       const activeStakeholders = availableStakeholderList.filter((st: any) => isStakeholderActiveInPhase(st));
+      const activeIds = activeStakeholders.map((st: any) => st.id);
 
-      setChatMsgs((prev) => [
-        ...prev,
-        {
-          id: "user",
-          message: `⚡ Played Card: ${card.title} (Team Sync across ${activeStakeholders.length} active stakeholders)`,
-          ac_id: -1,
-        },
-        ...activeStakeholders.map((st) => ({
-          id: st.id,
-          message: `[${st.name}] ${snippet}`,
-          ac_id: -1,
-        })),
-      ]);
+      emit("intel:play_engagement_card", {
+        phase_id: currentPhase,
+        challenge_id: currentChallenge,
+        card_id: card.id,
+        stakeholder_ids: activeIds,
+      });
       return;
     }
 
@@ -325,39 +377,18 @@ export default function OnlineIntelGathering({
       if (selectedTargetStakeholderIds.length !== requiredAmount) return;
 
       setAttentionTokens((prev) => prev - playingCard.token_cost);
+      setIsWaitingForResponse(true);
 
-      const targetStakeholders = availableStakeholderList.filter((st) =>
-        selectedTargetStakeholderIds.includes(st.id)
-      );
-      const namesStr = targetStakeholders.map((st) => st.name).join(" & ");
-      const responseSnippet =
-        playingCard.response_snippet || `Responded to ${playingCard.title}.`;
-
-      // Update active stakeholder responses & conversation stream
-      targetStakeholders.forEach((st) => {
-        setStakeholderResponses((prev) => ({
-          ...prev,
-          [st.id]: responseSnippet,
-        }));
+      emit("intel:play_engagement_card", {
+        phase_id: currentPhase,
+        challenge_id: currentChallenge,
+        card_id: playingCard.id,
+        stakeholder_ids: selectedTargetStakeholderIds,
       });
 
-      if (targetStakeholders.length > 0) {
-        setSelectedStakeholderId(targetStakeholders[0].id);
+      if (selectedTargetStakeholderIds.length > 0) {
+        setSelectedStakeholderId(selectedTargetStakeholderIds[0]);
       }
-
-      setChatMsgs((prev) => [
-        ...prev,
-        {
-          id: "user",
-          message: `Played Card: ${playingCard.title} on ${namesStr}`,
-          ac_id: -1,
-        },
-        ...targetStakeholders.map((st) => ({
-          id: st.id,
-          message: `[${st.name}] ${responseSnippet}`,
-          ac_id: -1,
-        })),
-      ]);
 
       setCardTargetedStakeholdersMap((prev) => ({
         ...prev,
@@ -555,7 +586,7 @@ export default function OnlineIntelGathering({
                   chatMsgs={chatMsgs}
                   current_phase={currentPhase}
                   current_challenge={currentChallenge}
-                  isEnabled={true}
+                  isEnabled={!isWaitingForResponse}
                   actionCards={[]}
                   onHoverCard={() => { }}
                   selected_mgs={[]}
@@ -574,7 +605,7 @@ export default function OnlineIntelGathering({
               onSelectCard={handleSelectEngagementCard}
               onDragCardStart={() => setIsDraggingCard(true)}
               onDragCardEnd={() => setIsDraggingCard(false)}
-              isEnabled={true}
+              isEnabled={!isWaitingForResponse}
             />
           </div>
         </div>

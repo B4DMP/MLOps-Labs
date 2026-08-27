@@ -10,7 +10,7 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 import asyncio
 from opik.integrations.langchain import OpikTracer
 
-from mlops_serious_game.application.conversation_service.workflow.graph import (
+from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
     create_workflow_graph,
 )
 from mlops_serious_game.config import settings

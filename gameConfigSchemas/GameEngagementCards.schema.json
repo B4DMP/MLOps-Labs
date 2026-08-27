@@ -55,6 +55,26 @@
           "max_plays_per_phase": {
             "type": "integer",
             "title": "Max Plays Per Phase (-1 for unlimited, >0 for limit)"
+          },
+          "intel_reveal_count": {
+            "type": "integer",
+            "title": "Intel Items Reveal Count Per Stakeholder",
+            "minimum": 0,
+            "default": 1
+          },
+          "allowed_requirement_types": {
+            "type": "array",
+            "title": "Allowed Requirement Types for Revelation",
+            "items": {
+              "type": "string",
+              "enum": [
+                "hard_constraint",
+                "requirement",
+                "negotiable_preference",
+                "personal_friction"
+              ]
+            },
+            "default": []
           }
         }
       }

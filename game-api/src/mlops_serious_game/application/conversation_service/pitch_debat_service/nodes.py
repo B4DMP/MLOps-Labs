@@ -5,7 +5,7 @@ from langchain_core.messages import AIMessage, RemoveMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
 
-from mlops_serious_game.application.conversation_service.workflow.chains import (
+from mlops_serious_game.application.conversation_service.pitch_debat_service.chains import (
     get_anticheat_chain,
     get_card_gen_chain,
     get_card_gen_checker_chain,
@@ -15,10 +15,10 @@ from mlops_serious_game.application.conversation_service.workflow.chains import 
     get_router_chain,
     get_stakeholder_response_chain,
 )
-from mlops_serious_game.application.conversation_service.workflow.state import (
-    ChallengeState,
+from mlops_serious_game.application.conversation_service.pitch_debat_service.state import (
+    PitchDebateState,
 )
-from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.application.conversation_service.pitch_debat_service.tools import tools
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.exceptions import (
     NoStakeholderRoute,
@@ -31,7 +31,7 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 retriever_node = ToolNode(tools)
 
 
-async def conversation_node(state: ChallengeState, config: RunnableConfig):
+async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     summary = state.get("summary", "")
     #select rogue stakeholder, only if not during evaluation
@@ -88,7 +88,7 @@ async def conversation_node(state: ChallengeState, config: RunnableConfig):
 
 
 
-async def summarize_conversation_node(state: ChallengeState):
+async def summarize_conversation_node(state: PitchDebateState):
     summary = state.get("summary", "")
     summary_chain = get_conversation_summary_chain(summary)
 
@@ -105,7 +105,7 @@ async def summarize_conversation_node(state: ChallengeState):
     return {"summary": response.content, "messages": delete_messages}
 
 
-async def summarize_context_node(state: ChallengeState):
+async def summarize_context_node(state: PitchDebateState):
     context_summary_chain = get_context_summary_chain()
     if not state["messages"][-1].content or len(state["messages"][-1].content.strip()) < 10:
         response_content = "No relevant information found in the knowledge base."
@@ -121,16 +121,16 @@ async def summarize_context_node(state: ChallengeState):
     return {}
 
 
-async def connector_node(state: ChallengeState):
+async def connector_node(state: PitchDebateState):
     return {}
 
-async def send_message_connector_node(state: ChallengeState, config: RunnableConfig):
+async def send_message_connector_node(state: PitchDebateState, config: RunnableConfig):
     if config["configurable"].get("ws")!=None and config["configurable"].get("callback")!=None:
         asyncio.create_task(config["configurable"].get("callback")(websocket=config["configurable"].get("ws"),state=state))
 
     return {}
 
-def get_stakeholders_text(state: ChallengeState, config: RunnableConfig):
+def get_stakeholders_text(state: PitchDebateState, config: RunnableConfig):
     stakeholders:str = ""
     phase_id = state.get("phase_id")
     if phase_id is not None:
@@ -145,7 +145,7 @@ def get_stakeholders_text(state: ChallengeState, config: RunnableConfig):
     return stakeholders
 
 
-async def router_node(state: ChallengeState, config: RunnableConfig):
+async def router_node(state: PitchDebateState, config: RunnableConfig):
     
     phase_id = state.get("phase_id")
     router_chain = get_router_chain(phase_id)
@@ -179,7 +179,7 @@ async def router_node(state: ChallengeState, config: RunnableConfig):
             raise RoutingStakeholderNotFound(selected)
     return {"stakeholder_ids": list(set(selected_stakeholder_ids))}
 
-async def card_check_node(state: ChallengeState):
+async def card_check_node(state: PitchDebateState):
     #do not generate action cards when the stakeholder are evaluated
     if state.get("phase_id") is None:
         return {"generate_card": False}
@@ -207,7 +207,7 @@ async def card_check_node(state: ChallengeState):
 
 
 
-async def anticheat_node(state: ChallengeState, config: RunnableConfig):
+async def anticheat_node(state: PitchDebateState, config: RunnableConfig):
     #do not check if in evaluation
     if state.get("phase_id") is None:
         return {"cheating_detected": False}
@@ -234,7 +234,7 @@ async def anticheat_node(state: ChallengeState, config: RunnableConfig):
     else:
         return {"cheating_detected":True, "messages": [RemoveMessage(id=state["messages"][-1].id)]}
     
-async def card_gen_node(state: ChallengeState, config: RunnableConfig):
+async def card_gen_node(state: PitchDebateState, config: RunnableConfig):
     phase_id = state.get("phase_id")
     card_gen_chain = get_card_gen_chain(phase_id)
     currencies_explanation=""

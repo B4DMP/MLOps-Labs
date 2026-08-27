@@ -26,6 +26,8 @@ class EngagementCardFactory:
                 target_type=j.get("target_type", "stakeholder"),
                 response_snippet=j.get("response_snippet", ""),
                 max_plays_per_phase=j.get("max_plays_per_phase", -1),
+                intel_reveal_count=j.get("intel_reveal_count", 1),
+                allowed_requirement_types=j.get("allowed_requirement_types", []),
             )
             cls.cards.append(card)
 
