@@ -62,14 +62,18 @@ export default function StakeholderDossier({
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [nextPageIndex, setNextPageIndex] = useState(0);
 
   // 3D Two-Layer Page Flip animation state
   const [flippingState, setFlippingState] = useState<{
     fromIndex: number;
     toIndex: number;
     direction: "forward" | "backward";
-    isAnimating: boolean;
   } | null>(null);
+
+  const flippingStateRef = useRef(flippingState);
+  flippingStateRef.current = flippingState;
+  const flipTimeoutRef = useRef<number | null>(null);
 
   // Position state for window dragging
   const [position, setPosition] = useState({ x: 120, y: 60 });
@@ -80,36 +84,20 @@ export default function StakeholderDossier({
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
-  // Derive active stakeholders
-  const allSts = Object.values(stakeholders || {});
-  const activeSts = allSts.filter((st: any) => {
-    const metric = metrics[st.metric_id] || Object.values(metrics).find((m: any) => m.id === st.metric_id);
-    const metricIntro = metrics[`${st.metric_id}_intro`] || Object.values(metrics).find((m: any) => m.id === `${st.metric_id}_intro`);
-    return (
-      (metric && metric.phases && metric.phases[currentPhase]) ||
-      (metricIntro && metricIntro.phases && metricIntro.phases[currentPhase])
-    );
-  });
-  const targetSts = activeSts.length > 0 ? activeSts : allSts;
+  // Derive active stakeholders with useMemo
+  const effectiveDossierData = React.useMemo<StakeholderDossierEntry[]>(() => {
+    const allSts = Object.values(stakeholders || {});
+    const activeSts = allSts.filter((st: any) => {
+      const metric = metrics[st.metric_id] || Object.values(metrics).find((m: any) => m.id === st.metric_id);
+      const metricIntro = metrics[`${st.metric_id}_intro`] || Object.values(metrics).find((m: any) => m.id === `${st.metric_id}_intro`);
+      return (
+        (metric && metric.phases && metric.phases[currentPhase]) ||
+        (metricIntro && metricIntro.phases && metricIntro.phases[currentPhase])
+      );
+    });
+    const targetSts = activeSts.length > 0 ? activeSts : allSts;
 
-  const fallbackList: StakeholderDossierEntry[] = targetSts.map((st: any) => ({
-    stakeholder_id: st.id || st.name,
-    name: st.name || st.id,
-    responsibilities: st.responsibilities || "",
-    priorities: st.priorities || "",
-    constraints: st.constraints || "",
-    role_description: st.role_description || "Project Stakeholder",
-    metric_id: st.metric_id || "",
-    intel_items: [],
-  }));
-
-  let effectiveDossierData: StakeholderDossierEntry[] = [];
-  if (dossierData && dossierData.length > 0) {
-    effectiveDossierData = dossierData;
-  } else if (fallbackList.length > 0) {
-    effectiveDossierData = fallbackList;
-  } else {
-    effectiveDossierData = Object.values(stakeholders || {}).map((st: any) => ({
+    const fallbackList: StakeholderDossierEntry[] = targetSts.map((st: any) => ({
       stakeholder_id: st.id || st.name,
       name: st.name || st.id,
       responsibilities: st.responsibilities || "",
@@ -119,40 +107,77 @@ export default function StakeholderDossier({
       metric_id: st.metric_id || "",
       intel_items: [],
     }));
-  }
+
+    if (dossierData && dossierData.length > 0) {
+      return dossierData;
+    } else if (fallbackList.length > 0) {
+      return fallbackList;
+    } else {
+      return Object.values(stakeholders || {}).map((st: any) => ({
+        stakeholder_id: st.id || st.name,
+        name: st.name || st.id,
+        responsibilities: st.responsibilities || "",
+        priorities: st.priorities || "",
+        constraints: st.constraints || "",
+        role_description: st.role_description || "Project Stakeholder",
+        metric_id: st.metric_id || "",
+        intel_items: [],
+      }));
+    }
+  }, [stakeholders, metrics, currentPhase, dossierData]);
 
   const totalPages = effectiveDossierData.length;
 
-  const triggerPageFlip = (targetIndex: number) => {
-    if (targetIndex === currentPageIndex || targetIndex < 0 || targetIndex >= totalPages) return;
-    const direction = targetIndex > currentPageIndex ? "forward" : "backward";
-
-    // Set initial animation state
-    setFlippingState({
-      fromIndex: currentPageIndex,
-      toIndex: targetIndex,
-      direction,
-      isAnimating: false,
-    });
-
-    // Trigger transition on next animation frame
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setFlippingState({
-          fromIndex: currentPageIndex,
-          toIndex: targetIndex,
-          direction,
-          isAnimating: true,
-        });
-      });
-    });
-
-    // Finalize state after CSS transition finishes (750ms)
-    setTimeout(() => {
-      setCurrentPageIndex(targetIndex);
-      setFlippingState(null);
-    }, 750);
+  const requestPageChange = (targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= totalPages) return;
+    setNextPageIndex(targetIndex);
   };
+
+  const completeFlip = (finishedIdx: number) => {
+    if (flipTimeoutRef.current) {
+      clearTimeout(flipTimeoutRef.current);
+      flipTimeoutRef.current = null;
+    }
+    setCurrentPageIndex(finishedIdx);
+    setFlippingState(null);
+  };
+
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.target !== e.currentTarget) return;
+    if (flippingStateRef.current) {
+      completeFlip(flippingStateRef.current.toIndex);
+    }
+  };
+
+  // Animation scheduler:
+  // While animation is playing, nothing happens.
+  // When no animation is playing, automatically schedule a new animation if nextPageIndex !== currentPageIndex.
+  useEffect(() => {
+    if (!flippingState && nextPageIndex !== currentPageIndex) {
+      if (nextPageIndex < 0 || nextPageIndex >= totalPages) return;
+      const direction = nextPageIndex > currentPageIndex ? "forward" : "backward";
+
+      setFlippingState({
+        fromIndex: currentPageIndex,
+        toIndex: nextPageIndex,
+        direction,
+      });
+
+      // Fallback safety timeout in case onAnimationEnd doesn't fire
+      flipTimeoutRef.current = window.setTimeout(() => {
+        completeFlip(nextPageIndex);
+      }, 660);
+    }
+  }, [flippingState, nextPageIndex, currentPageIndex, totalPages]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (flipTimeoutRef.current) {
+        clearTimeout(flipTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Auto-switch page when opened or when activeStakeholderId changes
   useEffect(() => {
@@ -168,7 +193,12 @@ export default function StakeholderDossier({
             st.name.toLowerCase().includes(activeStakeholderId.toLowerCase())
         );
         if (foundIdx !== -1) {
-          setCurrentPageIndex(foundIdx);
+          if (justOpened) {
+            setCurrentPageIndex(foundIdx);
+            setNextPageIndex(foundIdx);
+          } else if (activeStChanged) {
+            requestPageChange(foundIdx);
+          }
         }
       }
     }
@@ -190,15 +220,15 @@ export default function StakeholderDossier({
           const targetIdx = effectiveDossierData.findIndex(
             (s) => s.stakeholder_id === newSt.stakeholder_id || s.name === newSt.name
           );
-          if (targetIdx !== -1 && targetIdx !== currentPageIndex) {
-            triggerPageFlip(targetIdx);
+          if (targetIdx !== -1) {
+            requestPageChange(targetIdx);
           }
           break;
         }
       }
     }
     prevDossierRef.current = dossierData;
-  }, [dossierData, effectiveDossierData, currentPageIndex]);
+  }, [dossierData, effectiveDossierData]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
@@ -326,11 +356,6 @@ export default function StakeholderDossier({
                         >
                           <span>{catMeta.icon} {catMeta.label}</span>
                         </div>
-                        {isVerified && (
-                          <span className={styles.verifiedBadge}>
-                            ✓ Verified
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -391,14 +416,16 @@ export default function StakeholderDossier({
       // Forward flip: target page rests underneath, current page flips left off the stack
       basePageEntry = effectiveDossierData[flippingState.toIndex];
       flippingPageEntry = effectiveDossierData[flippingState.fromIndex];
-      flippingAnimClass = flippingState.isAnimating ? styles.flipForwardEnd : styles.flipForwardStart;
+      flippingAnimClass = styles.flipForward;
     } else {
       // Backward flip: current page rests underneath, target page flips right back onto the stack
       basePageEntry = effectiveDossierData[flippingState.fromIndex];
       flippingPageEntry = effectiveDossierData[flippingState.toIndex];
-      flippingAnimClass = flippingState.isAnimating ? styles.flipBackwardEnd : styles.flipBackwardStart;
+      flippingAnimClass = styles.flipBackward;
     }
   }
+
+  const activeDisplayIndex = nextPageIndex;
 
   const windowContent = (
     <div
@@ -406,18 +433,18 @@ export default function StakeholderDossier({
       style={
         isEmbedded
           ? {
-              position: "relative",
-              top: "0px",
-              left: "0px",
-              width: "100%",
-              height: "100%",
-              maxWidth: "100%",
-              maxHeight: "100%",
-            }
+            position: "relative",
+            top: "0px",
+            left: "0px",
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }
           : {
-              top: `${Math.max(10, position.y)}px`,
-              left: `${Math.max(10, position.x)}px`,
-            }
+            top: `${Math.max(10, position.y)}px`,
+            left: `${Math.max(10, position.x)}px`,
+          }
       }
     >
       {/* Header Drag Handle */}
@@ -438,9 +465,8 @@ export default function StakeholderDossier({
           {effectiveDossierData.map((st, idx) => (
             <button
               key={st.stakeholder_id || idx}
-              className={`${styles.tabButton} ${idx === (flippingState ? flippingState.toIndex : currentPageIndex) ? styles.activeTab : ""
-                }`}
-              onClick={() => triggerPageFlip(idx)}
+              className={`${styles.tabButton} ${idx === activeDisplayIndex ? styles.activeTab : ""}`}
+              onClick={() => requestPageChange(idx)}
             >
               {st.name}
             </button>
@@ -466,7 +492,11 @@ export default function StakeholderDossier({
 
           {/* Flipping Top Page Layer (Rendered only when turning) */}
           {flippingState && flippingPageEntry && (
-            <div className={`${styles.pageFlipping} ${flippingAnimClass}`}>
+            <div
+              key={`${flippingState.fromIndex}-${flippingState.toIndex}-${flippingState.direction}`}
+              className={`${styles.pageFlipping} ${flippingAnimClass}`}
+              onAnimationEnd={handleAnimationEnd}
+            >
               {renderPageContent(flippingPageEntry)}
             </div>
           )}
@@ -477,18 +507,18 @@ export default function StakeholderDossier({
       <div className={styles.pageFooter}>
         <button
           className={styles.navButton}
-          disabled={currentPageIndex <= 0}
-          onClick={() => triggerPageFlip(currentPageIndex - 1)}
+          disabled={activeDisplayIndex <= 0}
+          onClick={() => requestPageChange(activeDisplayIndex - 1)}
         >
           ◀ Turn Page
         </button>
         <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? (flippingState ? flippingState.toIndex + 1 : currentPageIndex + 1) : 0} of {totalPages} — Stakeholder Dossier
+          📖 Page {totalPages > 0 ? activeDisplayIndex + 1 : 0} of {totalPages} — Stakeholder Dossier
         </span>
         <button
           className={styles.navButton}
-          disabled={currentPageIndex >= totalPages - 1}
-          onClick={() => triggerPageFlip(currentPageIndex + 1)}
+          disabled={activeDisplayIndex >= totalPages - 1}
+          onClick={() => requestPageChange(activeDisplayIndex + 1)}
         >
           Next Page ▶
         </button>
