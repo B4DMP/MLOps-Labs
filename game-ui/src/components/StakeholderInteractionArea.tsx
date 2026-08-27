@@ -113,7 +113,10 @@ export default function StakeholderInteractionArea({
                 const isUser = !item.id || item.id === "user";
                 const st = isUser
                   ? null
-                  : stakeholders[item.id];
+                  : (stakeholders[item.id] || Object.values(stakeholders).find((s: any) => s.id === item.id || s.name === item.id));
+
+                const senderName = isUser ? "Me" : (st ? st.name : (item.id || "Stakeholder"));
+                const avatarColor = (st && st.stakeholder_color ? st.stakeholder_color : "#888888").replace("#", "");
 
                 return (
                   <React.Fragment key={index}>
@@ -123,19 +126,18 @@ export default function StakeholderInteractionArea({
                       model={{
                         message: item.message,
                         sentTime: "just now",
-                        sender: isUser || !st ? "Me" : st.name,
+                        sender: senderName,
                         direction: isUser ? "outgoing" : "incoming",
                         position: "single",
                       }}
-                      avatarSpacer={isUser || !st ? false : true}
+                      avatarSpacer={isUser ? false : true}
                     >
-                      {!isUser && st && (
+                      {!isUser && (
                         <Avatar
-                          name={st.name}
-                          src={`https://ui-avatars.com/api/?name=${st.name.replace(
-                            " ",
-                            "+",
-                          )}&background=${st.stakeholder_color.slice(1)}`}
+                          name={senderName}
+                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            senderName,
+                          )}&background=${avatarColor}`}
                           status="available"
                         />
                       )}

@@ -1,21 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
-import PhaseOverview from "./PhaseOverview";
-import MetricTab from "./MetricTab";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
-import type { ActionCard } from "../types/ActionCard";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
   currentPhase?: number;
   currentChallenge?: number;
   showMetricValueChanges?: boolean;
-  last_ac?: ActionCard;
+  last_ac?: any;
   onTagArtifact?: (stakeholderId: string) => void;
   isDossierOpen?: boolean;
   setIsDossierOpen?: (open: boolean) => void;
-  dossierData?: StakeholderDossierEntry[];
+  dossierData?: any[];
   activeStakeholderId?: string;
 }
 
@@ -64,13 +60,7 @@ export default function OfflineIntelGathering({
   onContinue,
   currentPhase = 0,
   currentChallenge = 0,
-  showMetricValueChanges = false,
-  last_ac,
   onTagArtifact,
-  isDossierOpen = false,
-  setIsDossierOpen,
-  dossierData = [],
-  activeStakeholderId,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);

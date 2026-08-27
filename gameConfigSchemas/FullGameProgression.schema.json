@@ -7,7 +7,12 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "description", "phase_introduction"],
+        "required": [
+          "id",
+          "name",
+          "description",
+          "phase_introduction"
+        ],
         "properties": {
           "id": {
             "type": "integer",
@@ -32,7 +37,15 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "phase_id", "name", "description", "roundIntroduction", "metric_changes", "stakeholders"],
+        "required": [
+          "id",
+          "phase_id",
+          "name",
+          "description",
+          "roundIntroduction",
+          "metric_changes",
+          "stakeholders"
+        ],
         "properties": {
           "id": {
             "type": "integer",
@@ -58,26 +71,49 @@
             "type": "object",
             "title": "Metric Changes Matrix"
           },
+          "attention_tokens": {
+            "type": "integer",
+            "title": "Attention Tokens",
+            "minimum": 0,
+            "description": "Number of attention tokens granted to the player for this challenge"
+          },
           "stakeholders": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["stakeholder_id", "power", "interest"],
+              "required": [
+                "stakeholder_id",
+                "power",
+                "interest"
+              ],
               "properties": {
                 "stakeholder_id": {
                   "type": "string",
                   "title": "Stakeholder ID",
-                  "enum": ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"]
+                  "enum": [
+                    "data_dave",
+                    "model_monica",
+                    "requirements_reuben",
+                    "efficiency_emilia",
+                    "automation_alex",
+                    "reliability_ruth"
+                  ]
                 },
                 "power": {
                   "type": "string",
                   "title": "Power Level",
-                  "enum": ["high", "low"]
+                  "enum": [
+                    "high",
+                    "low"
+                  ]
                 },
                 "interest": {
                   "type": "string",
                   "title": "Interest Level",
-                  "enum": ["high", "low"]
+                  "enum": [
+                    "high",
+                    "low"
+                  ]
                 }
               }
             }
@@ -89,10 +125,19 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["description", "image"],
+        "required": [
+          "description",
+          "image"
+        ],
         "properties": {
-          "description": { "type": "string", "title": "Card Description" },
-          "image": { "type": "string", "title": "Image Path" }
+          "description": {
+            "type": "string",
+            "title": "Card Description"
+          },
+          "image": {
+            "type": "string",
+            "title": "Image Path"
+          }
         }
       }
     }

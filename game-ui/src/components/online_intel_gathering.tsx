@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
-import type { EngagementCardConfig } from "../types/EngagementCard";
+import type { EngagementCard } from "../types/EngagementCard";
 import StakeholderList from "./StakeholderList";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
@@ -28,6 +28,15 @@ interface OnlineIntelGatheringProps {
   activeStakeholderId?: string;
   intelItems?: IntelItem[];
   onUpdateIntelItems?: (items: IntelItem[]) => void;
+  attentionTokens?: number;
+  setAttentionTokens?: React.Dispatch<React.SetStateAction<number>>;
+  playedCardIdsInPhase?: string[];
+  setPlayedCardIdsInPhase?: React.Dispatch<React.SetStateAction<string[]>>;
+  cardTargetedStakeholdersMap?: Record<string, string[]>;
+  setCardTargetedStakeholdersMap?: React.Dispatch<React.SetStateAction<Record<string, string[]>>>;
+  chatMsgs?: ChatMsg[];
+  setChatMsgs?: React.Dispatch<React.SetStateAction<ChatMsg[]>>;
+  engagementCards?: EngagementCard[];
 }
 
 export interface IntelItem {
@@ -48,71 +57,10 @@ export interface IntelVerificationResultModalData {
   stakeholderName: string;
 }
 
-const defaultEngagementCards: EngagementCardConfig[] = [
-  {
-    id: "eng_0",
-    title: "Verify Intel Item",
-    icon: "ph:seal-check-bold",
-    token_cost: 5,
-    description: "Choose an unverified intel item and directly verify it.",
-    stakeholder_selection_amount: 0,
-    target_type: "intel",
-    response_snippet: "Intel verified successfully.",
-    intel_reveal_count: 0,
-    allowed_requirement_types: [],
-  },
-  {
-    id: "eng_1",
-    title: "1-on-1 Deep Dive",
-    icon: "ph:user-focus-bold",
-    token_cost: 4,
-    description: "Schedule a 1-on-1 meeting to uncover detailed information.",
-    stakeholder_selection_amount: 1,
-    target_type: "stakeholder",
-    response_snippet: "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
-    intel_reveal_count: 2,
-    allowed_requirement_types: [],
-  },
-  {
-    id: "eng_2",
-    title: "Probe Requirements",
-    icon: "ph:magnifying-glass-bold",
-    token_cost: 3,
-    description: "Ask questions regarding stakeholder's requirements and constraints.",
-    stakeholder_selection_amount: 2,
-    target_type: "stakeholder",
-    response_snippet: "Probed requirements with selected stakeholders.",
-    intel_reveal_count: 1,
-    allowed_requirement_types: ["hard_constraint", "requirement"],
-  },
-  {
-    id: "eng_3",
-    title: "Team Sync-up",
-    icon: "ph:users-bold",
-    token_cost: 2,
-    description: "Inquire about the team's perspective on the project.",
-    stakeholder_selection_amount: -1,
-    target_type: "stakeholder",
-    response_snippet: "Synced up with all team members to align perspectives.",
-    max_plays_per_phase: 1,
-    intel_reveal_count: 1,
-    allowed_requirement_types: [],
-  },
-  {
-    id: "eng_4",
-    title: "Ask Generic Question",
-    icon: "ph:chat-teardrop-text-bold",
-    token_cost: 1,
-    description: "Lightweight query to gauge general sentiment and open preferences.",
-    stakeholder_selection_amount: 1,
-    target_type: "stakeholder",
-    response_snippet: "Gauged general sentiment and high-level priorities.",
-    intel_reveal_count: 1,
-    allowed_requirement_types: ["personal_friction", "negotiable_preference"],
-  },
-];
+
 
 export default function OnlineIntelGathering({
+  onContinue,
   currentPhase = 0,
   currentChallenge = 0,
   showMetricValueChanges = false,
@@ -125,15 +73,27 @@ export default function OnlineIntelGathering({
   activeStakeholderId,
   intelItems = [],
   onUpdateIntelItems,
+  attentionTokens: propsAttentionTokens,
+  setAttentionTokens: propsSetAttentionTokens,
+  playedCardIdsInPhase: propsPlayedCardIdsInPhase,
+  setPlayedCardIdsInPhase: propsSetPlayedCardIdsInPhase,
+  cardTargetedStakeholdersMap: propsCardTargetedStakeholdersMap,
+  setCardTargetedStakeholdersMap: propsSetCardTargetedStakeholdersMap,
+  chatMsgs: propsChatMsgs,
+  setChatMsgs: propsSetChatMsgs,
+  engagementCards: propsEngagementCards,
 }: OnlineIntelGatheringProps) {
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = stakeholderCtx?.stakeholders || {};
   const metricsCtx = useContext(MetricsContext);
   const metrics = metricsCtx?.metrics || {};
 
-  // Attention Tokens state
-  const [attentionTokens, setAttentionTokens] = useState(5);
-  const maxAttentionTokens = 8;
+  const engagementCards = propsEngagementCards || [];
+
+  // Attention Tokens state (controlled or local fallback)
+  const [localAttentionTokens, setLocalAttentionTokens] = useState(8);
+  const attentionTokens = propsAttentionTokens !== undefined ? propsAttentionTokens : localAttentionTokens;
+  const setAttentionTokens = propsSetAttentionTokens || setLocalAttentionTokens;
 
   // Active Stakeholder & Speech Bubble
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("st_security");
@@ -143,8 +103,10 @@ export default function OnlineIntelGathering({
     st_product: "Budget constraints are tight, so compute costs need optimization.",
   });
 
-  // Conversation History Chat Messages
-  const [chatMsgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  // Conversation History Chat Messages 
+  const [localChatMsgs, setLocalChatMsgs] = useState<ChatMsg[]>([]);
+  const chatMsgs = propsChatMsgs !== undefined ? propsChatMsgs : localChatMsgs;
+  const setChatMsgs = propsSetChatMsgs || setLocalChatMsgs;
 
   // Pitch Overlay Modal & Intel Selection State
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
@@ -153,12 +115,19 @@ export default function OnlineIntelGathering({
   const [pitchedCardTitle, setPitchedCardTitle] = useState<string | null>(null);
 
   // Active Playing Engagement Card Modal State
-  const [playingCard, setPlayingCard] = useState<EngagementCardConfig | null>(null);
+  const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
   const [isClosingCardModal, setIsClosingCardModal] = useState(false);
   const [selectedTargetStakeholderIds, setSelectedTargetStakeholderIds] = useState<string[]>([]);
   const [selectedTargetIntelId, setSelectedTargetIntelId] = useState<string | null>(null);
-  const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
-  const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
+
+  const [localPlayedCardIdsInPhase, setLocalPlayedCardIdsInPhase] = useState<string[]>([]);
+  const playedCardIdsInPhase = propsPlayedCardIdsInPhase !== undefined ? propsPlayedCardIdsInPhase : localPlayedCardIdsInPhase;
+  const setPlayedCardIdsInPhase = propsSetPlayedCardIdsInPhase || setLocalPlayedCardIdsInPhase;
+
+  const [localCardTargetedStakeholdersMap, setLocalCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
+  const cardTargetedStakeholdersMap = propsCardTargetedStakeholdersMap !== undefined ? propsCardTargetedStakeholdersMap : localCardTargetedStakeholdersMap;
+  const setCardTargetedStakeholdersMap = propsSetCardTargetedStakeholdersMap || setLocalCardTargetedStakeholdersMap;
+
   const [isDraggingCard, setIsDraggingCard] = useState(false);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const { emit, subscribe } = useGameWebSocket();
@@ -219,6 +188,13 @@ export default function OnlineIntelGathering({
       setIsWaitingForResponse(false);
       if (!payload) return;
 
+      if (payload.played_card_ids) {
+        setPlayedCardIdsInPhase(payload.played_card_ids);
+      }
+      if (payload.card_targets) {
+        setCardTargetedStakeholdersMap(payload.card_targets);
+      }
+
       if (payload.dossier && onUpdateIntelItems) {
         const directIntelItems: IntelItem[] = (payload.dossier || []).flatMap((entry: any) =>
           (entry.intel_items || []).map((intel: any) => ({
@@ -233,14 +209,24 @@ export default function OnlineIntelGathering({
 
     const unsubComplete = subscribe("intel:engagement_complete", handleEngagementFinished);
     const unsubResponse = subscribe("intel:engagement_response", handleEngagementFinished);
+    const unsubDossier = subscribe("intel:dossier_data", (payload: any) => {
+      if (!payload) return;
+      if (payload.played_card_ids) {
+        setPlayedCardIdsInPhase(payload.played_card_ids);
+      }
+      if (payload.card_targets) {
+        setCardTargetedStakeholdersMap(payload.card_targets);
+      }
+    });
 
     return () => {
       unsubscribe();
       unsubMsgReceived();
       unsubComplete();
       unsubResponse();
+      unsubDossier();
     };
-  }, [subscribe, onUpdateIntelItems]);
+  }, [subscribe, onUpdateIntelItems, setPlayedCardIdsInPhase, setCardTargetedStakeholdersMap]);
 
   const handleCloseCardModal = () => {
     setIsClosingCardModal(true);
@@ -292,7 +278,7 @@ export default function OnlineIntelGathering({
     return true;
   };
 
-  const handleSelectEngagementCard = (card: EngagementCardConfig) => {
+  const handleSelectEngagementCard = (card: EngagementCard) => {
     const isSingleUseExhausted =
       (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
       playedCardIdsInPhase.includes(card.id);
@@ -301,7 +287,8 @@ export default function OnlineIntelGathering({
 
     // Rule: eng_3 (stakeholder_selection_amount == -1) auto-selects all stakeholders without a modal screen!
     if (card.stakeholder_selection_amount === -1) {
-      setAttentionTokens((prev) => prev - card.token_cost);
+      const nextTokens = attentionTokens - card.token_cost;
+      setAttentionTokens(nextTokens);
       setPlayedCardIdsInPhase((prev) => [...prev, card.id]);
       setIsWaitingForResponse(true);
 
@@ -313,6 +300,7 @@ export default function OnlineIntelGathering({
         challenge_id: currentChallenge,
         card_id: card.id,
         stakeholder_ids: activeIds,
+        attention_tokens: nextTokens,
       });
       return;
     }
@@ -350,13 +338,15 @@ export default function OnlineIntelGathering({
       const targetIntel = intelItems.find((item) => item.id === selectedTargetIntelId);
       if (!targetIntel) return;
 
-      setAttentionTokens((prev) => prev - playingCard.token_cost);
+      const nextTokens = attentionTokens - playingCard.token_cost;
+      setAttentionTokens(nextTokens);
 
       // Emit WebSocket verification request
       emit("intel:verify_item", {
         phase_id: currentPhase,
         challenge_id: currentChallenge,
         intel_item_id: targetIntel.requirement_id || targetIntel.id,
+        attention_tokens: nextTokens,
       });
 
       setChatMsgs((prev) => [
@@ -376,7 +366,8 @@ export default function OnlineIntelGathering({
       const requiredAmount = playingCard.stakeholder_selection_amount;
       if (selectedTargetStakeholderIds.length !== requiredAmount) return;
 
-      setAttentionTokens((prev) => prev - playingCard.token_cost);
+      const nextTokens = attentionTokens - playingCard.token_cost;
+      setAttentionTokens(nextTokens);
       setIsWaitingForResponse(true);
 
       emit("intel:play_engagement_card", {
@@ -384,6 +375,7 @@ export default function OnlineIntelGathering({
         challenge_id: currentChallenge,
         card_id: playingCard.id,
         stakeholder_ids: selectedTargetStakeholderIds,
+        attention_tokens: nextTokens,
       });
 
       if (selectedTargetStakeholderIds.length > 0) {
@@ -439,6 +431,9 @@ export default function OnlineIntelGathering({
       .join(" + ");
     setPitchedCardTitle(`Action Proposal: ${selectedTitles}`);
     setIsPitchModalOpen(false);
+    if (onContinue) {
+      onContinue();
+    }
   };
 
   const handleDropEngagementCard = (e: React.DragEvent) => {
@@ -446,7 +441,7 @@ export default function OnlineIntelGathering({
     const cardId = e.dataTransfer.getData("engagementCardId") || e.dataTransfer.getData("cardId");
     if (!cardId) return;
 
-    const cardToPlay = defaultEngagementCards.find((c) => c.id === cardId);
+    const cardToPlay = engagementCards.find((c) => c.id === cardId);
     if (cardToPlay) {
       handleSelectEngagementCard(cardToPlay);
     }
@@ -599,8 +594,7 @@ export default function OnlineIntelGathering({
             {/* Dedicated Engagement Cards Component (OUTSIDE the drop zone) */}
             <EngagementCards
               attentionTokens={attentionTokens}
-              maxAttentionTokens={maxAttentionTokens}
-              cards={defaultEngagementCards}
+              cards={engagementCards}
               playedCardIds={playedCardIdsInPhase}
               onSelectCard={handleSelectEngagementCard}
               onDragCardStart={() => setIsDraggingCard(true)}

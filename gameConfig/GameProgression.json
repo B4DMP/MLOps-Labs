@@ -60,7 +60,8 @@
           "power": "high",
           "interest": "high"
         }
-      ]
+      ],
+      "attention_tokens": 8
     },
     {
       "id": 1,
@@ -96,7 +97,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "attention_tokens": 8
     },
     {
       "id": 2,
@@ -132,7 +134,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "attention_tokens": 8
     },
     {
       "id": 3,
@@ -168,7 +171,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "attention_tokens": 8
     },
     {
       "id": 4,
@@ -204,7 +208,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "attention_tokens": 8
     },
     {
       "id": 5,
@@ -240,7 +245,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "attention_tokens": 8
     }
   ],
   "ActionCardImages": [

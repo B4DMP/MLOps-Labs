@@ -51,7 +51,9 @@ class GameSession(Base):
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
-    messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    pitch_debate_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    online_intel_gathering_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    attention_tokens: Mapped[int] = mapped_column(Integer, default=8, nullable=True)
 
 
 class IntelItem(Base):

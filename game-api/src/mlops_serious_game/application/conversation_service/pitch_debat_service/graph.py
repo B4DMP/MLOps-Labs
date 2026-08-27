@@ -3,13 +3,13 @@ from functools import lru_cache
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import tools_condition
 
-from mlops_serious_game.application.conversation_service.pitch_debat_service.edges import (
+from .edges import (
     should_summarize_conversation,
     has_more_stakeholders,
     should_generate_action_card,
     passed_anticheat
 )
-from mlops_serious_game.application.conversation_service.pitch_debat_service.nodes import (
+from .nodes import (
     conversation_node,
     summarize_conversation_node,
     retriever_node,
@@ -21,7 +21,7 @@ from mlops_serious_game.application.conversation_service.pitch_debat_service.nod
     send_message_connector_node,
     anticheat_node
 )
-from mlops_serious_game.application.conversation_service.pitch_debat_service.state import PitchDebateState
+from .state import PitchDebateState
 
 
 @lru_cache(maxsize=1)

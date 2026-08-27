@@ -1,81 +1,21 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./EngagementCards.module.css";
-import type { EngagementCardConfig } from "../types/EngagementCard";
+import type { EngagementCard } from "../types/EngagementCard";
 
 interface EngagementCardsProps {
   attentionTokens: number;
-  maxAttentionTokens: number;
-  cards?: EngagementCardConfig[];
+  cards?: EngagementCard[];
   playedCardIds?: string[];
   onSelectPrompt?: (prompt: string) => void;
-  onSelectCard?: (card: EngagementCardConfig) => void;
+  onSelectCard?: (card: EngagementCard) => void;
   onDragCardStart?: () => void;
   onDragCardEnd?: () => void;
   isEnabled?: boolean;
 }
 
-const defaultCards: EngagementCardConfig[] = [
-  {
-    id: "eng_0",
-    title: "Verify Intel Item",
-    icon: "ph:seal-check-bold",
-    token_cost: 5,
-    description: "Choose an unverified intel item and directly verify it.",
-    stakeholder_selection_amount: 0,
-    target_type: "intel",
-    response_snippet: "Intel verified successfully.",
-    max_plays_per_phase: -1,
-  },
-  {
-    id: "eng_1",
-    title: "1-on-1 Deep Dive",
-    icon: "ph:user-focus-bold",
-    token_cost: 4,
-    description: "Schedule a 1-on-1 meeting to uncover detailed information.",
-    stakeholder_selection_amount: 1,
-    target_type: "stakeholder",
-    response_snippet: "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
-    max_plays_per_phase: -1,
-  },
-  {
-    id: "eng_2",
-    title: "Probe Requirements",
-    icon: "ph:magnifying-glass-bold",
-    token_cost: 3,
-    description: "Ask questions regarding stakeholder's requirements and constraints.",
-    stakeholder_selection_amount: 2,
-    target_type: "stakeholder",
-    response_snippet: "Probed requirements with selected stakeholders.",
-    max_plays_per_phase: -1,
-  },
-  {
-    id: "eng_3",
-    title: "Team Sync-up",
-    icon: "ph:users-bold",
-    token_cost: 2,
-    description: "Inquire about the team's perspective on the project.",
-    stakeholder_selection_amount: -1,
-    target_type: "stakeholder",
-    response_snippet: "Synced up with all team members to align perspectives.",
-    max_plays_per_phase: 1,
-  },
-  {
-    id: "eng_4",
-    title: "Ask Generic Question",
-    icon: "ph:chat-teardrop-text-bold",
-    token_cost: 1,
-    description: "Lightweight query to gauge general sentiment and open preferences.",
-    stakeholder_selection_amount: 1,
-    target_type: "stakeholder",
-    response_snippet: "Gauged general sentiment and high-level priorities.",
-    max_plays_per_phase: -1,
-  },
-];
-
 export default function EngagementCards({
   attentionTokens,
-  maxAttentionTokens,
   cards,
   playedCardIds = [],
   onSelectPrompt,
@@ -84,10 +24,10 @@ export default function EngagementCards({
   onDragCardEnd,
   isEnabled = true,
 }: EngagementCardsProps) {
-  const activeCards: EngagementCardConfig[] = cards && cards.length > 0 ? cards : defaultCards;
+  const activeCards: EngagementCard[] = cards && cards.length > 0 ? cards : [];
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
 
-  const handleCardClick = (card: EngagementCardConfig) => {
+  const handleCardClick = (card: EngagementCard) => {
     const isSingleUseExhausted =
       (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
       playedCardIds.includes(card.id);
@@ -101,7 +41,7 @@ export default function EngagementCards({
     }
   };
 
-  const handleDragStart = (e: React.DragEvent, card: EngagementCardConfig) => {
+  const handleDragStart = (e: React.DragEvent, card: EngagementCard) => {
     const isSingleUseExhausted =
       (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
       playedCardIds.includes(card.id);
@@ -140,7 +80,6 @@ export default function EngagementCards({
         <div className={styles.tokenBadge}>
           <Icon icon="ph:coin-fill" style={{ fontSize: "1rem", color: "var(--token-color)" }} />
           <span>{attentionTokens}</span>
-          <span className="opacity-75 small">/ {maxAttentionTokens}</span>
         </div>
       </div>
 

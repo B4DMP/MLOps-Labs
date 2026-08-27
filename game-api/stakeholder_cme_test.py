@@ -26,7 +26,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
 from mlops_serious_game.config import settings
 from langchain_core.messages import RemoveMessage
-from mlops_serious_game.application.conversation_service.workflow.tools import tools
+from mlops_serious_game.application.conversation_service.pitch_debat_service.tools import tools
 from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.stakeholder import Stakeholder
@@ -34,8 +34,8 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.metric import Metric
 from mlops_serious_game.domain.prompts import __STAKEHOLDER_CHARACTER_CARD, Prompt
-from mlops_serious_game.application.conversation_service.workflow.chains import get_chat_model
-from mlops_serious_game.application.conversation_service.workflow.graph import create_workflow_graph
+from mlops_serious_game.application.conversation_service.pitch_debat_service.chains import get_chat_model
+from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import create_workflow_graph
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END, START, StateGraph,MessagesState
 from enum import Enum
@@ -1270,7 +1270,7 @@ async def stakeholder_cme_test():
     print(f"{BRIGHT_YELLOW}════════════════════════════════════════════════════════════{RESET}\n")
 
     print("Initial Stakeholder Emotional States:")
-    for st_id, ev in stakeholder_emotions.items():
+    for st_id, ev in initial_emotion_values.items():
         try:
             st_obj = StakeholderFactory.get_stakeholder(st_id)
             st_name = st_obj.name

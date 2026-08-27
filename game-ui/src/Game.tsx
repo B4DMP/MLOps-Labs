@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useGameWebSocket } from "./services/websocket/useGameWebSocket";
 import type { ActionCard } from "./types/ActionCard";
+import type { EngagementCard } from "./types/EngagementCard";
 import Questionaire from "./Questionaire";
 import type { Briefing } from "./types/Briefing";
 import type { Question } from "./types/Question";
@@ -70,6 +71,10 @@ function App({ username: _username }: AppProps) {
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
   const [ac_count, setac_count] = useState(-1);
   const [chat_msgs, setChatMsgs] = useState<ChatMsg[]>([]);
+  const [onlineIntelChatMsgs, setOnlineIntelChatMsgs] = useState<ChatMsg[]>([]);
+  const [engagementCards, setEngagementCards] = useState<EngagementCard[]>([]);
+  const [attentionTokens, setAttentionTokens] = useState<number>(8);
+  const [hasPitchDebateStarted, setHasPitchDebateStarted] = useState<boolean>(false);
   const [actionCards, setActionCards] = useState<ActionCard[]>(
     debug
       ? [
@@ -104,6 +109,8 @@ function App({ username: _username }: AppProps) {
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
   const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
+  const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
+  const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
@@ -112,6 +119,8 @@ function App({ username: _username }: AppProps) {
   const currentChallengeRef = useRef<number>(0);
   const isintro5DoneRef = useRef<boolean>(false);
   const isIntro1StartedRef = useRef<boolean>(false);
+  const hasPitchDebateStartedRef = useRef<boolean>(false);
+  const hasReceivedInitialStateRef = useRef<boolean>(false);
 
   useEffect(() => {
     stakeholdersRef.current = stakeholders;
@@ -138,24 +147,32 @@ function App({ username: _username }: AppProps) {
   }, [isIntro1Started]);
 
   useEffect(() => {
+    hasPitchDebateStartedRef.current = hasPitchDebateStarted;
+  }, [hasPitchDebateStarted]);
+
+  useEffect(() => {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
   useEffect(() => {
-    if (progressionIndex === 2 && challengeLoopId === 2) {
-      if (chat_msgs.length === 0) {
+    if (hasReceivedInitialStateRef.current && progressionIndex === 2 && challengeLoopId === 2) {
+      if (!hasPitchDebateStartedRef.current && chat_msgs.length === 0) {
+        setHasPitchDebateStarted(true);
+        hasPitchDebateStartedRef.current = true;
         startRound(challengeTitle);
       }
     }
   }, [progressionIndex, challengeLoopId, challengeTitle, chat_msgs.length]);
 
   const startRound = (cTitle?: string) => {
-    //send intial message
+    //send initial message
     sendJsonMessage({
       type: "chat:send_message",
       message:
         "Welcome to the meeting! Please propose a concrete action or technical strategy that strictly prioritizes your specific professional requirements and interests, even if it disregards other perspectives. Write no more than two sentences.",
       stakeholder_ids: ["st0"],
+      phase_id: currentPhaseRef.current,
+      challenge_id: currentChallengeRef.current,
     });
     setChatMsgs((prevMsgs) => [
       ...prevMsgs,
@@ -196,226 +213,263 @@ function App({ username: _username }: AppProps) {
     // Request initial game configurations ONCE on mount
     emit("game:init");
 
-    const unsubscribe = subscribe("*", (data: any) => {
-      if (data.type === "init" || data.event === "game:init_data") {
-        const rawStakeholders = data["stakeholders"] || {};
-        const rawMetrics = data["metrics"] || {};
-        const enrichedStakeholders = { ...rawStakeholders };
-        Object.keys(enrichedStakeholders).forEach((stId) => {
-          const st = enrichedStakeholders[stId];
-          const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
-          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
-        });
-        setStakeholders(enrichedStakeholders);
-        setMetrics(rawMetrics);
-        setPhases(data["phases"]);
-      } else if (data.progressionIndex !== undefined) {
+    const unsubInit = subscribe("game:init_data", (data: any) => {
+      const rawStakeholders = data["stakeholders"] || {};
+      const rawMetrics = data["metrics"] || {};
+      const enrichedStakeholders = { ...rawStakeholders };
+      Object.keys(enrichedStakeholders).forEach((stId) => {
+        const st = enrichedStakeholders[stId];
+        const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
+        st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
+      });
+      setStakeholders(enrichedStakeholders);
+      setMetrics(rawMetrics);
+      setPhases(data["phases"]);
+    });
+
+    const unsubProgress = subscribe("game:progress_change", (data: any) => {
+      if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
 
-        if (data.progressionIndex === 0) {
-          if (data.type === "questions") {
-            setQuestions(data["questions"]);
-          }
+        if (data.progressionIndex === 0 && data.questions) {
+          setQuestions(data.questions);
+        } else if (data.progressionIndex === 1 && data.content) {
+          setBriefing(data.content);
+        } else if (data.progressionIndex === 3 && data.questions) {
+          setAnswers([]);
+          setQuestions(data.questions);
         }
-
-        if (data.progressionIndex === 1) {
-          if (data.type === "briefing") {
-            setBriefing(data["content"]);
-          }
-        }
-
-        if (data.progressionIndex === 2) {
-          if (data.type === "chat:send_message") {
-            let _ac_id = -1;
-            if (acCountRef.current !== data["action_cards"].length) {
-              setac_count(data["action_cards"].length);
-              _ac_id = data["action_cards"].length - 1;
-            }
-
-            setChatMsgs((prevMsgs) => [
-              ...prevMsgs,
-              ...data.messages.map((msg: any) => ({
-                id: msg.stakeholder_id,
-                message: msg.message,
-                ac_id: _ac_id,
-              })),
-            ]);
-            if (data.action_cards && data.action_cards.length > 0) {
-              const mappedCards = data.action_cards.map((card: any) => {
-                const stakeholder_ids = card.stakeholder_names.map(
-                  (name: string) => {
-                    const st = Object.values(stakeholdersRef.current).find(
-                      (s) => s.name === name,
-                    );
-                    return st ? st.id : "";
-                  },
-                );
-
-                return {
-                  id: card.id,
-                  ac_title: card.title,
-                  ac_descr: card.short_description,
-                  metric_changes: Object.values(metricsRef.current).reduce(
-                    (acc, m) => {
-                      if (card[m.id] !== undefined) {
-                        acc[m.id] = card[m.id];
-                      }
-                      return acc;
-                    },
-                    {} as Record<string, number>,
-                  ),
-                  stakeholder_ids: stakeholder_ids,
-                  ac_image: card.ac_image["image"],
-                };
-              });
-              if (!debug) {
-                setActionCards(mappedCards);
-              } else {
-                setActionCards([
-                  {
-                    ac_title: "test_card",
-                    ac_descr: "test_description",
-                    metric_changes: {
-                      reliability: 1,
-                      data: -5,
-                      requirements: 3,
-                      efficiency: -2,
-                    },
-                    stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
-                    ac_image: "",
-                  },
-                ]);
-              }
-            }
-          } else if (data.type === "state") {
-            setMetrics((prevMetrics) => {
-              const updated = { ...prevMetrics };
-              const metricIds = Object.keys(updated);
-              metricIds.forEach((id, i) => {
-                if (updated[id]) {
-                  updated[id] = {
-                    ...updated[id],
-                    value: data.metric_values[i],
-                  };
-                }
-              });
-              return updated;
-            });
-
-            setChallengeTitle(data["name"]);
-            setChallengeIntro(data["roundIntroduction"]);
-            setChallengeDescription(data["description"]);
-
-            // If we transitioned to a new challenge, clear local state
-            if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
-              setCurrentPhase(data["phase_id"]);
-              setCurrentChallenge(data["challenge_id"]);
-              setChatMsgs([]);
-              setActionCards([]);
-              setac_count(0);
-            }
-
-            setChallengeAmount(data["challenges_amount"]);
-            setChallengeMetricChanges(data["metric_changes"]);
-            if (data.challenge_loop_id !== undefined) {
-              setChallengeLoopId(data.challenge_loop_id);
-            }
-            if (data["challenge_id"] === 0) {
-              if (data["phase_id"] === 0) {
-                if (!isIntro1StartedRef.current) {
-                  isIntro1StartedRef.current = true;
-                  setIsIntro1Started(true);
-                  setTimeout(() => {
-                    const startIntro2 = () => {
-                      setIsPhaseDialogueOpen(true);
-                      setTimeout(() => {
-                        introJs()
-                          .setOptions({
-                            group: "intro2",
-                            exitOnEsc: false,
-                            exitOnOverlayClick: false,
-                          })
-                          .start();
-                      }, 50);
-                    };
-
-                    introJs()
-                      .setOptions({
-                        group: "intro1",
-                        exitOnEsc: false,
-                        exitOnOverlayClick: false,
-                      })
-                      .oncomplete(startIntro2)
-                      .onexit(startIntro2)
-                      .start();
-                  }, 10);
-                }
-              } else {
-                setIsPhaseDialogueOpen(true);
-              }
-            }
-          } else if (data.type === "graph_completed") {
-            setIsChatEnabled(true);
-            if (currentPhaseRef.current === 0 && currentChallengeRef.current === 0 && !isintro5DoneRef.current) {
-              setTimeout(() => {
-                introJs()
-                  .setOptions({
-                    group: "intro5",
-                    exitOnEsc: false,
-                    exitOnOverlayClick: false,
-                  })
-                  .start();
-              }, 100);
-              setIsintro5Done(true);
-            }
-
-            //define message recommendations
-            const allSts = Object.values(stakeholdersRef.current);
-            const activeSts = allSts.filter((st) => {
-              const metric = metricsRef.current[st.metric_id] || Object.values(metricsRef.current).find((m) => m.id === st.metric_id);
-              const metricIntro = metricsRef.current[`${st.metric_id}_intro`] || Object.values(metricsRef.current).find((m) => m.id === `${st.metric_id}_intro`);
-              return (metric && metric.phases[currentPhaseRef.current]) || (metricIntro && metricIntro.phases[currentPhaseRef.current]);
-            });
-            if (activeSts.length !== 0) {
-              const msg_recommendations = [
-                `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, can you agree to this?`,
-                `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, do you have any concerns?`,
-                "Can everybody agree?",
-                "Do we got any other ideas?",
-                "What does the rest of the team think about this?",
-                "Sounds great!",
-                "I am not sure about this.",
-                "Let's try to find a compromise.",
-                "Could you please explain your idea in more detail?",
-              ];
-
-              const res: string[] = [];
-              while (res.length < 3) {
-                const sel_id = getRandomInt(msg_recommendations.length);
-                if (!res.includes(msg_recommendations[sel_id])) {
-                  res.push(msg_recommendations[sel_id]);
-                }
-              }
-              setSelectedMgs(res);
-            }
-
-            if (data.error === true) {
-              setIsInErrorUi(true);
-              setLastError(data.errorMsg);
-            }
-          }
-        }
-
-        if (data.progressionIndex === 3) {
-          if (data.type === "questions") {
-            setAnswers([]);
-            setQuestions(data["questions"]);
-          }
-        }
-      } else if (data.type === "error") {
-        setIsInErrorUi(true);
-        setLastError(data.error_message || data.error);
       }
+    });
+
+    const unsubState = subscribe("game:state_update", (data: any) => {
+      if (data.progressionIndex !== undefined) {
+        setProgressionIndex(data.progressionIndex);
+      }
+
+      setMetrics((prevMetrics) => {
+        const updated = { ...prevMetrics };
+        const metricIds = Object.keys(updated);
+        metricIds.forEach((id, i) => {
+          if (updated[id] && data.metric_values && data.metric_values[i] !== undefined) {
+            updated[id] = {
+              ...updated[id],
+              value: data.metric_values[i],
+            };
+          }
+        });
+        return updated;
+      });
+
+      setChallengeTitle(data["name"]);
+      setChallengeIntro(data["roundIntroduction"]);
+      setChallengeDescription(data["description"]);
+      if (data.engagement_cards) {
+        setEngagementCards(data.engagement_cards);
+      }
+
+      const isFirstLoad = !hasReceivedInitialStateRef.current;
+      hasReceivedInitialStateRef.current = true;
+      const loopId = data.challenge_loop_id !== undefined ? data.challenge_loop_id : challengeLoopId;
+
+      if (isFirstLoad) {
+        setCurrentPhase(data["phase_id"]);
+        setCurrentChallenge(data["challenge_id"]);
+        if (data.pitch_debate_messages && Array.isArray(data.pitch_debate_messages) && data.pitch_debate_messages.length > 0) {
+          setChatMsgs(data.pitch_debate_messages);
+          if (loopId >= 2) {
+            setHasPitchDebateStarted(true);
+            hasPitchDebateStartedRef.current = true;
+          }
+        } else {
+          setChatMsgs([]);
+        }
+        if (data.online_intel_gathering_messages && Array.isArray(data.online_intel_gathering_messages)) {
+          setOnlineIntelChatMsgs(data.online_intel_gathering_messages);
+        } else {
+          setOnlineIntelChatMsgs([]);
+        }
+        setAttentionTokens(data.attention_tokens);
+        if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
+        if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
+      } else if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
+        // If we transitioned to a new challenge (round completed after simulation), reset local state
+        setCurrentPhase(data["phase_id"]);
+        setCurrentChallenge(data["challenge_id"]);
+        setChatMsgs([]);
+        setOnlineIntelChatMsgs([]);
+        setAttentionTokens(data.attention_tokens);
+        setPlayedCardIdsInPhase([]);
+        setCardTargetedStakeholdersMap({});
+        setActionCards([]);
+        setac_count(0);
+        setHasPitchDebateStarted(false);
+        hasPitchDebateStartedRef.current = false;
+      } else {
+        // Same challenge / loading: restore messages and attention tokens if available
+        if (data.pitch_debate_messages && Array.isArray(data.pitch_debate_messages) && data.pitch_debate_messages.length > 0) {
+          setChatMsgs(data.pitch_debate_messages);
+          if (loopId >= 2) {
+            setHasPitchDebateStarted(true);
+            hasPitchDebateStartedRef.current = true;
+          }
+        }
+        if (data.online_intel_gathering_messages && Array.isArray(data.online_intel_gathering_messages)) {
+          setOnlineIntelChatMsgs(data.online_intel_gathering_messages);
+        }
+        if (data.attention_tokens !== undefined) {
+          setAttentionTokens(data.attention_tokens);
+        }
+        if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
+        if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
+      }
+
+      setChallengeAmount(data["challenges_amount"]);
+      setChallengeMetricChanges(data["metric_changes"]);
+      if (data.challenge_loop_id !== undefined) {
+        setChallengeLoopId(data.challenge_loop_id);
+      }
+      if (data["challenge_id"] === 0) {
+        if (data["phase_id"] === 0) {
+          if (!isIntro1StartedRef.current) {
+            isIntro1StartedRef.current = true;
+            setIsIntro1Started(true);
+            setTimeout(() => {
+              const startIntro2 = () => {
+                setIsPhaseDialogueOpen(true);
+                setTimeout(() => {
+                  introJs()
+                    .setOptions({
+                      group: "intro2",
+                      exitOnEsc: false,
+                      exitOnOverlayClick: false,
+                    })
+                    .start();
+                }, 50);
+              };
+
+              introJs()
+                .setOptions({
+                  group: "intro1",
+                  exitOnEsc: false,
+                  exitOnOverlayClick: false,
+                })
+                .oncomplete(startIntro2)
+                .onexit(startIntro2)
+                .start();
+            }, 10);
+          }
+        } else {
+          setIsPhaseDialogueOpen(true);
+        }
+      }
+    });
+
+    const unsubChatReceived = subscribe("chat:message_received", (data: any) => {
+      let _ac_id = -1;
+      if (data["action_cards"] && acCountRef.current !== data["action_cards"].length) {
+        setac_count(data["action_cards"].length);
+        _ac_id = data["action_cards"].length - 1;
+      }
+
+      if (data.messages && Array.isArray(data.messages)) {
+        setChatMsgs((prevMsgs) => [
+          ...prevMsgs,
+          ...data.messages.map((msg: any) => ({
+            id: msg.stakeholder_id,
+            message: msg.message,
+            ac_id: _ac_id,
+          })),
+        ]);
+      }
+      if (data.action_cards && data.action_cards.length > 0) {
+        const mappedCards = data.action_cards.map((card: any) => {
+          const stakeholder_ids = (card.stakeholder_names || []).map(
+            (name: string) => {
+              const st = Object.values(stakeholdersRef.current).find(
+                (s) => s.name === name,
+              );
+              return st ? st.id : "";
+            },
+          );
+
+          return {
+            id: card.id,
+            ac_title: card.title,
+            ac_descr: card.short_description,
+            metric_changes: Object.values(metricsRef.current).reduce(
+              (acc, m) => {
+                if (card[m.id] !== undefined) {
+                  acc[m.id] = card[m.id];
+                }
+                return acc;
+              },
+              {} as Record<string, number>,
+            ),
+            stakeholder_ids: stakeholder_ids,
+            ac_image: card.ac_image ? (typeof card.ac_image === "object" ? card.ac_image.image || card.ac_image["image"] : card.ac_image) : "",
+          };
+        });
+        if (!debug) {
+          setActionCards(mappedCards);
+        }
+      }
+    });
+
+    const unsubChatCompleted = subscribe("chat:graph_completed", (data: any) => {
+      setIsChatEnabled(true);
+      if (currentPhaseRef.current === 0 && currentChallengeRef.current === 0 && !isintro5DoneRef.current) {
+        setTimeout(() => {
+          introJs()
+            .setOptions({
+              group: "intro5",
+              exitOnEsc: false,
+              exitOnOverlayClick: false,
+            })
+            .start();
+        }, 100);
+        setIsintro5Done(true);
+      }
+
+      //define message recommendations
+      const allSts = Object.values(stakeholdersRef.current);
+      const activeSts = allSts.filter((st) => {
+        const metric = metricsRef.current[st.metric_id] || Object.values(metricsRef.current).find((m) => m.id === st.metric_id);
+        const metricIntro = metricsRef.current[`${st.metric_id}_intro`] || Object.values(metricsRef.current).find((m) => m.id === `${st.metric_id}_intro`);
+        return (metric && metric.phases[currentPhaseRef.current]) || (metricIntro && metricIntro.phases[currentPhaseRef.current]);
+      });
+      if (activeSts.length !== 0) {
+        const msg_recommendations = [
+          `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, can you agree to this?`,
+          `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, do you have any concerns?`,
+          "Can everybody agree?",
+          "Do we got any other ideas?",
+          "What does the rest of the team think about this?",
+          "Sounds great!",
+          "I am not sure about this.",
+          "Let's try to find a compromise.",
+          "Could you please explain your idea in more detail?",
+        ];
+
+        const res: string[] = [];
+        while (res.length < 3) {
+          const sel_id = getRandomInt(msg_recommendations.length);
+          if (!res.includes(msg_recommendations[sel_id])) {
+            res.push(msg_recommendations[sel_id]);
+          }
+        }
+        setSelectedMgs(res);
+      }
+
+      if (data && data.error === true) {
+        setIsInErrorUi(true);
+        setLastError(data.errorMsg);
+      }
+    });
+
+    const unsubError = subscribe("system:error", (data: any) => {
+      setIsInErrorUi(true);
+      setLastError(data.message || data.error_message || data.error);
     });
 
     const unsubDossier = subscribe("intel:dossier_data", (payload: any) => {
@@ -442,7 +496,12 @@ function App({ username: _username }: AppProps) {
     });
 
     return () => {
-      unsubscribe();
+      unsubInit();
+      unsubProgress();
+      unsubState();
+      unsubChatReceived();
+      unsubChatCompleted();
+      unsubError();
       unsubDossier();
       unsubTagged();
     };
@@ -518,6 +577,7 @@ function App({ username: _username }: AppProps) {
       metric_values: _metric_values,
       action_card_id: null,
       messages: [],
+      attention_tokens: attentionTokens,
     });
   };
 
@@ -536,6 +596,7 @@ function App({ username: _username }: AppProps) {
       metric_values: _metric_values,
       action_card_id: null,
       messages: [],
+      attention_tokens: attentionTokens,
     });
   };
 
@@ -621,6 +682,8 @@ function App({ username: _username }: AppProps) {
       type: "chat:send_message",
       message: textContent,
       stakeholder_ids: ["st0"],
+      phase_id: currentPhaseRef.current,
+      challenge_id: currentChallengeRef.current,
     });
     setIsChatEnabled(false);
   };
@@ -719,6 +782,15 @@ function App({ username: _username }: AppProps) {
                   dossierData={dossierData}
                   activeStakeholderId={activeStakeholderId}
                   intelItems={intelItems}
+                  attentionTokens={attentionTokens}
+                  setAttentionTokens={setAttentionTokens}
+                  playedCardIdsInPhase={playedCardIdsInPhase}
+                  setPlayedCardIdsInPhase={setPlayedCardIdsInPhase}
+                  cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                  setCardTargetedStakeholdersMap={setCardTargetedStakeholdersMap}
+                  chatMsgs={onlineIntelChatMsgs}
+                  setChatMsgs={setOnlineIntelChatMsgs}
+                  engagementCards={engagementCards}
                   onUpdateIntelItems={(items) => {
                     setIntelItems(items);
                     setDossierData((prevDossier) => {

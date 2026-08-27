@@ -1,7 +1,10 @@
 from fastapi import WebSocket
+from sqlalchemy import select
+from sqlalchemy.orm.attributes import flag_modified
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
+from mlops_serious_game.infrastructure.database import get_session, GameSession
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
 )
@@ -101,12 +104,25 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
+    played_card_ids = []
+    card_targets = {}
+    with get_session() as db_session:
+        stmt = select(GameSession).where(
+            GameSession.user_name == username
+        ).order_by(GameSession.id.desc())
+        existing = db_session.scalars(stmt).first()
+        if existing and isinstance(existing.action_card, dict):
+            played_card_ids = existing.action_card.get("played_card_ids", [])
+            card_targets = existing.action_card.get("card_targets", {})
+
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
     await manager.send_event(
         websocket=websocket,
         event="intel:dossier_data",
         payload={
-            "dossier": dossier_data
+            "dossier": dossier_data,
+            "played_card_ids": played_card_ids,
+            "card_targets": card_targets,
         }
     )
 
@@ -128,6 +144,44 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
 
     result = await handle_intel_verification(curr_challenge, websocket, intel_item_id)
     print(f"[WS Handler] handle_intel_verification result: {result}")
+
+    played_card_ids = []
+    card_targets = {}
+    try:
+        with get_session() as db_session:
+            stmt = select(GameSession).where(
+                GameSession.user_name == username
+            ).order_by(GameSession.id.desc())
+            existing = db_session.scalars(stmt).first()
+            if existing:
+                if payload.get("attention_tokens") is not None:
+                    existing.attention_tokens = payload.get("attention_tokens")
+                if isinstance(existing.action_card, dict):
+                    played_card_ids = existing.action_card.get("played_card_ids", [])
+                    card_targets = existing.action_card.get("card_targets", {})
+                
+                if result.get("status") == "success":
+                    req_id = result.get("requirement_id")
+                    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+                    req = RequirementFactory.get_requirement(req_id)
+                    st_id = req.stakeholder_id if req else "system"
+                    desc = result.get("description", "")
+                    
+                    current_msgs = list(existing.online_intel_gathering_messages or [])
+                    current_msgs.append({
+                        "id": "user",
+                        "message": f"👑 Played Card: Verify Intel Item on \"{desc}\"",
+                        "ac_id": -1
+                    })
+                    current_msgs.append({
+                        "id": st_id,
+                        "message": f"✅ Submitted \"{desc}\" for direct verification.",
+                        "ac_id": -1
+                    })
+                    existing.online_intel_gathering_messages = current_msgs
+                    flag_modified(existing, "online_intel_gathering_messages")
+    except Exception as e:
+        print(f"[IntelHandler DB Error] {e}")
     
     await manager.send_event(
         websocket=websocket,
@@ -140,7 +194,9 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
         websocket=websocket,
         event="intel:dossier_data",
         payload={
-            "dossier": dossier_data
+            "dossier": dossier_data,
+            "played_card_ids": played_card_ids,
+            "card_targets": card_targets,
         }
     )
 
@@ -163,7 +219,39 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
 
     # If stakeholder_ids is empty or card targets all stakeholders (e.g. eng_3 team sync)
     card = EngagementCardFactory.get_card(card_id)
-    if card.stakeholder_selection_amount == -1 or not stakeholder_ids:
+    played_cards = []
+    card_targets = {}
+    if card:
+        try:
+            with get_session() as db_session:
+                stmt = select(GameSession).where(
+                    GameSession.user_name == username
+                ).order_by(GameSession.id.desc())
+                existing = db_session.scalars(stmt).first()
+                if existing:
+                    if payload.get("attention_tokens") is not None:
+                        existing.attention_tokens = payload.get("attention_tokens")
+                    current_ac = dict(existing.action_card or {})
+                    played_cards = list(current_ac.get("played_card_ids", []))
+                    if card.max_plays_per_phase == 1 or card.stakeholder_selection_amount == -1:
+                        if card_id not in played_cards:
+                            played_cards.append(card_id)
+                    current_ac["played_card_ids"] = played_cards
+                    
+                    card_targets = dict(current_ac.get("card_targets", {}))
+                    current_targets = list(card_targets.get(card_id, []))
+                    for s_id in stakeholder_ids:
+                        if s_id not in current_targets:
+                            current_targets.append(s_id)
+                    card_targets[card_id] = current_targets
+                    current_ac["card_targets"] = card_targets
+                    
+                    existing.action_card = current_ac
+                    flag_modified(existing, "action_card")
+        except Exception as e:
+            print(f"[IntelHandler DB Error] {e}")
+
+    if card and (card.stakeholder_selection_amount == -1 or not stakeholder_ids):
         active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id)
         if not active_st_ids:
             active_st_ids = StakeholderFactory.get_available_stakeholders()
@@ -189,6 +277,31 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         callback=callback,
     )
 
+    try:
+        with get_session() as db_session:
+            stmt = select(GameSession).where(
+                GameSession.user_name == username
+            ).order_by(GameSession.id.desc())
+            existing = db_session.scalars(stmt).first()
+            if existing:
+                current_msgs = list(existing.online_intel_gathering_messages or [])
+                current_msgs.append({
+                    "id": "user",
+                    "message": player_msg,
+                    "ac_id": -1
+                })
+                for resp in stakeholder_responses:
+                    current_msgs.append({
+                        "id": resp.get("stakeholder_id", ""),
+                        "message": resp.get("message", ""),
+                        "ac_id": -1,
+                        "revealed_intel": resp.get("revealed_intel_items", [])
+                    })
+                existing.online_intel_gathering_messages = current_msgs
+                flag_modified(existing, "online_intel_gathering_messages")
+    except Exception as e:
+        print(f"[IntelHandler DB Error in handle_play_engagement_card] {e}")
+
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
 
     await manager.send_event(
@@ -199,6 +312,8 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
             "player_message": player_msg,
             "stakeholder_responses": stakeholder_responses,
             "dossier": dossier_data,
+            "played_card_ids": played_cards,
+            "card_targets": card_targets,
         }
     )
 
@@ -206,7 +321,9 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         websocket=websocket,
         event="intel:dossier_data",
         payload={
-            "dossier": dossier_data
+            "dossier": dossier_data,
+            "played_card_ids": played_cards,
+            "card_targets": card_targets,
         }
     )
 

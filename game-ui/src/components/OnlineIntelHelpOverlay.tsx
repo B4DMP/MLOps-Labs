@@ -82,7 +82,6 @@ export default function OnlineIntelHelpOverlay({
   const challenge_desc_cutted = parseChallengeDescription(challengeDescription);
   const challenge_title = challengeTitle;
   const challenge_id = currentChallenge;
-  const challenge_amount = challengeAmount;
   const challenge_intro = challengeIntro;
 
   return (

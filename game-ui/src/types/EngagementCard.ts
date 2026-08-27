@@ -1,4 +1,4 @@
-export interface EngagementCardConfig {
+export interface EngagementCard {
   id: string;
   title: string;
   icon: string;
@@ -13,7 +13,7 @@ export interface EngagementCardConfig {
 }
 
 export interface PlayedEngagementCardState {
-  card: EngagementCardConfig;
+  card: EngagementCard;
   selectedStakeholderIds: string[];
   selectedIntelId?: string;
 }

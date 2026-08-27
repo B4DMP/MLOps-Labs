@@ -1,31 +1,25 @@
-import React from "react";
-import { MetricsContext } from "./MetricProvider";
 import MetricTab from "./MetricTab";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
-import { StakeholderContext } from "./StakeholderProvider";
 import CardArea from "./CardArea";
 import type { ActionCard } from "../types/ActionCard";
-import { PhasesContext } from "./PhaseProvider";
 import PhaseOverview from "./PhaseOverview";
-import PrePhaseDialog from "./PrePhaseDialog";
 import AcRevealPanel from "./AcRevealPanel";
-import ErrorDialog from "./ErrorDialog";
 import styles from "../Game.module.css";
 
 interface PitchDebateProps {
   currentPhase: number;
-  setCurrentPhase: React.Dispatch<React.SetStateAction<number>>;
-  phases: any[];
-  setPhases: React.Dispatch<React.SetStateAction<any[]>>;
-  metrics: any;
-  setMetrics: React.Dispatch<React.SetStateAction<any>>;
-  stakeholders: any;
-  setStakeholders: React.Dispatch<React.SetStateAction<any>>;
-  lastError: string;
-  isInErrorUi: boolean;
-  setIsInErrorUi: (open: boolean) => void;
-  isPhaseDialogueOpen: boolean;
-  setIsPhaseDialogueOpen: (open: boolean) => void;
+  setCurrentPhase?: React.Dispatch<React.SetStateAction<number>>;
+  phases?: any[];
+  setPhases?: React.Dispatch<React.SetStateAction<any[]>>;
+  metrics?: any;
+  setMetrics?: React.Dispatch<React.SetStateAction<any>>;
+  stakeholders?: any;
+  setStakeholders?: React.Dispatch<React.SetStateAction<any>>;
+  lastError?: string;
+  isInErrorUi?: boolean;
+  setIsInErrorUi?: (open: boolean) => void;
+  isPhaseDialogueOpen?: boolean;
+  setIsPhaseDialogueOpen?: (open: boolean) => void;
   challengeTitle: string;
   challengeDescription: string;
   challengeIntro: string;
@@ -41,7 +35,7 @@ interface PitchDebateProps {
   setHoveredCardId: (id: number | null) => void;
   selected_mgs: string[];
   chat_msgs: ChatMsg[];
-  startRound: (title?: string) => void;
+  startRound?: (title?: string) => void;
   playActionCard: (ac: ActionCard) => void;
   getNextChallenge: (ac: ActionCard) => void;
   handleSend: (textContent: string) => void;
@@ -49,18 +43,6 @@ interface PitchDebateProps {
 
 export default function PitchDebate({
   currentPhase,
-  setCurrentPhase,
-  phases,
-  setPhases,
-  metrics,
-  setMetrics,
-  stakeholders,
-  setStakeholders,
-  lastError,
-  isInErrorUi,
-  setIsInErrorUi,
-  isPhaseDialogueOpen,
-  setIsPhaseDialogueOpen,
   challengeTitle,
   challengeDescription,
   challengeIntro,
@@ -76,7 +58,6 @@ export default function PitchDebate({
   setHoveredCardId,
   selected_mgs,
   chat_msgs,
-  startRound,
   playActionCard,
   getNextChallenge,
   handleSend,

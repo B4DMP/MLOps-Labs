@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./IntelArtifactViewer.module.css";
 
 interface IntelArtifactViewerProps {
@@ -79,7 +78,7 @@ export default function IntelArtifactViewer({
           <div className={styles.mailSignature}>
             Regards,
             <br />
-            <div className={styles.sigName}>{name}</div>
+            <div className={styles.sigName}>{name} ({role})</div>
             <div className={styles.sigCompany}>Enterprise AI & Data Operations Division</div>
             <div className={styles.disclaimer}>
               This communication is intended solely for internal enterprise deployment teams. Containment of proprietary infrastructure constraints apply.

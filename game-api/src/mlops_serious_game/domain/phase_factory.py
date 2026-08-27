@@ -94,7 +94,8 @@ class PhaseFactory:
                 description=c["description"],
                 roundIntroduction=c["roundIntroduction"],
                 metric_changes=c["metric_changes"],
-                stakeholders=c_stakeholders
+                stakeholders=c_stakeholders,
+                attention_tokens=c["attention_tokens"],
             )
             all_challenges.append(challenge_obj)
 

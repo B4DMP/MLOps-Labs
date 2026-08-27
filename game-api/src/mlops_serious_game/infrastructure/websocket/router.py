@@ -1,4 +1,5 @@
 
+import asyncio
 import json
 from collections.abc import Awaitable, Callable
 
@@ -107,7 +108,7 @@ async def unified_websocket_endpoint(
                             if "challenge_id" not in payload:
                                 payload["challenge_id"] = curr_challenge.id
                         payload["session_id"] = session_id
-                        await handle_chat_message(websocket, username, payload)
+                        asyncio.create_task(handle_chat_message(websocket, username, payload))
                     else:
                         await handler(websocket, username, payload)
                 else:

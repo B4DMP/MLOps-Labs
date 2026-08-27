@@ -72,6 +72,10 @@ def get_outro_questions() -> list[Any]:
 def get_phases() -> list[Any]:
     return [{"phase_name": p.name, "phase_desc": p.description} for p in PhaseFactory.get_phases()]
 
+def get_engagement_cards() -> list[Any]:
+    from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
+    return [c.model_dump() if hasattr(c, 'model_dump') else c for c in EngagementCardFactory.get_available_cards()]
+
 async def handle_game_init(
     websocket: WebSocket,
     username: str,
@@ -89,9 +93,17 @@ async def handle_game_init(
         }
     )
 
-    # Fetch user progression index from db
     game_progress_index = 0
+    last_gamestate_id = [0, 0, 0]
+    metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
+    saved_pitch_debate_messages = []
+    saved_online_intel_messages = []
+    saved_tokens = None
+    saved_played_card_ids = []
+    saved_card_targets = {}
+
     with get_session() as session:
+        # Fetch user progression index
         results = session.scalars(
             select(GameProgression).where(GameProgression.user_name == username)
         ).all()
@@ -99,18 +111,29 @@ async def handle_game_init(
             if r.game_progress_index > game_progress_index:
                 game_progress_index = r.game_progress_index
 
-    last_gamestate_id = [0, 0, 0]
-    metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
-
-    with get_session() as session:
-        results = session.scalars(
-            select(GameSession).where(GameSession.user_name == username)
-        ).all()
-        for r in results:
-            if r.phase_index > last_gamestate_id[0] or (r.phase_index == last_gamestate_id[0] and r.challenge_index > last_gamestate_id[1]):
-                last_gamestate_id = [r.phase_index, r.challenge_index, r.challenge_loop_index]
-                if isinstance(r.metric_values, list):
-                    metric_values = r.metric_values
+        # Fetch latest game session state
+        stmt = (
+            select(GameSession)
+            .where(GameSession.user_name == username)
+            .order_by(GameSession.phase_index.desc(), GameSession.challenge_index.desc(), GameSession.id.desc())
+        )
+        latest_session = session.scalars(stmt).first()
+        if latest_session:
+            last_gamestate_id = [
+                latest_session.phase_index,
+                latest_session.challenge_index,
+                latest_session.challenge_loop_index,
+            ]
+            if isinstance(latest_session.metric_values, list):
+                metric_values = latest_session.metric_values
+            if hasattr(latest_session, "pitch_debate_messages") and isinstance(latest_session.pitch_debate_messages, list):
+                saved_pitch_debate_messages = latest_session.pitch_debate_messages
+            if hasattr(latest_session, "online_intel_gathering_messages") and isinstance(latest_session.online_intel_gathering_messages, list):
+                saved_online_intel_messages = latest_session.online_intel_gathering_messages
+            saved_tokens = latest_session.attention_tokens
+            if isinstance(latest_session.action_card, dict):
+                saved_played_card_ids = latest_session.action_card.get("played_card_ids", [])
+                saved_card_targets = latest_session.action_card.get("card_targets", {})
 
     #DEBUG skip intro questions
     if last_gamestate_id[0]==0 and last_gamestate_id[1]==0 and game_progress_index==2:
@@ -123,6 +146,9 @@ async def handle_game_init(
             challenge_index=last_gamestate_id[1],
             phase_index=last_gamestate_id[0]
         )
+        if saved_tokens is None:
+            saved_tokens = curr_challenge.attention_tokens
+
         await manager.send_event(
             websocket=websocket,
             event="game:state_update",
@@ -138,6 +164,12 @@ async def handle_game_init(
                 "description": curr_challenge.description,
                 "roundIntroduction": curr_challenge.roundIntroduction,
                 "metric_values": metric_values,
+                "pitch_debate_messages": saved_pitch_debate_messages,
+                "online_intel_gathering_messages": saved_online_intel_messages,
+                "attention_tokens": saved_tokens,
+                "played_card_ids": saved_played_card_ids,
+                "card_targets": saved_card_targets,
+                "engagement_cards": get_engagement_cards(),
             }
         )
 
@@ -221,6 +253,8 @@ async def handle_progress_update(
                     "description": curr_challenge.description,
                     "roundIntroduction": curr_challenge.roundIntroduction,
                     "metric_values": initial_metric_values,
+                    "attention_tokens": curr_challenge.attention_tokens,
+                    "engagement_cards": get_engagement_cards(),
                 }
             )
     else:
@@ -235,6 +269,7 @@ async def store_or_update_challenge(
     metric_values: list[int],
     messages: list[str],
     username: str,
+    attention_tokens: int,
 ) -> None:
     if challenge_loop_id == 0:
         with get_session() as session:
@@ -247,7 +282,9 @@ async def store_or_update_challenge(
                     action_card=action_card,
                     metric_values=metric_values,
                     time_stamp=datetime.datetime.utcnow(),
-                    messages=messages
+                    pitch_debate_messages=[],
+                    online_intel_gathering_messages=[],
+                    attention_tokens=attention_tokens,
                 )
             )
     else:
@@ -263,7 +300,11 @@ async def store_or_update_challenge(
                 existing.challenge_loop_index = challenge_loop_id
                 existing.action_card = action_card
                 existing.metric_values = metric_values
-                existing.messages = messages
+                if challenge_loop_id == 2:
+                    existing.pitch_debate_messages = messages
+                elif challenge_loop_id == 3 and messages:
+                    existing.pitch_debate_messages = messages
+                existing.attention_tokens = attention_tokens
                 existing.time_stamp = datetime.datetime.utcnow()
             else:
                 session.add(
@@ -275,7 +316,9 @@ async def store_or_update_challenge(
                         action_card=action_card,
                         metric_values=metric_values,
                         time_stamp=datetime.datetime.utcnow(),
-                        messages=messages
+                        pitch_debate_messages=messages if challenge_loop_id in (2, 3) else [],
+                        online_intel_gathering_messages=messages if challenge_loop_id == 1 else [],
+                        attention_tokens=attention_tokens,
                     )
                 )
 
@@ -291,6 +334,7 @@ async def handle_state_update_request(
         metric_values = payload.get("metric_values", [])
         action_card = payload.get("action_card", {})
         messages = payload.get("messages", [])
+        attention_tokens = payload.get("attention_tokens")
         
         #challenge loop index 0 - offline intel gathering
         #challenge loop index 1 - online intel gathering
@@ -298,23 +342,15 @@ async def handle_state_update_request(
         #challenge loop index 3 - simulation
         challenge_loop_index+=1
         match challenge_loop_index:
-            case 1:
+            case 1 | 2 | 3:
                 challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id,
                     phase_index=phase_id
                 )
-            case 2:
-                challenge: Challenge = PhaseFactory.translate_challenge_index(
-                    challenge_index=challenge_id,
-                    phase_index=phase_id
-                )
-            case 3:
-                challenge: Challenge = PhaseFactory.translate_challenge_index(
-                    challenge_index=challenge_id,
-                    phase_index=phase_id
-                )
+                if attention_tokens is None and challenge:
+                    attention_tokens = challenge.attention_tokens
             case _:
-                #next challenge
+                # next challenge / round completion (after simulation phase)
                 await clear_intel_items_for_user(websocket)
                 challenge: Challenge = PhaseFactory.translate_challenge_index(
                     challenge_index=challenge_id+1,
@@ -341,6 +377,9 @@ async def handle_state_update_request(
 
                 metric_values = new_metric_values
                 challenge_loop_index = 0
+                messages = []
+                attention_tokens = challenge.attention_tokens
+                action_card = {}
 
         await store_or_update_challenge(
             challenge=challenge,
@@ -349,9 +388,9 @@ async def handle_state_update_request(
             metric_values=metric_values,
             messages=messages,
             username=username,
+            attention_tokens=attention_tokens,
         )
 
-        
         await manager.send_event(
             websocket=websocket,
             event="game:state_update",
@@ -367,9 +406,13 @@ async def handle_state_update_request(
                 "description": challenge.description,
                 "roundIntroduction": challenge.roundIntroduction,
                 "metric_values": metric_values,
+                "messages": messages,
+                "attention_tokens": attention_tokens,
+                "played_card_ids": action_card.get("played_card_ids", []) if isinstance(action_card, dict) else [],
+                "card_targets": action_card.get("card_targets", {}) if isinstance(action_card, dict) else {},
+                "engagement_cards": get_engagement_cards(),
             }
         )
-    
     
         return (challenge.phase_id, challenge.id, challenge_loop_index)
     except Exception as e:

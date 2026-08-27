@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import type { ActionCard } from "../types/ActionCard";

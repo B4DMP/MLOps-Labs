@@ -20,6 +20,7 @@ class Challenge(BaseModel):
     roundIntroduction: str = Field(description="introduction text of the challenge")
     metric_changes: dict[str, int] = Field(description="changes in game metrics when the challenge is started")
     stakeholders: List[ChallengeStakeholder] = Field(default_factory=list, description="stakeholders included in the challenge")
+    attention_tokens: int = Field(default=8, description="Number of attention tokens granted for this challenge")
 
     def __str__(self) -> str:
         return self.name
