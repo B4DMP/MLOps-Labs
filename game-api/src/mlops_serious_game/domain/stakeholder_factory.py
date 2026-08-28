@@ -62,6 +62,7 @@ class StakeholderFactory:
                 priorities=to_str(j.get("priorities", "")),
                 requirements=to_str(j.get("requirements", "")),
                 role_description=to_str(j.get("role_description", j.get("division_description", ""))),
-                metric_id=j.get("metric_id", "")
+                metric_id=j.get("metric_id", ""),
+                avatar=j.get("avatar", {})
             )
             cls.stakeholders.append(st)

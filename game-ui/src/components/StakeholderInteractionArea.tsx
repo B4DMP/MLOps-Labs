@@ -11,6 +11,8 @@ import {
   TypingIndicator,
 } from "@chatscope/chat-ui-kit-react";
 import { StakeholderContext } from "./StakeholderProvider";
+import { MetricsContext } from "./MetricProvider";
+import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
 
 import styles from "./StakeholderInteractionArea.module.css";
 export type RevealedIntel = {
@@ -59,9 +61,20 @@ export default function StakeholderInteractionArea({
   showStakeholderList = true,
   showInput = true,
 }: StakeholderInteractionAreaProps) {
-  const { stakeholders } = useContext(StakeholderContext);
+  const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
+  const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const [_isintro4Done, setIsintro4Done] = useState(false);
   const isintro4DoneRef = useRef(false);
+
+  const getStakeholderColor = (st: any): string => {
+    if (st?.stakeholder_color && st.stakeholder_color !== "#888888" && st.stakeholder_color !== "#ffffff") {
+      return st.stakeholder_color;
+    }
+    if (st?.metric_id && metrics[st.metric_id]?.metric_color) {
+      return metrics[st.metric_id].metric_color;
+    }
+    return st?.stakeholder_color || "#38bdf8";
+  };
 
   useEffect(() => {
     if (!isEnabled && current_challenge === 0 && current_phase === 0 && !isintro4DoneRef.current) {
@@ -111,12 +124,27 @@ export default function StakeholderInteractionArea({
             >
               {chatMsgs.map((item, index) => {
                 const isUser = !item.id || item.id === "user";
-                const st = isUser
-                  ? null
-                  : (stakeholders[item.id] || Object.values(stakeholders).find((s: any) => s.id === item.id || s.name === item.id));
+                const st = isUser ? null : stakeholders[item.id];
+                const senderName = isUser ? "Me" : (st ? st.name : "Stakeholder");
+                const stColor = getStakeholderColor(st);
 
-                const senderName = isUser ? "Me" : (st ? st.name : (item.id || "Stakeholder"));
-                const avatarColor = (st && st.stakeholder_color ? st.stakeholder_color : "#888888").replace("#", "");
+                let avatarSrc = "";
+                if (!isUser) {
+                  const av = st?.avatar;
+                  avatarSrc = generateOpenPeepsDataUri({
+                    head: av?.head || "short1",
+                    face: "smile",
+                    facialHair: av?.facialHair,
+                    facialHairProbability: av?.facialHairProbability,
+                    accessories: av?.accessories,
+                    accessoriesProbability: av?.accessoriesProbability,
+                    skinColor: av?.skinColor || "ffdbb4",
+                    clothingColor: stColor,
+                    headContrastColor: av?.headContrastColor || "2c1b18",
+                    backgroundColor: stColor,
+                    flip: av?.flip,
+                  });
+                }
 
                 return (
                   <React.Fragment key={index}>
@@ -135,10 +163,7 @@ export default function StakeholderInteractionArea({
                       {!isUser && (
                         <Avatar
                           name={senderName}
-                          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            senderName,
-                          )}&background=${avatarColor}`}
-                          status="available"
+                          src={avatarSrc}
                         />
                       )}
                     </Message>

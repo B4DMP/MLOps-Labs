@@ -1,8 +1,7 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useRef } from "react";
 import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
 import type { EngagementCard } from "../types/EngagementCard";
-import StakeholderList from "./StakeholderList";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import styles from "./online_intel_gathering.module.css";
@@ -13,6 +12,8 @@ import OnlineIntelHelpOverlay from "./OnlineIntelHelpOverlay";
 import EngagementCards from "./EngagementCards";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
+import HoverTooltip from "./HoverToolTip";
+import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 
 interface OnlineIntelGatheringProps {
   onContinue: () => void;
@@ -135,6 +136,124 @@ export default function OnlineIntelGathering({
   // Intel Verification Result Modal State
   const [verificationResultModal, setVerificationResultModal] = useState<IntelVerificationResultData | null>(null);
 
+  // Toggle between Both (Pitch Deck + Chat) and Full Conversation History
+  const [showPitchDeck, setShowPitchDeck] = useState(true);
+
+  // Speech Bubble Queue System (Player and Stakeholders traverse sequentially without interruptions)
+  const speechQueueRef = useRef<Array<{
+    id: string;
+    type: "player" | "stakeholder";
+    stakeholderId?: string;
+    message: string;
+  }>>([]);
+  const isProcessingQueueRef = useRef<boolean>(false);
+  const activeSpeechTimerRef = useRef<any>(null);
+  const activeFadeTimerRef = useRef<any>(null);
+  const activeNextTimerRef = useRef<any>(null);
+
+  // Active speaking stakeholder state (triggers animated mouth and speech bubble)
+  const [activeSpeakingState, setActiveSpeakingState] = useState<{
+    stakeholderId: string;
+    message: string;
+    isClosing?: boolean;
+  } | null>(null);
+
+  // Active player speaking state (triggers player speech bubble on the pitch deck table)
+  const [activePlayerSpeakingState, setActivePlayerSpeakingState] = useState<{
+    message: string;
+    isClosing?: boolean;
+  } | null>(null);
+
+  const processSpeechQueue = () => {
+    if (isProcessingQueueRef.current) return;
+    if (speechQueueRef.current.length === 0) {
+      setActiveSpeakingState(null);
+      setActivePlayerSpeakingState(null);
+      return;
+    }
+
+    const nextItem = speechQueueRef.current.shift();
+    if (!nextItem) return;
+
+    isProcessingQueueRef.current = true;
+
+    if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
+    if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
+    if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+
+    if (nextItem.type === "player") {
+      setActiveSpeakingState(null);
+      setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
+      const durationMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
+      const fadeOutDelay = Math.max(0, durationMs - 400);
+
+      activeFadeTimerRef.current = setTimeout(() => {
+        setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+      }, fadeOutDelay);
+
+      activeSpeechTimerRef.current = setTimeout(() => {
+        setActivePlayerSpeakingState(null);
+        isProcessingQueueRef.current = false;
+        activeNextTimerRef.current = setTimeout(() => {
+          processSpeechQueue();
+        }, 150);
+      }, durationMs);
+    } else {
+      setActivePlayerSpeakingState(null);
+      setActiveSpeakingState({
+        stakeholderId: nextItem.stakeholderId || "",
+        message: nextItem.message,
+        isClosing: false,
+      });
+      const durationMs = Math.min(12000, Math.max(5000, Math.round(nextItem.message.length * 65)));
+      const fadeOutDelay = Math.max(0, durationMs - 400);
+
+      activeFadeTimerRef.current = setTimeout(() => {
+        setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+      }, fadeOutDelay);
+
+      activeSpeechTimerRef.current = setTimeout(() => {
+        setActiveSpeakingState(null);
+        isProcessingQueueRef.current = false;
+        activeNextTimerRef.current = setTimeout(() => {
+          processSpeechQueue();
+        }, 150);
+      }, durationMs);
+    }
+  };
+
+  const triggerStakeholderSpeech = (stakeholderId: string, message: string) => {
+    if (!stakeholderId || !message) return;
+    speechQueueRef.current.push({
+      id: Math.random().toString(36).substring(2, 9),
+      type: "stakeholder",
+      stakeholderId,
+      message,
+    });
+    processSpeechQueue();
+  };
+
+  const triggerPlayerSpeech = (message: string) => {
+    if (!message) return;
+    speechQueueRef.current.push({
+      id: Math.random().toString(36).substring(2, 9),
+      type: "player",
+      message,
+    });
+    processSpeechQueue();
+  };
+
+  // Clear speech timers on unmount
+  useEffect(() => {
+    return () => {
+      speechQueueRef.current = [];
+      isProcessingQueueRef.current = false;
+      if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
+      if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
+      if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+    };
+  }, []);
+
   // Subscribe to intel WebSocket events
   useEffect(() => {
     if (!subscribe) return;
@@ -164,6 +283,7 @@ export default function OnlineIntelGathering({
             ac_id: -1,
           },
         ]);
+        triggerPlayerSpeech(payload.message);
       } else if (payload.type === "stakeholder_message" && payload.message) {
         setChatMsgs((prev) => [
           ...prev,
@@ -175,6 +295,7 @@ export default function OnlineIntelGathering({
           },
         ]);
         if (payload.stakeholder_id) {
+          triggerStakeholderSpeech(payload.stakeholder_id, payload.message);
           setStakeholderResponses((prev) => ({
             ...prev,
             [payload.stakeholder_id]: payload.message,
@@ -278,6 +399,84 @@ export default function OnlineIntelGathering({
     return true;
   };
 
+  const activeStakeholders = availableStakeholderList.filter(isStakeholderActiveInPhase);
+  const topStakeholders = activeStakeholders.length >= 3 ? activeStakeholders.slice(0, 2) : [];
+  const remainingStakeholders = activeStakeholders.length >= 3 ? activeStakeholders.slice(2) : activeStakeholders;
+  const leftStakeholders = remainingStakeholders.filter((_, idx) => idx % 2 === 0);
+  const rightStakeholders = remainingStakeholders.filter((_, idx) => idx % 2 !== 0);
+
+  const getStakeholderColor = (st: any): string => {
+    if (st?.stakeholder_color && st.stakeholder_color !== "#888888" && st.stakeholder_color !== "#ffffff") {
+      return st.stakeholder_color;
+    }
+    if (st?.metric_id && metrics) {
+      const m = metrics[st.metric_id] || Object.values(metrics).find((metric: any) => metric.id === st.metric_id);
+      if (m && m.metric_color) return m.metric_color;
+    }
+    return st?.stakeholder_color || "#38bdf8";
+  };
+
+  const renderSeatedStakeholder = (st: any) => {
+    const isSelected = selectedStakeholderId === st.id;
+    const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
+    const stakeholderColor = getStakeholderColor(st);
+    const av = st.avatar || {};
+
+    return (
+      <HoverTooltip
+        key={st.id}
+        description={st.role_description ? `${st.name} - ${st.role_description}` : st.name}
+      >
+        <div
+          className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
+          style={{
+            // @ts-ignore
+            "--st-color": stakeholderColor,
+          }}
+          onClick={() => setSelectedStakeholderId(st.id)}
+        >
+          {/* Active Speech Bubble above speaking stakeholder (Complete text visible) */}
+          {isSpeaking && activeSpeakingState && (
+            <div
+              className={`${styles.tableSpeechBubble} ${
+                activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
+              }`}
+              style={{
+                borderColor: stakeholderColor,
+              }}
+            >
+              {activeSpeakingState.message}
+            </div>
+          )}
+
+          {/* Unframed 50% larger Avatar Viewport */}
+          <div className={styles.seatedAvatarViewport}>
+            <StakeholderAvatarComponent
+              avatar={av}
+              play_blink_animation={true}
+              isFramed={false}
+              isSpeaking={isSpeaking}
+              size={108}
+              stakeholderColor={stakeholderColor}
+              title={st.name}
+            />
+          </div>
+
+          {/* Conference Desk Nameplate (Centered with exact stakeholder color) */}
+          <div
+            className={styles.deskNameplate}
+            style={{
+              color: stakeholderColor,
+              borderColor: stakeholderColor,
+            }}
+          >
+            {st.name}
+          </div>
+        </div>
+      </HoverTooltip>
+    );
+  };
+
   const handleSelectEngagementCard = (card: EngagementCard) => {
     const isSingleUseExhausted =
       (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
@@ -362,6 +561,7 @@ export default function OnlineIntelGathering({
           ac_id: -1,
         },
       ]);
+      triggerPlayerSpeech(`👑 Played Card: ${playingCard.title} on "${targetIntel.description}"`);
     } else {
       const requiredAmount = playingCard.stakeholder_selection_amount;
       if (selectedTargetStakeholderIds.length !== requiredAmount) return;
@@ -369,6 +569,11 @@ export default function OnlineIntelGathering({
       const nextTokens = attentionTokens - playingCard.token_cost;
       setAttentionTokens(nextTokens);
       setIsWaitingForResponse(true);
+
+      const targetNames = selectedTargetStakeholderIds
+        .map((id) => stakeholders[id]?.name || availableStakeholderList.find((s) => s.id === id)?.name || id)
+        .join(", ");
+      triggerPlayerSpeech(`🃏 Played "${playingCard.title}" to engage with ${targetNames}`);
 
       emit("intel:play_engagement_card", {
         phase_id: currentPhase,
@@ -401,17 +606,7 @@ export default function OnlineIntelGathering({
     handleCloseCardModal();
   };
 
-  const handleChatSend = (text: string) => {
-    setChatMsgs((prev) => [
-      ...prev,
-      { id: "user", message: text, ac_id: -1 },
-      {
-        id: selectedStakeholderId,
-        message: `I acknowledge your input regarding: "${text.slice(0, 35)}..."`,
-        ac_id: -1,
-      },
-    ]);
-  };
+
 
   const handleToggleIntelSelection = (id: string) => {
     if (selectedIntelIds.includes(id)) {
@@ -478,17 +673,8 @@ export default function OnlineIntelGathering({
       >
         {/* Floating Top Right Help Button */}
         <button
-          className="btn rounded-circle d-flex align-items-center justify-content-center shadow-lg position-absolute p-0"
-          style={{
-            top: "16px",
-            right: "20px",
-            width: "56px",
-            height: "56px",
-            backgroundColor: "var(--engagement-accent)",
-            color: "var(--engagement-text)",
-            border: "2px solid #ffffff",
-            zIndex: 10,
-          }}
+          type="button"
+          className={styles.circularHelpBtn}
           onClick={() => setIsHelpOverlayOpen(true)}
           title="View Phase, Metrics & Challenge Info"
         >
@@ -520,10 +706,10 @@ export default function OnlineIntelGathering({
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="col-12 col-lg-7 d-flex flex-column gap-3 h-100 justify-content-between">
-            {/* Single Unified Drop Zone Div wrapping ONLY Pitch Deck & Stakeholder Interaction Area */}
+          <div className="col-12 col-lg-7 d-flex flex-column gap-2 h-100 justify-content-between">
+            {/* Single Unified Drop Zone Div wrapping the Layered Pitch Deck & Conversation History */}
             <div
-              className={`flex-grow-1 d-flex flex-column gap-3 overflow-hidden p-2 rounded transition-all ${isDraggingCard ? styles.singleDropZoneActive : ""
+              className={`flex-grow-1 position-relative overflow-hidden p-2 rounded transition-all ${isDraggingCard ? styles.singleDropZoneActive : ""
                 }`}
               onDragOver={(e) => {
                 e.preventDefault();
@@ -534,54 +720,18 @@ export default function OnlineIntelGathering({
                 handleDropEngagementCard(e);
               }}
             >
-              {/* Top Right: Boardroom Table Area (Pitch Deck) */}
-              <div className={`${styles.tableContainer} flex-shrink-0 d-flex flex-column justify-content-center`}>
-                <div className="transparent-div d-flex justify-content-center align-items-center mb-3">
-                  <StakeholderList current_phase={currentPhase} />
-                </div>
-
-                <div className={styles.diamondTable}>
-                  <div
-                    className={`${styles.actionCardSurface} ${pitchedCardTitle ? styles.actionCardConfigured : styles.actionCardGreyedOut
-                      }`}
-                    onClick={() => setIsPitchModalOpen(true)}
-                  >
-                    {pitchedCardTitle ? (
-                      <div className="text-center">
-                        <span className="badge bg-primary mb-2">🃏 Pitched Base AC</span>
-                        <h6 className="fw-bold mb-2 text-dark">{pitchedCardTitle}</h6>
-                        <p className="small text-muted mb-2">Selected Intel merged into proposal.</p>
-                        <button className="btn btn-sm btn-outline-primary rounded-pill px-3">
-                          ✏️ Edit Proposal
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <div className={styles.questionMarkIcon}>
-                          <Icon icon="ph:question-bold" style={{ color: "gray", fontSize: "4.2rem" }} />
-                        </div>
-                        <h6 className="fw-bold mb-1">Pitch Action Card</h6>
-                        <p className="small mb-0 opacity-75">
-                          Click to select 1-3 Intel Items & build proposal
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Stakeholder Interaction Area Component (Chat) */}
+              {/* Layer 1: Conversation History (Fills 100% height). Greyed out & semi-transparent when Pitch Deck is active */}
               <div
-                className="flex-grow-1 overflow-hidden"
-                style={{ minHeight: "300px" }}
+                className={`w-100 h-100 ${styles.chatLayer} ${showPitchDeck ? styles.chatLayerDimmed : styles.chatLayerActive
+                  }`}
               >
                 <StakeholderInteractionArea
                   className="w-100 h-100"
-                  handleSend={handleChatSend}
+                  handleSend={() => { }}
                   chatMsgs={chatMsgs}
                   current_phase={currentPhase}
                   current_challenge={currentChallenge}
-                  isEnabled={!isWaitingForResponse}
+                  isEnabled={!isWaitingForResponse && !showPitchDeck}
                   actionCards={[]}
                   onHoverCard={() => { }}
                   selected_mgs={[]}
@@ -589,6 +739,103 @@ export default function OnlineIntelGathering({
                   showInput={false}
                 />
               </div>
+
+              {/* Layer 2: Pitch Deck Boardroom Table (Rendered ON TOP, fills whole vertical area, fades to transparent when toggled) */}
+              <div
+                className={`${styles.pitchDeckOverlayLayer} ${showPitchDeck ? styles.pitchDeckLayerVisible : styles.pitchDeckLayerHidden
+                  }`}
+              >
+                <div className={styles.tableScene}>
+                  {/* The Pitch Deck Conference Table Surface */}
+                  <div className={styles.pitchDeckTable}>
+                    {/* Top Row: Stakeholders sitting behind the table */}
+                    {topStakeholders.length > 0 && (
+                      <div className={styles.tableTopSeating}>
+                        {topStakeholders.map(renderSeatedStakeholder)}
+                      </div>
+                    )}
+
+                    {/* Middle Section: Left Seat, Central Pitch Action Card on Table, Right Seat */}
+                    <div className={styles.tableCenterSurface}>
+                      {/* Left Seat */}
+                      <div className={styles.tableSideSeating}>
+                        {leftStakeholders.map(renderSeatedStakeholder)}
+                      </div>
+
+                      {/* Center Tabletop with Pitch Action Card */}
+                      <div className={styles.tabletopCenterArea}>
+                        <div
+                          className={`${styles.actionCardSurface} ${pitchedCardTitle ? styles.actionCardConfigured : styles.actionCardGreyedOut
+                            }`}
+                          onClick={() => setIsPitchModalOpen(true)}
+                        >
+                          {pitchedCardTitle ? (
+                            <div className="text-center">
+                              <span className="badge bg-primary mb-1">🃏 Pitched Base AC</span>
+                              <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: "0.85rem" }}>{pitchedCardTitle}</h6>
+                              <p className="small text-muted mb-1" style={{ fontSize: "0.74rem" }}>Intel merged into proposal</p>
+                              <button className="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style={{ fontSize: "0.7rem" }}>
+                                ✏️ Edit Proposal
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <div className={styles.questionMarkIcon}>
+                                <Icon icon="ph:question-bold" style={{ color: "gray", fontSize: "3rem" }} />
+                              </div>
+                              <h6 className="fw-bold mb-1" style={{ fontSize: "0.85rem" }}>Pitch Action Card</h6>
+                              <p className="small mb-0 opacity-75" style={{ fontSize: "0.72rem" }}>
+                                Click to select 1-3 Intel Items & build proposal
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Seat */}
+                      <div className={styles.tableSideSeating}>
+                        {rightStakeholders.map(renderSeatedStakeholder)}
+                      </div>
+                    </div>
+
+                    {/* Table Edge Plaque */}
+                    <div className={styles.tableEdgePlaque}>
+                      <Icon icon="ph:presentation-chart-bold" style={{ fontSize: "0.85rem" }} />
+                      <span>PITCH DECK</span>
+                    </div>
+
+                    {/* Active Player Speech Bubble on Pitch Deck */}
+                    {activePlayerSpeakingState && (
+                      <div
+                        className={`${styles.playerTableSpeechBubble} ${
+                          activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                        }`}
+                      >
+                        <div className={styles.playerSpeechHeader}>
+                          <Icon icon="ph:user-circle-bold" style={{ fontSize: "1rem", color: "var(--engagement-accent, #a02222)" }} />
+                          <span>Player</span>
+                        </div>
+                        <div className={styles.playerSpeechContent}>
+                          {activePlayerSpeakingState.message}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Circular Toggle Button near the bottom right corner */}
+              <button
+                type="button"
+                className={styles.circularToggleBtn}
+                onClick={() => setShowPitchDeck(!showPitchDeck)}
+                title={showPitchDeck ? "Expand Conversation History" : "Show Pitch Deck"}
+              >
+                <Icon
+                  icon={showPitchDeck ? "ph:chat-teardrop-text-bold" : "ph:presentation-chart-bold"}
+                  style={{ fontSize: "2.2rem" }}
+                />
+              </button>
             </div>
 
             {/* Dedicated Engagement Cards Component (OUTSIDE the drop zone) */}
@@ -810,6 +1057,7 @@ export default function OnlineIntelGathering({
                       const isSelected = selectedTargetStakeholderIds.includes(st.id);
                       const isAlreadyTargetedByThisCard = cardTargetedStakeholdersMap[playingCard.id]?.includes(st.id);
                       const isSelectable = !isAlreadyTargetedByThisCard;
+                      const stColor = getStakeholderColor(st);
 
                       return (
                         <div key={st.id} className="col-12 col-md-4">
@@ -827,17 +1075,22 @@ export default function OnlineIntelGathering({
                             }}
                           >
                             <div
-                              className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                              className="rounded-circle overflow-hidden d-flex align-items-center justify-content-center flex-shrink-0"
                               style={{
                                 width: "48px",
                                 height: "48px",
-                                backgroundColor: isSelectable ? (st.stakeholder_color || "#0d6efd") : "#6c757d",
-                                color: "#fff",
-                                fontWeight: "bold",
-                                fontSize: "1.2rem",
+                                backgroundColor: isSelectable ? stColor : "#6c757d",
+                                border: `1.5px solid ${isSelectable ? stColor : "#6c757d"}`,
                               }}
                             >
-                              {st.name.charAt(0)}
+                              <StakeholderAvatarComponent
+                                avatar={stakeholders[st.id]?.avatar || (st as any).avatar}
+                                stakeholderColor={stColor}
+                                isFramed={true}
+                                play_blink_animation={false}
+                                size="100%"
+                                title={st.name}
+                              />
                             </div>
                             <div className="flex-grow-1">
                               <div className="d-flex justify-content-between align-items-start mb-1">
@@ -864,7 +1117,7 @@ export default function OnlineIntelGathering({
                               </p>
                               {isAlreadyTargetedByThisCard && (
                                 <span className="badge bg-danger mt-2 d-inline-block" style={{ fontSize: "0.65rem" }}>
-                                  Targeted by {playingCard.title}
+                                  Already targeted by "{playingCard.title}""
                                 </span>
                               )}
                             </div>

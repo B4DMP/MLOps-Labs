@@ -100,3 +100,27 @@
         opacity: 1;
     }
 }
+
+.ChatContainer :global(.cs-avatar) {
+    background-color: transparent !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    overflow: hidden !important;
+}
+
+.ChatContainer :global(.cs-avatar > img) {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.ChatContainer :global(.cs-avatar__status-wrapper),
+.ChatContainer :global(.cs-status),
+.ChatContainer :global(.cs-status--available) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}

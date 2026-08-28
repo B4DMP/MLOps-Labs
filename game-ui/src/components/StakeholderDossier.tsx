@@ -4,6 +4,7 @@ import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 
 export interface IntelEntry {
   id: string;
@@ -283,10 +284,21 @@ export default function StakeholderDossier({
     });
   };
 
+  const getStakeholderColor = (st: any): string => {
+    if (!st) return "#38bdf8";
+    const stId = st.stakeholder_id || st.id;
+    const stObj = stakeholders[stId] || st;
+    return stObj.stakeholder_color || (stObj.metric_id && metrics[stObj.metric_id]?.metric_color) || "#38bdf8";
+  };
+
   const renderPageContent = (st: StakeholderDossierEntry) => {
     if (!st) return null;
 
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
+    const stId = st.stakeholder_id || (st as any).id;
+    const stObj = stakeholders[stId];
+    const avatar = stObj?.avatar || (st as any).avatar;
+    const stakeholderColor = getStakeholderColor(st);
 
     return (
       <>
@@ -295,18 +307,30 @@ export default function StakeholderDossier({
           <div className={styles.polaroidFrame}>
             <div className={styles.sellotape} />
             <div className={styles.avatarBox}>
-              {st.name ? st.name.charAt(0) : "👤"}
+              <StakeholderAvatarComponent
+                avatar={avatar}
+                stakeholderColor={stakeholderColor}
+                isFramed={false}
+                play_blink_animation={false}
+                size="100%"
+                title={st.name}
+              />
             </div>
           </div>
 
           <div className={styles.stakeholderMainInfo}>
             <h2 className={styles.stakeholderName}>
-              <span className={styles.highlightYellow}>{st.name}</span>
+              <span
+                className={styles.highlightMarker}
+                style={{
+                  background: `linear-gradient(180deg, transparent 48%, ${stakeholderColor}66 48%)`,
+                }}
+              >
+                {st.name}
+              </span>
             </h2>
             <div className={styles.stakeholderRole}>
-              <span className={styles.highlightRed}>
-                Role: {st.role_description || "Project Stakeholder"}
-              </span>
+              Role: {st.role_description || "Project Stakeholder"}
             </div>
           </div>
         </div>
@@ -462,15 +486,25 @@ export default function StakeholderDossier({
       {/* Physical Bookmark Tabs (Top Bar) */}
       {effectiveDossierData.length > 0 && (
         <div className={styles.tabsContainer}>
-          {effectiveDossierData.map((st, idx) => (
-            <button
-              key={st.stakeholder_id || idx}
-              className={`${styles.tabButton} ${idx === activeDisplayIndex ? styles.activeTab : ""}`}
-              onClick={() => requestPageChange(idx)}
-            >
-              {st.name}
-            </button>
-          ))}
+          {effectiveDossierData.map((st, idx) => {
+            const stColor = getStakeholderColor(st);
+            return (
+              <button
+                key={st.stakeholder_id || idx}
+                className={`${styles.tabButton} ${idx === activeDisplayIndex ? styles.activeTab : ""}`}
+                onClick={() => requestPageChange(idx)}
+              >
+                <span
+                  className={styles.tabMarker}
+                  style={{
+                    background: `linear-gradient(180deg, transparent 50%, ${stColor}66 50%)`,
+                  }}
+                >
+                  {st.name}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 

@@ -43,74 +43,412 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
-/* Boardroom Diamond Table Layout */
+/* Boardroom Horizontal Conference Table (Pitch Deck) Scene */
 .tableContainer {
   position: relative;
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 0.5rem 0.5rem;
+  padding: 0.25rem 0.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.diamondTable {
-  position: relative;
-  width: 100%;
-  min-height: 160px;
-  background: radial-gradient(ellipse at center, rgba(180, 40, 40, 0.25) 0%, rgba(20, 20, 35, 0.6) 75%);
-  border: 3px solid rgba(220, 53, 69, 0.5);
-  border-radius: 50% / 30%;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+/* Circular Action Buttons (Help Button & Pitch Deck Toggle Button) */
+.circularToggleBtn,
+.circularHelpBtn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--engagement-accent, #a02222);
+  border: 2px solid #ffffff;
+  color: var(--engagement-text, #ffffff);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Stakeholder Avatars Row */
-.avatarsRow {
+.circularToggleBtn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 30;
+}
+
+.circularHelpBtn {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  z-index: 1050;
+  padding: 0;
+}
+
+.circularToggleBtn:hover,
+.circularHelpBtn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
+  filter: brightness(1.15);
+}
+
+.circularToggleBtn:active,
+.circularHelpBtn:active {
+  transform: scale(0.95);
+}
+
+/* Layer 1: Chat Layer */
+.chatLayer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
+}
+
+.chatLayerDimmed {
+  opacity: 0.2;
+  filter: grayscale(75%) blur(1.5px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.chatLayerActive {
+  opacity: 1;
+  filter: none;
+  pointer-events: auto;
+}
+
+/* Layer 2: Pitch Deck Overlay Layer (Rendered On Top, filling the whole vertical area) */
+.pitchDeckOverlayLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s;
+}
+
+.pitchDeckLayerVisible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.pitchDeckLayerHidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.97);
+}
+
+.tableScene {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* The Pitch Deck Conference Table Surface (Uses Engagement Cards Major Theme) */
+.pitchDeckTable {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  min-height: 240px;
+  background: radial-gradient(ellipse 90% 70% at 50% 50%, #2b3035 0%, var(--engagement-bg, #212529) 70%, #14171a 100%);
+  border: 3px solid var(--engagement-accent, #a02222);
+  border-radius: 50% / 32%;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65), inset 0 2px 8px rgba(255, 255, 255, 0.12), 0 0 25px rgba(160, 34, 34, 0.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.2rem 0.4rem 1.2rem;
+}
+
+/* Top Seating: Avatars seated behind the table looking forward */
+.tableTopSeating {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 2rem;
+  gap: 2.5rem;
   width: 100%;
-  margin-bottom: -20px;
-  z-index: 10;
+  margin-top: -34px;
+  margin-bottom: 2px;
+  position: relative;
+  z-index: 20;
 }
 
-.avatarWrapper {
+/* Center Table Surface: Lateral Seats + Central Action Card Dossier */
+.tableCenterSurface {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 0.75rem;
+  flex: 1;
+  position: relative;
+  z-index: 25;
+}
+
+.tableSideSeating {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 120px;
+  max-width: 160px;
+  position: relative;
+  z-index: 25;
+}
+
+.tabletopCenterArea {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Seated Stakeholder Item */
+.seatedStakeholder {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  text-align: center;
   cursor: pointer;
-  transition: transform 0.2s ease, filter 0.2s ease;
-  position: relative;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: max-content;
+  margin: 0 auto;
+  filter: none !important;
+  box-shadow: none !important;
+  z-index: 10;
 }
 
-.avatarWrapper:hover {
+.seatedSpeaking {
+  z-index: 500 !important;
+}
+
+.seatedStakeholder:hover {
   transform: translateY(-4px);
+  filter: none !important;
+  box-shadow: none !important;
 }
 
-.avatarCircle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+/* Unframed 50% larger avatar viewport */
+.seatedAvatarViewport {
+  width: 108px;
+  height: 108px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.3rem;
-  color: white;
-  border: 3px solid #6c757d;
-  background: var(--card-bg-dark, #2b2b36);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+  background: transparent;
+  border: none;
+  filter: none !important;
+  box-shadow: none !important;
 }
 
-.avatarCircleActive {
-  border-color: #ffc107 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+.seatedStakeholder:hover .seatedAvatarViewport,
+.seatedSelected .seatedAvatarViewport {
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.deskNameplate {
+  position: relative;
+  z-index: 3;
+  margin: 4px auto 0 auto;
+  align-self: center;
+  background: rgba(20, 24, 28, 0.96);
+  border: 1.5px solid var(--st-color, #6366f1);
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 170px;
+}
+
+/* Enlarged Speech Bubble above speaking stakeholder with complete text visible */
+.tableSpeechBubble {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+  width: max-content;
+  min-width: 220px;
+  max-width: 320px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+  border: 2px solid var(--st-color, #a02222);
+  z-index: 1000 !important;
+  animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  text-align: center;
+  word-break: break-word;
+}
+
+.tableSpeechBubble::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-style: solid;
+  border-color: #ffffff transparent transparent transparent;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.tableSpeechBubbleClosing {
+  animation: popOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px) scale(0.94);
+  }
+}
+
+/* Player Speech Bubble at Bottom of Pitch Deck Table (Clean white bubble using Engagement Card Accent Theme) */
+.playerTableSpeechBubble {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  width: max-content;
+  min-width: 220px;
+  max-width: 340px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+  border: 2px solid var(--engagement-accent, #a02222);
+  z-index: 100;
+  animation: popInPlayer 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  text-align: center;
+  word-break: break-word;
+}
+
+.playerTableSpeechBubbleClosing {
+  animation: popOutPlayer 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+.playerSpeechHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--engagement-accent, #a02222);
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(160, 34, 34, 0.2);
+  padding-bottom: 2px;
+}
+
+.playerSpeechContent {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.playerTableSpeechBubble::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-style: solid;
+  border-color: transparent transparent #ffffff transparent;
+}
+
+@keyframes popInPlayer {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes popOutPlayer {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px) scale(0.94);
+  }
+}
+
+/* Plaque on the Bottom Table Rim */
+.tableEdgePlaque {
+  margin-top: 3px;
+  padding: 2px 16px;
+  background: var(--engagement-bg, #212529);
+  border: 1px solid var(--engagement-accent, #a02222);
+  border-radius: 12px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--engagement-accent, #a02222);
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .speechBubble {

@@ -20,16 +20,18 @@ import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./components/StakeholderDossier";
+import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 
 interface Stakeholder {
   id: string;
   name: string;
   responsibilities: string;
   priorities: string;
-  constraints: string;
+  constraints?: string;
   role_description: string;
   metric_id: string;
-  stakeholder_color: string;
+  stakeholder_color?: string;
+  avatar?: StakeholderAvatar;
 }
 
 interface Metric {
@@ -221,6 +223,9 @@ function App({ username: _username }: AppProps) {
         const st = enrichedStakeholders[stId];
         const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
         st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
+        if (st.avatar) {
+          st.avatar.clothingColor = st.stakeholder_color;
+        }
       });
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
@@ -266,6 +271,20 @@ function App({ username: _username }: AppProps) {
       setChallengeDescription(data["description"]);
       if (data.engagement_cards) {
         setEngagementCards(data.engagement_cards);
+      }
+      if (data.stakeholders) {
+        const rawStakeholders = data.stakeholders;
+        const currentMetrics = metricsRef.current || {};
+        const enrichedStakeholders = { ...rawStakeholders };
+        Object.keys(enrichedStakeholders).forEach((stId) => {
+          const st = enrichedStakeholders[stId];
+          const associatedMetric = currentMetrics[st.metric_id] || Object.values(currentMetrics).find((m: any) => m.id === st.metric_id);
+          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || "#888888");
+          if (st.avatar) {
+            st.avatar.clothingColor = st.stakeholder_color;
+          }
+        });
+        setStakeholders(enrichedStakeholders);
       }
 
       const isFirstLoad = !hasReceivedInitialStateRef.current;

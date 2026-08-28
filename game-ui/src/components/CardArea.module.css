@@ -17,14 +17,12 @@
 .dropZone.dropActive {
     background-color: var(--bg-challenge-dropoff);
     animation: fade-in 0.5s;
-
 }
 
 @keyframes fade-in {
     from {
         color: white;
     }
-
     to {
         background-color: var(--bg-challenge-dropoff);
     }

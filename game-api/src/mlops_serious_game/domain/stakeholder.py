@@ -23,6 +23,7 @@ class Stakeholder(BaseModel):
     requirements: str = Field(description="Requirements on the development environment")
     role_description: str = Field(description="Description of the Stakeholder role")
     metric_id: str = Field(description="associated metric")
+    avatar: dict = Field(default_factory=dict, description="Open Peeps avatar configuration")
 
     def get_profile_string(self)-> str:
         return f"""

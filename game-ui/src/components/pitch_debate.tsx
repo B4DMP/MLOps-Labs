@@ -129,6 +129,7 @@ export default function PitchDebate({
               actionCards={actionCards}
               onHoverCard={setHoveredCardId}
               selected_mgs={selected_mgs}
+              showStakeholderList={false}
             />
             <div className="col-7 p-3 bg d-flex flex-column">
               <CardArea
@@ -142,6 +143,7 @@ export default function PitchDebate({
                 current_phase={currentPhase}
                 hoveredCardId={hoveredCardId}
                 isStakeholderTyping={!isChatEnabled}
+                handleSend={handleSend}
               />
             </div>
           </div>

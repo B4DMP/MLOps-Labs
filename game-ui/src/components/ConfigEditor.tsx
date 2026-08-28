@@ -14,6 +14,7 @@ import {
   generateOfflineIntelArtifacts,
   type ConfigFileInfo
 } from "../services/api/admin";
+import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import styles from "./Admin.module.css";
 
 interface ConfigEditorProps {
@@ -509,6 +510,126 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
             className="btn-close"
             onClick={() => setStatusMessage(null)}
           ></button>
+        </div>
+      )}
+
+      {/* Stakeholder Avatars Live Preview (When GameStakeholders.json is opened) */}
+      {(selectedFilename === "GameStakeholders.json" || selectedFilename === "FullStakeholders.json" || Array.isArray(currentData?.stakeholders)) && currentData?.stakeholders && (
+        <div className="card bg-dark text-light border-info mb-4 shadow-lg overflow-hidden">
+          <div className="card-header bg-gradient d-flex justify-content-between align-items-center py-2 px-3" style={{ backgroundColor: "#1e293b", borderBottom: "1px solid rgba(56, 189, 248, 0.4)" }}>
+            <div className="d-flex align-items-center gap-2">
+              <span className="fs-5">🎭</span>
+              <h5 className="mb-0 text-info fw-bold" style={{ fontSize: "1.05rem" }}>
+                Stakeholder Avatars Live Preview <small className="text-muted fw-normal ms-2">(Open Peeps • Animated Blink Active)</small>
+              </h5>
+            </div>
+            <span className="badge bg-info text-dark fw-semibold">
+              {currentData.stakeholders.length} Stakeholders
+            </span>
+          </div>
+
+          <div className="card-body p-3" style={{ backgroundColor: "#0f172a" }}>
+            <div className="row g-3">
+              {currentData.stakeholders.map((st: any, idx: number) => {
+                const av = st.avatar || {};
+                const stName = st.name || `Stakeholder ${idx + 1}`;
+                const metricId = st.metric_id || "";
+
+                return (
+                  <div key={st.id || idx} className="col-12 col-md-6 col-lg-4">
+                    <div
+                      className="p-3 rounded border border-secondary d-flex gap-3 align-items-center position-relative transition-all h-100 shadow-sm"
+                      style={{
+                        backgroundColor: "#1e293b",
+                        borderColor: "#334155",
+                      }}
+                    >
+                      {/* Avatar Viewport */}
+                      <div
+                        className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow overflow-hidden position-relative"
+                        style={{
+                          width: "90px",
+                          height: "90px",
+                          backgroundColor: av.backgroundColor ? `#${av.backgroundColor.replace('#', '')}` : "#d1d4f9",
+                          border: "2px solid rgba(255, 255, 255, 0.15)",
+                        }}
+                      >
+                        <StakeholderAvatarComponent
+                          avatar={av}
+                          play_blink_animation={true}
+                          size={82}
+                          title={stName}
+                        />
+                      </div>
+
+                      {/* Info & Trait Badges */}
+                      <div className="d-flex flex-column flex-grow-1 overflow-hidden">
+                        <div className="d-flex justify-content-between align-items-center mb-1">
+                          <h6 className="fw-bold text-light mb-0 text-truncate" title={stName} style={{ fontSize: "0.95rem" }}>
+                            {stName}
+                          </h6>
+                          {metricId && (
+                            <span className="badge bg-secondary text-uppercase" style={{ fontSize: "0.65rem" }}>
+                              {metricId}
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-muted small mb-2 text-truncate" style={{ fontSize: "0.78rem" }} title={st.role_description}>
+                          {st.role_description || "Project Stakeholder"}
+                        </p>
+
+                        <div className="d-flex flex-wrap gap-1 align-items-center">
+                          {av.head && (
+                            <span className="badge bg-dark border border-secondary text-info" style={{ fontSize: "0.7rem" }}>
+                              Hair: {av.head}
+                            </span>
+                          )}
+                          {(av.emotion || av.face) && (
+                            <span className="badge bg-dark border border-secondary text-warning" style={{ fontSize: "0.7rem" }}>
+                              Face: {av.emotion || av.face}
+                            </span>
+                          )}
+                          {av.accessories && (
+                            <span className="badge bg-dark border border-secondary text-light" style={{ fontSize: "0.7rem" }}>
+                              👓 {av.accessories}
+                            </span>
+                          )}
+                          {av.facialHair && av.facialHairProbability !== 0 && (
+                            <span className="badge bg-dark border border-secondary text-light" style={{ fontSize: "0.7rem" }}>
+                              🧔 {av.facialHair}
+                            </span>
+                          )}
+                          {av.skinColor && (
+                            <span
+                              className="rounded-circle border border-light d-inline-block"
+                              style={{
+                                width: "14px",
+                                height: "14px",
+                                backgroundColor: `#${av.skinColor.replace('#', '')}`,
+                              }}
+                              title={`Skin: #${av.skinColor}`}
+                            />
+                          )}
+                          {av.clothingColor && (
+                            <span
+                              className="rounded-circle border border-light d-inline-block"
+                              style={{
+                                width: "14px",
+                                height: "14px",
+                                backgroundColor: `#${av.clothingColor.replace('#', '')}`,
+                              }}
+                              title={`Outfit: #${av.clothingColor}`}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
