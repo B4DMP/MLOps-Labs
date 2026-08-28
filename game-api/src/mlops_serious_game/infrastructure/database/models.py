@@ -54,6 +54,7 @@ class GameSession(Base):
     pitch_debate_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     online_intel_gathering_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     attention_tokens: Mapped[int] = mapped_column(Integer, default=8, nullable=True)
+    emotion_values: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
 
 
 class IntelItem(Base):
