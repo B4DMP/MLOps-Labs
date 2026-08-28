@@ -347,14 +347,13 @@ export default function StakeholderDossier({
               const typeKey = item.categorized_type || "requirement";
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
               const noteId = item.id || item.requirement_id || `note-${idx}`;
-              const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
 
               return (
                 <div
                   key={`${st.stakeholder_id}-${noteId}`}
-                  className={`${styles.stickyNote} ${isVerified ? styles.stickyNoteVerified : ""} ${isRetagging ? styles.retagActive : ""}`}
+                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""}`}
                 >
                   <div className={styles.paperclip} />
 

@@ -15,6 +15,9 @@ class EngagementCard(BaseModel):
         stakeholder_selection_amount (int): Number of stakeholders required (-1 for all, 0 for intel target, >0 for exact count).
         target_type (str): Target entity type ('stakeholder' or 'intel').
         response_snippet (str): Default response template/text generated when played.
+        max_plays_per_phase (int): Maximum times this card can be played per phase (-1 for unlimited).
+        intel_reveal_count (int): Number of undiscovered intel items to reveal per stakeholder.
+        allowed_requirement_types (list[str]): Optional list of allowed requirement types to reveal.
     """
 
     id: str = Field(description="Unique identifier for the engagement card")

@@ -15,7 +15,8 @@
           "token_cost",
           "description",
           "stakeholder_selection_amount",
-          "target_type"
+          "target_type",
+          "intel_reveal_count"
         ],
         "properties": {
           "id": {

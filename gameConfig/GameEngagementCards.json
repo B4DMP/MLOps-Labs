@@ -23,7 +23,7 @@
       "target_type": "stakeholder",
       "response_snippet": "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 2,
+      "intel_reveal_count": 3,
       "allowed_requirement_types": []
     },
     {

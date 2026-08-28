@@ -435,7 +435,7 @@ Instructions:
 1. Respond to the player's message in your natural, spoken workplace persona.
 2. If "Information to Reveal" contains intel items, you MUST naturally describe and communicate that information as part of your answer, expressing your stance, requirements, or constraints.
 3. If "Information to Reveal" is empty or indicates no new items, acknowledge the player's message politely in character, stating that you have already shared your main points or have no additional updates right now.
-4. BREVITY: Keep your answer brief — 1 or 2 sentences maximum.
+4. BREVITY: Keep your answer concise — at most {{max_sentences}} sentence{% if max_sentences > 1 %}s{% endif %}.
 5. Output ONLY your direct spoken response. Do NOT include your name, role prefix, or quotation marks.
 """
 

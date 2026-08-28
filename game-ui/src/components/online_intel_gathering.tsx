@@ -987,6 +987,13 @@ export default function OnlineIntelGathering({
                                 <strong className="text-dark">Single Target Limit:</strong> Stakeholders already targeted by{" "}
                                 <em className="text-dark">"{playingCard.title}"</em> in this phase cannot be selected again.
                               </li>
+                              {playingCard.intel_reveal_count !== undefined && playingCard.intel_reveal_count > 0 && (
+                                <li className="mb-1 text-dark">
+                                  <strong className="text-dark">Intel Revelation:</strong> Uncovers up to{" "}
+                                  <strong className="text-dark">{playingCard.intel_reveal_count}</strong> random requirement
+                                  {playingCard.intel_reveal_count > 1 ? "s" : ""} per targeted stakeholder.
+                                </li>
+                              )}
                             </>
                           )}
                           <li className="text-dark">

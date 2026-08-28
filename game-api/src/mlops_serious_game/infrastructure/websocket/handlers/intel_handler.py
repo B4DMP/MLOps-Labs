@@ -170,12 +170,12 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
                     current_msgs = list(existing.online_intel_gathering_messages or [])
                     current_msgs.append({
                         "id": "user",
-                        "message": f"👑 Played Card: Verify Intel Item on \"{desc}\"",
+                        "message": f" Played Card: Verify Intel Item on \"{desc}\"",
                         "ac_id": -1
                     })
                     current_msgs.append({
                         "id": st_id,
-                        "message": f"✅ Submitted \"{desc}\" for direct verification.",
+                        "message": f" Submitted \"{desc}\" for direct verification.",
                         "ac_id": -1
                     })
                     existing.online_intel_gathering_messages = current_msgs

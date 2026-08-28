@@ -4,20 +4,20 @@
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
       "type": "hard_constraint",
-      "description": "Model must achieve at least 95% accuracy on test set to meet product guidelines.",
+      "description": "Model Monica mandates that the model must achieve at least 95% accuracy on the test set to meet product guidelines.",
       "id": "req_0_model_monica_hard_constraint_0"
     },
     {
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
       "type": "requirement",
-      "description": "Model training should leverage deep learning architectures.",
+      "description": "Model Monica requires that model training leverages deep learning architectures.",
       "id": "req_0_model_monica_requirement_1"
     },
     {
       "stakeholder_id": "model_monica",
       "type": "negotiable_preference",
-      "description": "Prefers PyTorch over other machine learning frameworks.",
+      "description": "Model Monica prefers PyTorch over other machine learning frameworks.",
       "id": "req_0_model_monica_negotiable_preference_2",
       "challenge_id": 0
     },
@@ -25,595 +25,595 @@
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
       "type": "personal_friction",
-      "description": "Frustrated by requests to simplify model architectures solely for resource constraints.",
+      "description": "Model Monica is frustrated by requests to simplify model architectures solely for resource constraints.",
       "id": "req_0_model_monica_personal_friction_3"
     },
     {
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "Model inference latency must be under 50ms to prevent user experience degradation.",
+      "description": "Efficiency Emilia mandates that model inference latency must remain under 50ms to prevent user experience degradation.",
       "id": "req_0_efficiency_emilia_hard_constraint_4"
     },
     {
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "Model training resource footprint must remain within budget limits.",
+      "description": "Efficiency Emilia requires model training resource footprint to remain within budget limits.",
       "id": "req_0_efficiency_emilia_requirement_5"
     },
     {
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers simpler models if they provide comparable business value.",
+      "description": "Efficiency Emilia prefers simpler models if they provide comparable business value.",
       "id": "req_0_efficiency_emilia_negotiable_preference_6"
     },
     {
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Concerned about high cloud costs associated with unnecessarily complex model architectures.",
+      "description": "Efficiency Emilia is concerned about high cloud costs associated with unnecessarily complex model architectures.",
       "id": "req_0_efficiency_emilia_personal_friction_7"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "The chosen MLOps platform platform must have a predictable monthly SaaS pricing plan.",
+      "description": "Efficiency Emilia mandates that the chosen MLOps platform must have a predictable monthly SaaS pricing plan.",
       "id": "req_1_efficiency_emilia_hard_constraint_8"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "The platform must be hosted and managed by a 3rd party to minimize development overhead.",
+      "description": "Efficiency Emilia requires the platform to be hosted and managed by a 3rd party to minimize development overhead.",
       "id": "req_1_efficiency_emilia_requirement_9"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers platforms that offer integrated visual analytics dashboards.",
+      "description": "Efficiency Emilia prefers platforms that offer integrated visual analytics dashboards.",
       "id": "req_1_efficiency_emilia_negotiable_preference_10"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Worried that building a custom platform will delay the release timeline by several months.",
+      "description": "Efficiency Emilia is worried that building a custom platform will delay the release timeline by several months.",
       "id": "req_1_efficiency_emilia_personal_friction_11"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
       "type": "hard_constraint",
-      "description": "The platform must comply with the strict internal data security and privacy guidelines.",
+      "description": "Requirements Reuben mandates that the platform must comply with strict internal data security and privacy guidelines.",
       "id": "req_1_requirements_reuben_hard_constraint_12"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "The architecture design must support custom plugin integrations.",
+      "description": "Requirements Reuben requires that the architecture design supports custom plugin integrations.",
       "id": "req_1_requirements_reuben_requirement_13"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
       "type": "negotiable_preference",
-      "description": "Prefers an open-source core platform to avoid vendor lock-in.",
+      "description": "Requirements Reuben prefers an open-source core platform to avoid vendor lock-in.",
       "id": "req_1_requirements_reuben_negotiable_preference_14"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Stressed by potential legal and compliance liabilities of 3rd-party SaaS platforms.",
+      "description": "Requirements Reuben is stressed by potential legal and compliance liabilities of 3rd-party SaaS platforms.",
       "id": "req_1_requirements_reuben_personal_friction_15"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "automation_alex",
       "type": "hard_constraint",
-      "description": "Deployment templates must use standard IaC declarations to enable automated provisioning.",
+      "description": "Automation Alex mandates that deployment templates must use standard IaC declarations to enable automated provisioning.",
       "id": "req_1_automation_alex_hard_constraint_16"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "automation_alex",
       "type": "requirement",
-      "description": "The platform design must support standard automated deployment pipelines.",
+      "description": "Automation Alex requires the platform design to support standard automated deployment pipelines.",
       "id": "req_1_automation_alex_requirement_17"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "automation_alex",
       "type": "negotiable_preference",
-      "description": "Prefers containers/Docker for runtime packaging consistency.",
+      "description": "Automation Alex prefers containers and Docker for runtime packaging consistency.",
       "id": "req_1_automation_alex_negotiable_preference_18"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "automation_alex",
       "type": "personal_friction",
-      "description": "Frustrated when custom platform designs ignore operational automation.",
+      "description": "Automation Alex is frustrated when custom platform designs ignore operational automation.",
       "id": "req_1_automation_alex_personal_friction_19"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "reliability_ruth",
       "type": "hard_constraint",
-      "description": "The platform architecture must support multi-zone failover configurations.",
+      "description": "Reliability Ruth mandates that the platform architecture must support multi-zone failover configurations.",
       "id": "req_1_reliability_ruth_hard_constraint_20"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "reliability_ruth",
       "type": "requirement",
-      "description": "The platform must define system-level uptime SLAs.",
+      "description": "Reliability Ruth requires the platform to define system-level uptime SLAs.",
       "id": "req_1_reliability_ruth_requirement_21"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "reliability_ruth",
       "type": "negotiable_preference",
-      "description": "Prefers standardized system telemetry integrations.",
+      "description": "Reliability Ruth prefers standardized system telemetry integrations.",
       "id": "req_1_reliability_ruth_negotiable_preference_22"
     },
     {
       "challenge_id": 1,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Anxious about high maintenance overheads of debugging custom-built platforms.",
+      "description": "Reliability Ruth is anxious about high maintenance overheads of debugging custom-built platforms.",
       "id": "req_1_reliability_ruth_personal_friction_23"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
       "type": "hard_constraint",
-      "description": "Data snapshot versioning must be immutable to ensure reproducibility of training sets.",
+      "description": "Data Dave mandates that data snapshot versioning must be immutable to ensure reproducibility of training sets.",
       "id": "req_2_data_dave_hard_constraint_24"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
       "type": "requirement",
-      "description": "We must maintain versioned data lineage graphs for all feature transformations.",
+      "description": "Data Dave requires versioned data lineage graphs to be maintained for all feature transformations.",
       "id": "req_2_data_dave_requirement_25"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
       "type": "negotiable_preference",
-      "description": "Prefers automated detection of upstream schema changes.",
+      "description": "Data Dave prefers automated detection of upstream schema changes.",
       "id": "req_2_data_dave_negotiable_preference_26"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
       "type": "personal_friction",
-      "description": "Frustrated by models trained on ad-hoc, unversioned datasets.",
+      "description": "Data Dave is frustrated by models trained on ad-hoc, unversioned datasets.",
       "id": "req_2_data_dave_personal_friction_27"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
       "type": "hard_constraint",
-      "description": "Data pipeline failures must trigger automated alerts to on-call engineers.",
+      "description": "Reliability Ruth mandates that data pipeline failures must trigger automated alerts to on-call engineers.",
       "id": "req_2_reliability_ruth_hard_constraint_28"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
       "type": "requirement",
-      "description": "Real-time data ingestion latency must be monitored.",
+      "description": "Reliability Ruth requires real-time data ingestion latency to be actively monitored.",
       "id": "req_2_reliability_ruth_requirement_29"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
       "type": "negotiable_preference",
-      "description": "Prefers unified logging platforms for data flow tracking.",
+      "description": "Reliability Ruth prefers unified logging platforms for data flow tracking.",
       "id": "req_2_reliability_ruth_negotiable_preference_30"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Worried that outdated data signal snapshots will silently degrade model predictions.",
+      "description": "Reliability Ruth is worried that outdated data signal snapshots will silently degrade model predictions.",
       "id": "req_2_reliability_ruth_personal_friction_31"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "requirements_reuben",
       "type": "hard_constraint",
-      "description": "All snapshot datasets must comply with GDPR privacy rules and strip PII.",
+      "description": "Requirements Reuben mandates that all snapshot datasets must comply with GDPR privacy rules and strip PII.",
       "id": "req_2_requirements_reuben_hard_constraint_32"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "We must implement access-control permissions for raw and snapshotted data.",
+      "description": "Requirements Reuben requires access-control permissions to be implemented for raw and snapshotted data.",
       "id": "req_2_requirements_reuben_requirement_33"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "requirements_reuben",
       "type": "negotiable_preference",
-      "description": "Prefers encrypting snapshots using customer-managed KMS keys.",
+      "description": "Requirements Reuben prefers encrypting snapshots using customer-managed KMS keys.",
       "id": "req_2_requirements_reuben_negotiable_preference_34"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Concerned that hasty data capture will bypass standard security audits.",
+      "description": "Requirements Reuben is concerned that hasty data capture will bypass standard security audits.",
       "id": "req_2_requirements_reuben_personal_friction_35"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "Storage costs for data snapshots must remain within the monthly budget.",
+      "description": "Efficiency Emilia mandates that storage costs for data snapshots must remain within the monthly budget.",
       "id": "req_2_efficiency_emilia_hard_constraint_36"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "Unused intermediate data snapshots must be pruned automatically.",
+      "description": "Efficiency Emilia requires unused intermediate data snapshots to be pruned automatically.",
       "id": "req_2_efficiency_emilia_requirement_37"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers using Parquet storage format for cost-efficient querying.",
+      "description": "Efficiency Emilia prefers using Parquet storage format for cost-efficient querying.",
       "id": "req_2_efficiency_emilia_negotiable_preference_38"
     },
     {
       "challenge_id": 2,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Stressed by high storage costs from redundant historical snapshots.",
+      "description": "Efficiency Emilia is stressed by high storage costs from redundant historical snapshots.",
       "id": "req_2_efficiency_emilia_personal_friction_39"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
       "type": "hard_constraint",
-      "description": "All feature inputs must be documented in a shared feature store to prevent duplication.",
+      "description": "Data Dave mandates that all feature inputs must be documented in a shared feature store to prevent duplication.",
       "id": "req_3_data_dave_hard_constraint_40"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
       "type": "requirement",
-      "description": "We must enforce strict validation rules for feature inputs.",
+      "description": "Data Dave requires strict validation rules to be enforced for feature inputs.",
       "id": "req_3_data_dave_requirement_41"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
       "type": "negotiable_preference",
-      "description": "Prefers feature store integrations with automated schema updates.",
+      "description": "Data Dave prefers feature store integrations with automated schema updates.",
       "id": "req_3_data_dave_negotiable_preference_42"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
       "type": "personal_friction",
-      "description": "Frustrated by feature entanglement where weight changes cause unpredictable bugs.",
+      "description": "Data Dave is frustrated by feature entanglement where weight changes cause unpredictable bugs.",
       "id": "req_3_data_dave_personal_friction_43"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
       "type": "hard_constraint",
-      "description": "The ensemble model accuracy must exceed the baseline single-model accuracy.",
+      "description": "Model Monica mandates that the ensemble model accuracy must exceed the baseline single-model accuracy.",
       "id": "req_3_model_monica_hard_constraint_44"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
       "type": "requirement",
-      "description": "Ensemble component models must be trained on independent features.",
+      "description": "Model Monica requires ensemble component models to be trained on independent features.",
       "id": "req_3_model_monica_requirement_45"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
       "type": "negotiable_preference",
-      "description": "Prefers models that support gradient-based feature importance evaluation.",
+      "description": "Model Monica prefers models that support gradient-based feature importance evaluation.",
       "id": "req_3_model_monica_negotiable_preference_46"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
       "type": "personal_friction",
-      "description": "Concerned that complex ensemble modeling will lead to overfitting and debug complexity.",
+      "description": "Model Monica is concerned that complex ensemble modeling will lead to overfitting and debug complexity.",
       "id": "req_3_model_monica_personal_friction_47"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "requirements_reuben",
       "type": "hard_constraint",
-      "description": "The model training artifacts must be registered in a secure model registry.",
+      "description": "Requirements Reuben mandates that model training artifacts must be registered in a secure model registry.",
       "id": "req_3_requirements_reuben_hard_constraint_48"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "All training packages must be scanned for license compliance.",
+      "description": "Requirements Reuben requires all training packages to be scanned for license compliance.",
       "id": "req_3_requirements_reuben_requirement_49"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "requirements_reuben",
       "type": "negotiable_preference",
-      "description": "Prefers pre-approved open source libraries for custom code.",
+      "description": "Requirements Reuben prefers pre-approved open source libraries for custom code.",
       "id": "req_3_requirements_reuben_negotiable_preference_50"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Worried that complex model dependencies will introduce security vulnerabilities.",
+      "description": "Requirements Reuben is worried that complex model dependencies will introduce security vulnerabilities.",
       "id": "req_3_requirements_reuben_personal_friction_51"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "Compute budget for training the ensemble model must not exceed the baseline limit.",
+      "description": "Efficiency Emilia mandates that the compute budget for training the ensemble model must not exceed the baseline limit.",
       "id": "req_3_efficiency_emilia_hard_constraint_52"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "Model training duration must fit within standard spot instance timeouts.",
+      "description": "Efficiency Emilia requires model training duration to fit within standard spot instance timeouts.",
       "id": "req_3_efficiency_emilia_requirement_53"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers using simpler base estimators to save compute resource.",
+      "description": "Efficiency Emilia prefers using simpler base estimators to save compute resources.",
       "id": "req_3_efficiency_emilia_negotiable_preference_54"
     },
     {
       "challenge_id": 3,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Frustrated by long training runs that incur high costs without guaranteed gains.",
+      "description": "Efficiency Emilia is frustrated by long training runs that incur high costs without guaranteed gains.",
       "id": "req_3_efficiency_emilia_personal_friction_55"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
       "type": "hard_constraint",
-      "description": "All production model updates must be triggered and validated via CI/CD pipelines.",
+      "description": "Automation Alex mandates that all production model updates must be triggered and validated via CI/CD pipelines.",
       "id": "req_4_automation_alex_hard_constraint_56"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
       "type": "requirement",
-      "description": "The deployment pipeline must run automated integration tests.",
+      "description": "Automation Alex requires the deployment pipeline to run automated integration tests.",
       "id": "req_4_automation_alex_requirement_57"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
       "type": "negotiable_preference",
-      "description": "Prefers standardized Kubernetes templates for deployment.",
+      "description": "Automation Alex prefers standardized Kubernetes templates for deployment.",
       "id": "req_4_automation_alex_negotiable_preference_58"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
       "type": "personal_friction",
-      "description": "Frustrated by manual release procedures and ad-hoc hotfixes.",
+      "description": "Automation Alex is frustrated by manual release procedures and ad-hoc hotfixes.",
       "id": "req_4_automation_alex_personal_friction_59"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
       "type": "hard_constraint",
-      "description": "Validation checks must include automated fairness and bias verification steps.",
+      "description": "Requirements Reuben mandates that validation checks must include automated fairness and bias verification steps.",
       "id": "req_4_requirements_reuben_hard_constraint_60"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "The model validation report must be generated and signed off automatically.",
+      "description": "Requirements Reuben requires the model validation report to be generated and signed off automatically.",
       "id": "req_4_requirements_reuben_requirement_61"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
       "type": "negotiable_preference",
-      "description": "Prefers human-in-the-loop approvals for ethical validations.",
+      "description": "Requirements Reuben prefers human-in-the-loop approvals for ethical validations.",
       "id": "req_4_requirements_reuben_negotiable_preference_62"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Worried that fully automated validation pipelines will ignore critical fairness issues.",
+      "description": "Requirements Reuben is worried that fully automated validation pipelines will ignore critical fairness issues.",
       "id": "req_4_requirements_reuben_personal_friction_63"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "reliability_ruth",
       "type": "hard_constraint",
-      "description": "Model release processes must support automatic rollback to the previous version on failure.",
+      "description": "Reliability Ruth mandates that model release processes must support automatic rollback to the previous version on failure.",
       "id": "req_4_reliability_ruth_hard_constraint_64"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "reliability_ruth",
       "type": "requirement",
-      "description": "The canary deployment configuration must monitor system error rates during rollouts.",
+      "description": "Reliability Ruth requires the canary deployment configuration to monitor system error rates during rollouts.",
       "id": "req_4_reliability_ruth_requirement_65"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "reliability_ruth",
       "type": "negotiable_preference",
-      "description": "Prefers rolling updates to prevent temporary system capacity drop.",
+      "description": "Reliability Ruth prefers rolling updates to prevent temporary system capacity drops.",
       "id": "req_4_reliability_ruth_negotiable_preference_66"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Anxious about deploying fully automated changes during peak traffic hours.",
+      "description": "Reliability Ruth is anxious about deploying fully automated changes during peak traffic hours.",
       "id": "req_4_reliability_ruth_personal_friction_67"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "Automated cloud compute scaling limits must be configured to prevent budget runaway.",
+      "description": "Efficiency Emilia mandates that automated cloud compute scaling limits must be configured to prevent budget runaway.",
       "id": "req_4_efficiency_emilia_hard_constraint_68"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "The CD pipeline should compile billing reports for each model deployment.",
+      "description": "Efficiency Emilia requires the CD pipeline to compile billing reports for each model deployment.",
       "id": "req_4_efficiency_emilia_requirement_69"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers serverless runtimes for low-traffic endpoints to save costs.",
+      "description": "Efficiency Emilia prefers serverless runtimes for low-traffic endpoints to save costs.",
       "id": "req_4_efficiency_emilia_negotiable_preference_70"
     },
     {
       "challenge_id": 4,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Worried that excessive testing environments will burn through department budgets.",
+      "description": "Efficiency Emilia is worried that excessive testing environments will burn through department budgets.",
       "id": "req_4_efficiency_emilia_personal_friction_71"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
       "type": "hard_constraint",
-      "description": "Retraining triggers must activate automatically when business metrics drop below baseline.",
+      "description": "Efficiency Emilia mandates that retraining triggers must activate automatically when business metrics drop below baseline.",
       "id": "req_5_efficiency_emilia_hard_constraint_72"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "The retraining cycle must complete within 2 hours to limit business disruption.",
+      "description": "Efficiency Emilia requires the retraining cycle to complete within 2 hours to limit business disruption.",
       "id": "req_5_efficiency_emilia_requirement_73"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Prefers simple data windowing techniques for retraining updates.",
+      "description": "Efficiency Emilia prefers simple data windowing techniques for retraining updates.",
       "id": "req_5_efficiency_emilia_negotiable_preference_74"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
       "type": "personal_friction",
-      "description": "Stressed by business revenue losses during periods of degraded model accuracy.",
+      "description": "Efficiency Emilia is stressed by business revenue losses during periods of degraded model accuracy.",
       "id": "req_5_efficiency_emilia_personal_friction_75"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
       "type": "hard_constraint",
-      "description": "A baseline model validation gate must verify the performance on historical datasets.",
+      "description": "Reliability Ruth mandates that a baseline model validation gate must verify performance on historical datasets.",
       "id": "req_5_reliability_ruth_hard_constraint_76"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
       "type": "requirement",
-      "description": "Real-time model performance metrics must be monitored in production.",
+      "description": "Reliability Ruth requires real-time model performance metrics to be monitored in production.",
       "id": "req_5_reliability_ruth_requirement_77"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
       "type": "negotiable_preference",
-      "description": "Prefers standardized alerting rules for prediction drift.",
+      "description": "Reliability Ruth prefers standardized alerting rules for prediction drift.",
       "id": "req_5_reliability_ruth_negotiable_preference_78"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Anxious that automated retraining without diagnostics will deploy corrupt weights.",
+      "description": "Reliability Ruth is anxious that automated retraining without diagnostics will deploy corrupt weights.",
       "id": "req_5_reliability_ruth_personal_friction_79"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "model_monica",
       "type": "hard_constraint",
-      "description": "A baseline model validation gate must verify the performance on historical datasets.",
+      "description": "Model Monica mandates that a baseline model validation gate must verify performance on historical datasets.",
       "id": "req_5_model_monica_hard_constraint_80"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "model_monica",
       "type": "requirement",
-      "description": "Retraining data must be selected to balance class distributions and prevent bias.",
+      "description": "Model Monica requires retraining data to be selected to balance class distributions and prevent bias.",
       "id": "req_5_model_monica_requirement_81"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "model_monica",
       "type": "negotiable_preference",
-      "description": "Prefers manual retraining review prior to deploying updated model weights.",
+      "description": "Model Monica prefers manual retraining review prior to deploying updated model weights.",
       "id": "req_5_model_monica_negotiable_preference_82"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "model_monica",
       "type": "personal_friction",
-      "description": "Anxious about retraining with drifted data without a thorough quality validation.",
+      "description": "Model Monica is anxious about retraining with drifted data without a thorough quality validation.",
       "id": "req_5_model_monica_personal_friction_83"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "requirements_reuben",
       "type": "hard_constraint",
-      "description": "Retrained models must be checked for adversarial vulnerabilities before reactivation.",
+      "description": "Requirements Reuben mandates that retrained models must be checked for adversarial vulnerabilities before reactivation.",
       "id": "req_5_requirements_reuben_hard_constraint_84"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "All retraining executions and parameters must be logged in the audit trail.",
+      "description": "Requirements Reuben requires all retraining executions and parameters to be logged in the audit trail.",
       "id": "req_5_requirements_reuben_requirement_85"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "requirements_reuben",
       "type": "negotiable_preference",
-      "description": "Prefers utilizing standardized automated compliance checks.",
+      "description": "Requirements Reuben prefers utilizing standardized automated compliance checks.",
       "id": "req_5_requirements_reuben_negotiable_preference_86"
     },
     {
       "challenge_id": 5,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Concerned that hasty retraining to address accuracy drops will introduce compliance issues.",
+      "description": "Requirements Reuben is concerned that hasty retraining to address accuracy drops will introduce compliance issues.",
       "id": "req_5_requirements_reuben_personal_friction_87"
     }
   ]

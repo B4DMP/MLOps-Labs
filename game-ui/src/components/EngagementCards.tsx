@@ -127,7 +127,7 @@ export default function EngagementCards({
                   <h6 className="card-title text-center fw-bold mb-1 text-truncate" title={card.title} style={{ color: "var(--engagement-text)" }}>
                     {card.title}
                   </h6>
-                  <div className="d-flex justify-content-center align-items-center small">
+                  <div className="d-flex justify-content-center align-items-center gap-1 small flex-wrap">
                     <span
                       className="badge"
                       style={{
@@ -138,6 +138,21 @@ export default function EngagementCards({
                     >
                       ENGAGEMENT CARD
                     </span>
+                    {card.target_type !== "intel" && (card.intel_reveal_count ?? 1) > 0 && (
+                      <span
+                        className="badge"
+                        style={{
+                          fontSize: "0.65rem",
+                          backgroundColor: "rgba(56, 189, 248, 0.2)",
+                          color: "#38bdf8",
+                          border: "1px solid rgba(56, 189, 248, 0.4)",
+                        }}
+                        title={`Reveals ${card.intel_reveal_count ?? 1} intel requirement${(card.intel_reveal_count ?? 1) > 1 ? "s" : ""} per stakeholder`}
+                      >
+                        <Icon icon="ph:files-bold" className="me-1" />
+                        {card.intel_reveal_count ?? 1} Intel
+                      </span>
+                    )}
                   </div>
                 </div>
 

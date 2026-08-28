@@ -157,6 +157,11 @@ async def generate_stakeholder_responses_node(state: OnlineIntelState, config: R
     responses: list[dict[str, Any]] = []
     ai_messages: list[AIMessage] = []
 
+    card_id = state.get("card_id")
+    card = EngagementCardFactory.get_card(card_id) if card_id else None
+    intel_reveal_amount = getattr(card, "intel_reveal_count", 1) if card else 1
+    max_sentences = max(1, 2 * intel_reveal_amount) if intel_reveal_amount > 0 else 2
+
     for st_id in state.get("stakeholder_ids", []):
         st = StakeholderFactory.get_stakeholder(st_id)
         if not st:
@@ -178,6 +183,7 @@ async def generate_stakeholder_responses_node(state: OnlineIntelState, config: R
             "challenge": challenge_desc,
             "player_message": player_msg,
             "revealed_intel": revealed_text,
+            "max_sentences": max_sentences,
         })
 
         clean_response = response_text.strip().strip('"').strip("'")
