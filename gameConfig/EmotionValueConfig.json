@@ -1,0 +1,230 @@
+{
+   "emotion_values": [
+      {
+         "id": "trust",
+         "description": "Level of trust in team members, leadership, and system integrity (0.0 = total distrust, 1.0 = absolute trust).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "interest",
+         "description": "Degree of engagement, curiosity, and investment in project outcomes (0.0 = indifferent, 1.0 = highly invested).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "stress",
+         "description": "Level of psychological pressure, anxiety, or strain experienced (0.0 = completely relaxed, 1.0 = extremely stressed).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "confidence",
+         "description": "Self-assurance and belief in their own decisions, abilities, and project trajectory (0.0 = completely insecure, 1.0 = fully confident).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "perceived_risk",
+         "description": "Subjective assessment of threat or vulnerability to project goals or compliance (0.0 = risk-free, 1.0 = critical threat).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "sense_of_control",
+         "description": "Perceived agency and influence over project processes and decisions (0.0 = helpless/powerless, 1.0 = full agency).",
+         "ge": 0.0,
+         "le": 1.0
+      },
+      {
+         "id": "fairness",
+         "description": "Perception of equity, transparency, and procedural justice in interactions (0.0 = unfair/biased, 1.0 = completely fair).",
+         "ge": 0.0,
+         "le": 1.0
+      }
+   ],
+   "emotion_prompts": {
+      "angry": "Respond with visible irritation and sharpness regarding the lack of fairness and trust. Demand immediate accountability, push back forcefully on proposed changes, and express dissatisfaction.",
+      "anxious": "Express heightened concern and hesitation about risk and loss of control. Seek immediate reassurance, ask probing questions about safety measures, and urge caution before proceeding.",
+      "frustrated": "Convey annoyance and impatience about blocked progress and lack of agency. Highlight obstacles sharply and demand clearer pathways or control over decision-making.",
+      "enthusiastic": "Respond with high energy, optimism, and strong alignment with the proposed direction. Actively support the initiative, offer constructive ideas, and encourage swift implementation.",
+      "skeptical": "Adopt a guarded, questioning tone and express doubt regarding claims or promises made. Demand concrete evidence, rigorous validation, and transparent explanations before buying in.",
+      "apathetic": "Give a minimal, disinterested, and passive response showing little engagement with the project. Express reluctance to spend effort on the matter and defer decisions without enthusiasm.",
+      "relieved": "Communicate a sense of ease, satisfaction, and renewed confidence in the project's direction. Acknowledge positive progress warmly and express readiness to move forward smoothly.",
+      "overwhelmed": "Express distress and feeling overloaded by high complexity and mounting risks. Request an immediate pause or simplification of scope to regain stability and clarity.",
+      "neutral": "Maintain a professional, objective, and matter-of-fact tone. Focus purely on factual details and standard operational requirements without emotional bias."
+   },
+   "emotional_states": {
+      "angry": {
+         "conditions": [
+            { "metric": "fairness", "op": "<=", "value": 0.35 },
+            { "metric": "trust", "op": "<=", "value": 0.35 },
+            { "metric": "stress", "op": ">=", "value": 0.6 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "fairness", "weight": 0.4, "invert": true },
+               { "metric": "trust", "weight": 0.3, "invert": true },
+               { "metric": "stress", "weight": 0.3, "invert": false }
+            ]
+         }
+      },
+      "anxious": {
+         "conditions": [
+            { "metric": "perceived_risk", "op": ">=", "value": 0.6 },
+            { "metric": "stress", "op": ">=", "value": 0.6 },
+            { "metric": "sense_of_control", "op": "<=", "value": 0.4 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "perceived_risk", "weight": 0.4, "invert": false },
+               { "metric": "stress", "weight": 0.3, "invert": false },
+               { "metric": "sense_of_control", "weight": 0.3, "invert": true }
+            ]
+         }
+      },
+      "frustrated": {
+         "conditions": [
+            { "metric": "interest", "op": ">=", "value": 0.6 },
+            { "metric": "sense_of_control", "op": "<=", "value": 0.35 },
+            { "metric": "trust", "op": "<=", "value": 0.4 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "interest", "weight": 0.3, "invert": false },
+               { "metric": "sense_of_control", "weight": 0.4, "invert": true },
+               { "metric": "stress", "weight": 0.3, "invert": false }
+            ]
+         }
+      },
+      "enthusiastic": {
+         "conditions": [
+            { "metric": "trust", "op": ">=", "value": 0.6 },
+            { "metric": "interest", "op": ">=", "value": 0.6 },
+            { "metric": "confidence", "op": ">=", "value": 0.6 },
+            { "metric": "perceived_risk", "op": "<=", "value": 0.4 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "trust", "weight": 0.3, "invert": false },
+               { "metric": "interest", "weight": 0.3, "invert": false },
+               { "metric": "confidence", "weight": 0.2, "invert": false },
+               { "metric": "perceived_risk", "weight": 0.2, "invert": true }
+            ]
+         }
+      },
+      "skeptical": {
+         "conditions": [
+            { "metric": "trust", "op": "<=", "value": 0.4 },
+            { "metric": "fairness", "op": "<=", "value": 0.4 },
+            { "metric": "interest", "op": ">=", "value": 0.5 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "trust", "weight": 0.4, "invert": true },
+               { "metric": "fairness", "weight": 0.4, "invert": true },
+               { "metric": "interest", "weight": 0.2, "invert": false }
+            ]
+         }
+      },
+      "apathetic": {
+         "conditions": [
+            { "metric": "interest", "op": "<=", "value": 0.3 },
+            { "metric": "sense_of_control", "op": "<=", "value": 0.3 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "interest", "weight": 0.6, "invert": true },
+               { "metric": "sense_of_control", "weight": 0.4, "invert": true }
+            ]
+         }
+      },
+      "relieved": {
+         "conditions": [
+            { "metric": "stress", "op": "<=", "value": 0.35 },
+            { "metric": "perceived_risk", "op": "<=", "value": 0.35 },
+            { "metric": "trust", "op": ">=", "value": 0.6 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "stress", "weight": 0.4, "invert": true },
+               { "metric": "perceived_risk", "weight": 0.4, "invert": true },
+               { "metric": "fairness", "weight": 0.2, "invert": false }
+            ]
+         }
+      },
+      "overwhelmed": {
+         "conditions": [
+            { "metric": "stress", "op": ">=", "value": 0.75 },
+            { "metric": "perceived_risk", "op": ">=", "value": 0.7 },
+            { "metric": "sense_of_control", "op": "<=", "value": 0.25 }
+         ],
+         "formula": {
+            "type": "weighted_sum",
+            "weights": [
+               { "metric": "stress", "weight": 0.4, "invert": false },
+               { "metric": "perceived_risk", "weight": 0.3, "invert": false },
+               { "metric": "sense_of_control", "weight": 0.3, "invert": true }
+            ]
+         }
+      },
+      "neutral": {
+         "conditions": [],
+         "formula": {
+            "type": "constant",
+            "value": 0.5
+         }
+      }
+   },
+   "convincer_archetypes": {
+      "Technical Excellence": {
+         "evidence_basis": 0,
+         "risk_and_control": 2,
+         "value_horizon": 3,
+         "strategy": "Explain how the solution works using technical details, data, trade-offs, and objective evidence rather than promises or business rhetoric."
+      },
+      "Business Value": {
+         "evidence_basis": 1,
+         "risk_and_control": 3,
+         "value_horizon": 5,
+         "strategy": "Frame every proposal in terms of business impact, quantifiable benefits, strategic goals, and return on investment."
+      },
+      "Safety & Reliability": {
+         "evidence_basis": 0,
+         "risk_and_control": 5,
+         "value_horizon": 4,
+         "strategy": "Emphasize risk mitigation, safeguards, testing, compliance, SLAs, monitoring, and fallback plans to build confidence."
+      },
+      "Control & Governance": {
+         "evidence_basis": 2,
+         "risk_and_control": 5,
+         "value_horizon": 3,
+         "strategy": "Highlight governance structures, approval gates, reporting mechanisms, and how stakeholders retain visibility and control over the project."
+      },
+      "People & Trust": {
+         "evidence_basis": 5,
+         "risk_and_control": 1,
+         "value_horizon": 2,
+         "strategy": "Communicate openly, acknowledge concerns, demonstrate empathy, and build trust through transparency and collaboration rather than hard facts alone."
+      },
+      "Autonomy": {
+         "evidence_basis": 3,
+         "risk_and_control": 0,
+         "value_horizon": 2,
+         "strategy": "Present the proposal as empowering rather than restricting, emphasizing flexibility, delegated ownership, and local decision-making."
+      },
+      "Pragmatism": {
+         "evidence_basis": 1,
+         "risk_and_control": 1,
+         "value_horizon": 0,
+         "strategy": "Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering."
+      }
+   }
+}

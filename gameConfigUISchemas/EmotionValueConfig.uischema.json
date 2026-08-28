@@ -1,0 +1,51 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Emotion Dimensions",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/emotion_values",
+          "options": {
+            "elementLabelProp": "id"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Emotion Prompts",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/emotion_prompts",
+          "label": "AI Evaluator Tone & Persona Prompts"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Emotional States",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/emotional_states",
+          "label": "State Rules & Intensity Formulas"
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Convincer Archetypes",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/convincer_archetypes",
+          "label": "Convincer Archetypes & Persuasion Strategies"
+        }
+      ]
+    }
+  ]
+}

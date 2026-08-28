@@ -8,6 +8,7 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
 
 
 class GameConfigLoader:
@@ -49,6 +50,11 @@ class GameConfigLoader:
             if cards_path.exists():
                 EngagementCardFactory.load_cards(cards_path)
                 print(f"loaded engagement cards.")
+
+            emotion_path = (base_dir / "../../../../gameConfig/EmotionValueConfig.json").resolve()
+            if emotion_path.exists():
+                EmotionFactory.load_config(emotion_path)
+                print(f"loaded emotion configs.")
 
         except Exception as e:
             raise ConfigLoaderError(e)

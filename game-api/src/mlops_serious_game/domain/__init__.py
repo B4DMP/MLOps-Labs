@@ -10,6 +10,9 @@ from .requirement import StakeholderRequirement
 from .requirement_factory import RequirementFactory
 from .engagementCard import EngagementCard
 from .engagementCardFactory import EngagementCardFactory
+from .emotion import EmotionValues, EmotionDelta, EmotionDimension, EmotionConfig
+from .emotion_factory import EmotionFactory
+from .convincerArchetype import ConvincerArchetype
 
 __all__ = [
     "Prompt",
@@ -33,5 +36,11 @@ __all__ = [
     "RequirementFactory",
     "EngagementCard",
     "EngagementCardFactory",
+    "EmotionValues",
+    "EmotionDelta",
+    "EmotionDimension",
+    "EmotionConfig",
+    "EmotionFactory",
+    "ConvincerArchetype",
 ]
 

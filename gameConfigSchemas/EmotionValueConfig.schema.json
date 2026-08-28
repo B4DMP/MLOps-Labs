@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Emotion Values & CME Configuration",
+  "required": [
+    "emotion_values",
+    "emotion_prompts",
+    "emotional_states"
+  ],
+  "properties": {
+    "emotion_values": {
+      "type": "array",
+      "title": "Emotion Value Dimensions",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "ge",
+          "le"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Dimension ID"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "ge": {
+            "type": "number",
+            "title": "Minimum Value (ge)",
+            "default": 0.0
+          },
+          "le": {
+            "type": "number",
+            "title": "Maximum Value (le)",
+            "default": 1.0
+          }
+        }
+      }
+    },
+    "emotion_prompts": {
+      "type": "object",
+      "title": "Emotion Character Prompts",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "emotional_states": {
+      "type": "object",
+      "title": "Emotional States Configuration",
+      "additionalProperties": {
+        "$ref": "#/definitions/emotionalStateRule"
+      }
+    },
+    "convincer_archetypes": {
+      "type": "object",
+      "title": "Convincer Archetypes",
+      "additionalProperties": {
+        "$ref": "#/definitions/convincerArchetype"
+      }
+    }
+  },
+  "definitions": {
+    "emotionalStateRule": {
+      "type": "object",
+      "title": "State Rule",
+      "required": [
+        "conditions",
+        "formula"
+      ],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "title": "Trigger Conditions",
+          "items": {
+            "type": "object",
+            "required": [
+              "metric",
+              "op",
+              "value"
+            ],
+            "properties": {
+              "metric": {
+                "type": "string",
+                "title": "Metric ID"
+              },
+              "op": {
+                "type": "string",
+                "title": "Operator",
+                "enum": [
+                  "<=",
+                  ">=",
+                  "<",
+                  ">",
+                  "=="
+                ]
+              },
+              "value": {
+                "type": "number",
+                "title": "Threshold Value"
+              }
+            }
+          }
+        },
+        "formula": {
+          "type": "object",
+          "title": "Intensity Formula",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "title": "Formula Type",
+              "enum": [
+                "weighted_sum",
+                "constant"
+              ]
+            },
+            "value": {
+              "type": "number",
+              "title": "Constant Value"
+            },
+            "weights": {
+              "type": "array",
+              "title": "Weights",
+              "items": {
+                "type": "object",
+                "required": [
+                  "metric",
+                  "weight"
+                ],
+                "properties": {
+                  "metric": {
+                    "type": "string",
+                    "title": "Metric ID"
+                  },
+                  "weight": {
+                    "type": "number",
+                    "title": "Weight"
+                  },
+                  "invert": {
+                    "type": "boolean",
+                    "title": "Invert (1.0 - value)",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "convincerArchetype": {
+      "type": "object",
+      "title": "Convincer Archetype",
+      "required": [
+        "evidence_basis",
+        "risk_and_control",
+        "value_horizon",
+        "strategy"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Archetype Name"
+        },
+        "evidence_basis": {
+          "type": "integer",
+          "title": "Evidence Basis (0=Rational -> 5=Relational)",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0
+        },
+        "risk_and_control": {
+          "type": "integer",
+          "title": "Risk & Control (0=Autonomy/Risk-tolerant -> 5=Control/Risk-averse)",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0
+        },
+        "value_horizon": {
+          "type": "integer",
+          "title": "Value Horizon (0=Short-term Practical -> 5=Long-term Strategic)",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0
+        },
+        "strategy": {
+          "type": "string",
+          "title": "Persuasion Strategy"
+        }
+      }
+    }
+  }
+}
