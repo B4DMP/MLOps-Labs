@@ -61,9 +61,126 @@
       "additionalProperties": {
         "$ref": "#/definitions/convincerArchetype"
       }
+    },
+    "emotion_delta_rules": {
+      "$ref": "#/definitions/emotionDeltaRules"
     }
   },
   "definitions": {
+    "emotionDeltaRules": {
+      "type": "object",
+      "title": "Emotion Delta Rules",
+      "properties": {
+        "intel_rules": {
+          "type": "object",
+          "title": "Intel Delta Rules",
+          "properties": {
+            "misattributed_intel": {
+              "type": "object",
+              "title": "Misattributed Intel Penalties",
+              "additionalProperties": {
+                "type": "number"
+              }
+            },
+            "correct_intel": {
+              "type": "object",
+              "title": "Correct Intel Rewards",
+              "additionalProperties": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        "corporate_noise_rules": {
+          "type": "object",
+          "title": "Corporate Noise Delta Rules",
+          "properties": {
+            "distance_threshold": {
+              "type": "number",
+              "title": "Distance Threshold",
+              "default": 3.5
+            },
+            "distance_slope": {
+              "type": "number",
+              "title": "Distance Slope",
+              "default": 0.04
+            },
+            "base_trust_bonus": {
+              "type": "number",
+              "title": "Base Trust Bonus",
+              "default": 0.10
+            },
+            "base_trust_penalty": {
+              "type": "number",
+              "title": "Base Trust Penalty",
+              "default": -0.10
+            },
+            "dimension_alignments": {
+              "type": "array",
+              "title": "Dimension Alignments",
+              "items": {
+                "type": "object",
+                "required": [
+                  "dimension",
+                  "conditions"
+                ],
+                "properties": {
+                  "dimension": {
+                    "type": "string",
+                    "title": "Dimension Name"
+                  },
+                  "conditions": {
+                    "type": "array",
+                    "title": "Conditions",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "deltas"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "title": "Condition Type",
+                          "enum": [
+                            "option_min",
+                            "diff_bonus",
+                            "diff_penalty"
+                          ]
+                        },
+                        "min_value": {
+                          "type": "integer",
+                          "title": "Minimum Value"
+                        },
+                        "target_min_value": {
+                          "type": "integer",
+                          "title": "Target Minimum Value"
+                        },
+                        "min_diff": {
+                          "type": "integer",
+                          "title": "Minimum Difference"
+                        },
+                        "max_diff": {
+                          "type": "integer",
+                          "title": "Maximum Difference"
+                        },
+                        "deltas": {
+                          "type": "object",
+                          "title": "Emotional Deltas",
+                          "additionalProperties": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "emotionalStateRule": {
       "type": "object",
       "title": "State Rule",

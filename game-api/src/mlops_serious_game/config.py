@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     RWTH_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     RWTH_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    RWTH_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
 
     # -- Persona Gym Configuration --
     SETTINGS_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
@@ -43,6 +44,7 @@ class Settings(BaseSettings):
     GROQ_LLM_MODEL_CONTEXT_SUMMARY: str = "groq/compound-mini" 
     GROQ_LLM_MODEL_SUMMARY: str = "groq/compound-mini"  
     GROQ_LLM_MODEL_CARD_GEN: str = "openai/gpt-oss-20b"
+    GROQ_LLM_MODEL_DIALOGUE_OPTIONS: str = "openai/gpt-oss-20b"
     # --- OpenAI Configuration (Required for evaluation) ---
     OPENAI_API_KEY: str | None = None
     CLAUDE_API_KEY: str | None = None

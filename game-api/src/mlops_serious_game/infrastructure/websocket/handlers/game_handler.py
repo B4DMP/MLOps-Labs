@@ -1,6 +1,6 @@
-from fastapi import websockets
+import asyncio
 import datetime
-from typing import Any
+from typing import Any, Optional
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
@@ -8,15 +8,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.emotion_factory import EmotionConfig, EmotionFactory
 from mlops_serious_game.domain.briefing_factory import BriefingFactory
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.requirement import StakeholderIntelItem
+from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.application.intel_dossier import clear_intel_items_for_user
+from mlops_serious_game.application.dialogue_options_service import (
+    DialogueOption,
+    generate_dialogue_options,
+)
 from mlops_serious_game.infrastructure.database import (
     GameProgression,
     GameSession,
+    IntelItem,
     async_engine,
     get_session,
 )
@@ -68,7 +76,6 @@ def get_intro_questions() -> list[Any]:
 def get_outro_questions() -> list[Any]:
     return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.outro_questions]
 
-
 def get_phases() -> list[Any]:
     return [{"phase_name": p.name, "phase_desc": p.description} for p in PhaseFactory.get_phases()]
 
@@ -76,11 +83,61 @@ def get_engagement_cards() -> list[Any]:
     from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
     return [c.model_dump() if hasattr(c, 'model_dump') else c for c in EngagementCardFactory.get_available_cards()]
 
+def get_emoption_id_dict (emotion_value_dict: dict[str, Any]) -> dict[str, str]:
+    ret = {}
+    for key in emotion_value_dict:
+        ret[key] = EmotionFactory.derive_emotional_state(emotion_value_dict)
+    return ret
+
+
+def get_discovered_intel_items(
+    username: str,
+    challenge: Challenge,
+) -> list[StakeholderIntelItem]:
+    """Returns the classified intel items that were discovered by a given player in a given challenge."""
+    intel_items: list[StakeholderIntelItem] = []
+
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == username)
+        ).all()
+
+        for record in records:
+            data = record.intel_item_data
+            if isinstance(data, dict):
+                item = StakeholderIntelItem(**data)
+                req = RequirementFactory.get_requirement(item.requirement_id)
+                if req and req.challenge_id == challenge.id:
+                    intel_items.append(item)
+
+    return intel_items
+
+
+async def get_dialogue_options(
+    challenge: Challenge,
+    discovered_intel_items: Optional[list[StakeholderIntelItem]] = None,
+    messages: Optional[list[Any]] = None,
+    username: Optional[str] = None,
+    session_id: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """Builds the dialogue options LangGraph workflow and generates serialized dialogue options."""
+    if discovered_intel_items is None and username:
+        discovered_intel_items = get_discovered_intel_items(username=username, challenge=challenge)
+
+    options, _ = await generate_dialogue_options(
+        messages=messages or [],
+        challenge=challenge.description,
+        discovered_intel_items=discovered_intel_items or [],
+        session_id=session_id,
+    )
+    return [opt.model_dump() for opt in options]
+
+
 async def handle_game_init(
     websocket: WebSocket,
     username: str,
     payload: dict
-) -> tuple[int, int]:
+) -> tuple[int, int]| dict[str, str]:
     # Send init static configurations
     await manager.send_event(
         websocket=websocket,
@@ -89,8 +146,7 @@ async def handle_game_init(
             "type": "init",
             "metrics": get_metrics(),
             "stakeholders": get_stakeholders(),
-            "phases": get_phases()
-        }
+            "phases": get_phases(),        }
     )
 
     game_progress_index = 0
@@ -101,6 +157,10 @@ async def handle_game_init(
     saved_tokens = None
     saved_played_card_ids = []
     saved_card_targets = {}
+    emotion_values_dict = {
+        st.id: EmotionFactory.create_default_emotion_values()
+        for st in StakeholderFactory.stakeholders
+    }
 
     with get_session() as session:
         # Fetch user progression index
@@ -124,6 +184,8 @@ async def handle_game_init(
                 latest_session.challenge_index,
                 latest_session.challenge_loop_index,
             ]
+            if isinstance(latest_session.emotion_values, dict):
+                emotion_values_dict = latest_session.emotion_values
             if isinstance(latest_session.metric_values, list):
                 metric_values = latest_session.metric_values
             if hasattr(latest_session, "pitch_debate_messages") and isinstance(latest_session.pitch_debate_messages, list):
@@ -170,10 +232,18 @@ async def handle_game_init(
                 "played_card_ids": saved_played_card_ids,
                 "card_targets": saved_card_targets,
                 "engagement_cards": get_engagement_cards(),
+                "emotion_id_dict": get_emoption_id_dict(emotion_values_dict),
+                **({
+                    "dialogue_options": await get_dialogue_options(
+                        challenge=curr_challenge,
+                        messages=saved_pitch_debate_messages,
+                        username=username,
+                    )
+                } if last_gamestate_id[2] == 2 else {}),
             }
         )
 
-    return (last_gamestate_id[0], last_gamestate_id[1], last_gamestate_id[2])
+    return (last_gamestate_id[0], last_gamestate_id[1], last_gamestate_id[2]), emotion_values_dict
 
 
 async def send_progress_index_payload(
@@ -349,6 +419,8 @@ async def handle_state_update_request(
                 )
                 if attention_tokens is None and challenge:
                     attention_tokens = challenge.attention_tokens
+                if challenge_loop_index == 2:
+                    messages = [{"id": "", "message": "Welcome to the meeting everybody", "ac_id": -1}]
             case _:
                 # next challenge / round completion (after simulation phase)
                 await clear_intel_items_for_user(websocket)
@@ -406,6 +478,7 @@ async def handle_state_update_request(
                 "description": challenge.description,
                 "roundIntroduction": challenge.roundIntroduction,
                 "metric_values": metric_values,
+                "pitch_debate_messages": messages if challenge_loop_index == 2 else [],
                 "messages": messages,
                 "attention_tokens": attention_tokens,
                 "played_card_ids": action_card.get("played_card_ids", []) if isinstance(action_card, dict) else [],
@@ -413,7 +486,27 @@ async def handle_state_update_request(
                 "engagement_cards": get_engagement_cards(),
             }
         )
-    
+
+        if challenge_loop_index == 2:
+            from mlops_serious_game.infrastructure.websocket.handlers.chat_handler import (
+                handle_chat_message,
+            )
+
+            chat_payload = {
+                "session_id": f"MLOps_Convo_{username}",
+                "challenge": challenge.name + ": " + challenge.roundIntroduction + challenge.description,
+                "phase_id": challenge.phase_id,
+                "challenge_id": challenge.id,
+                "initial_start": True,
+            }
+            asyncio.create_task(
+                handle_chat_message(
+                    websocket=websocket,
+                    username=username,
+                    payload=chat_payload,
+                )
+            )
+
         return (challenge.phase_id, challenge.id, challenge_loop_index)
     except Exception as e:
         print(f"[GameStateHandler Error] {e}")

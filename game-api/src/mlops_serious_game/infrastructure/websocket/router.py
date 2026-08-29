@@ -50,7 +50,8 @@ async def unified_websocket_endpoint(
 ):
     await manager.connect(websocket, username)
     session_id = f"MLOps_Convo_{username}"
-    last_gamestate_id = [0, 0]
+    last_gamestate_id = (0,0,0)
+    emotion_values_dict={}
 
     try:
         while True:
@@ -68,7 +69,7 @@ async def unified_websocket_endpoint(
                 if event_name in EVENT_REGISTRY:
                     handler = EVENT_REGISTRY[event_name]
                     if event_name == "game:init":
-                        last_gamestate_id = list(await handle_game_init(websocket, username, payload))
+                        last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, username, payload)
                     elif event_name == "game:state_update_request":
                         action_card_id = payload.get("action_card_id")
                         action_card = {}
@@ -78,14 +79,14 @@ async def unified_websocket_endpoint(
                                 AsyncPostgresSaver,
                             )
 
-                            from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
-                                create_workflow_graph,
+                            from mlops_serious_game.application.pitch_debate_service.graph import (
+                                create_pitch_debate_graph
                             )
                             from mlops_serious_game.config import settings
 
-                            graph_builder = create_workflow_graph()
+                             
                             async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
-                                graph = graph_builder.compile(checkpointer=checkpointer)
+                                graph = create_pitch_debate_graph().compile(checkpointer=checkpointer)
                                 config = {"configurable": {"thread_id": session_id}}
                                 state_snapshot = await graph.aget_state(config)
                                 action_cards = state_snapshot.values.get("action_cards", []) if state_snapshot.values else []
@@ -94,8 +95,8 @@ async def unified_websocket_endpoint(
                                         action_card = card
                                         break
                         payload["action_card"] = action_card
-                        last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                         await reset_thread(session_id)
+                        last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                     elif event_name == "chat:send_message":
                         curr_challenge = PhaseFactory.get_challenge_by_id(last_gamestate_id[1])
                         if curr_challenge:

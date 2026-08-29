@@ -33,6 +33,13 @@ class StakeholderIntelItem(BaseModel):
     intel_type: ConfidenceType = Field(description="The type of the intel")
     categorized_type: RequirementType = Field(description="The categorized requirement type")
     description: str = Field(description="Description of the categorized requirement")
+
+    def is_correct(self) -> bool:
+        from mlops_serious_game.domain.requirement_factory import RequirementFactory
+        req = RequirementFactory.get_requirement(self.requirement_id)
+        if req:
+            return self.categorized_type == req.type
+        return True
     
 class StakeholderIntelItemArtifact(BaseModel):
     """A class representing a MLOps artifact associated with a stakeholder intel_item"""

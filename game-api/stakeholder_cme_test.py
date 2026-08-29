@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
 
-from mlops_serious_game.application.conversation_service.pitch_debat_service.nodes import router_node
+from mlops_serious_game.application.pitch_debate_service.nodes import router_node
 
 
 from langchain_core.messages import HumanMessage
@@ -26,7 +26,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.prebuilt import ToolNode
 from mlops_serious_game.config import settings
 from langchain_core.messages import RemoveMessage
-from mlops_serious_game.application.conversation_service.pitch_debat_service.tools import tools
+from mlops_serious_game.application.pitch_debate_service.tools import tools
 from mlops_serious_game.domain.exceptions import RoutingStakeholderNotFound,NoStakeholderRoute
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.stakeholder import Stakeholder
@@ -34,12 +34,18 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.metric import Metric
 from mlops_serious_game.domain.prompts import __STAKEHOLDER_CHARACTER_CARD, Prompt
-from mlops_serious_game.application.conversation_service.pitch_debat_service.chains import get_chat_model
-from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import create_workflow_graph
+from mlops_serious_game.application.pitch_debate_service.chains import get_chat_model
+from mlops_serious_game.application.pitch_debate_service.graph import create_workflow_graph
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langgraph.graph import END, START, StateGraph,MessagesState
 from enum import Enum
 from pydantic import BaseModel, Field
+
+from mlops_serious_game.application.dialogue_options_service import (
+    DialogueOption,
+    dialogue_option_node,
+    get_dialogue_option_generator_chain,
+)
 
 # Override PostgreSQL connection string
 settings.POSTGRES_ASYNC_URI = (
@@ -317,26 +323,6 @@ STAKEHOLDER_CONVINCER_ARCHETYPES: dict[str, ConvincerArchetype] = {
     "mathis_berger_operational_engineer": get_archetype_by_name("Safety & Reliability"),
 }
 
-
-class DialogueOption(BaseModel):
-    text: str = ""
-    intel_item: Optional[StakeholderIntelItem] = None
-    archetype: Optional[ConvincerArchetype] = None
-    is_correct: bool = True
-
-    def __init__(self, text: str = "", intel_item: Optional[StakeholderIntelItem] = None, archetype: Optional[ConvincerArchetype] = None, **data):
-        if "text" not in data:
-            data["text"] = text
-        if "intel_item" not in data:
-            data["intel_item"] = intel_item
-        if "archetype" not in data:
-            data["archetype"] = archetype
-        if "is_correct" not in data:
-            if intel_item is not None:
-                data["is_correct"] = intel_item.is_correct_intel()
-            else:
-                data["is_correct"] = True
-        super().__init__(**data)
 
 
 CONVINCER_ITEM_WILLIS_1 = StakeholderIntelItem(
@@ -814,190 +800,6 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     return {"messages": named_response, "stakeholder_ids": new_stakeholder_ids}
 
 
-class IntelOptionSpec(BaseModel):
-    text: str = Field(
-        description=(
-            "The intel dialogue option text in 1st person ('I', 'We') directly responding to the meeting context. "
-            "MUST explicitly address the target stakeholder BY FIRST NAME and voice, state, or act upon the specific claim, constraint, "
-            "or belief described in its corresponding assigned intel item in a clean, natural, and professional manner."
-        )
-    )
-
-class CorporateNoiseSpec(BaseModel):
-    text: str = Field(
-        description=(
-            "The corporate noise dialogue option text in 1st person ('I', 'We') directly addressing the stakeholder's concerns "
-            "following the assigned archetype strategy. MUST stay high-level, vague, descriptive of current alignment, or reassuring "
-            "WITHOUT proposing new concrete actions, pilots, technical solutions, or process implementations."
-        )
-    )
-    archetype_name: str = Field(description="The exact name of the Convincer Archetype that this option was styled after.")
-
-class GeneratedDialogueOptions(BaseModel):
-    intel_option_specs: list[IntelOptionSpec] = Field(
-        description="A list of intel dialogue option specs, maintaining the exact same order as the assigned Intel Items."
-    )
-    corporate_noise_specs: list[CorporateNoiseSpec] = Field(
-        description="A list of corporate noise dialogue options, each paired with its assigned archetype name."
-    )
-
-def get_dialogue_option_generator_chain():
-    model = get_chat_model()
-    structured_model = model.with_structured_output(GeneratedDialogueOptions)
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                "You are an expert dialogue designer for an MLOps serious game.\n"
-                "Your task is to generate 4 natural, immersive dialogue options for the player (MLOps Project Manager) in an ongoing meeting.\n\n"
-                "Challenge Context: {{challenge}}\n"
-                "Active Speaker: {{active_speaker_name}}\n"
-                "LATEST STAKEHOLDER STATEMENT (Primary context to respond to):\n{{latest_statement}}\n\n"
-                "Target Stakeholder Intel Context:\n{{intel_description}}\n\n"
-                "Corporate Noise Archetype Instructions:\n{{archetype_instructions}}\n\n"
-                "CRITICAL INSTRUCTIONS FOR 'intel_option_specs':\n"
-                "1. Generate 1 IntelOptionSpec for EACH assigned intel item listed in 'Target Stakeholder Intel Context', maintaining the exact same order.\n"
-                "2. The dialogue option MUST explicitly address the target stakeholder BY FIRST NAME (e.g. 'Willis, ...' or 'Mathis, ...') and state, voice, or act upon the specific claim/belief described in that intel item.\n"
-                "3. The option MUST fit naturally into the conversation as a realistic, professional response to the LATEST STAKEHOLDER STATEMENT.\n"
-                "4. Keep the sentence clean, natural, and direct. DO NOT construct convoluted, accusatory, or run-on sentences. Express the claim or belief simply and naturally in 1st person ('I', 'We').\n\n"
-                "CRITICAL INSTRUCTIONS FOR 'corporate_noise_specs':\n"
-                "1. Generate 1 corporate noise spec for EACH assigned archetype listed in 'Corporate Noise Archetype Instructions'.\n"
-                "2. Each noise option MUST directly engage with the specific concern/topic raised in the LATEST STAKEHOLDER STATEMENT using the assigned archetype's communication strategy.\n"
-                "3. STRICT BAN ON PROPOSING NEW CONCRETE ACTIONS OR PILOTS: Corporate noise options MUST NOT propose new pilots, implementations, technical safeguards, tools, or new process steps. They MUST remain vague, high-level, descriptive of current alignment/status, or offer corporate reassurance without committing to new concrete actions.\n"
-                "4. STRICT BAN ON UNRELATED TOPICS: Do NOT introduce unreferenced past topics (e.g. no model drift, KL-divergence, CABs, or shadow deployments unless explicitly mentioned in the latest statement).\n"
-                "5. Set 'archetype_name' to the exact name of the assigned archetype.",
-            ),
-            (
-                "human",
-                "Recent Discussion History:\n{{history}}\n\n"
-                "LATEST STAKEHOLDER STATEMENT TO RESPOND TO:\n{{latest_statement}}\n\n"
-                "Generate the dialogue options now.",
-            ),
-        ],
-        template_format="jinja2",
-    )
-    return prompt | structured_model
-
-
-async def dialogue_option_node(state: PitchDebateState, config: RunnableConfig):
-    messages = state.get("messages", [])
-    intel_items = list(state.get("intel_items", []) or GENERAL_INTEL_ITEMS)
-    
-    _split = state.get("challenge", "").split("#")
-    challenge_text = "".join(_split)
-    
-    last_msg = messages[-1] if messages else None
-    if last_msg:
-        latest_statement = format_message_for_eval(last_msg)
-        content_str = getattr(last_msg, "content", str(last_msg))
-        match = re.match(r"^\[(.*?)\]\s*(.*)$", content_str, re.DOTALL)
-        if match:
-            active_speaker_id = match.group(1).strip()
-            try:
-                st_obj = StakeholderFactory.get_stakeholder(active_speaker_id)
-                active_speaker_name = st_obj.name
-            except Exception:
-                active_speaker_name = active_speaker_id
-        else:
-            active_speaker_id = None
-            active_speaker_name = "the stakeholder"
-    else:
-        latest_statement = "(Meeting started)"
-        active_speaker_id = None
-        active_speaker_name = "the stakeholder"
-
-    history_msgs = messages[-6:] if len(messages) >= 6 else messages
-    history_str = "\n".join([format_message_for_eval(m) for m in history_msgs]) if history_msgs else "(Meeting started)"
-    
-    if intel_items:
-        k = min(2, len(intel_items))
-        selected_intels = random.sample(intel_items, k)
-        intel_desc_list = []
-        for idx, item in enumerate(selected_intels, 1):
-            try:
-                st_obj = StakeholderFactory.get_stakeholder(item.stakeholder_id)
-                st_name = f"{st_obj.name}"
-            except Exception:
-                st_name = item.stakeholder_id
-            
-            if active_speaker_id and item.stakeholder_id == active_speaker_id:
-                target_type = "Direct Target (Active Speaker)"
-            else:
-                target_type = f"Bridge Target (Pivot from {active_speaker_name})"
-
-            intel_desc_list.append(
-                f"Intel Item {idx} [{target_type} - Target: {st_name}]:\n"
-                f"  - Specific Claim/Belief to Voice: \"{item.categorized_description}\""
-            )
-        intel_desc = "\n\n".join(intel_desc_list)
-    else:
-        selected_intels = []
-        intel_desc = "General project status alignment"
-
-    needed_noise = 4 - len(selected_intels)
-    assigned_archetypes = random.sample(CONVINCER_ARCHETYPES, min(needed_noise, len(CONVINCER_ARCHETYPES)))
-    arch_instruct_list = []
-    for idx, arch in enumerate(assigned_archetypes, 1):
-        arch_instruct_list.append(
-            f"Noise Option {idx} Archetype: '{arch.name}'\n"
-            f"  - Strategy to follow: \"{arch.strategy}\""
-        )
-    archetype_instructions = "\n\n".join(arch_instruct_list)
-
-    chain = get_dialogue_option_generator_chain()
-    gen_result: GeneratedDialogueOptions = await chain.ainvoke(
-        {
-            "challenge": challenge_text,
-            "active_speaker_name": active_speaker_name,
-            "latest_statement": latest_statement,
-            "intel_description": intel_desc,
-            "archetype_instructions": archetype_instructions,
-            "history": history_str,
-        },
-        config,
-    )
-
-    options: list[DialogueOption] = []
-    intel_specs = gen_result.intel_option_specs or []
-
-    for idx, item in enumerate(selected_intels):
-        try:
-            st_obj = StakeholderFactory.get_stakeholder(item.stakeholder_id)
-            st_first_name = st_obj.name.split()[0].replace(',', '')
-        except Exception:
-            st_first_name = item.stakeholder_id
-
-        text = intel_specs[idx].text if idx < len(intel_specs) else None
-
-        if text:
-            if st_first_name.lower() not in text.lower():
-                text = f"{st_first_name}, {text}"
-        else:
-            text = f"{st_first_name}, regarding your priority: {item.categorized_description}"
-        options.append(DialogueOption(text=text, intel_item=item))
-
-    noise_specs = gen_result.corporate_noise_specs or []
-    for idx, spec in enumerate(noise_specs[:needed_noise]):
-        arch = get_archetype_by_name(spec.archetype_name) or (assigned_archetypes[idx] if idx < len(assigned_archetypes) else None)
-        options.append(DialogueOption(text=spec.text, intel_item=None, archetype=arch))
-
-    default_noise_items = [
-        ("Let me double-check our current KPIs before committing to a timeline.", "Pragmatism"),
-        ("We should take this offline and align our core deliverables.", "Control & Governance"),
-        ("I hear your concerns, let's keep driving key synergies across teams.", "People & Trust"),
-        ("We need to ensure all team members stay focused on strategic value.", "Business Value"),
-    ]
-    idx = 0
-    while len(options) < 4:
-        text_def, arch_def_name = default_noise_items[idx % len(default_noise_items)]
-        options.append(DialogueOption(text=text_def, intel_item=None, archetype=get_archetype_by_name(arch_def_name)))
-        idx += 1
-
-    random.shuffle(options)
-    return {"dialogue_options": options, "intel_items": intel_items}
-
-
 async def custom_router_node(state: PitchDebateState, config: RunnableConfig):
     last_selected_option = state.get("last_selected_option")
     last_selected_intel = state.get("last_selected_intel")
@@ -1011,11 +813,7 @@ async def custom_router_node(state: PitchDebateState, config: RunnableConfig):
         return {"stakeholder_ids": all_stakeholders}
 
     # Rule 2: When an intel item-based dialogue option is chosen, route ONLY to the target stakeholder
-    if last_selected_option:
-        if last_selected_option.intel_item:
-            target_id = last_selected_option.intel_item.stakeholder_id
-            return {"stakeholder_ids": [target_id]}
-    elif last_selected_intel:
+    if last_selected_intel:
         target_id = last_selected_intel.stakeholder_id
         return {"stakeholder_ids": [target_id]}
 
@@ -1429,35 +1227,47 @@ async def stakeholder_cme_test():
             sys.stdout.write("\033[A\033[2K")
         sys.stdout.flush()
 
-        # If an intel item option was selected, remove it from the intel_items list
-        if selected_opt.intel_item:
+        # If an intel item option was selected, find and remove it from the intel_items list
+        matched_intel = None
+        if selected_opt.intel_item_id:
+            for item in current_intel_items:
+                if str(getattr(item, "id", None)) == str(selected_opt.intel_item_id):
+                    matched_intel = item
+                    break
+            if not matched_intel:
+                for item in current_intel_items:
+                    if getattr(item, "categorized_description", "") in selected_opt.text:
+                        matched_intel = item
+                        break
+
+        if matched_intel:
             current_intel_items = [
                 item for item in current_intel_items
-                if item.categorized_description != selected_opt.intel_item.categorized_description
+                if item.categorized_description != matched_intel.categorized_description
             ]
-            print(f"{YELLOW}[INTEL USED] Used intel item for {selected_opt.intel_item.stakeholder_id}. Remaining intel items: {len(current_intel_items)}{RESET}")
-            last_selected_intel = selected_opt.intel_item
+            print(f"{YELLOW}[INTEL USED] Used intel item for {matched_intel.stakeholder_id}. Remaining intel items: {len(current_intel_items)}{RESET}")
+            last_selected_intel = matched_intel
 
-            st_id = selected_opt.intel_item.stakeholder_id
+            st_id = matched_intel.stakeholder_id
             try:
                 st_obj = StakeholderFactory.get_stakeholder(st_id)
                 st_name = st_obj.name
             except Exception:
                 st_name = st_id
 
-            if selected_opt.intel_item.is_correct_intel() and st_id in current_convincer_profiles:
+            if matched_intel.is_correct_intel() and st_id in current_convincer_profiles:
                 reqs = current_convincer_profiles[st_id]
                 matching = [
                     r for r in reqs
-                    if r.categorized_description == selected_opt.intel_item.categorized_description
-                    or r.correct_description == selected_opt.intel_item.correct_description
+                    if r.categorized_description == matched_intel.categorized_description
+                    or r.correct_description == matched_intel.correct_description
                 ]
                 if matching:
                     matched_item = matching[0]
                     current_convincer_profiles[st_id] = [
                         r for r in reqs
-                        if r.categorized_description != selected_opt.intel_item.categorized_description
-                        and r.correct_description != selected_opt.intel_item.correct_description
+                        if r.categorized_description != matched_intel.categorized_description
+                        and r.correct_description != matched_intel.correct_description
                     ]
                     rem_reqs = len(current_convincer_profiles[st_id])
                     print(f"{BRIGHT_CYAN}🎯 [CONVINCER REQUIREMENT MATCHED] Played intel matches {st_name}'s convincer profile!{RESET}")
@@ -1488,25 +1298,25 @@ async def stakeholder_cme_test():
         cursor = print_new_responses(output_state, cursor)
 
         # If a miscategorized (wrong) intel item was played, reveal and add the correct intel item!
-        if selected_opt.intel_item and not selected_opt.intel_item.is_correct_intel():
+        if matched_intel and not matched_intel.is_correct_intel():
             corrected_intel = StakeholderIntelItem(
-                stakeholder_id=selected_opt.intel_item.stakeholder_id,
-                categorized_layer=selected_opt.intel_item.correct_layer,
-                categorized_intent=selected_opt.intel_item.correct_intent,
-                correct_layer=selected_opt.intel_item.correct_layer,
-                correct_intent=selected_opt.intel_item.correct_intent,
-                correct_description=selected_opt.intel_item.correct_description,
-                categorized_description=selected_opt.intel_item.correct_description,
+                stakeholder_id=matched_intel.stakeholder_id,
+                categorized_layer=matched_intel.correct_layer,
+                categorized_intent=matched_intel.correct_intent,
+                correct_layer=matched_intel.correct_layer,
+                correct_intent=matched_intel.correct_intent,
+                correct_description=matched_intel.correct_description,
+                categorized_description=matched_intel.correct_description,
             )
 
             if not any(item.categorized_description == corrected_intel.categorized_description for item in current_intel_items):
                 current_intel_items.append(corrected_intel)
 
             try:
-                st_obj = StakeholderFactory.get_stakeholder(selected_opt.intel_item.stakeholder_id)
+                st_obj = StakeholderFactory.get_stakeholder(matched_intel.stakeholder_id)
                 st_name = st_obj.name
             except Exception:
-                st_name = selected_opt.intel_item.stakeholder_id
+                st_name = matched_intel.stakeholder_id
 
             print(f"{BRIGHT_YELLOW}💡 [NEW INTEL DISCOVERED] After refuting your false assumption, {st_name} revealed their actual priority:{RESET}")
             print(f"   {BRIGHT_WHITE}\"{corrected_intel.correct_description}\"{RESET}\n")
@@ -1519,8 +1329,8 @@ def print_formatted_dialogue_options(dialogue_options: list[DialogueOption]) -> 
     lines_count += 2
 
     for idx, opt in enumerate(dialogue_options, 1):
-        if opt.intel_item:
-            tag = f"{DARK_GRAY}(Intel: {opt.intel_item.stakeholder_id}){RESET}"
+        if opt.intel_item_id:
+            tag = f"{DARK_GRAY}(Intel ID: {opt.intel_item_id}){RESET}"
         elif opt.archetype:
             tag = f"{DARK_GRAY}(Corporate Noise - {opt.archetype.name}){RESET}"
         else:

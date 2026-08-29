@@ -7,7 +7,7 @@ from together import Together
 import anthropic
 
 from mlops_serious_game.config import settings
-from mlops_serious_game.application.conversation_service.pitch_debat_service.graph import (
+from mlops_serious_game.application.pitch_debate_service.graph import (
     create_workflow_graph,
 )
 

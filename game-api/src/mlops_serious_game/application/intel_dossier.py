@@ -20,7 +20,7 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.application.conversation_service.pitch_debat_service.chains import (
+from mlops_serious_game.application.pitch_debate_service.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
 )

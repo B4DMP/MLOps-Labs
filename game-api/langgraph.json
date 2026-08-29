@@ -1,7 +1,7 @@
 {
     "dockerfile_lines": [],
     "graphs": {
-      "agent": "./src/mlops_serious_game/application/conversation_service/pitch_debat_service/graph.py:graph"
+      "agent": "./src/mlops_serious_game/application/pitch_debate_service/graph.py:graph"
     },
     "env": ".env",
     "python_version": "3.12",

@@ -226,5 +226,77 @@
          "value_horizon": 0,
          "strategy": "Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering."
       }
+   },
+   "emotion_delta_rules": {
+      "intel_rules": {
+         "misattributed_intel": {
+            "trust": -0.30,
+            "stress": 0.30,
+            "perceived_risk": 0.25,
+            "sense_of_control": -0.20,
+            "fairness": -0.20
+         },
+         "correct_intel": {
+            "trust": 0.20,
+            "stress": -0.15,
+            "perceived_risk": -0.10,
+            "fairness": 0.15,
+            "confidence": 0.15
+         }
+      },
+      "corporate_noise_rules": {
+         "distance_threshold": 3.5,
+         "distance_slope": 0.04,
+         "base_trust_bonus": 0.10,
+         "base_trust_penalty": -0.10,
+         "dimension_alignments": [
+            {
+               "dimension": "risk_and_control",
+               "conditions": [
+                  {
+                     "type": "option_min",
+                     "min_value": 4,
+                     "deltas": { "perceived_risk": -0.20, "stress": -0.15 }
+                  },
+                  {
+                     "type": "diff_penalty",
+                     "target_min_value": 4,
+                     "min_diff": 3,
+                     "deltas": { "perceived_risk": 0.25, "stress": 0.20, "sense_of_control": -0.20 }
+                  }
+               ]
+            },
+            {
+               "dimension": "value_horizon",
+               "conditions": [
+                  {
+                     "type": "diff_bonus",
+                     "max_diff": 1,
+                     "deltas": { "interest": 0.20 }
+                  },
+                  {
+                     "type": "diff_penalty",
+                     "min_diff": 3,
+                     "deltas": { "interest": -0.15 }
+                  }
+               ]
+            },
+            {
+               "dimension": "evidence_basis",
+               "conditions": [
+                  {
+                     "type": "diff_bonus",
+                     "max_diff": 1,
+                     "deltas": { "fairness": 0.15, "confidence": 0.15 }
+                  },
+                  {
+                     "type": "diff_penalty",
+                     "min_diff": 3,
+                     "deltas": { "fairness": -0.15 }
+                  }
+               ]
+            }
+         ]
+      }
    }
 }

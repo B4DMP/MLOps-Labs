@@ -1,11 +1,13 @@
 import json
+import math
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 from mlops_serious_game.domain.emotion import (
     EmotionConfig,
     EmotionDelta,
+    EmotionDeltaRules,
     EmotionDimension,
     EmotionValues,
     EmotionalStateRule,
@@ -153,3 +155,86 @@ class EmotionFactory:
             if key.strip().lower() == target or (arch.name and arch.name.strip().lower() == target):
                 return arch
         return None
+
+    @classmethod
+    def calculate_emotion_deltas(
+        cls,
+        st_id: str,
+        last_intel: Optional[Any],
+        selected_option: Optional[Any],
+    ) -> dict[str, float]:
+        """Calculates algorithmic emotion deltas based on configuration in EmotionValueConfig.json."""
+        cls.ensure_loaded()
+        rules = cls.config.emotion_delta_rules
+        dimensions = cls.get_available_dimensions()
+        deltas: dict[str, float] = {f"{dim}_delta": 0.0 for dim in dimensions}
+
+        st_archetype = cls.get_archetype_by_name(st_id)
+        if not st_archetype:
+            all_archs = cls.get_convincer_archetypes()
+            st_archetype = all_archs.get(st_id)
+
+        # 1. If an Intel Option was used
+        if last_intel and rules and rules.intel_rules:
+            if st_id == getattr(last_intel, "stakeholder_id", None):
+                is_correct = last_intel.is_correct_intel() if hasattr(last_intel, "is_correct_intel") else True
+                rule_deltas = rules.intel_rules.correct_intel if is_correct else rules.intel_rules.misattributed_intel
+                for metric, val in rule_deltas.items():
+                    key = f"{metric}_delta"
+                    deltas[key] = round(deltas.get(key, 0.0) + val, 2)
+
+        # 2. If a Corporate Noise option with an Archetype was used
+        elif selected_option and getattr(selected_option, "archetype", None) and st_archetype and rules and rules.corporate_noise_rules:
+            opt_arch = selected_option.archetype
+            c_rules = rules.corporate_noise_rules
+
+            diff_evidence = abs(opt_arch.evidence_basis - st_archetype.evidence_basis)
+            diff_risk = abs(opt_arch.risk_and_control - st_archetype.risk_and_control)
+            diff_horizon = abs(opt_arch.value_horizon - st_archetype.value_horizon)
+
+            total_distance = math.sqrt(diff_evidence**2 + diff_risk**2 + diff_horizon**2)
+
+            # Trust delta based on total distance
+            threshold = c_rules.distance_threshold
+            slope = c_rules.distance_slope
+            if total_distance < threshold:
+                trust_val = c_rules.base_trust_bonus + (threshold - total_distance) * slope
+            else:
+                trust_val = c_rules.base_trust_penalty - (total_distance - threshold) * slope
+            deltas["trust_delta"] = round(deltas.get("trust_delta", 0.0) + trust_val, 2)
+
+            # Dimension alignments
+            dim_diffs = {
+                "risk_and_control": (diff_risk, opt_arch.risk_and_control, st_archetype.risk_and_control),
+                "value_horizon": (diff_horizon, opt_arch.value_horizon, st_archetype.value_horizon),
+                "evidence_basis": (diff_evidence, opt_arch.evidence_basis, st_archetype.evidence_basis),
+            }
+
+            for dim_rule in c_rules.dimension_alignments:
+                if dim_rule.dimension not in dim_diffs:
+                    continue
+                diff_val, opt_val, st_val = dim_diffs[dim_rule.dimension]
+
+                for cond in dim_rule.conditions:
+                    matched = False
+                    if cond.type == "option_min" and cond.min_value is not None:
+                        if opt_val >= cond.min_value:
+                            matched = True
+                    elif cond.type == "diff_bonus" and cond.max_diff is not None:
+                        if diff_val <= cond.max_diff:
+                            matched = True
+                    elif cond.type == "diff_penalty":
+                        if cond.target_min_value is not None and cond.min_diff is not None:
+                            if st_val >= cond.target_min_value and diff_val >= cond.min_diff:
+                                matched = True
+                        elif cond.min_diff is not None:
+                            if diff_val >= cond.min_diff:
+                                matched = True
+
+                    if matched:
+                        for metric, val in cond.deltas.items():
+                            key = f"{metric}_delta"
+                            deltas[key] = round(deltas.get(key, 0.0) + val, 2)
+
+        return deltas
+

@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from opik.integrations.langchain import OpikTracer
 
-from mlops_serious_game.application.conversation_service.reset_conversation import reset_conversation_state
+from mlops_serious_game.application.pitch_debate_service import reset_conversation_state
 from .opik_utils import configure
 
 from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_router

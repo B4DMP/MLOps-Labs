@@ -46,6 +46,17 @@
           "label": "Convincer Archetypes & Persuasion Strategies"
         }
       ]
+    },
+    {
+      "type": "Category",
+      "label": "Emotion Delta Rules",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/emotion_delta_rules",
+          "label": "Algorithmic Emotion Delta Rules"
+        }
+      ]
     }
   ]
 }

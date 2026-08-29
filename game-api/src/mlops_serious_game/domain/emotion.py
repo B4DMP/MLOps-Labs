@@ -41,9 +41,9 @@ class TriggerCondition(BaseModel):
     op: Literal["<=", ">=", "<", ">", "=="] = Field(description="Comparison operator")
     value: float = Field(description="Threshold value to compare against")
 
-    def evaluate(self, ev: EmotionValues) -> bool:
-        """Evaluates condition against emotion values dictionary."""
-        val = ev.get(self.metric, 0.5)
+    def evaluate(self, ev: Any) -> bool:
+        """Evaluates condition against emotion values object or dictionary."""
+        val = getattr(ev, self.metric, ev.get(self.metric, 0.5) if isinstance(ev, dict) else 0.5)
 
         if self.op == "<=":
             return val <= self.value
@@ -73,14 +73,14 @@ class IntensityFormula(BaseModel):
     value: Optional[float] = Field(default=None, description="Constant intensity value")
     weights: list[FormulaWeight] = Field(default_factory=list, description="Weighted formula terms")
 
-    def calculate(self, ev: EmotionValues) -> float:
-        """Calculates formula score given emotion values dictionary."""
+    def calculate(self, ev: Any) -> float:
+        """Calculates formula score given emotion values object or dictionary."""
         if self.type == "constant":
             return self.value if self.value is not None else 0.5
 
         score = 0.0
         for w in self.weights:
-            val = ev.get(w.metric, 0.5)
+            val = getattr(ev, w.metric, ev.get(w.metric, 0.5) if isinstance(ev, dict) else 0.5)
             term = (1.0 - val) if w.invert else val
             score += term * w.weight
 
@@ -94,6 +94,48 @@ class EmotionalStateRule(BaseModel):
     formula: IntensityFormula = Field(description="Intensity calculation formula")
 
 
+class IntelEmotionRules(BaseModel):
+    """Delta configurations for player intel options."""
+
+    misattributed_intel: dict[str, float] = Field(default_factory=dict, description="Penalties applied on incorrect intel")
+    correct_intel: dict[str, float] = Field(default_factory=dict, description="Rewards applied on correct intel")
+
+
+class AlignmentCondition(BaseModel):
+    """Condition for archetype alignment rules."""
+
+    type: Literal["option_min", "diff_bonus", "diff_penalty"] = Field(description="Condition rule type")
+    min_value: Optional[int] = Field(default=None, description="Minimum option value for option_min")
+    target_min_value: Optional[int] = Field(default=None, description="Minimum stakeholder target value for diff_penalty")
+    min_diff: Optional[int] = Field(default=None, description="Minimum difference threshold")
+    max_diff: Optional[int] = Field(default=None, description="Maximum difference threshold")
+    deltas: dict[str, float] = Field(default_factory=dict, description="Emotional deltas to apply")
+
+
+class DimensionAlignmentRule(BaseModel):
+    """Alignment rule for a specific archetype dimension."""
+
+    dimension: str = Field(description="Archetype dimension name")
+    conditions: list[AlignmentCondition] = Field(default_factory=list, description="Alignment conditions")
+
+
+class CorporateNoiseEmotionRules(BaseModel):
+    """Delta configurations for corporate noise and archetype alignment."""
+
+    distance_threshold: float = Field(default=3.5, description="Euclidean distance threshold for trust bonus/penalty")
+    distance_slope: float = Field(default=0.04, description="Slope per distance unit")
+    base_trust_bonus: float = Field(default=0.10, description="Base trust bonus for close distance")
+    base_trust_penalty: float = Field(default=-0.10, description="Base trust penalty for far distance")
+    dimension_alignments: list[DimensionAlignmentRule] = Field(default_factory=list, description="Dimension specific alignment rules")
+
+
+class EmotionDeltaRules(BaseModel):
+    """Rules for algorithmic emotion delta calculations."""
+
+    intel_rules: IntelEmotionRules = Field(default_factory=IntelEmotionRules, description="Intel delta rules")
+    corporate_noise_rules: CorporateNoiseEmotionRules = Field(default_factory=CorporateNoiseEmotionRules, description="Corporate noise delta rules")
+
+
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 
 
@@ -104,3 +146,5 @@ class EmotionConfig(BaseModel):
     emotion_prompts: dict[str, str] = Field(default_factory=dict, description="Prompts per emotional state")
     emotional_states: dict[str, EmotionalStateRule] = Field(default_factory=dict, description="State transition rules")
     convincer_archetypes: dict[str, ConvincerArchetype] = Field(default_factory=dict, description="Configured convincer archetypes")
+    emotion_delta_rules: Optional[EmotionDeltaRules] = Field(default=None, description="Algorithmic emotion delta rules")
+
