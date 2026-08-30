@@ -83,11 +83,6 @@ def get_engagement_cards() -> list[Any]:
     from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
     return [c.model_dump() if hasattr(c, 'model_dump') else c for c in EngagementCardFactory.get_available_cards()]
 
-def get_emoption_id_dict (emotion_value_dict: dict[str, Any]) -> dict[str, str]:
-    ret = {}
-    for key in emotion_value_dict:
-        ret[key] = EmotionFactory.derive_emotional_state(emotion_value_dict)
-    return ret
 
 
 def get_discovered_intel_items(
@@ -105,9 +100,22 @@ def get_discovered_intel_items(
         for record in records:
             data = record.intel_item_data
             if isinstance(data, dict):
-                item = StakeholderIntelItem(**data)
+                try:
+                    item = StakeholderIntelItem(**data)
+                except Exception:
+                    item = StakeholderIntelItem(
+                        id=str(data.get("id", "")),
+                        requirement_id=str(data.get("requirement_id", "")),
+                        intel_type=data.get("intel_type", "unconfirmed"),
+                        categorized_type=data.get("categorized_type", "requirement"),
+                        description=data.get("description", ""),
+                    )
                 req = RequirementFactory.get_requirement(item.requirement_id)
                 if req and req.challenge_id == challenge.id:
+                    if not item.description:
+                        item.description = req.description
+                    intel_items.append(item)
+                elif not req and str(data.get("challenge_id", "")) == str(challenge.id):
                     intel_items.append(item)
 
     return intel_items
@@ -232,7 +240,7 @@ async def handle_game_init(
                 "played_card_ids": saved_played_card_ids,
                 "card_targets": saved_card_targets,
                 "engagement_cards": get_engagement_cards(),
-                "emotion_id_dict": get_emoption_id_dict(emotion_values_dict),
+                "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
                 **({
                     "dialogue_options": await get_dialogue_options(
                         challenge=curr_challenge,
@@ -463,6 +471,20 @@ async def handle_state_update_request(
             attention_tokens=attention_tokens,
         )
 
+        ev_dict = {
+            st.id: EmotionFactory.create_default_emotion_values()
+            for st in StakeholderFactory.stakeholders
+        }
+        with get_session() as session:
+            stmt = (
+                select(GameSession)
+                .where(GameSession.user_name == username)
+                .order_by(GameSession.id.desc())
+            )
+            latest = session.scalars(stmt).first()
+            if latest and isinstance(latest.emotion_values, dict) and latest.emotion_values:
+                ev_dict = latest.emotion_values
+
         await manager.send_event(
             websocket=websocket,
             event="game:state_update",
@@ -484,6 +506,7 @@ async def handle_state_update_request(
                 "played_card_ids": action_card.get("played_card_ids", []) if isinstance(action_card, dict) else [],
                 "card_targets": action_card.get("card_targets", {}) if isinstance(action_card, dict) else {},
                 "engagement_cards": get_engagement_cards(),
+                "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
             }
         )
 

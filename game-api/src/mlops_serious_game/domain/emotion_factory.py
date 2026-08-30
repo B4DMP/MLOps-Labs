@@ -122,6 +122,37 @@ class EmotionFactory:
         return max(triggered_scores, key=triggered_scores.get)
 
     @classmethod
+    def derive_facial_expression_for_state(cls, state_name: str) -> str:
+        """Retrieves the character avatar facial expression corresponding to the given emotion state."""
+        cls.ensure_loaded()
+        if cls.config and state_name in cls.config.emotional_states:
+            rule = cls.config.emotional_states[state_name]
+            if hasattr(rule, "facial_expression") and rule.facial_expression:
+                return rule.facial_expression
+        return "smile"
+
+    @classmethod
+    def derive_facial_expression(cls, ev: EmotionValues) -> str:
+        """Computes the emotional state from emotion values and returns the corresponding avatar facial expression."""
+        state_name = cls.derive_emotional_state(ev)
+        return cls.derive_facial_expression_for_state(state_name)
+
+    @classmethod
+    def get_facial_expressions_dict(cls, emotion_values_dict: dict[str, Any]) -> dict[str, str]:
+        """Returns a mapping of stakeholder_id -> avatar facial expression."""
+        ret = {}
+        for key, ev in (emotion_values_dict or {}).items():
+            if isinstance(ev, dict):
+                ret[key] = cls.derive_facial_expression(ev)
+            elif hasattr(ev, "model_dump"):
+                ret[key] = cls.derive_facial_expression(ev.model_dump())
+            elif hasattr(ev, "dict"):
+                ret[key] = cls.derive_facial_expression(ev.dict())
+            else:
+                ret[key] = "smile"
+        return ret
+
+    @classmethod
     def derive_emotion_prompt(cls, emotion_state: str) -> str:
         """Retrieves the character card tone prompt corresponding to the given emotion state."""
         cls.ensure_loaded()

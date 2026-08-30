@@ -43,36 +43,7 @@ def _build_dynamic_emotion_models():
 EmotionValues, EmotionDelta = _build_dynamic_emotion_models()
 
 
-class StakeholderIntelItemLayer(enum.Enum):
-    TECHNICAL = "technical"
-    BUSINESS = "business"
-    POLITICAL = "political"
-
-
-class StakeholderIntelItemIntent(enum.Enum):
-    HARD_CONSTRAINT = "hard_constraint"
-    PREFERENCE = "preference"
-    PERSONAL_FRICTION = "personal_friction"
-
-
-class StakeholderIntelItem(BaseModel):
-    id: Optional[str] = None
-    stakeholder_id: str
-    categorized_layer: Optional[StakeholderIntelItemLayer] = None
-    categorized_intent: Optional[StakeholderIntelItemIntent] = None
-    correct_layer: Optional[StakeholderIntelItemLayer] = None
-    correct_intent: Optional[StakeholderIntelItemIntent] = None
-    correct_description: str = ""
-    categorized_description: str = ""
-
-    def is_correct_intel(self) -> bool:
-        if self.categorized_layer is not None and self.correct_layer is not None:
-            if self.categorized_intent is not None and self.correct_intent is not None:
-                return (
-                    self.categorized_layer == self.correct_layer
-                    and self.categorized_intent == self.correct_intent
-                )
-        return True
+from mlops_serious_game.domain.requirement import StakeholderIntelItem
 
 
 class PitchDebateState(MessagesState):

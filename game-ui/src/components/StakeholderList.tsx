@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import HoverTooltip from "./HoverToolTip";
-import CustomChatMessage from "./customChatMessage";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import styles from "./StakeholderList.module.css";
@@ -8,14 +7,10 @@ import styles from "./StakeholderList.module.css";
 
 interface StakeholderListProps {
   current_phase: number;
-  handleSend?: (textContent: string) => void;
-  isEnabled?: boolean;
 }
 
 function StakeholderList({
   current_phase,
-  handleSend,
-  isEnabled = false,
 }: StakeholderListProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { metrics } = useContext(MetricsContext);
@@ -41,18 +36,6 @@ function StakeholderList({
                   borderStyle: "solid",
                 }}
               >
-                <div className={styles.chatMessageContainer}>
-                  <CustomChatMessage
-                    is_active={isEnabled}
-                    onClick={() =>
-                      handleSend?.(
-                        item.name.split(" ")[0] +
-                        ", what is your opinion?",
-                      )
-                    }
-                    message="ask"
-                  />
-                </div>
                 <HoverTooltip
                   description={
                     item.role_description || "DESCRIPTION PLACEHOLDER"

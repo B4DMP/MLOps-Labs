@@ -4,10 +4,12 @@ from opik.integrations.langchain import OpikTracer
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
+from langchain_core.messages import HumanMessage
 from mlops_serious_game.application.pitch_debate_service import (
     EmotionValues,
     get_response,
 )
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.infrastructure.database import GameSession, get_session
@@ -47,22 +49,31 @@ async def handle_chat_message(
         last_msg = state["messages"][-1]
         last_msg_content = getattr(last_msg, "content", str(last_msg))
 
-        if last_msg_content.startswith("[") and "]" in last_msg_content:
-            st_index_str = last_msg_content.split("]", 1)[0].lstrip("[")
-            content = last_msg_content.split("]", 1)[1].lstrip()
-        else:
+        if isinstance(last_msg, HumanMessage) or getattr(last_msg, "type", "") == "human":
             st_index_str = ""
             content = last_msg_content
+            st_face = None
+            st_ev = None
+            st_ed = None
+        else:
+            if last_msg_content.startswith("[") and "]" in last_msg_content:
+                st_index_str = last_msg_content.split("]", 1)[0].lstrip("[")
+                content = last_msg_content.split("]", 1)[1].lstrip()
+            else:
+                st_index_str = ""
+                content = last_msg_content
 
-        add_kwargs = getattr(last_msg, "additional_kwargs", {}) or {}
-        st_ev = add_kwargs.get("emotion_values")
-        st_ed = add_kwargs.get("emotion_delta")
+            add_kwargs = getattr(last_msg, "additional_kwargs", {}) or {}
+            st_ev = add_kwargs.get("emotion_values")
+            st_ed = add_kwargs.get("emotion_delta")
+            st_face = EmotionFactory.derive_facial_expression(st_ev) if st_ev else "smile"
 
         json_response.append({
             "message": content,
             "stakeholder_id": st_index_str,
             "emotion_values": st_ev,
             "emotion_delta": st_ed,
+            "facial_expression": st_face,
         })
 
         # Persist conversation message to GameSession
@@ -92,6 +103,7 @@ async def handle_chat_message(
                 "progressionIndex": 2,
                 "type": "message",
                 "messages": json_response,
+                "facial_expressions": {st_index_str: st_face} if (st_index_str and st_face) else {},
                 "action_cards": [],
                 "streaming": False,
             },
@@ -177,6 +189,8 @@ async def handle_chat_message(
         for st_id, ed in (emotion_deltas or {}).items()
     }
 
+    facial_expressions = EmotionFactory.get_facial_expressions_dict(updated_emotion_values)
+
     await manager.send_event(
         websocket=websocket,
         event="chat:graph_completed",
@@ -184,6 +198,7 @@ async def handle_chat_message(
             "progressionIndex": 2,
             "type": "graph_completed",
             "dialogue_options": dialogue_options,
+            "facial_expressions": facial_expressions,
             "emotion_values": serialized_emotion_values,
             "emotion_deltas": serialized_deltas,
             "error": False,

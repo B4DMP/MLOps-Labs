@@ -8,8 +8,6 @@ from mlops_serious_game.application.pitch_debate_service import (
     EmotionValues,
     PitchDebateState,
     StakeholderIntelItem,
-    StakeholderIntelItemIntent,
-    StakeholderIntelItemLayer,
     create_pitch_debate_graph,
     get_response,
     reset_thread,

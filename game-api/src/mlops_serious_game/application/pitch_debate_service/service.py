@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Optional
 
 from langchain_core.messages import HumanMessage
@@ -104,15 +105,16 @@ async def get_response(
                 if selected_opt.intel_item_id:
                     for item in available_intels:
                         item_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
-                        if item_id and str(item_id) == str(selected_opt.intel_item_id):
+                        req_id = getattr(item, "requirement_id", None) or (item.get("requirement_id") if isinstance(item, dict) else None)
+                        if (item_id and str(item_id) == str(selected_opt.intel_item_id)) or (req_id and str(req_id) == str(selected_opt.intel_item_id)):
                             last_selected_intel = (
                                 item if isinstance(item, StakeholderIntelItem) else StakeholderIntelItem(**item)
                             )
                             break
                     if not last_selected_intel:
                         for item in available_intels:
-                            desc = getattr(item, "categorized_description", "") or (
-                                item.get("categorized_description", "") if isinstance(item, dict) else ""
+                            desc = getattr(item, "description", "") or getattr(item, "categorized_description", "") or (
+                                item.get("description", "") or item.get("categorized_description", "") if isinstance(item, dict) else ""
                             )
                             if desc and desc in selected_opt.text:
                                 last_selected_intel = (
@@ -137,6 +139,13 @@ async def get_response(
 
             if stakeholder_convincer_profile is not None:
                 input_data["stakeholder_convincer_profile"] = stakeholder_convincer_profile
+
+            if not initial_start and last_selected_option and callback:
+                cb_state = {"messages": [HumanMessage(content=last_selected_option.text)]}
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(websocket=ws, state=cb_state)
+                else:
+                    callback(websocket=ws, state=cb_state)
 
             output_state = await graph.ainvoke(
                 input=input_data,

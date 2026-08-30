@@ -12,8 +12,6 @@ from mlops_serious_game.application.pitch_debate_service.state import (
     EmotionValues,
     PitchDebateState,
     StakeholderIntelItem,
-    StakeholderIntelItemIntent,
-    StakeholderIntelItemLayer,
 )
 
 __all__ = [
@@ -26,6 +24,4 @@ __all__ = [
     "EmotionValues",
     "EmotionDelta",
     "StakeholderIntelItem",
-    "StakeholderIntelItemIntent",
-    "StakeholderIntelItemLayer",
 ]

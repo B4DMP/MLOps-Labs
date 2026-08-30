@@ -58,10 +58,24 @@ async def dialogue_option_node(
         selected_intels = random.sample(discovered_intel_items, k)
         intel_desc_list = []
         for idx, item in enumerate(selected_intels, 1):
-            st_id = getattr(item, "stakeholder_id", None) or RequirementFactory.get_requirement(item.requirement_id).stakeholder_id
-            item_desc = getattr(item, "categorized_description", getattr(item, "description", ""))
-            st_obj = StakeholderFactory.get_stakeholder(st_id)
-            st_name = st_obj.name
+            if isinstance(item, dict):
+                req_id = item.get("requirement_id")
+                item_desc = item.get("description") or item.get("categorized_description", "")
+                st_id = item.get("stakeholder_id")
+            else:
+                req_id = getattr(item, "requirement_id", None)
+                item_desc = getattr(item, "description", None) or getattr(item, "categorized_description", "")
+                st_id = getattr(item, "stakeholder_id", None)
+
+            if not st_id and req_id:
+                req = RequirementFactory.get_requirement(req_id)
+                if req:
+                    st_id = req.stakeholder_id
+                    if not item_desc:
+                        item_desc = req.description
+
+            st_obj = StakeholderFactory.get_stakeholder(st_id) if st_id else None
+            st_name = st_obj.name if st_obj else (st_id or "the stakeholder")
 
             if active_speaker_id and st_id == active_speaker_id:
                 target_type = "Direct Target (Active Speaker)"
@@ -110,16 +124,37 @@ async def dialogue_option_node(
 
     # 4. Build Intel Dialogue Options
     for idx, item in enumerate(selected_intels):
-        st_id = getattr(item, "stakeholder_id", None) or RequirementFactory.get_requirement(item.requirement_id).stakeholder_id
-        item_desc = getattr(item, "categorized_description", getattr(item, "description", ""))
-        st_obj = StakeholderFactory.get_stakeholder(st_id)
-        st_first_name = st_obj.name.split()[0].replace(",", "")
+        if isinstance(item, dict):
+            req_id = item.get("requirement_id")
+            item_desc = item.get("description") or item.get("categorized_description", "")
+            st_id = item.get("stakeholder_id")
+            item_id = item.get("id") or req_id
+        else:
+            req_id = getattr(item, "requirement_id", None)
+            item_desc = getattr(item, "description", None) or getattr(item, "categorized_description", "")
+            st_id = getattr(item, "stakeholder_id", None)
+            item_id = getattr(item, "id", None) or req_id
 
-        text = intel_specs[idx].text if idx < len(intel_specs) else f"{st_first_name}, regarding your priority: {item_desc}"
+        if not st_id and req_id:
+            req = RequirementFactory.get_requirement(req_id)
+            if req:
+                st_id = req.stakeholder_id
+                if not item_desc:
+                    item_desc = req.description
+
+        st_obj = StakeholderFactory.get_stakeholder(st_id) if st_id else None
+        st_first_name = (st_obj.name.split()[0].replace(",", "")) if st_obj else "Team"
+
+        text = intel_specs[idx].text if (idx < len(intel_specs) and intel_specs[idx].text) else f"{st_first_name}, regarding the stance: {item_desc}"
 
         if st_first_name.lower() not in text.lower():
             text = f"{st_first_name}, {text}"
-        options.append(DialogueOption(text=text, intel_item_id=getattr(item, "id", None)))
+        options.append(
+            DialogueOption(
+                text=text,
+                intel_item_id=str(item_id) if item_id else None,
+            )
+        )
 
     # 5. Build Corporate Noise Dialogue Options
     noise_specs = gen_result.corporate_noise_specs or []

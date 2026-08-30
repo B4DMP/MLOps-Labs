@@ -727,16 +727,14 @@ export default function OnlineIntelGathering({
               >
                 <StakeholderInteractionArea
                   className="w-100 h-100"
-                  handleSend={() => { }}
                   chatMsgs={chatMsgs}
                   current_phase={currentPhase}
                   current_challenge={currentChallenge}
                   isEnabled={!isWaitingForResponse && !showPitchDeck}
                   actionCards={[]}
                   onHoverCard={() => { }}
-                  selected_mgs={[]}
                   showStakeholderList={false}
-                  showInput={false}
+                  showDialogueOptions={false}
                 />
               </div>
 

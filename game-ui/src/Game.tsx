@@ -21,6 +21,7 @@ import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
+import type { DialogueOption } from "./types/DialogueOption";
 
 interface Stakeholder {
   id: string;
@@ -50,9 +51,7 @@ interface AppProps {
   username: string;
 }
 
-function getRandomInt(max: number) {
-  return Math.floor(Math.random() * max);
-}
+
 
 function App({ username: _username }: AppProps) {
   const debug: boolean = false;
@@ -156,37 +155,7 @@ function App({ username: _username }: AppProps) {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
-  useEffect(() => {
-    if (hasReceivedInitialStateRef.current && progressionIndex === 2 && challengeLoopId === 2) {
-      if (!hasPitchDebateStartedRef.current && chat_msgs.length === 0) {
-        setHasPitchDebateStarted(true);
-        hasPitchDebateStartedRef.current = true;
-        startRound(challengeTitle);
-      }
-    }
-  }, [progressionIndex, challengeLoopId, challengeTitle, chat_msgs.length]);
 
-  const startRound = (cTitle?: string) => {
-    //send initial message
-    sendJsonMessage({
-      type: "chat:send_message",
-      message:
-        "Welcome to the meeting! Please propose a concrete action or technical strategy that strictly prioritizes your specific professional requirements and interests, even if it disregards other perspectives. Write no more than two sentences.",
-      stakeholder_ids: ["st0"],
-      phase_id: currentPhaseRef.current,
-      challenge_id: currentChallengeRef.current,
-    });
-    setChatMsgs((prevMsgs) => [
-      ...prevMsgs,
-      {
-        id: "",
-        message: `Welcome to the meeting, everyone. What is your opinion about "${cTitle || challengeTitle}"?`,
-        ac_id: -1,
-      },
-    ]);
-    setIsChatEnabled(false);
-    setac_count(0);
-  };
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
     sendJsonMessage({
       type: "game:progress_update",
@@ -343,6 +312,30 @@ function App({ username: _username }: AppProps) {
         if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
       }
 
+      if (data.facial_expressions && typeof data.facial_expressions === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.facial_expressions).forEach((stId) => {
+            if (updated[stId]) {
+              const face = data.facial_expressions[stId];
+              updated[stId] = {
+                ...updated[stId],
+                avatar: {
+                  ...updated[stId].avatar,
+                  face: face,
+                  emotion: face,
+                },
+              };
+            }
+          });
+          return updated;
+        });
+      }
+
+      if (data.dialogue_options && Array.isArray(data.dialogue_options)) {
+        setDialogueOptions(data.dialogue_options);
+      }
+
       setChallengeAmount(data["challenges_amount"]);
       setChallengeMetricChanges(data["metric_changes"]);
       if (data.challenge_loop_id !== undefined) {
@@ -397,10 +390,32 @@ function App({ username: _username }: AppProps) {
           ...data.messages.map((msg: any) => ({
             id: msg.stakeholder_id,
             message: msg.message,
+            facial_expression: msg.facial_expression,
             ac_id: _ac_id,
           })),
         ]);
       }
+
+      if (data.facial_expressions && typeof data.facial_expressions === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.facial_expressions).forEach((stId) => {
+            if (updated[stId]) {
+              const face = data.facial_expressions[stId];
+              updated[stId] = {
+                ...updated[stId],
+                avatar: {
+                  ...updated[stId].avatar,
+                  face: face,
+                  emotion: face,
+                },
+              };
+            }
+          });
+          return updated;
+        });
+      }
+
       if (data.action_cards && data.action_cards.length > 0) {
         const mappedCards = data.action_cards.map((card: any) => {
           const stakeholder_ids = (card.stakeholder_names || []).map(
@@ -450,34 +465,28 @@ function App({ username: _username }: AppProps) {
         setIsintro5Done(true);
       }
 
-      //define message recommendations
-      const allSts = Object.values(stakeholdersRef.current);
-      const activeSts = allSts.filter((st) => {
-        const metric = metricsRef.current[st.metric_id] || Object.values(metricsRef.current).find((m) => m.id === st.metric_id);
-        const metricIntro = metricsRef.current[`${st.metric_id}_intro`] || Object.values(metricsRef.current).find((m) => m.id === `${st.metric_id}_intro`);
-        return (metric && metric.phases[currentPhaseRef.current]) || (metricIntro && metricIntro.phases[currentPhaseRef.current]);
-      });
-      if (activeSts.length !== 0) {
-        const msg_recommendations = [
-          `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, can you agree to this?`,
-          `${activeSts[getRandomInt(activeSts.length)].name.split(" ")[0]}, do you have any concerns?`,
-          "Can everybody agree?",
-          "Do we got any other ideas?",
-          "What does the rest of the team think about this?",
-          "Sounds great!",
-          "I am not sure about this.",
-          "Let's try to find a compromise.",
-          "Could you please explain your idea in more detail?",
-        ];
+      if (data && data.dialogue_options && Array.isArray(data.dialogue_options)) {
+        setDialogueOptions(data.dialogue_options);
+      }
 
-        const res: string[] = [];
-        while (res.length < 3) {
-          const sel_id = getRandomInt(msg_recommendations.length);
-          if (!res.includes(msg_recommendations[sel_id])) {
-            res.push(msg_recommendations[sel_id]);
-          }
-        }
-        setSelectedMgs(res);
+      if (data && data.facial_expressions && typeof data.facial_expressions === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.facial_expressions).forEach((stId) => {
+            if (updated[stId]) {
+              const face = data.facial_expressions[stId];
+              updated[stId] = {
+                ...updated[stId],
+                avatar: {
+                  ...updated[stId].avatar,
+                  face: face,
+                  emotion: face,
+                },
+              };
+            }
+          });
+          return updated;
+        });
       }
 
       if (data && data.error === true) {
@@ -692,24 +701,19 @@ function App({ username: _username }: AppProps) {
     setActionCards([]);
   };
 
-  const handleSend = (textContent: string) => {
-    setChatMsgs((prevMsgs) => [
-      ...prevMsgs,
-      { id: "", message: textContent, ac_id: -1 },
-    ]);
+  const handleSelectDialogueOption = (optionIndex: number) => {
+    if (!isChatEnabled) return;
+    setIsChatEnabled(false);
     sendJsonMessage({
       type: "chat:send_message",
-      message: textContent,
-      stakeholder_ids: ["st0"],
+      option_index: optionIndex,
       phase_id: currentPhaseRef.current,
       challenge_id: currentChallengeRef.current,
     });
-    setIsChatEnabled(false);
   };
 
   let [last_ac, setLastAc] = useState(actionCards[0]);
-
-  let [selected_mgs, setSelectedMgs] = useState<string[]>([]);
+  const [dialogueOptions, setDialogueOptions] = useState<DialogueOption[]>([]);
 
   return (
     <>
@@ -872,12 +876,11 @@ function App({ username: _username }: AppProps) {
                   actionCards={actionCards}
                   hoveredCardId={hoveredCardId}
                   setHoveredCardId={setHoveredCardId}
-                  selected_mgs={selected_mgs}
+                  dialogueOptions={dialogueOptions}
                   chat_msgs={chat_msgs}
-                  startRound={startRound}
                   playActionCard={playActionCard}
                   getNextChallenge={getNextChallenge}
-                  handleSend={handleSend}
+                  onSelectDialogueOption={handleSelectDialogueOption}
                 />
               )}
             </StakeholderContext.Provider>

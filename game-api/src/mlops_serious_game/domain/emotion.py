@@ -90,6 +90,7 @@ class IntensityFormula(BaseModel):
 class EmotionalStateRule(BaseModel):
     """Rule defining condition and formula for an emotional state."""
 
+    facial_expression: str = Field(default="smile", description="Associated character avatar facial expression")
     conditions: list[TriggerCondition] = Field(default_factory=list, description="List of trigger conditions (AND conjunction)")
     formula: IntensityFormula = Field(description="Intensity calculation formula")
 

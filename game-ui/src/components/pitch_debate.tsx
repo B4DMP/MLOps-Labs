@@ -2,6 +2,7 @@ import MetricTab from "./MetricTab";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import CardArea from "./CardArea";
 import type { ActionCard } from "../types/ActionCard";
+import type { DialogueOption } from "../types/DialogueOption";
 import PhaseOverview from "./PhaseOverview";
 import AcRevealPanel from "./AcRevealPanel";
 import styles from "../Game.module.css";
@@ -33,12 +34,11 @@ interface PitchDebateProps {
   actionCards: ActionCard[];
   hoveredCardId: number | null;
   setHoveredCardId: (id: number | null) => void;
-  selected_mgs: string[];
+  dialogueOptions: DialogueOption[];
   chat_msgs: ChatMsg[];
-  startRound?: (title?: string) => void;
   playActionCard: (ac: ActionCard) => void;
   getNextChallenge: (ac: ActionCard) => void;
-  handleSend: (textContent: string) => void;
+  onSelectDialogueOption: (index: number) => void;
 }
 
 export default function PitchDebate({
@@ -56,11 +56,11 @@ export default function PitchDebate({
   actionCards,
   hoveredCardId,
   setHoveredCardId,
-  selected_mgs,
+  dialogueOptions,
   chat_msgs,
   playActionCard,
   getNextChallenge,
-  handleSend,
+  onSelectDialogueOption,
 }: PitchDebateProps) {
   return (
     <div className="game-container">
@@ -121,14 +121,14 @@ export default function PitchDebate({
             className={`row flex-grow-1 overflow-hidden ${roundOverAnimActive && styles.roundOverAnimActive}`}
           >
             <StakeholderInteractionArea
-              handleSend={handleSend}
+              onSelectDialogueOption={onSelectDialogueOption}
+              dialogueOptions={dialogueOptions}
               chatMsgs={chat_msgs}
               current_phase={currentPhase}
               current_challenge={currentChallenge}
               isEnabled={isChatEnabled}
               actionCards={actionCards}
               onHoverCard={setHoveredCardId}
-              selected_mgs={selected_mgs}
               showStakeholderList={false}
             />
             <div className="col-7 p-3 bg d-flex flex-column">
@@ -143,7 +143,6 @@ export default function PitchDebate({
                 current_phase={currentPhase}
                 hoveredCardId={hoveredCardId}
                 isStakeholderTyping={!isChatEnabled}
-                handleSend={handleSend}
               />
             </div>
           </div>

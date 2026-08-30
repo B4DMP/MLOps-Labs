@@ -189,6 +189,11 @@
         "formula"
       ],
       "properties": {
+        "facial_expression": {
+          "type": "string",
+          "title": "Avatar Facial Expression",
+          "default": "smile"
+        },
         "conditions": {
           "type": "array",
           "title": "Trigger Conditions",
