@@ -16,7 +16,7 @@ import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 
 interface OnlineIntelGatheringProps {
-  onContinue: () => void;
+  onContinue: (pitchedCard?: any) => void;
   currentPhase?: number;
   currentChallenge?: number;
   showMetricValueChanges?: boolean;
@@ -620,14 +620,25 @@ export default function OnlineIntelGathering({
 
   const handleConfirmIntelMerge = () => {
     if (selectedIntelIds.length === 0) return;
-    const selectedTitles = intelItems
-      .filter((item) => selectedIntelIds.includes(item.id))
+    const selectedItems = intelItems.filter((item) => selectedIntelIds.includes(item.id));
+    const selectedTitles = selectedItems
       .map((item) => item.description.length > 25 ? item.description.slice(0, 25) + "..." : item.description)
       .join(" + ");
-    setPitchedCardTitle(`Action Proposal: ${selectedTitles}`);
+    const fullProposalTitle = `Action Proposal: ${selectedTitles}`;
+    const pitchedCard = {
+      id: `ac_pitched_${currentPhase}_${currentChallenge}`,
+      ac_title: fullProposalTitle,
+      title: fullProposalTitle,
+      ac_descr: selectedItems.map((i) => i.description).join(" • "),
+      description: selectedItems.map((i) => i.description).join(" • "),
+      intel_items: selectedItems,
+      selected_intel_ids: selectedIntelIds,
+      stakeholder_ids: Array.from(new Set(selectedItems.map((i) => i.stakeholder_id).filter(Boolean))),
+    };
+    setPitchedCardTitle(fullProposalTitle);
     setIsPitchModalOpen(false);
     if (onContinue) {
-      onContinue();
+      onContinue(pitchedCard);
     }
   };
 

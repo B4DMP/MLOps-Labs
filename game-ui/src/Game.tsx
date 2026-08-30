@@ -32,7 +32,12 @@ interface Stakeholder {
   role_description: string;
   metric_id: string;
   stakeholder_color?: string;
+  facial_expression?: string;
+  emotion?: string;
   avatar?: StakeholderAvatar;
+  power?: string;
+  interest?: string;
+  emotional_state?: string;
 }
 
 interface Metric {
@@ -70,6 +75,7 @@ function App({ username: _username }: AppProps) {
     Record<string, number>
   >({});
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
+  const [emotionColors, setEmotionColors] = useState<Record<string, string>>({});
   const [ac_count, setac_count] = useState(-1);
   const [chat_msgs, setChatMsgs] = useState<ChatMsg[]>([]);
   const [onlineIntelChatMsgs, setOnlineIntelChatMsgs] = useState<ChatMsg[]>([]);
@@ -112,6 +118,7 @@ function App({ username: _username }: AppProps) {
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
+  const [pitchedActionCard, setPitchedActionCard] = useState<any>(null);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
@@ -199,6 +206,10 @@ function App({ username: _username }: AppProps) {
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
       setPhases(data["phases"]);
+      if (data["emotion_colors"]) {
+        setEmotionColors(data["emotion_colors"]);
+        (window as any).__EMOTION_COLORS__ = data["emotion_colors"];
+      }
     });
 
     const unsubProgress = subscribe("game:progress_change", (data: any) => {
@@ -256,6 +267,31 @@ function App({ username: _username }: AppProps) {
         setStakeholders(enrichedStakeholders);
       }
 
+      if (data.challenge_stakeholders && Array.isArray(data.challenge_stakeholders)) {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          data.challenge_stakeholders.forEach((cs: any) => {
+            if (updated[cs.stakeholder_id]) {
+              updated[cs.stakeholder_id] = {
+                ...updated[cs.stakeholder_id],
+                power: cs.power,
+                interest: cs.interest,
+              };
+            }
+          });
+          return updated;
+        });
+
+        setDossierData((prev) =>
+          prev.map((entry) => {
+            const match = data.challenge_stakeholders.find(
+              (cs: any) => cs.stakeholder_id === entry.stakeholder_id
+            );
+            return match ? { ...entry, power: match.power, interest: match.interest } : entry;
+          })
+        );
+      }
+
       const isFirstLoad = !hasReceivedInitialStateRef.current;
       hasReceivedInitialStateRef.current = true;
       const loopId = data.challenge_loop_id !== undefined ? data.challenge_loop_id : challengeLoopId;
@@ -280,6 +316,9 @@ function App({ username: _username }: AppProps) {
         setAttentionTokens(data.attention_tokens);
         if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
         if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
+        if (data.action_card && typeof data.action_card === "object" && (data.action_card.title || data.action_card.ac_title)) {
+          setPitchedActionCard(data.action_card);
+        }
       } else if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
         // If we transitioned to a new challenge (round completed after simulation), reset local state
         setCurrentPhase(data["phase_id"]);
@@ -289,6 +328,7 @@ function App({ username: _username }: AppProps) {
         setAttentionTokens(data.attention_tokens);
         setPlayedCardIdsInPhase([]);
         setCardTargetedStakeholdersMap({});
+        setPitchedActionCard(null);
         setActionCards([]);
         setac_count(0);
         setHasPitchDebateStarted(false);
@@ -308,6 +348,9 @@ function App({ username: _username }: AppProps) {
         if (data.attention_tokens !== undefined) {
           setAttentionTokens(data.attention_tokens);
         }
+        if (data.action_card && typeof data.action_card === "object" && (data.action_card.title || data.action_card.ac_title)) {
+          setPitchedActionCard(data.action_card);
+        }
         if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
         if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
       }
@@ -320,6 +363,8 @@ function App({ username: _username }: AppProps) {
               const face = data.facial_expressions[stId];
               updated[stId] = {
                 ...updated[stId],
+                facial_expression: face,
+                emotion: face,
                 avatar: {
                   ...updated[stId].avatar,
                   face: face,
@@ -392,6 +437,7 @@ function App({ username: _username }: AppProps) {
             message: msg.message,
             facial_expression: msg.facial_expression,
             ac_id: _ac_id,
+            revealed_intel: msg.revealed_intel || [],
           })),
         ]);
       }
@@ -404,6 +450,8 @@ function App({ username: _username }: AppProps) {
               const face = data.facial_expressions[stId];
               updated[stId] = {
                 ...updated[stId],
+                facial_expression: face,
+                emotion: face,
                 avatar: {
                   ...updated[stId].avatar,
                   face: face,
@@ -477,6 +525,8 @@ function App({ username: _username }: AppProps) {
               const face = data.facial_expressions[stId];
               updated[stId] = {
                 ...updated[stId],
+                facial_expression: face,
+                emotion: face,
                 avatar: {
                   ...updated[stId].avatar,
                   face: face,
@@ -591,7 +641,30 @@ function App({ username: _username }: AppProps) {
     });
   };
 
-  const handleOnlineIntelGatheringContinue = () => {
+  const handleOnlineIntelGatheringContinue = (pitchedCard?: any) => {
+    let _metric_values: any = [];
+    Object.values(metrics).forEach((x) => {
+      _metric_values.push(x.value ?? 0);
+    });
+
+    const cardToSave = pitchedCard || pitchedActionCard || {};
+    if (pitchedCard) {
+      setPitchedActionCard(pitchedCard);
+    }
+
+    sendJsonMessage({
+      type: "game:state_update_request",
+      challenge_id: currentChallenge,
+      phase_id: currentPhase,
+      challenge_loop_index: 1,
+      metric_values: _metric_values,
+      action_card: cardToSave,
+      messages: [],
+      attention_tokens: attentionTokens,
+    });
+  };
+
+  const handlePitchDebateEnd = (_passed: boolean) => {
     let _metric_values: any = [];
     Object.values(metrics).forEach((x) => {
       _metric_values.push(x.value ?? 0);
@@ -601,10 +674,10 @@ function App({ username: _username }: AppProps) {
       type: "game:state_update_request",
       challenge_id: currentChallenge,
       phase_id: currentPhase,
-      challenge_loop_index: 1,
+      challenge_loop_index: 2,
       metric_values: _metric_values,
-      action_card_id: null,
-      messages: [],
+      action_card: pitchedActionCard || {},
+      messages: chat_msgs,
       attention_tokens: attentionTokens,
     });
   };
@@ -723,7 +796,7 @@ function App({ username: _username }: AppProps) {
         >
           <MetricsContext.Provider value={{ metrics, setMetrics }}>
             <StakeholderContext.Provider
-              value={{ stakeholders, setStakeholders }}
+              value={{ stakeholders, setStakeholders, emotionColors, setEmotionColors }}
             >
               <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
               <PrePhaseDialog
@@ -734,7 +807,7 @@ function App({ username: _username }: AppProps) {
                 }}
               />
               {/* Global Floating Bottom-Right Stakeholder Dossier Button */}
-              {(challengeLoopId == 0 || challengeLoopId == 2) && <>
+              {challengeLoopId === 0 && (
                 <button
                   onClick={() => {
                     emit("intel:get_dossier", {
@@ -767,7 +840,8 @@ function App({ username: _username }: AppProps) {
                   onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
                   📓 Stakeholder Dossier
-                </button></>}
+                </button>
+              )}
 
               <StakeholderDossier
                 isOpen={isDossierOpen}
@@ -878,9 +952,14 @@ function App({ username: _username }: AppProps) {
                   setHoveredCardId={setHoveredCardId}
                   dialogueOptions={dialogueOptions}
                   chat_msgs={chat_msgs}
+                  setChatMsgs={setChatMsgs}
                   playActionCard={playActionCard}
                   getNextChallenge={getNextChallenge}
                   onSelectDialogueOption={handleSelectDialogueOption}
+                  pitchedActionCard={pitchedActionCard}
+                  dossierData={dossierData}
+                  intelItems={intelItems}
+                  onEndPitch={handlePitchDebateEnd}
                 />
               )}
             </StakeholderContext.Provider>

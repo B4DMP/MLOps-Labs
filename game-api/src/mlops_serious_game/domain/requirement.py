@@ -44,6 +44,18 @@ class StakeholderIntelItem(BaseModel):
     def categorized_description(self) -> str:
         return self.description
 
+    @property
+    def correct_description(self) -> str:
+        from mlops_serious_game.domain.requirement_factory import RequirementFactory
+        req = RequirementFactory.get_requirement(self.requirement_id)
+        return req.description if req else self.description
+
+    @property
+    def correct_intent(self) -> RequirementType:
+        from mlops_serious_game.domain.requirement_factory import RequirementFactory
+        req = RequirementFactory.get_requirement(self.requirement_id)
+        return req.type if req else self.categorized_type
+
     def is_correct(self) -> bool:
         from mlops_serious_game.domain.requirement_factory import RequirementFactory
         req = RequirementFactory.get_requirement(self.requirement_id)

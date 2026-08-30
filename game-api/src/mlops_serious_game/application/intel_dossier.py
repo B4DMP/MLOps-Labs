@@ -392,10 +392,12 @@ async def handle_intel_verification(
             description=req.description,
         )
 
-    stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
+    stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id) if req else None
 
-    old_categorized_type = target_item.categorized_type.value if hasattr(target_item.categorized_type, "value") else str(target_item.categorized_type)
-    true_categorized_type = req.type.value if hasattr(req.type, "value") else str(req.type)
+    old_categorized_type = (
+        target_item.categorized_type.value
+    )
+    true_categorized_type = req.type.value if (req and hasattr(req.type, "value")) else (str(req.type) if req else old_categorized_type)
 
     # Perform verification & correction
     target_item.intel_type = ConfidenceType.VERIFIED
@@ -413,6 +415,58 @@ async def handle_intel_verification(
         "description": target_item.description,
         "intel_item": target_item.model_dump(mode="json"),
     }
+
+
+def correct_and_infer_intel_item(
+    username: str,
+    requirement_id: str,
+    curr_challenge: Challenge = None,
+) -> StakeholderIntelItem:
+    """Corrects an intel item in the database and marks it as inferred."""
+    req = RequirementFactory.get_requirement(requirement_id)
+    if not req:
+        return None
+
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == username)
+        ).all()
+
+        target_record = None
+        for record in records:
+            if isinstance(record.intel_item_data, dict):
+                r_id = record.intel_item_data.get("requirement_id")
+                item_id = record.intel_item_data.get("id")
+                if r_id == requirement_id or item_id == requirement_id:
+                    target_record = record
+                    break
+
+        cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
+
+        if target_record:
+            data = dict(target_record.intel_item_data)
+            data["intel_type"] = ConfidenceType.INFERRED.value
+            data["categorized_type"] = cat_type_str
+            data["description"] = req.description
+            target_record.intel_item_data = data
+            flag_modified(target_record, "intel_item_data")
+            session.commit()
+            return StakeholderIntelItem(**data)
+        else:
+            new_item = StakeholderIntelItem(
+                id=str(uuid.uuid4()),
+                requirement_id=req.id,
+                intel_type=ConfidenceType.INFERRED,
+                categorized_type=req.type,
+                description=req.description,
+            )
+            new_record = IntelItem(
+                user_name=username,
+                intel_item_data=new_item.model_dump(mode="json")
+            )
+            session.add(new_record)
+            session.commit()
+            return new_item
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
@@ -436,15 +490,15 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "description": item.description,
             })
 
+    ch_st_map = {cs.stakeholder_id: cs for cs in curr_challenge.stakeholders}
+    active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id) or StakeholderFactory.get_available_stakeholders()
+
     dossier_list = []
-    active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id)
-    if not active_st_ids:
-        active_st_ids = StakeholderFactory.get_available_stakeholders()
-        
     for st_id in active_st_ids:
         st = StakeholderFactory.get_stakeholder(st_id)
         if not st:
             continue
+        ch_st = ch_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
         dossier_list.append({
             "stakeholder_id": st.id,
@@ -454,6 +508,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "constraints": getattr(st, 'constraints', getattr(st, 'requirements', "")),
             "role_description": st.role_description,
             "metric_id": st.metric_id,
+            "power": ch_st.power if ch_st else "low",
+            "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
         })
 

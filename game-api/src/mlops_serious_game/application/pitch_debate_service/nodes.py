@@ -2,6 +2,7 @@ import asyncio
 import math
 import random
 import re
+import uuid
 from typing import Any, Optional
 
 from langchain_core.messages import AIMessage, HumanMessage
@@ -182,6 +183,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     last_selected_intel = state.get("last_selected_intel")
     intel_instruction = ""
+    revealed_intel_list = []
     if last_selected_intel and st.id == last_selected_intel.stakeholder_id:
         intel_intent_val = getattr(last_selected_intel.correct_intent, "value", str(last_selected_intel.correct_intent)) if getattr(last_selected_intel, "correct_intent", None) else "requirement"
         if not last_selected_intel.is_correct_intel():
@@ -192,6 +194,20 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 f"You MUST react negatively! Express frustration or irritation at their false claim, "
                 f"explicitly correct their misunderstanding, and EXPLICITLY REVEAL your actual requirement to demand that it is met."
             )
+            from mlops_serious_game.domain.requirement_factory import RequirementFactory
+            req = RequirementFactory.get_requirement(last_selected_intel.requirement_id)
+            req_desc = req.description if req else last_selected_intel.correct_description
+            cat_type = req.type.value if req and hasattr(req.type, "value") else (str(req.type) if req else intel_intent_val)
+            revealed_intel_list = [{
+                "id": last_selected_intel.id,
+                "requirement_id": last_selected_intel.requirement_id,
+                "description": req_desc,
+                "categorized_type": cat_type,
+                "intel_type": "inferred",
+                "stakeholder_id": st.id,
+                "stakeholder_name": st.name,
+                "is_corrected": True,
+            }]
         else:
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - REQUIREMENT SATISFIED]: The player's dialogue option correctly satisfied your requirement: "
@@ -208,7 +224,17 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         )
 
     conversation_chain = get_stakeholder_response_chain()
-    input_messages = state["messages"]
+    raw_messages = state.get("messages", [])
+    input_messages = []
+    for m in raw_messages:
+        if isinstance(m, AIMessage) or getattr(m, "type", "") == "ai":
+            content_str = getattr(m, "content", str(m))
+            input_messages.append(HumanMessage(content=content_str))
+        else:
+            input_messages.append(m)
+
+    if not input_messages:
+        input_messages = [HumanMessage(content="The meeting begins. The Project Manager has opened the floor.")]
 
     _split = state["challenge"].split("#")
     challenge_text = "".join(_split)
@@ -232,13 +258,19 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         config,
     )
 
+    cleaned_content = (response.content).strip()
+
+    add_kwargs = {
+        **response.additional_kwargs,
+        "emotion_values": st_emotion_values.model_dump() if hasattr(st_emotion_values, "model_dump") else dict(st_emotion_values),
+        "emotion_delta": st_emotion_delta.model_dump() if hasattr(st_emotion_delta, "model_dump") else dict(st_emotion_delta),
+    }
+    if revealed_intel_list:
+        add_kwargs["revealed_intel"] = revealed_intel_list
+
     named_response = AIMessage(
-        content=f"[{st.id}] {response.content}",
-        additional_kwargs={
-            **response.additional_kwargs,
-            "emotion_values": st_emotion_values.model_dump() if hasattr(st_emotion_values, "model_dump") else dict(st_emotion_values),
-            "emotion_delta": st_emotion_delta.model_dump() if hasattr(st_emotion_delta, "model_dump") else dict(st_emotion_delta),
-        },
+        content=f"[{st.id}] {cleaned_content}",
+        additional_kwargs=add_kwargs,
         response_metadata=response.response_metadata,
         id=response.id,
         name="Stakeholder",
@@ -257,9 +289,27 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             else:
                 callback(websocket=ws, state=cb_state)
 
+    # Update intel_items in state if corrected
+    updated_intel_items = list(state.get("intel_items", []) or [])
+    if last_selected_intel and not last_selected_intel.is_correct_intel():
+        for i, item in enumerate(updated_intel_items):
+            if getattr(item, "requirement_id", None) == last_selected_intel.requirement_id or getattr(item, "id", None) == last_selected_intel.id:
+                from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
+                from mlops_serious_game.domain.requirement_factory import RequirementFactory
+                req = RequirementFactory.get_requirement(last_selected_intel.requirement_id)
+                if req:
+                    updated_intel_items[i] = StakeholderIntelItem(
+                        id=getattr(item, "id", str(uuid.uuid4()) if "uuid" in globals() else "item"),
+                        requirement_id=req.id,
+                        intel_type=ConfidenceType.INFERRED,
+                        categorized_type=req.type,
+                        description=req.description,
+                    )
+                break
+
     if named_response.tool_calls:
-        return {"messages": named_response}
+        return {"messages": named_response, "intel_items": updated_intel_items}
 
     # Remove the last stakeholder_id after processing
     new_stakeholder_ids = state["stakeholder_ids"][:-1]
-    return {"messages": named_response, "stakeholder_ids": new_stakeholder_ids}
+    return {"messages": named_response, "stakeholder_ids": new_stakeholder_ids, "intel_items": updated_intel_items}

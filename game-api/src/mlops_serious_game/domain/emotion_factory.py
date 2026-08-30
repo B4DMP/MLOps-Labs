@@ -25,6 +25,10 @@ class EmotionFactory:
             data = json.load(f)
 
         cls.config = EmotionConfig(**data)
+        if cls.config and cls.config.convincer_archetypes:
+            for arch_name, arch in cls.config.convincer_archetypes.items():
+                if not arch.name:
+                    arch.name = arch_name
         return cls.config
 
     @classmethod
@@ -75,6 +79,21 @@ class EmotionFactory:
     ) -> EmotionValues:
         """Applies deltas to current emotion values dictionary."""
         return apply_emotion_delta(current_values, deltas)
+
+    @classmethod
+    def get_emotion_colors(cls) -> dict[str, str]:
+        """Returns dictionary of emotion / emotional state colors."""
+        cls.ensure_loaded()
+        if not cls.config:
+            return {}
+
+        colors = dict(cls.config.emotion_colors)
+        for state_name, rule in cls.config.emotional_states.items():
+            if rule.color:
+                colors[state_name] = rule.color
+                if rule.facial_expression:
+                    colors[rule.facial_expression] = rule.color
+        return colors
 
     @classmethod
     def get_available_states(cls) -> list[str]:
@@ -177,13 +196,20 @@ class EmotionFactory:
     @classmethod
     def get_archetype_by_name(cls, name: str) -> Optional[ConvincerArchetype]:
         """Finds a convincer archetype by case-insensitive name or key."""
+        if not name:
+            return None
         cls.ensure_loaded()
         archetypes = cls.get_convincer_archetypes()
         if name in archetypes:
-            return archetypes[name]
+            arch = archetypes[name]
+            if not arch.name:
+                arch.name = name
+            return arch
         target = name.strip().lower()
         for key, arch in archetypes.items():
             if key.strip().lower() == target or (arch.name and arch.name.strip().lower() == target):
+                if not arch.name:
+                    arch.name = arch.name or key
                 return arch
         return None
 

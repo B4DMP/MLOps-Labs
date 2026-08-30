@@ -62,7 +62,7 @@ IMPORTANT RULES:
 3. RESPONSE STYLE: Be conversational, professional, and natural. Write as if you are speaking in a project meeting. Your message should sound like a spoken comment in a meeting, not like a formal academic statement.
 4. BREVITY: Keep your answer brief — at most 2 sentences.
 5. NO TOOLS: Speak directly based on your knowledge and the conversation context. DO NOT USE TOOLS!
-6. FORMAT: Output only your spoken response. Do NOT include your name or prefix at the beginning of your response.
+6. IN-CHARACTER ONLY: Output ONLY {{stakeholder_name}}'s spoken dialogue in the meeting. NEVER output meta-commentary, affirmations, or prompt acknowledgments (such as "Understood", "I will maintain a professional tone", "Let's begin", or repeating system rules). Do NOT include your name or prefix at the beginning of your response.
 """
 
 STAKEHOLDER_CHARACTER_CARD = Prompt(

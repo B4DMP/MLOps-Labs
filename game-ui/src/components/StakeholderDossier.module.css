@@ -398,8 +398,29 @@
   font-size: 1.2rem;
   color: #1a120b;
   font-weight: 700;
+  margin: 2px 0 2px 0;
+  line-height: 1.15;
+}
+
+.stakeholderEmotion {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: #1a120b;
+  font-weight: 700;
   margin: 2px 0 4px 0;
   line-height: 1.15;
+}
+
+.stakeholderPowerInterest {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: #1a120b;
+  font-weight: 700;
+  margin: 2px 0 4px 0;
+  line-height: 1.15;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .highlightRed {

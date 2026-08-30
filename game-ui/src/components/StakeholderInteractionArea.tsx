@@ -27,6 +27,7 @@ export type RevealedIntel = {
   intel_type?: string;
   stakeholder_id?: string;
   stakeholder_name?: string;
+  is_corrected?: boolean;
 };
 
 export type ChatMsg = {
@@ -191,7 +192,7 @@ export default function StakeholderInteractionArea({
                                 className="text-center m-0"
                                 style={{ color: "#c3c3c3ff" }}
                               >
-                                revealed intel item{" "}
+                                {intel.is_corrected ? "corrected intel item " : "revealed intel item "}
                                 <span
                                   style={{ fontWeight: "bold", color: "#60a5fa" }}
                                   title={intel.description}
@@ -250,57 +251,131 @@ export default function StakeholderInteractionArea({
 
         {showDialogueOptions && (
           <div
-            className={styles.dialogueOptionsContainer}
+            className={`card border-secondary shadow-sm ${styles.journalDialogueCard}`}
             data-intro-group="intro5"
             data-intro="Choose a dialogue option to respond to the stakeholders. Options are based on either discovered intel items or convincer archetypes."
             data-step="5"
             data-position="top"
           >
-            <div className={styles.dialogueOptionsHeader}>
-              <span>Choose Dialogue Option</span>
-              {!isEnabled && <span style={{ color: "#93c5fd" }}>Processing response...</span>}
+            <div className="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center border-bottom">
+              <span className="fw-bold text-uppercase text-dark" style={{ letterSpacing: "0.04em", fontSize: "0.8rem" }}>
+                Choose Dialogue Option
+              </span>
+              {!isEnabled ? (
+                <span className="badge bg-secondary text-white fw-normal">
+                  Processing response...
+                </span>
+              ) : (
+                <span className="badge bg-light text-secondary border">
+                  {dialogueOptions?.length || 0} Options
+                </span>
+              )}
             </div>
 
-            {dialogueOptions && dialogueOptions.length > 0 ? (
-              <div className={styles.dialogueOptionsGrid}>
-                {dialogueOptions.map((opt, index) => {
-                  const isIntel = Boolean(opt.intel_item_id);
-                  return (
-                    <button
-                      key={index}
-                      type="button"
-                      className={styles.dialogueOptionCard}
-                      disabled={!isEnabled}
-                      onClick={() => onSelectDialogueOption?.(index)}
-                    >
-                      <div className={styles.optionBadgeRow}>
-                        {isIntel ? (
-                          <span className={styles.badgeIntel}>
-                            🔍 Intel-Based
-                          </span>
-                        ) : (
-                          <>
-                            <span className={styles.badgeNoise}>
-                              📢 Corporate Noise
-                            </span>
-                            {opt.archetype?.name && (
-                              <span className={styles.metaDetail} title={opt.archetype.strategy || opt.archetype.name}>
-                                Archetype: {opt.archetype.name}
+            <div className="card-body p-2 bg-light">
+              {dialogueOptions && dialogueOptions.length > 0 ? (
+                <div className={styles.journalDialogueGrid}>
+                  {dialogueOptions.map((opt, index) => {
+                    const isIntel = Boolean(opt.intel_item_id);
+
+                    // Resolve stakeholder object, complete full name, and color
+                    let stMatch: any = null;
+                    let stakeholderName = opt.intel_stakeholder_name || "";
+                    let stakeholderColor = "#0284c7";
+
+                    if (isIntel) {
+                      const searchId = (opt.intel_item_id || "").toLowerCase();
+                      const searchName = (opt.intel_stakeholder_name || "").toLowerCase().trim();
+
+                      // Match against stakeholders dictionary
+                      for (const [stKey, stObj] of Object.entries(stakeholders || {})) {
+                        const st = stObj as any;
+                        const stNameLower = (st?.name || "").toLowerCase().trim();
+                        if (
+                          (searchName && (stNameLower === searchName || stNameLower.includes(searchName) || searchName.includes(stNameLower))) ||
+                          (searchId && (searchId.includes(stKey.toLowerCase()) || (stNameLower && searchId.includes(stNameLower.replace(/\s+/g, "_"))))) ||
+                          (stNameLower && opt.text.toLowerCase().includes(stNameLower))
+                        ) {
+                          stMatch = st;
+                          break;
+                        }
+                      }
+
+                      if (stMatch) {
+                        stakeholderName = stMatch.name;
+                        stakeholderColor = getStakeholderColor(stMatch);
+                      } else if (!stakeholderName) {
+                        const nameMatch = opt.text.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)[,:]/);
+                        stakeholderName = nameMatch ? nameMatch[1] : "Stakeholder";
+                      }
+                    }
+
+                    // Resolve archetype name with fallbacks
+                    let archetypeName = "";
+                    if (!isIntel) {
+                      if (typeof opt.archetype === "string") {
+                        archetypeName = opt.archetype;
+                      } else if (opt.archetype?.name) {
+                        archetypeName = opt.archetype.name;
+                      } else if ((opt as any)?.archetype_name) {
+                        archetypeName = (opt as any).archetype_name;
+                      } else {
+                        archetypeName = "General Alignment";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        className={styles.journalOptionBtn}
+                        disabled={!isEnabled}
+                        onClick={() => onSelectDialogueOption?.(index)}
+                      >
+                        <div className="d-flex flex-wrap align-items-center gap-1 w-100 mb-2">
+                          {isIntel ? (
+                            <>
+                              <span className="badge bg-primary text-white fw-bold text-uppercase" style={{ fontSize: "0.7rem" }}>
+                                Intel-Based
                               </span>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      <p className={styles.dialogueOptionText}>{opt.text}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className={styles.waitingIndicator}>
-                {!isEnabled ? "Waiting for stakeholder responses..." : "No dialogue options available"}
-              </div>
-            )}
+                              <span
+                                className="badge fw-semibold"
+                                style={{
+                                  backgroundColor: `${stakeholderColor}18`,
+                                  color: stakeholderColor,
+                                  border: `1.5px solid ${stakeholderColor}`,
+                                  fontSize: "0.7rem",
+                                }}
+                              >
+                                {stakeholderName}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="badge bg-secondary text-white fw-bold text-uppercase" style={{ fontSize: "0.7rem" }}>
+                                Corporate Noise
+                              </span>
+                              <span
+                                className="badge bg-dark text-white fw-bold"
+                                style={{ fontSize: "0.7rem" }}
+                              >
+                                {archetypeName}
+                              </span>
+                            </>
+                          )}
+                        </div>
+
+                        <p className={styles.journalOptionText}>{opt.text}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="alert alert-light border text-center text-muted mb-0 py-3 small">
+                  {!isEnabled ? "Waiting for stakeholder responses..." : "No dialogue options available"}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

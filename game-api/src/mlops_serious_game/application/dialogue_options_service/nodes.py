@@ -129,11 +129,16 @@ async def dialogue_option_node(
             item_desc = item.get("description") or item.get("categorized_description", "")
             st_id = item.get("stakeholder_id")
             item_id = item.get("id") or req_id
+            intel_type = item.get("intel_type") or item.get("categorized_type") or item.get("categorized_intent")
         else:
             req_id = getattr(item, "requirement_id", None)
             item_desc = getattr(item, "description", None) or getattr(item, "categorized_description", "")
             st_id = getattr(item, "stakeholder_id", None)
             item_id = getattr(item, "id", None) or req_id
+            intel_type = getattr(item, "intel_type", None) or getattr(item, "categorized_type", None) or getattr(item, "categorized_intent", None)
+
+        if hasattr(intel_type, "value"):
+            intel_type = intel_type.value
 
         if not st_id and req_id:
             req = RequirementFactory.get_requirement(req_id)
@@ -142,8 +147,24 @@ async def dialogue_option_node(
                 if not item_desc:
                     item_desc = req.description
 
-        st_obj = StakeholderFactory.get_stakeholder(st_id) if st_id else None
-        st_first_name = (st_obj.name.split()[0].replace(",", "")) if st_obj else "Team"
+        if not item_id:
+            item_id = f"intel_{st_id}_{idx+1}" if st_id else f"intel_{idx+1}"
+
+        st_obj = None
+        if st_id:
+            try:
+                st_obj = StakeholderFactory.get_stakeholder(st_id)
+            except Exception:
+                st_obj = None
+
+        if st_obj:
+            st_name = st_obj.name
+        elif st_id:
+            st_name = " ".join([w.capitalize() for w in st_id.split("_")])
+        else:
+            st_name = "Stakeholder"
+
+        st_first_name = (st_name.split()[0].replace(",", "")) if st_name else "Team"
 
         text = intel_specs[idx].text if (idx < len(intel_specs) and intel_specs[idx].text) else f"{st_first_name}, regarding the stance: {item_desc}"
 
@@ -153,6 +174,9 @@ async def dialogue_option_node(
             DialogueOption(
                 text=text,
                 intel_item_id=str(item_id) if item_id else None,
+                intel_description=str(item_desc) if item_desc else None,
+                intel_stakeholder_name=str(st_name) if st_name else None,
+                intel_type=str(intel_type) if intel_type else None,
             )
         )
 
@@ -162,6 +186,17 @@ async def dialogue_option_node(
         arch = EmotionFactory.get_archetype_by_name(spec.archetype_name) or (
             assigned_archetypes[idx] if idx < len(assigned_archetypes) else None
         )
+        if not arch and all_archetypes:
+            arch = all_archetypes[idx % len(all_archetypes)]
+
+        if arch and not arch.name:
+            if idx < len(assigned_archetypes) and assigned_archetypes[idx].name:
+                arch.name = assigned_archetypes[idx].name
+            elif spec.archetype_name:
+                arch.name = spec.archetype_name
+            else:
+                arch.name = "General Alignment"
+
         options.append(
             DialogueOption(text=spec.text, intel_item_id=None, archetype=arch)
         )
@@ -171,6 +206,7 @@ async def dialogue_option_node(
     return {
         "dialogue_options": options,
         "discovered_intel_items": discovered_intel_items,
+        "intel_items": discovered_intel_items,
         "active_speaker_id": active_speaker_id,
         "active_speaker_name": active_speaker_name,
     }

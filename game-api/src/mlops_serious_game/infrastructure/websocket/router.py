@@ -98,7 +98,10 @@ async def unified_websocket_endpoint(
                         await reset_thread(session_id)
                         last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                     elif event_name == "chat:send_message":
-                        curr_challenge = PhaseFactory.get_challenge_by_id(last_gamestate_id[1])
+                        curr_challenge = PhaseFactory.translate_challenge_index(
+                            phase_index=last_gamestate_id[0],
+                            challenge_index=last_gamestate_id[1],
+                        ) or PhaseFactory.get_challenge_by_id(last_gamestate_id[1])
                         if curr_challenge:
                             payload["challenge"] = payload.get(
                                 "challenge",

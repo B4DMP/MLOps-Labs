@@ -20,7 +20,7 @@ export interface StakeholderAvatarProps {
 
 export function StakeholderAvatarComponent({
   avatar,
-  emotion = "smile",
+  emotion,
   play_blink_animation = false,
   isFramed = true,
   isSpeaking = false,

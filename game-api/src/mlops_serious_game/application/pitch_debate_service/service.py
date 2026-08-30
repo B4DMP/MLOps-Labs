@@ -140,12 +140,19 @@ async def get_response(
             if stakeholder_convincer_profile is not None:
                 input_data["stakeholder_convincer_profile"] = stakeholder_convincer_profile
 
-            if not initial_start and last_selected_option and callback:
-                cb_state = {"messages": [HumanMessage(content=last_selected_option.text)]}
-                if asyncio.iscoroutinefunction(callback):
-                    await callback(websocket=ws, state=cb_state)
-                else:
-                    callback(websocket=ws, state=cb_state)
+            if callback:
+                if initial_start:
+                    cb_state = {"messages": [HumanMessage(content="Welcome to the meeting everybody")]}
+                    if asyncio.iscoroutinefunction(callback):
+                        await callback(websocket=ws, state=cb_state)
+                    else:
+                        callback(websocket=ws, state=cb_state)
+                elif last_selected_option:
+                    cb_state = {"messages": [HumanMessage(content=last_selected_option.text)]}
+                    if asyncio.iscoroutinefunction(callback):
+                        await callback(websocket=ws, state=cb_state)
+                    else:
+                        callback(websocket=ws, state=cb_state)
 
             output_state = await graph.ainvoke(
                 input=input_data,

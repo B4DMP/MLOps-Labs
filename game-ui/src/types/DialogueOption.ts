@@ -9,5 +9,8 @@ export interface DialogueOptionArchetype {
 export interface DialogueOption {
   text: string;
   intel_item_id?: string | null;
+  intel_description?: string | null;
+  intel_stakeholder_name?: string | null;
+  intel_type?: string | null;
   archetype?: DialogueOptionArchetype | null;
 }

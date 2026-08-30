@@ -79,6 +79,11 @@ def get_outro_questions() -> list[Any]:
 def get_phases() -> list[Any]:
     return [{"phase_name": p.name, "phase_desc": p.description} for p in PhaseFactory.get_phases()]
 
+
+def get_emotion_colors() -> dict[str, str]:
+    return EmotionFactory.get_emotion_colors()
+
+
 def get_engagement_cards() -> list[Any]:
     from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
     return [c.model_dump() if hasattr(c, 'model_dump') else c for c in EngagementCardFactory.get_available_cards()]
@@ -154,7 +159,9 @@ async def handle_game_init(
             "type": "init",
             "metrics": get_metrics(),
             "stakeholders": get_stakeholders(),
-            "phases": get_phases(),        }
+            "phases": get_phases(),
+            "emotion_colors": get_emotion_colors(),
+        }
     )
 
     game_progress_index = 0
@@ -165,6 +172,7 @@ async def handle_game_init(
     saved_tokens = None
     saved_played_card_ids = []
     saved_card_targets = {}
+    saved_action_card = {}
     emotion_values_dict = {
         st.id: EmotionFactory.create_default_emotion_values()
         for st in StakeholderFactory.stakeholders
@@ -183,7 +191,7 @@ async def handle_game_init(
         stmt = (
             select(GameSession)
             .where(GameSession.user_name == username)
-            .order_by(GameSession.phase_index.desc(), GameSession.challenge_index.desc(), GameSession.id.desc())
+            .order_by(GameSession.id.desc())
         )
         latest_session = session.scalars(stmt).first()
         if latest_session:
@@ -192,8 +200,17 @@ async def handle_game_init(
                 latest_session.challenge_index,
                 latest_session.challenge_loop_index,
             ]
-            if isinstance(latest_session.emotion_values, dict):
+            if isinstance(latest_session.emotion_values, dict) and latest_session.emotion_values:
                 emotion_values_dict = latest_session.emotion_values
+            else:
+                stmt_ev = (
+                    select(GameSession)
+                    .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
+                    .order_by(GameSession.id.desc())
+                )
+                session_with_ev = session.scalars(stmt_ev).first()
+                if session_with_ev and isinstance(session_with_ev.emotion_values, dict):
+                    emotion_values_dict = session_with_ev.emotion_values
             if isinstance(latest_session.metric_values, list):
                 metric_values = latest_session.metric_values
             if hasattr(latest_session, "pitch_debate_messages") and isinstance(latest_session.pitch_debate_messages, list):
@@ -202,12 +219,13 @@ async def handle_game_init(
                 saved_online_intel_messages = latest_session.online_intel_gathering_messages
             saved_tokens = latest_session.attention_tokens
             if isinstance(latest_session.action_card, dict):
+                saved_action_card = latest_session.action_card
                 saved_played_card_ids = latest_session.action_card.get("played_card_ids", [])
                 saved_card_targets = latest_session.action_card.get("card_targets", {})
-
-    #DEBUG skip intro questions
-    if last_gamestate_id[0]==0 and last_gamestate_id[1]==0 and game_progress_index==2:
-        last_gamestate_id[1]=1
+        else:
+            #  DEBUG: Skip intro questions / challenge for fresh game sessions
+            if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0 and game_progress_index == 2:
+                last_gamestate_id[1] = 1
 
     await send_progress_index_payload(websocket, game_progress_index)
 
@@ -237,9 +255,18 @@ async def handle_game_init(
                 "pitch_debate_messages": saved_pitch_debate_messages,
                 "online_intel_gathering_messages": saved_online_intel_messages,
                 "attention_tokens": saved_tokens,
+                "action_card": saved_action_card,
                 "played_card_ids": saved_played_card_ids,
                 "card_targets": saved_card_targets,
                 "engagement_cards": get_engagement_cards(),
+                "challenge_stakeholders": [
+                    {
+                        "stakeholder_id": getattr(cs, "stakeholder_id", None) or (cs.get("stakeholder_id") if isinstance(cs, dict) else ""),
+                        "power": getattr(cs, "power", None) or (cs.get("power") if isinstance(cs, dict) else "low"),
+                        "interest": getattr(cs, "interest", None) or (cs.get("interest") if isinstance(cs, dict) else "low"),
+                    }
+                    for cs in (curr_challenge.stakeholders if hasattr(curr_challenge, "stakeholders") and curr_challenge.stakeholders else [])
+                ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
                 **({
                     "dialogue_options": await get_dialogue_options(
@@ -349,8 +376,17 @@ async def store_or_update_challenge(
     username: str,
     attention_tokens: int,
 ) -> None:
-    if challenge_loop_id == 0:
-        with get_session() as session:
+    with get_session() as session:
+        # Carry forward latest persisted emotion_values from user's history
+        stmt_ev = (
+            select(GameSession)
+            .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
+            .order_by(GameSession.id.desc())
+        )
+        prev_session_ev = session.scalars(stmt_ev).first()
+        carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
+
+        if challenge_loop_id == 0:
             session.add(
                 GameSession(
                     user_name=username,
@@ -363,10 +399,10 @@ async def store_or_update_challenge(
                     pitch_debate_messages=[],
                     online_intel_gathering_messages=[],
                     attention_tokens=attention_tokens,
+                    emotion_values=carried_emotion_values,
                 )
             )
-    else:
-        with get_session() as session:
+        else:
             stmt = select(GameSession).where(
                 GameSession.user_name == username,
                 GameSession.phase_index == challenge.phase_id,
@@ -384,6 +420,8 @@ async def store_or_update_challenge(
                     existing.pitch_debate_messages = messages
                 existing.attention_tokens = attention_tokens
                 existing.time_stamp = datetime.datetime.utcnow()
+                if not existing.emotion_values and carried_emotion_values:
+                    existing.emotion_values = carried_emotion_values
             else:
                 session.add(
                     GameSession(
@@ -397,6 +435,7 @@ async def store_or_update_challenge(
                         pitch_debate_messages=messages if challenge_loop_id in (2, 3) else [],
                         online_intel_gathering_messages=messages if challenge_loop_id == 1 else [],
                         attention_tokens=attention_tokens,
+                        emotion_values=carried_emotion_values,
                     )
                 )
 
@@ -478,7 +517,7 @@ async def handle_state_update_request(
         with get_session() as session:
             stmt = (
                 select(GameSession)
-                .where(GameSession.user_name == username)
+                .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
                 .order_by(GameSession.id.desc())
             )
             latest = session.scalars(stmt).first()
@@ -503,9 +542,18 @@ async def handle_state_update_request(
                 "pitch_debate_messages": messages if challenge_loop_index == 2 else [],
                 "messages": messages,
                 "attention_tokens": attention_tokens,
+                "action_card": action_card,
                 "played_card_ids": action_card.get("played_card_ids", []) if isinstance(action_card, dict) else [],
                 "card_targets": action_card.get("card_targets", {}) if isinstance(action_card, dict) else {},
                 "engagement_cards": get_engagement_cards(),
+                "challenge_stakeholders": [
+                    {
+                        "stakeholder_id": getattr(cs, "stakeholder_id", None) or (cs.get("stakeholder_id") if isinstance(cs, dict) else ""),
+                        "power": getattr(cs, "power", None) or (cs.get("power") if isinstance(cs, dict) else "low"),
+                        "interest": getattr(cs, "interest", None) or (cs.get("interest") if isinstance(cs, dict) else "low"),
+                    }
+                    for cs in (challenge.stakeholders if hasattr(challenge, "stakeholders") and challenge.stakeholders else [])
+                ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
             }
         )

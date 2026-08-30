@@ -40,12 +40,29 @@ async def generate_dialogue_options(
         "recursion_limit": 50,
     }
 
+    from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+
+    formatted_messages: list[BaseMessage] = []
+    for msg in messages or []:
+        if isinstance(msg, BaseMessage):
+            formatted_messages.append(msg)
+        elif isinstance(msg, dict):
+            content = msg.get("content") or msg.get("message") or ""
+            role = msg.get("role") or msg.get("type") or "user"
+            if role in ("ai", "assistant", "stakeholder"):
+                formatted_messages.append(AIMessage(content=content))
+            else:
+                formatted_messages.append(HumanMessage(content=content))
+        elif isinstance(msg, str):
+            formatted_messages.append(HumanMessage(content=msg))
+
     try:
         output_state = await graph.ainvoke(
             input={
-                "messages": messages,
+                "messages": formatted_messages,
                 "challenge": challenge,
                 "discovered_intel_items": discovered_intel_items or [],
+                "intel_items": discovered_intel_items or [],
             },
             config=config,
         )

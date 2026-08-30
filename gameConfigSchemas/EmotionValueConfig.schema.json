@@ -55,6 +55,13 @@
         "$ref": "#/definitions/emotionalStateRule"
       }
     },
+    "emotion_colors": {
+      "type": "object",
+      "title": "Emotion Colors",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
     "convincer_archetypes": {
       "type": "object",
       "title": "Convincer Archetypes",
@@ -193,6 +200,10 @@
           "type": "string",
           "title": "Avatar Facial Expression",
           "default": "smile"
+        },
+        "color": {
+          "type": "string",
+          "title": "Hex Color Code"
         },
         "conditions": {
           "type": "array",

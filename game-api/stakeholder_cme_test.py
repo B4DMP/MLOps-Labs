@@ -4,6 +4,13 @@ import os
 import warnings
 from typing import Optional
 import textwrap
+
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
@@ -231,6 +238,7 @@ class StakeholderIntelItemIntent(enum.Enum):
     PERSONAL_FRICTION = "personal_friction"
 
 class StakeholderIntelItem(BaseModel):
+    id: Optional[str] = None
     stakeholder_id: str
     categorized_layer: StakeholderIntelItemLayer
     categorized_intent: StakeholderIntelItemIntent
@@ -323,9 +331,34 @@ STAKEHOLDER_CONVINCER_ARCHETYPES: dict[str, ConvincerArchetype] = {
     "mathis_berger_operational_engineer": get_archetype_by_name("Safety & Reliability"),
 }
 
+WILLIS_STAKEHOLDER = Stakeholder(
+    id="willis_slif_business_manager",
+    name="Willis Slif",
+    role_description="Business Manager focusing on business value, ROI, costs, and project governance.",
+    responsibilities="Evaluating the business impact and financial viability of ML initiatives, tracking ROI, enforcing budgets, and overseeing SLAs.",
+    priorities="Business value, measurable ROI, cost-benefit alignment, risk mitigation, and SLA uptime.",
+    requirements="Clear cost-benefit assessments and ROI projections before committing resources, automated rollback triggers, and real-time SLA dashboards.",
+    metric_id="efficiency",
+)
+
+MATHIS_STAKEHOLDER = Stakeholder(
+    id="mathis_berger_operational_engineer",
+    name="Mathis Berger",
+    role_description="Operational Engineer focusing on deployment stability, monitoring, and safety.",
+    responsibilities="Maintaining deployment pipelines, automated testing, container security, drift monitoring, and ensuring production system reliability.",
+    priorities="Pipeline stability, low inference latency, automated pre-deployment validation, zero-downtime regression testing, and safety.",
+    requirements="Root-cause data drift diagnosis, sub-200ms latency benchmarks, container vulnerability scanning, and automated pre-deployment validation checks.",
+    metric_id="reliability",
+)
+
+StakeholderFactory.register_stakeholder(WILLIS_STAKEHOLDER)
+StakeholderFactory.register_stakeholder(MATHIS_STAKEHOLDER)
+
+
 
 
 CONVINCER_ITEM_WILLIS_1 = StakeholderIntelItem(
+    id="willis_convincer_1",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
@@ -336,6 +369,7 @@ CONVINCER_ITEM_WILLIS_1 = StakeholderIntelItem(
 )
 
 CONVINCER_ITEM_WILLIS_2 = StakeholderIntelItem(
+    id="willis_convincer_2",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
@@ -346,6 +380,7 @@ CONVINCER_ITEM_WILLIS_2 = StakeholderIntelItem(
 )
 
 CONVINCER_ITEM_MATHIS_1 = StakeholderIntelItem(
+    id="mathis_convincer_1",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
@@ -356,6 +391,7 @@ CONVINCER_ITEM_MATHIS_1 = StakeholderIntelItem(
 )
 
 CONVINCER_ITEM_MATHIS_2 = StakeholderIntelItem(
+    id="mathis_convincer_2",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
@@ -366,6 +402,7 @@ CONVINCER_ITEM_MATHIS_2 = StakeholderIntelItem(
 )
 
 WILLIS_PREFERENCE_1 = StakeholderIntelItem(
+    id="willis_pref_1",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
     categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
@@ -376,6 +413,7 @@ WILLIS_PREFERENCE_1 = StakeholderIntelItem(
 )
 
 MATHIS_PREFERENCE_1 = StakeholderIntelItem(
+    id="mathis_pref_1",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
@@ -386,6 +424,7 @@ MATHIS_PREFERENCE_1 = StakeholderIntelItem(
 )
 
 WILLIS_MISCATEGORIZED_1 = StakeholderIntelItem(
+    id="willis_misc_1",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.PREFERENCE,
@@ -396,6 +435,7 @@ WILLIS_MISCATEGORIZED_1 = StakeholderIntelItem(
 )
 
 WILLIS_MISCATEGORIZED_2 = StakeholderIntelItem(
+    id="willis_misc_2",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
     categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
@@ -406,6 +446,7 @@ WILLIS_MISCATEGORIZED_2 = StakeholderIntelItem(
 )
 
 MATHIS_MISCATEGORIZED_1 = StakeholderIntelItem(
+    id="mathis_misc_1",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.POLITICAL,
     categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
@@ -416,6 +457,7 @@ MATHIS_MISCATEGORIZED_1 = StakeholderIntelItem(
 )
 
 MATHIS_MISCATEGORIZED_2 = StakeholderIntelItem(
+    id="mathis_misc_2",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
     categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
@@ -709,7 +751,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     
     # Get active stakeholder ID from state
     stakeholder_ids = state.get("stakeholder_ids", [])
-    stakeholder_id = stakeholder_ids[-1] if stakeholder_ids else "jimmy_everick_data_scientist"
+    stakeholder_id = stakeholder_ids[-1] if stakeholder_ids else "willis_slif_business_manager"
     st = StakeholderFactory.get_stakeholder(stakeholder_id)
 
     # Calculate current emotional state & prompt guidance from EmotionValues
@@ -1024,7 +1066,7 @@ async def stakeholder_cme_test():
 
     phase_index = 5
     challenge_index = 0
-    curr_challenge = PhaseFactory.get_challenge_by_index(phase_index, challenge_index)
+    curr_challenge = PhaseFactory.translate_challenge_index(phase_index, challenge_index)
     test_challenge = (
         curr_challenge.name
         + ": "
@@ -1300,6 +1342,7 @@ async def stakeholder_cme_test():
         # If a miscategorized (wrong) intel item was played, reveal and add the correct intel item!
         if matched_intel and not matched_intel.is_correct_intel():
             corrected_intel = StakeholderIntelItem(
+                id=f"{matched_intel.id}_corrected" if matched_intel.id else "corrected_intel",
                 stakeholder_id=matched_intel.stakeholder_id,
                 categorized_layer=matched_intel.correct_layer,
                 categorized_intent=matched_intel.correct_intent,
@@ -1330,11 +1373,12 @@ def print_formatted_dialogue_options(dialogue_options: list[DialogueOption]) -> 
 
     for idx, opt in enumerate(dialogue_options, 1):
         if opt.intel_item_id:
-            tag = f"{DARK_GRAY}(Intel ID: {opt.intel_item_id}){RESET}"
-        elif opt.archetype:
-            tag = f"{DARK_GRAY}(Corporate Noise - {opt.archetype.name}){RESET}"
+            st_name = opt.intel_stakeholder_name or "Stakeholder"
+            tag = f"{DARK_GRAY}(intel-based) ({st_name}){RESET}"
+        elif opt.archetype and opt.archetype.name:
+            tag = f"{DARK_GRAY}(corporate noise) ({opt.archetype.name}){RESET}"
         else:
-            tag = f"{DARK_GRAY}(Corporate Noise){RESET}"
+            tag = f"{DARK_GRAY}(corporate noise){RESET}"
 
         prefix = f"  [{idx}] "
         subsequent = "      "

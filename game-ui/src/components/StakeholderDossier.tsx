@@ -22,6 +22,8 @@ export interface StakeholderDossierEntry {
   constraints?: string;
   role_description: string;
   metric_id?: string;
+  power?: string;
+  interest?: string;
   intel_items: IntelEntry[];
 }
 
@@ -34,6 +36,7 @@ interface StakeholderDossierProps {
   currentChallenge?: number;
   canClose?: boolean;
   isEmbedded?: boolean;
+  emotionColors?: Record<string, string>;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
@@ -52,9 +55,14 @@ export default function StakeholderDossier({
   currentChallenge: propChallenge = 0,
   canClose = true,
   isEmbedded = false,
+  emotionColors: propEmotionColors,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
-  const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
+  const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
+    stakeholders: {},
+    emotionColors: {},
+  };
+  const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const { currentPhase: contextPhase } = useContext(PhasesContext) || { currentPhase: 0 };
   const currentPhase = propPhase ?? contextPhase ?? 0;
@@ -106,6 +114,8 @@ export default function StakeholderDossier({
       constraints: st.constraints || "",
       role_description: st.role_description || "Project Stakeholder",
       metric_id: st.metric_id || "",
+      power: st.power || "low",
+      interest: st.interest || "low",
       intel_items: [],
     }));
 
@@ -122,6 +132,8 @@ export default function StakeholderDossier({
         constraints: st.constraints || "",
         role_description: st.role_description || "Project Stakeholder",
         metric_id: st.metric_id || "",
+        power: st.power || "low",
+        interest: st.interest || "low",
         intel_items: [],
       }));
     }
@@ -295,10 +307,14 @@ export default function StakeholderDossier({
     if (!st) return null;
 
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
-    const stId = st.stakeholder_id || (st as any).id;
-    const stObj = stakeholders[stId];
-    const avatar = stObj?.avatar || (st as any).avatar;
+    const stObj = stakeholders[st.stakeholder_id];
+    const avatar = stObj?.avatar;
     const stakeholderColor = getStakeholderColor(st);
+    const emotionDisplay = stObj?.emotional_state || stObj?.facial_expression || avatar?.face || "smile";
+    const emotionColor =
+      activeEmotionColors[emotionDisplay] ||
+      activeEmotionColors[emotionDisplay.toLowerCase()] ||
+      "#64748b";
 
     return (
       <>
@@ -331,6 +347,44 @@ export default function StakeholderDossier({
             </h2>
             <div className={styles.stakeholderRole}>
               Role: {st.role_description || "Project Stakeholder"}
+            </div>
+            <div className="d-flex flex-wrap align-items-center gap-3">
+              <div className={styles.stakeholderEmotion}>
+                Emotional State:{" "}
+                <span
+                  style={{
+                    color: emotionColor,
+                    fontWeight: 700,
+                  }}
+                >
+                  "{emotionDisplay}"
+                </span>
+              </div>
+              <div className={styles.stakeholderPowerInterest}>
+                <span>
+                  Power:{" "}
+                  <span
+                    style={{
+                      color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {(st.power || stObj?.power || "low").toUpperCase()}
+                  </span>
+                </span>
+                <span style={{ margin: "0 4px", opacity: 0.5 }}>•</span>
+                <span>
+                  Interest:{" "}
+                  <span
+                    style={{
+                      color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {(st.interest || stObj?.interest || "low").toUpperCase()}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -449,6 +503,8 @@ export default function StakeholderDossier({
   }
 
   const activeDisplayIndex = nextPageIndex;
+
+  if (!isOpen && !isEmbedded) return null;
 
   const windowContent = (
     <div

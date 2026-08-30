@@ -129,3 +129,44 @@ async def test_unverified_intel_item_dialogue_option_generation():
     intel_options = [opt for opt in options if opt.intel_item_id]
     assert len(intel_options) >= 1
     assert intel_options[0].intel_item_id is not None
+
+
+@pytest.mark.anyio
+async def test_misclassified_intel_item_dialogue_option_generation():
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, RequirementType
+    from mlops_serious_game.application.dialogue_options_service.nodes import dialogue_option_node
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+    from pathlib import Path
+
+    RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
+
+    # Misclassified intel item (categorized as PERSONAL_FRICTION instead of HARD_CONSTRAINT)
+    misclassified_item = StakeholderIntelItem(
+        id="test_wrong_1",
+        requirement_id="req_0_model_monica_hard_constraint_0",
+        intel_type=ConfidenceType.UNCONFIRMED,
+        categorized_type=RequirementType.PERSONAL_FRICTION,
+        description="Model Monica expresses strong personal frustration about accuracy standards.",
+    )
+
+    assert misclassified_item.stakeholder_id == "model_monica"
+    assert misclassified_item.is_correct_intel() is False
+    assert misclassified_item.correct_description != ""
+    assert misclassified_item.correct_intent == RequirementType.HARD_CONSTRAINT
+
+    state = {
+        "messages": [],
+        "challenge": "Model Monica proposes a complex ML model. Efficiency Emilia argues for simpler model.",
+        "discovered_intel_items": [misclassified_item],
+    }
+
+    result = await dialogue_option_node(state)
+    options = result["dialogue_options"]
+    assert len(options) == 4
+
+    # Verify wrongly classified intel still generates an intel-based dialogue option
+    intel_options = [opt for opt in options if opt.intel_item_id]
+    assert len(intel_options) >= 1
+    assert intel_options[0].intel_item_id is not None
+    assert intel_options[0].is_correct([misclassified_item]) is False
+

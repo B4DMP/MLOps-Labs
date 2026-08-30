@@ -38,7 +38,6 @@ def get_stakeholder_response_chain():
         [
             ("system", STAKEHOLDER_CHARACTER_CARD.prompt),
             MessagesPlaceholder(variable_name="messages"),
-            ("human", "Please respond to the MLOps Project Manager leading the meeting as {{stakeholder_name}}."),
         ],
         template_format="jinja2",
     )

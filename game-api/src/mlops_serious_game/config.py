@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     RWTH_API_KEY: str | None = None
     RWTH_API_BASE: str | None = "https://llm.hpc.itc.rwth-aachen.de/"
     RWTH_LLM_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
-    RWTH_LLM_MODEL_ROUTER: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     RWTH_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
     RWTH_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
@@ -40,7 +39,6 @@ class Settings(BaseSettings):
     # --- GROQ Configuration ---
     GROQ_API_KEY: str | None = None
     GROQ_LLM_MODEL: str = "openai/gpt-oss-20b"  
-    GROQ_LLM_MODEL_ROUTER: str = "openai/gpt-oss-20b"  
     GROQ_LLM_MODEL_CONTEXT_SUMMARY: str = "groq/compound-mini" 
     GROQ_LLM_MODEL_SUMMARY: str = "groq/compound-mini"  
     GROQ_LLM_MODEL_CARD_GEN: str = "openai/gpt-oss-20b"

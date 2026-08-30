@@ -91,6 +91,7 @@ class EmotionalStateRule(BaseModel):
     """Rule defining condition and formula for an emotional state."""
 
     facial_expression: str = Field(default="smile", description="Associated character avatar facial expression")
+    color: Optional[str] = Field(default=None, description="Hex color code associated with the emotional state")
     conditions: list[TriggerCondition] = Field(default_factory=list, description="List of trigger conditions (AND conjunction)")
     formula: IntensityFormula = Field(description="Intensity calculation formula")
 
@@ -146,6 +147,7 @@ class EmotionConfig(BaseModel):
     emotion_values: list[EmotionDimension] = Field(default_factory=list, description="Configured emotion dimensions")
     emotion_prompts: dict[str, str] = Field(default_factory=dict, description="Prompts per emotional state")
     emotional_states: dict[str, EmotionalStateRule] = Field(default_factory=dict, description="State transition rules")
+    emotion_colors: dict[str, str] = Field(default_factory=dict, description="Hex color codes for emotional states")
     convincer_archetypes: dict[str, ConvincerArchetype] = Field(default_factory=dict, description="Configured convincer archetypes")
     emotion_delta_rules: Optional[EmotionDeltaRules] = Field(default=None, description="Algorithmic emotion delta rules")
 

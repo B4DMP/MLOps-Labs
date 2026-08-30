@@ -40,6 +40,14 @@ class StakeholderFactory:
         raise StakeholderNameNotFound(id)
 
     @classmethod
+    def register_stakeholder(cls, stakeholder: Stakeholder) -> None:
+        for i, st in enumerate(cls.stakeholders):
+            if st.id == stakeholder.id:
+                cls.stakeholders[i] = stakeholder
+                return
+        cls.stakeholders.append(stakeholder)
+
+    @classmethod
     def load_stakeholders(cls, stakeholder_config: Path) -> None:
         with stakeholder_config.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -63,6 +71,7 @@ class StakeholderFactory:
                 requirements=to_str(j.get("requirements", "")),
                 role_description=to_str(j.get("role_description", j.get("division_description", ""))),
                 metric_id=j.get("metric_id", ""),
+                convincer_archetype=str(j.get("convincer_archetype", "")),
                 avatar=j.get("avatar", {})
             )
             cls.stakeholders.append(st)

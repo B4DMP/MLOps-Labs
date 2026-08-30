@@ -44,6 +44,9 @@ class DialogueOption(BaseModel):
 
     text: str = ""
     intel_item_id: Optional[str] = None
+    intel_description: Optional[str] = None
+    intel_stakeholder_name: Optional[str] = None
+    intel_type: Optional[str] = None
     archetype: Optional[ConvincerArchetype] = None
 
     def is_correct(self, discovered_intel_items: Optional[list[Any]] = None) -> bool:
@@ -53,7 +56,8 @@ class DialogueOption(BaseModel):
         if discovered_intel_items:
             for item in discovered_intel_items:
                 item_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
-                if item_id and str(item_id) == str(self.intel_item_id):
+                req_id = getattr(item, "requirement_id", None) or (item.get("requirement_id") if isinstance(item, dict) else None)
+                if (item_id and str(item_id) == str(self.intel_item_id)) or (req_id and str(req_id) == str(self.intel_item_id)):
                     if hasattr(item, "is_correct_intel"):
                         return item.is_correct_intel()
                     if hasattr(item, "is_correct") and callable(item.is_correct):
@@ -79,6 +83,7 @@ class DialogueOptionsState(MessagesState):
 
     challenge: str
     discovered_intel_items: list[Any]
+    intel_items: list[Any]
     dialogue_options: list[DialogueOption]
     active_speaker_id: Optional[str]
     active_speaker_name: Optional[str]
