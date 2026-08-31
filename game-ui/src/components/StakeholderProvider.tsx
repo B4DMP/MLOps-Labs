@@ -16,6 +16,7 @@ export type Stakeholder = {
   emotion?: string;
   facial_expression?: string;
   emotional_state?: string;
+  convincer_archetype?: string;
 };
 
 type StakeholderContextType = {

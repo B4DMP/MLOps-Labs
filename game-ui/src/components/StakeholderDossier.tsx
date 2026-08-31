@@ -24,6 +24,7 @@ export interface StakeholderDossierEntry {
   metric_id?: string;
   power?: string;
   interest?: string;
+  convincer_archetype?: string;
   intel_items: IntelEntry[];
 }
 
@@ -44,6 +45,74 @@ const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: s
   requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
   negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
   personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
+};
+
+export interface ConvincerMeta {
+  label: string;
+  icon: string;
+  strategy: string;
+  color: string;
+}
+
+const CONVINCER_META: Record<string, ConvincerMeta> = {
+  "Technical Excellence": {
+    label: "Technical Excellence",
+    icon: "⚙️",
+    strategy: "Explain how the solution works using technical details, data, trade-offs, and objective evidence rather than promises or business rhetoric.",
+    color: "#2563eb",
+  },
+  "Business Value": {
+    label: "Business Value",
+    icon: "📈",
+    strategy: "Frame every proposal in terms of business impact, quantifiable benefits, strategic goals, and return on investment.",
+    color: "#16a34a",
+  },
+  "Safety & Reliability": {
+    label: "Safety & Reliability",
+    icon: "🛡️",
+    strategy: "Emphasize risk mitigation, safeguards, testing, compliance, SLAs, monitoring, and fallback plans to build confidence.",
+    color: "#dc2626",
+  },
+  "Control & Governance": {
+    label: "Control & Governance",
+    icon: "🏛️",
+    strategy: "Highlight governance structures, approval gates, reporting mechanisms, and how stakeholders retain visibility and control over the project.",
+    color: "#9333ea",
+  },
+  "People & Trust": {
+    label: "People & Trust",
+    icon: "🤝",
+    strategy: "Communicate openly, acknowledge concerns, demonstrate empathy, and build trust through transparency and collaboration rather than hard facts alone.",
+    color: "#ea580c",
+  },
+  "Autonomy": {
+    label: "Autonomy",
+    icon: "🚀",
+    strategy: "Present the proposal as empowering rather than restricting, emphasizing flexibility, delegated ownership, and local decision-making.",
+    color: "#0284c7",
+  },
+  "Pragmatism": {
+    label: "Pragmatism",
+    icon: "⚡",
+    strategy: "Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering.",
+    color: "#d97706",
+  },
+};
+
+const getConvincerMeta = (archetypeName?: string): ConvincerMeta | null => {
+  if (!archetypeName) return null;
+  const exact = CONVINCER_META[archetypeName];
+  if (exact) return exact;
+  const match = Object.keys(CONVINCER_META).find(
+    (key) => key.toLowerCase() === archetypeName.toLowerCase()
+  );
+  if (match) return CONVINCER_META[match];
+  return {
+    label: archetypeName,
+    icon: "🧠",
+    strategy: "Focus communication on alignment with their key role and priorities.",
+    color: "#475569",
+  };
 };
 
 export default function StakeholderDossier({
@@ -116,6 +185,7 @@ export default function StakeholderDossier({
       metric_id: st.metric_id || "",
       power: st.power || "low",
       interest: st.interest || "low",
+      convincer_archetype: st.convincer_archetype || "",
       intel_items: [],
     }));
 
@@ -134,6 +204,7 @@ export default function StakeholderDossier({
         metric_id: st.metric_id || "",
         power: st.power || "low",
         interest: st.interest || "low",
+        convincer_archetype: st.convincer_archetype || "",
         intel_items: [],
       }));
     }
@@ -316,6 +387,9 @@ export default function StakeholderDossier({
       activeEmotionColors[emotionDisplay.toLowerCase()] ||
       "#64748b";
 
+    const convincerArchetypeName = st.convincer_archetype || stObj?.convincer_archetype;
+    const convincerMeta = getConvincerMeta(convincerArchetypeName);
+
     return (
       <>
         {/* Header: Polaroid Snapshot Frame + Title */}
@@ -388,6 +462,25 @@ export default function StakeholderDossier({
             </div>
           </div>
         </div>
+
+        {/* Convincer Profile & Persuasion Strategy Card */}
+        {convincerMeta && (
+          <div className={styles.convincerCard}>
+            <div className={styles.convincerCardHeader}>
+              <span className={styles.convincerDoodleIcon}>🧠</span>
+              <span>Convincer Archetype: </span>
+              <strong style={{ color: convincerMeta.color }}>
+                {convincerMeta.icon} {convincerMeta.label}
+              </strong>
+            </div>
+            <div className={styles.convincerStrategyBody}>
+              <span className={styles.strategyBulb}>💡</span>
+              <span>
+                <strong>Effective Communication Strategy:</strong> {convincerMeta.strategy}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>

@@ -508,6 +508,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "constraints": getattr(st, 'constraints', getattr(st, 'requirements', "")),
             "role_description": st.role_description,
             "metric_id": st.metric_id,
+            "convincer_archetype": getattr(st, 'convincer_archetype', ''),
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,

@@ -696,16 +696,16 @@ export default function PitchDebate({
               </span>
 
               {/* Status Banner */}
-              <div className="d-flex justify-content-between align-items-center mb-2 px-1">
-
-                <span
-                  className={`badge ${allActiveStakeholdersPersuaded ? "bg-success" : "bg-warning text-dark"
-                    } fw-bold`}
-                  style={{ fontSize: "0.72rem" }}
-                >
-                  {allActiveStakeholdersPersuaded ? "✅ All Persuaded (Pass)" : "⏳ Deliberating"}
-                </span>
-              </div>
+              {allActiveStakeholdersPersuaded && (
+                <div className="d-flex justify-content-end align-items-center mb-2 px-1">
+                  <span
+                    className="badge bg-success fw-bold"
+                    style={{ fontSize: "0.72rem" }}
+                  >
+                    ✅ All Persuaded (Pass)
+                  </span>
+                </div>
+              )}
 
               {/* Scrollable Stakeholder Persuasion Cards */}
               <div className="flex-grow-1 overflow-auto pe-1 mb-2" style={{ minHeight: 0, maxHeight: "390px" }}>

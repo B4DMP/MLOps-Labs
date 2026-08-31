@@ -18,6 +18,7 @@ import { MetricsContext } from "./components/MetricProvider";
 import { StakeholderContext } from "./components/StakeholderProvider";
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
+import PreRoundDialog from "./components/PreRoundDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
@@ -112,6 +113,8 @@ function App({ username: _username }: AppProps) {
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
+  const [isPreRoundDialogOpen, setIsPreRoundDialogOpen] = useState(false);
+  const prevChallengeKeyRef = useRef<string>("");
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
   const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
@@ -161,6 +164,17 @@ function App({ username: _username }: AppProps) {
   useEffect(() => {
     acCountRef.current = ac_count;
   }, [ac_count]);
+
+  // Open PreRoundDialog before Offline Intel Gathering (challengeLoopId === 0) for each challenge
+  useEffect(() => {
+    if (challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
+      const challengeKey = `${currentPhase}-${currentChallenge}`;
+      if (prevChallengeKeyRef.current !== challengeKey) {
+        prevChallengeKeyRef.current = challengeKey;
+        setIsPreRoundDialogOpen(true);
+      }
+    }
+  }, [challengeLoopId, currentPhase, currentChallenge, challengeTitle, challengeDescription]);
 
 
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
@@ -805,6 +819,15 @@ function App({ username: _username }: AppProps) {
                 setIsRoundOpen={() => {
                   // The useEffect hook starts the round when the user transitions to challengeLoopId === 2 (Pitch Debate)
                 }}
+              />
+              <PreRoundDialog
+                isOpen={isPreRoundDialogOpen}
+                onClose={() => setIsPreRoundDialogOpen(false)}
+                challengeTitle={challengeTitle}
+                challengeDescription={challengeDescription}
+                challengeIntro={challengeIntro}
+                currentChallenge={currentChallenge}
+                challengeAmount={challengeAmount}
               />
               {/* Global Floating Bottom-Right Stakeholder Dossier Button */}
               {challengeLoopId === 0 && (
