@@ -29,6 +29,8 @@ class EmotionFactory:
             for arch_name, arch in cls.config.convincer_archetypes.items():
                 if not arch.name:
                     arch.name = arch_name
+                if not arch.label:
+                    arch.label = arch.name
         return cls.config
 
     @classmethod
@@ -187,6 +189,13 @@ class EmotionFactory:
         """Returns dict of configured convincer archetypes (name -> archetype)."""
         cls.ensure_loaded()
         return cls.config.convincer_archetypes if cls.config else {}
+
+    @classmethod
+    def get_convincer_archetypes_dict(cls) -> dict[str, dict]:
+        """Returns dict of configured convincer archetypes serialized to dictionaries."""
+        cls.ensure_loaded()
+        archetypes = cls.get_convincer_archetypes()
+        return {k: v.model_dump(mode="json") for k, v in archetypes.items()}
 
     @classmethod
     def get_available_archetype_names(cls) -> list[str]:

@@ -152,7 +152,7 @@ async def test_misclassified_intel_item_dialogue_option_generation():
     assert misclassified_item.stakeholder_id == "model_monica"
     assert misclassified_item.is_correct_intel() is False
     assert misclassified_item.correct_description != ""
-    assert misclassified_item.correct_intent == RequirementType.HARD_CONSTRAINT
+    assert misclassified_item.correct_intent == RequirementType.REQUIREMENT
 
     state = {
         "messages": [],

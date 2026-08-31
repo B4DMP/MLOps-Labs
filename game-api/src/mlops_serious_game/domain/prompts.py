@@ -89,7 +89,6 @@ Instructions:
    - If categorized as 'technical': Frame the stance around low-level engineering mechanics, code reviews, container security, or node memory allocations.
    - If categorized as 'business': Frame the stance around financial audit gates, budget controls, ROI metrics, executive summaries, or revenue impact.
    - If categorized as 'political': Frame the stance around organizational power dynamics, governance control, or corporate politics.
-   - If categorized as 'hard_constraint': Frame the stance as a mandatory, non-negotiable rule.
    - If categorized as 'preference' or 'negotiable_preference': Frame the stance as an optional tool preference or personal workflow choice.
 2. The wrong description MUST fit into the context of the team challenge, maintain thematic relevance to the correct description, and align naturally with the stakeholder's profile.
 3. The description MUST be exactly one sentence long.
@@ -118,7 +117,6 @@ Context:
 Instructions:
 1. Generate realistic content for an MLOps document of type '{{artifact_type}}' written by or involving {{stakeholder_name}}.
 2. The artifact's content must reveal {{stakeholder_name}}'s stance ("{{requirement_description}}") in a way that allows the player to correctly categorize the artifact into its requirement type ("{{requirement_type}}"):
-   - hard_constraint: Non-negotiable regulatory, compliance, security, or mandatory technical constraint.
    - requirement: High-priority operational or technical requirement essential for project success.
    - negotiable_preference: Desirable tool, framework, or workflow choice that is flexible/open to negotiation.
    - personal_friction: Interpersonal tension, emotional friction, or personal grievance regarding team members or dynamics.

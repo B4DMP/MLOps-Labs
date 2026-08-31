@@ -3,7 +3,7 @@
     {
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Model Monica mandates that the model must achieve at least 95% accuracy on the test set to meet product guidelines.",
       "id": "req_0_model_monica_hard_constraint_0"
     },
@@ -31,7 +31,7 @@
     {
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that model inference latency must remain under 50ms to prevent user experience degradation.",
       "id": "req_0_efficiency_emilia_hard_constraint_4"
     },
@@ -59,7 +59,7 @@
     {
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that the chosen MLOps platform must have a predictable monthly SaaS pricing plan.",
       "id": "req_1_efficiency_emilia_hard_constraint_8"
     },
@@ -87,7 +87,7 @@
     {
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Requirements Reuben mandates that the platform must comply with strict internal data security and privacy guidelines.",
       "id": "req_1_requirements_reuben_hard_constraint_12"
     },
@@ -115,7 +115,7 @@
     {
       "challenge_id": 1,
       "stakeholder_id": "automation_alex",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Automation Alex mandates that deployment templates must use standard IaC declarations to enable automated provisioning.",
       "id": "req_1_automation_alex_hard_constraint_16"
     },
@@ -143,7 +143,7 @@
     {
       "challenge_id": 1,
       "stakeholder_id": "reliability_ruth",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Reliability Ruth mandates that the platform architecture must support multi-zone failover configurations.",
       "id": "req_1_reliability_ruth_hard_constraint_20"
     },
@@ -171,7 +171,7 @@
     {
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Data Dave mandates that data snapshot versioning must be immutable to ensure reproducibility of training sets.",
       "id": "req_2_data_dave_hard_constraint_24"
     },
@@ -199,7 +199,7 @@
     {
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Reliability Ruth mandates that data pipeline failures must trigger automated alerts to on-call engineers.",
       "id": "req_2_reliability_ruth_hard_constraint_28"
     },
@@ -227,7 +227,7 @@
     {
       "challenge_id": 2,
       "stakeholder_id": "requirements_reuben",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Requirements Reuben mandates that all snapshot datasets must comply with GDPR privacy rules and strip PII.",
       "id": "req_2_requirements_reuben_hard_constraint_32"
     },
@@ -255,7 +255,7 @@
     {
       "challenge_id": 2,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that storage costs for data snapshots must remain within the monthly budget.",
       "id": "req_2_efficiency_emilia_hard_constraint_36"
     },
@@ -283,7 +283,7 @@
     {
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Data Dave mandates that all feature inputs must be documented in a shared feature store to prevent duplication.",
       "id": "req_3_data_dave_hard_constraint_40"
     },
@@ -311,7 +311,7 @@
     {
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Model Monica mandates that the ensemble model accuracy must exceed the baseline single-model accuracy.",
       "id": "req_3_model_monica_hard_constraint_44"
     },
@@ -339,7 +339,7 @@
     {
       "challenge_id": 3,
       "stakeholder_id": "requirements_reuben",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Requirements Reuben mandates that model training artifacts must be registered in a secure model registry.",
       "id": "req_3_requirements_reuben_hard_constraint_48"
     },
@@ -367,7 +367,7 @@
     {
       "challenge_id": 3,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that the compute budget for training the ensemble model must not exceed the baseline limit.",
       "id": "req_3_efficiency_emilia_hard_constraint_52"
     },
@@ -395,7 +395,7 @@
     {
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Automation Alex mandates that all production model updates must be triggered and validated via CI/CD pipelines.",
       "id": "req_4_automation_alex_hard_constraint_56"
     },
@@ -423,7 +423,7 @@
     {
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Requirements Reuben mandates that validation checks must include automated fairness and bias verification steps.",
       "id": "req_4_requirements_reuben_hard_constraint_60"
     },
@@ -451,7 +451,7 @@
     {
       "challenge_id": 4,
       "stakeholder_id": "reliability_ruth",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Reliability Ruth mandates that model release processes must support automatic rollback to the previous version on failure.",
       "id": "req_4_reliability_ruth_hard_constraint_64"
     },
@@ -479,7 +479,7 @@
     {
       "challenge_id": 4,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that automated cloud compute scaling limits must be configured to prevent budget runaway.",
       "id": "req_4_efficiency_emilia_hard_constraint_68"
     },
@@ -507,7 +507,7 @@
     {
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Efficiency Emilia mandates that retraining triggers must activate automatically when business metrics drop below baseline.",
       "id": "req_5_efficiency_emilia_hard_constraint_72"
     },
@@ -535,7 +535,7 @@
     {
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Reliability Ruth mandates that a baseline model validation gate must verify performance on historical datasets.",
       "id": "req_5_reliability_ruth_hard_constraint_76"
     },
@@ -563,7 +563,7 @@
     {
       "challenge_id": 5,
       "stakeholder_id": "model_monica",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Model Monica mandates that a baseline model validation gate must verify performance on historical datasets.",
       "id": "req_5_model_monica_hard_constraint_80"
     },
@@ -591,7 +591,7 @@
     {
       "challenge_id": 5,
       "stakeholder_id": "requirements_reuben",
-      "type": "hard_constraint",
+      "type": "requirement",
       "description": "Requirements Reuben mandates that retrained models must be checked for adversarial vulnerabilities before reactivation.",
       "id": "req_5_requirements_reuben_hard_constraint_84"
     },

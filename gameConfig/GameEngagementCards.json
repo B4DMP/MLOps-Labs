@@ -37,7 +37,7 @@
       "response_snippet": "Probed requirements with selected stakeholders.",
       "max_plays_per_phase": -1,
       "intel_reveal_count": 1,
-      "allowed_requirement_types": ["hard_constraint", "requirement"]
+      "allowed_requirement_types": ["requirement"]
     },
     {
       "id": "eng_3",

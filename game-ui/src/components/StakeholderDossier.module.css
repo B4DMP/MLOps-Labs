@@ -237,81 +237,7 @@
   color: #26211e;
 }
 
-/* Flipping animated top page */
-.pageFlipping {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 100;
-  /* Float above top tabs, header bar, and page footer controls */
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow-y: auto;
-  padding: 16px 22px 16px 36px;
-  background-color: #f7f4ea;
-  background-image:
-    linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
-    repeating-linear-gradient(#f7f4ea,
-      #f7f4ea 23px,
-      #cbd5e1 24px);
-  line-height: 24px;
-  color: #26211e;
-  pointer-events: none;
-  /* Ignore clicks on notes during page flip */
-  will-change: transform, box-shadow, filter;
-}
 
-/* Forward Flip (turning right to left): starts at 0deg, animates to -180deg */
-@keyframes pageFlipForward {
-  0% {
-    transform: rotateY(0deg);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    filter: brightness(1);
-  }
-
-  50% {
-    box-shadow: -8px 12px 28px rgba(0, 0, 0, 0.28);
-    filter: brightness(0.92);
-  }
-
-  100% {
-    transform: rotateY(-180deg);
-    box-shadow: -15px 15px 35px rgba(0, 0, 0, 0.35);
-    filter: brightness(0.78);
-  }
-}
-
-/* Backward Flip (turning left to right back): starts at -180deg, animates to 0deg */
-@keyframes pageFlipBackward {
-  0% {
-    transform: rotateY(-180deg);
-    box-shadow: -15px 15px 35px rgba(0, 0, 0, 0.35);
-    filter: brightness(0.78);
-  }
-
-  50% {
-    box-shadow: -8px 12px 28px rgba(0, 0, 0, 0.28);
-    filter: brightness(0.92);
-  }
-
-  100% {
-    transform: rotateY(0deg);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    filter: brightness(1);
-  }
-}
-
-.flipForward {
-  animation: pageFlipForward 0.65s cubic-bezier(0.35, 0, 0.25, 1) forwards;
-}
-
-.flipBackward {
-  animation: pageFlipBackward 0.65s cubic-bezier(0.35, 0, 0.25, 1) forwards;
-}
 
 /* Stakeholder Header Area (Polaroid + Hand Scribbles) */
 .sketchbookHeader {
@@ -564,12 +490,6 @@
   border-radius: 4px;
   user-select: none;
   cursor: default;
-}
-
-.tagHardConstraint {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px dashed #f87171;
 }
 
 .tagRequirement {

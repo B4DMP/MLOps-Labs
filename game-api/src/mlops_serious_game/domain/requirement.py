@@ -2,7 +2,6 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 class RequirementType(str, Enum):
-    HARD_CONSTRAINT = "hard_constraint"
     REQUIREMENT = "requirement"
     NEGOTIABLE_PREFERENCE = "negotiable_preference"
     PERSONAL_FRICTION = "personal_friction"

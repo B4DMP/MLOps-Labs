@@ -303,7 +303,6 @@ export default function PitchDebate({
 
   const getIntelTypeScore = (type: string): number => {
     const normalized = (type || "").toLowerCase();
-    if (normalized.includes("hard_constraint")) return 0.30;
     if (normalized.includes("requirement")) return 0.25;
     if (normalized.includes("negotiable_preference")) return 0.20;
     if (normalized.includes("personal_friction")) return 0.10;

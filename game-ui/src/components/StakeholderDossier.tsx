@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
+export type { ConvincerProfileConfig } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
@@ -38,82 +39,15 @@ interface StakeholderDossierProps {
   canClose?: boolean;
   isEmbedded?: boolean;
   emotionColors?: Record<string, string>;
+  convincerArchetypes?: Record<string, any>;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
-  hard_constraint: { label: "Hard Constraint", icon: "📌", styleClass: styles.tagHardConstraint },
   requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
   negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
   personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
 };
 
-export interface ConvincerMeta {
-  label: string;
-  icon: string;
-  strategy: string;
-  color: string;
-}
-
-const CONVINCER_META: Record<string, ConvincerMeta> = {
-  "Technical Excellence": {
-    label: "Technical Excellence",
-    icon: "⚙️",
-    strategy: "Explain how the solution works using technical details, data, trade-offs, and objective evidence rather than promises or business rhetoric.",
-    color: "#2563eb",
-  },
-  "Business Value": {
-    label: "Business Value",
-    icon: "📈",
-    strategy: "Frame every proposal in terms of business impact, quantifiable benefits, strategic goals, and return on investment.",
-    color: "#16a34a",
-  },
-  "Safety & Reliability": {
-    label: "Safety & Reliability",
-    icon: "🛡️",
-    strategy: "Emphasize risk mitigation, safeguards, testing, compliance, SLAs, monitoring, and fallback plans to build confidence.",
-    color: "#dc2626",
-  },
-  "Control & Governance": {
-    label: "Control & Governance",
-    icon: "🏛️",
-    strategy: "Highlight governance structures, approval gates, reporting mechanisms, and how stakeholders retain visibility and control over the project.",
-    color: "#9333ea",
-  },
-  "People & Trust": {
-    label: "People & Trust",
-    icon: "🤝",
-    strategy: "Communicate openly, acknowledge concerns, demonstrate empathy, and build trust through transparency and collaboration rather than hard facts alone.",
-    color: "#ea580c",
-  },
-  "Autonomy": {
-    label: "Autonomy",
-    icon: "🚀",
-    strategy: "Present the proposal as empowering rather than restricting, emphasizing flexibility, delegated ownership, and local decision-making.",
-    color: "#0284c7",
-  },
-  "Pragmatism": {
-    label: "Pragmatism",
-    icon: "⚡",
-    strategy: "Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering.",
-    color: "#d97706",
-  },
-};
-
-const getConvincerMeta = (archetypeName?: string): ConvincerMeta | null => {
-  if (!archetypeName) return null;
-  const exact = CONVINCER_META[archetypeName];
-  if (exact) return exact;
-  const match = Object.keys(CONVINCER_META).find(
-    (key) => key.toLowerCase() === archetypeName.toLowerCase()
-  );
-  if (match) return CONVINCER_META[match];
-  return {
-    label: archetypeName,
-    icon: "🧠",
-    strategy: "Focus communication on alignment with their key role and priorities.",
-    color: "#475569",
-  };
-};
 
 export default function StakeholderDossier({
   isOpen,
@@ -125,13 +59,16 @@ export default function StakeholderDossier({
   canClose = true,
   isEmbedded = false,
   emotionColors: propEmotionColors,
+  convincerArchetypes: propConvincerArchetypes,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
-  const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
+  const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
+    convincerArchetypes: {},
   };
   const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
+  const activeConvincerArchetypes = propConvincerArchetypes || contextConvincerArchetypes || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const { currentPhase: contextPhase } = useContext(PhasesContext) || { currentPhase: 0 };
   const currentPhase = propPhase ?? contextPhase ?? 0;
@@ -140,18 +77,6 @@ export default function StakeholderDossier({
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [nextPageIndex, setNextPageIndex] = useState(0);
-
-  // 3D Two-Layer Page Flip animation state
-  const [flippingState, setFlippingState] = useState<{
-    fromIndex: number;
-    toIndex: number;
-    direction: "forward" | "backward";
-  } | null>(null);
-
-  const flippingStateRef = useRef(flippingState);
-  flippingStateRef.current = flippingState;
-  const flipTimeoutRef = useRef<number | null>(null);
 
   // Position state for window dragging
   const [position, setPosition] = useState({ x: 120, y: 60 });
@@ -214,54 +139,8 @@ export default function StakeholderDossier({
 
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
-    setNextPageIndex(targetIndex);
+    setCurrentPageIndex(targetIndex);
   };
-
-  const completeFlip = (finishedIdx: number) => {
-    if (flipTimeoutRef.current) {
-      clearTimeout(flipTimeoutRef.current);
-      flipTimeoutRef.current = null;
-    }
-    setCurrentPageIndex(finishedIdx);
-    setFlippingState(null);
-  };
-
-  const handleAnimationEnd = (e: React.AnimationEvent) => {
-    if (e.target !== e.currentTarget) return;
-    if (flippingStateRef.current) {
-      completeFlip(flippingStateRef.current.toIndex);
-    }
-  };
-
-  // Animation scheduler:
-  // While animation is playing, nothing happens.
-  // When no animation is playing, automatically schedule a new animation if nextPageIndex !== currentPageIndex.
-  useEffect(() => {
-    if (!flippingState && nextPageIndex !== currentPageIndex) {
-      if (nextPageIndex < 0 || nextPageIndex >= totalPages) return;
-      const direction = nextPageIndex > currentPageIndex ? "forward" : "backward";
-
-      setFlippingState({
-        fromIndex: currentPageIndex,
-        toIndex: nextPageIndex,
-        direction,
-      });
-
-      // Fallback safety timeout in case onAnimationEnd doesn't fire
-      flipTimeoutRef.current = window.setTimeout(() => {
-        completeFlip(nextPageIndex);
-      }, 660);
-    }
-  }, [flippingState, nextPageIndex, currentPageIndex, totalPages]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (flipTimeoutRef.current) {
-        clearTimeout(flipTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Auto-switch page when opened or when activeStakeholderId changes
   useEffect(() => {
@@ -277,12 +156,7 @@ export default function StakeholderDossier({
             st.name.toLowerCase().includes(activeStakeholderId.toLowerCase())
         );
         if (foundIdx !== -1) {
-          if (justOpened) {
-            setCurrentPageIndex(foundIdx);
-            setNextPageIndex(foundIdx);
-          } else if (activeStChanged) {
-            requestPageChange(foundIdx);
-          }
+          setCurrentPageIndex(foundIdx);
         }
       }
     }
@@ -388,7 +262,7 @@ export default function StakeholderDossier({
       "#64748b";
 
     const convincerArchetypeName = st.convincer_archetype || stObj?.convincer_archetype;
-    const convincerMeta = getConvincerMeta(convincerArchetypeName);
+    const convincerProfileConfig = convincerArchetypeName ? activeConvincerArchetypes[convincerArchetypeName] : null;
 
     return (
       <>
@@ -464,19 +338,19 @@ export default function StakeholderDossier({
         </div>
 
         {/* Convincer Profile & Persuasion Strategy Card */}
-        {convincerMeta && (
+        {convincerProfileConfig && (
           <div className={styles.convincerCard}>
             <div className={styles.convincerCardHeader}>
               <span className={styles.convincerDoodleIcon}>🧠</span>
               <span>Convincer Archetype: </span>
-              <strong style={{ color: convincerMeta.color }}>
-                {convincerMeta.icon} {convincerMeta.label}
+              <strong style={{ color: convincerProfileConfig.color }}>
+                {convincerProfileConfig.icon} {convincerProfileConfig.label || convincerProfileConfig.name || convincerArchetypeName}
               </strong>
             </div>
             <div className={styles.convincerStrategyBody}>
               <span className={styles.strategyBulb}>💡</span>
               <span>
-                <strong>Effective Communication Strategy:</strong> {convincerMeta.strategy}
+                <strong>Effective Communication Strategy:</strong> {convincerProfileConfig.strategy}
               </span>
             </div>
           </div>
@@ -576,27 +450,6 @@ export default function StakeholderDossier({
 
   const activeStakeholder = effectiveDossierData[currentPageIndex] || effectiveDossierData[0];
 
-  // Determine base and flipping pages when animation is active
-  let basePageEntry: StakeholderDossierEntry | null = activeStakeholder;
-  let flippingPageEntry: StakeholderDossierEntry | null = null;
-  let flippingAnimClass = "";
-
-  if (flippingState) {
-    if (flippingState.direction === "forward") {
-      // Forward flip: target page rests underneath, current page flips left off the stack
-      basePageEntry = effectiveDossierData[flippingState.toIndex];
-      flippingPageEntry = effectiveDossierData[flippingState.fromIndex];
-      flippingAnimClass = styles.flipForward;
-    } else {
-      // Backward flip: current page rests underneath, target page flips right back onto the stack
-      basePageEntry = effectiveDossierData[flippingState.fromIndex];
-      flippingPageEntry = effectiveDossierData[flippingState.toIndex];
-      flippingAnimClass = styles.flipBackward;
-    }
-  }
-
-  const activeDisplayIndex = nextPageIndex;
-
   if (!isOpen && !isEmbedded) return null;
 
   const windowContent = (
@@ -639,7 +492,7 @@ export default function StakeholderDossier({
             return (
               <button
                 key={st.stakeholder_id || idx}
-                className={`${styles.tabButton} ${idx === activeDisplayIndex ? styles.activeTab : ""}`}
+                className={`${styles.tabButton} ${idx === currentPageIndex ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
               >
                 <span
@@ -665,23 +518,11 @@ export default function StakeholderDossier({
           ))}
         </div>
 
-        {/* 3D Two-Layer Paper Flip Canvas */}
+        {/* Paper Canvas */}
         <div className={styles.flipBookWrapper}>
-          {/* Stationary Base Page Underneath */}
           <div className={styles.pageBase}>
-            {renderPageContent(basePageEntry)}
+            {renderPageContent(activeStakeholder)}
           </div>
-
-          {/* Flipping Top Page Layer (Rendered only when turning) */}
-          {flippingState && flippingPageEntry && (
-            <div
-              key={`${flippingState.fromIndex}-${flippingState.toIndex}-${flippingState.direction}`}
-              className={`${styles.pageFlipping} ${flippingAnimClass}`}
-              onAnimationEnd={handleAnimationEnd}
-            >
-              {renderPageContent(flippingPageEntry)}
-            </div>
-          )}
         </div>
       </div>
 
@@ -689,18 +530,18 @@ export default function StakeholderDossier({
       <div className={styles.pageFooter}>
         <button
           className={styles.navButton}
-          disabled={activeDisplayIndex <= 0}
-          onClick={() => requestPageChange(activeDisplayIndex - 1)}
+          disabled={currentPageIndex <= 0}
+          onClick={() => requestPageChange(currentPageIndex - 1)}
         >
-          ◀ Turn Page
+          ◀ Prev Page
         </button>
         <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? activeDisplayIndex + 1 : 0} of {totalPages} — Stakeholder Dossier
+          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages} — Stakeholder Dossier
         </span>
         <button
           className={styles.navButton}
-          disabled={activeDisplayIndex >= totalPages - 1}
-          onClick={() => requestPageChange(activeDisplayIndex + 1)}
+          disabled={currentPageIndex >= totalPages - 1}
+          onClick={() => requestPageChange(currentPageIndex + 1)}
         >
           Next Page ▶
         </button>

@@ -35,3 +35,13 @@ async def test_stakeholder_dossier_contains_convincer_archetype():
     assert dave_entry is not None
     assert "convincer_archetype" in dave_entry
     assert dave_entry["convincer_archetype"] == "Technical Excellence"
+
+def test_emotion_factory_convincer_archetypes_dict():
+    from mlops_serious_game.domain.emotion_factory import EmotionFactory
+    archetypes = EmotionFactory.get_convincer_archetypes_dict()
+    assert "Technical Excellence" in archetypes
+    tech = archetypes["Technical Excellence"]
+    assert tech["name"] == "Technical Excellence"
+    assert tech["icon"] == "⚙️"
+    assert tech["color"] == "#2563eb"
+    assert "strategy" in tech

@@ -657,8 +657,6 @@ export default function OnlineIntelGathering({
 
   const getTagBadgeColor = (type: string) => {
     switch (type) {
-      case "hard_constraint":
-        return "bg-danger";
       case "requirement":
         return "bg-primary";
       case "negotiable_preference":

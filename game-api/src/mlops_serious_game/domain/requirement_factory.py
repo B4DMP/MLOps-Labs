@@ -57,15 +57,3 @@ class RequirementFactory:
                         f"Stakeholder '{ch_st.stakeholder_id}' in challenge '{challenge.name}' (ID: {challenge.id}) "
                         f"must have exactly 4 requirement objects. Found {len(reqs)}."
                     )
-                
-                # Check types and at least one hard constraint
-                has_hard_constraint = False
-                for req in reqs:
-                    if req.type == RequirementType.HARD_CONSTRAINT:
-                        has_hard_constraint = True
-                
-                if not has_hard_constraint:
-                    raise ValueError(
-                        f"Stakeholder '{ch_st.stakeholder_id}' in challenge '{challenge.name}' (ID: {challenge.id}) "
-                        f"must have at least one 'hard_constraint' requirement."
-                    )

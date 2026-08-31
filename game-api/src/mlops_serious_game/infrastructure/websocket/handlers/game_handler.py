@@ -268,6 +268,7 @@ async def handle_game_init(
                     for cs in (curr_challenge.stakeholders if hasattr(curr_challenge, "stakeholders") and curr_challenge.stakeholders else [])
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
+                "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
                 **({
                     "dialogue_options": await get_dialogue_options(
                         challenge=curr_challenge,
@@ -360,6 +361,7 @@ async def handle_progress_update(
                     "metric_values": initial_metric_values,
                     "attention_tokens": curr_challenge.attention_tokens,
                     "engagement_cards": get_engagement_cards(),
+                    "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
                 }
             )
     else:
@@ -555,6 +557,7 @@ async def handle_state_update_request(
                     for cs in (challenge.stakeholders if hasattr(challenge, "stakeholders") and challenge.stakeholders else [])
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
+                "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             }
         )
 

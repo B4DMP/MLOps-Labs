@@ -15,7 +15,7 @@ import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
-import { StakeholderContext } from "./components/StakeholderProvider";
+import { StakeholderContext, type ConvincerProfileConfig } from "./components/StakeholderProvider";
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import PreRoundDialog from "./components/PreRoundDialog";
@@ -116,6 +116,7 @@ function App({ username: _username }: AppProps) {
   const [isPreRoundDialogOpen, setIsPreRoundDialogOpen] = useState(false);
   const prevChallengeKeyRef = useRef<string>("");
   const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
   const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
@@ -393,6 +394,10 @@ function App({ username: _username }: AppProps) {
 
       if (data.dialogue_options && Array.isArray(data.dialogue_options)) {
         setDialogueOptions(data.dialogue_options);
+      }
+
+      if (data.convincer_archetypes && typeof data.convincer_archetypes === "object") {
+        setConvincerArchetypes(data.convincer_archetypes);
       }
 
       setChallengeAmount(data["challenges_amount"]);
@@ -810,7 +815,14 @@ function App({ username: _username }: AppProps) {
         >
           <MetricsContext.Provider value={{ metrics, setMetrics }}>
             <StakeholderContext.Provider
-              value={{ stakeholders, setStakeholders, emotionColors, setEmotionColors }}
+              value={{
+                stakeholders,
+                setStakeholders,
+                emotionColors,
+                setEmotionColors,
+                convincerArchetypes,
+                setConvincerArchetypes,
+              }}
             >
               <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
               <PrePhaseDialog
@@ -873,6 +885,7 @@ function App({ username: _username }: AppProps) {
                 activeStakeholderId={activeStakeholderId}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
+                convincerArchetypes={convincerArchetypes}
               />
               {challengeLoopId === 0 && (
                 <OfflineIntelGathering

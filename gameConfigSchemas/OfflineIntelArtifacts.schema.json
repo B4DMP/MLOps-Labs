@@ -57,10 +57,6 @@
             "type": "object",
             "title": "Miscategorization Wrong Descriptions",
             "properties": {
-              "hard_constraint": {
-                "type": "string",
-                "title": "Wrong Description (Hard Constraint)"
-              },
               "requirement": {
                 "type": "string",
                 "title": "Wrong Description (Requirement)"

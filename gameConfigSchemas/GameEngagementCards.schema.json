@@ -69,7 +69,6 @@
             "items": {
               "type": "string",
               "enum": [
-                "hard_constraint",
                 "requirement",
                 "negotiable_preference",
                 "personal_friction"

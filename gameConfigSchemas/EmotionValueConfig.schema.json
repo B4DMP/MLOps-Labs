@@ -301,6 +301,18 @@
           "type": "string",
           "title": "Archetype Name"
         },
+        "label": {
+          "type": "string",
+          "title": "Archetype Display Label"
+        },
+        "icon": {
+          "type": "string",
+          "title": "Archetype Icon/Emoji"
+        },
+        "color": {
+          "type": "string",
+          "title": "Archetype Color (Hex)"
+        },
         "evidence_basis": {
           "type": "integer",
           "title": "Evidence Basis (0=Rational -> 5=Relational)",

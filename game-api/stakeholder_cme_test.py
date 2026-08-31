@@ -233,7 +233,7 @@ class StakeholderIntelItemLayer(enum.Enum):
     POLITICAL = "political"
 
 class StakeholderIntelItemIntent(enum.Enum):
-    HARD_CONSTRAINT = "hard_constraint"
+    REQUIREMENT = "requirement"
     PREFERENCE = "preference"
     PERSONAL_FRICTION = "personal_friction"
 
@@ -361,9 +361,9 @@ CONVINCER_ITEM_WILLIS_1 = StakeholderIntelItem(
     id="willis_convincer_1",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
-    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    categorized_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_layer=StakeholderIntelItemLayer.BUSINESS,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Willis requires a clear cost-benefit assessment and ROI projection before committing resources to model retraining, refusing unbudgeted rapid retraining cycles.",
     categorized_description="Willis requires a clear cost-benefit assessment and ROI projection before committing resources to model retraining, refusing unbudgeted rapid retraining cycles."
 )
@@ -372,9 +372,9 @@ CONVINCER_ITEM_WILLIS_2 = StakeholderIntelItem(
     id="willis_convincer_2",
     stakeholder_id="willis_slif_business_manager",
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
-    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    categorized_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_layer=StakeholderIntelItemLayer.BUSINESS,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Willis requires automated rollback triggers and real-time SLA uptime dashboards to ensure drift-related accuracy loss does not cause unmonitored business revenue degradation.",
     categorized_description="Willis requires automated rollback triggers and real-time SLA uptime dashboards to ensure drift-related accuracy loss does not cause unmonitored business revenue degradation."
 )
@@ -383,9 +383,9 @@ CONVINCER_ITEM_MATHIS_1 = StakeholderIntelItem(
     id="mathis_convincer_1",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
-    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    categorized_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_layer=StakeholderIntelItemLayer.TECHNICAL,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Mathis mandates root-cause data drift diagnosis and automated pre-deployment validation checks before any retrained model image is pushed to production.",
     categorized_description="Mathis mandates root-cause data drift diagnosis and automated pre-deployment validation checks before any retrained model image is pushed to production."
 )
@@ -394,9 +394,9 @@ CONVINCER_ITEM_MATHIS_2 = StakeholderIntelItem(
     id="mathis_convincer_2",
     stakeholder_id="mathis_berger_operational_engineer",
     categorized_layer=StakeholderIntelItemLayer.TECHNICAL,
-    categorized_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    categorized_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_layer=StakeholderIntelItemLayer.TECHNICAL,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Mathis mandates sub-200ms inference latency benchmarks and zero-downtime regression testing to ensure retraining does not compromise pipeline stability.",
     categorized_description="Mathis mandates sub-200ms inference latency benchmarks and zero-downtime regression testing to ensure retraining does not compromise pipeline stability."
 )
@@ -440,7 +440,7 @@ WILLIS_MISCATEGORIZED_2 = StakeholderIntelItem(
     categorized_layer=StakeholderIntelItemLayer.BUSINESS,
     categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
     correct_layer=StakeholderIntelItemLayer.BUSINESS,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Willis requires strict financial audit gates before model redeployment to ensure corporate compliance.",
     categorized_description="Willis holds a deep personal grudge against the data science team and actively tries to block their retraining proposals."
 )
@@ -451,7 +451,7 @@ MATHIS_MISCATEGORIZED_1 = StakeholderIntelItem(
     categorized_layer=StakeholderIntelItemLayer.POLITICAL,
     categorized_intent=StakeholderIntelItemIntent.PERSONAL_FRICTION,
     correct_layer=StakeholderIntelItemLayer.TECHNICAL,
-    correct_intent=StakeholderIntelItemIntent.HARD_CONSTRAINT,
+    correct_intent=StakeholderIntelItemIntent.REQUIREMENT,
     correct_description="Mathis requires strict container security vulnerability scans before any image is pushed to production.",
     categorized_description="Mathis enforces container security vulnerability scans purely to undermine executive authority."
 )
@@ -483,7 +483,7 @@ GENERAL_INTEL_ITEMS: list[StakeholderIntelItem] = [
 # Convincer profiles dynamically built from ALL intel items of type HARD_CONSTRAINT
 STAKEHOLDER_CONVINCER_PROFILES: dict[str, list[StakeholderIntelItem]] = {}
 for _item in GENERAL_INTEL_ITEMS:
-    if _item.correct_intent == StakeholderIntelItemIntent.HARD_CONSTRAINT:
+    if _item.correct_intent == StakeholderIntelItemIntent.REQUIREMENT:
         _st_id = _item.stakeholder_id
         if _st_id not in STAKEHOLDER_CONVINCER_PROFILES:
             STAKEHOLDER_CONVINCER_PROFILES[_st_id] = []

@@ -182,7 +182,7 @@ const WrongDescriptionsControl = (props: ControlProps) => {
   };
 
   const handleAddKey = () => {
-    const keyName = window.prompt("Enter miscategorization requirement type to add (e.g. hard_constraint, requirement, negotiable_preference, personal_friction):");
+    const keyName = window.prompt("Enter miscategorization requirement type to add (e.g. requirement, negotiable_preference, personal_friction):");
     if (keyName && keyName.trim()) {
       const cleanKey = keyName.trim();
       if (!(cleanKey in currentMap)) {

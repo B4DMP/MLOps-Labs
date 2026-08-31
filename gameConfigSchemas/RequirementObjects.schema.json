@@ -26,7 +26,7 @@
           "type": {
             "type": "string",
             "title": "Requirement Type",
-            "enum": ["hard_constraint", "requirement", "negotiable_preference", "personal_friction"]
+            "enum": ["requirement", "negotiable_preference", "personal_friction"]
           },
           "description": {
             "type": "string",

@@ -227,6 +227,9 @@
    "convincer_archetypes": {
       "Technical Excellence": {
          "name": "Technical Excellence",
+         "label": "Technical Excellence",
+         "icon": "⚙️",
+         "color": "#2563eb",
          "evidence_basis": 0,
          "risk_and_control": 2,
          "value_horizon": 3,
@@ -234,6 +237,9 @@
       },
       "Business Value": {
          "name": "Business Value",
+         "label": "Business Value",
+         "icon": "📈",
+         "color": "#16a34a",
          "evidence_basis": 1,
          "risk_and_control": 3,
          "value_horizon": 5,
@@ -241,6 +247,9 @@
       },
       "Safety & Reliability": {
          "name": "Safety & Reliability",
+         "label": "Safety & Reliability",
+         "icon": "🛡️",
+         "color": "#dc2626",
          "evidence_basis": 0,
          "risk_and_control": 5,
          "value_horizon": 4,
@@ -248,6 +257,9 @@
       },
       "Control & Governance": {
          "name": "Control & Governance",
+         "label": "Control & Governance",
+         "icon": "🏛️",
+         "color": "#9333ea",
          "evidence_basis": 2,
          "risk_and_control": 5,
          "value_horizon": 3,
@@ -255,6 +267,9 @@
       },
       "People & Trust": {
          "name": "People & Trust",
+         "label": "People & Trust",
+         "icon": "🤝",
+         "color": "#ea580c",
          "evidence_basis": 5,
          "risk_and_control": 1,
          "value_horizon": 2,
@@ -262,6 +277,9 @@
       },
       "Autonomy": {
          "name": "Autonomy",
+         "label": "Autonomy",
+         "icon": "🚀",
+         "color": "#0284c7",
          "evidence_basis": 3,
          "risk_and_control": 0,
          "value_horizon": 2,
@@ -269,6 +287,9 @@
       },
       "Pragmatism": {
          "name": "Pragmatism",
+         "label": "Pragmatism",
+         "icon": "⚡",
+         "color": "#d97706",
          "evidence_basis": 1,
          "risk_and_control": 1,
          "value_horizon": 0,

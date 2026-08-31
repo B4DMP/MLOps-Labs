@@ -6,6 +6,9 @@ class ConvincerArchetype(BaseModel):
     """Represents a stakeholder convincer archetype profile and persuasion strategy."""
 
     name: str = Field(default="", description="Name of the convincer archetype (e.g. Technical Excellence)")
+    label: Optional[str] = Field(default=None, description="Display label for the archetype")
+    icon: str = Field(default="", description="Emoji icon for the archetype")
+    color: str = Field(default="", description="Hex color code for the archetype")
     evidence_basis: int = Field(
         default=0,
         ge=0,
