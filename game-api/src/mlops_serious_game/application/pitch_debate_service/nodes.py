@@ -203,7 +203,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 "requirement_id": last_selected_intel.requirement_id,
                 "description": req_desc,
                 "categorized_type": cat_type,
-                "intel_type": "inferred",
+                "intel_type": "verified",
                 "stakeholder_id": st.id,
                 "stakeholder_name": st.name,
                 "is_corrected": True,
@@ -301,7 +301,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                     updated_intel_items[i] = StakeholderIntelItem(
                         id=getattr(item, "id", str(uuid.uuid4()) if "uuid" in globals() else "item"),
                         requirement_id=req.id,
-                        intel_type=ConfidenceType.INFERRED,
+                        intel_type=ConfidenceType.VERIFIED,
                         categorized_type=req.type,
                         description=req.description,
                     )

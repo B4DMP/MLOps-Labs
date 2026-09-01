@@ -417,12 +417,12 @@ async def handle_intel_verification(
     }
 
 
-def correct_and_infer_intel_item(
+def correct_and_verify_intel_item(
     username: str,
     requirement_id: str,
     curr_challenge: Challenge = None,
 ) -> StakeholderIntelItem:
-    """Corrects an intel item in the database and marks it as inferred."""
+    """Corrects an intel item in the database and marks it as verified."""
     req = RequirementFactory.get_requirement(requirement_id)
     if not req:
         return None
@@ -445,7 +445,7 @@ def correct_and_infer_intel_item(
 
         if target_record:
             data = dict(target_record.intel_item_data)
-            data["intel_type"] = ConfidenceType.INFERRED.value
+            data["intel_type"] = ConfidenceType.VERIFIED.value
             data["categorized_type"] = cat_type_str
             data["description"] = req.description
             target_record.intel_item_data = data
@@ -456,7 +456,7 @@ def correct_and_infer_intel_item(
             new_item = StakeholderIntelItem(
                 id=str(uuid.uuid4()),
                 requirement_id=req.id,
-                intel_type=ConfidenceType.INFERRED,
+                intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
             )
@@ -467,6 +467,9 @@ def correct_and_infer_intel_item(
             session.add(new_record)
             session.commit()
             return new_item
+
+
+correct_and_infer_intel_item = correct_and_verify_intel_item
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:

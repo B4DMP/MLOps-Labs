@@ -121,7 +121,7 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
             intel_item = StakeholderIntelItem(
                 id=str(uuid.uuid4()),
                 requirement_id=req.id,
-                intel_type=ConfidenceType.INFERRED,
+                intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
             )

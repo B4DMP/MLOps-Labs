@@ -708,13 +708,6 @@
   transform: rotate(-5deg);
 }
 
-.stampInferred {
-  color: #1d4ed8;
-  border: 2px dashed #1d4ed8;
-  background: rgba(219, 234, 254, 0.55);
-  transform: rotate(4deg);
-}
-
 .stampUnconfirmed {
   color: #b91c1c;
   border: 2px dotted #b91c1c;

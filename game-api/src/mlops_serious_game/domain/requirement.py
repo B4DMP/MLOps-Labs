@@ -9,7 +9,6 @@ class RequirementType(str, Enum):
 class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
     VERIFIED = "verified"
-    INFERRED = "inferred"
 
 class ArtifactType(str, Enum):
     EMAIL = "email"

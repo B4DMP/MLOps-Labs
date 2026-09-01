@@ -200,10 +200,10 @@ export default function StakeholderInteractionArea({
                                   {intel.description.length > 50 ? `${intel.description.slice(0, 50)}...` : intel.description}
                                 </span>{" "}
                                 <span
-                                  className="badge bg-secondary ms-1"
+                                  className="badge bg-success ms-1"
                                   style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
                                 >
-                                  inferred
+                                  verified
                                 </span>
                               </p>
                             </div>

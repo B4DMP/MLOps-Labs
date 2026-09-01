@@ -194,14 +194,14 @@ async def handle_chat_message(
                     existing.emotion_values = serialized_emotion_values
                     flag_modified(existing, "emotion_values")
 
-        # If a wrongly categorized intel item was played, correct and mark it as inferred in DB and update dossier
+        # If a wrongly categorized intel item was played, correct and mark it as verified in DB and update dossier
         last_intel = output_state.get("last_selected_intel")
         if last_intel and not last_intel.is_correct_intel():
             from mlops_serious_game.application.intel_dossier import (
-                correct_and_infer_intel_item,
+                correct_and_verify_intel_item,
                 retrieve_dossier_data,
             )
-            correct_and_infer_intel_item(
+            correct_and_verify_intel_item(
                 username=username,
                 requirement_id=last_intel.requirement_id,
                 curr_challenge=curr_challenge,

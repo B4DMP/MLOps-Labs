@@ -10,7 +10,7 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 export interface IntelEntry {
   id: string;
   requirement_id: string;
-  intel_type: string; // e.g. "unconfirmed", "verified", "inferred"
+  intel_type: string; // e.g. "unconfirmed", "verified"
   categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
   description: string;
 }
@@ -220,9 +220,6 @@ export default function StakeholderDossier({
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
     if (lower === "verified") {
       return <div className={`${styles.rubberStamp} ${styles.stampVerified}`}>✓ VERIFIED</div>;
-    }
-    if (lower === "inferred") {
-      return <div className={`${styles.rubberStamp} ${styles.stampInferred}`}>≈ INFERRED</div>;
     }
     return <div className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}>? UNCONFIRMED</div>;
   };
