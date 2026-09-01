@@ -21,7 +21,14 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.execute(
         """
-        UPDATE intel_items
+        CREATE TABLE IF NOT EXISTS intel_data (
+            id SERIAL PRIMARY KEY,
+            user_name VARCHAR(255) NOT NULL,
+            intel_item_data JSON NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS ix_intel_data_user_name ON intel_data (user_name);
+
+        UPDATE intel_data
         SET intel_item_data = jsonb_set(intel_item_data::jsonb, '{intel_type}', '"verified"')::json
         WHERE intel_item_data->>'intel_type' = 'inferred';
         """

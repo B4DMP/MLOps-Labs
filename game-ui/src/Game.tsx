@@ -171,30 +171,34 @@ function App({ username: _username }: AppProps) {
   // Manage PrePhaseDialog (at the start of each phase) and PreRoundDialog (at the start of each challenge)
   useEffect(() => {
     if (progressionIndex === 2 && phases.length > 0) {
-      // 1. Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet
+      // 1. Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet (only when challengeLoopId === 0)
       if (prevShownPhaseRef.current !== currentPhase) {
-        prevShownPhaseRef.current = currentPhase;
+        if (challengeLoopId === 0) {
+          prevShownPhaseRef.current = currentPhase;
 
-        // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
-        if (currentPhase === 0 && !isIntro1StartedRef.current) {
-          isIntro1StartedRef.current = true;
-          setIsIntro1Started(true);
-          setTimeout(() => {
-            introJs()
-              .setOptions({
-                group: "intro1",
-                exitOnEsc: false,
-                exitOnOverlayClick: false,
-              })
-              .oncomplete(() => setIsPhaseDialogueOpen(true))
-              .onexit(() => setIsPhaseDialogueOpen(true))
-              .start();
-          }, 100);
+          // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
+          if (currentPhase === 0 && !isIntro1StartedRef.current) {
+            isIntro1StartedRef.current = true;
+            setIsIntro1Started(true);
+            setTimeout(() => {
+              introJs()
+                .setOptions({
+                  group: "intro1",
+                  exitOnEsc: false,
+                  exitOnOverlayClick: false,
+                })
+                .oncomplete(() => setIsPhaseDialogueOpen(true))
+                .onexit(() => setIsPhaseDialogueOpen(true))
+                .start();
+            }, 100);
+          } else {
+            setIsPhaseDialogueOpen(true);
+          }
+          setIsPreRoundDialogOpen(false);
+          return;
         } else {
-          setIsPhaseDialogueOpen(true);
+          prevShownPhaseRef.current = currentPhase;
         }
-        setIsPreRoundDialogOpen(false);
-        return;
       }
 
       // 2. If PrePhaseDialog is NOT open and we are in Offline Intel Gathering (challengeLoopId === 0)
