@@ -3,8 +3,8 @@ from .exceptions import StakeholderRequirementsNotFound,StakeholderNameNotFound,
 from .stakeholder import Stakeholder
 from .stakeholder_factory import StakeholderFactory
 from .prompts import Prompt
-from .Challenge import Challenge, ChallengeStakeholder
-from .Phase import Phase
+from .Challenge import Challenge
+from .Phase import Phase, PhaseStakeholder
 from .phase_factory import PhaseFactory
 from .requirement import StakeholderRequirement
 from .requirement_factory import RequirementFactory
@@ -29,7 +29,7 @@ __all__ = [
     "metric",
     "metric_factory",
     "Challenge",
-    "ChallengeStakeholder",
+    "PhaseStakeholder",
     "Phase",
     "PhaseFactory",
     "StakeholderRequirement",

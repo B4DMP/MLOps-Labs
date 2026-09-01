@@ -5,25 +5,29 @@ from langchain_openai import ChatOpenAI
 from mlops_serious_game.application.dialogue_options_service.state import GeneratedDialogueOptions
 from mlops_serious_game.config import settings
 
-use_rwth_key = True
-
-
 def get_dialogue_option_model(
     temperature: float = 0.7,
-    model_name: str = settings.RWTH_LLM_MODEL_DIALOGUE_OPTIONS,
+    model_name: str | None = None,
 ) -> ChatOpenAI | ChatGroq:
     """Returns the chat model configured for generating dialogue options."""
-    if use_rwth_key:
+    if settings.MISTRAL_API_KEY:
         return ChatOpenAI(
-            api_key=settings.RWTH_API_KEY,
-            base_url=settings.RWTH_API_BASE,
-            model_name=model_name,
+            api_key=settings.MISTRAL_API_KEY,
+            base_url=settings.MISTRAL_API_BASE,
+            model_name=model_name or settings.MISTRAL_LLM_MODEL_DIALOGUE_OPTIONS,
+            temperature=temperature,
+        )
+    elif settings.WESTAI_API_KEY:
+        return ChatOpenAI(
+            api_key=settings.WESTAI_API_KEY,
+            base_url=settings.WESTAI_API_BASE,
+            model_name=model_name or settings.WESTAI_LLM_MODEL_DIALOGUE_OPTIONS,
             temperature=temperature,
         )
     else:
         return ChatGroq(
             api_key=settings.GROQ_API_KEY,
-            model_name=settings.GROQ_LLM_MODEL_DIALOGUE_OPTIONS,
+            model_name=model_name or settings.GROQ_LLM_MODEL_DIALOGUE_OPTIONS,
             temperature=temperature,
         )
 

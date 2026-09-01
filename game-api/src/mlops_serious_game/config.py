@@ -19,15 +19,25 @@ class Settings(BaseSettings):
     ADMIN_KEY: str
     SECRET_KEY: str
 
-    # -- RWTH Proxy Configuration
-    RWTH_API_KEY: str | None = None
-    RWTH_API_BASE: str | None = "https://llm.hpc.itc.rwth-aachen.de/"
-    RWTH_LLM_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
-    RWTH_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
-    RWTH_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"  
-    RWTH_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
-    RWTH_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
-    RWTH_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    # -- WestAI Proxy Configuration --
+    WESTAI_API_KEY: str | None = None
+    WESTAI_API_BASE: str | None = "https://llm.hpc.itc.rwth-aachen.de/"
+    WESTAI_LLM_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+
+    # -- MistralAI Proxy Configuration --
+    MISTRAL_API_KEY: str | None = None
+    MISTRAL_API_BASE: str | None = "https://api.mistral.ai/v1"
+    MISTRAL_LLM_MODEL: str = "mistral-small-latest"
+    MISTRAL_LLM_MODEL_CONTEXT_SUMMARY: str = "mistral-small-latest"
+    MISTRAL_LLM_MODEL_SUMMARY: str = "mistral-small-latest"
+    MISTRAL_LLM_MODEL_CARD_GEN: str = "mistral-small-latest"
+    MISTRAL_LLM_MODEL_WRONG_INTEL_GEN: str = "mistral-small-latest"
+    MISTRAL_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistral-small-latest"
 
     # -- Persona Gym Configuration --
     SETTINGS_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"

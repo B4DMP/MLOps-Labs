@@ -140,6 +140,7 @@
     color: white;
     font-weight: 600;
     transition: all var(--transition);
+    cursor: pointer;
     text-align: center;
     width: 15rem;
 }

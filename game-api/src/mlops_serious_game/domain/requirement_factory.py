@@ -45,15 +45,16 @@ class RequirementFactory:
 
     @classmethod
     def validate_requirements(cls, challenges: List[Challenge]) -> None:
-        from mlops_serious_game.domain.requirement import RequirementType
-        
+        from mlops_serious_game.domain.phase_factory import PhaseFactory
+
         for challenge in challenges:
-            for ch_st in challenge.stakeholders:
-                reqs = cls.get_requirements_for_stakeholder_in_challenge(challenge.id, ch_st.stakeholder_id)
-                
+            phase = PhaseFactory.get_phases()[challenge.phase_id]
+            for ph_st in phase.stakeholders:
+                reqs = cls.get_requirements_for_stakeholder_in_challenge(challenge.id, ph_st.stakeholder_id)
+
                 # Check exactly 4 requirements
                 if len(reqs) != 4:
                     raise ValueError(
-                        f"Stakeholder '{ch_st.stakeholder_id}' in challenge '{challenge.name}' (ID: {challenge.id}) "
+                        f"Stakeholder '{ph_st.stakeholder_id}' in challenge '{challenge.name}' (ID: {challenge.id}) "
                         f"must have exactly 4 requirement objects. Found {len(reqs)}."
                     )

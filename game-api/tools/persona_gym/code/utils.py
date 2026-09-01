@@ -44,8 +44,10 @@ def run_model(
         return claude_chat_gen(input_prompt, persona=persona, model_card=model_card, temperature=temperature, top_p=top_p, max_tokens = max_tokens)
     elif "llama" in model_card:
         return llama_chat_gen(input_prompt, persona=persona, model_card=model_card, temperature=temperature, top_p=top_p, max_tokens = max_tokens)
+    elif "mistral" in model_card and settings.MISTRAL_API_KEY and not settings.WESTAI_API_KEY:
+        return mistral_chat_gen(input_prompt, persona, model_card=model_card, temperature=temperature, top_p=top_p, max_tokens=max_tokens, message=message, system=system)
     else:
-        return rwth_chat_gen(input_prompt, persona, model_card=model_card, temperature=temperature, top_p=top_p, max_tokens=max_tokens, message=message, system=system)
+        return westai_chat_gen(input_prompt, persona, model_card=model_card, temperature=temperature, top_p=top_p, max_tokens=max_tokens, message=message, system=system)
 
 
 def openai_chat_gen(input_prompt = None,
@@ -202,19 +204,19 @@ def llama_chat_gen(input_prompt,
             print('Retrying left: ', max_attempt)
 
 
-def rwth_chat_gen(input_prompt=None,
-                  persona=None,
-                  apikey=settings.RWTH_API_KEY,
-                  apibase=settings.RWTH_API_BASE,
-                  model_card='mistralai/Mixtral-8x22B-Instruct-v0.1',
-                  temperature=0.9,
-                  top_p=0.9,
-                  max_tokens=3000,
-                  max_attempt=3,
-                  time_interval=2,
-                  system=None,
-                  message=None,
-                  ):
+def westai_chat_gen(input_prompt=None,
+                    persona=None,
+                    apikey=settings.WESTAI_API_KEY,
+                    apibase=settings.WESTAI_API_BASE,
+                    model_card='mistralai/Mixtral-8x22B-Instruct-v0.1',
+                    temperature=0.9,
+                    top_p=0.9,
+                    max_tokens=3000,
+                    max_attempt=3,
+                    time_interval=2,
+                    system=None,
+                    message=None,
+                    ):
     client = OpenAI(api_key=apikey, base_url=apibase)
 
     if not message:
@@ -246,3 +248,52 @@ def rwth_chat_gen(input_prompt=None,
             print('Retrying left: ', max_attempt)
 
     return 'Error'
+
+
+def mistral_chat_gen(input_prompt=None,
+                     persona=None,
+                     apikey=settings.MISTRAL_API_KEY,
+                     apibase=settings.MISTRAL_API_BASE,
+                     model_card='mistral-small-latest',
+                     temperature=0.9,
+                     top_p=0.9,
+                     max_tokens=3000,
+                     max_attempt=3,
+                     time_interval=2,
+                     system=None,
+                     message=None,
+                     ):
+    client = OpenAI(api_key=apikey, base_url=apibase)
+
+    if not message:
+        if persona:
+            persona_prompt = f"Adopt the identity of {persona}. Answer the questions while staying in strict accordance with the nature of this identity."
+            message = [{"role": "system", "content": persona_prompt},
+                       {"role": "user",   "content": input_prompt}]
+        elif system:
+            message = [{"role": "system", "content": system},
+                       {"role": "user",   "content": input_prompt}]
+        else:
+            message = [{"role": "user", "content": input_prompt}]
+
+    while max_attempt > 0:
+        try:
+            response = client.chat.completions.create(
+                model=model_card,
+                messages=message,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+            )
+            return response.choices[0].message.content
+
+        except Exception as e:
+            print('Exception Raised: ', e)
+            max_attempt -= 1
+            time.sleep(time_interval)
+            print('Retrying left: ', max_attempt)
+
+    return 'Error'
+
+
+rwth_chat_gen = westai_chat_gen

@@ -9,21 +9,25 @@ from mlops_serious_game.domain.prompts import (
     ONLINE_INTEL_STAKEHOLDER_PROMPT,
 )
 
-use_rwth_key = True
-
-
-def get_llm(temperature: float = 0.7, model_name: str = settings.RWTH_LLM_MODEL) -> ChatOpenAI | ChatGroq:
-    if use_rwth_key:
+def get_llm(temperature: float = 0.7, model_name: str | None = None) -> ChatOpenAI | ChatGroq:
+    if settings.MISTRAL_API_KEY:
         return ChatOpenAI(
-            api_key=settings.RWTH_API_KEY,
-            base_url=settings.RWTH_API_BASE,
-            model_name=model_name,
+            api_key=settings.MISTRAL_API_KEY,
+            base_url=settings.MISTRAL_API_BASE,
+            model_name=model_name or settings.MISTRAL_LLM_MODEL,
+            temperature=temperature,
+        )
+    elif settings.WESTAI_API_KEY:
+        return ChatOpenAI(
+            api_key=settings.WESTAI_API_KEY,
+            base_url=settings.WESTAI_API_BASE,
+            model_name=model_name or settings.WESTAI_LLM_MODEL,
             temperature=temperature,
         )
     else:
         return ChatGroq(
             api_key=settings.GROQ_API_KEY,
-            model_name=settings.GROQ_LLM_MODEL,
+            model_name=model_name or settings.GROQ_LLM_MODEL,
             temperature=temperature,
         )
 

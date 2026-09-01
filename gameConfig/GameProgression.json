@@ -4,37 +4,159 @@
       "id": 0,
       "name": "Introduction",
       "description": "Introduction to the serious game mechanics and environment",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "The AI initiative has officially kicked off across the organization. The project stakeholders have convened to establish working relationships and review initial expectations.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "model_monica",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "high",
+          "interest": "high"
+        }
+      ]
     },
     {
       "id": 1,
       "name": "Requirement Engineering",
       "description": "Business goal definition and stakeholder alignment",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "Following the kickoff, management formally greenlit the project budget and timeline. The core team has now reconvened to hammer out concrete business goals and system constraints.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "power": "high",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "automation_alex",
+          "power": "low",
+          "interest": "low"
+        },
+        {
+          "stakeholder_id": "reliability_ruth",
+          "power": "low",
+          "interest": "low"
+        }
+      ]
     },
     {
       "id": 2,
       "name": "Data Engineering",
       "description": " Dataset preparation, addressing data quality, accessibility, and privacy.",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "With initial requirements signed off, access was granted to internal databases and legacy systems. The engineering team has begun extracting raw records and investigating data quality across sources.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "data_dave",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "reliability_ruth",
+          "power": "high",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "power": "low",
+          "interest": "low"
+        },
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "low",
+          "interest": "low"
+        }
+      ]
     },
     {
       "id": 3,
       "name": "Model Engineering",
       "description": "Design, training, and evaluation of ML models.",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "Data ingestion and cleaning pipelines have delivered the first unified training sets. The data science team has taken over the environment to begin model experimentation and architecture evaluation.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "data_dave",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "model_monica",
+          "power": "high",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "power": "low",
+          "interest": "low"
+        },
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "low",
+          "interest": "low"
+        }
+      ]
     },
     {
       "id": 4,
       "name": "Model Deployment",
       "description": "Integration of models into production systems.",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "The candidate model successfully passed offline benchmarks and validation suites. The DevOps and engineering teams have stepped in to build the production release pipelines and integrate system services.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "automation_alex",
+          "power": "high",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "reliability_ruth",
+          "power": "low",
+          "interest": "low"
+        },
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "low",
+          "interest": "low"
+        }
+      ]
     },
     {
       "id": 5,
       "name": "Monitoring/ Usage",
       "description": "Production monitoring and infrastructure management.",
-      "phase_introduction": "phase_introduction_placeholder"
+      "phase_introduction": "The ML model has been running in production, processing live user transactions. Telemetry dashboards and customer feedback loops have started streaming operational performance data.",
+      "stakeholders": [
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "power": "high",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "reliability_ruth",
+          "power": "low",
+          "interest": "high"
+        },
+        {
+          "stakeholder_id": "model_monica",
+          "power": "low",
+          "interest": "low"
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "power": "low",
+          "interest": "low"
+        }
+      ]
     }
   ],
   "challenges": [
@@ -49,18 +171,6 @@
         "efficiency_intro": 0
       },
       "Source": "-",
-      "stakeholders": [
-        {
-          "stakeholder_id": "model_monica",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "high",
-          "interest": "high"
-        }
-      ],
       "attention_tokens": 8
     },
     {
@@ -76,28 +186,6 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "stakeholders": [
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "requirements_reuben",
-          "power": "high",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "automation_alex",
-          "power": "low",
-          "interest": "low"
-        },
-        {
-          "stakeholder_id": "reliability_ruth",
-          "power": "low",
-          "interest": "low"
-        }
-      ],
       "attention_tokens": 8
     },
     {
@@ -113,28 +201,6 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "stakeholders": [
-        {
-          "stakeholder_id": "data_dave",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "reliability_ruth",
-          "power": "high",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "requirements_reuben",
-          "power": "low",
-          "interest": "low"
-        },
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "low",
-          "interest": "low"
-        }
-      ],
       "attention_tokens": 8
     },
     {
@@ -150,28 +216,6 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "stakeholders": [
-        {
-          "stakeholder_id": "data_dave",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "model_monica",
-          "power": "high",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "requirements_reuben",
-          "power": "low",
-          "interest": "low"
-        },
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "low",
-          "interest": "low"
-        }
-      ],
       "attention_tokens": 8
     },
     {
@@ -187,28 +231,6 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "stakeholders": [
-        {
-          "stakeholder_id": "automation_alex",
-          "power": "high",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "requirements_reuben",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "reliability_ruth",
-          "power": "low",
-          "interest": "low"
-        },
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "low",
-          "interest": "low"
-        }
-      ],
       "attention_tokens": 8
     },
     {
@@ -224,28 +246,6 @@
         "efficiency": 0
       },
       "Source": "Learning in Nonstationary Environments: A Survey.",
-      "stakeholders": [
-        {
-          "stakeholder_id": "efficiency_emilia",
-          "power": "high",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "reliability_ruth",
-          "power": "low",
-          "interest": "high"
-        },
-        {
-          "stakeholder_id": "model_monica",
-          "power": "low",
-          "interest": "low"
-        },
-        {
-          "stakeholder_id": "requirements_reuben",
-          "power": "low",
-          "interest": "low"
-        }
-      ],
       "attention_tokens": 8
     }
   ],

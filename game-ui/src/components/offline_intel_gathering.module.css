@@ -1,0 +1,58 @@
+.actionButton {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+}
+
+.actionButton:hover:not(:disabled) {
+    background: var(--secondary-bg);
+}
+
+.navButton {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    transition: all var(--transition);
+    cursor: pointer;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+}
+
+.navButton:hover:not(:disabled) {
+    background: var(--secondary-bg);
+}
+
+.navButton:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.secondaryButton {
+    padding: 0.7rem 1.6rem;
+    border-radius: 0.75rem;
+    border: 1px solid #ced4da;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+}
+
+.secondaryButton:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}

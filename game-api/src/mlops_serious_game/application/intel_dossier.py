@@ -18,8 +18,8 @@ from sqlalchemy import select
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.application.pitch_debate_service.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
@@ -490,7 +490,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "description": item.description,
             })
 
-    ch_st_map = {cs.stakeholder_id: cs for cs in curr_challenge.stakeholders}
+    phase = PhaseFactory.get_phases()[curr_challenge.phase_id]
+    ph_st_map = {ps.stakeholder_id: ps for ps in phase.stakeholders}
     active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id) or StakeholderFactory.get_available_stakeholders()
 
     dossier_list = []
@@ -498,7 +499,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         st = StakeholderFactory.get_stakeholder(st_id)
         if not st:
             continue
-        ch_st = ch_st_map.get(st.id)
+        ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
         dossier_list.append({
             "stakeholder_id": st.id,

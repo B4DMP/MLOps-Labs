@@ -114,7 +114,6 @@ function App({ username: _username }: AppProps) {
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
   const [isPreRoundDialogOpen, setIsPreRoundDialogOpen] = useState(false);
-  const prevChallengeKeyRef = useRef<string>("");
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
@@ -166,16 +165,57 @@ function App({ username: _username }: AppProps) {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
-  // Open PreRoundDialog before Offline Intel Gathering (challengeLoopId === 0) for each challenge
+  const prevShownPhaseRef = useRef<number | null>(null);
+  const prevShownChallengeKeyRef = useRef<string | null>(null);
+
+  // Manage PrePhaseDialog (at the start of each phase) and PreRoundDialog (at the start of each challenge)
   useEffect(() => {
-    if (challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
-      const challengeKey = `${currentPhase}-${currentChallenge}`;
-      if (prevChallengeKeyRef.current !== challengeKey) {
-        prevChallengeKeyRef.current = challengeKey;
-        setIsPreRoundDialogOpen(true);
+    if (progressionIndex === 2 && phases.length > 0) {
+      // 1. Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet
+      if (prevShownPhaseRef.current !== currentPhase) {
+        prevShownPhaseRef.current = currentPhase;
+
+        // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
+        if (currentPhase === 0 && !isIntro1StartedRef.current) {
+          isIntro1StartedRef.current = true;
+          setIsIntro1Started(true);
+          setTimeout(() => {
+            introJs()
+              .setOptions({
+                group: "intro1",
+                exitOnEsc: false,
+                exitOnOverlayClick: false,
+              })
+              .oncomplete(() => setIsPhaseDialogueOpen(true))
+              .onexit(() => setIsPhaseDialogueOpen(true))
+              .start();
+          }, 100);
+        } else {
+          setIsPhaseDialogueOpen(true);
+        }
+        setIsPreRoundDialogOpen(false);
+        return;
+      }
+
+      // 2. If PrePhaseDialog is NOT open and we are in Offline Intel Gathering (challengeLoopId === 0)
+      if (!isPhaseDialogueOpen && challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
+        const challengeKey = `${currentPhase}-${currentChallenge}`;
+        if (prevShownChallengeKeyRef.current !== challengeKey) {
+          prevShownChallengeKeyRef.current = challengeKey;
+          setIsPreRoundDialogOpen(true);
+        }
       }
     }
-  }, [challengeLoopId, currentPhase, currentChallenge, challengeTitle, challengeDescription]);
+  }, [
+    progressionIndex,
+    currentPhase,
+    currentChallenge,
+    challengeLoopId,
+    challengeTitle,
+    challengeDescription,
+    isPhaseDialogueOpen,
+    phases.length,
+  ]);
 
 
   const onQuestionaireCompleted = (nextProgressIndex: number) => {
@@ -404,40 +444,6 @@ function App({ username: _username }: AppProps) {
       setChallengeMetricChanges(data["metric_changes"]);
       if (data.challenge_loop_id !== undefined) {
         setChallengeLoopId(data.challenge_loop_id);
-      }
-      if (data["challenge_id"] === 0) {
-        if (data["phase_id"] === 0) {
-          if (!isIntro1StartedRef.current) {
-            isIntro1StartedRef.current = true;
-            setIsIntro1Started(true);
-            setTimeout(() => {
-              const startIntro2 = () => {
-                setIsPhaseDialogueOpen(true);
-                setTimeout(() => {
-                  introJs()
-                    .setOptions({
-                      group: "intro2",
-                      exitOnEsc: false,
-                      exitOnOverlayClick: false,
-                    })
-                    .start();
-                }, 50);
-              };
-
-              introJs()
-                .setOptions({
-                  group: "intro1",
-                  exitOnEsc: false,
-                  exitOnOverlayClick: false,
-                })
-                .oncomplete(startIntro2)
-                .onexit(startIntro2)
-                .start();
-            }, 10);
-          }
-        } else {
-          setIsPhaseDialogueOpen(true);
-        }
       }
     });
 
@@ -829,7 +835,11 @@ function App({ username: _username }: AppProps) {
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={setIsPhaseDialogueOpen}
                 setIsRoundOpen={() => {
-                  // The useEffect hook starts the round when the user transitions to challengeLoopId === 2 (Pitch Debate)
+                  if (challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
+                    const challengeKey = `${currentPhase}-${currentChallenge}`;
+                    prevShownChallengeKeyRef.current = challengeKey;
+                    setIsPreRoundDialogOpen(true);
+                  }
                 }}
               />
               <PreRoundDialog

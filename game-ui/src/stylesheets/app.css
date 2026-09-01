@@ -128,3 +128,30 @@ a {
 .introjs-skipbutton {
     display: none !important;
 }
+
+/* CoreUI Carousel Full-Height Flex Styling */
+.carousel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.carousel-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+}
+
+.carousel-item {
+    height: 100%;
+    min-height: 0;
+}
+
+.carousel-item.active {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}

@@ -29,56 +29,10 @@
           "phase_introduction": {
             "type": "string",
             "title": "Phase Introduction"
-          }
-        }
-      }
-    },
-    "challenges": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "id",
-          "phase_id",
-          "name",
-          "description",
-          "roundIntroduction",
-          "metric_changes",
-          "stakeholders"
-        ],
-        "properties": {
-          "id": {
-            "type": "integer",
-            "title": "Challenge ID"
-          },
-          "phase_id": {
-            "type": "integer",
-            "title": "Phase ID"
-          },
-          "name": {
-            "type": "string",
-            "title": "Challenge Name"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description"
-          },
-          "roundIntroduction": {
-            "type": "string",
-            "title": "Round Introduction"
-          },
-          "metric_changes": {
-            "type": "object",
-            "title": "Metric Changes Matrix"
-          },
-          "attention_tokens": {
-            "type": "integer",
-            "title": "Attention Tokens",
-            "minimum": 0,
-            "description": "Number of attention tokens granted to the player for this challenge"
           },
           "stakeholders": {
             "type": "array",
+            "title": "Stakeholders",
             "items": {
               "type": "object",
               "required": [
@@ -117,6 +71,52 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "challenges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "phase_id",
+          "name",
+          "description",
+          "roundIntroduction",
+          "metric_changes"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Challenge ID"
+          },
+          "phase_id": {
+            "type": "integer",
+            "title": "Phase ID"
+          },
+          "name": {
+            "type": "string",
+            "title": "Challenge Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "roundIntroduction": {
+            "type": "string",
+            "title": "Round Introduction"
+          },
+          "metric_changes": {
+            "type": "object",
+            "title": "Metric Changes Matrix"
+          },
+          "attention_tokens": {
+            "type": "integer",
+            "title": "Attention Tokens",
+            "minimum": 0,
+            "description": "Number of attention tokens granted to the player for this challenge"
           }
         }
       }

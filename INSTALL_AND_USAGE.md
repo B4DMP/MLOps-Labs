@@ -35,10 +35,10 @@ The game requires access to these cloud services. The authentication to these se
 
 | Service | Purpose | Cost | Environment Variable | Setup Guide 
 |---------|---------|------|---------------------|-------------|
-| [Groq](https://rebrand.ly/mlops_serious_game-groq) / [RWTHgpt](https://help.itc.rwth-aachen.de/service/1808737e10424937b76e564ed15d8028/) | LLM API that powers the agents | Free tier | `GROQ_API_KEY` / `RWTH_API_KEY` | [Quick Start Guide](https://rebrand.ly/mlops_serious_game-groq-quickstart) |
+| [Groq](https://rebrand.ly/mlops_serious_game-groq) / [WestAI](https://help.itc.rwth-aachen.de/service/1808737e10424937b76e564ed15d8028/) / MistralAI | LLM API that powers the agents | Free tier | `GROQ_API_KEY` / `WESTAI_API_KEY` / `MISTRAL_API_KEY` | [Quick Start Guide](https://rebrand.ly/mlops_serious_game-groq-quickstart) |
 | [Opik](https://rebrand.ly/mlops_serious_game-opik) | LLMOps | Free tier (Hosted on Comet - same API Key) | `COMET_API_KEY` | [Quick Start Guide](https://rebrand.ly/mlops_serious_game-opik-quickstart) |
 
-Note that RWTHgpt is an OpenAI proxy hosted by the RWTH Aachen University. In theory, any OpenAI-compatible API can be used by modifying the `RWTH_API_BASE` in config.py.
+Note that WestAI is an OpenAI-compatible proxy hosted by the RWTH Aachen University. In theory, any OpenAI-compatible API can be used by modifying `WESTAI_API_BASE` or `MISTRAL_API_BASE` in config.py.
 
 When working locally, the infrastructure is set up using Docker. Thus, you can use the default values found in the [config.py](mlops_serious_game-api/src/mlops_serious_game/config.py) file for all the infrastructure-related environment variables.
 

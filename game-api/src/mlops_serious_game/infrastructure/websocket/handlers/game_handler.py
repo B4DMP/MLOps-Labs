@@ -77,7 +77,23 @@ def get_outro_questions() -> list[Any]:
     return [q.model_dump() if hasattr(q, 'model_dump') else q for q in QuestionFactory.outro_questions]
 
 def get_phases() -> list[Any]:
-    return [{"phase_name": p.name, "phase_desc": p.description} for p in PhaseFactory.get_phases()]
+    return [
+        {
+            "id": p.id,
+            "phase_name": p.name,
+            "phase_desc": p.description,
+            "phase_introduction": p.phase_introduction,
+            "stakeholder_power_interest": [
+                {
+                    "stakeholder_id": ps.stakeholder_id,
+                    "power": ps.power,
+                    "interest": ps.interest,
+                }
+                for ps in p.stakeholders
+            ],
+        }
+        for p in PhaseFactory.get_phases()
+    ]
 
 
 def get_emotion_colors() -> dict[str, str]:
@@ -261,11 +277,11 @@ async def handle_game_init(
                 "engagement_cards": get_engagement_cards(),
                 "challenge_stakeholders": [
                     {
-                        "stakeholder_id": getattr(cs, "stakeholder_id", None) or (cs.get("stakeholder_id") if isinstance(cs, dict) else ""),
-                        "power": getattr(cs, "power", None) or (cs.get("power") if isinstance(cs, dict) else "low"),
-                        "interest": getattr(cs, "interest", None) or (cs.get("interest") if isinstance(cs, dict) else "low"),
+                        "stakeholder_id": ps.stakeholder_id,
+                        "power": ps.power,
+                        "interest": ps.interest,
                     }
-                    for cs in (curr_challenge.stakeholders if hasattr(curr_challenge, "stakeholders") and curr_challenge.stakeholders else [])
+                    for ps in PhaseFactory.get_phases()[curr_challenge.phase_id].stakeholders
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
                 "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
@@ -550,11 +566,11 @@ async def handle_state_update_request(
                 "engagement_cards": get_engagement_cards(),
                 "challenge_stakeholders": [
                     {
-                        "stakeholder_id": getattr(cs, "stakeholder_id", None) or (cs.get("stakeholder_id") if isinstance(cs, dict) else ""),
-                        "power": getattr(cs, "power", None) or (cs.get("power") if isinstance(cs, dict) else "low"),
-                        "interest": getattr(cs, "interest", None) or (cs.get("interest") if isinstance(cs, dict) else "low"),
+                        "stakeholder_id": ps.stakeholder_id,
+                        "power": ps.power,
+                        "interest": ps.interest,
                     }
-                    for cs in (challenge.stakeholders if hasattr(challenge, "stakeholders") and challenge.stakeholders else [])
+                    for ps in PhaseFactory.get_phases()[challenge.phase_id].stakeholders
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
                 "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),

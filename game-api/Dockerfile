@@ -6,14 +6,20 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Set the working directory.
 WORKDIR /app
 
-# Install the application dependencies (before copying source for better caching).
+# Install dependencies (cached unless pyproject.toml changes).
 COPY pyproject.toml README.md ./
-RUN uv pip install --no-cache --system torch --index-url https://download.pytorch.org/whl/cpu
-RUN uv pip install --no-cache --system .
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system torch --index-url https://download.pytorch.org/whl/cpu
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r pyproject.toml
 
-# Copy the application into the container (cache-busts only cheap COPY layers on code changes).
+# Copy application source files.
 COPY src/mlops_serious_game mlops_serious_game/
 COPY tools tools/
 COPY --from=gameconfig . /gameConfig
+
+# Install current package without reinstalling dependencies.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --no-deps -e .
 
 CMD ["fastapi", "run", "mlops_serious_game/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]
