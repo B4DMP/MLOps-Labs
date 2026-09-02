@@ -30,9 +30,8 @@ export default function PerformanceDashboard({
 }: PerformanceDashboardProps) {
   return (
     <div
-      className={`${styles.helpOverlayLayer} ${
-        isOpen ? styles.helpLayerVisible : styles.helpLayerHidden
-      }`}
+      className={`${styles.helpOverlayLayer} ${isOpen ? styles.helpLayerVisible : styles.helpLayerHidden
+        }`}
     >
       <div className="container-fluid h-100 d-flex flex-column gap-3 p-1 p-md-2" style={{ maxWidth: "1400px" }}>
         {/* Top Header Label */}
@@ -78,16 +77,10 @@ export default function PerformanceDashboard({
         <div className="w-100 flex-grow-1">
           <div className="transparent-div p-3 shadow-lg h-100">
             <span className="transparent-div-label mb-2 d-flex align-items-center gap-2 fs-6">
-              <Icon icon="ph:target-bold" style={{ color: "var(--primary-bg)", fontSize: "1.2rem" }} /> Challenge Description
+              <Icon icon="ph:target-bold" style={{ color: "var(--primary-bg)", fontSize: "1.2rem" }} /> MLOps Project Graph
             </span>
             <div className="pt-1">
-              <ChallengeDescriptionCard
-                challengeTitle={challengeTitle}
-                challengeDescription={challengeDescription}
-                challengeIntro={challengeIntro}
-                currentChallenge={currentChallenge}
-                challengeAmount={challengeAmount}
-              />
+
             </div>
           </div>
         </div>

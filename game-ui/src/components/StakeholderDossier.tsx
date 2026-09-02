@@ -269,7 +269,7 @@ export default function StakeholderDossier({
     const stObj = stakeholders[st.stakeholder_id];
     const avatar = stObj?.avatar;
     const stakeholderColor = getStakeholderColor(st);
-    const emotionDisplay = stObj?.emotional_state || stObj?.facial_expression || avatar?.face || "smile";
+    const emotionDisplay = stObj?.emotional_state || "neutral";
     const emotionColor =
       activeEmotionColors[emotionDisplay] ||
       activeEmotionColors[emotionDisplay.toLowerCase()] ||

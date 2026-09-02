@@ -97,9 +97,8 @@ export default function EngagementCards({
               draggable={canAfford}
               onDragStart={(e) => handleDragStart(e, card)}
               onDragEnd={handleDragEnd}
-              className={`${styles.cardContainer} ${!canAfford ? styles.not_interactable : ""} ${
-                draggingCardId === card.id ? styles.dragging : ""
-              }`}
+              className={`${styles.cardContainer} ${!canAfford ? styles.not_interactable : ""} ${draggingCardId === card.id ? styles.dragging : ""
+                }`}
               onClick={() => handleCardClick(card)}
               title={
                 !isEnabled
@@ -206,12 +205,12 @@ export default function EngagementCards({
                         </>
                       ) : canAfford ? (
                         <>
-                          PLAY CARD (
+                          PLAY CARD(
                           <span style={{ color: "var(--token-color)" }}>
                             {card.token_cost}
                             <Icon icon="ph:coin-fill" className="ms-1" style={{ color: "var(--token-color)" }} />
-                          </span>
-                          )
+                          </span>)
+
                         </>
                       ) : (
                         <>

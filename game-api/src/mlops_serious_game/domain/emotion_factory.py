@@ -172,6 +172,20 @@ class EmotionFactory:
             else:
                 ret[key] = "smile"
         return ret
+    
+    @classmethod
+    def get_emotion_states_dict(cls, emotion_values_dict: dict[str, Any]) -> dict[str, str]:
+        ret = {}
+        for key, ev in (emotion_values_dict or {}).items():
+            if isinstance(ev, dict):
+                ret[key] = cls.derive_emotional_state(ev)
+            elif hasattr(ev, "model_dump"):
+                ret[key] = cls.derive_emotional_state(ev.model_dump())
+            elif hasattr(ev, "dict"):
+                ret[key] = cls.derive_emotional_state(ev.dict())
+            else:
+                ret[key] = "neutral"
+        return ret
 
     @classmethod
     def derive_emotion_prompt(cls, emotion_state: str) -> str:

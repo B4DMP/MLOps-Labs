@@ -1232,7 +1232,7 @@ export default function OnlineIntelGathering({
                 onClick={handleConfirmPlayCardModal}
               >
                 <Icon icon="ph:lightning-fill" className="me-1" />
-                Confirm & Play Card ({playingCard.token_cost} 🪙)
+                Confirm & Play Card ({playingCard.token_cost})
               </button>
             </div>
           </div>

@@ -304,6 +304,7 @@ function App({ username: _username }: AppProps) {
           const st = enrichedStakeholders[stId];
           const associatedMetric = currentMetrics[st.metric_id] || Object.values(currentMetrics).find((m: any) => m.id === st.metric_id);
           st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || "#888888");
+          st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
           }
@@ -421,6 +422,21 @@ function App({ username: _username }: AppProps) {
         });
       }
 
+      if (data.emotional_states && typeof data.emotional_states === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.emotional_states).forEach((stId) => {
+            if (updated[stId]) {
+              updated[stId] = {
+                ...updated[stId],
+                emotional_state: data.emotional_states[stId],
+              };
+            }
+          });
+          return updated;
+        });
+      }
+
       if (data.dialogue_options && Array.isArray(data.dialogue_options)) {
         setDialogueOptions(data.dialogue_options);
       }
@@ -441,6 +457,21 @@ function App({ username: _username }: AppProps) {
       if (data["action_cards"] && acCountRef.current !== data["action_cards"].length) {
         setac_count(data["action_cards"].length);
         _ac_id = data["action_cards"].length - 1;
+      }
+
+      if (data && data.emotional_states && typeof data.emotional_states === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.emotional_states).forEach((stId) => {
+            if (updated[stId]) {
+              updated[stId] = {
+                ...updated[stId],
+                emotional_state: data.emotional_states[stId],
+              };
+            }
+          });
+          return updated;
+        });
       }
 
       if (data.messages && Array.isArray(data.messages)) {
@@ -513,7 +544,24 @@ function App({ username: _username }: AppProps) {
     });
 
     const unsubChatCompleted = subscribe("chat:graph_completed", (data: any) => {
+
       setIsChatEnabled(true);
+
+      if (data && data.emotional_states && typeof data.emotional_states === "object") {
+        setStakeholders((prev) => {
+          const updated = { ...prev };
+          Object.keys(data.emotional_states).forEach((stId) => {
+            if (updated[stId]) {
+              updated[stId] = {
+                ...updated[stId],
+                emotional_state: data.emotional_states[stId],
+              };
+            }
+          });
+          return updated;
+        });
+      }
+
       if (currentPhaseRef.current === 0 && currentChallengeRef.current === 0 && !isintro5DoneRef.current) {
         setTimeout(() => {
           introJs()

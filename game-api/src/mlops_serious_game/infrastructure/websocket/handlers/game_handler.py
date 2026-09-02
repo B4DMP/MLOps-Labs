@@ -317,6 +317,8 @@ async def handle_game_init(
                     for ps in PhaseFactory.get_phases()[curr_challenge.phase_id].stakeholders
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
+                "emotional_states": EmotionFactory.get_emotion_states_dict(emotion_values_dict),
+                "emotion_values": emotion_values_dict,
                 "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
                 **({
                     "dialogue_options": await get_dialogue_options(
@@ -606,6 +608,7 @@ async def handle_state_update_request(
                     for ps in PhaseFactory.get_phases()[challenge.phase_id].stakeholders
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
+                "emotional_states": EmotionFactory.get_emotion_states_dict(ev_dict),
                 "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             }
         )
