@@ -28,4 +28,3 @@ class ConvincerArchetype(BaseModel):
         description="Value horizon: 0 = short-term practical -> 5 = long-term strategic",
     )
     strategy: str = Field(default="", description="Recommended persuasion and communication strategy")
-

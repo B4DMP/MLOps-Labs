@@ -1,3 +1,4 @@
+import { Icon } from "@iconify/react";
 import StakeholdersList from "./StakeholderList";
 import React, { useState, useEffect, useRef, useContext } from "react";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -30,12 +31,24 @@ export type RevealedIntel = {
   is_corrected?: boolean;
 };
 
+export type ConvincerVerification = {
+  was_correct: boolean;
+  stakeholder_id: string;
+  stakeholder_name?: string;
+  categorized_archetype?: string;
+  old_archetype?: string;
+  true_archetype?: string;
+  strategy?: string;
+  explanation?: string;
+};
+
 export type ChatMsg = {
   id: string;
   message: string;
   ac_id: number;
   facial_expression?: string;
   revealed_intel?: RevealedIntel[];
+  convincer_verification?: ConvincerVerification;
 };
 
 interface StakeholderInteractionAreaProps {
@@ -50,6 +63,8 @@ interface StakeholderInteractionAreaProps {
   className?: string;
   showStakeholderList?: boolean;
   showDialogueOptions?: boolean;
+  isMaximized?: boolean;
+  onToggleMaximize?: () => void;
 }
 
 export default function StakeholderInteractionArea({
@@ -64,6 +79,8 @@ export default function StakeholderInteractionArea({
   className = "col-5",
   showStakeholderList = true,
   showDialogueOptions = true,
+  isMaximized = false,
+  onToggleMaximize,
 }: StakeholderInteractionAreaProps) {
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
@@ -104,9 +121,34 @@ export default function StakeholderInteractionArea({
       data-step="1"
       data-position="bottom"
     >
-      <h6 className="transparent-div-label">
-        💬 Stakeholder Interaction Area
-      </h6>
+      <div className="d-flex justify-content-between align-items-center mb-1 w-100 flex-shrink-0">
+        <h6 className="transparent-div-label mb-0">
+          💬 Conversation History
+        </h6>
+        {onToggleMaximize && (
+          <button
+            type="button"
+            className="btn btn-sm text-light p-1 d-flex align-items-center justify-content-center"
+            style={{
+              background: "rgba(255, 255, 255, 0.12)",
+              border: "1px solid rgba(255, 255, 255, 0.25)",
+              borderRadius: "6px",
+              width: "28px",
+              height: "28px",
+              flexShrink: 0,
+              cursor: "pointer",
+              transition: "all var(--transition)",
+            }}
+            onClick={onToggleMaximize}
+            title={isMaximized ? "Restore view (Show Challenge & Pitch Deck)" : "Maximize conversation history"}
+          >
+            <Icon
+              icon={isMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+              style={{ fontSize: "1rem" }}
+            />
+          </button>
+        )}
+      </div>
       {showStakeholderList && (
         <StakeholdersList current_phase={current_phase} />
       )}
@@ -208,6 +250,61 @@ export default function StakeholderInteractionArea({
                               </p>
                             </div>
                           ))}
+                        </div>
+                      )}
+                      {item.convincer_verification && (
+                        <div
+                          className="d-flex flex-column justify-content-center align-items-center w-100 gap-2"
+                          style={{ margin: "12px 0" }}
+                        >
+                          <div
+                            className="transparent-div"
+                            style={{ minHeight: "40px", display: "flex", alignItems: "center", padding: "6px 16px" }}
+                          >
+                            <p
+                              className="text-center m-0"
+                              style={{ color: "#c3c3c3ff", fontSize: "0.85rem" }}
+                            >
+                              {item.convincer_verification.was_correct ? (
+                                <>
+                                  <span>validated convincer archetype for </span>
+                                  <strong style={{ color: "#ffffff" }}>
+                                    {item.convincer_verification.stakeholder_name || item.convincer_verification.stakeholder_id}
+                                  </strong>
+                                  <span>: </span>
+                                  <span style={{ fontWeight: "bold", color: "#60a5fa" }}>
+                                    {item.convincer_verification.true_archetype || item.convincer_verification.categorized_archetype}
+                                  </span>{" "}
+                                  <span
+                                    className="badge bg-success ms-1"
+                                    style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
+                                  >
+                                    verified
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>refuted convincer archetype for </span>
+                                  <strong style={{ color: "#ffffff" }}>
+                                    {item.convincer_verification.stakeholder_name || item.convincer_verification.stakeholder_id}
+                                  </strong>
+                                  <span> (was </span>
+                                  <em>{item.convincer_verification.old_archetype}</em>
+                                  <span> ➔ corrected to </span>
+                                  <span style={{ fontWeight: "bold", color: "#60a5fa" }}>
+                                    {item.convincer_verification.true_archetype}
+                                  </span>
+                                  <span>) </span>
+                                  <span
+                                    className="badge bg-warning text-dark ms-1"
+                                    style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
+                                  >
+                                    corrected
+                                  </span>
+                                </>
+                              )}
+                            </p>
+                          </div>
                         </div>
                       )}
                       {item.ac_id !== -1 && actionCards[item.ac_id] && (

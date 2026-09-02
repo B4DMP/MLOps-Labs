@@ -26,6 +26,8 @@ export interface StakeholderDossierEntry {
   power?: string;
   interest?: string;
   convincer_archetype?: string;
+  convincer_status?: "validated" | "unconfirmed" | "unknown";
+  is_validated?: boolean;
   intel_items: IntelEntry[];
 }
 
@@ -75,6 +77,7 @@ export default function StakeholderDossier({
   const currentChallenge = propChallenge;
 
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
+  const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
 
@@ -139,6 +142,8 @@ export default function StakeholderDossier({
 
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
+    setIsRetaggingConvincer(false);
+    setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
   };
 
@@ -231,6 +236,18 @@ export default function StakeholderDossier({
       challenge_id: currentChallenge,
       requirement_id: requirementId,
       categorized_type: newType,
+    });
+    emit("intel:get_dossier", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+    });
+  };
+
+  const handleReTagConvincer = (stakeholderId: string, newArchetype: string) => {
+    setIsRetaggingConvincer(false);
+    emit("intel:tag_convincer", {
+      stakeholder_id: stakeholderId,
+      categorized_archetype: newArchetype,
     });
     emit("intel:get_dossier", {
       phase_id: currentPhase,
@@ -335,27 +352,132 @@ export default function StakeholderDossier({
         </div>
 
         {/* Convincer Profile & Persuasion Strategy Card */}
-        {convincerProfileConfig && (
-          <div className={styles.convincerCard}>
+        {convincerArchetypeName ? (
+          <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`}>
             <div className={styles.convincerCardHeader}>
-              <span className={styles.convincerDoodleIcon}>🧠</span>
-              <span>Convincer Archetype: </span>
-              <strong style={{ color: convincerProfileConfig.color }}>
-                {convincerProfileConfig.icon} {convincerProfileConfig.label || convincerProfileConfig.name || convincerArchetypeName}
-              </strong>
+              <div className="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+                <div className="d-flex align-items-center gap-2">
+                  <span className={styles.convincerDoodleIcon}></span>
+                  <span>Convincer Archetype: </span>
+                  {!(st.is_validated || st.convincer_status === "validated") ? (
+                    <button
+                      className={`${styles.categoryBadge}`}
+                      style={{
+                        backgroundColor: "#f1f5f9",
+                        border: `1.5px dashed ${convincerProfileConfig?.color || "#2563eb"}`,
+                        color: convincerProfileConfig?.color || "#2563eb",
+                        cursor: "pointer",
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsRetaggingConvincer(!isRetaggingConvincer);
+                      }}
+                      title="Click to re-tag this stakeholder's convincer archetype"
+                    >
+                      <span className="fw-bold">
+                        {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
+                      </span>
+                      <span className={styles.reTagPrompt}>✏️ Re-tag</span>
+                    </button>
+                  ) : (
+                    <strong style={{ color: convincerProfileConfig?.color || "#2563eb" }}>
+                      {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
+                    </strong>
+                  )}
+                </div>
+                <div>
+                  {renderRubberStamp(st.is_validated || st.convincer_status === "validated" ? "verified" : "unconfirmed")}
+                </div>
+              </div>
             </div>
-            <div className={styles.convincerStrategyBody}>
-              <span className={styles.strategyBulb}>💡</span>
-              <span>
-                <strong>Effective Communication Strategy:</strong> {convincerProfileConfig.strategy}
-              </span>
+
+            {/* Interactive Re-tag Picker Popover for Convincer Archetype */}
+            {isRetaggingConvincer && (
+              <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.retagPopoverTitle}>Re-tag Convincer Archetype:</div>
+                <div className={styles.retagOptionsGrid}>
+                  {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
+                    <button
+                      key={archName}
+                      className={`${styles.retagOptionBtn} ${archName === convincerArchetypeName ? styles.activeOptionBtn : ""}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReTagConvincer(st.stakeholder_id, archName);
+                      }}
+                    >
+                      {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {convincerProfileConfig?.strategy && (
+              <div className={styles.convincerStrategyBody}>
+                <span className={styles.strategyBulb}>💡</span>
+                <span>
+                  <strong>Effective Communication Strategy:</strong> {convincerProfileConfig.strategy}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`} style={{ opacity: 0.85, background: "rgba(241, 245, 249, 0.7)" }}>
+            <div className={styles.convincerCardHeader}>
+              <div className="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+                <div className="d-flex align-items-center gap-2">
+                  <span className={styles.convincerDoodleIcon}>🧠</span>
+                  <span className="text-muted">Convincer Archetype:</span>
+                  <button
+                    className={`${styles.categoryBadge}`}
+                    style={{
+                      backgroundColor: "#f1f5f9",
+                      border: "1.5px dashed #94a3b8",
+                      color: "#64748b",
+                      cursor: "pointer",
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsRetaggingConvincer(!isRetaggingConvincer);
+                    }}
+                    title="Click to categorize this stakeholder's convincer archetype"
+                  >
+                    <em>Uncategorized</em>
+                    <span className={styles.reTagPrompt}>✏️ Set Archetype</span>
+                  </button>
+                </div>
+                <div>
+                  {renderRubberStamp("unconfirmed")}
+                </div>
+              </div>
             </div>
+
+            {/* Interactive Re-tag Picker Popover for Uncategorized Convincer */}
+            {isRetaggingConvincer && (
+              <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.retagPopoverTitle}>Select Convincer Archetype:</div>
+                <div className={styles.retagOptionsGrid}>
+                  {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
+                    <button
+                      key={archName}
+                      className={styles.retagOptionBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReTagConvincer(st.stakeholder_id, archName);
+                      }}
+                    >
+                      {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>
-          <span className={styles.doodleIcon}>✏️</span> Intelligence
+          <span className={styles.doodleIcon}></span> Challenge-Specific Stance
         </div>
 
         {/* Sticky Notes Grid (Note-level intel type badge & re-tagging) */}

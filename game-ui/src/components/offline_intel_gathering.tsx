@@ -33,6 +33,8 @@ export interface IntelArtifact {
   artifact_type: string;
   content: string;
   categorized_type?: string;
+  is_convincer_profile?: boolean;
+  possible_archetypes?: string[];
 }
 
 const REQUIREMENT_TAGS = [
@@ -56,6 +58,58 @@ const REQUIREMENT_TAGS = [
     icon: "⚡",
     color: "#d97706",
     description: "Interpersonal concern or personal workflow friction.",
+  },
+];
+
+const CONVINCER_TAGS = [
+  {
+    type: "Technical Excellence",
+    label: "Technical Excellence",
+    icon: "⚙️",
+    color: "#2563eb",
+    description: "Values architectural rigor, precision, and state-of-the-art tooling.",
+  },
+  {
+    type: "Business Value",
+    label: "Business Value",
+    icon: "📈",
+    color: "#16a34a",
+    description: "Driven by ROI, time-to-market, and measurable business outcomes.",
+  },
+  {
+    type: "Safety & Reliability",
+    label: "Safety & Reliability",
+    icon: "🛡️",
+    color: "#dc2626",
+    description: "Prioritizes uptime, stability, rollback strategies, and risk mitigation.",
+  },
+  {
+    type: "Control & Governance",
+    label: "Control & Governance",
+    icon: "⚖️",
+    color: "#7c3aed",
+    description: "Focuses on regulatory compliance, auditability, and standardization.",
+  },
+  {
+    type: "People & Trust",
+    label: "People & Trust",
+    icon: "🤝",
+    color: "#ea580c",
+    description: "Prioritizes team morale, transparency, psychological safety, and culture.",
+  },
+  {
+    type: "Autonomy",
+    label: "Autonomy",
+    icon: "🚀",
+    color: "#0891b2",
+    description: "Values rapid iteration, developer freedom, and minimal friction.",
+  },
+  {
+    type: "Pragmatism",
+    label: "Pragmatism",
+    icon: "🛠️",
+    color: "#475569",
+    description: "Prefers simple, working solutions over perfection or complex frameworks.",
   },
 ];
 
@@ -147,12 +201,19 @@ export default function OfflineIntelGathering({
       onTagArtifact(currentArtifact.stakeholder_id || currentArtifact.stakeholder_name);
     }
 
-    emit("intel:tag_item", {
-      phase_id: currentPhase,
-      challenge_id: currentChallenge,
-      requirement_id: currentArtifact.requirement_id,
-      categorized_type: categorizedType,
-    });
+    if (currentArtifact.is_convincer_profile) {
+      emit("intel:tag_convincer", {
+        stakeholder_id: currentArtifact.stakeholder_id,
+        categorized_archetype: categorizedType,
+      });
+    } else {
+      emit("intel:tag_item", {
+        phase_id: currentPhase,
+        challenge_id: currentChallenge,
+        requirement_id: currentArtifact.requirement_id,
+        categorized_type: categorizedType,
+      });
+    }
 
     emit("intel:get_dossier", {
       phase_id: currentPhase,
@@ -547,17 +608,25 @@ export default function OfflineIntelGathering({
                   <div className="card border-secondary p-2 p-md-3 bg-white shadow-sm flex-shrink-0">
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <h6 className="fw-bold text-dark mb-0 fs-6">
-                        Categorize {currentArtifact.stakeholder_name}'s stance:
+                        {currentArtifact.is_convincer_profile
+                          ? `Categorize ${currentArtifact.stakeholder_name}'s Convincer Archetype:`
+                          : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
                       </h6>
-                      <small className="text-muted" style={{ fontSize: "0.78rem" }}>Select a category below</small>
+                      <small className="text-muted" style={{ fontSize: "0.78rem" }}>
+                        {currentArtifact.is_convincer_profile ? "Select Archetype" : "Select Category"}
+                      </small>
                     </div>
 
                     <div className="row g-2">
-                      {REQUIREMENT_TAGS.map((tag) => {
+                      {(currentArtifact.is_convincer_profile ? CONVINCER_TAGS : REQUIREMENT_TAGS).map((tag) => {
                         const isSelected = currentTaggedType === tag.type;
                         const isHovered = hoveredTag === tag.type;
+                        const colClass = currentArtifact.is_convincer_profile
+                          ? "col-12 col-md-6 col-lg-4"
+                          : "col-12 col-md-4";
+
                         return (
-                          <div key={tag.type} className="col-12 col-md-4">
+                          <div key={tag.type} className={colClass}>
                             <button
                               onClick={() => handleTagArtifact(tag.type)}
                               onMouseEnter={() => setHoveredTag(tag.type)}
@@ -576,22 +645,22 @@ export default function OfflineIntelGathering({
                                 transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
                                 color: "#000000",
                                 cursor: "pointer",
-                                minHeight: "68px",
+                                minHeight: currentArtifact.is_convincer_profile ? "72px" : "68px",
                                 transition: "all 0.15s ease-in-out",
                               }}
                             >
-                              <div className="fw-bold d-flex align-items-center justify-content-between mb-1" style={{ color: "#000000", fontSize: "0.9rem" }}>
+                              <div className="fw-bold d-flex align-items-center justify-content-between mb-1" style={{ color: "#000000", fontSize: "0.85rem" }}>
                                 <span className="d-flex align-items-center gap-1" style={{ color: "#000000" }}>
                                   <span>{tag.icon}</span>{" "}
                                   <span style={{ color: tag.color, fontWeight: 700 }}>{tag.label}</span>
                                 </span>
                                 {isSelected && (
-                                  <span className="badge text-white rounded-pill px-2 py-1 shadow-sm" style={{ backgroundColor: "var(--primary-bg)", fontSize: "0.65rem" }}>
+                                  <span className="badge text-white rounded-pill px-2 py-1 shadow-sm flex-shrink-0" style={{ backgroundColor: "var(--primary-bg)", fontSize: "0.65rem" }}>
                                     Selected
                                   </span>
                                 )}
                               </div>
-                              <small className="d-block fw-semibold text-truncate" style={{ fontSize: "0.75rem", color: "#334155", opacity: 0.95 }} title={tag.description}>
+                              <small className="d-block fw-semibold" style={{ fontSize: "0.74rem", color: "#334155", opacity: 0.95, lineHeight: 1.35 }}>
                                 {tag.description}
                               </small>
                             </button>

@@ -117,7 +117,7 @@ export default function PrePhaseDialog({
                 <h6 className={styles.sectionTitle}>
                   <Icon
                     icon="ph:users-three-bold"
-                    style={{ color: "var(--primary-bg)", fontSize: "1.25rem" }}
+                    style={{ color: "var(--primary-bg)", fontSize: "1.4rem" }}
                   />
                   <span>Stakeholder Power & Interest Matrix</span>
                 </h6>

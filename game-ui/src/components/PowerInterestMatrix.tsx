@@ -180,7 +180,7 @@ export default function PowerInterestMatrix({
     <div className={styles.matrixContainer}>
       {/* Dynamics Summary Banner */}
       <div className={styles.summaryBanner}>
-        <Icon icon="ph:arrows-clockwise-bold" style={{ fontSize: "1.1rem", color: "var(--primary-bg)", flexShrink: 0, marginTop: "2px" }} />
+        <Icon icon="ph:arrows-clockwise-bold" style={{ fontSize: "1.35rem", color: "var(--primary-bg)", flexShrink: 0, marginTop: "2px" }} />
         <div style={{ minWidth: 0 }}>
           <span>
             <strong>Phase Dynamics: </strong>
@@ -210,7 +210,7 @@ export default function PowerInterestMatrix({
                 <div key={quad.key} className={`${styles.quadrantCard} ${quad.cardStyle}`}>
                   <div className={styles.quadrantHeader}>
                     <span className={styles.quadrantTitle}>
-                      <Icon icon={quad.icon} style={{ color: quad.iconColor, fontSize: "0.95rem" }} />
+                      <Icon icon={quad.icon} style={{ color: quad.iconColor, fontSize: "1.3rem" }} />
                       {quad.title}
                     </span>
                     <span className={styles.quadrantAxisBadge}>{quad.axisLabel}</span>
@@ -245,7 +245,7 @@ export default function PowerInterestMatrix({
                           >
                             <div
                               className={styles.stakeholderItem}
-                              style={{ borderLeft: `3px solid ${stColor}` }}
+                              style={{ borderLeft: `4px solid ${stColor}` }}
                             >
                               <div className={styles.stakeholderLeft}>
                                 <div className={styles.avatarWrapper}>
@@ -257,7 +257,7 @@ export default function PowerInterestMatrix({
                                       size="100%"
                                     />
                                   ) : (
-                                    <Icon icon="ph:user-bold" style={{ color: stColor }} />
+                                    <Icon icon="ph:user-bold" style={{ color: stColor, fontSize: "1.4rem" }} />
                                   )}
                                 </div>
                                 <div className={styles.stakeholderMeta}>
