@@ -18,9 +18,8 @@ import { MetricsContext } from "./components/MetricProvider";
 import { StakeholderContext, type ConvincerProfileConfig } from "./components/StakeholderProvider";
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
-import PreRoundDialog from "./components/PreRoundDialog";
 import ErrorDialog from "./components/ErrorDialog";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./components/StakeholderDossier";
+import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import type { DialogueOption } from "./types/DialogueOption";
 
@@ -113,7 +112,6 @@ function App({ username: _username }: AppProps) {
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
-  const [isPreRoundDialogOpen, setIsPreRoundDialogOpen] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
@@ -166,12 +164,11 @@ function App({ username: _username }: AppProps) {
   }, [ac_count]);
 
   const prevShownPhaseRef = useRef<number | null>(null);
-  const prevShownChallengeKeyRef = useRef<string | null>(null);
 
-  // Manage PrePhaseDialog (at the start of each phase) and PreRoundDialog (at the start of each challenge)
+  // Manage PrePhaseDialog (at the start of each phase)
   useEffect(() => {
     if (progressionIndex === 2 && phases.length > 0) {
-      // 1. Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet (only when challengeLoopId === 0)
+      // Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet (only when challengeLoopId === 0)
       if (prevShownPhaseRef.current !== currentPhase) {
         if (challengeLoopId === 0) {
           prevShownPhaseRef.current = currentPhase;
@@ -194,30 +191,16 @@ function App({ username: _username }: AppProps) {
           } else {
             setIsPhaseDialogueOpen(true);
           }
-          setIsPreRoundDialogOpen(false);
           return;
         } else {
           prevShownPhaseRef.current = currentPhase;
-        }
-      }
-
-      // 2. If PrePhaseDialog is NOT open and we are in Offline Intel Gathering (challengeLoopId === 0)
-      if (!isPhaseDialogueOpen && challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
-        const challengeKey = `${currentPhase}-${currentChallenge}`;
-        if (prevShownChallengeKeyRef.current !== challengeKey) {
-          prevShownChallengeKeyRef.current = challengeKey;
-          setIsPreRoundDialogOpen(true);
         }
       }
     }
   }, [
     progressionIndex,
     currentPhase,
-    currentChallenge,
     challengeLoopId,
-    challengeTitle,
-    challengeDescription,
-    isPhaseDialogueOpen,
     phases.length,
   ]);
 
@@ -838,69 +821,8 @@ function App({ username: _username }: AppProps) {
               <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={setIsPhaseDialogueOpen}
-                setIsRoundOpen={() => {
-                  if (challengeLoopId === 0 && (challengeTitle || challengeDescription)) {
-                    const challengeKey = `${currentPhase}-${currentChallenge}`;
-                    prevShownChallengeKeyRef.current = challengeKey;
-                    setIsPreRoundDialogOpen(true);
-                  }
-                }}
               />
-              <PreRoundDialog
-                isOpen={isPreRoundDialogOpen}
-                onClose={() => setIsPreRoundDialogOpen(false)}
-                challengeTitle={challengeTitle}
-                challengeDescription={challengeDescription}
-                challengeIntro={challengeIntro}
-                currentChallenge={currentChallenge}
-                challengeAmount={challengeAmount}
-              />
-              {/* Global Floating Bottom-Right Stakeholder Dossier Button */}
-              {challengeLoopId === 0 && (
-                <button
-                  onClick={() => {
-                    emit("intel:get_dossier", {
-                      phase_id: currentPhase,
-                      challenge_id: currentChallenge,
-                    });
-                    setIsDossierOpen((prev) => !prev);
-                  }}
-                  style={{
-                    position: "fixed",
-                    bottom: "24px",
-                    right: "24px",
-                    zIndex: 9998,
-                    background: "linear-gradient(135deg, #4a382c, #2b1e16)",
-                    color: "#f3e9dc",
-                    border: "2px solid #8c6d58",
-                    borderRadius: "30px",
-                    padding: "10px 22px",
-                    fontFamily: "'Caveat', cursive, sans-serif",
-                    fontWeight: "bold",
-                    fontSize: "1.25rem",
-                    cursor: "pointer",
-                    boxShadow: "0 6px 20px rgba(0,0,0,0.5)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.06) translateY(-2px)")}
-                  onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  📓 Stakeholder Dossier
-                </button>
-              )}
 
-              <StakeholderDossier
-                isOpen={isDossierOpen}
-                onClose={() => setIsDossierOpen(false)}
-                dossierData={dossierData}
-                activeStakeholderId={activeStakeholderId}
-                currentPhase={currentPhase}
-                currentChallenge={currentChallenge}
-                convincerArchetypes={convincerArchetypes}
-              />
               {challengeLoopId === 0 && (
                 <OfflineIntelGathering
                   onContinue={handleOfflineIntelGatheringContinue}
@@ -913,6 +835,10 @@ function App({ username: _username }: AppProps) {
                   setIsDossierOpen={setIsDossierOpen}
                   dossierData={dossierData}
                   activeStakeholderId={activeStakeholderId}
+                  challengeTitle={challengeTitle}
+                  challengeDescription={challengeDescription}
+                  challengeIntro={challengeIntro}
+                  challengeAmount={challengeAmount}
                 />
               )}
               {challengeLoopId === 1 && (

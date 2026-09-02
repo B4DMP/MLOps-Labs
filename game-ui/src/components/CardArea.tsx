@@ -199,7 +199,7 @@ function CardArea({
         <div className="card shadow-sm" style={{ width: "75%", height: "fit-content" }}>
           <h5
             className="card-header"
-            style={{ textAlign: "center", background: "rgba(130, 25, 25, 1)" }}
+            style={{ textAlign: "center", background: "var(--primary-bg)" }}
           >
             <span style={{ color: "white" }}>
               <b> {challenge_title}</b>

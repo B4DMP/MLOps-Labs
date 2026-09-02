@@ -189,94 +189,116 @@ export default function PowerInterestMatrix({
         </div>
       </div>
 
-      {/* 2x2 Quadrant Grid */}
-      <div className={styles.matrixGrid}>
-        {QUADRANTS.map((quad) => {
-          const items = categorizedNodes[quad.key] || [];
+      {/* Matrix Coordinate Wrapper with Vertical Power Axis & Horizontal Interest Axis */}
+      <div className={styles.matrixWrapper}>
+        {/* Left Vertical Axis: Power */}
+        <div className={styles.yAxis}>
+          <div className={styles.axisLineY}>
+            <Icon icon="ph:arrow-up-bold" className={styles.axisArrowIcon} />
+            <span className={styles.axisLabelTextY}>Power</span>
+          </div>
+        </div>
 
-          return (
-            <div key={quad.key} className={`${styles.quadrantCard} ${quad.cardStyle}`}>
-              <div className={styles.quadrantHeader}>
-                <span className={styles.quadrantTitle}>
-                  <Icon icon={quad.icon} style={{ color: quad.iconColor, fontSize: "0.95rem" }} />
-                  {quad.title}
-                </span>
-                <span className={styles.quadrantAxisBadge}>{quad.axisLabel}</span>
-              </div>
+        {/* Main Content: 2x2 Quadrant Grid + Bottom Horizontal Axis: Interest */}
+        <div className={styles.matrixMain}>
+          {/* 2x2 Quadrant Grid */}
+          <div className={styles.matrixGrid}>
+            {QUADRANTS.map((quad) => {
+              const items = categorizedNodes[quad.key] || [];
 
-              <div className={styles.stakeholderList}>
-                {items.length === 0 ? (
-                  <div className={styles.emptyQuadrant}>No stakeholders</div>
-                ) : (
-                  items.map((item) => {
-                    const st = item.st;
-                    const stName = st?.name || item.stakeholderId;
-                    const stColor = st?.stakeholder_color || "#3b82f6";
-                    const roleDesc = st?.role_description || "Project Stakeholder";
+              return (
+                <div key={quad.key} className={`${styles.quadrantCard} ${quad.cardStyle}`}>
+                  <div className={styles.quadrantHeader}>
+                    <span className={styles.quadrantTitle}>
+                      <Icon icon={quad.icon} style={{ color: quad.iconColor, fontSize: "0.95rem" }} />
+                      {quad.title}
+                    </span>
+                    <span className={styles.quadrantAxisBadge}>{quad.axisLabel}</span>
+                  </div>
 
-                    let shiftText = "";
-                    if (item.isShifted) {
-                      const prevP = item.prevPower?.toUpperCase();
-                      const currP = item.currPower.toUpperCase();
-                      const prevI = item.prevInterest?.toUpperCase();
-                      const currI = item.currInterest.toUpperCase();
-                      const parts: string[] = [];
-                      if (prevP !== currP) parts.push(`Power: ${prevP} ➔ ${currP}`);
-                      if (prevI !== currI) parts.push(`Interest: ${prevI} ➔ ${currI}`);
-                      shiftText = parts.join(", ");
-                    }
+                  <div className={styles.stakeholderList}>
+                    {items.length === 0 ? (
+                      <div className={styles.emptyQuadrant}>No stakeholders</div>
+                    ) : (
+                      items.map((item) => {
+                        const st = item.st;
+                        const stName = st?.name || item.stakeholderId;
+                        const stColor = st?.stakeholder_color || "#3b82f6";
+                        const roleDesc = st?.role_description || "Project Stakeholder";
 
-                    return (
-                      <HoverTooltip
-                        key={item.stakeholderId}
-                        description={`${stName} — ${roleDesc}${shiftText ? ` (${shiftText})` : ""}`}
-                      >
-                        <div
-                          className={styles.stakeholderItem}
-                          style={{ borderLeft: `3px solid ${stColor}` }}
-                        >
-                          <div className={styles.stakeholderLeft}>
-                            <div className={styles.avatarWrapper}>
-                              {st?.avatar ? (
-                                <StakeholderAvatarComponent
-                                  avatar={st.avatar}
-                                  stakeholderColor={stColor}
-                                  isFramed={false}
-                                  size="100%"
-                                />
-                              ) : (
-                                <Icon icon="ph:user-bold" style={{ color: stColor }} />
-                              )}
+                        let shiftText = "";
+                        if (item.isShifted) {
+                          const prevP = item.prevPower?.toUpperCase();
+                          const currP = item.currPower.toUpperCase();
+                          const prevI = item.prevInterest?.toUpperCase();
+                          const currI = item.currInterest.toUpperCase();
+                          const parts: string[] = [];
+                          if (prevP !== currP) parts.push(`Power: ${prevP} ➔ ${currP}`);
+                          if (prevI !== currI) parts.push(`Interest: ${prevI} ➔ ${currI}`);
+                          shiftText = parts.join(", ");
+                        }
+
+                        return (
+                          <HoverTooltip
+                            key={item.stakeholderId}
+                            description={`${stName} — ${roleDesc}${shiftText ? ` (${shiftText})` : ""}`}
+                          >
+                            <div
+                              className={styles.stakeholderItem}
+                              style={{ borderLeft: `3px solid ${stColor}` }}
+                            >
+                              <div className={styles.stakeholderLeft}>
+                                <div className={styles.avatarWrapper}>
+                                  {st?.avatar ? (
+                                    <StakeholderAvatarComponent
+                                      avatar={st.avatar}
+                                      stakeholderColor={stColor}
+                                      isFramed={false}
+                                      size="100%"
+                                    />
+                                  ) : (
+                                    <Icon icon="ph:user-bold" style={{ color: stColor }} />
+                                  )}
+                                </div>
+                                <div className={styles.stakeholderMeta}>
+                                  <span className={styles.stakeholderName}>{stName}</span>
+                                  {roleDesc && (
+                                    <span className={styles.stakeholderDescription}>{roleDesc}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className={styles.badgeContainer}>
+                                {item.isNew && (
+                                  <span className={styles.badgeNew}>
+                                    <Icon icon="ph:plus-bold" /> NEW
+                                  </span>
+                                )}
+                                {item.isShifted && (
+                                  <span className={styles.badgeShifted} title={shiftText}>
+                                    <Icon icon="ph:trend-up-bold" /> SHIFTED
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <div className={styles.stakeholderMeta}>
-                              <span className={styles.stakeholderName}>{stName}</span>
-                              {roleDesc && (
-                                <span className={styles.stakeholderDescription}>{roleDesc}</span>
-                              )}
-                            </div>
-                          </div>
+                          </HoverTooltip>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                          <div className={styles.badgeContainer}>
-                            {item.isNew && (
-                              <span className={styles.badgeNew}>
-                                <Icon icon="ph:plus-bold" /> NEW
-                              </span>
-                            )}
-                            {item.isShifted && (
-                              <span className={styles.badgeShifted} title={shiftText}>
-                                <Icon icon="ph:trend-up-bold" /> SHIFTED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </HoverTooltip>
-                    );
-                  })
-                )}
-              </div>
+          {/* Bottom Horizontal Axis: Interest */}
+          <div className={styles.xAxis}>
+            <div className={styles.axisLineX}>
+              <span className={styles.axisLabelTextX}>Interest</span>
+              <Icon icon="ph:arrow-right-bold" className={styles.axisArrowIcon} />
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
     </div>
   );

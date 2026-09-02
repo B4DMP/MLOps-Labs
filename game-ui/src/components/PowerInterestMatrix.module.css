@@ -22,6 +22,83 @@
   box-sizing: border-box;
 }
 
+.matrixWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.6rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.yAxis {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.axisLineY {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 100%;
+  color: var(--primary-bg);
+}
+
+.axisLabelTextY {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--primary-bg);
+}
+
+.matrixMain {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0.4rem;
+}
+
+.xAxis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 0.15rem;
+}
+
+.axisLineX {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: var(--primary-bg);
+}
+
+.axisLabelTextX {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--primary-bg);
+}
+
+.axisArrowIcon {
+  font-size: 1.05rem;
+  color: var(--primary-bg);
+  flex-shrink: 0;
+}
+
 .matrixGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

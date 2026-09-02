@@ -13,7 +13,7 @@ import PowerInterestMatrix from "./PowerInterestMatrix";
 interface PrePhaseDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  setIsRoundOpen: (open: boolean) => void;
+  setIsRoundOpen?: (open: boolean) => void;
 }
 
 export default function PrePhaseDialog({
@@ -33,7 +33,9 @@ export default function PrePhaseDialog({
 
   const handleClose = () => {
     setIsOpen(false);
-    setIsRoundOpen(true);
+    if (setIsRoundOpen) {
+      setIsRoundOpen(true);
+    }
   };
 
   return (

@@ -40,7 +40,7 @@ export default function ChallengeDescriptionCard({
     <div className="card shadow-sm w-100" style={{ background: "#ffffff", border: "1px solid #dee2e6" }}>
       <h5
         className="card-header"
-        style={{ textAlign: "center", background: "rgba(130, 25, 25, 1)", color: "white" }}
+        style={{ textAlign: "center", background: "var(--primary-bg)", color: "white" }}
       >
         <span style={{ color: "white" }}>
           <b> {challengeTitle}</b>

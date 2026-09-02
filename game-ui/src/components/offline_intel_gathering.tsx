@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
+import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import styles from "./offline_intel_gathering.module.css";
 
 interface OfflineIntelGatheringProps {
@@ -14,8 +16,12 @@ interface OfflineIntelGatheringProps {
   onTagArtifact?: (stakeholderId: string) => void;
   isDossierOpen?: boolean;
   setIsDossierOpen?: (open: boolean) => void;
-  dossierData?: any[];
+  dossierData?: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  challengeTitle?: string;
+  challengeDescription?: string;
+  challengeIntro?: string;
+  challengeAmount?: number;
 }
 
 export interface IntelArtifact {
@@ -58,6 +64,12 @@ export default function OfflineIntelGathering({
   currentPhase = 0,
   currentChallenge = 0,
   onTagArtifact,
+  challengeTitle = "",
+  challengeDescription = "",
+  challengeIntro = "",
+  challengeAmount = 1,
+  dossierData = [],
+  activeStakeholderId,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
@@ -101,10 +113,23 @@ export default function OfflineIntelGathering({
         phase_id: currentPhase,
         challenge_id: currentChallenge,
       });
+      emit("intel:get_dossier", {
+        phase_id: currentPhase,
+        challenge_id: currentChallenge,
+      });
     }
 
     return () => unsubscribe();
   }, [currentPhase, currentChallenge]);
+
+  useEffect(() => {
+    if (artifacts.length > 0 && currentIndex < artifacts.length) {
+      const art = artifacts[currentIndex];
+      if (art && onTagArtifact) {
+        onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+      }
+    }
+  }, [currentIndex, artifacts]);
 
   const handleTagArtifact = (categorizedType: string) => {
     if (currentIndex >= artifacts.length) return;
@@ -197,11 +222,13 @@ export default function OfflineIntelGathering({
     return !taggedTypes[key];
   });
 
+  const currentStakeholderId = currentArtifact?.stakeholder_id || currentArtifact?.stakeholder_name;
+
   return (
     <div className="game-container">
       {/* Main Content Area over Game Background Canvas */}
       <div
-        className="container-fluid flex-grow-1 d-flex flex-column align-items-center justify-content-start p-2 p-md-3 position-relative overflow-hidden"
+        className="container-fluid flex-grow-1 d-flex flex-column p-2 p-md-3 position-relative overflow-auto"
         style={{
           backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
           backgroundSize: "cover",
@@ -210,51 +237,84 @@ export default function OfflineIntelGathering({
           height: "100%",
         }}
       >
-        {/* Transparent Div Wrapper */}
-        <div
-          className="transparent-div p-2 p-md-3 shadow-lg flex-grow-1 d-flex flex-column w-100"
-          style={{
-            maxWidth: "1240px",
-            height: "100%",
-            borderRadius: "16px",
-            minHeight: 0,
-          }}
-        >
-          {/* Header Title inside transparent-div */}
-          <div className="w-100 d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
-            <span className="transparent-div-label mb-0">
-              🔍 Offline Intel Gathering
-            </span>
+        {/* Main Board Grid: Left Column = Stakeholder Dossier (2/5), Right Column = Artifact Viewer & Categorization (3/5) */}
+        <div className="row g-3 align-items-stretch flex-grow-1 h-100">
+          {/* LEFT COLUMN: Stakeholder Dossier (2/5 of screen) */}
+          <div className={`col-12 d-flex flex-column h-100 ${styles.leftColumnDossier}`}>
+            <div className="flex-grow-1 h-100" style={{ minHeight: "500px" }}>
+              <StakeholderDossier
+                isOpen={true}
+                canClose={false}
+                isEmbedded={true}
+                dossierData={dossierData || []}
+                activeStakeholderId={activeStakeholderId || currentStakeholderId}
+                currentPhase={currentPhase}
+                currentChallenge={currentChallenge}
+                onClose={() => {}}
+              />
+            </div>
+          </div>
 
-            {/* Quick direct item navigation pills */}
-            {artifacts.length > 0 && (
-              <div className="d-flex align-items-center gap-1 overflow-x-auto">
-                {artifacts.map((art, idx) => {
-                  const key = art.id || art.requirement_id;
-                  const isTagged = !!taggedTypes[key];
-                  const isCurrent = idx === currentIndex;
-                  return (
-                    <button
-                      key={key || idx}
-                      onClick={() => {
-                        if (transitionTimeoutRef.current) {
-                          clearTimeout(transitionTimeoutRef.current);
-                          transitionTimeoutRef.current = null;
-                        }
-                        setDirection(idx >= currentIndex ? 1 : -1);
-                        setCurrentIndex(idx);
+          {/* RIGHT COLUMN: Offline Intel Gathering Artifact Viewer & Categorization (3/5 of screen) */}
+          <div className={`col-12 d-flex flex-column h-100 ${styles.rightColumnIntel}`}>
+            {/* Transparent Div Wrapper */}
+            <div
+              className="transparent-div p-2 p-md-3 shadow-lg flex-grow-1 d-flex flex-column w-100 h-100"
+              style={{
+                borderRadius: "16px",
+                minHeight: 0,
+              }}
+            >
+              {/* Header Title inside transparent-div */}
+              <div className="w-100 d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
+                <span className="transparent-div-label mb-0">
+                  🔍 Offline Intel Gathering
+                </span>
+
+                {/* Quick direct item navigation pills */}
+                {artifacts.length > 0 && (
+                  <div
+                    className="d-flex align-items-center gap-1 overflow-x-auto py-1 px-1"
+                    style={{ scrollbarWidth: "none" }}
+                  >
+                    {artifacts.map((art, idx) => {
+                      const key = art.id || art.requirement_id;
+                      const isTagged = !!taggedTypes[key];
+                      const isCurrent = idx === currentIndex;
+                      return (
+                        <button
+                          key={key || idx}
+                          onClick={() => {
+                            if (transitionTimeoutRef.current) {
+                              clearTimeout(transitionTimeoutRef.current);
+                              transitionTimeoutRef.current = null;
+                            }
+                            setDirection(idx >= currentIndex ? 1 : -1);
+                            setCurrentIndex(idx);
+                            if (onTagArtifact) {
+                              onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+                            }
+                          }}
+                          className="btn btn-xs px-2 py-0 fw-bold"
+                      style={{
+                        fontSize: "0.7rem",
+                        whiteSpace: "nowrap",
+                        height: "24px",
+                        lineHeight: "22px",
+                        borderRadius: "0.5rem",
+                        backgroundColor: isTagged ? "var(--primary-bg)" : "#6c757d",
+                        borderColor: isCurrent ? "#ffffff" : isTagged ? "var(--primary-bg)" : "#6c757d",
+                        borderWidth: isCurrent ? "1.5px" : "1px",
+                        borderStyle: "solid",
+                        color: "#ffffff",
+                        boxShadow: "none",
+                        opacity: isCurrent ? 1 : 0.85,
+                        transition: "all var(--transition)",
+                        flexShrink: 0,
                       }}
-                      className={`btn btn-xs px-2 py-0 fw-bold ${
-                        isCurrent
-                          ? "btn-dark text-white border-2 border-light"
-                          : isTagged
-                          ? "btn-success text-dark opacity-90"
-                          : "btn-outline-secondary text-white"
-                      }`}
-                      style={{ fontSize: "0.7rem", whiteSpace: "nowrap", height: "24px", lineHeight: "22px", borderRadius: "0.5rem" }}
-                      title={`Jump to item ${idx + 1}: ${art.stakeholder_name}`}
+                      title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${isTagged ? "Categorized" : "Uncategorized"})`}
                     >
-                      {idx + 1} {isTagged ? "✓" : "•"}
+                      {idx + 1}
                     </button>
                   );
                 })}
@@ -293,8 +353,8 @@ export default function OfflineIntelGathering({
                     </strong>
                   </div>
                   <span
-                    className={`badge ${allTagged ? "bg-success text-dark" : "bg-warning text-dark"} fw-bold`}
-                    style={{ fontSize: "0.7rem", color: "#000000" }}
+                    className={`badge ${allTagged ? "bg-primary text-white" : "bg-warning text-dark"} fw-bold`}
+                    style={{ fontSize: "0.7rem" }}
                   >
                     {taggedArtifactsCount} / {totalArtifactsCount} Categorized
                   </span>
@@ -308,7 +368,7 @@ export default function OfflineIntelGathering({
                         style={{
                           width: "64px",
                           height: "64px",
-                          borderRadius: "0.75rem",
+                          borderRadius: "50%",
                           backgroundColor: "var(--primary-bg)",
                           border: "1px solid var(--secondary-bg)",
                           color: "#ffffff",
@@ -329,7 +389,7 @@ export default function OfflineIntelGathering({
                         style={{
                           width: "64px",
                           height: "64px",
-                          borderRadius: "0.75rem",
+                          borderRadius: "50%",
                           backgroundColor: "#f59e0b",
                           border: "1px solid #d97706",
                           color: "#ffffff",
@@ -417,23 +477,22 @@ export default function OfflineIntelGathering({
                       {currentArtifact.artifact_type.toUpperCase()}
                     </span>
                   </div>
-                  <div>
-                    {currentTaggedType ? (
-                      <span className="badge bg-success text-dark fw-bold" style={{ fontSize: "0.7rem", color: "#000000" }}>
-                        ✓ {REQUIREMENT_TAGS.find((t) => t.type === currentTaggedType)?.label || currentTaggedType}
-                      </span>
-                    ) : (
-                      <span
-                        className="badge fw-bold"
-                        style={{ fontSize: "0.7rem", background: "var(--primary-bg)", color: "white" }}
-                      >
-                        Uncategorized
-                      </span>
-                    )}
-                  </div>
                 </div>
 
                 <div className="card-body bg-light p-3 d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
+                  {/* Challenge Description Card above Artifact Viewer */}
+                  {(challengeTitle || challengeDescription) && (
+                    <div className="mb-2 flex-shrink-0">
+                      <ChallengeDescriptionCard
+                        challengeTitle={challengeTitle}
+                        challengeDescription={challengeDescription}
+                        challengeIntro={challengeIntro}
+                        currentChallenge={currentChallenge}
+                        challengeAmount={challengeAmount}
+                      />
+                    </div>
+                  )}
+
                   {/* Formatted MLOps Intel Artifact Viewer with Left and Right Navigation Buttons */}
                   <div className="d-flex align-items-center gap-2 mb-3 flex-grow-1 position-relative" style={{ minHeight: 0 }}>
                     {/* Previous Button (Left) */}
@@ -478,7 +537,7 @@ export default function OfflineIntelGathering({
                       aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
                     >
                       <Icon
-                        icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:check-bold"}
+                        icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
                         style={{ fontSize: "1.5rem" }}
                       />
                     </button>
@@ -512,8 +571,8 @@ export default function OfflineIntelGathering({
                                 boxShadow: isSelected
                                   ? "0 4px 12px rgba(0, 0, 0, 0.15)"
                                   : isHovered
-                                  ? "0 6px 14px rgba(0, 0, 0, 0.12)"
-                                  : "0 2px 5px rgba(0, 0, 0, 0.06)",
+                                    ? "0 6px 14px rgba(0, 0, 0, 0.12)"
+                                    : "0 2px 5px rgba(0, 0, 0, 0.06)",
                                 transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
                                 color: "#000000",
                                 cursor: "pointer",
@@ -527,8 +586,8 @@ export default function OfflineIntelGathering({
                                   <span style={{ color: tag.color, fontWeight: 700 }}>{tag.label}</span>
                                 </span>
                                 {isSelected && (
-                                  <span className="badge text-white rounded-pill px-2 py-1 shadow-sm" style={{ backgroundColor: tag.color, fontSize: "0.65rem" }}>
-                                    ✓ Selected
+                                  <span className="badge text-white rounded-pill px-2 py-1 shadow-sm" style={{ backgroundColor: "var(--primary-bg)", fontSize: "0.65rem" }}>
+                                    Selected
                                   </span>
                                 )}
                               </div>
@@ -551,6 +610,8 @@ export default function OfflineIntelGathering({
                 </button>
               </div>
             )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

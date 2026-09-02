@@ -56,3 +56,24 @@
     background: #e2e8f0;
     border-color: #cbd5e1;
 }
+
+.leftColumnDossier {
+    width: 40%;
+    flex: 0 0 40%;
+    max-width: 40%;
+}
+
+.rightColumnIntel {
+    width: 60%;
+    flex: 0 0 60%;
+    max-width: 60%;
+}
+
+@media (max-width: 991px) {
+    .leftColumnDossier,
+    .rightColumnIntel {
+        width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
