@@ -22,4 +22,4 @@ COPY --from=gameconfig . /gameConfig
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --no-deps -e .
 
-CMD ["fastapi", "run", "mlops_serious_game/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]
+CMD ["fastapi", "dev", "mlops_serious_game/infrastructure/api.py", "--port", "8000", "--host", "0.0.0.0"]

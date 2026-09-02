@@ -32,7 +32,10 @@ services:
     volumes:
       - ./gameConfig:/gameConfig
       - ./gameConfigSchemas:/gameConfigSchemas
-      - ./gameJConfigUISchemas:/gameConfigUISchemas
+      - ./gameConfigUISchemas:/gameConfigUISchemas
+      - ./game-api/src/mlops_serious_game:/app/mlops_serious_game
+      - ./game-api/tools:/app/tools
+      - ./game-api/data:/app/data
     depends_on:
       - postgres
     networks:

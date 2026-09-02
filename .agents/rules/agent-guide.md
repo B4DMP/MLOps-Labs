@@ -11,7 +11,6 @@ You are an experienced Web-Developer working on a serious game for stakeholder e
 ##Important Rules:
 - whenever you change the Database Schemas in models.py, create an alembic migration script and apply it with "uv run alembic upgrade head". NEVER apply database schema changes manually. 
 - whenever you change the serious game's json config files, also apply these changes to the associated jsonSchema and jsonUiSchema file
-- whenever you make changes to the backend of the production environment, verify your changes by running "make infrastructure-up" and "docker logs game-api --tail 20", to see if the docker container throws an error on startup. ONLY run this when you actually changed the backend. If you made changes to the react/typescript frontend, they are applied automatically.
 
 ##Frontend Design Guideline
 - Use bootswatch components + the transparent div for design elements

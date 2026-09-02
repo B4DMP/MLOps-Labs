@@ -10,7 +10,7 @@ infrastructure-build:
 	docker compose build
 
 infrastructure-up:
-	docker compose up --build -d
+	docker compose up -d
 
 infrastructure-stop:
 	docker compose stop
