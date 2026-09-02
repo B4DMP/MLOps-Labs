@@ -9,7 +9,7 @@ from mlops_serious_game.domain.requirement import (
     StakeholderIntelItem,
     StakeholderRequirement,
 )
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import random
 
 from fastapi import WebSocket
@@ -19,12 +19,14 @@ from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
+from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 from mlops_serious_game.application.pitch_debate_service.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
 )
-from mlops_serious_game.infrastructure.database import IntelItem, get_session
+from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
 
 
 async def generate_intel_item_artifact_content(
@@ -101,8 +103,89 @@ async def _generate_single_artifact(curr_challenge: Challenge, req: StakeholderR
     }
 
 
-async def generate_offline_intel_artifacts(curr_challenge: Challenge) -> List[Dict[str, Any]]:
-    """Loads 5 offline intel artifacts from OfflineIntelArtifactFactory for the offline intel gathering phase."""
+def get_default_stakeholder_archetypes(existing_archs: Optional[dict] = None) -> dict:
+    """Helper function to build or update default stakeholder convincer archetypes."""
+    archs = dict(existing_archs or {})
+    stakeholder_list = (
+        StakeholderFactory.stakeholders
+        if isinstance(StakeholderFactory.stakeholders, list)
+        else list(StakeholderFactory.stakeholders.values())
+    )
+    for st in stakeholder_list:
+        s_id = getattr(st, "id", None) or (st.get("id") if isinstance(st, dict) else str(st))
+        real_arch = getattr(st, "convincer_archetype", "") if hasattr(st, "convincer_archetype") else (st.get("convincer_archetype", "") if isinstance(st, dict) else "")
+        if s_id not in archs:
+            archs[s_id] = {
+                "real_archetype": real_arch,
+                "categorized_archetype": None,
+            }
+        else:
+            archs[s_id]["real_archetype"] = real_arch
+    return archs
+
+
+async def tag_stakeholder_convincer_archetype(
+    player: str,
+    stakeholder_id: str,
+    categorized_archetype: str,
+) -> dict:
+    """Processes tagging or re-tagging of a stakeholder's convincer archetype."""
+    if stakeholder_id not in StakeholderFactory.get_available_stakeholders():
+        raise ValueError(f"Invalid stakeholder_id: {stakeholder_id}")
+    if categorized_archetype not in EmotionFactory.get_available_archetype_names():
+        raise ValueError(f"Invalid categorized_archetype: {categorized_archetype}")
+
+    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+    with get_session() as db_session:
+        session_rec = get_or_create_game_session(player, db_session)
+        archs = dict(session_rec.stakeholder_archetypes or {})
+        st_entry = dict(archs.get(stakeholder_id, {}))
+        st = StakeholderFactory.get_stakeholder(stakeholder_id)
+        real_arch = getattr(st, "convincer_archetype", "") if st else st_entry.get("real_archetype", "")
+
+        # Check if the archetype is already validated
+        current_cat = st_entry.get("categorized_archetype")
+        if current_cat and real_arch and current_cat == real_arch:
+            # Archetype is already validated; do not overwrite
+            return st_entry
+
+        st_entry["real_archetype"] = real_arch
+        st_entry["categorized_archetype"] = categorized_archetype
+        archs[stakeholder_id] = st_entry
+        session_rec.stakeholder_archetypes = archs
+        flag_modified(session_rec, "stakeholder_archetypes")
+        db_session.commit()
+        return st_entry
+
+
+def correct_and_verify_convincer_archetype(
+    username: str,
+    stakeholder_id: str,
+) -> dict:
+    """Corrects a misattributed convincer archetype to the true archetype in GameSession."""
+    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+    with get_session() as session:
+        session_rec = get_or_create_game_session(username, session)
+        archs = dict(session_rec.stakeholder_archetypes or {})
+        st_entry = dict(archs.get(stakeholder_id, {}))
+        st = StakeholderFactory.get_stakeholder(stakeholder_id)
+        real_arch = getattr(st, "convincer_archetype", "") if st else st_entry.get("real_archetype", "")
+        old_cat = st_entry.get("categorized_archetype")
+        st_entry["real_archetype"] = real_arch
+        st_entry["categorized_archetype"] = real_arch
+        archs[stakeholder_id] = st_entry
+        session_rec.stakeholder_archetypes = archs
+        flag_modified(session_rec, "stakeholder_archetypes")
+        session.commit()
+        return {
+            "stakeholder_id": stakeholder_id,
+            "old_archetype": old_cat,
+            "true_archetype": real_arch,
+        }
+
+
+async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
+    """Loads 5 offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
     reqs = select_reqs_for_offl_intel_gathering(curr_challenge)
     results = []
     missing_reqs = []
@@ -132,6 +215,73 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge) -> List[Di
         fallback_results = await asyncio.gather(*tasks)
         results.extend(list(fallback_results))
 
+    # Append convincer profile artifacts for stakeholders newly introduced in this phase
+    # Append convincer profile artifacts for stakeholders active in this phase that need introduction/categorization
+    active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id)
+    phases = PhaseFactory.get_phases()
+    if not active_st_ids and 0 <= curr_challenge.phase_id < len(phases):
+        active_st_ids = [ps.stakeholder_id for ps in phases[curr_challenge.phase_id].stakeholders]
+    
+    session_archs = {}
+    if username:
+        from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+        with get_session() as db_session:
+            sess_rec = get_or_create_game_session(username, db_session)
+            session_archs = dict(sess_rec.stakeholder_archetypes or {})
+
+    previous_st_ids = set()
+    for p_idx in range(curr_challenge.phase_id):
+        if p_idx < len(phases):
+            for ps in phases[p_idx].stakeholders:
+                previous_st_ids.add(ps.stakeholder_id)
+
+    # Include any active stakeholder who is either newly introduced in this phase or not yet categorized
+    st_ids_to_introduce = []
+    for s_id in active_st_ids:
+        st_cat = session_archs.get(s_id, {}).get("categorized_archetype")
+        if st_cat is None or s_id not in previous_st_ids:
+            if s_id not in st_ids_to_introduce:
+                st_ids_to_introduce.append(s_id)
+        
+    all_archetypes = EmotionFactory.get_available_archetype_names()
+
+    for s_id in st_ids_to_introduce:
+        st = StakeholderFactory.get_stakeholder(s_id)
+        if not st:
+            continue
+        real_arch_name = getattr(st, "convincer_archetype", "")
+        art_def = ConvincerArchetypeArtifactFactory.get_artifact_for_archetype(real_arch_name)
+        
+        if art_def:
+            template = art_def.convincer_archetype_artifact
+            artifact_type_val = (
+                art_def.artifact_type.value
+                if hasattr(art_def.artifact_type, "value")
+                else str(art_def.artifact_type)
+            )
+        else:
+            template = f"#team-chat Slack\n{{stakeholder_name}}: Let's make sure our approach is aligned with our priorities."
+            artifact_type_val = "slack_message"
+
+        content = template.replace("{stakeholder_name}", st.name)
+        
+        cat_type = session_archs.get(s_id, {}).get("categorized_archetype") if session_archs else None
+
+        results.append({
+            "id": f"convincer_{st.id}",
+            "requirement_id": f"convincer_{st.id}",
+            "stakeholder_id": st.id,
+            "stakeholder_name": st.name,
+            "stakeholder_role": getattr(st, "role_description", ""),
+            "artifact_type": artifact_type_val,
+            "content": content,
+            "is_convincer_profile": True,
+            "possible_archetypes": all_archetypes,
+            "categorized_type": cat_type,
+        })
+
+    # Shuffle the combined list so convincer and intel artifacts are mixed
+    random.shuffle(results)
     return results
 
 
@@ -493,6 +643,20 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "description": item.description,
             })
 
+    username = ""
+    if ws:
+        if hasattr(ws, "query_params") and isinstance(ws.query_params, dict):
+            username = ws.query_params.get("username", "")
+        elif hasattr(ws, "query_params"):
+            username = ws.query_params.get("username", "")
+
+    session_archs = {}
+    if username:
+        from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+        with get_session() as db_session:
+            sess_rec = get_or_create_game_session(username, db_session)
+            session_archs = dict(sess_rec.stakeholder_archetypes or {})
+
     phase = PhaseFactory.get_phases()[curr_challenge.phase_id]
     ph_st_map = {ps.stakeholder_id: ps for ps in phase.stakeholders}
     active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id) or StakeholderFactory.get_available_stakeholders()
@@ -504,6 +668,13 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             continue
         ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
+
+        st_arch_entry = session_archs.get(st_id, {})
+        cat_arch = st_arch_entry.get("categorized_archetype")
+        real_arch = st_arch_entry.get("real_archetype") or getattr(st, 'convincer_archetype', '')
+        is_val = bool(cat_arch and cat_arch == real_arch)
+        status = "validated" if is_val else ("unconfirmed" if cat_arch else "unknown")
+
         dossier_list.append({
             "stakeholder_id": st.id,
             "name": st.name,
@@ -512,7 +683,9 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "constraints": getattr(st, 'constraints', getattr(st, 'requirements', "")),
             "role_description": st.role_description,
             "metric_id": st.metric_id,
-            "convincer_archetype": getattr(st, 'convincer_archetype', ''),
+            "convincer_archetype": cat_arch or "",
+            "is_validated": is_val,
+            "convincer_status": status,
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,

@@ -57,7 +57,7 @@ export default function IntelVerificationDialog({
           overflow: "hidden",
         }}
       >
-        {/* Header matching OnlineIntelHelpOverlay / PrePhaseDialog modal system */}
+        {/* Header matching PerformanceDashboard / PrePhaseDialog modal system */}
         <div
           className={styles.modalHeader}
           style={{

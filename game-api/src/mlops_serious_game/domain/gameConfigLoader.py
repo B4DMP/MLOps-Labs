@@ -9,6 +9,7 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 
 
 class GameConfigLoader:
@@ -39,6 +40,11 @@ class GameConfigLoader:
             offline_intel_path = (base_dir / "../../../../gameConfig/OfflineIntelArtifacts.json").resolve()
             OfflineIntelArtifactFactory.load_artifacts(offline_intel_path)
             print(f"loaded offline intel artifacts.")
+
+            convincer_artifacts_path = (base_dir / "../../../../gameConfig/ConvincerArchetypeArtifacts.json").resolve()
+            if convincer_artifacts_path.exists():
+                ConvincerArchetypeArtifactFactory.load_artifacts(convincer_artifacts_path)
+                print(f"loaded convincer archetype artifacts.")
 
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)

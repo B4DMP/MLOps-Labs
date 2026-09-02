@@ -17,6 +17,7 @@ from .handlers.game_handler import (
 from .handlers.intel_handler import (
     handle_get_offline_artifacts,
     handle_tag_item,
+    handle_tag_convincer_event,
     handle_get_dossier,
     handle_verify_item,
     handle_play_engagement_card,
@@ -37,6 +38,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "system:ping": handle_ping,
     "intel:get_offline_artifacts": handle_get_offline_artifacts,
     "intel:tag_item": handle_tag_item,
+    "intel:tag_convincer": handle_tag_convincer_event,
     "intel:get_dossier": handle_get_dossier,
     "intel:verify_item": handle_verify_item,
     "intel:play_engagement_card": handle_play_engagement_card,

@@ -19,6 +19,7 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
+import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import type { DialogueOption } from "./types/DialogueOption";
@@ -228,6 +229,7 @@ function App({ username: _username }: AppProps) {
   const [answers, setAnswers] = useState<(Record<string, any> | null)[]>(
     Array(questions.length).fill(null),
   );
+  const [convincerVerificationInfo, setConvincerVerificationInfo] = useState<ConvincerVerificationInfo | null>(null);
 
   useEffect(() => {
     // Request initial game configurations ONCE on mount
@@ -555,6 +557,33 @@ function App({ username: _username }: AppProps) {
         setIsInErrorUi(true);
         setLastError(data.errorMsg);
       }
+
+      const verifications: any[] = data.convincer_verifications || (data.convincer_verification ? [data.convincer_verification] : []);
+      if (verifications.length > 0) {
+        setConvincerVerificationInfo(verifications[0]);
+        setChatMsgs((prev) => {
+          if (prev.length === 0) return prev;
+          const updated = [...prev];
+          for (const verif of verifications) {
+            const targetStId = verif.stakeholder_id;
+            let targetIndex = -1;
+            for (let i = updated.length - 1; i >= 0; i--) {
+              if (updated[i].id === targetStId) {
+                targetIndex = i;
+                break;
+              }
+            }
+            if (targetIndex === -1) {
+              targetIndex = updated.length - 1;
+            }
+            updated[targetIndex] = {
+              ...updated[targetIndex],
+              convincer_verification: verif,
+            };
+          }
+          return updated;
+        });
+      }
     });
 
     const unsubError = subscribe("system:error", (data: any) => {
@@ -821,6 +850,10 @@ function App({ username: _username }: AppProps) {
               <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={setIsPhaseDialogueOpen}
+              />
+              <ConvincerVerificationDialog
+                info={convincerVerificationInfo}
+                onClose={() => setConvincerVerificationInfo(null)}
               />
 
               {challengeLoopId === 0 && (

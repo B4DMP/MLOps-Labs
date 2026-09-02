@@ -235,10 +235,12 @@ class EmotionFactory:
         dimensions = cls.get_available_dimensions()
         deltas: dict[str, float] = {f"{dim}_delta": 0.0 for dim in dimensions}
 
-        st_archetype = cls.get_archetype_by_name(st_id)
-        if not st_archetype:
-            all_archs = cls.get_convincer_archetypes()
-            st_archetype = all_archs.get(st_id)
+        from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+        st_obj = StakeholderFactory.get_stakeholder(st_id)
+        st_arch_name = getattr(st_obj, "convincer_archetype", "") if st_obj else ""
+        st_archetype = cls.get_archetype_by_name(st_arch_name) if st_arch_name else cls.get_archetype_by_name(st_id)
+
+        opt_arch = selected_option.archetype if selected_option else None
 
         # 1. If an Intel Option was used
         if last_intel and rules and rules.intel_rules:
@@ -250,8 +252,7 @@ class EmotionFactory:
                     deltas[key] = round(deltas.get(key, 0.0) + val, 2)
 
         # 2. If a Corporate Noise option with an Archetype was used
-        elif selected_option and getattr(selected_option, "archetype", None) and st_archetype and rules and rules.corporate_noise_rules:
-            opt_arch = selected_option.archetype
+        elif selected_option and opt_arch and st_archetype and rules and rules.corporate_noise_rules:
             c_rules = rules.corporate_noise_rules
 
             diff_evidence = abs(opt_arch.evidence_basis - st_archetype.evidence_basis)

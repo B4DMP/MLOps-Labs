@@ -4,14 +4,15 @@ from sqlalchemy.orm.attributes import flag_modified
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
-from mlops_serious_game.infrastructure.database import get_session, GameSession
+from mlops_serious_game.infrastructure.database import get_session, GameChallenge
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
 )
-from mlops_serious_game.application.intel_dossier import (
+from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
+    tag_stakeholder_convincer_archetype,
     handle_intel_verification,
     retrieve_dossier_data,
 )
@@ -19,8 +20,7 @@ from ..manager import manager
 
 
 async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payload: dict) -> None:
-
-    """Handles fetching/generating 5 offline intel artifacts for the current challenge."""
+    """Handles fetching/generating offline intel artifacts for the current challenge."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
     
@@ -35,7 +35,7 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
     # Clear previous challenge intel items when starting offline intel gathering phase
     await clear_intel_items_for_user(websocket)
 
-    artifacts = await generate_offline_intel_artifacts(curr_challenge)
+    artifacts = await generate_offline_intel_artifacts(curr_challenge, username=username)
     await manager.send_event(
         websocket=websocket,
         event="intel:offline_artifacts",
@@ -56,11 +56,12 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
 
 
 async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) -> None:
-    """Handles tagging an intel artifact and updating user dossier."""
+    """Handles tagging an intel artifact (requirement or convincer) and updating user dossier."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
     requirement_id = payload.get("requirement_id")
     categorized_type = payload.get("categorized_type")
+    is_convincer = payload.get("is_convincer", False) or (requirement_id and str(requirement_id).startswith("convincer_"))
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -70,7 +71,11 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
-    if requirement_id and categorized_type:
+    if is_convincer and categorized_type:
+        st_id = payload.get("stakeholder_id") or (str(requirement_id).replace("convincer_", "") if requirement_id else "")
+        if st_id:
+            await tag_stakeholder_convincer_archetype(username, st_id, categorized_type)
+    elif requirement_id and categorized_type:
         intel_item = await handle_intel_tagging(curr_challenge, websocket, requirement_id, categorized_type)
         await manager.send_event(
             websocket=websocket,
@@ -91,6 +96,26 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
     )
 
 
+async def handle_tag_convincer_event(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Handles tagging a stakeholder's convincer archetype."""
+    stakeholder_id = payload.get("stakeholder_id")
+    categorized_archetype = payload.get("categorized_archetype")
+
+    if stakeholder_id and categorized_archetype:
+        try:
+            await tag_stakeholder_convincer_archetype(username, stakeholder_id, categorized_archetype)
+            await manager.send_event(
+                websocket=websocket,
+                event="intel:convincer_tagged_ack",
+                payload={
+                    "stakeholder_id": stakeholder_id,
+                    "categorized_archetype": categorized_archetype,
+                }
+            )
+        except ValueError as e:
+            print(f"[Convincer Tagging Error] Invalid payload: {e}")
+
+
 async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict) -> None:
     """Handles fetching current stakeholder dossier data for the player."""
     phase_id = payload.get("phase_id", 0)
@@ -107,9 +132,9 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
     played_card_ids = []
     card_targets = {}
     with get_session() as db_session:
-        stmt = select(GameSession).where(
-            GameSession.user_name == username
-        ).order_by(GameSession.id.desc())
+        stmt = select(GameChallenge).where(
+            GameChallenge.user_name == username
+        ).order_by(GameChallenge.id.desc())
         existing = db_session.scalars(stmt).first()
         if existing and isinstance(existing.action_card, dict):
             played_card_ids = existing.action_card.get("played_card_ids", [])
@@ -149,9 +174,9 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     card_targets = {}
     try:
         with get_session() as db_session:
-            stmt = select(GameSession).where(
-                GameSession.user_name == username
-            ).order_by(GameSession.id.desc())
+            stmt = select(GameChallenge).where(
+                GameChallenge.user_name == username
+            ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
                 if payload.get("attention_tokens") is not None:
@@ -224,9 +249,9 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     if card:
         try:
             with get_session() as db_session:
-                stmt = select(GameSession).where(
-                    GameSession.user_name == username
-                ).order_by(GameSession.id.desc())
+                stmt = select(GameChallenge).where(
+                    GameChallenge.user_name == username
+                ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:
                     if payload.get("attention_tokens") is not None:
@@ -279,9 +304,9 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
 
     try:
         with get_session() as db_session:
-            stmt = select(GameSession).where(
-                GameSession.user_name == username
-            ).order_by(GameSession.id.desc())
+            stmt = select(GameChallenge).where(
+                GameChallenge.user_name == username
+            ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
                 current_msgs = list(existing.online_intel_gathering_messages or [])

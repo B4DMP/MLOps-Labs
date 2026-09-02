@@ -4,8 +4,7 @@ from sqlalchemy import delete, func, select
 
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.question_factory import QuestionFactory
-from mlops_serious_game.infrastructure.database import Campaign, GameProgression, GameSession, User, get_session
+from mlops_serious_game.infrastructure.database import Campaign, GameProgression, GameChallenge, GameSession, User, get_session
 
 
 def get_campaign_users(campaign_key: str) -> list[str]:
@@ -58,7 +57,7 @@ def get_player_data() -> dict[str, Any]:
                     if ts and ts < player_data[player]["firstPlayed"]:
                         player_data[player]["firstPlayed"] = ts
 
-            game_sessions = session.scalars(select(GameSession)).all()
+            game_sessions = session.scalars(select(GameChallenge)).all()
             for gs in game_sessions:
                 player = gs.user_name
                 p_idx = gs.phase_index
@@ -294,7 +293,7 @@ def calculate_metric_sum_per_challenge() -> list[float]:
                         target_c_id = c_id + 1
 
                     sessions = session.scalars(
-                        select(GameSession).where(GameSession.phase_index == target_p_id)
+                        select(GameChallenge).where(GameChallenge.phase_index == target_p_id)
                     ).all()
                     for gs in sessions:
                         user = gs.user_name
@@ -528,7 +527,7 @@ def load_json_schema(filename: str) -> dict[str, Any]:
 
 
 async def trigger_generate_offline_intel_artifacts() -> dict[str, Any]:
-    from mlops_serious_game.application.intel_dossier import generate_and_save_all_offline_intel_artifacts
+    from mlops_serious_game.application.intel_handler import generate_and_save_all_offline_intel_artifacts
     return await generate_and_save_all_offline_intel_artifacts()
 
 

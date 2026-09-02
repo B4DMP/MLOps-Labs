@@ -38,8 +38,8 @@ class GameProgression(Base):
     additional_data: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
 
 
-class GameSession(Base):
-    __tablename__ = settings.POSTGRES_GAME_DATA_TABLE
+class GameChallenge(Base):
+    __tablename__ = settings.POSTGRES_GAME_CHALLENGE_DATA_TABLE
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
@@ -55,6 +55,17 @@ class GameSession(Base):
     online_intel_gathering_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     attention_tokens: Mapped[int] = mapped_column(Integer, default=8, nullable=True)
     emotion_values: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+
+
+class GameSession(Base):
+    __tablename__ = settings.POSTGRES_GAME_SESSION_DATA_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    player: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
 
 
 class IntelItem(Base):

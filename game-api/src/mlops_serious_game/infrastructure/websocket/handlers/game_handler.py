@@ -16,18 +16,23 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
-from mlops_serious_game.application.intel_dossier import clear_intel_items_for_user
+from mlops_serious_game.application.intel_handler import (
+    clear_intel_items_for_user,
+    get_default_stakeholder_archetypes,
+)
 from mlops_serious_game.application.dialogue_options_service import (
     DialogueOption,
     generate_dialogue_options,
 )
 from mlops_serious_game.infrastructure.database import (
     GameProgression,
+    GameChallenge,
     GameSession,
     IntelItem,
     async_engine,
     get_session,
 )
+from sqlalchemy.orm.attributes import flag_modified
 
 from ..manager import manager
 
@@ -104,6 +109,31 @@ def get_engagement_cards() -> list[Any]:
     from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
     return [c.model_dump() if hasattr(c, 'model_dump') else c for c in EngagementCardFactory.get_available_cards()]
 
+
+
+def get_or_create_game_session(player: str, db_session=None) -> GameSession:
+    """Retrieves or creates a GameSession record for a given player."""
+    def _init_in_session(s):
+        stmt = select(GameSession).where(GameSession.player == player)
+        session_rec = s.scalars(stmt).first()
+        if not session_rec:
+            st_archs = get_default_stakeholder_archetypes()
+            session_rec = GameSession(player=player, stakeholder_archetypes=st_archs)
+            s.add(session_rec)
+            s.commit()
+        else:
+            archs = dict(session_rec.stakeholder_archetypes or {})
+            updated_archs = get_default_stakeholder_archetypes(archs)
+            if updated_archs != archs:
+                session_rec.stakeholder_archetypes = updated_archs
+                flag_modified(session_rec, "stakeholder_archetypes")
+                s.commit()
+        return session_rec
+
+    if db_session is not None:
+        return _init_in_session(db_session)
+    with get_session() as s:
+        return _init_in_session(s)
 
 
 def get_discovered_intel_items(
@@ -195,6 +225,9 @@ async def handle_game_init(
     }
 
     with get_session() as session:
+        # Initialize or retrieve persistent player GameSession
+        get_or_create_game_session(username, session)
+
         # Fetch user progression index
         results = session.scalars(
             select(GameProgression).where(GameProgression.user_name == username)
@@ -203,11 +236,11 @@ async def handle_game_init(
             if r.game_progress_index > game_progress_index:
                 game_progress_index = r.game_progress_index
 
-        # Fetch latest game session state
+        # Fetch latest game challenge state
         stmt = (
-            select(GameSession)
-            .where(GameSession.user_name == username)
-            .order_by(GameSession.id.desc())
+            select(GameChallenge)
+            .where(GameChallenge.user_name == username)
+            .order_by(GameChallenge.id.desc())
         )
         latest_session = session.scalars(stmt).first()
         if latest_session:
@@ -220,9 +253,9 @@ async def handle_game_init(
                 emotion_values_dict = latest_session.emotion_values
             else:
                 stmt_ev = (
-                    select(GameSession)
-                    .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
-                    .order_by(GameSession.id.desc())
+                    select(GameChallenge)
+                    .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                    .order_by(GameChallenge.id.desc())
                 )
                 session_with_ev = session.scalars(stmt_ev).first()
                 if session_with_ev and isinstance(session_with_ev.emotion_values, dict):
@@ -397,16 +430,16 @@ async def store_or_update_challenge(
     with get_session() as session:
         # Carry forward latest persisted emotion_values from user's history
         stmt_ev = (
-            select(GameSession)
-            .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
-            .order_by(GameSession.id.desc())
+            select(GameChallenge)
+            .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+            .order_by(GameChallenge.id.desc())
         )
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
 
         if challenge_loop_id == 0:
             session.add(
-                GameSession(
+                GameChallenge(
                     user_name=username,
                     phase_index=challenge.phase_id,
                     challenge_index=challenge.id,
@@ -421,11 +454,11 @@ async def store_or_update_challenge(
                 )
             )
         else:
-            stmt = select(GameSession).where(
-                GameSession.user_name == username,
-                GameSession.phase_index == challenge.phase_id,
-                GameSession.challenge_index == challenge.id
-            ).order_by(GameSession.id.desc())
+            stmt = select(GameChallenge).where(
+                GameChallenge.user_name == username,
+                GameChallenge.phase_index == challenge.phase_id,
+                GameChallenge.challenge_index == challenge.id
+            ).order_by(GameChallenge.id.desc())
             
             existing = session.scalars(stmt).first()
             if existing:
@@ -442,7 +475,7 @@ async def store_or_update_challenge(
                     existing.emotion_values = carried_emotion_values
             else:
                 session.add(
-                    GameSession(
+                    GameChallenge(
                         user_name=username,
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
@@ -534,9 +567,9 @@ async def handle_state_update_request(
         }
         with get_session() as session:
             stmt = (
-                select(GameSession)
-                .where(GameSession.user_name == username, GameSession.emotion_values.isnot(None))
-                .order_by(GameSession.id.desc())
+                select(GameChallenge)
+                .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                .order_by(GameChallenge.id.desc())
             )
             latest = session.scalars(stmt).first()
             if latest and isinstance(latest.emotion_values, dict) and latest.emotion_values:

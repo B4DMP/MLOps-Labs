@@ -5,7 +5,7 @@ from typing import Any
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from mlops_serious_game.application.intel_dossier import (
+from mlops_serious_game.application.intel_handler import (
     retrieve_intel_items,
     store_intel_item,
 )

@@ -215,13 +215,32 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 f"Acknowledge their understanding positively, express satisfaction/relief, and confirm that your requirement has been addressed!"
             )
     else:
-        intel_instruction = (
-            f"[GAME MASTER SPECIAL INSTRUCTION - SECRECY RULE ACTIVE]:\n"
-            f"Your private underlying requirements and preferences are:\n{private_intel_context}\n"
-            f"DO NOT directly state, list, or blurt out what your specific requirements/solutions are yet! "
-            f"Voice your general concerns, emotional anxieties, or technical skepticism regarding the situation, but keep your specific requirements hidden "
-            f"until the Project Manager plays a dialogue option that satisfies them or addresses a misconception."
-        )
+        last_selected_option = state.get("last_selected_option")
+        opt_arch = last_selected_option.archetype if last_selected_option else None
+        opt_name = opt_arch.name if opt_arch else ""
+
+        st_real_arch = getattr(st, "convincer_archetype", "")
+
+        if opt_name and st_real_arch and opt_name.lower().strip() != st_real_arch.lower().strip():
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - MISMATCHED PERSUASION STYLE]: The player addressed the room attempting to persuade using the '{opt_name}' approach.\n"
+                f"However, your core decision-making style is '{st_real_arch}'!\n"
+                f"You MUST react with skepticism, pushback, or irritation toward this mismatched reasoning! Make it clear to the Project Manager that '{opt_name}' thinking does not address your mindset or priorities.\n"
+                f"Your private underlying requirements are:\n{private_intel_context}"
+            )
+        elif opt_name and st_real_arch and opt_name.lower().strip() == st_real_arch.lower().strip():
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - MATCHED PERSUASION STYLE]: The player addressed the room using your ideal communication style: '{st_real_arch}'.\n"
+                f"Acknowledge their perspective favorably and express alignment with their framing!"
+            )
+        else:
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - SECRECY RULE ACTIVE]:\n"
+                f"Your private underlying requirements and preferences are:\n{private_intel_context}\n"
+                f"DO NOT directly state, list, or blurt out what your specific requirements/solutions are yet! "
+                f"Voice your general concerns, emotional anxieties, or technical skepticism regarding the situation, but keep your specific requirements hidden "
+                f"until the Project Manager plays a dialogue option that satisfies them or addresses a misconception."
+            )
 
     conversation_chain = get_stakeholder_response_chain()
     raw_messages = state.get("messages", [])

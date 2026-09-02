@@ -1,0 +1,39 @@
+{
+  "artifacts": [
+    {
+      "archetype": "Technical Excellence",
+      "artifact_type": "slack_message",
+      "convincer_archetype_artifact": "#ml-architecture Slack\n{stakeholder_name}: I went through the benchmark logs from the latest test run. We shouldn't merge this pipeline branch until we have proper 5-fold cross-validation metrics and a clear latency breakdown across the GPU clusters.\n\nThe current accuracy delta looks promising on paper, but without ablation tests on the feature embeddings, we can't tell if the gain is real or just overfitting to recent batches. Let's see the profiling data before making any architectural commitments."
+    },
+    {
+      "archetype": "Business Value",
+      "artifact_type": "email",
+      "convincer_archetype_artifact": "Email — Subject: Re: retraining infra costs & pipeline expansion\nFrom: {stakeholder_name}\n\nBefore I approve any additional budget for this initiative, I need this proposal framed directly against our Q3 margin targets and operational unit economics — not just 'the model gets smarter.'\n\nIf this retraining upgrade doesn't deliver measurable churn reduction, direct customer conversion uplift, or concrete cloud cost efficiencies within 60 days, we cannot justify the capital expenditure. Please send over an updated financial breakdown showing the projected ROI before our review on Thursday."
+    },
+    {
+      "archetype": "Safety & Reliability",
+      "artifact_type": "document",
+      "convincer_archetype_artifact": "Incident Post-Mortem — Root Cause & Remediation Section\nAuthor: {stakeholder_name}\n\nSummary: The alert threshold on the inference cluster was far too permissive, delaying our detection of downstream data corruption.\n\nCorrective Actions:\n1. We must introduce automated canary validation and pre-configured rollback paths into the deployment pipeline before any new model weights are promoted to production.\n2. A single Slack notification is insufficient for degradation events. We need strict circuit breakers and automated fallback to baseline heuristics whenever service latency exceeds the 99.9% SLA threshold."
+    },
+    {
+      "archetype": "Control & Governance",
+      "artifact_type": "document",
+      "convincer_archetype_artifact": "Architecture Review & Pipeline Request Comments\nReviewer: {stakeholder_name}\n\nAny changes modifying model lineage, data transformations, or training endpoints must route through the formal Architecture Review Board and Security Compliance Gate prior to staging deployment.\n\nI cannot sign off on pipeline updates landing without an immutable audit trail, clear role-based access controls, and explicit data governance verification. Please attach the compliance checklist and data privacy sign-off sheet to this ticket before requesting final sign-off."
+    },
+    {
+      "archetype": "People & Trust",
+      "artifact_type": "meeting_notes",
+      "convincer_archetype_artifact": "Sprint Retrospective & Team Sync Notes\nFacilitator: {stakeholder_name}\n\n{stakeholder_name}: \"If we rush this deployment without syncing cross-functionally across teams, people are going to end up burned out and firefighting broken alerts all weekend.\n\nTools and automated pipelines only work if the humans operating them feel supported and heard. We need open dialogue, realistic timelines, and mutual trust between engineering and operations rather than just imposing sudden deadlines from above.\""
+    },
+    {
+      "archetype": "Autonomy",
+      "artifact_type": "slack_message",
+      "convincer_archetype_artifact": "#deployment-team Slack\n{stakeholder_name}: Can we just own the retraining schedule and deployment cadence ourselves within the service team? It feels unnecessary to wait for multi-layer sign-offs on routine operational updates that our automated monitoring already validates hourly.\n\nIf we have clear service boundaries and local test coverage, our team should have the agency to iterate and fix issues immediately without getting bottlenecked in centralized approval loops."
+    },
+    {
+      "archetype": "Pragmatism",
+      "artifact_type": "meeting_notes",
+      "convincer_archetype_artifact": "Architecture Sync — Meeting Transcript Excerpt\nDiscussion: Pipeline Refactoring vs. Quick Patch\n\n{stakeholder_name}: \"Let's not over-engineer or gold-plate this solution. We don't need a multi-layer distributed orchestration framework when a straightforward, well-tested cron script and standard container fix the immediate issue today.\n\nLet's ship the simple, boring fix that works now, unblock the team, and we can revisit fancy abstractions next quarter if real bottlenecks actually emerge.\""
+    }
+  ]
+}

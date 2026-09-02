@@ -69,7 +69,9 @@ class Settings(BaseSettings):
     )
     POSTGRES_DB_NAME: str = "mlops_labs"
     POSTGRES_LONG_TERM_MEMORY_TABLE: str = "stakeholder_long_term_memory"
-    POSTGRES_GAME_DATA_TABLE: str = "game_data"
+    POSTGRES_GAME_CHALLENGE_DATA_TABLE: str = "game_challenge_data"
+    POSTGRES_GAME_SESSION_DATA_TABLE: str = "game_session_data"
+    POSTGRES_GAME_DATA_TABLE: str = "game_challenge_data"
     POSTGRES_PROGRESSION_DATA_TABLE: str = "game_progression_data"
     POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
     POSTGRES_USER_DATA_TABLE: str = "user_data"

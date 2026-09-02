@@ -1,10 +1,11 @@
+import re
 from typing import Any
 from fastapi import WebSocket
 from opik.integrations.langchain import OpikTracer
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from mlops_serious_game.application.pitch_debate_service import (
     EmotionValues,
     get_response,
@@ -12,9 +13,15 @@ from mlops_serious_game.application.pitch_debate_service import (
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.infrastructure.database import GameSession, get_session
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session
+from mlops_serious_game.application.intel_handler import (
+    correct_and_verify_intel_item,
+    correct_and_verify_convincer_archetype,
+    retrieve_dossier_data,
+)
 from mlops_serious_game.infrastructure.websocket.handlers.game_handler import (
     get_discovered_intel_items,
+    get_or_create_game_session,
 )
 from ..manager import manager
 
@@ -83,12 +90,12 @@ async def handle_chat_message(
 
             json_response.append(msg_payload)
 
-            # Persist conversation message to GameSession
+            # Persist conversation message to GameChallenge
             try:
                 with get_session() as db_session:
-                    stmt = select(GameSession).where(
-                        GameSession.user_name == username
-                    ).order_by(GameSession.id.desc())
+                    stmt = select(GameChallenge).where(
+                        GameChallenge.user_name == username
+                    ).order_by(GameChallenge.id.desc())
                     existing = db_session.scalars(stmt).first()
                     if existing:
                         current_msgs = list(existing.pitch_debate_messages or [])
@@ -139,20 +146,26 @@ async def handle_chat_message(
             else []
         )
 
-        # Fetch initial/saved emotion values from DB session
         initial_emotion_values = None
-        with get_session() as db_session:
-            stmt = select(GameSession).where(
-                GameSession.user_name == username,
-                GameSession.emotion_values.isnot(None)
-            ).order_by(GameSession.id.desc())
-            existing = db_session.scalars(stmt).first()
-            if existing and isinstance(existing.emotion_values, dict) and existing.emotion_values:
-                initial_emotion_values = {
-                    st_id: EmotionValues(**ev) if isinstance(ev, dict) else ev
-                    for st_id, ev in existing.emotion_values.items()
-                }
+        if initial_start:
+            with get_session() as db_session:
+                stmt = select(GameChallenge).where(
+                    GameChallenge.user_name == username,
+                    GameChallenge.emotion_values.isnot(None)
+                ).order_by(GameChallenge.id.desc())
+                existing = db_session.scalars(stmt).first()
+                if existing and isinstance(existing.emotion_values, dict) and existing.emotion_values:
+                    initial_emotion_values = {
+                        st_id: EmotionValues(**ev)
+                        for st_id, ev in existing.emotion_values.items()
+                    }
+                else:
+                    initial_emotion_values = {
+                        st.id: EmotionFactory.create_default_emotion_values()
+                        for st in StakeholderFactory.stakeholders
+                    }
 
+        # Run pitch debate graph
         emotion_deltas, output_state = await get_response(
             challenge=challenge_context,
             _thread_id=session_id,
@@ -166,7 +179,7 @@ async def handle_chat_message(
             callback=callback,
         )
 
-        # Persist user choice and updated emotion values to DB
+        # Extract updated emotion values
         updated_emotion_values = output_state.get("emotion_values", {})
         serialized_emotion_values = {}
         if updated_emotion_values:
@@ -180,9 +193,9 @@ async def handle_chat_message(
             user_text = output_state["last_selected_option"].text
 
         with get_session() as db_session:
-            stmt = select(GameSession).where(
-                GameSession.user_name == username
-            ).order_by(GameSession.id.desc())
+            stmt = select(GameChallenge).where(
+                GameChallenge.user_name == username
+            ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
                 if user_text:
@@ -197,15 +210,92 @@ async def handle_chat_message(
         # If a wrongly categorized intel item was played, correct and mark it as verified in DB and update dossier
         last_intel = output_state.get("last_selected_intel")
         if last_intel and not last_intel.is_correct_intel():
-            from mlops_serious_game.application.intel_dossier import (
-                correct_and_verify_intel_item,
-                retrieve_dossier_data,
-            )
             correct_and_verify_intel_item(
                 username=username,
                 requirement_id=last_intel.requirement_id,
                 curr_challenge=curr_challenge,
             )
+            dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
+            await manager.send_event(
+                websocket=websocket,
+                event="intel:dossier_data",
+                payload={"dossier": dossier_data},
+            )
+
+        # Check if a Corporate Noise option was played and validate/refute convincer archetype
+        convincer_verification = None
+        last_option = output_state.get("last_selected_option")
+        opt_arch = last_option.archetype if last_option else None
+        opt_arch_name = opt_arch.name if opt_arch else ""
+        opt_arch_strategy = opt_arch.strategy if opt_arch else ""
+
+        convincer_verifications: list[dict] = []
+        if opt_arch_name and not last_intel:
+            # Determine candidate stakeholders involved in this exchange
+            # Includes stakeholders who spoke in this turn (both 1st and 2nd routed) and the prior speaker
+            candidate_ids = []
+            for m in output_state.get("messages", []):
+                if isinstance(m, AIMessage) or getattr(m, "type", "") == "ai":
+                    content = getattr(m, "content", str(m))
+                    match = re.match(r"^\[(.*?)\]", content)
+                    if match:
+                        st_id = match.group(1).strip()
+                        if st_id not in candidate_ids:
+                            candidate_ids.append(st_id)
+
+            with get_session() as db_session:
+                stmt = select(GameChallenge).where(
+                    GameChallenge.user_name == username
+                ).order_by(GameChallenge.id.desc())
+                existing_rec = db_session.scalars(stmt).first()
+                if existing_rec and existing_rec.pitch_debate_messages:
+                    for msg_item in reversed(existing_rec.pitch_debate_messages):
+                        msg_id = msg_item.get("id")
+                        if msg_id and msg_id not in candidate_ids:
+                            candidate_ids.append(msg_id)
+
+            if not candidate_ids:
+                candidate_ids = StakeholderFactory.get_active_stakeholders(phase_id) or StakeholderFactory.get_available_stakeholders()
+
+            with get_session() as db_session:
+                sess_rec = get_or_create_game_session(username, db_session)
+                archs = dict(sess_rec.stakeholder_archetypes or {})
+
+                for s_id in candidate_ids:
+                    st_entry = archs.get(s_id, {})
+                    cat_arch = st_entry.get("categorized_archetype")
+                    st_obj = StakeholderFactory.get_stakeholder(s_id)
+                    st_name = st_obj.name if st_obj else s_id
+                    real_arch = st_entry.get("real_archetype") or (getattr(st_obj, "convincer_archetype", "") if st_obj else "")
+
+                    if cat_arch and cat_arch.lower().strip() == opt_arch_name.lower().strip():
+                        if cat_arch.lower().strip() == real_arch.lower().strip():
+                            # Validated!
+                            verif = {
+                                "was_correct": True,
+                                "stakeholder_id": s_id,
+                                "stakeholder_name": st_name,
+                                "categorized_archetype": cat_arch,
+                                "true_archetype": real_arch,
+                                "strategy": opt_arch_strategy,
+                            }
+                            convincer_verifications.append(verif)
+                        else:
+                            # Misattributed! Correct and mark validated
+                            corr_res = correct_and_verify_convincer_archetype(username, s_id)
+                            true_arch_cfg = EmotionFactory.get_archetype_by_name(real_arch)
+                            verif = {
+                                "was_correct": False,
+                                "stakeholder_id": s_id,
+                                "stakeholder_name": st_name,
+                                "old_archetype": cat_arch,
+                                "true_archetype": real_arch,
+                                "strategy": true_arch_cfg.strategy if true_arch_cfg else "",
+                                "explanation": f"{st_name}'s actual convincer archetype is '{real_arch}', not '{cat_arch}'. The archetype has been corrected in your dossier.",
+                            }
+                            convincer_verifications.append(verif)
+
+        if any(not v.get("was_correct") for v in convincer_verifications):
             dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
             await manager.send_event(
                 websocket=websocket,
@@ -227,19 +317,24 @@ async def handle_chat_message(
 
         facial_expressions = EmotionFactory.get_facial_expressions_dict(updated_emotion_values)
 
+        graph_completed_payload = {
+            "progressionIndex": 2,
+            "type": "graph_completed",
+            "dialogue_options": dialogue_options,
+            "facial_expressions": facial_expressions,
+            "emotion_values": serialized_emotion_values,
+            "emotion_deltas": serialized_deltas,
+            "error": False,
+            "errorMsg": None,
+        }
+        if convincer_verifications:
+            graph_completed_payload["convincer_verifications"] = convincer_verifications
+            graph_completed_payload["convincer_verification"] = convincer_verifications[0]
+
         await manager.send_event(
             websocket=websocket,
             event="chat:graph_completed",
-            payload={
-                "progressionIndex": 2,
-                "type": "graph_completed",
-                "dialogue_options": dialogue_options,
-                "facial_expressions": facial_expressions,
-                "emotion_values": serialized_emotion_values,
-                "emotion_deltas": serialized_deltas,
-                "error": False,
-                "errorMsg": None,
-            },
+            payload=graph_completed_payload,
         )
     except Exception as e:
         print(f"[handle_chat_message Error] {e}")
