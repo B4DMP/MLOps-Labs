@@ -314,3 +314,7 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,python,visualstudiocode,pycharm+all
+
+# Local docker-compose configurations
+docker-compose.yml
+docker-compose.override.yml
