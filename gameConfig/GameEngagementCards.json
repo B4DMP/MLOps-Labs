@@ -31,20 +31,22 @@
       "title": "Probe Requirements",
       "icon": "ph:magnifying-glass-bold",
       "token_cost": 3,
-      "description": "Ask questions regarding stakeholder's requirements and constraints.",
+      "description": "Ask questions regarding several stakeholder's requirements.",
       "stakeholder_selection_amount": 2,
       "target_type": "stakeholder",
       "response_snippet": "Probed requirements with selected stakeholders.",
       "max_plays_per_phase": -1,
       "intel_reveal_count": 1,
-      "allowed_requirement_types": ["requirement"]
+      "allowed_requirement_types": [
+        "requirement"
+      ]
     },
     {
       "id": "eng_3",
       "title": "Team Sync-up",
       "icon": "ph:users-bold",
       "token_cost": 2,
-      "description": "Inquire about the team's perspective on the project.",
+      "description": "Inquire about the team's general perspective on the project.",
       "stakeholder_selection_amount": -1,
       "target_type": "stakeholder",
       "response_snippet": "Synced up with all team members to align perspectives.",
@@ -63,7 +65,10 @@
       "response_snippet": "Gauged general sentiment and high-level priorities.",
       "max_plays_per_phase": -1,
       "intel_reveal_count": 1,
-      "allowed_requirement_types": ["personal_friction", "negotiable_preference"]
+      "allowed_requirement_types": [
+        "personal_friction",
+        "negotiable_preference"
+      ]
     }
   ]
 }

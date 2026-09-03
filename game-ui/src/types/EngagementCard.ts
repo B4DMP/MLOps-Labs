@@ -2,6 +2,7 @@ export interface EngagementCard {
   id: string;
   title: string;
   icon: string;
+  image?: string;
   token_cost: number;
   description: string;
   stakeholder_selection_amount: number; // -1 for all, 0 for intel, >0 for exact count

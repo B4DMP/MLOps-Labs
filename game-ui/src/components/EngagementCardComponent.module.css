@@ -1,0 +1,273 @@
+/* EngagementCardComponent.module.css - Authentic Playing Card Styling */
+
+.playingCard {
+  width: 245px;
+  min-width: 245px;
+  height: 343px;
+  aspect-ratio: 5 / 7;
+  border-radius: 14px;
+  background: linear-gradient(165deg, #1e262d 0%, #12181d 100%);
+  border: 1.5px solid var(--secondary-bg);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  user-select: none;
+  cursor: pointer;
+  transition: transform var(--transition, 0.2s ease-in-out), border-color var(--transition, 0.2s ease-in-out), box-shadow var(--transition, 0.2s ease-in-out);
+  flex-shrink: 0;
+}
+
+.playingCard.playable {
+  border-color: var(--primary-bg);
+}
+
+.playingCard:not(.disabled):not(.previewMode):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.68;
+}
+
+.dragging {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.previewMode {
+  width: 300px;
+  min-width: 300px;
+  height: 420px;
+  aspect-ratio: 5 / 7;
+  cursor: default;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  border-color: var(--primary-bg);
+}
+
+/* Inner printed card frame (pinstripe border) */
+.innerFrame {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+  background: rgba(10, 14, 18, 0.45);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 6px;
+  overflow: hidden;
+}
+
+/* Top Header */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.2px;
+}
+
+.previewMode .cardTitle {
+  font-size: 0.95rem;
+}
+
+/* Attention Token Cost Gem */
+.costBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(17, 48, 62, 0.95);
+  border: 1.5px solid var(--token-color);
+  color: var(--token-color);
+  border-radius: 12px;
+  padding: 1px 7px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.previewMode .costBadge {
+  font-size: 0.88rem;
+  padding: 2px 9px;
+}
+
+/* Card Artwork Illustration Window */
+.artworkFrame {
+  position: relative;
+  width: 100%;
+  height: 135px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #090d10;
+  flex-shrink: 0;
+}
+
+.previewMode .artworkFrame {
+  height: 175px;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: filter 0.2s ease;
+}
+
+.disabled .cardImage {
+  filter: grayscale(85%) opacity(0.65);
+}
+
+/* Watermark Badge in Artwork Corner */
+.artIconBadge {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  background: rgba(17, 48, 62, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.dragHandle {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.aiGeneratedLabel {
+  position: absolute;
+  bottom: 4px;
+  right: 5px;
+  font-size: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 1px 4px;
+  border-radius: 3px;
+  pointer-events: none;
+  line-height: 1.1;
+  text-transform: lowercase;
+}
+
+/* Card Type & Target Ribbon */
+.typeRibbon {
+  margin: 5px 0;
+  padding: 3px 6px;
+  background: rgba(38, 102, 130, 0.22);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.categoryLabel {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+}
+
+.badgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metaBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.targetBadge {
+  background: rgba(38, 102, 130, 0.4);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.intelBadge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+/* Description / Rules Box */
+.descriptionBox {
+  flex-grow: 1;
+  margin-bottom: 0;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+}
+
+.descriptionText {
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.previewMode .descriptionText {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  -webkit-line-clamp: 6;
+}
+
+.exhaustedNotice {
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
