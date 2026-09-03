@@ -536,27 +536,6 @@ export default function OnlineIntelGathering({
 
     if (attentionTokens < card.token_cost || isSingleUseExhausted) return;
 
-    // Rule: eng_3 (stakeholder_selection_amount == -1) auto-selects all stakeholders without a modal screen!
-    if (card.stakeholder_selection_amount === -1) {
-      const nextTokens = attentionTokens - card.token_cost;
-      setAttentionTokens(nextTokens);
-      setPlayedCardIdsInPhase((prev) => [...prev, card.id]);
-      setIsWaitingForResponse(true);
-
-      const activeStakeholders = availableStakeholderList.filter((st: any) => isStakeholderActiveInPhase(st));
-      const activeIds = activeStakeholders.map((st: any) => st.id);
-
-      emit("intel:play_engagement_card", {
-        phase_id: currentPhase,
-        challenge_id: currentChallenge,
-        card_id: card.id,
-        stakeholder_ids: activeIds,
-        attention_tokens: nextTokens,
-      });
-      return;
-    }
-
-    // For eng_0, eng_1, eng_2, eng_4: open the target selection modal
     setPlayingCard(card);
   };
 
@@ -809,9 +788,8 @@ export default function OnlineIntelGathering({
                           {/* Center Tabletop with Pitch Action Card */}
                           <div className={styles.tabletopCenterArea}>
                             <div
-                              className={`${styles.actionCardSurface} ${
-                                pitchedActionCardState?.title ? styles.actionCardConfigured : styles.actionCardGreyedOut
-                              }`}
+                              className={`${styles.actionCardSurface} ${pitchedActionCardState?.title ? styles.actionCardConfigured : styles.actionCardGreyedOut
+                                }`}
                               onClick={() => !isGeneratingActionCard && setIsPitchModalOpen(true)}
                               title={
                                 pitchedActionCardState?.title
