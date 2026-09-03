@@ -176,12 +176,11 @@ async def reset_conversation_state() -> dict:
 
         async with async_engine.begin() as conn:
             for table in ["checkpoints", "checkpoint_writes", "checkpoint_blobs"]:
-                try:
+                table_check = await conn.execute(text(f"SELECT to_regclass('{table}');"))
+                if table_check.scalar() is not None:
                     await conn.execute(text(f"TRUNCATE TABLE {table} CASCADE;"))
                     tables_cleared.append(table)
                     logger.info(f"Truncated table: {table}")
-                except Exception:
-                    pass
 
         await async_engine.dispose()
 
@@ -199,7 +198,11 @@ async def reset_thread(thread_id: str):
     """Deletes all checkpoint records for a specific thread."""
     async_engine = create_async_engine(settings.POSTGRES_ASYNC_URI)
     async with async_engine.begin() as conn:
-        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id"), {"thread_id": thread_id})
+        for table in ["checkpoints", "checkpoint_writes", "checkpoint_blobs"]:
+            table_check = await conn.execute(text(f"SELECT to_regclass('{table}');"))
+            if table_check.scalar() is not None:
+                await conn.execute(
+                    text(f"DELETE FROM {table} WHERE thread_id = :thread_id;"),
+                    {"thread_id": thread_id},
+                )
     await async_engine.dispose()

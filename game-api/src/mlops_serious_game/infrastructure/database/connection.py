@@ -56,3 +56,15 @@ def init_db() -> None:
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
         raise
+
+
+async def init_checkpointer() -> None:
+    """Initialize LangGraph checkpointer tables."""
+    try:
+        from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+            await checkpointer.setup()
+        logger.info("LangGraph checkpointer tables initialized successfully.")
+    except Exception as e:
+        logger.warning(f"Could not initialize LangGraph checkpointer tables at startup: {e}")
+
