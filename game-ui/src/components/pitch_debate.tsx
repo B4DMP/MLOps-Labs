@@ -985,7 +985,7 @@ export default function PitchDebate({
                       border: "2px solid #8c6d58",
                       borderRadius: "30px",
                       padding: "8px 18px",
-                      fontFamily: "'Caveat', cursive, sans-serif",
+                      fontFamily: "'Indie Flower', cursive, sans-serif",
                       fontWeight: "bold",
                       fontSize: "1.15rem",
                       cursor: "pointer",

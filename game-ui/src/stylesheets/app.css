@@ -2,53 +2,11 @@
 
 /* Local Self-Hosted GDPR-Compliant Google Fonts */
 @font-face {
-  font-family: 'Caveat';
+  font-family: 'Indie Flower';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/caveat-v18-latin-regular.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Caveat';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/caveat-v18-latin-700.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Patrick Hand';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/patrick-hand-v21-latin-regular.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Permanent Marker';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/permanent-marker-400.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Kalam';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/kalam-400.ttf') format('truetype');
-}
-@font-face {
-  font-family: 'Kalam';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/kalam-700.ttf') format('truetype');
-}
-@font-face {
-  font-family: 'Rock Salt';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/rock-salt-v22-latin-regular.woff2') format('woff2');
+  src: url('/fonts/indie-flower-latin.woff2') format('woff2');
 }
 
 body {
