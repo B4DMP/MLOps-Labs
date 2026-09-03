@@ -16,6 +16,7 @@ import IntelVerificationDialog, { type IntelVerificationResultData } from "./Int
 import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import EngagementCardTargetModal from "./EngagementCardTargetModal";
 
 interface OnlineIntelGatheringProps {
   onContinue: (pitchedCard?: any) => void;
@@ -119,9 +120,6 @@ export default function OnlineIntelGathering({
 
   // Active Playing Engagement Card Modal State
   const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
-  const [isClosingCardModal, setIsClosingCardModal] = useState(false);
-  const [selectedTargetStakeholderIds, setSelectedTargetStakeholderIds] = useState<string[]>([]);
-  const [selectedTargetIntelId, setSelectedTargetIntelId] = useState<string | null>(null);
 
   const [localPlayedCardIdsInPhase, setLocalPlayedCardIdsInPhase] = useState<string[]>([]);
   const playedCardIdsInPhase = propsPlayedCardIdsInPhase !== undefined ? propsPlayedCardIdsInPhase : localPlayedCardIdsInPhase;
@@ -365,11 +363,7 @@ export default function OnlineIntelGathering({
   }, [subscribe, onUpdateIntelItems, setPlayedCardIdsInPhase, setCardTargetedStakeholdersMap]);
 
   const handleCloseCardModal = () => {
-    setIsClosingCardModal(true);
-    setTimeout(() => {
-      setPlayingCard(null);
-      setIsClosingCardModal(false);
-    }, 200);
+    setPlayingCard(null);
   };
 
   const availableStakeholderList = Object.keys(stakeholders).length > 0
@@ -526,100 +520,41 @@ export default function OnlineIntelGathering({
       return;
     }
 
-    // For eng_0, eng_1, eng_2, eng_4: open the target selection modal with background blur
+    // For eng_0, eng_1, eng_2, eng_4: open the target selection modal
     setPlayingCard(card);
-    setSelectedTargetStakeholderIds([]);
-    setSelectedTargetIntelId(null);
   };
 
-  const handleToggleStakeholderTarget = (stId: string) => {
-    if (!playingCard) return;
-    const isAlreadyTargeted = cardTargetedStakeholdersMap[playingCard.id]?.includes(stId);
-    if (isAlreadyTargeted) return;
-
-    const requiredAmount = playingCard.stakeholder_selection_amount;
-
-    if (selectedTargetStakeholderIds.includes(stId)) {
-      setSelectedTargetStakeholderIds(selectedTargetStakeholderIds.filter((id) => id !== stId));
-    } else {
-      if (requiredAmount === 1) {
-        setSelectedTargetStakeholderIds([stId]);
-      } else if (selectedTargetStakeholderIds.length < requiredAmount) {
-        setSelectedTargetStakeholderIds([...selectedTargetStakeholderIds, stId]);
-      }
-    }
-  };
-
-  const handleConfirmPlayCardModal = () => {
+  const handleConfirmPlayCardStakeholders = (stakeholderIds: string[]) => {
     if (!playingCard) return;
 
-    if (playingCard.target_type === "intel" || playingCard.id === "eng_0") {
-      if (!selectedTargetIntelId) return;
+    const nextTokens = attentionTokens - playingCard.token_cost;
+    setAttentionTokens(nextTokens);
+    setIsWaitingForResponse(true);
 
-      const targetIntel = intelItems.find((item) => item.id === selectedTargetIntelId);
-      if (!targetIntel) return;
+    const targetNames = stakeholderIds
+      .map((id) => stakeholders[id]?.name || availableStakeholderList.find((s) => s.id === id)?.name || id)
+      .join(", ");
+    triggerPlayerSpeech(`🃏 Played "${playingCard.title}" to engage with ${targetNames}`);
 
-      const nextTokens = attentionTokens - playingCard.token_cost;
-      setAttentionTokens(nextTokens);
+    emit("intel:play_engagement_card", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: playingCard.id,
+      stakeholder_ids: stakeholderIds,
+      attention_tokens: nextTokens,
+    });
 
-      // Emit WebSocket verification request
-      emit("intel:verify_item", {
-        phase_id: currentPhase,
-        challenge_id: currentChallenge,
-        intel_item_id: targetIntel.requirement_id || targetIntel.id,
-        attention_tokens: nextTokens,
-      });
-
-      triggerPlayerSpeech(
-        `👑 Played Card: ${playingCard.title} on "${targetIntel.description}"`,
-        {
-          id: "user",
-          message: `👑 Played Card: ${playingCard.title} on "${targetIntel.description}"`,
-          ac_id: -1,
-        }
-      );
-      triggerStakeholderSpeech(
-        targetIntel.stakeholder_id || "system",
-        `✅ Submitted "${targetIntel.description}" for direct verification.`,
-        {
-          id: targetIntel.stakeholder_id || "system",
-          message: `✅ Submitted "${targetIntel.description}" for direct verification.`,
-          ac_id: -1,
-        }
-      );
-    } else {
-      const requiredAmount = playingCard.stakeholder_selection_amount;
-      if (selectedTargetStakeholderIds.length !== requiredAmount) return;
-
-      const nextTokens = attentionTokens - playingCard.token_cost;
-      setAttentionTokens(nextTokens);
-      setIsWaitingForResponse(true);
-
-      const targetNames = selectedTargetStakeholderIds
-        .map((id) => stakeholders[id]?.name || availableStakeholderList.find((s) => s.id === id)?.name || id)
-        .join(", ");
-      triggerPlayerSpeech(`🃏 Played "${playingCard.title}" to engage with ${targetNames}`);
-
-      emit("intel:play_engagement_card", {
-        phase_id: currentPhase,
-        challenge_id: currentChallenge,
-        card_id: playingCard.id,
-        stakeholder_ids: selectedTargetStakeholderIds,
-        attention_tokens: nextTokens,
-      });
-
-      if (selectedTargetStakeholderIds.length > 0) {
-        setSelectedStakeholderId(selectedTargetStakeholderIds[0]);
-      }
-
-      setCardTargetedStakeholdersMap((prev) => ({
-        ...prev,
-        [playingCard.id]: [
-          ...(prev[playingCard.id] || []),
-          ...selectedTargetStakeholderIds,
-        ],
-      }));
+    if (stakeholderIds.length > 0) {
+      setSelectedStakeholderId(stakeholderIds[0]);
     }
+
+    setCardTargetedStakeholdersMap((prev) => ({
+      ...prev,
+      [playingCard.id]: [
+        ...(prev[playingCard.id] || []),
+        ...stakeholderIds,
+      ],
+    }));
 
     if (
       playingCard.max_plays_per_phase === 1 ||
@@ -628,7 +563,49 @@ export default function OnlineIntelGathering({
       setPlayedCardIdsInPhase((prev) => [...prev, playingCard.id]);
     }
 
-    handleCloseCardModal();
+    setPlayingCard(null);
+  };
+
+  const handleConfirmPlayCardIntel = (targetIntel: IntelItem) => {
+    if (!playingCard) return;
+
+    const nextTokens = attentionTokens - playingCard.token_cost;
+    setAttentionTokens(nextTokens);
+
+    // Emit WebSocket verification request
+    emit("intel:verify_item", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      intel_item_id: targetIntel.requirement_id || targetIntel.id,
+      attention_tokens: nextTokens,
+    });
+
+    triggerPlayerSpeech(
+      `👑 Played Card: ${playingCard.title} on "${targetIntel.description}"`,
+      {
+        id: "user",
+        message: `👑 Played Card: ${playingCard.title} on "${targetIntel.description}"`,
+        ac_id: -1,
+      }
+    );
+    triggerStakeholderSpeech(
+      targetIntel.stakeholder_id || "system",
+      `✅ Submitted "${targetIntel.description}" for direct verification.`,
+      {
+        id: targetIntel.stakeholder_id || "system",
+        message: `✅ Submitted "${targetIntel.description}" for direct verification.`,
+        ac_id: -1,
+      }
+    );
+
+    if (
+      playingCard.max_plays_per_phase === 1 ||
+      playingCard.stakeholder_selection_amount === -1
+    ) {
+      setPlayedCardIdsInPhase((prev) => [...prev, playingCard.id]);
+    }
+
+    setPlayingCard(null);
   };
 
 
@@ -930,283 +907,23 @@ export default function OnlineIntelGathering({
         />
       </div>
 
-      {/* Engagement Card Play & Target Selection Modal with Blurred Backdrop */}
+      {/* Engagement Card Play & Target Selection Modal */}
       {playingCard && (
-        <div
-          className={`${styles.modalBackdrop} ${isClosingCardModal ? styles.modalBackdropClosing : ""
-            }`}
-          onClick={handleCloseCardModal}
-        >
-          <div
-            className={`${styles.intelModal} ${isClosingCardModal ? styles.intelModalClosing : ""
-              }`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className={styles.modalHeader}>
-              <div className="d-flex align-items-center gap-2">
-                <Icon icon={playingCard.icon || "ph:cards-bold"} style={{ fontSize: "1.8rem", color: "var(--engagement-accent)" }} />
-                <h5 className="modal-title mb-0 fw-bold">{playingCard.title}</h5>
-              </div>
-              <button
-                type="button"
-                className="btn-close btn-close-white"
-                onClick={handleCloseCardModal}
-              ></button>
-            </div>
-
-            {/* Modal Body */}
-            <div className={styles.modalBody}>
-              {/* Overhauled Split Layout: Left Card Preview + Right Light Rules Container with Black Text */}
-              <div className="row g-3 align-items-stretch mb-4">
-                {/* Left Column: Fixed-Width Card Surface Preview */}
-                <div className="col-12 col-md-auto d-flex justify-content-center align-items-center">
-                  <EngagementCardComponent
-                    card={playingCard}
-                    isPreview={true}
-                  />
-                </div>
-
-                {/* Right Column: Flex-Grow Light Rules & Mechanics Container */}
-                <div className="col-12 col-md flex-grow-1">
-                  <div className="card h-100 border-0 bg-light shadow-sm text-dark rounded-3 overflow-hidden">
-                    {/* Header Banner */}
-                    <div className="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
-                      <div className="d-flex align-items-center gap-2">
-                        <Icon icon="ph:notebook-bold" className="text-primary" style={{ fontSize: "1.4rem" }} />
-                        <h6 className="fw-bold text-dark mb-0 fs-6">Card Mechanics & Rules</h6>
-                      </div>
-                      <div className="d-flex align-items-center gap-2">
-                        <span className="small text-muted fw-semibold">Selection:</span>
-                        <span
-                          className={`badge ${playingCard.target_type === "intel" || playingCard.id === "eng_0"
-                            ? selectedTargetIntelId
-                              ? "bg-success"
-                              : "bg-secondary"
-                            : selectedTargetStakeholderIds.length === playingCard.stakeholder_selection_amount
-                              ? "bg-success"
-                              : "bg-secondary"
-                            } fs-6 px-3 py-1.5`}
-                        >
-                          {playingCard.target_type === "intel" || playingCard.id === "eng_0"
-                            ? selectedTargetIntelId
-                              ? "1 / 1 Selected"
-                              : "0 / 1 Selected"
-                            : `${selectedTargetStakeholderIds.length} / ${playingCard.stakeholder_selection_amount} Selected`}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Body Content with Deep Black Text */}
-                    <div className="card-body p-3 text-dark">
-                      {/* Instruction Callout */}
-                      <div className="p-2 mb-3 bg-white rounded border border-primary-subtle d-flex align-items-center gap-2">
-                        <Icon icon="ph:cursor-click-bold" className="text-primary" style={{ fontSize: "1.2rem" }} />
-                        <span className="fw-bold text-dark small">
-                          {playingCard.target_type === "intel" || playingCard.id === "eng_0"
-                            ? "Click an unverified intel item below to select it for verification:"
-                            : `Click to select exactly ${playingCard.stakeholder_selection_amount} stakeholder${playingCard.stakeholder_selection_amount > 1 ? "s" : ""
-                            } below:`}
-                        </span>
-                      </div>
-
-                      {/* Structured Rules List */}
-                      <div className="small text-dark">
-                        <ul className="mb-0 ps-3 text-dark" style={{ lineHeight: "1.5" }}>
-                          {playingCard.target_type === "intel" || playingCard.id === "eng_0" ? (
-                            <>
-                              <li className="mb-1 text-dark">
-                                <strong className="text-dark">Direct Intel Verification:</strong> Upgrades 1 unverified intel item's certainty level to{" "}
-                                <span className="badge bg-success">Verified</span> in your Stakeholder Dossier.
-                              </li>
-                              <li className="mb-1 text-dark">
-                                <strong className="text-dark">Selectability Rule:</strong> Already verified intel items are disabled and cannot be selected twice.
-                              </li>
-                            </>
-                          ) : (
-                            <>
-                              <li className="mb-1 text-dark">
-                                <strong className="text-dark">Stakeholder Targeting:</strong> Select exactly{" "}
-                                <strong className="text-dark">{playingCard.stakeholder_selection_amount}</strong> stakeholder
-                                {playingCard.stakeholder_selection_amount > 1 ? "s" : ""} to prompt specific dialogue responses & requirements.
-                              </li>
-                              <li className="mb-1 text-dark">
-                                <strong className="text-dark">Single Target Limit:</strong> Stakeholders already targeted by{" "}
-                                <em className="text-dark">"{playingCard.title}"</em> in this phase cannot be selected again.
-                              </li>
-                              {playingCard.intel_reveal_count !== undefined && playingCard.intel_reveal_count > 0 && (
-                                <li className="mb-1 text-dark">
-                                  <strong className="text-dark">Intel Revelation:</strong> Uncovers up to{" "}
-                                  <strong className="text-dark">{playingCard.intel_reveal_count}</strong> random requirement
-                                  {playingCard.intel_reveal_count > 1 ? "s" : ""} per targeted stakeholder.
-                                </li>
-                              )}
-                            </>
-                          )}
-                          <li className="text-dark">
-                            <strong className="text-dark">Resource Cost:</strong> Spends <strong className="text-dark">{playingCard.token_cost} Attention Tokens</strong>.
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Target Selection Screen Options */}
-              {playingCard.target_type === "intel" || playingCard.id === "eng_0" ? (
-                /* Intel Item Selection Grid */
-                <div className="row g-3">
-                  {intelItems.map((item) => {
-                    const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
-                    const isSelected = selectedTargetIntelId === item.id;
-                    const isSelectable = !isVerified;
-                    const catType = item.categorized_type || "requirement";
-                    const categoryLabel = catType.replace(/_/g, " ");
-
-                    return (
-                      <div key={item.id} className="col-12 col-md-6">
-                        <div
-                          className={`${styles.intelItemCard} ${isSelected ? styles.intelItemSelected : ""
-                            } ${!isSelectable ? styles.intelItemDisabled : ""}`}
-                          onClick={() => {
-                            if (isSelectable) {
-                              setSelectedTargetIntelId(item.id);
-                            }
-                          }}
-                        >
-                          <div className="d-flex justify-content-between align-items-start mb-2">
-                            <span className={`badge ${getTagBadgeColor(catType)}`}>
-                              {categoryLabel}
-                            </span>
-                            <span
-                              className={`badge ${isVerified ? "bg-success" : "bg-warning text-dark"
-                                }`}
-                            >
-                              {item.intel_type}
-                            </span>
-                          </div>
-                          <h6 className="fw-bold text-dark mb-1">{item.description}</h6>
-                          {item.stakeholder_name && (
-                            <p className="small text-muted mb-0" style={{ fontSize: "0.75rem" }}>
-                              Source: {item.stakeholder_name}
-                            </p>
-                          )}
-                          {!isSelectable && (
-                            <span className="badge bg-secondary mt-2 align-self-start">
-                              <Icon icon="ph:check-circle-fill" className="me-1" /> Already Verified
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Stakeholder Selection Grid (Only Active Stakeholders in currentPhase) */
-                <div className="row g-3">
-                  {availableStakeholderList
-                    .filter((st: any) => isStakeholderActiveInPhase(st))
-                    .map((st) => {
-                      const isSelected = selectedTargetStakeholderIds.includes(st.id);
-                      const isAlreadyTargetedByThisCard = cardTargetedStakeholdersMap[playingCard.id]?.includes(st.id);
-                      const isSelectable = !isAlreadyTargetedByThisCard;
-                      const stColor = getStakeholderColor(st);
-
-                      return (
-                        <div key={st.id} className="col-12 col-md-4">
-                          <div
-                            className={`${styles.stakeholderTargetCard} ${isSelected ? styles.stakeholderTargetSelected : ""
-                              } ${!isSelectable ? styles.intelItemDisabled : ""}`}
-                            style={{
-                              cursor: isSelectable ? "pointer" : "not-allowed",
-                              opacity: isSelectable ? 1 : 0.55,
-                            }}
-                            onClick={() => {
-                              if (isSelectable) {
-                                handleToggleStakeholderTarget(st.id);
-                              }
-                            }}
-                          >
-                            <div
-                              className="rounded-circle overflow-hidden d-flex align-items-center justify-content-center flex-shrink-0"
-                              style={{
-                                width: "48px",
-                                height: "48px",
-                                backgroundColor: isSelectable ? stColor : "#6c757d",
-                                border: `1.5px solid ${isSelectable ? stColor : "#6c757d"}`,
-                              }}
-                            >
-                              <StakeholderAvatarComponent
-                                avatar={stakeholders[st.id]?.avatar || (st as any).avatar}
-                                stakeholderColor={stColor}
-                                isFramed={true}
-                                play_blink_animation={false}
-                                size="100%"
-                                title={st.name}
-                              />
-                            </div>
-                            <div className="flex-grow-1">
-                              <div className="d-flex justify-content-between align-items-start mb-1">
-                                <h6 className="fw-bold mb-0 text-dark me-1">{st.name}</h6>
-                                <div className="d-flex align-items-center gap-1 flex-shrink-0">
-                                  {isSelected && (
-                                    <Icon
-                                      icon="ph:check-circle-fill"
-                                      style={{ color: "#ffc107", fontSize: "1.3rem" }}
-                                    />
-                                  )}
-                                  {isAlreadyTargetedByThisCard && (
-                                    <span title={`Already targeted by ${playingCard.title}`}>
-                                      <Icon
-                                        icon="ph:lock-key-fill"
-                                        style={{ color: "#dc3545", fontSize: "1.2rem" }}
-                                      />
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <p className="small text-secondary mb-0" style={{ lineHeight: "1.4", wordBreak: "break-word" }}>
-                                {(st as any).role_description || (st as any).responsibilities || "Stakeholder"}
-                              </p>
-                              {isAlreadyTargetedByThisCard && (
-                                <span className="badge bg-danger mt-2 d-inline-block" style={{ fontSize: "0.65rem" }}>
-                                  Already targeted by "{playingCard.title}""
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className={styles.modalFooter}>
-              <button
-                className="btn btn-secondary rounded-pill px-4"
-                onClick={handleCloseCardModal}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-primary rounded-pill px-4 fw-bold"
-                disabled={
-                  playingCard.target_type === "intel" || playingCard.id === "eng_0"
-                    ? !selectedTargetIntelId
-                    : selectedTargetStakeholderIds.length !==
-                    playingCard.stakeholder_selection_amount
-                }
-                onClick={handleConfirmPlayCardModal}
-              >
-                <Icon icon="ph:lightning-fill" className="me-1" />
-                Confirm & Play Card ({playingCard.token_cost})
-              </button>
-            </div>
-          </div>
-        </div>
+        <EngagementCardTargetModal
+          isOpen={Boolean(playingCard)}
+          onClose={handleCloseCardModal}
+          card={playingCard}
+          attentionTokens={attentionTokens}
+          stakeholders={stakeholders}
+          availableStakeholderList={availableStakeholderList}
+          isStakeholderActive={isStakeholderActiveInPhase}
+          cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+          intelItems={intelItems}
+          onConfirmStakeholders={handleConfirmPlayCardStakeholders}
+          onConfirmIntel={handleConfirmPlayCardIntel}
+          getStakeholderColor={getStakeholderColor}
+          getTagBadgeColor={getTagBadgeColor}
+        />
       )}
 
       {/* Action Card Pitch Modal with Blurred Backdrop */}

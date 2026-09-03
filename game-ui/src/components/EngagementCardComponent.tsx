@@ -33,8 +33,8 @@ export default function EngagementCardComponent({
   const defaultSampleImage = `${import.meta.env.BASE_URL}graphics/cards/engagement_card_sample.jpg`;
   const cardImage = card.image
     ? (card.image.startsWith("http") || card.image.startsWith("/")
-        ? card.image
-        : `${import.meta.env.BASE_URL}${card.image.replace(/^\//, "")}`)
+      ? card.image
+      : `${import.meta.env.BASE_URL}${card.image.replace(/^\//, "")}`)
     : `${import.meta.env.BASE_URL}graphics/cards/${card.id}.png`;
 
   const isPlayable = isEnabled && canAfford && !isSingleUseExhausted && !isPreview;
@@ -106,11 +106,12 @@ export default function EngagementCardComponent({
 
           {/* Drag Handle Indicator */}
           {isPlayable && (
-            <Icon
-              icon="teenyicons:drag-outline"
-              className={styles.dragHandle}
-              title="Drag to play"
-            />
+            <span title="Drag to play" style={{ display: "inline-flex" }}>
+              <Icon
+                icon="teenyicons:drag-outline"
+                className={styles.dragHandle}
+              />
+            </span>
           )}
         </div>
 
@@ -156,16 +157,12 @@ export default function EngagementCardComponent({
 
         {/* Rules & Effect Description Box */}
         <div className={styles.descriptionBox}>
-          {isSingleUseExhausted ? (
-            <span className={styles.exhaustedNotice}>
-              <Icon icon="ph:warning-circle-bold" />
-              Already played this phase (1x limit).
-            </span>
-          ) : (
-            <p className={styles.descriptionText}>
-              {card.description}
-            </p>
-          )}
+
+
+          <p className={styles.descriptionText}>
+            {card.description}
+          </p>
+
         </div>
       </div>
     </div>
