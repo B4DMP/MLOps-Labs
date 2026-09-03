@@ -50,6 +50,13 @@
   font-display: swap;
   src: url('/fonts/rock-salt-v22-latin-regular.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'Delius';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/delius-v21-latin-regular.woff2') format('woff2');
+}
 
 body {
     margin: 0;
