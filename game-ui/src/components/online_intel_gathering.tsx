@@ -354,12 +354,17 @@ export default function OnlineIntelGathering({
       }
     });
 
+    const unsubSystemError = subscribe("system:error", () => {
+      setIsWaitingForResponse(false);
+    });
+
     return () => {
       unsubscribe();
       unsubMsgReceived();
       unsubComplete();
       unsubResponse();
       unsubDossier();
+      unsubSystemError();
     };
   }, [subscribe, onUpdateIntelItems, setPlayedCardIdsInPhase, setCardTargetedStakeholdersMap]);
 
@@ -430,71 +435,71 @@ export default function OnlineIntelGathering({
     return st?.stakeholder_color || "#38bdf8";
   };
 
-  const renderSeatedStakeholder = (st: any) => {
-    const isSelected = selectedStakeholderId === st.id;
+  const renderSeatedStakeholder = (st: any, isRightSide: boolean = false) => {
+    const isSelected = (selectedStakeholderId || activeStakeholderId) === st.id;
     const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
     const stakeholderColor = getStakeholderColor(st);
     const av = st.avatar || {};
 
     return (
-      <>
-        <div
-          className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
-          style={{
-            // @ts-ignore
-            "--st-color": stakeholderColor,
-          }}
-          onClick={() => setSelectedStakeholderId(st.id)}
-        >
-          {/* Active Speech Bubble above speaking stakeholder (Complete text visible) */}
-          {isSpeaking && activeSpeakingState && (
-            <div
-              className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
-                }`}
-              style={{
-                borderColor: stakeholderColor,
-                pointerEvents: "auto",
-                cursor: "pointer",
-              }}
-              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-            >
-              {activeSpeakingState.message}
-              <button
-                type="button"
-                className={styles.speechSkipBtn}
-                onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                title="Skip to next message"
-              >
-                <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
-              </button>
-            </div>
-          )}
-
-          {/* Unframed 50% larger Avatar Viewport */}
-          <div className={styles.seatedAvatarViewport}>
-            <StakeholderAvatarComponent
-              avatar={av}
-              play_blink_animation={true}
-              isFramed={false}
-              isSpeaking={isSpeaking}
-              size={108}
-              stakeholderColor={stakeholderColor}
-              title={st.name}
-            />
-          </div>
-
-          {/* Conference Desk Nameplate (Centered with exact stakeholder color) */}
+      <div
+        key={st.id}
+        className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
+        style={{
+          // @ts-ignore
+          "--st-color": stakeholderColor,
+        }}
+        onClick={() => setSelectedStakeholderId(st.id)}
+      >
+        {/* Active Speech Bubble above speaking stakeholder (Complete text visible) */}
+        {isSpeaking && activeSpeakingState && (
           <div
-            className={styles.deskNameplate}
+            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
+              }`}
             style={{
-              color: stakeholderColor,
               borderColor: stakeholderColor,
+              pointerEvents: "auto",
+              cursor: "pointer",
             }}
+            onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
           >
-            {st.name}
+            {activeSpeakingState.message}
+            <button
+              type="button"
+              className={styles.speechSkipBtn}
+              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+              title="Skip to next message"
+            >
+              <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
+            </button>
           </div>
+        )}
+
+        {/* Unframed compact Avatar Viewport */}
+        <div className={styles.seatedAvatarViewport}>
+          <StakeholderAvatarComponent
+            avatar={av}
+            play_blink_animation={true}
+            isFramed={false}
+            isSpeaking={isSpeaking}
+            size={108}
+            stakeholderColor={stakeholderColor}
+            title={st.name}
+            flip={isRightSide ? true : av.flip}
+          />
         </div>
-      </>
+
+        {/* Conference Desk Nameplate (Centered with exact stakeholder color and active indicator) */}
+        <div
+          className={`${styles.deskNameplate} ${isSelected ? styles.activeDeskNameplate : ""}`}
+          style={{
+            color: isSelected ? "#ffc107" : stakeholderColor,
+            borderColor: isSelected ? "#ffc107" : stakeholderColor,
+          }}
+        >
+          {st.name}
+        </div>
+      </div>
     );
   };
 
@@ -696,7 +701,7 @@ export default function OnlineIntelGathering({
     <div className={styles.container}>
       {/* Main Content Area over Game Background Canvas */}
       <div
-        className="container-fluid flex-grow-1 d-flex flex-column p-3 position-relative overflow-auto"
+        className="container-fluid flex-grow-1 d-flex flex-column px-3 py-2 position-relative overflow-hidden"
         style={{
           backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
           backgroundSize: "cover",
@@ -713,10 +718,7 @@ export default function OnlineIntelGathering({
         >
           <Icon
             icon={showHelp ? "material-symbols:dashboard-rounded" : "ph:presentation-chart-bold"}
-            style={{
-              fontSize: "2.4rem",
-              color: "var(--engagement-text)",
-            }}
+            className={styles.circularHelpIcon}
           />
         </button>
 
@@ -726,16 +728,16 @@ export default function OnlineIntelGathering({
             }`}
         >
           {/* Main Board Grid: Left Column = Stakeholder Dossier, Right Column = Pitch Deck & Chat */}
-          <div className="row g-3 align-items-stretch flex-grow-1 h-100">
+          <div className="row g-2 align-items-stretch flex-grow-1 h-100">
             {/* LEFT COLUMN: Stakeholder Dossier (Constantly Open & Embedded) */}
-            <div className="col-12 col-lg-5 d-flex flex-column h-100">
-              <div className="flex-grow-1 h-100" style={{ minHeight: "500px" }}>
+            <div className="col-12 col-lg-4 d-flex flex-column h-100">
+              <div className={`flex-grow-1 ${styles.dossierContainer}`}>
                 <StakeholderDossier
                   isOpen={true}
                   canClose={false}
                   isEmbedded={true}
                   dossierData={dossierData || []}
-                  activeStakeholderId={activeStakeholderId || selectedStakeholderId}
+                  activeStakeholderId={selectedStakeholderId || activeStakeholderId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
                   onClose={() => { }}
@@ -745,7 +747,7 @@ export default function OnlineIntelGathering({
 
             {/* RIGHT COLUMN */}
             <div
-              className={`col-12 col-lg-7 d-flex flex-column gap-2 h-100 justify-content-between rounded transition-all`}
+              className="col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all"
             >
               {/* Drop zone covers everything ABOVE the engagement cards */}
               <div
@@ -760,26 +762,24 @@ export default function OnlineIntelGathering({
                   handleDropEngagementCard(e);
                 }}
               >
-                {/* 1+2. Collapsible: Challenge + Pitch Deck (animates away when chat is maximized) */}
-                <div
-                  className={`flex-shrink-0 d-flex flex-column gap-2 ${styles.collapsibleSection} ${isChatMaximized ? styles.collapsibleSectionHidden : styles.collapsibleSectionVisible
-                    }`}
-                >
-                  {/* 1. Above: Challenge Description Card */}
-                  <div>
-                    <ChallengeDescriptionCard
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      currentChallenge={currentChallenge}
-                      challengeAmount={challengeAmount}
-                    />
-                  </div>
+                {/* 1. Above: Challenge Description Card (Full Width) */}
+                <div className="flex-shrink-0">
+                  <ChallengeDescriptionCard
+                    challengeTitle={challengeTitle}
+                    challengeDescription={challengeDescription}
+                    challengeIntro={challengeIntro}
+                    currentChallenge={currentChallenge}
+                    challengeAmount={challengeAmount}
+                  />
+                </div>
 
-                  {/* 2. Middle: Pitch Deck Boardroom Scene */}
-                  <div className="position-relative p-1 rounded">
-                    <div className={styles.tableScene}>
-                      {/* The Pitch Deck Conference Table Surface */}
+                {/* 2+3. Middle Row: Side-by-Side Stakeholder Table (Left) + Chat History (Right) */}
+                <div className="flex-grow-1 row g-2 align-items-stretch overflow-hidden">
+                  {/* Left: Pitch Deck Boardroom Scene */}
+                  <div
+                    className={`${isChatMaximized ? "d-none" : "col-12 col-xl-7 col-lg-7"} d-flex flex-column align-items-center justify-content-center position-relative`}
+                  >
+                    <div className="w-100 d-flex justify-content-center">
                       <div className={styles.pitchDeckTable}>
                         {/* Top Row: Stakeholders sitting behind the table */}
                         {topStakeholders.length > 0 && (
@@ -795,30 +795,54 @@ export default function OnlineIntelGathering({
                             {leftStakeholders.map(renderSeatedStakeholder)}
                           </div>
 
-                          {/* Center Tabletop with Pitch Action Card */}
+                          {/* Center Tabletop: Evolving Proposal Drafting Desk */}
                           <div className={styles.tabletopCenterArea}>
                             <div
-                              className={`${styles.actionCardSurface} ${pitchedCardTitle ? styles.actionCardConfigured : styles.actionCardGreyedOut
+                              className={`${styles.actionCardSurface} ${pitchedCardTitle
+                                  ? styles.actionCardConfigured
+                                  : intelItems.length > 0
+                                    ? styles.actionCardReady
+                                    : styles.actionCardBlueprint
                                 }`}
                               onClick={() => setIsPitchModalOpen(true)}
+                              title={
+                                pitchedCardTitle
+                                  ? "Click to edit your action card proposal"
+                                  : intelItems.length > 0
+                                    ? "Click to assemble 1-3 discovered intel items into a proposal"
+                                    : "Play action cards below to gather intel first, then build your proposal here"
+                              }
                             >
                               {pitchedCardTitle ? (
                                 <div className="text-center">
-                                  <span className="badge bg-primary mb-1">🃏 Pitched Base AC</span>
-                                  <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: "0.85rem" }}>{pitchedCardTitle}</h6>
-                                  <p className="small text-muted mb-1" style={{ fontSize: "0.74rem" }}>Intel merged into proposal</p>
-                                  <button className="btn btn-sm btn-outline-primary rounded-pill px-2 py-0" style={{ fontSize: "0.7rem" }}>
+                                  <span className={`badge bg-primary ${styles.actionCardBadge}`}>🃏 Pitched Base AC</span>
+                                  <h6 className={`text-dark ${styles.actionCardProposalTitle}`}>{pitchedCardTitle}</h6>
+                                  <p className={`text-muted ${styles.actionCardProposalSub}`}>Intel merged into proposal</p>
+                                  <button type="button" className={`btn btn-sm btn-outline-primary ${styles.actionCardDraftBtn}`}>
                                     ✏️ Edit Proposal
+                                  </button>
+                                </div>
+                              ) : intelItems.length > 0 ? (
+                                <div className="text-center">
+                                  <div className={styles.readyProposalIcon}>
+                                    <Icon icon="ph:paper-plane-tilt-bold" />
+                                  </div>
+                                  <span className={`badge bg-success ${styles.actionCardBadge}`}>
+                                    ✨ {intelItems.length} Intel Ready
+                                  </span>
+                                  <h6 className={`fw-bold text-light ${styles.actionCardProposalTitle}`}>Draft Proposal</h6>
+                                  <button type="button" className={`btn btn-sm btn-success ${styles.actionCardDraftBtn}`}>
+                                    📝 Assemble & Pitch ➔
                                   </button>
                                 </div>
                               ) : (
                                 <div className="text-center">
                                   <div className={styles.questionMarkIcon}>
-                                    <Icon icon="ph:question-bold" style={{ color: "gray", fontSize: "3rem" }} />
+                                    <Icon icon="ph:magnifying-glass-bold" />
                                   </div>
-                                  <h6 className="fw-bold mb-1" style={{ fontSize: "0.85rem" }}>Pitch Action Card</h6>
-                                  <p className="small mb-0 opacity-75" style={{ fontSize: "0.72rem" }}>
-                                    Click to select 1-3 Intel Items & build proposal
+                                  <h6 className={`fw-bold ${styles.actionCardProposalTitle}`}>Investigation Phase</h6>
+                                  <p className={styles.actionCardPrompt}>
+                                    Play cards below to uncover stakeholder stances
                                   </p>
                                 </div>
                               )}
@@ -827,13 +851,13 @@ export default function OnlineIntelGathering({
 
                           {/* Right Seat */}
                           <div className={styles.tableSideSeating}>
-                            {rightStakeholders.map(renderSeatedStakeholder)}
+                            {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
                           </div>
                         </div>
 
                         {/* Table Edge Plaque */}
                         <div className={styles.tableEdgePlaque}>
-                          <Icon icon="ph:presentation-chart-bold" style={{ fontSize: "0.85rem" }} />
+                          <Icon icon="ph:presentation-chart-bold" />
                           <span>PITCH DECK</span>
                         </div>
 
@@ -842,11 +866,10 @@ export default function OnlineIntelGathering({
                           <div
                             className={`${styles.playerTableSpeechBubble} ${activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
                               }`}
-                            style={{ pointerEvents: "auto", cursor: "pointer" }}
                             onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
                           >
                             <div className={styles.playerSpeechHeader}>
-                              <Icon icon="ph:user-circle-bold" style={{ fontSize: "1rem", color: "var(--engagement-accent, #a02222)" }} />
+                              <Icon icon="ph:user-circle-bold" />
                               <span>Player</span>
                               <button
                                 type="button"
@@ -854,7 +877,7 @@ export default function OnlineIntelGathering({
                                 onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
                                 title="Skip to next message"
                               >
-                                <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
+                                <Icon icon="ph:skip-forward-fill" />
                               </button>
                             </div>
                             <div className={styles.playerSpeechContent}>
@@ -865,36 +888,38 @@ export default function OnlineIntelGathering({
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* 3. Below: Chat History — always flex-grow-1; maximize button anchored inside */}
-                <div
-                  className={`flex-grow-1 ${styles.chatWrapper}`}
-                  style={{ minHeight: "120px" }}
-                >
-                  <StakeholderInteractionArea
-                    className="w-100 h-100"
-                    chatMsgs={chatMsgs}
-                    current_phase={currentPhase}
-                    current_challenge={currentChallenge}
-                    isEnabled={!isWaitingForResponse}
-                    actionCards={[]}
-                    onHoverCard={() => { }}
-                    showStakeholderList={false}
-                    showDialogueOptions={false}
-                  />
-                  {/* Maximize / Minimize button — always bottom-right of this wrapper */}
-                  <button
-                    type="button"
-                    className={styles.chatMaximizeBtn}
-                    onClick={() => setIsChatMaximized(!isChatMaximized)}
-                    title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                  {/* Right: Chat History */}
+                  <div
+                    className={`${isChatMaximized ? "col-12" : "col-12 col-xl-5 col-lg-5"} d-flex flex-column h-100`}
                   >
-                    <Icon
-                      icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-                      style={{ fontSize: "1.25rem" }}
-                    />
-                  </button>
+                    <div
+                      className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
+                    >
+                      <StakeholderInteractionArea
+                        className="w-100 h-100"
+                        chatMsgs={chatMsgs}
+                        current_phase={currentPhase}
+                        current_challenge={currentChallenge}
+                        isEnabled={!isWaitingForResponse}
+                        actionCards={[]}
+                        onHoverCard={() => { }}
+                        showStakeholderList={false}
+                        showDialogueOptions={false}
+                      />
+                      {/* Maximize / Minimize button */}
+                      <button
+                        type="button"
+                        className={styles.chatMaximizeBtn}
+                        onClick={() => setIsChatMaximized(!isChatMaximized)}
+                        title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                      >
+                        <Icon
+                          icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
               </div>{/* end drop zone */}
@@ -905,6 +930,8 @@ export default function OnlineIntelGathering({
                   attentionTokens={attentionTokens}
                   cards={engagementCards}
                   playedCardIds={playedCardIdsInPhase}
+                  discoveredIntelCount={intelItems.length}
+                  onOpenPitchModal={() => setIsPitchModalOpen(true)}
                   onSelectCard={handleSelectEngagementCard}
                   onDragCardStart={() => setIsDraggingCard(true)}
                   onDragCardEnd={() => setIsDraggingCard(false)}
@@ -1245,7 +1272,7 @@ export default function OnlineIntelGathering({
           <div className={styles.intelModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h5 className="modal-title mb-0 fw-bold">
-                🃏 Build Action Proposal from Intel Items
+                🎯 Assemble Proposal & Enter Pitch Debate
               </h5>
               <button
                 type="button"
@@ -1256,7 +1283,7 @@ export default function OnlineIntelGathering({
 
             <div className={styles.modalBody}>
               <p className="text-secondary small mb-3">
-                Select <b>1 to 3 Intel Items</b> to merge into your Base Action Card proposal for the upcoming Pitch Debate.
+                Select <b>1 to 3 Intel Items</b> to merge into your Action Card proposal. Confirming your proposal will conclude the intelligence gathering phase and advance the game to the Pitch Debate in the boardroom.
               </p>
 
               <div className="d-flex justify-content-between align-items-center mb-3">
@@ -1304,7 +1331,7 @@ export default function OnlineIntelGathering({
                               </div>
                               <h6 className="fw-bold text-dark mb-1">{item.description}</h6>
                               {item.stakeholder_name && (
-                                <p className="small text-muted mb-0" style={{ fontSize: "0.75rem" }}>
+                                <p className="small text-muted mb-0">
                                   Source: {item.stakeholder_name}
                                 </p>
                               )}
@@ -1326,11 +1353,12 @@ export default function OnlineIntelGathering({
                 Cancel
               </button>
               <button
-                className="btn btn-primary rounded-pill px-4 fw-bold"
+                className="btn btn-success rounded-pill px-4 fw-bold d-inline-flex align-items-center gap-2"
                 disabled={selectedIntelIds.length === 0}
                 onClick={handleConfirmIntelMerge}
               >
-                Confirm & Build Action Card ({selectedIntelIds.length})
+                <Icon icon="ph:paper-plane-tilt-bold" />
+                Submit Proposal & Start Pitch Debate ({selectedIntelIds.length}) ➔
               </button>
             </div>
           </div>

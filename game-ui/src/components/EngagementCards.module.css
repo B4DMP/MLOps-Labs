@@ -1,87 +1,167 @@
-/* EngagementCards.module.css - Inspired by ActionCardComponent styling */
+/* EngagementCards.module.css */
 
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
-.tokenBar {
-  background: var(--engagement-bg);
-  border: 1px solid var(--engagement-muted);
-  border-radius: 30px;
-  padding: 6px 18px;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+/* ── Phase Control Bar (Currency, Milestone Progress, Pitch CTA) ── */
+.phaseControlBar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  z-index: 2;
+  justify-content: space-between;
+  width: 100%;
+  background: rgba(20, 24, 33, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 4px 12px;
+  margin-bottom: 0.35rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  gap: 8px;
+  z-index: 5;
 }
 
-.tokenBarLabel {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--engagement-text);
+.tokenSection {
   display: flex;
   align-items: center;
   gap: 6px;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.tokenIcon {
+  font-size: 0.95rem;
+  color: var(--token-color, #ffc107);
+}
+
+.tokenCount {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--token-color, #ffc107);
+}
+
+.tokenLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--engagement-text, #ffffff);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.tokenBadge {
-  background: transparent;
-  border: 1px solid var(--token-color);
-  border-radius: 20px;
-  padding: 3px 12px;
-  color: var(--token-color);
-  font-weight: 800;
-  font-size: 0.95rem;
+.intelStatusSection {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 20px;
+  padding: 2px 10px;
 }
 
+.intelStatusIcon {
+  font-size: 0.85rem;
+}
+
+.pitchCtaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--secondary-bg, #0d6efd);
+  background: var(--primary-bg, #1a1a2e);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.74rem;
+  transition: all var(--transition, 0.2s ease);
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pitchCtaBtn:hover:not(:disabled) {
+  background: var(--secondary-bg, #0d6efd);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
+}
+
+.pitchCtaBtnActive {
+  background: #198754;
+  border-color: #198754;
+  animation: pulsePitch 2s infinite ease-in-out;
+}
+
+.pitchCtaBtnActive:hover {
+  background: #157347;
+  border-color: #146c43;
+}
+
+.pitchCtaBtnDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+}
+
+@keyframes pulsePitch {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(25, 135, 84, 0);
+  }
+}
+
+/* ── Playable Cards Deck Container ── */
 .cardsContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  gap: 1rem;
+  gap: 0.45rem;
   align-items: stretch;
   justify-content: center;
   width: 100%;
   overflow-x: auto;
-  padding: 0.5rem 0.5rem 1rem 0.5rem;
+  padding: 0.15rem 0.2rem 0.3rem 0.2rem;
   scrollbar-width: thin;
   scrollbar-color: var(--engagement-accent) transparent;
 }
 
 .cardsContainer::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .cardsContainer::-webkit-scrollbar-thumb {
   background: var(--engagement-accent);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
-/* Action-Card-inspired outer container */
+/* Action Card Outer Container */
 .cardContainer {
   display: flex;
   flex-direction: column;
-  min-height: 270px;
-  width: 220px;
-  min-width: 220px;
+  min-height: 162px;
+  height: 162px;
+  width: 154px;
+  min-width: 154px;
   cursor: pointer;
   user-select: none;
   transition: var(--transition, 0.2s ease-in-out);
 }
 
 .cardContainer:not(.not_interactable):hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 .not_interactable {
@@ -89,10 +169,67 @@
   opacity: 0.65;
 }
 
+/* Class-based Card Frame (eliminates inline styles) */
+.cardFrame {
+  border-radius: 0;
+  margin-bottom: 0;
+  flex-grow: 1;
+  position: relative;
+  border-width: 2px;
+  border-style: solid;
+  background-color: var(--engagement-bg, #212529);
+  color: var(--engagement-text, #ffffff);
+}
+
+.cardFramePlayable {
+  border-color: var(--engagement-accent, #a02222);
+}
+
+.cardFrameMuted {
+  border-color: var(--engagement-muted, #495057);
+}
+
+.cardHeader {
+  padding: 3px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
+}
+
+.cardTitle {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.74rem;
+  color: var(--engagement-text, #ffffff);
+  margin-bottom: 1px;
+}
+
+.badgeRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.engagementBadge {
+  font-size: 0.56rem;
+  background-color: var(--engagement-muted, #495057);
+  color: var(--engagement-text, #ffffff);
+  padding: 1px 3px;
+}
+
+.intelBadge {
+  font-size: 0.56rem;
+  background-color: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 1px 3px;
+}
+
 .cardImage {
-  height: 90px;
+  height: 36px;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,49 +242,87 @@
 }
 
 .cardImageIcon {
+  font-size: 1.45rem;
   transition: transform 0.2s ease;
 }
 
+.iconPlayable {
+  color: var(--engagement-accent, #a02222);
+}
+
+.iconMuted {
+  color: var(--engagement-muted, #495057);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  flex-grow: 1;
+}
+
 .descriptionBox {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  padding: 3px 5px;
+  margin-bottom: 3px;
+  overflow-y: auto;
+  max-height: 42px;
+}
+
+.cardDescription {
+  font-size: 0.66rem;
+  line-height: 1.2;
+  display: block;
+  color: var(--engagement-text, #ffffff);
+}
+
+.exhaustedAlert {
+  color: var(--engagement-accent, #a02222);
+  font-weight: 700;
 }
 
 .cardList {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  margin-top: auto;
+  padding: 2px 4px;
 }
 
 .actionFooterBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 3px;
   font-weight: 700;
-  font-size: 0.82rem;
-  padding: 4px 8px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
+  font-size: 0.66rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .actionFooterPlayable {
-  background: var(--engagement-accent);
-  color: var(--engagement-accent-text);
+  background: var(--engagement-accent, #a02222);
+  color: var(--engagement-accent-text, #ffffff);
 }
 
 .actionFooterDisabled {
-  background: var(--engagement-muted);
-  color: var(--engagement-text);
+  background: var(--engagement-muted, #495057);
+  color: var(--engagement-text, #ffffff);
+}
+
+.tokenCostHighlight {
+  color: var(--token-color, #ffc107);
 }
 
 .dragIcon {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  font-size: 1.1rem;
-  color: var(--engagement-text);
-  opacity: 0.6;
+  top: 4px;
+  right: 4px;
+  font-size: 0.95rem;
+  color: var(--engagement-text, #ffffff);
+  opacity: 0.55;
   pointer-events: none;
   z-index: 10;
 }

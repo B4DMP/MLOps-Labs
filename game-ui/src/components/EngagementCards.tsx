@@ -7,6 +7,8 @@ interface EngagementCardsProps {
   attentionTokens: number;
   cards?: EngagementCard[];
   playedCardIds?: string[];
+  discoveredIntelCount?: number;
+  onOpenPitchModal?: () => void;
   onSelectPrompt?: (prompt: string) => void;
   onSelectCard?: (card: EngagementCard) => void;
   onDragCardStart?: () => void;
@@ -18,6 +20,8 @@ export default function EngagementCards({
   attentionTokens,
   cards,
   playedCardIds = [],
+  discoveredIntelCount = 0,
+  onOpenPitchModal,
   onSelectPrompt,
   onSelectCard,
   onDragCardStart,
@@ -26,6 +30,8 @@ export default function EngagementCards({
 }: EngagementCardsProps) {
   const activeCards: EngagementCard[] = cards && cards.length > 0 ? cards : [];
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
+
+  const canPitch = discoveredIntelCount > 0;
 
   const handleCardClick = (card: EngagementCard) => {
     const isSingleUseExhausted =
@@ -72,15 +78,40 @@ export default function EngagementCards({
 
   return (
     <div className={styles.container}>
-      {/* Centered Attention Token Counter */}
-      <div className={styles.tokenBar}>
-        <span className={styles.tokenBarLabel}>
-          Attention Tokens
-        </span>
-        <div className={styles.tokenBadge}>
-          <Icon icon="ph:coin-fill" style={{ fontSize: "1rem", color: "var(--token-color)" }} />
-          <span>{attentionTokens}</span>
+      {/* Unified Phase Control Bar: Currency + Milestone Progress + Pitch Progression CTA */}
+      <div className={styles.phaseControlBar}>
+        {/* Left: Attention Tokens Currency */}
+        <div className={styles.tokenSection} title={`${attentionTokens} Attention Tokens available to play tactical engagement cards`}>
+          <Icon icon="ph:coin-fill" className={styles.tokenIcon} />
+          <span className={styles.tokenCount}>{attentionTokens}</span>
+          <span className={styles.tokenLabel}>Tokens</span>
         </div>
+
+        {/* Center: Intelligence Gathering Milestone Progress */}
+        <div className={styles.intelStatusSection} title={`${discoveredIntelCount} intel items documented in your Stakeholder Dossier`}>
+          <Icon icon="ph:files-bold" className={styles.intelStatusIcon} />
+          <span>{discoveredIntelCount} Intel Gathered</span>
+        </div>
+
+        {/* Right: Phase Milestone Progression CTA Button */}
+        {onOpenPitchModal && (
+          <button
+            type="button"
+            className={`${styles.pitchCtaBtn} ${canPitch ? styles.pitchCtaBtnActive : styles.pitchCtaBtnDisabled}`}
+            disabled={!canPitch}
+            onClick={onOpenPitchModal}
+            title={
+              canPitch
+                ? "Combine discovered intel into an action proposal and enter the Pitch Debate"
+                : "Play action cards below to uncover at least 1 intel item before pitching"
+            }
+          >
+            <Icon icon={canPitch ? "ph:paper-plane-tilt-bold" : "ph:lock-key-fill"} />
+            <span>
+              {canPitch ? `Ready to Pitch (${discoveredIntelCount} Intel) ➔` : "Pitch Proposal (Need ≥ 1 Intel)"}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Playable Engagement Cards Deck Container */}
@@ -104,48 +135,30 @@ export default function EngagementCards({
                 !isEnabled
                   ? "Interaction disabled"
                   : isSingleUseExhausted
-                    ? `Already played in this phase (1x per phase limit)`
+                    ? "Already played in this phase (1x per phase limit)"
                     : attentionTokens < card.token_cost
                       ? `Requires ${card.token_cost} Attention Tokens (you have ${attentionTokens})`
                       : `Drag to Pitch Deck / Chat or click to play ${card.title}`
               }
             >
-              {/* Outer Card Frame Structure (identical to ActionCardComponent) */}
+              {/* Outer Card Frame Structure */}
               <div
-                className="card rounded-0 shadow-sm mb-0 flex-grow-1 position-relative"
-                style={{
-                  borderColor: canAfford ? "var(--engagement-accent)" : "var(--engagement-muted)",
-                  borderWidth: "3px",
-                  backgroundColor: "var(--engagement-bg)",
-                  color: "var(--engagement-text)",
-                }}
+                className={`card ${styles.cardFrame} ${canAfford ? styles.cardFramePlayable : styles.cardFrameMuted}`}
               >
                 <Icon icon="teenyicons:drag-outline" className={styles.dragIcon} />
-                {/* Card Header (Title & Cost Subtitle) */}
-                <div className="card-header rounded-0 py-2 px-2 border-bottom" style={{ borderColor: "rgba(255, 255, 255, 0.15)" }}>
-                  <h6 className="card-title text-center fw-bold mb-1 text-truncate" title={card.title} style={{ color: "var(--engagement-text)" }}>
+
+                {/* Card Header (Title & Subtitle Badges) */}
+                <div className={`card-header ${styles.cardHeader}`}>
+                  <h6 className={styles.cardTitle} title={card.title}>
                     {card.title}
                   </h6>
-                  <div className="d-flex justify-content-center align-items-center gap-1 small flex-wrap">
-                    <span
-                      className="badge"
-                      style={{
-                        fontSize: "0.65rem",
-                        backgroundColor: "var(--engagement-muted)",
-                        color: "var(--engagement-text)",
-                      }}
-                    >
-                      ENGAGEMENT CARD
+                  <div className={styles.badgeRow}>
+                    <span className={`badge ${styles.engagementBadge}`}>
+                      ENGAGEMENT
                     </span>
                     {card.target_type !== "intel" && (card.intel_reveal_count ?? 1) > 0 && (
                       <span
-                        className="badge"
-                        style={{
-                          fontSize: "0.65rem",
-                          backgroundColor: "rgba(56, 189, 248, 0.2)",
-                          color: "#38bdf8",
-                          border: "1px solid rgba(56, 189, 248, 0.4)",
-                        }}
+                        className={`badge ${styles.intelBadge}`}
                         title={`Reveals ${card.intel_reveal_count ?? 1} intel requirement${(card.intel_reveal_count ?? 1) > 1 ? "s" : ""} per stakeholder`}
                       >
                         <Icon icon="ph:files-bold" className="me-1" />
@@ -156,36 +169,20 @@ export default function EngagementCards({
                 </div>
 
                 {/* Card Image / Icon Surface */}
-                <div
-                  className={styles.cardImage}
-                  style={{ filter: canAfford ? "none" : "grayscale(100%)" }}
-                >
+                <div className={styles.cardImage}>
                   <Icon
                     icon={card.icon || "ph:cards-bold"}
-                    className={styles.cardImageIcon}
-                    style={{
-                      fontSize: "2.6rem",
-                      color: isSingleUseExhausted || !canAfford
-                        ? "var(--engagement-muted)"
-                        : "var(--engagement-accent)",
-                    }}
+                    className={`${styles.cardImageIcon} ${canAfford && !isSingleUseExhausted ? styles.iconPlayable : styles.iconMuted}`}
                   />
                 </div>
 
                 {/* Card Body & Description Box */}
-                <div className="card-body d-flex flex-column p-2">
-                  <div className={`p-2 rounded mb-2 ${styles.descriptionBox}`}>
-                    <span
-                      style={{
-                        fontSize: "0.8rem",
-                        lineHeight: 1.25,
-                        display: "block",
-                        color: "var(--engagement-text)",
-                      }}
-                    >
+                <div className={`card-body ${styles.cardBody}`}>
+                  <div className={styles.descriptionBox}>
+                    <span className={styles.cardDescription}>
                       {isSingleUseExhausted ? (
-                        <span style={{ color: "var(--engagement-accent)", fontWeight: "bold" }}>
-                          ⚠️ Already played in this phase (Limit: 1x per phase).
+                        <span className={styles.exhaustedAlert}>
+                          ⚠️ Already played in this phase.
                         </span>
                       ) : (
                         card.description
@@ -194,10 +191,9 @@ export default function EngagementCards({
                   </div>
 
                   {/* Card Footer Play Action */}
-                  <div className={`mt-auto p-2 rounded ${styles.cardList}`}>
+                  <div className={styles.cardList}>
                     <div
-                      className={`${styles.actionFooterBtn} ${canAfford ? styles.actionFooterPlayable : styles.actionFooterDisabled
-                        }`}
+                      className={`${styles.actionFooterBtn} ${canAfford ? styles.actionFooterPlayable : styles.actionFooterDisabled}`}
                     >
                       {isSingleUseExhausted ? (
                         <>
@@ -206,18 +202,17 @@ export default function EngagementCards({
                       ) : canAfford ? (
                         <>
                           PLAY CARD(
-                          <span style={{ color: "var(--token-color)" }}>
+                          <span className={styles.tokenCostHighlight}>
                             {card.token_cost}
-                            <Icon icon="ph:coin-fill" className="ms-1" style={{ color: "var(--token-color)" }} />
+                            <Icon icon="ph:coin-fill" className="ms-1" />
                           </span>)
-
                         </>
                       ) : (
                         <>
                           <Icon icon="ph:lock-key-fill" /> NEED{" "}
-                          <span style={{ color: "var(--token-color)" }}>
+                          <span className={styles.tokenCostHighlight}>
                             {card.token_cost}
-                            <Icon icon="ph:coin-fill" className="ms-1" style={{ color: "var(--token-color)" }} />
+                            <Icon icon="ph:coin-fill" className="ms-1" />
                           </span>
                         </>
                       )}
