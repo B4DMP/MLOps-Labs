@@ -17,7 +17,7 @@ from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_
 from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
 from mlops_serious_game.infrastructure.websocket.router import router as websocket_router
 
-from mlops_serious_game.infrastructure.database import init_db
+from mlops_serious_game.infrastructure.database import init_db, init_checkpointer
 
 configure()
 
@@ -26,6 +26,7 @@ configure()
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the API."""
     init_db()
+    await init_checkpointer()
     if settings.MISTRAL_API_KEY:
         logger.info(f"LLM Configuration: Using MistralAI proxy with model '{settings.MISTRAL_LLM_MODEL}' (Base URL: {settings.MISTRAL_API_BASE})")
     elif settings.WESTAI_API_KEY:

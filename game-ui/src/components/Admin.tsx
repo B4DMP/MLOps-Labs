@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
 import {
   Chart as ChartJS,
@@ -147,9 +148,23 @@ export function Admin({
       }}
     >
       <div className={`${styles.adminContainer}`}>
-        <h1 className={`${styles.adminTitle} text-center mb-3`}>
-          Admin Panel
-        </h1>
+        <div className="position-relative d-flex justify-content-center align-items-center mb-3">
+          <h1 className={`${styles.adminTitle} text-center mb-0`}>
+            Admin Panel
+          </h1>
+          <div className="position-absolute end-0">
+            <a
+              href={import.meta.env.BASE_URL || "/"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.openGameButton}
+              title="Open Login / Register page in a new tab"
+            >
+              <Icon icon="ph:arrow-square-out-bold" />
+              <span>Login / Register</span>
+            </a>
+          </div>
+        </div>
 
         {/* Top Horizontal Subpage Navigation Bar */}
         <div className="d-flex justify-content-center mb-4 w-100">

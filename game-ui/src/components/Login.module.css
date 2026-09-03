@@ -40,10 +40,29 @@
     color: white;
     font-weight: 600;
     transition: all var(--transition);
+    cursor: pointer;
     text-align: center;
     width: 100%;
 }
 
 .actionButton:hover {
     background: var(--secondary-bg);
+}
+
+.secondaryButton {
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--card-border-default);
+    background: transparent;
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+}
+
+.secondaryButton:hover {
+    background: var(--secondary-bg);
+    border-color: var(--secondary-bg);
 }

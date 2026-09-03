@@ -49,4 +49,26 @@
     /* Attention Token Theme */
     --token-color: #ffc107;
     /* Outline of token cost pill, token icons & token amount text */
+
+    /* Dialog & Surface Tokens */
+    --dialog-bg: #f8fafc;
+    --dialog-surface: #ffffff;
+    --dialog-border: #e2e8f0;
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --bg-subtle: #f1f5f9;
+    --border-subtle: #cbd5e1;
+
+    /* Status & Delta Badges */
+    --badge-new-bg: #dcfce7;
+    --badge-new-text: #15803d;
+    --badge-shifted-bg: #fef3c7;
+    --badge-shifted-text: #b45309;
+
+    /* Matrix Quadrant Accents */
+    --quadrant-keep-satisfied: #f97316;
+    --quadrant-manage-closely: #ef4444;
+    --quadrant-monitor: #94a3b8;
+    --quadrant-keep-informed: #3b82f6;
 }

@@ -59,9 +59,13 @@ class GameProgressionData(BaseModel):
 async def reset_thread(thread_id: str):
     # Note: Direct SQL is used because checkpoint tables are managed internally by LangGraph
     async with async_engine.begin() as conn:
-        await conn.execute(text("DELETE FROM checkpoints WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_writes WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
-        await conn.execute(text("DELETE FROM checkpoint_blobs WHERE thread_id = :thread_id;"), {"thread_id": thread_id})
+        for table in ["checkpoints", "checkpoint_writes", "checkpoint_blobs"]:
+            table_check = await conn.execute(text(f"SELECT to_regclass('{table}');"))
+            if table_check.scalar() is not None:
+                await conn.execute(
+                    text(f"DELETE FROM {table} WHERE thread_id = :thread_id;"),
+                    {"thread_id": thread_id},
+                )
 
 
 def get_metrics() -> dict[str, Any]:

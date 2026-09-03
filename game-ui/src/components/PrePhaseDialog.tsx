@@ -9,6 +9,7 @@ import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext } from "./PhaseProvider";
 import { useContext } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
+import HoverTooltip from "./HoverToolTip";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -26,10 +27,17 @@ export default function PrePhaseDialog({
   if (!isOpen) return null;
 
   const currentPhaseData = phases[currentPhase];
-  const previousPhaseData = currentPhase > 0 ? phases[currentPhase - 1] : null;
+  
+  // Phase 0 ("Introduction") is a skipped/hidden tutorial challenge; treat Phase 1 as the first playable game phase
+  const hasIntroPhase = phases.length > 0 && phases[0]?.id === 0 && phases[0]?.name?.toLowerCase() === "introduction";
+  const isFirstPhase = hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
+  const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
   const currentStakeholders = currentPhaseData?.stakeholder_power_interest || [];
   const previousStakeholders = previousPhaseData?.stakeholder_power_interest || [];
+
+  const displayPhaseNumber = hasIntroPhase ? Math.max(1, currentPhase) : currentPhase + 1;
+  const totalPlayablePhases = hasIntroPhase ? Math.max(1, phases.length - 1) : phases.length;
 
   const handleClose = () => {
     setIsOpen(false);
@@ -48,93 +56,119 @@ export default function PrePhaseDialog({
         data-step="1"
         data-position="middle-aligned"
       >
-        <DialogPanel className={`${styles.panel} card shadow-lg border-0`}>
-          {/* Header matching Challenge Briefing style */}
-          <div
-            className="p-3 d-flex align-items-center justify-content-between text-white"
-            style={{ backgroundColor: "var(--primary-bg)" }}
-          >
-            <DialogTitle className="h5 mb-0 fw-bold d-flex align-items-center gap-2">
-              <Icon
-                icon="ph:projector-screen-chart-bold"
-                style={{ color: "var(--secondary-bg)", fontSize: "1.8rem" }}
-              />
-              <span>Phase Briefing</span>
-            </DialogTitle>
+        <DialogPanel className={styles.panel}>
+          {/* Header */}
+          <div className={styles.header}>
+            <div>
+              <DialogTitle className={styles.headerTitle}>
+                <Icon icon="ph:projector-screen-chart-bold" className={styles.headerIcon} />
+                <span>Phase Briefing</span>
+              </DialogTitle>
+              <p className={styles.headerSubtitle}>
+                Project Milestone Overview • Align technical decisions with stakeholder priorities
+              </p>
+            </div>
             {phases && phases.length > 0 && (
-              <span
-                className="badge px-3 py-2 rounded-pill fw-semibold"
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.2)",
-                  color: "#ffffff",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Phase {currentPhase + 1} of {phases.length}
+              <span className={styles.phaseBadge}>
+                Phase {displayPhaseNumber} of {totalPlayablePhases}
               </span>
             )}
           </div>
 
           {/* Modal Body */}
           <div className={styles.modalBody}>
-            {/* 1. Phase Objectives Card (matching ChallengeDescriptionCard style) */}
-            <div
-              className="card shadow-sm w-100"
-              style={{ background: "#ffffff", border: "1px solid #dee2e6", borderRadius: "0.75rem" }}
-            >
-              <h5
-                className="card-header text-center"
-                style={{
-                  background: "var(--primary-bg)",
-                  color: "white",
-                  padding: "0.75rem 1.25rem",
-                  borderTopLeftRadius: "0.75rem",
-                  borderTopRightRadius: "0.75rem",
-                }}
-              >
-                <span className="fw-bold">
-                  {currentPhaseData?.phase_name || `Phase ${currentPhase + 1}`}
-                </span>
-              </h5>
-              <div className="card-body bg-white text-dark p-3">
-                {currentPhaseData?.phase_introduction && (
-                  <p className="card-text text-secondary fst-italic mb-2" style={{ fontSize: "0.95rem" }}>
-                    {currentPhaseData.phase_introduction}
-                  </p>
-                )}
-                <p className="card-text text-dark fs-6 mb-0" style={{ lineHeight: "1.5" }}>
-                  <strong>Phase Objectives: </strong>
-                  {currentPhaseData?.phase_desc ||
-                    "Enter this phase to address new project requirements and align with key stakeholders."}
-                </p>
+            <div className={styles.dossierGrid}>
+              {/* Left Column: Mission Directive & Objectives */}
+              <div className={styles.missionColumn}>
+                <div className={styles.missionCard}>
+                  <div className={styles.missionCardHeader}>
+                    <Icon icon="ph:target-bold" />
+                    <span>{currentPhaseData?.phase_name || `Phase ${displayPhaseNumber}`}</span>
+                  </div>
+                  <div className={styles.missionCardBody}>
+                    {currentPhaseData?.phase_introduction && (
+                      <p className={styles.missionIntro}>
+                        {currentPhaseData.phase_introduction}
+                      </p>
+                    )}
+                    <div className={styles.objectivesBox}>
+                      <span className={styles.objectivesLabel}>
+                        <Icon icon="ph:flag-checkered-bold" />
+                        Phase Objectives
+                      </span>
+                      <p className={styles.objectivesText}>
+                        {currentPhaseData?.phase_desc ||
+                          "Enter this phase to address new project requirements and align with key stakeholders."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actionable Strategy & Instructions for the Player */}
+                <div className={styles.actionPlanCard}>
+                  <div className={styles.actionPlanHeader}>
+                    <Icon icon="ph:list-checks-bold" className={styles.actionPlanIcon} />
+                    <span>Player Action Plan</span>
+                  </div>
+                  <div className={styles.actionPlanList}>
+                    <div className={styles.actionPlanItem}>
+                      <span className={styles.stepBadge}>1</span>
+                      <div>
+                        <strong>Deliver Objectives:</strong> Align your technical choices with the phase deliverables defined above.
+                      </div>
+                    </div>
+                    <div className={styles.actionPlanItem}>
+                      <span className={styles.stepBadge}>2</span>
+                      <div>
+                        <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders, but make sure to involve the others as well.
+                      </div>
+                    </div>
+                    <div className={styles.actionPlanItem}>
+                      <span className={styles.stepBadge}>3</span>
+                      <div>
+                        <strong>Navigate Trade-offs:</strong> Check newcomer and shifted badges on the radar to anticipate which stakeholder priorities may clash during round dilemmas.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Stakeholder Matrix */}
+              <div className={styles.matrixColumn}>
+                <div className={styles.sectionHeader}>
+                  <h6 className={styles.sectionTitle}>
+                    <Icon icon="ph:users-three-bold" className={styles.sectionIcon} />
+                    <span>Stakeholder Power & Interest Radar</span>
+                  </h6>
+                  <HoverTooltip
+                    description="Radar Gameplay Guide: Power reflects authority to approve or veto your ML systems. Interest reflects how directly daily work is impacted. Focus your attention on 'Manage Closely' stakeholders, but don't disregard the others."
+                  >
+                    <span className={styles.radarHelpBtn}>
+                      <Icon icon="ph:info-bold" />
+                      <span>Radar Guide</span>
+                    </span>
+                  </HoverTooltip>
+                </div>
+                <PowerInterestMatrix
+                  currentStakeholders={currentStakeholders}
+                  previousStakeholders={previousStakeholders}
+                  isFirstPhase={isFirstPhase}
+                />
               </div>
             </div>
 
-            {/* 2. Stakeholder Dynamics & 4-Quadrant Power-Interest Matrix */}
-            <div>
-              <div className={styles.sectionHeader}>
-                <h6 className={styles.sectionTitle}>
-                  <Icon
-                    icon="ph:users-three-bold"
-                    style={{ color: "var(--primary-bg)", fontSize: "1.4rem" }}
-                  />
-                  <span>Stakeholder Power & Interest Matrix</span>
-                </h6>
+            {/* Footer with hint and action button */}
+            <div className={styles.footer}>
+              <div className={styles.footerHint}>
+                <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
+                <span>You can review this stakeholder matrix anytime during the phase.</span>
               </div>
-              <PowerInterestMatrix
-                currentStakeholders={currentStakeholders}
-                previousStakeholders={previousStakeholders}
-                isFirstPhase={currentPhase === 0}
-              />
-            </div>
-
-            {/* 3. Action Footer Button */}
-            <div className={styles.actions}>
-              <button className={styles.actionButton} onClick={handleClose}>
-                <span>Enter Phase</span>
-                <Icon icon="ph:arrow-right-bold" />
-              </button>
+              <div className={styles.actions}>
+                <button className={styles.actionButton} onClick={handleClose}>
+                  <span>Enter Phase & Begin Round</span>
+                  <Icon icon="ph:arrow-right-bold" />
+                </button>
+              </div>
             </div>
           </div>
         </DialogPanel>

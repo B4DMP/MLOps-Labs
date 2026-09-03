@@ -88,6 +88,7 @@ async def unified_websocket_endpoint(
 
                              
                             async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+                                await checkpointer.setup()
                                 graph = create_pitch_debate_graph().compile(checkpointer=checkpointer)
                                 config = {"configurable": {"thread_id": session_id}}
                                 state_snapshot = await graph.aget_state(config)
