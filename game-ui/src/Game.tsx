@@ -87,16 +87,11 @@ function App({ username: _username }: AppProps) {
     debug
       ? [
         {
-          ac_title: "test_card",
-          ac_descr: "test_description",
-          metric_changes: {
-            reliability: 1,
-            data: -5,
-            requirements: 3,
-            efficiency: -2,
-          },
-          stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
-          ac_image: "",
+          id: "test_card",
+          title: "test_card",
+          description: "test_description",
+          intel_ids: [],
+          addendum_intel_item_ids: [],
         },
       ]
       : [],
@@ -120,7 +115,7 @@ function App({ username: _username }: AppProps) {
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
-  const [pitchedActionCard, setPitchedActionCard] = useState<any>(null);
+  const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const acCountRef = useRef<number>(-1);
@@ -359,9 +354,9 @@ function App({ username: _username }: AppProps) {
           setOnlineIntelChatMsgs([]);
         }
         setAttentionTokens(data.attention_tokens);
-        if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
-        if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
-        if (data.action_card && typeof data.action_card === "object" && (data.action_card.title || data.action_card.ac_title)) {
+        if (data.played_engagement_card_ids) setPlayedCardIdsInPhase(data.played_engagement_card_ids);
+        if (data.engagement_card_targets) setCardTargetedStakeholdersMap(data.engagement_card_targets);
+        if (data.action_card && typeof data.action_card === "object" && data.action_card.title) {
           setPitchedActionCard(data.action_card);
         }
       } else if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
@@ -393,11 +388,11 @@ function App({ username: _username }: AppProps) {
         if (data.attention_tokens !== undefined) {
           setAttentionTokens(data.attention_tokens);
         }
-        if (data.action_card && typeof data.action_card === "object" && (data.action_card.title || data.action_card.ac_title)) {
+        if (data.action_card && typeof data.action_card === "object" && data.action_card.title) {
           setPitchedActionCard(data.action_card);
         }
-        if (data.played_card_ids) setPlayedCardIdsInPhase(data.played_card_ids);
-        if (data.card_targets) setCardTargetedStakeholdersMap(data.card_targets);
+        if (data.played_engagement_card_ids) setPlayedCardIdsInPhase(data.played_engagement_card_ids);
+        if (data.engagement_card_targets) setCardTargetedStakeholdersMap(data.engagement_card_targets);
       }
 
       if (data.facial_expressions && typeof data.facial_expressions === "object") {
@@ -453,12 +448,6 @@ function App({ username: _username }: AppProps) {
     });
 
     const unsubChatReceived = subscribe("chat:message_received", (data: any) => {
-      let _ac_id = -1;
-      if (data["action_cards"] && acCountRef.current !== data["action_cards"].length) {
-        setac_count(data["action_cards"].length);
-        _ac_id = data["action_cards"].length - 1;
-      }
-
       if (data && data.emotional_states && typeof data.emotional_states === "object") {
         setStakeholders((prev) => {
           const updated = { ...prev };
@@ -481,7 +470,7 @@ function App({ username: _username }: AppProps) {
             id: msg.stakeholder_id,
             message: msg.message,
             facial_expression: msg.facial_expression,
-            ac_id: _ac_id,
+            ac_id: -1,
             revealed_intel: msg.revealed_intel || [],
           })),
         ]);
@@ -507,39 +496,6 @@ function App({ username: _username }: AppProps) {
           });
           return updated;
         });
-      }
-
-      if (data.action_cards && data.action_cards.length > 0) {
-        const mappedCards = data.action_cards.map((card: any) => {
-          const stakeholder_ids = (card.stakeholder_names || []).map(
-            (name: string) => {
-              const st = Object.values(stakeholdersRef.current).find(
-                (s) => s.name === name,
-              );
-              return st ? st.id : "";
-            },
-          );
-
-          return {
-            id: card.id,
-            ac_title: card.title,
-            ac_descr: card.short_description,
-            metric_changes: Object.values(metricsRef.current).reduce(
-              (acc, m) => {
-                if (card[m.id] !== undefined) {
-                  acc[m.id] = card[m.id];
-                }
-                return acc;
-              },
-              {} as Record<string, number>,
-            ),
-            stakeholder_ids: stakeholder_ids,
-            ac_image: card.ac_image ? (typeof card.ac_image === "object" ? card.ac_image.image || card.ac_image["image"] : card.ac_image) : "",
-          };
-        });
-        if (!debug) {
-          setActionCards(mappedCards);
-        }
       }
     });
 
@@ -696,16 +652,11 @@ function App({ username: _username }: AppProps) {
     if (debug) {
       setActionCards([
         {
-          ac_title: "test_card",
-          ac_descr: "test_description",
-          metric_changes: {
-            reliability: 1,
-            data: -5,
-            requirements: 3,
-            efficiency: -2,
-          },
-          stakeholder_ids: ["daniel_whitaker_data_engineer", "jimmy_everick_data_scientist"],
-          ac_image: "",
+          id: "test_card",
+          title: "test_card",
+          description: "test_description",
+          intel_ids: [],
+          addendum_intel_item_ids: [],
         },
       ]);
     }
@@ -945,6 +896,8 @@ function App({ username: _username }: AppProps) {
                   chatMsgs={onlineIntelChatMsgs}
                   setChatMsgs={setOnlineIntelChatMsgs}
                   engagementCards={engagementCards}
+                  pitchedActionCard={pitchedActionCard}
+                  onUpdatePitchedCard={(card) => setPitchedActionCard(card)}
                   onUpdateIntelItems={(items) => {
                     setIntelItems(items);
                     setDossierData((prevDossier) => {

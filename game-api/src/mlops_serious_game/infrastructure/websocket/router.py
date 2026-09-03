@@ -21,6 +21,7 @@ from .handlers.intel_handler import (
     handle_get_dossier,
     handle_verify_item,
     handle_play_engagement_card,
+    handle_generate_action_card,
 )
 from .handlers.system_handler import handle_ping
 from .manager import manager
@@ -42,6 +43,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:get_dossier": handle_get_dossier,
     "intel:verify_item": handle_verify_item,
     "intel:play_engagement_card": handle_play_engagement_card,
+    "intel:generate_action_card": handle_generate_action_card,
 }
 
 
@@ -73,31 +75,6 @@ async def unified_websocket_endpoint(
                     if event_name == "game:init":
                         last_gamestate_id, emotion_values_dict = await handle_game_init(websocket, username, payload)
                     elif event_name == "game:state_update_request":
-                        action_card_id = payload.get("action_card_id")
-                        action_card = {}
-                        #retrieve action card from langGraph state
-                        if action_card_id:
-                            from langgraph.checkpoint.postgres.aio import (
-                                AsyncPostgresSaver,
-                            )
-
-                            from mlops_serious_game.application.pitch_debate_service.graph import (
-                                create_pitch_debate_graph
-                            )
-                            from mlops_serious_game.config import settings
-
-                             
-                            async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
-                                await checkpointer.setup()
-                                graph = create_pitch_debate_graph().compile(checkpointer=checkpointer)
-                                config = {"configurable": {"thread_id": session_id}}
-                                state_snapshot = await graph.aget_state(config)
-                                action_cards = state_snapshot.values.get("action_cards", []) if state_snapshot.values else []
-                                for card in action_cards:
-                                    if card.get("id") == action_card_id:
-                                        action_card = card
-                                        break
-                        payload["action_card"] = action_card
                         await reset_thread(session_id)
                         last_gamestate_id = list(await handle_state_update_request(websocket, username, payload))
                     elif event_name == "chat:send_message":

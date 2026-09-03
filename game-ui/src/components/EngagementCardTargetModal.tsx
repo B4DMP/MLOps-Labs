@@ -91,6 +91,40 @@ export default function EngagementCardTargetModal({
   const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
   const requiredAmount = isIntelCard ? 1 : card.stakeholder_selection_amount;
 
+  // Distinct requirement category details helper (Non-conflicting colors & icons)
+  const getCategoryDetails = (type: string) => {
+    switch (type) {
+      case "requirement":
+        return {
+          label: "Requirement",
+          shortLabel: "REQ",
+          icon: "ph:check-square-bold",
+          className: styles.categoryTagRequirement,
+        };
+      case "negotiable_preference":
+        return {
+          label: "Preference",
+          shortLabel: "PREF",
+          icon: "ph:sliders-horizontal-bold",
+          className: styles.categoryTagPreference,
+        };
+      case "personal_friction":
+        return {
+          label: "Friction",
+          shortLabel: "FRICT",
+          icon: "ph:warning-circle-bold",
+          className: styles.categoryTagFriction,
+        };
+      default:
+        return {
+          label: type.replace(/_/g, " "),
+          shortLabel: "INTEL",
+          icon: "ph:tag-bold",
+          className: styles.categoryTagDefault,
+        };
+    }
+  };
+
   const activeStakeholders = availableStakeholderList.filter(isStakeholderActive);
 
   // Filter out already targeted stakeholders for the card
@@ -282,7 +316,7 @@ export default function EngagementCardTargetModal({
                         const isSelected = selectedIntelId === item.id;
                         const isSelectable = !isVerified;
                         const catType = item.categorized_type || "requirement";
-                        const categoryLabel = catType.replace(/_/g, " ");
+                        const catDetails = getCategoryDetails(catType);
 
                         return (
                           <div
@@ -293,17 +327,27 @@ export default function EngagementCardTargetModal({
                           >
                             <div>
                               <div className={styles.intelHeader}>
-                                <span className={`badge ${getTagBadgeColor(catType)}`}>
-                                  {categoryLabel}
-                                </span>
-                                <span
-                                  className={`badge ${isVerified ? "bg-success" : "bg-warning text-dark"}`}
-                                >
-                                  {item.intel_type}
-                                </span>
+                                <div className={styles.intelBadges}>
+                                  <span className={`${styles.categoryTag} ${catDetails.className}`}>
+                                    <Icon icon={catDetails.icon} />
+                                    <span>{catDetails.label}</span>
+                                  </span>
+
+                                  <span
+                                    className={`${styles.confirmationPill} ${
+                                      isVerified ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
+                                    }`}
+                                  >
+                                    <Icon
+                                      icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
+                                      style={{ fontSize: "0.85rem" }}
+                                    />
+                                    <span>{isVerified ? "Verified" : "Unconfirmed"}</span>
+                                  </span>
+                                </div>
                               </div>
 
-                              <p className={styles.intelDescription} style={{ marginTop: "0.5rem" }}>
+                              <p className={styles.intelDescription} style={{ marginTop: "0.6rem" }}>
                                 {item.description}
                               </p>
                             </div>

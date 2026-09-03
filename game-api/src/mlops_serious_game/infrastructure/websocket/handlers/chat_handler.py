@@ -122,7 +122,6 @@ async def handle_chat_message(
                     "messages": json_response,
                     "facial_expressions": {st_index_str: st_face} if (st_index_str and st_face) else {},
                     "emotional_states": {st_index_str: EmotionFactory.derive_emotional_state(st_ev)} if (st_index_str and st_ev) else {},
-                    "action_cards": [],
                     "streaming": False,
                 },
             )

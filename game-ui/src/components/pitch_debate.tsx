@@ -12,6 +12,7 @@ import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteracti
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import ActionCardDetailModal from "./ActionCardDetailModal";
 
 export interface IntelItem {
   id: string;
@@ -55,8 +56,7 @@ interface PitchDebateProps {
   setChatMsgs?: React.Dispatch<React.SetStateAction<ChatMsg[]>>;
   playActionCard?: (ac: ActionCard) => void;
   getNextChallenge?: (ac: ActionCard) => void;
-  onSelectDialogueOption: (index: number) => void;
-  pitchedActionCard?: any;
+  pitchedActionCard?: ActionCard | null;
   dossierData?: StakeholderDossierEntry[];
   intelItems?: IntelItem[];
   onEndPitch?: (passed: boolean) => void;
@@ -87,9 +87,10 @@ export default function PitchDebate({
   const metrics = metricsCtx?.metrics || {};
 
   // Selected Stakeholder & UI States
-  const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("st_security");
+  const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("requirements_reuben");
   const [showHelp, setShowHelp] = useState(false);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
+  const [isActionCardModalOpen, setIsActionCardModalOpen] = useState(false);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
   const [hoveredPersuasionStakeholderId, setHoveredPersuasionStakeholderId] = useState<string | null>(null);
   const [hoveredCardRect, setHoveredCardRect] = useState<DOMRect | null>(null);
@@ -350,13 +351,9 @@ export default function PitchDebate({
     const threshold = getStakeholderThreshold(st);
 
     // 1. Action Card Intel Contribution
-    const pitchedIntelItems: any[] = (pitchedActionCard?.intel_items && pitchedActionCard.intel_items.length > 0)
-      ? pitchedActionCard.intel_items
-      : (pitchedActionCard?.selected_intel_ids
-        ? intelItems.filter((i) => pitchedActionCard.selected_intel_ids.includes(i.id))
-        : []);
-    const matchingActionCardIntels = pitchedIntelItems.filter(
-      (item) => item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name)
+    const cardIntelIds = pitchedActionCard?.intel_ids || [];
+    const matchingActionCardIntels = (intelItems || []).filter(
+      (item) => cardIntelIds.includes(item.id) && (item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name))
     );
     const actionCardScore = matchingActionCardIntels.reduce((sum, item) => {
       const type = item.categorized_type || item.intel_type || "requirement";
@@ -492,9 +489,16 @@ export default function PitchDebate({
 
   const bgIndex = (currentChallenge + currentPhase) % 4;
 
-  const pitchedTitle = pitchedActionCard?.title || pitchedActionCard?.ac_title || "Base Action Card Proposal";
-  const pitchedDescription = pitchedActionCard?.description || pitchedActionCard?.ac_descr || "Multi-stakeholder aligned strategic intervention";
-  const pitchedIntelsCount = pitchedActionCard?.intel_items?.length || 0;
+  const pitchedTitle = pitchedActionCard?.title || "Base Action Card Proposal";
+  const pitchedDescription = pitchedActionCard?.description || "Multi-stakeholder aligned strategic intervention";
+  const pitchedIntelsCount = pitchedActionCard?.intel_ids?.length || 0;
+
+  // Resolve stakeholders whose intel items formed this action card
+  const cardIntelIds = pitchedActionCard?.intel_ids || [];
+  const matchedIntels = intelItems.filter((i) =>
+    cardIntelIds.includes(i.id) || (i.requirement_id && cardIntelIds.includes(i.requirement_id))
+  );
+
 
   return (
     <div className={styles.container}>
@@ -574,23 +578,32 @@ export default function PitchDebate({
 
                           {/* Center Tabletop with Pitched Action Card */}
                           <div className={styles.tabletopCenterArea}>
-                            <div className={styles.actionCardSurface}>
-                              <div className="d-flex justify-content-between align-items-center mb-1">
-                                <span className="badge bg-primary px-2 py-1" style={{ fontSize: "0.68rem" }}>
-                                  🃏 Pitched Base AC
-                                </span>
-                                {pitchedIntelsCount > 0 && (
-                                  <span className="badge bg-success px-2 py-1" style={{ fontSize: "0.68rem" }}>
-                                    {pitchedIntelsCount} Intel{pitchedIntelsCount > 1 ? "s" : ""} Merged
-                                  </span>
-                                )}
+                            <div
+                              className={styles.actionCardSurface}
+                              onClick={() => setIsActionCardModalOpen(true)}
+                              title="Click to view full 7:5 Action Card proposal"
+                            >
+                              <div className={styles.actionCardInnerFrame}>
+                                {/* Header matching ActionCardCardComponent */}
+                                <div className={styles.actionCardHeader}>
+                                  <span className={styles.actionCardCategoryLabel}>Action Card</span>
+                                  <h6
+                                    className={styles.actionCardTitle}
+                                    title={pitchedTitle}
+                                  >
+                                    {pitchedTitle}
+                                  </h6>
+                                </div>
+
+                                {/* Description Box */}
+                                <div className={styles.actionCardDescriptionBox}>
+                                  <p className={styles.actionCardDescriptionPreview} title={pitchedDescription}>
+                                    {pitchedDescription}
+                                  </p>
+                                </div>
+
+
                               </div>
-                              <h6 className="fw-bold mb-1 text-dark" style={{ fontSize: "0.85rem", lineHeight: "1.25" }}>
-                                {pitchedTitle}
-                              </h6>
-                              <p className="small text-muted mb-0 text-truncate" style={{ fontSize: "0.72rem" }}>
-                                {pitchedDescription}
-                              </p>
                             </div>
                           </div>
 
@@ -1030,6 +1043,23 @@ export default function PitchDebate({
         activeStakeholderId={selectedStakeholderId}
         currentPhase={currentPhase}
         currentChallenge={currentChallenge}
+      />
+
+      {/* Full 7:5 Action Card Detail Modal */}
+      <ActionCardDetailModal
+        isOpen={isActionCardModalOpen}
+        onClose={() => setIsActionCardModalOpen(false)}
+        actionCard={
+          pitchedActionCard || {
+            id: "pitched_ac_fallback",
+            title: pitchedTitle,
+            description: pitchedDescription,
+            intel_ids: cardIntelIds,
+          }
+        }
+        intelItems={intelItems}
+        stakeholders={stakeholders}
+        getStakeholderColor={getStakeholderColor}
       />
     </div>
   );

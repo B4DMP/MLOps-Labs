@@ -1,12 +1,17 @@
+import datetime
 from fastapi import WebSocket
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
+from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.infrastructure.database import get_session, GameChallenge
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
+)
+from mlops_serious_game.application.action_card_service.service import (
+    generate_action_card,
 )
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
@@ -15,6 +20,7 @@ from mlops_serious_game.application.intel_handler import (
     tag_stakeholder_convincer_archetype,
     handle_intel_verification,
     retrieve_dossier_data,
+    retrieve_intel_items,
 )
 from ..manager import manager
 
@@ -129,16 +135,16 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
-    played_card_ids = []
-    card_targets = {}
+    played_engagement_card_ids = []
+    engagement_card_targets = {}
     with get_session() as db_session:
         stmt = select(GameChallenge).where(
             GameChallenge.user_name == username
         ).order_by(GameChallenge.id.desc())
         existing = db_session.scalars(stmt).first()
         if existing and isinstance(existing.action_card, dict):
-            played_card_ids = existing.action_card.get("played_card_ids", [])
-            card_targets = existing.action_card.get("card_targets", {})
+            played_engagement_card_ids = existing.action_card.get("played_engagement_card_ids", [])
+            engagement_card_targets = existing.action_card.get("engagement_card_targets", {})
 
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
     await manager.send_event(
@@ -146,8 +152,8 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
         event="intel:dossier_data",
         payload={
             "dossier": dossier_data,
-            "played_card_ids": played_card_ids,
-            "card_targets": card_targets,
+            "played_engagement_card_ids": played_engagement_card_ids,
+            "engagement_card_targets": engagement_card_targets,
         }
     )
 
@@ -170,8 +176,8 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     result = await handle_intel_verification(curr_challenge, websocket, intel_item_id)
     print(f"[WS Handler] handle_intel_verification result: {result}")
 
-    played_card_ids = []
-    card_targets = {}
+    played_engagement_card_ids = []
+    engagement_card_targets = {}
     try:
         with get_session() as db_session:
             stmt = select(GameChallenge).where(
@@ -182,8 +188,8 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
                 if payload.get("attention_tokens") is not None:
                     existing.attention_tokens = payload.get("attention_tokens")
                 if isinstance(existing.action_card, dict):
-                    played_card_ids = existing.action_card.get("played_card_ids", [])
-                    card_targets = existing.action_card.get("card_targets", {})
+                    played_engagement_card_ids = existing.action_card.get("played_engagement_card_ids", [])
+                    engagement_card_targets = existing.action_card.get("engagement_card_targets", {})
                 
                 if result.get("status") == "success":
                     req_id = result.get("requirement_id")
@@ -220,8 +226,8 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
         event="intel:dossier_data",
         payload={
             "dossier": dossier_data,
-            "played_card_ids": played_card_ids,
-            "card_targets": card_targets,
+            "played_engagement_card_ids": played_engagement_card_ids,
+            "engagement_card_targets": engagement_card_targets,
         }
     )
 
@@ -245,7 +251,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     # If stakeholder_ids is empty or card targets all stakeholders (e.g. eng_3 team sync)
     card = EngagementCardFactory.get_card(card_id)
     played_cards = []
-    card_targets = {}
+    engagement_card_targets = {}
     if card:
         try:
             with get_session() as db_session:
@@ -257,19 +263,19 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
                     if payload.get("attention_tokens") is not None:
                         existing.attention_tokens = payload.get("attention_tokens")
                     current_ac = dict(existing.action_card or {})
-                    played_cards = list(current_ac.get("played_card_ids", []))
+                    played_cards = list(current_ac.get("played_engagement_card_ids", []))
                     if card.max_plays_per_phase == 1 or card.stakeholder_selection_amount == -1:
                         if card_id not in played_cards:
                             played_cards.append(card_id)
-                    current_ac["played_card_ids"] = played_cards
+                    current_ac["played_engagement_card_ids"] = played_cards
                     
-                    card_targets = dict(current_ac.get("card_targets", {}))
-                    current_targets = list(card_targets.get(card_id, []))
+                    engagement_card_targets = dict(current_ac.get("engagement_card_targets", {}))
+                    current_targets = list(engagement_card_targets.get(card_id, []))
                     for s_id in stakeholder_ids:
                         if s_id not in current_targets:
                             current_targets.append(s_id)
-                    card_targets[card_id] = current_targets
-                    current_ac["card_targets"] = card_targets
+                    engagement_card_targets[card_id] = current_targets
+                    current_ac["engagement_card_targets"] = engagement_card_targets
                     
                     existing.action_card = current_ac
                     flag_modified(existing, "action_card")
@@ -337,8 +343,8 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
             "player_message": player_msg,
             "stakeholder_responses": stakeholder_responses,
             "dossier": dossier_data,
-            "played_card_ids": played_cards,
-            "card_targets": card_targets,
+            "played_engagement_card_ids": played_cards,
+            "engagement_card_targets": engagement_card_targets,
         }
     )
 
@@ -347,8 +353,115 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         event="intel:dossier_data",
         payload={
             "dossier": dossier_data,
-            "played_card_ids": played_cards,
-            "card_targets": card_targets,
+            "played_engagement_card_ids": played_cards,
+            "engagement_card_targets": engagement_card_targets,
         }
     )
+
+
+async def handle_generate_action_card(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Handles generating an Action Card via LLM LangGraph service based on merged intel item IDs."""
+    intel_ids = payload.get("intel_ids", [])
+    phase_id = payload.get("phase_id", 0)
+    challenge_id = payload.get("challenge_id", 0)
+
+    curr_challenge = PhaseFactory.translate_challenge_index(
+        challenge_index=challenge_id,
+        phase_index=phase_id,
+    )
+    if not curr_challenge:
+        phases = PhaseFactory.get_phases()
+        curr_challenge = phases[0].challenges[0]
+
+    collected_items = await retrieve_intel_items(curr_challenge, websocket)
+    collected_map = {item.id: item for item in collected_items}
+    for item in collected_items:
+        if item.requirement_id:
+            collected_map[item.requirement_id] = item
+
+    merged_intel_data = []
+    for i_id in intel_ids:
+        if i_id in collected_map:
+            item = collected_map[i_id]
+            req = RequirementFactory.get_requirement(item.requirement_id)
+            st = StakeholderFactory.get_stakeholder(req.stakeholder_id) if req else None
+            st_name = st.name if st else (req.stakeholder_id if req else "Stakeholder")
+            cat_type = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
+            merged_intel_data.append({
+                "id": item.id,
+                "requirement_id": item.requirement_id,
+                "description": item.description,
+                "stakeholder_name": st_name,
+                "categorized_type": cat_type,
+            })
+        else:
+            req = RequirementFactory.get_requirement(i_id)
+            if req:
+                st = StakeholderFactory.get_stakeholder(req.stakeholder_id)
+                st_name = st.name if st else req.stakeholder_id
+                cat_type = req.type.value if hasattr(req.type, "value") else str(req.type)
+                merged_intel_data.append({
+                    "id": req.id,
+                    "requirement_id": req.id,
+                    "description": req.description,
+                    "stakeholder_name": st_name,
+                    "categorized_type": cat_type,
+                })
+
+    challenge_context = f"{curr_challenge.name}: {curr_challenge.roundIntroduction} {curr_challenge.description}"
+
+    try:
+        action_card = await generate_action_card(
+            challenge_context=challenge_context,
+            intel_items=merged_intel_data,
+            intel_ids=intel_ids,
+            phase_id=phase_id,
+            challenge_id=challenge_id,
+            session_id=f"ActionCard_{username}",
+        )
+
+        with get_session() as db_session:
+            stmt = select(GameChallenge).where(
+                GameChallenge.user_name == username
+            ).order_by(GameChallenge.id.desc())
+            existing = db_session.scalars(stmt).first()
+            if existing:
+                current_ac = dict(existing.action_card or {})
+                merged_ac = {
+                    **action_card,
+                    "played_engagement_card_ids": current_ac.get("played_engagement_card_ids", []),
+                    "engagement_card_targets": current_ac.get("engagement_card_targets", {}),
+                }
+                existing.action_card = merged_ac
+                flag_modified(existing, "action_card")
+            else:
+                new_record = GameChallenge(
+                    user_name=username,
+                    phase_index=phase_id,
+                    challenge_index=challenge_id,
+                    challenge_loop_index=1,
+                    action_card=action_card,
+                    metric_values=[],
+                    time_stamp=datetime.datetime.utcnow(),
+                    pitch_debate_messages=[],
+                    online_intel_gathering_messages=[],
+                    attention_tokens=8,
+                    emotion_values={},
+                )
+                db_session.add(new_record)
+
+        await manager.send_event(
+            websocket=websocket,
+            event="intel:action_card_generated",
+            payload={
+                "action_card": action_card,
+            }
+        )
+
+    except Exception as e:
+        print(f"[Action Card Generation Error] {e}")
+        import traceback
+        traceback.print_exc()
+        await manager.send_error(websocket, f"Failed to generate action card: {e!s}")
+
 

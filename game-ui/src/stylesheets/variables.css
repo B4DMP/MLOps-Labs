@@ -71,4 +71,12 @@
     --quadrant-manage-closely: #ef4444;
     --quadrant-monitor: #94a3b8;
     --quadrant-keep-informed: #3b82f6;
+
+    /* Action Card Theme */
+    --action-card-primary: #dc2626;
+    --action-card-secondary: #991b1b;
+    --action-card-accent: #ef4444;
+    --action-card-bg-subtle: rgba(220, 38, 38, 0.15);
+    --action-card-border: #dc2626;
+    --action-card-ribbon: rgba(185, 28, 28, 0.25);
 }
