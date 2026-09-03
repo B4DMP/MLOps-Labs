@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,10 +19,19 @@ class Settings(BaseSettings):
     ADMIN_KEY: str
     SECRET_KEY: str
 
-    # -- WestAI Proxy Configuration --
-    WESTAI_API_KEY: str | None = None
-    WESTAI_API_BASE: str | None = "https://llm.hpc.itc.rwth-aachen.de/"
-    WESTAI_LLM_MODEL: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    # -- WestAI / RWTH Proxy Configuration --
+    WESTAI_API_KEY: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("WESTAI_API_KEY", "RWTH_API_KEY"),
+    )
+    WESTAI_API_BASE: str | None = Field(
+        default="https://llm.hpc.itc.rwth-aachen.de/",
+        validation_alias=AliasChoices("WESTAI_API_BASE", "RWTH_API_BASE"),
+    )
+    WESTAI_LLM_MODEL: str = Field(
+        default="mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+        validation_alias=AliasChoices("WESTAI_LLM_MODEL", "RWTH_LLM_MODEL"),
+    )
     WESTAI_LLM_MODEL_CONTEXT_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_SUMMARY: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
@@ -48,11 +57,11 @@ class Settings(BaseSettings):
 
     # --- GROQ Configuration ---
     GROQ_API_KEY: str | None = None
-    GROQ_LLM_MODEL: str = "openai/gpt-oss-20b"  
-    GROQ_LLM_MODEL_CONTEXT_SUMMARY: str = "groq/compound-mini" 
-    GROQ_LLM_MODEL_SUMMARY: str = "groq/compound-mini"  
-    GROQ_LLM_MODEL_CARD_GEN: str = "openai/gpt-oss-20b"
-    GROQ_LLM_MODEL_DIALOGUE_OPTIONS: str = "openai/gpt-oss-20b"
+    GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"  
+    GROQ_LLM_MODEL_CONTEXT_SUMMARY: str = "llama-3.3-70b-versatile" 
+    GROQ_LLM_MODEL_SUMMARY: str = "llama-3.3-70b-versatile"  
+    GROQ_LLM_MODEL_CARD_GEN: str = "llama-3.3-70b-versatile"
+    GROQ_LLM_MODEL_DIALOGUE_OPTIONS: str = "llama-3.3-70b-versatile"
     # --- OpenAI Configuration (Required for evaluation) ---
     OPENAI_API_KEY: str | None = None
     CLAUDE_API_KEY: str | None = None
