@@ -95,7 +95,7 @@ export default function PitchDebate({
   const [hoveredCardRect, setHoveredCardRect] = useState<DOMRect | null>(null);
 
   // Conversation history: only messages that have actually been spoken (shown in a speech bubble)
-  const [displayedChatMsgs, setDisplayedChatMsgs] = useState<ChatMsg[]>([]);
+  const [displayedChatMsgs, setDisplayedChatMsgs] = useState<ChatMsg[]>(chat_msgs || []);
 
   // Speech Queue System
   const speechQueueRef = useRef<Array<{
@@ -109,7 +109,7 @@ export default function PitchDebate({
   const activeSpeechTimerRef = useRef<any>(null);
   const activeFadeTimerRef = useRef<any>(null);
   const activeNextTimerRef = useRef<any>(null);
-  const previousMsgsLengthRef = useRef<number>(0);
+  const previousMsgsLengthRef = useRef<number>(chat_msgs?.length || 0);
 
   const [activeSpeakingState, setActiveSpeakingState] = useState<{
     stakeholderId: string;
@@ -222,7 +222,12 @@ export default function PitchDebate({
   // Watch incoming chat_msgs prop for new messages from the parent (e.g. stakeholder responses),
   // queue them for speech, and only add to displayedChatMsgs when the bubble actually appears.
   useEffect(() => {
-    if (chat_msgs && chat_msgs.length > previousMsgsLengthRef.current) {
+    if (!chat_msgs || chat_msgs.length === 0) {
+      setDisplayedChatMsgs([]);
+      previousMsgsLengthRef.current = 0;
+      return;
+    }
+    if (chat_msgs.length > previousMsgsLengthRef.current) {
       const newMessages = chat_msgs.slice(previousMsgsLengthRef.current);
       newMessages.forEach((msg) => {
         if (!msg.message) return;
@@ -238,7 +243,7 @@ export default function PitchDebate({
         }
       });
     }
-    previousMsgsLengthRef.current = chat_msgs?.length || 0;
+    previousMsgsLengthRef.current = chat_msgs.length;
   }, [chat_msgs]);
 
   // Clean up timers on unmount
@@ -423,70 +428,71 @@ export default function PitchDebate({
     onSelectDialogueOption(index);
   };
 
-  const renderSeatedStakeholder = (st: any) => {
+  const renderSeatedStakeholder = (st: any, isRightSide: boolean = false) => {
     const isSelected = selectedStakeholderId === st.id;
     const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
     const stakeholderColor = getStakeholderColor(st);
     const av = st.avatar || {};
 
     return (
-      <>
-        <div
-          className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
-          style={{
-            // @ts-ignore
-            "--st-color": stakeholderColor,
-          }}
-          onClick={() => setSelectedStakeholderId(st.id)}
-        >
-          {/* Active Speech Bubble above speaking stakeholder */}
-          {isSpeaking && activeSpeakingState && (
-            <div
-              className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
-                }`}
-              style={{
-                borderColor: stakeholderColor,
-                pointerEvents: "auto",
-                cursor: "pointer",
-              }}
-              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-            >
-              {activeSpeakingState.message}
-              <button
-                type="button"
-                className={styles.speechSkipBtn}
-                onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                title="Skip to next message"
-              >
-                <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
-              </button>
-            </div>
-          )}
-
-          {/* Avatar Viewport */}
-          <div className={styles.seatedAvatarViewport}>
-            <StakeholderAvatarComponent
-              avatar={av}
-              play_blink_animation={true}
-              isFramed={false}
-              isSpeaking={isSpeaking}
-              size={108}
-              stakeholderColor={stakeholderColor}
-              title={st.name}
-            />
-          </div>
-
-          {/* Conference Desk Nameplate */}
+      <div
+        key={st.id}
+        className={`${styles.seatedStakeholder} ${isSelected ? styles.seatedSelected : ""} ${isSpeaking ? styles.seatedSpeaking : ""}`}
+        style={{
+          // @ts-ignore
+          "--st-color": stakeholderColor,
+        }}
+        onClick={() => setSelectedStakeholderId(st.id)}
+      >
+        {/* Active Speech Bubble above speaking stakeholder */}
+        {isSpeaking && activeSpeakingState && (
           <div
-            className={styles.deskNameplate}
+            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
+              }`}
             style={{
-              color: stakeholderColor,
               borderColor: stakeholderColor,
+              pointerEvents: "auto",
+              cursor: "pointer",
             }}
+            onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
           >
-            {st.name}
+            {activeSpeakingState.message}
+            <button
+              type="button"
+              className={styles.speechSkipBtn}
+              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+              title="Skip to next message"
+            >
+              <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
+            </button>
           </div>
-        </div></>
+        )}
+
+        {/* Avatar Viewport */}
+        <div className={styles.seatedAvatarViewport}>
+          <StakeholderAvatarComponent
+            avatar={av}
+            play_blink_animation={true}
+            isFramed={false}
+            isSpeaking={isSpeaking}
+            size={108}
+            stakeholderColor={stakeholderColor}
+            title={st.name}
+            flip={isRightSide ? true : av.flip}
+          />
+        </div>
+
+        {/* Conference Desk Nameplate */}
+        <div
+          className={styles.deskNameplate}
+          style={{
+            color: stakeholderColor,
+            borderColor: stakeholderColor,
+          }}
+        >
+          {st.name}
+        </div>
+      </div>
     );
   };
 
@@ -596,7 +602,7 @@ export default function PitchDebate({
 
                           {/* Right Seat */}
                           <div className={styles.tableSideSeating}>
-                            {rightStakeholders.map(renderSeatedStakeholder)}
+                            {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
                           </div>
                         </div>
 
@@ -985,7 +991,7 @@ export default function PitchDebate({
                       border: "2px solid #8c6d58",
                       borderRadius: "30px",
                       padding: "8px 18px",
-                      fontFamily: "'Caveat', cursive, sans-serif",
+                      fontFamily: "var(--dossier-font, 'Delius', cursive)",
                       fontWeight: "bold",
                       fontSize: "1.15rem",
                       cursor: "pointer",

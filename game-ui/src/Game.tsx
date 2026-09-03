@@ -637,6 +637,7 @@ function App({ username: _username }: AppProps) {
     const unsubError = subscribe("system:error", (data: any) => {
       setIsInErrorUi(true);
       setLastError(data.message || data.error_message || data.error);
+      setIsChatEnabled(true);
     });
 
     const unsubDossier = subscribe("intel:dossier_data", (payload: any) => {
