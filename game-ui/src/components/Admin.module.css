@@ -60,3 +60,24 @@
 .adminInput::placeholder {
   color: rgba(255, 255, 255, 0.5) !important;
 }
+
+.openGameButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--secondary-bg);
+  background: var(--primary-bg);
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.openGameButton:hover {
+  background: var(--secondary-bg);
+  color: white;
+}

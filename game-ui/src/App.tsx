@@ -119,6 +119,7 @@ function App() {
             <Login
               readyState={ReadyState.OPEN}
               onSubmit={handleLoginSubmit}
+              onBack={() => setIsInLoginUi(false)}
             />
           );
         } else if (isInRegisterUi) {
@@ -126,6 +127,7 @@ function App() {
             <Register
               readyState={ReadyState.OPEN}
               onSubmit={handleRegisterSubmit}
+              onBack={() => setIsInRegisterUi(false)}
             />
           );
         } else if (isInGame) {

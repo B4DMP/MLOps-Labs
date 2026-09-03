@@ -5,9 +5,10 @@ import styles from "./Login.module.css";
 interface LoginProps {
   onSubmit: (username: string) => void;
   readyState: ReadyState;
+  onBack: () => void;
 }
 
-export function Login({ onSubmit, readyState }: LoginProps) {
+export function Login({ onSubmit, readyState, onBack }: LoginProps) {
   const [username, setUsername] = useState("");
   return (
     <div
@@ -43,6 +44,13 @@ export function Login({ onSubmit, readyState }: LoginProps) {
             disabled={readyState !== ReadyState.OPEN}
           >
             {readyState === ReadyState.OPEN ? "Start Game" : "Connecting..."}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={onBack}
+          >
+            Back
           </button>
         </form>
       </div>

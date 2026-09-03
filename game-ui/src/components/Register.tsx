@@ -5,9 +5,10 @@ import styles from "./Register.module.css";
 interface RegisterProps {
   onSubmit: (username: string, campaignKey: string) => void;
   readyState: ReadyState;
+  onBack: () => void;
 }
 
-export function Register({ onSubmit, readyState }: RegisterProps) {
+export function Register({ onSubmit, readyState, onBack }: RegisterProps) {
   const [username, setUsername] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
   return (
@@ -52,6 +53,13 @@ export function Register({ onSubmit, readyState }: RegisterProps) {
             disabled={readyState !== ReadyState.OPEN}
           >
             {readyState === ReadyState.OPEN ? "Start Game" : "Connecting..."}
+          </button>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={onBack}
+          >
+            Back
           </button>
         </form>
       </div>

@@ -655,7 +655,7 @@ export default function StakeholderDossier({
           ◀ Prev Page
         </button>
         <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages} — Stakeholder Dossier
+          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages} • Stakeholder Dossier
         </span>
         <button
           className={styles.navButton}
