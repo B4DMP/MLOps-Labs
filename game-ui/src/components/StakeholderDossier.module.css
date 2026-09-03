@@ -404,7 +404,7 @@
 }
 
 .stakeholderRole {
-  font-size: 0.88rem;
+  font-size: 0.7rem;
   color: #2b231c;
   font-weight: 400;
   margin: 0;
@@ -472,7 +472,7 @@
 
 /* Stakeholder Convincer Archetype Badge & Strategy Card */
 .stakeholderConvincer {
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   color: #1a120b;
   font-weight: 700;
   margin: 1px 0 3px 0;
@@ -490,7 +490,7 @@
   padding: 1px 7px;
   border-radius: 10px;
   border: 1.5px solid;
-  font-size: 0.84rem;
+  font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: 0.1px;
@@ -574,7 +574,7 @@
   padding: 1px 6px 1px 8px;
   border-radius: 12px;
   border: 1.5px dashed;
-  font-size: 0.82rem;
+  font-size: 0.6rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -597,7 +597,7 @@
   padding: 1px 7px 1px 8px;
   border-radius: 12px;
   border: 1.5px solid;
-  font-size: 0.82rem;
+  font-size: 0.6rem;
   font-weight: 700;
   user-select: none;
   font-family: inherit;
@@ -609,7 +609,7 @@
   gap: 5px;
   padding: 1px 6px 1px 8px;
   border-radius: 12px;
-  font-size: 0.82rem;
+  font-size: 0.6rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -645,7 +645,7 @@
 }
 
 .convincerStrategyText {
-  font-size: 0.86rem;
+  font-size: 0.7rem;
   color: #334155;
   font-weight: 400;
   line-height: 1.25;
@@ -693,7 +693,7 @@
   align-items: center;
   gap: 4px;
   font-weight: 700;
-  font-size: 0.84rem;
+  font-size: 0.6rem;
   letter-spacing: 0.1px;
   padding: 1px 7px;
   border-radius: 4px;
@@ -904,7 +904,7 @@
 }
 
 .intelText {
-  font-size: 0.88rem;
+  font-size: 0.7rem;
   font-weight: 400;
   color: #1c1917;
   line-height: 1.25;
