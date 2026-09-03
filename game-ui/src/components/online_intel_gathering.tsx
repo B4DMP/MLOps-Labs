@@ -10,6 +10,7 @@ import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import PerformanceDashboard from "./PerformanceDashboard";
 import EngagementCards from "./EngagementCards";
+import EngagementCardComponent from "./EngagementCardComponent";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import HoverTooltip from "./HoverToolTip";
@@ -958,43 +959,12 @@ export default function OnlineIntelGathering({
             <div className={styles.modalBody}>
               {/* Overhauled Split Layout: Left Card Preview + Right Light Rules Container with Black Text */}
               <div className="row g-3 align-items-stretch mb-4">
-                {/* Left Column: Fixed-Width Card Surface Preview (No Horizontal Stretch) */}
-                <div className="col-12 col-md-auto d-flex justify-content-center align-items-stretch">
-                  <div className={styles.centeredCardPreview} style={{ width: "300px", minWidth: "300px" }}>
-                    <div className="d-flex justify-content-between w-100 mb-2">
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: "var(--engagement-muted)",
-                          color: "var(--engagement-text)",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        ENGAGEMENT CARD
-                      </span>
-                      <span
-                        className="badge"
-                        style={{
-                          backgroundColor: "transparent",
-                          border: "1px solid var(--token-color)",
-                          color: "var(--token-color)",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        <Icon icon="ph:coin-fill" className="me-1" style={{ color: "var(--token-color)" }} />
-                        {playingCard.token_cost} Tokens
-                      </span>
-                    </div>
-                    <Icon
-                      icon={playingCard.icon || "ph:cards-bold"}
-                      style={{ fontSize: "3.2rem", color: "var(--engagement-accent)" }}
-                      className="my-2"
-                    />
-                    <h6 className="fw-bold mb-1 text-center" style={{ color: "var(--engagement-text)" }}>{playingCard.title}</h6>
-                    <p className="small text-center mb-0" style={{ fontSize: "0.82rem", color: "var(--engagement-text)", opacity: 0.75 }}>
-                      {playingCard.description}
-                    </p>
-                  </div>
+                {/* Left Column: Fixed-Width Card Surface Preview */}
+                <div className="col-12 col-md-auto d-flex justify-content-center align-items-center">
+                  <EngagementCardComponent
+                    card={playingCard}
+                    isPreview={true}
+                  />
                 </div>
 
                 {/* Right Column: Flex-Grow Light Rules & Mechanics Container */}
