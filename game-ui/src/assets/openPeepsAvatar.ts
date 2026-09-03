@@ -163,6 +163,7 @@ export interface OpenPeepsRenderOptions {
   headContrastColor?: string;
   backgroundColor?: string;
   flip?: boolean;
+  blink?: boolean;
 }
 
 export function generateOpenPeepsSvg(options: OpenPeepsRenderOptions = {}): string {
@@ -199,6 +200,13 @@ export function generateOpenPeepsSvg(options: OpenPeepsRenderOptions = {}): stri
     }
   }
 
+  let blinkOverlay = '';
+  if (options.blink && options.face !== 'eyesClosed') {
+    blinkOverlay = `<ellipse cx="100" cy="122" rx="34" ry="28" fill="${skin}"/>` +
+      `<ellipse cx="212" cy="122" rx="34" ry="28" fill="${skin}"/>` +
+      `<path fill-rule="evenodd" clip-rule="evenodd" d="M77.1 104.6c2-1 3.6 3.1 4 4.2l.9 2.3a26 26 0 0 0 5.7 10.2c2.4 2.3 6.3 4.3 9 1.6 2.7-2.6 1.4-5.4 1.8-8.6.7-5.6 8.4-11.3 13-5.4 10.5 13.4-5.7 31.9-20.6 28.6a23 23 0 0 1-16.2-15l-.1-.3c-1.5-4.6-3-15.2 2.5-17.6Zm135.1 9.2v-.1c-5-11.4 12.7-16.2 14.3-6v.6c1.5 11.3-1.6 26.5-15.4 27.7-15.6 1.2-22-16.1-20.6-28.8.2-2.3 3-2.6 3.8-.6l.2.5c2.5 6.4 4.9 18.7 13.7 18.7 6 0 5.7-8 4-12Z" fill="#000"/>`;
+  }
+
   const flipTransform = options.flip ? ' transform="scale(-1, 1) translate(-704, 0)"' : '';
   const bgRect = bg ? '<rect width="704" height="704" rx="16" fill="' + bg + '"/>' : '';
 
@@ -209,7 +217,7 @@ export function generateOpenPeepsSvg(options: OpenPeepsRenderOptions = {}): stri
     '<g' + flipTransform + '>' +
     bodyLayer +
     '<g transform="matrix(.99789 0 0 1 156 62)">' + headSvg + '</g>' +
-    '<g transform="translate(315 248)">' + faceSvg + '</g>' +
+    '<g transform="translate(315 248)">' + faceSvg + blinkOverlay + '</g>' +
     '<g transform="translate(279 400)">' + fhSvg + '</g>' +
     '<g transform="translate(203 303)">' + accSvg + '</g>' +
     '</g></svg>';

@@ -98,8 +98,6 @@ export function StakeholderAvatarComponent({
     let selectedFace: AvatarEmotion = "smile";
     if (hoverToSuspicious && isHovered) {
       selectedFace = "suspicious";
-    } else if (isBlinking) {
-      selectedFace = "eyesClosed";
     } else if (isSpeaking) {
       selectedFace = speakFrame === 0 ? "explaining" : "smileBig";
     } else if (emotion) {
@@ -126,6 +124,7 @@ export function StakeholderAvatarComponent({
       headContrastColor: avatar?.headContrastColor,
       backgroundColor: bgCol,
       flip: finalFlip,
+      blink: isBlinking,
     });
   }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, backgroundColor, flip, hoverToSuspicious, isHovered]);
 
