@@ -211,17 +211,14 @@ export default function StakeholderInteractionArea({
                         avatarSpacer={isUser ? false : true}
                       >
                         {!isUser && (
-                          <div
+                          <Avatar
+                            name={senderName}
+                            src={avatarSrc}
                             onMouseEnter={() => setHoveredMsgAvatarIndex(index)}
                             onMouseLeave={() => setHoveredMsgAvatarIndex(null)}
                             style={{ cursor: "pointer" }}
                             title={senderName}
-                          >
-                            <Avatar
-                              name={senderName}
-                              src={avatarSrc}
-                            />
-                          </div>
+                          />
                         )}
                       </Message>
                       {item.revealed_intel && item.revealed_intel.length > 0 && (
