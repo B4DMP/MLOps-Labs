@@ -28,7 +28,7 @@ const QUADRANTS: QuadrantConfig[] = [
     key: "high-low",
     title: "Keep Satisfied",
     axisLabel: "High Power • Low Interest",
-    cardStyle: styles.quadrantTopLeft,
+    cardStyle: styles.sectorTopLeft,
     icon: "ph:warning-circle-bold",
     iconColor: "#f97316",
   },
@@ -36,7 +36,7 @@ const QUADRANTS: QuadrantConfig[] = [
     key: "high-high",
     title: "Manage Closely",
     axisLabel: "High Power • High Interest",
-    cardStyle: styles.quadrantTopRight,
+    cardStyle: styles.sectorTopRight,
     icon: "ph:star-bold",
     iconColor: "#ef4444",
   },
@@ -44,7 +44,7 @@ const QUADRANTS: QuadrantConfig[] = [
     key: "low-low",
     title: "Monitor",
     axisLabel: "Low Power • Low Interest",
-    cardStyle: styles.quadrantBottomLeft,
+    cardStyle: styles.sectorBottomLeft,
     icon: "ph:eye-bold",
     iconColor: "#94a3b8",
   },
@@ -52,9 +52,9 @@ const QUADRANTS: QuadrantConfig[] = [
     key: "low-high",
     title: "Keep Informed",
     axisLabel: "Low Power • High Interest",
-    cardStyle: styles.quadrantBottomRight,
+    cardStyle: styles.sectorBottomRight,
     icon: "ph:info-bold",
-    iconColor: "#3b82f6",
+    iconColor: "#38bdf8",
   },
 ];
 
@@ -72,7 +72,7 @@ export default function PowerInterestMatrix({
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
 
-  const { categorizedNodes, dynamicsSummary } = useMemo(() => {
+  const { categorizedNodes, dynamicsItems } = useMemo(() => {
     const prevMap = new Map<string, PhaseStakeholderEntry>();
     previousStakeholders.forEach((ps) => prevMap.set(ps.stakeholder_id, ps));
 
@@ -112,7 +112,7 @@ export default function PowerInterestMatrix({
       const quadKey: QuadrantKey = `${p}-${i}` as QuadrantKey;
 
       const prev = prevMap.get(cs.stakeholder_id);
-      const isNew = !prev && !isFirstPhase;
+      const isNew = !prev;
       const isShifted =
         prev != null &&
         (prev.power.toLowerCase() !== p || prev.interest.toLowerCase() !== i);
@@ -150,42 +150,73 @@ export default function PowerInterestMatrix({
       }
     });
 
-    let summaryText = "";
+    const dynamicItems: { id: string; icon: string; text: string }[] = [];
+
     if (isFirstPhase) {
-      summaryText = "Initial phase stakeholder positions established below.";
+      dynamicItems.push({
+        id: "initial",
+        icon: "ph:flag-checkered-bold",
+        text: "Project kickoff: Initial stakeholder positions established.",
+      });
     } else {
-      const parts: string[] = [];
       if (joinedNames.length > 0 && leftNames.length > 0) {
-        parts.push(`${formatNameList(joinedNames)} replaced ${formatNameList(leftNames)}`);
+        dynamicItems.push({
+          id: "replacement",
+          icon: "ph:arrows-left-right-bold",
+          text: `${formatNameList(joinedNames)} replaced ${formatNameList(leftNames)}`,
+        });
       } else if (joinedNames.length > 0) {
-        parts.push(`${formatNameList(joinedNames)} joined the active phase`);
+        dynamicItems.push({
+          id: "joined",
+          icon: "ph:user-plus-bold",
+          text: `${formatNameList(joinedNames)} joined the active phase`,
+        });
       } else if (leftNames.length > 0) {
-        parts.push(`${formatNameList(leftNames)} stepped back from this phase`);
+        dynamicItems.push({
+          id: "left",
+          icon: "ph:user-minus-bold",
+          text: `${formatNameList(leftNames)} stepped back from this phase`,
+        });
       }
 
-      if (shiftedSummaries.length > 0) {
-        parts.push(shiftedSummaries.join(" • "));
-      }
+      shiftedSummaries.forEach((shift, idx) => {
+        dynamicItems.push({
+          id: `shift-${idx}`,
+          icon: "ph:trend-up-bold",
+          text: shift,
+        });
+      });
 
-      summaryText = parts.length > 0 ? parts.join(" • ") : "All active stakeholders maintain their previous power & interest levels.";
+      if (dynamicItems.length === 0) {
+        dynamicItems.push({
+          id: "none",
+          icon: "ph:check-circle-bold",
+          text: "All stakeholders maintain their previous power & interest levels.",
+        });
+      }
     }
 
     return {
       categorizedNodes: categorized,
-      dynamicsSummary: summaryText,
+      dynamicsItems: dynamicItems,
     };
   }, [currentStakeholders, previousStakeholders, isFirstPhase, stakeholders]);
 
   return (
     <div className={styles.matrixContainer}>
-      {/* Dynamics Summary Banner */}
+      {/* Dynamics Telemetry Strip */}
       <div className={styles.summaryBanner}>
-        <Icon icon="ph:arrows-clockwise-bold" style={{ fontSize: "1.35rem", color: "var(--primary-bg)", flexShrink: 0, marginTop: "2px" }} />
-        <div style={{ minWidth: 0 }}>
-          <span>
-            <strong>Phase Dynamics: </strong>
-            {dynamicsSummary}
-          </span>
+        <div className={styles.summaryLabel}>
+          <Icon icon="ph:arrows-clockwise-bold" className={styles.summaryBannerIcon} />
+          <span>Phase Dynamics:</span>
+        </div>
+        <div className={styles.dynamicsList}>
+          {dynamicsItems.map((item) => (
+            <div key={item.id} className={styles.dynamicChip}>
+              <Icon icon={item.icon} className={styles.dynamicChipIcon} />
+              <span>{item.text}</span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -199,26 +230,26 @@ export default function PowerInterestMatrix({
           </div>
         </div>
 
-        {/* Main Content: 2x2 Quadrant Grid + Bottom Horizontal Axis: Interest */}
+        {/* Main Content: Unified 2x2 Radar Grid + Bottom Horizontal Axis: Interest */}
         <div className={styles.matrixMain}>
-          {/* 2x2 Quadrant Grid */}
-          <div className={styles.matrixGrid}>
+          {/* Unified 2x2 Radar Grid */}
+          <div className={styles.radarGrid}>
             {QUADRANTS.map((quad) => {
               const items = categorizedNodes[quad.key] || [];
 
               return (
-                <div key={quad.key} className={`${styles.quadrantCard} ${quad.cardStyle}`}>
-                  <div className={styles.quadrantHeader}>
-                    <span className={styles.quadrantTitle}>
-                      <Icon icon={quad.icon} style={{ color: quad.iconColor, fontSize: "1.3rem" }} />
+                <div key={quad.key} className={`${styles.sectorQuadrant} ${quad.cardStyle}`}>
+                  <div className={styles.sectorHeader}>
+                    <span className={styles.sectorTitle}>
+                      <Icon icon={quad.icon} className={styles.sectorIcon} style={{ color: quad.iconColor }} />
                       {quad.title}
                     </span>
-                    <span className={styles.quadrantAxisBadge}>{quad.axisLabel}</span>
+                    <span className={styles.sectorAxisBadge}>{quad.axisLabel}</span>
                   </div>
 
                   <div className={styles.stakeholderList}>
                     {items.length === 0 ? (
-                      <div className={styles.emptyQuadrant}>No stakeholders</div>
+                      <div className={styles.emptySector}>No active stakeholders in sector</div>
                     ) : (
                       items.map((item) => {
                         const st = item.st;
@@ -241,14 +272,14 @@ export default function PowerInterestMatrix({
                         return (
                           <HoverTooltip
                             key={item.stakeholderId}
-                            description={`${stName} — ${roleDesc}${shiftText ? ` (${shiftText})` : ""}`}
+                            description={`${stName}: ${roleDesc}${shiftText ? ` (${shiftText})` : ""}`}
                           >
-                            <div
-                              className={styles.stakeholderItem}
-                              style={{ borderLeft: `4px solid ${stColor}` }}
-                            >
+                            <div className={styles.stakeholderItem}>
                               <div className={styles.stakeholderLeft}>
-                                <div className={styles.avatarWrapper}>
+                                <div
+                                  className={styles.avatarWrapper}
+                                  style={{ border: `2px solid ${stColor}` }}
+                                >
                                   {st?.avatar ? (
                                     <StakeholderAvatarComponent
                                       avatar={st.avatar}
@@ -257,7 +288,7 @@ export default function PowerInterestMatrix({
                                       size="100%"
                                     />
                                   ) : (
-                                    <Icon icon="ph:user-bold" style={{ color: stColor, fontSize: "1.4rem" }} />
+                                    <Icon icon="ph:user-bold" style={{ color: stColor }} />
                                   )}
                                 </div>
                                 <div className={styles.stakeholderMeta}>

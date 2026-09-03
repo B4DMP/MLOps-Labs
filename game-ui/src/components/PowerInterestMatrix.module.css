@@ -1,42 +1,115 @@
+/* ==========================================================================
+   AUTHENTIC RADAR COORDINATE GRID
+   Single coordinate plane with razor-sharp 1px crosshair dividers.
+   Strict 50/50 two-column layout with min-width: 0 protection.
+   Zero glow effects.
+   ========================================================================== */
+
 .matrixContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.45rem;
   width: 100%;
   max-width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
+  background: #090e17;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.65rem;
+  padding: 0.55rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 65%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 22px 22px, 22px 22px;
 }
 
+/* Dynamics Telemetry Strip */
 .summaryBanner {
-  background: #f1f5f9;
-  border-left: 4px solid var(--primary-bg);
-  padding: 0.75rem 1rem;
-  border-radius: 0.6rem;
-  font-size: 1rem;
-  line-height: 1.5;
-  color: #334155;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.35rem 0.65rem;
+  border-radius: 0.45rem;
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.6rem;
   width: 100%;
   box-sizing: border-box;
+  flex-shrink: 0;
+  animation: bannerFade 0.25s ease-out 0.1s both;
 }
 
+.summaryLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summaryBannerIcon {
+  font-size: 1.15rem;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.dynamicsList {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.dynamicChip {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.3;
+}
+
+.dynamicChipIcon {
+  font-size: 0.85rem;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+/* Matrix Coordinate Wrapper */
 .matrixWrapper {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: 0.75rem;
+  gap: 0.35rem;
   width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   box-sizing: border-box;
+  min-width: 0;
 }
 
+/* Vertical Power Axis */
 .yAxis {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: 22px;
   flex-shrink: 0;
   position: relative;
 }
@@ -46,206 +119,209 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
+  gap: 0.35rem;
   height: 100%;
-  color: var(--primary-bg);
+  color: #94a3b8;
 }
 
 .axisLabelTextY {
   writing-mode: vertical-lr;
   transform: rotate(180deg);
-  font-size: 0.95rem;
+  font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: var(--primary-bg);
+  color: #94a3b8;
 }
 
+/* Main Content Area */
 .matrixMain {
   display: flex;
   flex-direction: column;
   flex: 1;
+  height: 100%;
+  min-height: 0;
   min-width: 0;
-  gap: 0.5rem;
+  gap: 0.25rem;
+  overflow: hidden;
 }
 
-.xAxis {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding-top: 0.25rem;
-}
-
-.axisLineX {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  color: var(--primary-bg);
-}
-
-.axisLabelTextX {
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--primary-bg);
-}
-
-.axisArrowIcon {
-  font-size: 1.25rem;
-  color: var(--primary-bg);
-  flex-shrink: 0;
-}
-
-.matrixGrid {
+/* 2x2 Radar Grid with 1px Crosshair Dividers (50% width and 50% height rows) */
+.radarGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.14); /* 1px crosshair line color */
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0.5rem;
   width: 100%;
-  max-width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
 }
 
 @media (max-width: 640px) {
-  .matrixGrid {
+  .radarGrid {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
   }
 }
 
-.quadrantCard {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  padding: 0.85rem 1rem;
+/* Sector Quadrants */
+.sectorQuadrant {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  min-height: 130px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
   box-sizing: border-box;
+  min-height: 0;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.quadrantTopLeft {
-  border-top: 4px solid #f97316;
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.03) 0%, #ffffff 40%);
+/* Quadrant Sector Visual Identifiers */
+.sectorTopLeft {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, #0f1826 45%);
 }
 
-.quadrantTopRight {
-  border-top: 4px solid #ef4444;
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.03) 0%, #ffffff 40%);
+.sectorTopRight {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, #0f1826 45%);
 }
 
-.quadrantBottomLeft {
-  border-top: 4px solid #94a3b8;
-  background: linear-gradient(180deg, rgba(148, 163, 184, 0.03) 0%, #ffffff 40%);
+.sectorBottomLeft {
+  background: #0f1826;
 }
 
-.quadrantBottomRight {
-  border-top: 4px solid #3b82f6;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.03) 0%, #ffffff 40%);
+.sectorBottomRight {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, #0f1826 45%);
 }
 
-.quadrantHeader {
+/* Sector Header */
+.sectorHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 0.5rem;
-  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
-.quadrantTitle {
-  font-size: 1.05rem;
+.sectorTitle {
+  font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #1e293b;
+  color: #f8fafc;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
-.quadrantAxisBadge {
-  font-size: 0.85rem;
+.sectorIcon {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.sectorAxisBadge {
+  font-size: 0.65rem;
   font-weight: 600;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 2px 7px;
-  border-radius: 6px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
+/* Stakeholder List */
 .stakeholderList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
+/* Critical: Force HoverTooltip span to stretch full width and not exceed column */
 .stakeholderList > span {
-  width: 100%;
-  display: block;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden;
 }
 
-.emptyQuadrant {
+/* Empty Sector State */
+.emptySector {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
-  font-size: 1rem;
-  color: #94a3b8;
+  min-height: 50px;
+  font-size: 0.74rem;
+  color: #64748b;
   font-style: italic;
-  padding: 1rem 0;
 }
 
+/* Stakeholder Telemetry Chip */
 .stakeholderItem {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.6rem;
-  padding: 0.55rem 0.75rem;
-  display: flex;
+  background: rgba(22, 34, 52, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.45rem;
+  padding: 0.35rem 0.55rem;
+  display: flex !important;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem;
-  width: 100%;
+  gap: 0.45rem;
+  width: 100% !important;
   box-sizing: border-box;
   overflow: hidden;
-  transition: all 0.15s ease-in-out;
+  min-width: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
   cursor: help;
 }
 
 .stakeholderItem:hover {
-  background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  background: rgba(30, 46, 70, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
 }
 
 .stakeholderLeft {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.45rem;
   min-width: 0;
   flex: 1;
+  overflow: hidden;
 }
 
+/* Colored Avatar Ring */
 .avatarWrapper {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   overflow: hidden;
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
+  background: #1e293b;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .stakeholderMeta {
@@ -254,58 +330,101 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  gap: 0.1rem;
 }
 
 .stakeholderName {
-  font-size: 1rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .stakeholderDescription {
-  font-size: 0.95rem;
-  color: #64748b;
+  font-size: 0.72rem;
+  color: #94a3b8;
   white-space: nowrap;
   overflow: hidden;
-  position: relative;
-  max-width: 100%;
-  line-height: 1.3;
-  -webkit-mask-image: linear-gradient(to right, #000 70%, transparent 100%);
-  mask-image: linear-gradient(to right, #000 70%, transparent 100%);
+  text-overflow: ellipsis;
+  line-height: 1.25;
 }
 
 .badgeContainer {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
   flex-shrink: 0;
 }
 
 .badgeNew {
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 5px;
-  background: #dcfce7;
-  color: #15803d;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(22, 101, 52, 0.5);
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  color: #4ade80;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
+  white-space: nowrap;
 }
 
 .badgeShifted {
-  font-size: 0.8rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 5px;
-  background: #fef3c7;
-  color: #b45309;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(180, 83, 9, 0.5);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+/* Horizontal Interest Axis */
+.xAxis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 0.1rem;
+}
+
+.axisLineX {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: #94a3b8;
+}
+
+.axisLabelTextX {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #94a3b8;
+}
+
+.axisArrowIcon {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Animations */
+@keyframes bannerFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
