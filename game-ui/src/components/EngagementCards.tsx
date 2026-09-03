@@ -78,40 +78,53 @@ export default function EngagementCards({
 
   return (
     <div className={styles.container}>
-      {/* Unified Phase Control Bar: Currency + Milestone Progress + Pitch Progression CTA */}
+      {/* Unified Phase Control Bar: Hint + Currency + Milestone Progress + Pitch Progression CTA */}
       <div className={styles.phaseControlBar}>
-        {/* Left: Attention Tokens Currency */}
-        <div className={styles.tokenSection} title={`${attentionTokens} Attention Tokens available to play tactical engagement cards`}>
-          <Icon icon="ph:coin-fill" className={styles.tokenIcon} />
-          <span className={styles.tokenCount}>{attentionTokens}</span>
-          <span className={styles.tokenLabel}>Tokens</span>
-        </div>
+        {/* Actionable Player Guidance */}
+        <p className={styles.phaseHint}>
+          <Icon icon="ph:lightbulb-filament-bold" className={styles.phaseHintIcon} />
+          Spend <strong className={styles.hintToken}>Attention Tokens <Icon icon="ph:coin-fill" className={styles.hintInlineIcon} /></strong> to play <strong className={styles.hintCard}>Engagement Cards</strong> below to engage stakeholders and uncover <strong className={styles.hintIntel}>Intel <Icon icon="ph:files-bold" className={styles.hintInlineIcon} /></strong>, then <strong className={styles.hintProposal}>pitch a Proposal</strong> to overcome this Challenge in the Pitch Debate.
+        </p>
 
-        {/* Center: Intelligence Gathering Milestone Progress */}
-        <div className={styles.intelStatusSection} title={`${discoveredIntelCount} intel items documented in your Stakeholder Dossier`}>
-          <Icon icon="ph:files-bold" className={styles.intelStatusIcon} />
-          <span>{discoveredIntelCount} Intel Gathered</span>
-        </div>
+        <div className={styles.phaseControlsRow}>
+          {/* Left: Attention Tokens Currency */}
+          <div className={styles.tokenSection} title={`${attentionTokens} Attention Tokens available to play tactical engagement cards`}>
+            <div className={styles.statRow}>
+              <Icon icon="ph:coin-fill" className={styles.tokenIcon} />
+              <span className={styles.tokenCount}>{attentionTokens}</span>
+            </div>
+            <span className={styles.tokenLabel}>Attention Tokens</span>
+          </div>
 
-        {/* Right: Phase Milestone Progression CTA Button */}
-        {onOpenPitchModal && (
-          <button
-            type="button"
-            className={`${styles.pitchCtaBtn} ${canPitch ? styles.pitchCtaBtnActive : styles.pitchCtaBtnDisabled}`}
-            disabled={!canPitch}
-            onClick={onOpenPitchModal}
-            title={
-              canPitch
-                ? "Combine discovered intel into an action proposal and enter the Pitch Debate"
-                : "Play action cards below to uncover at least 1 intel item before pitching"
-            }
-          >
-            <Icon icon={canPitch ? "ph:paper-plane-tilt-bold" : "ph:lock-key-fill"} />
-            <span>
-              {canPitch ? `Ready to Pitch (${discoveredIntelCount} Intel) ➔` : "Pitch Proposal (Need ≥ 1 Intel)"}
-            </span>
-          </button>
-        )}
+          {/* Center: Intelligence Gathering Milestone Progress */}
+          <div className={styles.intelStatusSection} title={`${discoveredIntelCount} intel items documented in your Stakeholder Dossier`}>
+            <div className={styles.statRow}>
+              <Icon icon="ph:files-bold" className={styles.intelStatusIcon} />
+              <span className={styles.intelCount}>{discoveredIntelCount}</span>
+            </div>
+            <span className={styles.intelLabel}>Intel Gathered</span>
+          </div>
+
+          {/* Right: Phase Milestone Progression CTA Button */}
+          {onOpenPitchModal && (
+            <button
+              type="button"
+              className={`${styles.pitchCtaBtn} ${canPitch ? styles.pitchCtaBtnActive : styles.pitchCtaBtnDisabled}`}
+              disabled={!canPitch}
+              onClick={onOpenPitchModal}
+              title={
+                canPitch
+                  ? "Combine discovered intel into an action proposal and enter the Pitch Debate"
+                  : "Play action cards below to uncover at least 1 intel item before pitching"
+              }
+            >
+              <Icon icon={canPitch ? "ph:paper-plane-tilt-bold" : "ph:lock-key-fill"} />
+              <span>
+                {canPitch ? `Ready to Pitch (${discoveredIntelCount} Intel) ➔` : "Pitch Proposal (Need ≥ 1 Intel)"}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Playable Engagement Cards Deck Container */}
@@ -121,6 +134,7 @@ export default function EngagementCards({
             (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
             playedCardIds.includes(card.id);
           const canAfford = isEnabled && attentionTokens >= card.token_cost && !isSingleUseExhausted;
+          const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
 
           return (
             <div
@@ -145,35 +159,51 @@ export default function EngagementCards({
               <div
                 className={`card ${styles.cardFrame} ${canAfford ? styles.cardFramePlayable : styles.cardFrameMuted}`}
               >
-                <Icon icon="teenyicons:drag-outline" className={styles.dragIcon} />
-
-                {/* Card Header (Title & Subtitle Badges) */}
+                {/* Card Header: Title & Token Cost */}
                 <div className={`card-header ${styles.cardHeader}`}>
                   <h6 className={styles.cardTitle} title={card.title}>
                     {card.title}
                   </h6>
-                  <div className={styles.badgeRow}>
-                    <span className={`badge ${styles.engagementBadge}`}>
-                      ENGAGEMENT
-                    </span>
-                    {card.target_type !== "intel" && (card.intel_reveal_count ?? 1) > 0 && (
-                      <span
-                        className={`badge ${styles.intelBadge}`}
-                        title={`Reveals ${card.intel_reveal_count ?? 1} intel requirement${(card.intel_reveal_count ?? 1) > 1 ? "s" : ""} per stakeholder`}
-                      >
-                        <Icon icon="ph:files-bold" className="me-1" />
-                        {card.intel_reveal_count ?? 1} Intel
-                      </span>
-                    )}
+                  <div className={styles.costBadge} title={`${card.token_cost} Attention Tokens`}>
+                    <Icon icon="ph:coin-fill" />
+                    <span>{card.token_cost}</span>
                   </div>
                 </div>
 
-                {/* Card Image / Icon Surface */}
-                <div className={styles.cardImage}>
-                  <Icon
-                    icon={card.icon || "ph:cards-bold"}
-                    className={`${styles.cardImageIcon} ${canAfford && !isSingleUseExhausted ? styles.iconPlayable : styles.iconMuted}`}
-                  />
+                {/* Type & Target Scope Badges */}
+                <div className={styles.badgeRow}>
+                  <span
+                    className={`badge ${styles.typePill} ${canAfford && !isSingleUseExhausted ? styles.iconPlayable : styles.iconMuted}`}
+                  >
+                    <Icon icon={card.icon || "ph:cards-bold"} className="me-1" />
+                    {isIntelCard ? "Intel" : "Dialogue"}
+                  </span>
+
+                  {!isIntelCard && card.stakeholder_selection_amount === -1 && (
+                    <span className={`badge ${styles.targetBadge}`}>
+                      <Icon icon="ph:users-three-bold" className="me-1" /> All Team
+                    </span>
+                  )}
+                  {!isIntelCard && card.stakeholder_selection_amount === 1 && (
+                    <span className={`badge ${styles.targetBadge}`}>
+                      <Icon icon="ph:user-bold" className="me-1" /> 1 Target
+                    </span>
+                  )}
+                  {!isIntelCard && card.stakeholder_selection_amount > 1 && (
+                    <span className={`badge ${styles.targetBadge}`}>
+                      <Icon icon="ph:users-bold" className="me-1" /> {card.stakeholder_selection_amount} Targets
+                    </span>
+                  )}
+
+                  {!isIntelCard && (card.intel_reveal_count ?? 1) > 0 && (
+                    <span
+                      className={`badge ${styles.intelBadge}`}
+                      title={`Reveals ${card.intel_reveal_count ?? 1} intel requirement${(card.intel_reveal_count ?? 1) > 1 ? "s" : ""} per stakeholder`}
+                    >
+                      <Icon icon="ph:files-bold" className="me-1" />
+                      +{card.intel_reveal_count ?? 1}
+                    </span>
+                  )}
                 </div>
 
                 {/* Card Body & Description Box */}
@@ -201,19 +231,12 @@ export default function EngagementCards({
                         </>
                       ) : canAfford ? (
                         <>
-                          PLAY CARD(
-                          <span className={styles.tokenCostHighlight}>
-                            {card.token_cost}
-                            <Icon icon="ph:coin-fill" className="ms-1" />
-                          </span>)
+                          PLAY CARD
                         </>
                       ) : (
                         <>
                           <Icon icon="ph:lock-key-fill" /> NEED{" "}
-                          <span className={styles.tokenCostHighlight}>
-                            {card.token_cost}
-                            <Icon icon="ph:coin-fill" className="ms-1" />
-                          </span>
+                          <span className={styles.tokenCostHighlight}>{card.token_cost}</span>
                         </>
                       )}
                     </div>
