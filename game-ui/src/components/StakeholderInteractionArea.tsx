@@ -86,6 +86,7 @@ export default function StakeholderInteractionArea({
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const [_isintro4Done, setIsintro4Done] = useState(false);
   const isintro4DoneRef = useRef(false);
+  const [hoveredMsgAvatarIndex, setHoveredMsgAvatarIndex] = useState<number | null>(null);
 
   const getStakeholderColor = (st: any): string => {
     if (st?.stakeholder_color && st.stakeholder_color !== "#888888" && st.stakeholder_color !== "#ffffff") {
@@ -115,36 +116,25 @@ export default function StakeholderInteractionArea({
 
   return (
     <div
-      className={`${className} p-3 h-100 d-flex flex-column rounded transparent-div ${styles.ChatContainer}`}
+      className={`${className} ${showDialogueOptions ? "p-3" : "p-2"} h-100 d-flex flex-column rounded transparent-div ${styles.ChatContainer}`}
       data-intro-group="intro5"
       data-intro="This is the chat area where you can communicate with the previously selected stakeholders in order to find a solution for the current challenge."
       data-step="1"
       data-position="bottom"
     >
       <div className="d-flex justify-content-between align-items-center mb-1 w-100 flex-shrink-0">
-        <h6 className="transparent-div-label mb-0">
-          💬 Conversation History
+        <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
+          💬 Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
         </h6>
         {onToggleMaximize && (
           <button
             type="button"
-            className="btn btn-sm text-light p-1 d-flex align-items-center justify-content-center"
-            style={{
-              background: "rgba(255, 255, 255, 0.12)",
-              border: "1px solid rgba(255, 255, 255, 0.25)",
-              borderRadius: "6px",
-              width: "28px",
-              height: "28px",
-              flexShrink: 0,
-              cursor: "pointer",
-              transition: "all var(--transition)",
-            }}
+            className={styles.maximizeToggleBtn}
             onClick={onToggleMaximize}
             title={isMaximized ? "Restore view (Show Challenge & Pitch Deck)" : "Maximize conversation history"}
           >
             <Icon
               icon={isMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-              style={{ fontSize: "1rem" }}
             />
           </button>
         )}
@@ -153,15 +143,15 @@ export default function StakeholderInteractionArea({
         <StakeholdersList current_phase={current_phase} />
       )}
 
-      <div className={`flex-grow-1 overflow-hidden rounded mt-3 d-flex flex-column`} style={{ minHeight: 0 }}>
-        <div className="flex-grow-1 overflow-hidden rounded" style={{ minHeight: 0, position: "relative" }}>
+      <div className={`${styles.messageAreaWrapper} ${showDialogueOptions ? "mt-3" : "mt-1"}`}>
+        <div className={styles.innerChatScroll}>
           <MainContainer
-            className={`${styles.ChatContainer}`}
+            className={styles.ChatContainer}
             style={{ height: "100%" }}
           >
-            <ChatContainer className={`${styles.ChatContainer}`}>
+            <ChatContainer className={styles.ChatContainer}>
               <MessageList
-                className={`${styles.ChatContainer}`}
+                className={styles.ChatContainer}
                 typingIndicator={
                   !isEnabled && (
                     <TypingIndicator
@@ -173,6 +163,13 @@ export default function StakeholderInteractionArea({
                   )
                 }
               >
+                {chatMsgs.length === 0 && (
+                  <div className={styles.emptyStateContainer}>
+                    <Icon icon="ph:chats-circle-bold" className={styles.emptyStateIcon} />
+                    <span className={styles.emptyStatePrimary}>No messages yet</span>
+                    <span className={styles.emptyStateSecondary}>Play an Action Card below to consult with stakeholders</span>
+                  </div>
+                )}
                 {chatMsgs.map((item, index) => {
                   const isUser = !item.id || item.id === "user";
                   const st = isUser ? null : stakeholders[item.id];
@@ -182,7 +179,8 @@ export default function StakeholderInteractionArea({
                   let avatarSrc = "";
                   if (!isUser) {
                     const av = st?.avatar;
-                    const messageFace = (item.facial_expression || av?.face || av?.emotion || "smile") as AvatarEmotion;
+                    const isHovered = hoveredMsgAvatarIndex === index;
+                    const messageFace = (isHovered ? "suspicious" : (item.facial_expression || av?.face || av?.emotion || "smile")) as AvatarEmotion;
                     avatarSrc = generateOpenPeepsDataUri({
                       head: av?.head || "short1",
                       face: messageFace,
@@ -213,10 +211,17 @@ export default function StakeholderInteractionArea({
                         avatarSpacer={isUser ? false : true}
                       >
                         {!isUser && (
-                          <Avatar
-                            name={senderName}
-                            src={avatarSrc}
-                          />
+                          <div
+                            onMouseEnter={() => setHoveredMsgAvatarIndex(index)}
+                            onMouseLeave={() => setHoveredMsgAvatarIndex(null)}
+                            style={{ cursor: "pointer" }}
+                            title={senderName}
+                          >
+                            <Avatar
+                              name={senderName}
+                              src={avatarSrc}
+                            />
+                          </div>
                         )}
                       </Message>
                       {item.revealed_intel && item.revealed_intel.length > 0 && (

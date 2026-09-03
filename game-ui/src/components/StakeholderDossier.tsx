@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
+import { Icon } from "@iconify/react";
 import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 export type { ConvincerProfileConfig } from "./StakeholderProvider";
@@ -78,8 +79,10 @@ export default function StakeholderDossier({
 
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
   const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
+  const [hoveredPolaroidStId, setHoveredPolaroidStId] = useState<string | null>(null);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
 
   // Position state for window dragging
   const [position, setPosition] = useState({ x: 120, y: 60 });
@@ -89,6 +92,17 @@ export default function StakeholderDossier({
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
+
+  // Smoothly scroll active tab into view when page changes
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
+    }
+  }, [currentPageIndex]);
 
   // Derive active stakeholders with useMemo
   const effectiveDossierData = React.useMemo<StakeholderDossierEntry[]>(() => {
@@ -224,9 +238,23 @@ export default function StakeholderDossier({
   const renderRubberStamp = (conf: string) => {
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
     if (lower === "verified") {
-      return <div className={`${styles.rubberStamp} ${styles.stampVerified}`}>✓ VERIFIED</div>;
+      return (
+        <div
+          className={`${styles.rubberStamp} ${styles.stampVerified}`}
+          title="Verified Intelligence: This stance or archetype has been confirmed through stakeholder interaction."
+        >
+          ✓ VERIFIED
+        </div>
+      );
     }
-    return <div className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}>? UNCONFIRMED</div>;
+    return (
+      <div
+        className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}
+        title="Unconfirmed: Confirm this item by selecting it during the Intel Verification phase, or through dialogue in the Pitch & Debate phase."
+      >
+        ? UNCONFIRMED
+      </div>
+    );
   };
 
   const handleReTagIntel = (requirementId: string, newType: string) => {
@@ -280,9 +308,13 @@ export default function StakeholderDossier({
 
     return (
       <>
-        {/* Header: Polaroid Snapshot Frame + Title */}
+        {/* Header: Polaroid Snapshot Frame with Caption + Main Info */}
         <div className={styles.sketchbookHeader}>
-          <div className={styles.polaroidFrame}>
+          <div
+            className={styles.polaroidFrame}
+            onMouseEnter={() => setHoveredPolaroidStId(st.stakeholder_id)}
+            onMouseLeave={() => setHoveredPolaroidStId(null)}
+          >
             <div className={styles.sellotape} />
             <div className={styles.avatarBox}>
               <StakeholderAvatarComponent
@@ -292,12 +324,10 @@ export default function StakeholderDossier({
                 play_blink_animation={false}
                 size="100%"
                 title={st.name}
+                isHovered={hoveredPolaroidStId === st.stakeholder_id}
               />
             </div>
-          </div>
-
-          <div className={styles.stakeholderMainInfo}>
-            <h2 className={styles.stakeholderName}>
+            <div className={styles.polaroidCaption}>
               <span
                 className={styles.highlightMarker}
                 style={{
@@ -306,45 +336,76 @@ export default function StakeholderDossier({
               >
                 {st.name}
               </span>
-            </h2>
-            <div className={styles.stakeholderRole}>
-              Role: {st.role_description || "Project Stakeholder"}
             </div>
-            <div className="d-flex flex-wrap align-items-center gap-3">
-              <div className={styles.stakeholderEmotion}>
-                Emotional State:{" "}
+          </div>
+
+          <div className={styles.stakeholderMainInfo}>
+            <div className={styles.stakeholderRole}>
+              <strong className={styles.fieldLabel}>Role:</strong> {st.role_description || "Project Stakeholder"}
+            </div>
+            <div className={styles.stakeholderMetaRow}>
+              <div
+                className={styles.powerInterestBadge}
+                title={`Emotional State: "${emotionDisplay}"`}
+              >
+                <Icon
+                  icon={
+                    emotionDisplay.toLowerCase().includes("positive") ||
+                    emotionDisplay.toLowerCase().includes("happy") ||
+                    emotionDisplay.toLowerCase().includes("supportive")
+                      ? "ph:smiley-bold"
+                      : emotionDisplay.toLowerCase().includes("negative") ||
+                        emotionDisplay.toLowerCase().includes("angry") ||
+                        emotionDisplay.toLowerCase().includes("frustrated") ||
+                        emotionDisplay.toLowerCase().includes("skeptical")
+                      ? "ph:smiley-sad-bold"
+                      : "ph:smiley-meh-bold"
+                  }
+                  className={styles.metricIcon}
+                  style={{ color: emotionColor }}
+                />
+                <span style={{ color: emotionColor, fontWeight: 700 }}>
+                  {emotionDisplay.toUpperCase()}
+                </span>
+              </div>
+              <div
+                className={styles.powerInterestBadge}
+                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (Organizational authority & influence)`}
+              >
+                <Icon
+                  icon="ph:lightning-bold"
+                  className={styles.metricIcon}
+                  style={{
+                    color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
+                  }}
+                />
                 <span
                   style={{
-                    color: emotionColor,
+                    color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
                     fontWeight: 700,
                   }}
                 >
-                  "{emotionDisplay}"
+                  {(st.power || stObj?.power || "low").toUpperCase()}
                 </span>
               </div>
-              <div className={styles.stakeholderPowerInterest}>
-                <span>
-                  Power:{" "}
-                  <span
-                    style={{
-                      color: (st.power || stObj?.power || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {(st.power || stObj?.power || "low").toUpperCase()}
-                  </span>
-                </span>
-                <span style={{ margin: "0 4px", opacity: 0.5 }}>•</span>
-                <span>
-                  Interest:{" "}
-                  <span
-                    style={{
-                      color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {(st.interest || stObj?.interest || "low").toUpperCase()}
-                  </span>
+              <div
+                className={styles.powerInterestBadge}
+                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (Stakeholder engagement & active interest)`}
+              >
+                <Icon
+                  icon="ph:eye-bold"
+                  className={styles.metricIcon}
+                  style={{
+                    color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
+                  }}
+                />
+                <span
+                  style={{
+                    color: (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "#dc2626" : "#2563eb",
+                    fontWeight: 700,
+                  }}
+                >
+                  {(st.interest || stObj?.interest || "low").toUpperCase()}
                 </span>
               </div>
             </div>
@@ -354,19 +415,19 @@ export default function StakeholderDossier({
         {/* Convincer Profile & Persuasion Strategy Card */}
         {convincerArchetypeName ? (
           <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`}>
-            <div className={styles.convincerCardHeader}>
-              <div className="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
-                <div className="d-flex align-items-center gap-2">
-                  <span className={styles.convincerDoodleIcon}></span>
-                  <span>Convincer Archetype: </span>
+            <div className={styles.convincerVerticalSpine}>
+              <span className={styles.convincerVerticalText}>Convincer</span>
+            </div>
+            <div className={styles.convincerMainBody}>
+              <div className={styles.convincerTopRow}>
+                <div className={styles.convincerTagArea}>
                   {!(st.is_validated || st.convincer_status === "validated") ? (
                     <button
-                      className={`${styles.categoryBadge}`}
+                      className={styles.archetypeChip}
                       style={{
-                        backgroundColor: "#f1f5f9",
-                        border: `1.5px dashed ${convincerProfileConfig?.color || "#2563eb"}`,
+                        borderColor: convincerProfileConfig?.color || "#2563eb",
                         color: convincerProfileConfig?.color || "#2563eb",
-                        cursor: "pointer",
+                        backgroundColor: `${convincerProfileConfig?.color || "#2563eb"}14`,
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -374,104 +435,118 @@ export default function StakeholderDossier({
                       }}
                       title="Click to re-tag this stakeholder's convincer archetype"
                     >
-                      <span className="fw-bold">
+                      <span>
                         {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
                       </span>
-                      <span className={styles.reTagPrompt}>✏️ Re-tag</span>
+                      <span className={styles.reTagIconBtn} aria-label="Re-tag">
+                        <Icon icon="ph:pencil-simple-bold" />
+                      </span>
                     </button>
                   ) : (
-                    <strong style={{ color: convincerProfileConfig?.color || "#2563eb" }}>
-                      {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
-                    </strong>
+                    <span
+                      className={styles.archetypeChipStatic}
+                      style={{
+                        borderColor: convincerProfileConfig?.color || "#2563eb",
+                        color: convincerProfileConfig?.color || "#2563eb",
+                        backgroundColor: `${convincerProfileConfig?.color || "#2563eb"}14`,
+                      }}
+                    >
+                      <span>
+                        {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
+                      </span>
+                    </span>
                   )}
                 </div>
-                <div>
+                <div className={styles.cardCornerStamp}>
                   {renderRubberStamp(st.is_validated || st.convincer_status === "validated" ? "verified" : "unconfirmed")}
                 </div>
               </div>
-            </div>
 
-            {/* Interactive Re-tag Picker Popover for Convincer Archetype */}
-            {isRetaggingConvincer && (
-              <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.retagPopoverTitle}>Re-tag Convincer Archetype:</div>
-                <div className={styles.retagOptionsGrid}>
-                  {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
-                    <button
-                      key={archName}
-                      className={`${styles.retagOptionBtn} ${archName === convincerArchetypeName ? styles.activeOptionBtn : ""}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReTagConvincer(st.stakeholder_id, archName);
-                      }}
-                    >
-                      {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
-                    </button>
-                  ))}
+              {/* Interactive Re-tag Picker Popover for Convincer Archetype */}
+              {isRetaggingConvincer && (
+                <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.retagPopoverTitle}>Re-tag Convincer Archetype:</div>
+                  <div className={styles.retagOptionsGrid}>
+                    {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
+                      <button
+                        key={archName}
+                        className={`${styles.retagOptionBtn} ${archName === convincerArchetypeName ? styles.activeOptionBtn : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReTagConvincer(st.stakeholder_id, archName);
+                        }}
+                      >
+                        {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {convincerProfileConfig?.strategy && (
-              <div className={styles.convincerStrategyBody}>
-                <span className={styles.strategyBulb}>💡</span>
-                <span>
-                  <strong>Effective Communication Strategy:</strong> {convincerProfileConfig.strategy}
-                </span>
-              </div>
-            )}
+              {convincerProfileConfig?.strategy && (
+                <div className={styles.convincerStrategyText}>
+                  <span className={styles.strategyBulb}>💡</span>
+                  <span>
+                    <strong>Strategy:</strong> {convincerProfileConfig.strategy}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`} style={{ opacity: 0.85, background: "rgba(241, 245, 249, 0.7)" }}>
-            <div className={styles.convincerCardHeader}>
-              <div className="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
-                <div className="d-flex align-items-center gap-2">
-                  <span className={styles.convincerDoodleIcon}>🧠</span>
-                  <span className="text-muted">Convincer Archetype:</span>
+            <div className={styles.convincerVerticalSpine}>
+              <span className={styles.convincerVerticalText}>Convincer</span>
+            </div>
+            <div className={styles.convincerMainBody}>
+              <div className={styles.convincerTopRow}>
+                <div className={styles.convincerTagArea}>
                   <button
-                    className={`${styles.categoryBadge}`}
-                    style={{
-                      backgroundColor: "#f1f5f9",
-                      border: "1.5px dashed #94a3b8",
-                      color: "#64748b",
-                      cursor: "pointer",
-                    }}
+                    className={styles.archetypeChip}
+                    style={{ borderColor: "#94a3b8", color: "#64748b", backgroundColor: "#f1f5f9" }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsRetaggingConvincer(!isRetaggingConvincer);
                     }}
                     title="Click to categorize this stakeholder's convincer archetype"
                   >
-                    <em>Uncategorized</em>
-                    <span className={styles.reTagPrompt}>✏️ Set Archetype</span>
+                    <em>Uncategorized Archetype</em>
+                    <span className={styles.reTagIconBtn} aria-label="Set Archetype">
+                      <Icon icon="ph:pencil-simple-bold" />
+                    </span>
                   </button>
                 </div>
-                <div>
+                <div className={styles.cardCornerStamp}>
                   {renderRubberStamp("unconfirmed")}
                 </div>
               </div>
-            </div>
 
-            {/* Interactive Re-tag Picker Popover for Uncategorized Convincer */}
-            {isRetaggingConvincer && (
-              <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
-                <div className={styles.retagPopoverTitle}>Select Convincer Archetype:</div>
-                <div className={styles.retagOptionsGrid}>
-                  {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
-                    <button
-                      key={archName}
-                      className={styles.retagOptionBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleReTagConvincer(st.stakeholder_id, archName);
-                      }}
-                    >
-                      {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
-                    </button>
-                  ))}
+              {/* Interactive Re-tag Picker Popover for Uncategorized Convincer */}
+              {isRetaggingConvincer && (
+                <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.retagPopoverTitle}>Select Convincer Archetype:</div>
+                  <div className={styles.retagOptionsGrid}>
+                    {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
+                      <button
+                        key={archName}
+                        className={styles.retagOptionBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleReTagConvincer(st.stakeholder_id, archName);
+                        }}
+                      >
+                        {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              <div className={styles.convincerStrategyText} style={{ color: "#94a3b8", fontStyle: "italic" }}>
+                <span className={styles.strategyBulb}>💡</span>
+                <span>Categorize this stakeholder's archetype to reveal their effective communication strategy.</span>
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -501,7 +576,7 @@ export default function StakeholderDossier({
                   <div className={styles.noteTopBar}>
                     {isUnconfirmed ? (
                       <button
-                        className={`${styles.categoryBadge} ${catMeta.styleClass}`}
+                        className={`${styles.noteCategoryTag} ${catMeta.styleClass}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveRetagNoteId(isRetagging ? null : noteId);
@@ -509,7 +584,9 @@ export default function StakeholderDossier({
                         title="Click to re-tag this intel item's category"
                       >
                         <span>{catMeta.icon} {catMeta.label}</span>
-                        <span className={styles.reTagPrompt}>✏️ Re-tag</span>
+                        <span className={styles.reTagIconBtn} aria-label="Re-tag">
+                          <Icon icon="ph:pencil-simple-bold" />
+                        </span>
                       </button>
                     ) : (
                       <div className="d-flex align-items-center">
@@ -521,6 +598,9 @@ export default function StakeholderDossier({
                         </div>
                       </div>
                     )}
+                    <div className={styles.cardCornerStamp}>
+                      {renderRubberStamp(item.intel_type)}
+                    </div>
                   </div>
 
                   {/* Interactive Re-tag Picker Popover */}
@@ -545,9 +625,6 @@ export default function StakeholderDossier({
                   )}
 
                   <div className={styles.intelBody}>
-                    <div className={styles.stampFloat}>
-                      {renderRubberStamp(item.intel_type)}
-                    </div>
                     <div className={styles.intelText}>"{item.description}"</div>
                   </div>
                 </div>
@@ -555,12 +632,19 @@ export default function StakeholderDossier({
             })}
           </div>
         ) : (
-          <div className={styles.emptyStateNote}>
-            📝 <em>No intel collected for <strong>{st.name}</strong> yet!</em>
-            <br />
-            <span style={{ fontSize: "1.2rem", color: "#475569" }}>
-              Tag interview notes & artifacts during the Intel Gathering phase to paste sticky notes here.
-            </span>
+          <div className={styles.emptyStateContainer}>
+            <div className={styles.emptyStateCard}>
+              <div className={styles.paperclip} />
+              <div className={styles.emptyStateTitle}>
+                📋 No Field Intelligence Collected Yet
+              </div>
+              <div className={styles.emptyStateText}>
+                No interview notes, requirements, or personal stances recorded for <strong>{st.name}</strong>.
+              </div>
+              <div className={styles.emptyStateHint}>
+                💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em>
+              </div>
+            </div>
           </div>
         )}
       </>
@@ -596,11 +680,29 @@ export default function StakeholderDossier({
         <div className={styles.binderTitle}>
           📓 STAKEHOLDER DOSSIER
         </div>
-        {canClose && (
-          <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
-            ✕
+        <div className={styles.headerControls}>
+          <button
+            className={styles.topNavArrow}
+            disabled={currentPageIndex <= 0}
+            onClick={() => requestPageChange(currentPageIndex - 1)}
+            title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
+          >
+            <Icon icon="ph:caret-left-bold" />
           </button>
-        )}
+          <button
+            className={styles.topNavArrow}
+            disabled={currentPageIndex >= totalPages - 1}
+            onClick={() => requestPageChange(currentPageIndex + 1)}
+            title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
+          >
+            <Icon icon="ph:caret-right-bold" />
+          </button>
+          {canClose && (
+            <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Physical Bookmark Tabs (Top Bar) */}
@@ -608,11 +710,19 @@ export default function StakeholderDossier({
         <div className={styles.tabsContainer}>
           {effectiveDossierData.map((st, idx) => {
             const stColor = getStakeholderColor(st);
+            const stObj = stakeholders[st.stakeholder_id];
+            const emotion = stObj?.emotional_state || "neutral";
+            const emotionDotColor =
+              activeEmotionColors[emotion] ||
+              activeEmotionColors[emotion.toLowerCase()] ||
+              "#94a3b8";
             return (
               <button
                 key={st.stakeholder_id || idx}
+                ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${idx === currentPageIndex ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
+                title={`${st.name} (Emotion: ${emotion})`}
               >
                 <span
                   className={styles.tabMarker}
@@ -622,6 +732,10 @@ export default function StakeholderDossier({
                 >
                   {st.name}
                 </span>
+                <span
+                  className={styles.tabStatusPip}
+                  style={{ background: emotionDotColor }}
+                />
               </button>
             );
           })}
@@ -639,31 +753,23 @@ export default function StakeholderDossier({
 
         {/* Paper Canvas */}
         <div className={styles.flipBookWrapper}>
-          <div className={styles.pageBase}>
+          <div className={styles.pageBase} key={currentPageIndex}>
             {renderPageContent(activeStakeholder)}
           </div>
         </div>
       </div>
 
-      {/* Page Turning Footer Controls */}
+      {/* Page Turning Footer Controls & Intel Counter */}
       <div className={styles.pageFooter}>
-        <button
-          className={styles.navButton}
-          disabled={currentPageIndex <= 0}
-          onClick={() => requestPageChange(currentPageIndex - 1)}
-        >
-          ◀ Prev Page
-        </button>
         <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages} • Stakeholder Dossier
+          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages}
         </span>
-        <button
-          className={styles.navButton}
-          disabled={currentPageIndex >= totalPages - 1}
-          onClick={() => requestPageChange(currentPageIndex + 1)}
-        >
-          Next Page ▶
-        </button>
+        <span className={styles.intelCounter}>
+          📌 Intel Collected: {activeStakeholder?.intel_items?.length || 0}
+          {activeStakeholder?.intel_items && activeStakeholder.intel_items.length > 0
+            ? ` (${activeStakeholder.intel_items.filter((item: IntelEntry) => item.intel_type?.toLowerCase() === "verified").length} verified)`
+            : ""}
+        </span>
       </div>
     </div>
   );
