@@ -241,8 +241,58 @@ export default function EngagementCardTargetModal({
 
           {/* Modal Body: 2-Column Dossier Layout */}
           <div className={styles.modalBody}>
+            {/* Horizontal Directive Banner: full width across top of modal body */}
+            <div className={styles.directiveBanner}>
+              <div className={styles.directiveBannerHeader}>
+                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
+                <span>Card Directive & Rules</span>
+              </div>
+
+              <div className={styles.directiveStepsGrid}>
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>1</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Target Scope:</strong>{" "}
+                    <span>
+                      {isIntelCard
+                        ? "Select 1 unverified dossier finding to upgrade."
+                        : isAllStakeholdersCard
+                        ? `All ${requiredAmount} active team stakeholders are included in this sync.`
+                        : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>2</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>{isIntelCard ? "Direct Verification:" : "Dialogue & Intel:"}</strong>{" "}
+                    <span>
+                      {isIntelCard
+                        ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
+                        : card.intel_reveal_count !== undefined && card.intel_reveal_count > 0
+                          ? `Uncovers up to ${card.intel_reveal_count} challenge-specific stance${card.intel_reveal_count > 1 ? "s" : ""} per target that will be listed in your stakeholder dossier.`
+                          : "Triggers targeted dialogue responses & steers engagement dynamics."}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>3</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Phase Limit:</strong>{" "}
+                    <span>
+                      {isIntelCard
+                        ? "Already verified intel items cannot be verified again."
+                        : "Stakeholders already targeted by this card in this phase are locked."}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className={styles.dossierGrid}>
-              {/* Left Column: Full Card Preview & Directive Summary */}
+              {/* Left Column: Full Card Preview */}
               <div className={styles.cardColumn}>
                 <div className={styles.cardPreviewWrapper}>
                   <EngagementCardComponent
@@ -250,49 +300,6 @@ export default function EngagementCardTargetModal({
                     isPreview={true}
                     attentionTokens={attentionTokens}
                   />
-                </div>
-
-                <div className={styles.directiveCard}>
-                  <div className={styles.directiveHeader}>
-                    <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
-                    <span>Card Directive & Rules</span>
-                  </div>
-
-                  <div className={styles.directiveList}>
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>1</span>
-                      <div>
-                        <strong>Target Scope:</strong>{" "}
-                        {isIntelCard
-                          ? "Select 1 unverified dossier finding to upgrade."
-                          : isAllStakeholdersCard
-                          ? `All ${requiredAmount} active team stakeholders are included in this sync.`
-                          : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`}
-                      </div>
-                    </div>
-
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>2</span>
-                      <div>
-                        <strong>{isIntelCard ? "Direct Verification:" : "Dialogue & Intel:"}</strong>{" "}
-                        {isIntelCard
-                          ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
-                          : card.intel_reveal_count !== undefined && card.intel_reveal_count > 0
-                            ? `Uncovers up to ${card.intel_reveal_count} challenge-specific stance${card.intel_reveal_count > 1 ? "s" : ""} per target that will be listed in your stakeholder dossier.`
-                            : "Triggers targeted dialogue responses & steers engagement dynamics."}
-                      </div>
-                    </div>
-
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>3</span>
-                      <div>
-                        <strong>Phase Limit:</strong>{" "}
-                        {isIntelCard
-                          ? "Already verified intel items cannot be verified again."
-                          : "Stakeholders already targeted by this card in this phase are locked."}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 

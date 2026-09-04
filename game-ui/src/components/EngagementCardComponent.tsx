@@ -37,7 +37,7 @@ export default function EngagementCardComponent({
     ? (card.image.startsWith("http") || card.image.startsWith("/")
       ? card.image
       : `${import.meta.env.BASE_URL}${card.image.replace(/^\//, "")}`)
-    : `${import.meta.env.BASE_URL}graphics/cards/${card.id}.png`;
+    : `${import.meta.env.BASE_URL}graphics/cards/${card.id}_sm.png`;
 
   const isPlayable = isEnabled && canAfford && !isSingleUseExhausted && !isPreview;
 
