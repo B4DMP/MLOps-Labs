@@ -105,7 +105,6 @@ export default function EngagementCardComponent({
               <span>{card.target_type === "intel" ? "Intel" : "Dialogue"}</span>
             </div>
 
-            {/* AI Generated Attribution */}            <span className={styles.aiGeneratedLabel}>AI generated</span>
 
             {/* Drag Handle Indicator */}
             {isPlayable && (
