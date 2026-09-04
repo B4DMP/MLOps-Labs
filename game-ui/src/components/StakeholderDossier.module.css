@@ -1,6 +1,6 @@
 /* ==========================================================================
    AUTHENTIC STAKEHOLDER DOSSIER SKETCHBOOK STYLESHEET
-   Universal Font: 'Indie Flower', cursive
+   Universal Font: 'Delius', cursive
    ========================================================================== */
 
 /* Overlay Container */
@@ -17,10 +17,10 @@
 /* Outer Sketchbook Window Frame */
 .sketchbookWindow {
   position: absolute;
-  width: 820px;
-  max-width: 92vw;
-  height: 650px;
-  max-height: 88vh;
+  width: 840px;
+  max-width: 94vw;
+  height: 670px;
+  max-height: 90vh;
   background: #2a211b;
   /* Leather exterior binding color */
   border-radius: 12px;
@@ -34,15 +34,23 @@
   flex-direction: column;
   overflow: visible;
   /* Allow 3D page flips without window clipping */
-  font-family: 'Indie Flower', cursive, sans-serif;
+  font-family: var(--dossier-font, 'Delius', cursive);
   user-select: none;
+}
+
+/* Ensure buttons and form controls inside sketchbook inherit the dossier font */
+.sketchbookWindow button,
+.sketchbookWindow input,
+.sketchbookWindow select,
+.sketchbookWindow textarea {
+  font-family: inherit;
 }
 
 /* Leather Header Bar & Drag Handle */
 .binderHeader {
   background: linear-gradient(180deg, #3d2d23 0%, #251b14 100%);
   color: #f5ebd9;
-  padding: 10px 18px;
+  padding: 8px 16px;
   cursor: grab;
   display: flex;
   align-items: center;
@@ -58,15 +66,49 @@
 }
 
 .binderTitle {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.5rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   color: #f7eedc;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topNavArrow {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f7eedc;
+  font-size: 0.95rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.topNavArrow:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.06);
+  color: #ffffff;
+}
+
+.topNavArrow:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
 }
 
 /* Close Wax Stamp Button */
@@ -74,17 +116,16 @@
   background: radial-gradient(circle, #b91c1c 0%, #7f1d1d 100%);
   border: 2px solid #571212;
   color: #fff;
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.4rem;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
   transition: transform 0.2s ease, filter 0.2s ease;
   position: relative;
   z-index: 150;
@@ -131,48 +172,53 @@
   transform: rotate(-5deg);
 }
 
-/* Bookmark Sticky Tabs (Top Bar) */
+/* /* Bookmark Sticky Tabs (Top Bar) */
 .tabsContainer {
   display: flex;
   background: #251c15;
-  padding: 6px 16px 0 54px;
-  gap: 8px;
+  padding: 4px 10px 0 44px;
+  gap: 4px;
   overflow-x: auto;
-  border-bottom: 2px solid #140d09;
+  border-bottom: none;
   z-index: 28;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabsContainer::-webkit-scrollbar {
+  display: none;
 }
 
 .tabButton {
   background: #d8c8b4;
   border: 1px solid #9c8a74;
   border-bottom: none;
-  padding: 6px 18px 4px 18px;
-  border-radius: 8px 8px 0 0;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.25rem;
+  padding: 4px 10px 3px 10px;
+  border-radius: 6px 6px 0 0;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #3b2d23;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15);
   position: relative;
 }
 
 .tabButton:nth-child(odd) {
-  transform: rotate(-1deg);
+  transform: rotate(-0.5deg);
   background: #f3e5d0;
 }
 
 .tabButton:nth-child(even) {
-  transform: rotate(1.5deg);
+  transform: rotate(0.8deg);
   background: #e2d1bc;
 }
 
-.tabButton:hover {
-  transform: translateY(-2px) rotate(0deg);
+.tabButton:hover:not(.activeTab) {
   background: #fdf5e6;
   color: #1a0f08;
+  filter: brightness(1.05);
 }
 
 .tabMarker {
@@ -183,18 +229,29 @@
   -webkit-box-decoration-break: clone;
 }
 
+.tabStatusPip {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: middle;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
 .activeTab {
   background: #f7f4ea !important;
   color: #1a120b !important;
-  font-family: 'Indie Flower', cursive !important;
-  font-size: 1.3rem !important;
+  font-size: 0.98rem !important;
   font-weight: 700 !important;
-  border-color: #7c6853 !important;
-  margin-bottom: -2px;
-  padding-bottom: 8px;
-  z-index: 20;
-  transform: rotate(0deg) scale(1.05) !important;
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2) !important;
+  border-color: #b5a48b !important;
+  border-bottom: 3px solid #f7f4ea !important;
+  margin-bottom: -3px;
+  padding-bottom: 6px;
+  z-index: 50;
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* 3D Flip Canvas Wrapper */
@@ -212,6 +269,17 @@
   z-index: 40;
 }
 
+@keyframes pageTurn {
+  0% {
+    opacity: 0.45;
+    transform: translateX(10px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
 /* Base static page resting underneath */
 .pageBase {
   position: absolute;
@@ -225,16 +293,33 @@
     /* Spine shadow fold */
     inset -5px 0 15px rgba(0, 0, 0, 0.05),
     4px 0 10px rgba(0, 0, 0, 0.15);
-  overflow-y: auto;
-  padding: 16px 22px 16px 36px;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  padding: 10px 16px 10px 20px;
   background-color: #f7f4ea;
   background-image:
-    linear-gradient(90deg, transparent 38px, #ef4444 38px, #ef4444 39.5px, transparent 39.5px),
+    linear-gradient(90deg, transparent 16px, #ef4444 16px, #ef4444 17.5px, transparent 17.5px),
     repeating-linear-gradient(#f7f4ea,
-      #f7f4ea 23px,
-      #cbd5e1 24px);
-  line-height: 24px;
+      #f7f4ea 20px,
+      #cbd5e1 21px);
+  line-height: 21px;
   color: #26211e;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
+  animation: pageTurn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pageBase::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pageBase::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pageBase::-webkit-scrollbar-thumb {
+  background: rgba(60, 45, 35, 0.3);
+  border-radius: 4px;
 }
 
 
@@ -243,36 +328,54 @@
 .sketchbookHeader {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 2px dashed #b5a48b;
+  gap: 12px;
+  margin-bottom: 5px;
+  padding-bottom: 5px;
+  border-bottom: 1.5px dashed #b5a48b;
 }
 
 /* Taped Polaroid Snapshot */
 .polaroidFrame {
-  width: 124px;
+  width: 104px;
   box-sizing: border-box;
   background: #ffffff;
-  padding: 8px 8px 16px 8px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25), 0 2px 5px rgba(0, 0, 0, 0.12);
-  transform: rotate(-3deg);
+  padding: 5px 5px 6px 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: rotate(-2deg);
   position: relative;
   flex-shrink: 0;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.polaroidFrame:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.polaroidCaption {
+  margin-top: 4px;
+  text-align: center;
+  width: 100%;
+  line-height: 1.15;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1a120b;
 }
 
 .sellotape {
   position: absolute;
-  top: -10px;
-  left: 35px;
-  width: 70px;
-  height: 20px;
+  top: -8px;
+  left: 26px;
+  width: 52px;
+  height: 16px;
   background: rgba(245, 230, 180, 0.75);
   border: 1px solid rgba(210, 190, 140, 0.5);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  transform: rotate(-6deg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: rotate(-5deg);
   backdrop-filter: blur(1px);
   z-index: 2;
 }
@@ -287,71 +390,81 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: 2px;
   box-shadow: none;
 }
 
 /* Stakeholder Main Info */
 .stakeholderMainInfo {
   flex: 1;
-}
-
-.stakeholderName {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #1a120b;
-  margin: 0 0 2px 0;
-  line-height: 1.1;
-}
-
-.highlightMarker {
-  padding: 0 8px;
-  border-radius: 4px;
-  display: inline-block;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-.highlightYellow {
-  background: linear-gradient(180deg, transparent 50%, rgba(254, 240, 138, 0.85) 50%);
-  padding: 0 6px;
-  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
 }
 
 .stakeholderRole {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
-  color: #1a120b;
+  font-size: 0.7rem;
+  color: #2b231c;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: 0.1px;
+}
+
+.fieldLabel {
   font-weight: 700;
-  margin: 2px 0 2px 0;
-  line-height: 1.15;
+  color: #1a120b;
+}
+
+.stakeholderMetaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
 }
 
 .stakeholderEmotion {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
-  color: #1a120b;
-  font-weight: 700;
-  margin: 2px 0 4px 0;
-  line-height: 1.15;
-}
-
-.stakeholderPowerInterest {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
-  color: #1a120b;
-  font-weight: 700;
-  margin: 2px 0 4px 0;
-  line-height: 1.15;
+  font-size: 0.88rem;
+  color: #2b231c;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0.1px;
   display: flex;
   align-items: center;
   gap: 4px;
+  margin: 0;
+}
+
+.powerInterestBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  cursor: help;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+}
+
+.powerInterestBadge:hover {
+  transform: translateY(-1px);
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.metricIcon {
+  font-size: 0.92rem;
 }
 
 .highlightRed {
   background: linear-gradient(180deg, transparent 50%, rgba(252, 165, 165, 0.8) 50%);
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: 2px;
   color: #1a120b;
   /* Black text with authentic red marker background */
@@ -359,12 +472,12 @@
 
 /* Stakeholder Convincer Archetype Badge & Strategy Card */
 .stakeholderConvincer {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   color: #1a120b;
   font-weight: 700;
-  margin: 2px 0 4px 0;
-  line-height: 1.15;
+  margin: 1px 0 3px 0;
+  line-height: 1.25;
+  letter-spacing: 0.1px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -373,80 +486,198 @@
 .convincerBadge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 10px;
-  border-radius: 14px;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 10px;
   border: 1.5px solid;
-  font-size: 1.15rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  line-height: 1.2;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  line-height: 1.15;
+  letter-spacing: 0.1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .convincerIcon {
-  font-size: 1.1rem;
+  font-size: 0.9rem;
 }
 
+/* Convincer Profile & Persuasion Strategy Card */
 .convincerCard {
   background: #fffdf8;
-  border: 2px dashed #94a3b8;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin: 8px 0 10px 0;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  border: 1.5px dashed #94a3b8;
+  border-radius: 6px;
+  padding: 0;
+  margin: 3px 0 5px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
 }
 
-.convincerCardHeader {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.3rem;
+.convincerVerticalSpine {
+  background: #f1f5f9;
+  border-right: 1.5px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  width: 22px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.convincerVerticalText {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #1e293b;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.convincerMainBody {
+  flex: 1;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.convincerTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 6px;
+}
+
+.convincerTagArea {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 4px;
+  flex-wrap: wrap;
 }
 
-.convincerDoodleIcon {
-  font-size: 1.3rem;
+.cardCornerStamp {
+  flex-shrink: 0;
 }
 
-.convincerStrategyBody {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
+/* Archetype chip styling */
+.archetypeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px 1px 8px;
+  border-radius: 12px;
+  border: 1.5px dashed;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+}
+
+.archetypeChip:hover {
+  background: #ffffff !important;
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.archetypeChipStatic {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 7px 1px 8px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  font-size: 0.6rem;
+  font-weight: 700;
+  user-select: none;
+  font-family: inherit;
+}
+
+.noteCategoryTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 6px 1px 8px;
+  border-radius: 12px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+}
+
+.noteCategoryTag:hover {
+  filter: brightness(0.96);
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.reTagIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 0.72rem;
+  margin-left: 2px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.archetypeChip:hover .reTagIconBtn,
+.noteCategoryTag:hover .reTagIconBtn {
+  background: rgba(0, 0, 0, 0.14);
+  transform: rotate(15deg);
+}
+
+.convincerStrategyText {
+  font-size: 0.7rem;
   color: #334155;
-  line-height: 1.3;
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: 0.1px;
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  background: rgba(248, 250, 252, 0.75);
-  padding: 6px 10px;
-  border-radius: 6px;
-  border-left: 3px solid #64748b;
+  gap: 5px;
+  margin-top: 1px;
 }
 
 .strategyBulb {
-  font-size: 1.2rem;
+  font-size: 0.92rem;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 /* Section Titles */
 .sectionTitle {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.35rem;
+  font-size: 1.0rem;
   font-weight: 700;
   color: #27272a;
-  margin: 8px 0 6px 0;
+  margin: 4px 0 4px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border-bottom: 2px dashed #d1d5db;
-  padding-bottom: 2px;
+  gap: 5px;
+  border-bottom: 1.5px dashed #d1d5db;
+  padding-bottom: 1px;
+  letter-spacing: 0.15px;
 }
 
 .doodleIcon {
-  font-size: 1.4rem;
+  font-size: 1.05rem;
 }
 
 /* Category Sticky Note Badges & Interactive Re-tagging UI */
@@ -454,39 +685,39 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .categoryBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-family: 'Indie Flower', cursive;
+  gap: 4px;
   font-weight: 700;
-  font-size: 1.15rem;
-  padding: 3px 10px;
+  font-size: 0.6rem;
+  letter-spacing: 0.1px;
+  padding: 1px 7px;
   border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   transition: all 0.2s ease;
   user-select: none;
   background: none;
 }
 
 .categoryBadge:hover {
-  transform: scale(1.04);
-  filter: brightness(1.08);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.03);
+  filter: brightness(1.06);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .categoryBadgeStatic {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-family: 'Indie Flower', cursive;
+  gap: 4px;
   font-weight: 700;
-  font-size: 1.15rem;
-  padding: 3px 10px;
+  font-size: 0.84rem;
+  letter-spacing: 0.1px;
+  padding: 1px 7px;
   border-radius: 4px;
   user-select: none;
   cursor: default;
@@ -511,9 +742,10 @@
 }
 
 .reTagPrompt {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   opacity: 0.75;
-  margin-left: 4px;
+  margin-left: 3px;
+  letter-spacing: 0.1px;
 }
 
 .retagActive {
@@ -546,26 +778,24 @@
 }
 
 .retagPopoverTitle {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .retagOptionsGrid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .retagOptionBtn {
   background: #f8fafc;
   border: 1.5px solid #cbd5e1;
   border-radius: 6px;
-  padding: 4px 12px;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.15rem;
+  padding: 3px 10px;
+  font-size: 0.88rem;
   font-weight: 700;
   color: #334155;
   cursor: pointer;
@@ -612,11 +842,11 @@
 .stickyNote {
   background: #fef08a;
   /* Post-it Yellow */
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 2px;
   box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.12),
-    0 1px 3px rgba(0, 0, 0, 0.08);
+    0 3px 8px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
   position: relative;
   transition: box-shadow 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -659,11 +889,12 @@
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
   pointer-events: none;
   background: transparent;
+  z-index: 25;
 }
 
 .intelBody {
-  margin-top: 2px;
-  line-height: 1.2;
+  margin-top: 1px;
+  line-height: 1.25;
 }
 
 .stampFloat {
@@ -673,11 +904,11 @@
 }
 
 .intelText {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 400;
   color: #1c1917;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: 0.1px;
   margin-bottom: 0;
 }
 
@@ -689,56 +920,88 @@
 
 .rubberStamp {
   display: inline-block;
-  font-family: 'Indie Flower', cursive;
-  font-size: 0.95rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 4px;
+  padding: 1px 5px;
+  border-radius: 3px;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  transform: rotate(-4deg);
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  transform: rotate(-3deg);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.15);
   user-select: none;
+  white-space: nowrap;
+  position: relative;
+  z-index: 2;
+  cursor: help;
 }
 
 .stampVerified {
   color: #15803d;
-  border: 2px dashed #15803d;
-  background: rgba(220, 252, 231, 0.55);
-  transform: rotate(-5deg);
+  border: 1.5px dashed #15803d;
+  background: rgba(220, 252, 231, 0.65);
+  transform: rotate(-3deg);
 }
 
 .stampUnconfirmed {
   color: #b91c1c;
-  border: 2px dotted #b91c1c;
-  background: rgba(254, 226, 226, 0.55);
-  transform: rotate(-7deg);
+  border: 1.5px dotted #b91c1c;
+  background: rgba(254, 226, 226, 0.65);
+  transform: rotate(-3deg);
 }
 
 /* Empty State Note */
-.emptyStateNote {
-  background: #fffbeb;
-  border: 2px dashed #f59e0b;
-  padding: 20px;
+.emptyStateContainer {
+  padding: 12px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.emptyStateCard {
+  background: rgba(254, 252, 243, 0.85);
+  border: 1.5px dashed #cbd5e1;
   border-radius: 6px;
+  padding: 14px 20px;
   text-align: center;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.4rem;
+  max-width: 480px;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.emptyStateClip {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  font-size: 1.1rem;
+}
+
+.emptyStateTitle {
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #92400e;
-  transform: rotate(-1deg);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+  color: #334155;
+  margin-bottom: 3px;
+}
+
+.emptyStateText {
+  font-size: 0.86rem;
+  color: #64748b;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.emptyStateHint {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.25;
 }
 
 /* Margins Annotation Doodle */
 .marginDoodleNote {
-  margin-top: 24px;
-  padding: 10px 16px;
+  margin-top: 16px;
+  padding: 8px 12px;
   background: rgba(254, 243, 199, 0.6);
   border-left: 4px solid #d97706;
   border-radius: 4px;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.3rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #78350f;
   display: flex;
@@ -749,8 +1012,8 @@
 /* Notebook Footer (Page Controls) */
 .pageFooter {
   background: #251c15;
-  border-top: 3px solid #140d09;
-  padding: 10px 20px;
+  border-top: 2px solid #140d09;
+  padding: 6px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -758,35 +1021,18 @@
   z-index: 30;
 }
 
-.navButton {
-  background: linear-gradient(180deg, #574234 0%, #3d2d23 100%);
-  color: #f7eedc;
-  border: 1px solid #7c6853;
-  padding: 6px 18px;
-  border-radius: 20px;
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.2rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-.navButton:hover:not(:disabled) {
-  background: linear-gradient(180deg, #705644 0%, #4f3b2e 100%);
-  transform: translateY(-2px);
-  color: #ffffff;
-}
-
-.navButton:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-  transform: none;
-}
-
 .pageIndicator {
-  font-family: 'Indie Flower', cursive;
-  font-size: 1.25rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: #d8c8b4;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+
+.intelCounter {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fbbf24;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
 }

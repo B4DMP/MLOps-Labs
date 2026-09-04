@@ -296,17 +296,42 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
             payload=data or {}
         )
 
-    player_msg, stakeholder_responses, _ = await run_engagement_card_workflow(
-        username=username,
-        curr_challenge=curr_challenge,
-        card_id=card_id,
-        stakeholder_ids=stakeholder_ids,
-        phase_id=phase_id,
-        challenge_id=challenge_id,
-        ws=websocket,
-        session_id=session_id,
-        callback=callback,
-    )
+    try:
+        player_msg, stakeholder_responses, _ = await run_engagement_card_workflow(
+            username=username,
+            curr_challenge=curr_challenge,
+            card_id=card_id,
+            stakeholder_ids=stakeholder_ids,
+            phase_id=phase_id,
+            challenge_id=challenge_id,
+            ws=websocket,
+            session_id=session_id,
+            callback=callback,
+        )
+    except Exception as e:
+        print(f"[IntelHandler Error in run_engagement_card_workflow] {e}")
+        import traceback
+        traceback.print_exc()
+        dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
+        await manager.send_event(
+            websocket=websocket,
+            event="intel:engagement_complete",
+            payload={
+                "card_id": card_id,
+                "player_message": f"Played {card.title if card else card_id}",
+                "stakeholder_responses": [],
+                "dossier": dossier_data,
+                "played_card_ids": played_cards,
+                "card_targets": card_targets,
+                "error": str(e),
+            }
+        )
+        await manager.send_event(
+            websocket=websocket,
+            event="system:error",
+            payload={"error": str(e), "message": f"Failed to generate stakeholder response: {str(e)}"},
+        )
+        return
 
     try:
         with get_session() as db_session:

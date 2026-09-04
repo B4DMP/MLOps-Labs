@@ -3,6 +3,77 @@
     padding-top: var(--spacing-xl);
 }
 
+.chatHeaderTitle {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+.maximizeToggleBtn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all var(--transition, 0.2s ease);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    padding: 0;
+}
+
+.maximizeToggleBtn:hover {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+.messageAreaWrapper {
+    flex-grow: 1;
+    overflow: hidden;
+    border-radius: 0.375rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.innerChatScroll {
+    flex-grow: 1;
+    overflow: hidden;
+    border-radius: 0.375rem;
+    min-height: 0;
+    position: relative;
+    height: 100%;
+}
+
+.emptyStateContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 1rem;
+    opacity: 0.85;
+}
+
+.emptyStateIcon {
+    font-size: 1.6rem;
+    color: var(--token-color, #ffc107);
+    margin-bottom: 4px;
+}
+
+.emptyStatePrimary {
+    font-size: 0.8rem;
+    color: #e2e8f0;
+    font-weight: 600;
+}
+
+.emptyStateSecondary {
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+
 .ChatContainer :global(.cs-main-container) {
     background-color: transparent !important;
     border: none !important;

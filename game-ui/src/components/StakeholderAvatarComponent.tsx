@@ -15,7 +15,12 @@ export interface StakeholderAvatarProps {
   clothingColor?: string;
   stakeholderColor?: string;
   backgroundColor?: string;
+  flip?: boolean;
+  hoverToSuspicious?: boolean;
+  isHovered?: boolean;
   onClick?: () => void;
+  onMouseEnter?: (e: React.MouseEvent<HTMLImageElement>) => void;
+  onMouseLeave?: (e: React.MouseEvent<HTMLImageElement>) => void;
 }
 
 export function StakeholderAvatarComponent({
@@ -31,10 +36,18 @@ export function StakeholderAvatarComponent({
   clothingColor,
   stakeholderColor,
   backgroundColor,
+  flip,
+  hoverToSuspicious = true,
+  isHovered: propIsHovered,
   onClick,
+  onMouseEnter,
+  onMouseLeave,
 }: StakeholderAvatarProps) {
   const [isBlinking, setIsBlinking] = useState(false);
   const [speakFrame, setSpeakFrame] = useState(0);
+  const [internalHovered, setInternalHovered] = useState(false);
+
+  const isHovered = propIsHovered !== undefined ? propIsHovered : internalHovered;
 
   // Animated speaking mouth toggle (cycles every 200ms when isSpeaking is true)
   useEffect(() => {
@@ -83,8 +96,8 @@ export function StakeholderAvatarComponent({
   const svgDataUri = useMemo(() => {
     // Determine the face / emotion to render
     let selectedFace: AvatarEmotion = "smile";
-    if (isBlinking) {
-      selectedFace = "eyesClosed";
+    if (hoverToSuspicious && isHovered) {
+      selectedFace = "suspicious";
     } else if (isSpeaking) {
       selectedFace = speakFrame === 0 ? "explaining" : "smileBig";
     } else if (emotion) {
@@ -97,6 +110,7 @@ export function StakeholderAvatarComponent({
 
     const bgCol = isFramed ? (backgroundColor || stakeholderColor || avatar?.backgroundColor) : undefined;
     const finalClothingColor = clothingColor || stakeholderColor || (avatar as any)?.stakeholder_color || avatar?.clothingColor;
+    const finalFlip = flip !== undefined ? flip : Boolean(avatar?.flip);
 
     return generateOpenPeepsDataUri({
       head: avatar?.head,
@@ -109,9 +123,24 @@ export function StakeholderAvatarComponent({
       clothingColor: finalClothingColor,
       headContrastColor: avatar?.headContrastColor,
       backgroundColor: bgCol,
-      flip: avatar?.flip,
+      flip: finalFlip,
+      blink: isBlinking,
     });
-  }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, backgroundColor]);
+  }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, backgroundColor, flip, hoverToSuspicious, isHovered]);
+
+  const handleMouseEnter = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (hoverToSuspicious) {
+      setInternalHovered(true);
+    }
+    onMouseEnter?.(e);
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLImageElement>) => {
+    if (hoverToSuspicious) {
+      setInternalHovered(false);
+    }
+    onMouseLeave?.(e);
+  };
 
   return (
     <img
@@ -120,13 +149,16 @@ export function StakeholderAvatarComponent({
       title={title}
       className={`stakeholder-avatar ${className}`}
       onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
         width: typeof size === "number" ? `${size}px` : size,
         height: typeof size === "number" ? `${size}px` : size,
         objectFit: "contain",
         display: "inline-block",
         userSelect: "none",
-        pointerEvents: onClick ? "auto" : "none",
+        pointerEvents: "auto",
+        cursor: onClick ? "pointer" : undefined,
         ...style,
       }}
     />

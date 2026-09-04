@@ -37,28 +37,28 @@ export default function ChallengeDescriptionCard({
   const challenge_desc_cutted = parseChallengeDescription(challengeDescription);
 
   return (
-    <div className="card shadow-sm w-100" style={{ background: "#ffffff", border: "1px solid #dee2e6" }}>
-      <h5
-        className="card-header"
-        style={{ textAlign: "center", background: "var(--primary-bg)", color: "white" }}
+    <div className="card shadow-sm w-100 rounded-2 overflow-hidden" style={{ background: "#ffffff", border: "1px solid #dee2e6" }}>
+      <div
+        className="card-header py-1 px-3 d-flex align-items-center justify-content-center gap-2"
+        style={{ background: "var(--primary-bg)", color: "white" }}
       >
-        <span style={{ color: "white" }}>
-          <b> {challengeTitle}</b>
+        <span className="fw-bold" style={{ color: "white", fontSize: "0.9rem" }}>
+          {challengeTitle}
         </span>
         <span
-          className="text small ms-2"
-          style={{ color: "rgba(255, 255, 255, 0.85)", fontSize: "0.85rem" }}
+          className="badge"
+          style={{ color: "rgba(255, 255, 255, 0.9)", background: "rgba(255, 255, 255, 0.18)", fontSize: "0.72rem" }}
         >
-          (Challenge {currentChallenge + 1}/{challengeAmount})
+          Challenge {currentChallenge + 1}/{challengeAmount}
         </span>
-      </h5>
-      <div className="card-body bg-white text-dark">
+      </div>
+      <div className="card-body bg-white text-dark py-2 px-3">
         {challengeIntro && (
-          <p className="card-text text-center text-secondary mb-3">
+          <p className="card-text text-center text-secondary mb-1" style={{ fontSize: "0.75rem", lineHeight: 1.25 }}>
             <i>{challengeIntro}</i>
           </p>
         )}
-        <p className="card-text text-center text-dark fs-6 mb-0">
+        <p className="card-text text-center text-dark mb-0" style={{ fontSize: "0.8rem", lineHeight: 1.3 }}>
           {challenge_desc_cutted.map((item, index) => {
             if (item.type === "text") {
               return <span key={index}>{item.value}</span>;
