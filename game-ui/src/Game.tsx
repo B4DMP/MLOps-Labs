@@ -245,6 +245,9 @@ function App({ username: _username }: AppProps) {
       setStakeholders(enrichedStakeholders);
       setMetrics(rawMetrics);
       setPhases(data["phases"]);
+      if (data["phases"] && data["phases"].length > 0) {
+        setChallengeAmount(data["phases"].length);
+      }
       if (data["emotion_colors"]) {
         setEmotionColors(data["emotion_colors"]);
         (window as any).__EMOTION_COLORS__ = data["emotion_colors"];
@@ -440,7 +443,7 @@ function App({ username: _username }: AppProps) {
         setConvincerArchetypes(data.convincer_archetypes);
       }
 
-      setChallengeAmount(data["challenges_amount"]);
+      setChallengeAmount(data["phases_amount"] || data["challenges_amount"]);
       setChallengeMetricChanges(data["metric_changes"]);
       if (data.challenge_loop_id !== undefined) {
         setChallengeLoopId(data.challenge_loop_id);

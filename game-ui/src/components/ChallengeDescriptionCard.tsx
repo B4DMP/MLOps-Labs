@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import HoverTooltip from "./HoverToolTip";
 import { StakeholderContext } from "./StakeholderProvider";
+import { PhasesContext } from "./PhaseProvider";
 
 export function parseChallengeDescription(description?: string) {
   if (!description) return [];
@@ -34,13 +35,16 @@ export default function ChallengeDescriptionCard({
   challengeAmount = 1,
 }: ChallengeDescriptionCardProps) {
   const { stakeholders } = useContext(StakeholderContext);
+  const { phases } = useContext(PhasesContext);
+  const totalChallengeCount =
+    phases && phases.length > 0 ? phases.length : challengeAmount;
   const challenge_desc_cutted = parseChallengeDescription(challengeDescription);
 
   return (
     <div className="card shadow-sm w-100 rounded-2 overflow-hidden" style={{ background: "#ffffff", border: "1px solid #dee2e6" }}>
       <div
         className="card-header py-1 px-3 d-flex align-items-center justify-content-center gap-2"
-        style={{ background: "var(--primary-bg)", color: "white" }}
+        style={{ background: "var(--challenge-color, #dc2626)", color: "white" }}
       >
         <span className="fw-bold" style={{ color: "white", fontSize: "0.9rem" }}>
           {challengeTitle}
@@ -49,7 +53,7 @@ export default function ChallengeDescriptionCard({
           className="badge"
           style={{ color: "rgba(255, 255, 255, 0.9)", background: "rgba(255, 255, 255, 0.18)", fontSize: "0.72rem" }}
         >
-          Challenge {currentChallenge + 1}/{challengeAmount}
+          Challenge {currentChallenge + 1}/{totalChallengeCount}
         </span>
       </div>
       <div className="card-body bg-white text-dark py-2 px-3">

@@ -7,6 +7,9 @@
     --phase-bg-done: #28a745;
     --bg-challenge-dropoff: rgba(106, 204, 129, 0.5);
 
+    /* Challenge Card Theme */
+    --challenge-color: #c01e1e;
+
     /* Card backgrounds */
     --card-bg-dark: rgba(33, 37, 41, 0.95);
     --card-bg-locked: rgb(38, 40, 43);
