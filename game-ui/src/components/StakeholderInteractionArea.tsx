@@ -334,7 +334,7 @@ export default function StakeholderInteractionArea({
                                 onMouseEnter={() => onHoverCard?.(item.ac_id)}
                                 onMouseLeave={() => onHoverCard?.(null)}
                               >
-                                {actionCards[item.ac_id].ac_title}
+                                {actionCards[item.ac_id]?.title}
                               </span>{" "}
                             </p>
                           </div>

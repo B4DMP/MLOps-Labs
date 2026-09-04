@@ -270,22 +270,140 @@
   margin: 0 auto;
 }
 
-/* Action Card on Conference Table */
+/* Authentic Minimized Playing Card on Conference Table */
 .actionCardSurface {
   width: 100%;
-  background: #ffffff;
-  color: #212529;
-  border-radius: 10px;
-  padding: 0.4rem 0.6rem;
-  border: 2px solid #0d6efd;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-  transition: all 0.25s ease;
+  max-width: 250px;
+  background: #151c22;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 5px;
+  border: 1.5px solid var(--action-card-primary, #dc2626);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  transition: transform var(--transition, 0.2s ease), box-shadow var(--transition, 0.2s ease), border-color var(--transition, 0.2s ease);
   position: relative;
+  cursor: pointer;
+  user-select: none;
 }
 
 .actionCardSurface:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  border-color: var(--action-card-accent, #ef4444);
+}
+
+.actionCardInnerFrame {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(10, 14, 18, 0.55);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionCardHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3px 4px;
+  background: var(--action-card-ribbon, rgba(185, 28, 28, 0.25));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  gap: 1px;
+}
+
+.actionCardCategoryLabel {
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.actionCardTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.actionCardStakeholdersRow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  padding: 1px 2px;
+}
+
+.actionCardStakeholdersLabel {
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.actionCardStakeholderChips {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.actionCardStakeholderChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px 1px 2px;
+  border-radius: 999px;
+  border: 1px solid;
+  line-height: 1.1;
+}
+
+.actionCardDescriptionBox {
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.actionCardDescriptionPreview {
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actionCardExpandHint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--action-card-accent, #ef4444);
+  opacity: 0.95;
+  padding-top: 1px;
 }
 
 .tableEdgePlaque {

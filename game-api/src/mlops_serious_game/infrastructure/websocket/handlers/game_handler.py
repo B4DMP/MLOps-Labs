@@ -220,8 +220,8 @@ async def handle_game_init(
     saved_pitch_debate_messages = []
     saved_online_intel_messages = []
     saved_tokens = None
-    saved_played_card_ids = []
-    saved_card_targets = {}
+    saved_played_engagement_card_ids = []
+    saved_engagement_card_targets = {}
     saved_action_card = {}
     emotion_values_dict = {
         st.id: EmotionFactory.create_default_emotion_values()
@@ -273,8 +273,22 @@ async def handle_game_init(
             saved_tokens = latest_session.attention_tokens
             if isinstance(latest_session.action_card, dict):
                 saved_action_card = latest_session.action_card
-                saved_played_card_ids = latest_session.action_card.get("played_card_ids", [])
-                saved_card_targets = latest_session.action_card.get("card_targets", {})
+                saved_played_engagement_card_ids = latest_session.action_card.get("played_engagement_card_ids", [])
+                saved_engagement_card_targets = latest_session.action_card.get("engagement_card_targets", {})
+            if not saved_action_card.get("title"):
+                stmt_ac = (
+                    select(GameChallenge)
+                    .where(
+                        GameChallenge.user_name == username,
+                        GameChallenge.phase_index == latest_session.phase_index,
+                        GameChallenge.challenge_index == latest_session.challenge_index,
+                    )
+                    .order_by(GameChallenge.id.desc())
+                )
+                for rec in session.scalars(stmt_ac).all():
+                    if isinstance(rec.action_card, dict) and rec.action_card.get("title"):
+                        saved_action_card = {**rec.action_card, "played_engagement_card_ids": saved_played_engagement_card_ids, "engagement_card_targets": saved_engagement_card_targets}
+                        break
         else:
             #  DEBUG: Skip intro questions / challenge for fresh game sessions
             if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0 and game_progress_index == 2:
@@ -309,8 +323,8 @@ async def handle_game_init(
                 "online_intel_gathering_messages": saved_online_intel_messages,
                 "attention_tokens": saved_tokens,
                 "action_card": saved_action_card,
-                "played_card_ids": saved_played_card_ids,
-                "card_targets": saved_card_targets,
+                "played_engagement_card_ids": saved_played_engagement_card_ids,
+                "engagement_card_targets": saved_engagement_card_targets,
                 "engagement_cards": get_engagement_cards(),
                 "challenge_stakeholders": [
                     {
@@ -571,6 +585,7 @@ async def handle_state_update_request(
             st.id: EmotionFactory.create_default_emotion_values()
             for st in StakeholderFactory.stakeholders
         }
+        persisted_ac = action_card
         with get_session() as session:
             stmt = (
                 select(GameChallenge)
@@ -580,6 +595,8 @@ async def handle_state_update_request(
             latest = session.scalars(stmt).first()
             if latest and isinstance(latest.emotion_values, dict) and latest.emotion_values:
                 ev_dict = latest.emotion_values
+            if latest and isinstance(latest.action_card, dict) and latest.action_card.get("title"):
+                persisted_ac = latest.action_card
 
         await manager.send_event(
             websocket=websocket,
@@ -599,9 +616,9 @@ async def handle_state_update_request(
                 "pitch_debate_messages": messages if challenge_loop_index == 2 else [],
                 "messages": messages,
                 "attention_tokens": attention_tokens,
-                "action_card": action_card,
-                "played_card_ids": action_card.get("played_card_ids", []) if isinstance(action_card, dict) else [],
-                "card_targets": action_card.get("card_targets", {}) if isinstance(action_card, dict) else {},
+                "action_card": persisted_ac,
+                "played_engagement_card_ids": persisted_ac.get("played_engagement_card_ids", []) if isinstance(persisted_ac, dict) else [],
+                "engagement_card_targets": persisted_ac.get("engagement_card_targets", {}) if isinstance(persisted_ac, dict) else {},
                 "engagement_cards": get_engagement_cards(),
                 "challenge_stakeholders": [
                     {

@@ -70,7 +70,7 @@
 }
 
 .headerIcon {
-  color: white;
+  color: "white";
   font-size: 1.6rem;
 }
 
@@ -80,17 +80,28 @@
   gap: 0.75rem;
 }
 
-.costBadge {
-  display: flex;
+.selectionCountBadge {
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   padding: 0.35rem 0.85rem;
   border-radius: 9999px;
+  letter-spacing: 0.3px;
+  transition: all var(--transition);
+}
+
+.selectionCountValid {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.selectionCountPending {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .closeBtn {
@@ -125,7 +136,7 @@
 /* Two-column Dossier Layout */
 .dossierGrid {
   display: grid;
-  grid-template-columns: 310px 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 1.25rem;
   align-items: stretch;
   flex: 1;
@@ -139,22 +150,115 @@
   }
 }
 
-/* Left Column: Full Card Preview & Directive Summary */
-.cardColumn {
+/* Left Column: Action Card Synthesized Preview */
+.previewColumn {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   height: 100%;
   min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
-.cardPreviewWrapper {
+.synthesizedCard {
+  background: #ffffff;
+  border: 2px solid var(--primary-bg);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  overflow: hidden;
   flex-shrink: 0;
 }
 
+.synthesizedCardHeader {
+  background: var(--primary-bg);
+  color: #ffffff;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.synthesizedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.synthesizedCardBody {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.synthesizedTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.stakeholderChipsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.stakeholderChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+.mergedItemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-top: 1px dashed var(--dialog-border);
+  padding-top: 0.6rem;
+}
+
+.mergedItemRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.mergedItemText {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-primary);
+}
+
+.mergedVerifiedIcon {
+  color: #15803d;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Directive / Instructions Card */
 .directiveCard {
   background: #f8fafc;
   border: 1px solid var(--dialog-border);
@@ -165,9 +269,7 @@
   flex-direction: column;
   gap: 0.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .directiveHeader {
@@ -219,271 +321,6 @@
 .directiveItem strong {
   color: var(--text-primary);
   font-weight: 600;
-}
-
-/* Right Column: Stakeholder/Intel Selection Area */
-.selectionColumn {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-}
-
-.selectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.65rem;
-  flex-shrink: 0;
-}
-
-.sectionTitle {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.sectionIcon {
-  color: var(--primary-bg);
-  font-size: 1.35rem;
-}
-
-.selectionCountBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.3rem 0.8rem;
-  border-radius: 9999px;
-  letter-spacing: 0.3px;
-  transition: all var(--transition);
-}
-
-.selectionCountValid {
-  background: #dcfce7;
-  color: #15803d;
-  border: 1px solid #86efac;
-}
-
-.selectionCountPending {
-  background: var(--bg-subtle);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
-/* Scrollable Cards Grid Container */
-.cardsScrollContainer {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.35rem;
-}
-
-.stakeholderGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 0.75rem;
-}
-
-/* Individual Stakeholder Selection Card */
-.stakeholderCard {
-  background: #ffffff;
-  border: 1.5px solid var(--dialog-border);
-  border-radius: 0.75rem;
-  padding: 0.85rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  cursor: pointer;
-  transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
-  position: relative;
-  user-select: none;
-}
-
-.stakeholderCard:hover:not(.stakeholderDisabled) {
-  border-color: var(--primary-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.stakeholderSelected {
-  border-color: var(--primary-bg) !important;
-  background: rgba(38, 102, 130, 0.06) !important;
-  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.12);
-}
-
-.stakeholderDisabled {
-  opacity: 0.55;
-  cursor: not-allowed !important;
-  background: var(--bg-subtle) !important;
-  border-color: #e2e8f0 !important;
-}
-
-.avatarWrapper {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 2px solid;
-  background: #ffffff;
-}
-
-.stakeholderMeta {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.stakeholderHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.stakeholderName {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.statusIndicator {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.checkedIcon {
-  color: var(--primary-bg);
-  font-size: 1.35rem;
-}
-
-.lockedIcon {
-  color: #dc2626;
-  font-size: 1.2rem;
-}
-
-.uncheckCircle {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--border-subtle);
-  background: transparent;
-  display: block;
-}
-
-.stakeholderRole {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.tagRow {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.2rem;
-  flex-wrap: wrap;
-}
-
-.miniBadge {
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  background: var(--bg-subtle);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.lockedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: #dc2626;
-  background: #fee2e2;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  border: 1px solid #fca5a5;
-  margin-top: 0.25rem;
-  width: fit-content;
-}
-
-/* Intel Grid & Card styles */
-.intelGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 0.75rem;
-}
-
-.intelCard {
-  background: #ffffff;
-  border: 1.5px solid var(--dialog-border);
-  border-radius: 0.75rem;
-  padding: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0.6rem;
-  cursor: pointer;
-  transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
-}
-
-.intelCard:hover:not(.intelDisabled) {
-  border-color: var(--primary-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.intelSelected {
-  border-color: var(--primary-bg) !important;
-  background: rgba(38, 102, 130, 0.06) !important;
-  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.12);
-}
-
-.intelDisabled {
-  opacity: 0.55;
-  cursor: not-allowed !important;
-  background: var(--bg-subtle) !important;
-  border-color: #e2e8f0 !important;
-}
-
-.intelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.intelBadges {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 /* Category / Requirement Type Tags (Uppercase, Structural, Differentiated) */
@@ -548,6 +385,112 @@
   border: 1px solid #fde68a;
 }
 
+
+/* Right Column: Intel Items Grid */
+.selectionColumn {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.selectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.sectionIcon {
+  color: var(--primary-bg);
+  font-size: 1.35rem;
+}
+
+.cardsScrollContainer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.intelGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Individual Intel Item Card */
+.intelCard {
+  background: #ffffff;
+  border: 1.5px solid var(--dialog-border);
+  border-radius: 0.75rem;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.65rem;
+  cursor: pointer;
+  transition: transform var(--transition), border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  user-select: none;
+}
+
+.intelCard:hover {
+  border-color: var(--primary-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.intelSelected {
+  border-color: var(--primary-bg) !important;
+  background: rgba(38, 102, 130, 0.06) !important;
+  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.12);
+}
+
+.intelTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.intelBadges {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.statusIndicator {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.checkedIcon {
+  color: var(--primary-bg);
+  font-size: 1.35rem;
+}
+
+.uncheckCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-subtle);
+  background: transparent;
+  display: block;
+}
+
 .intelDescription {
   font-size: 0.88rem;
   font-weight: 600;
@@ -556,13 +499,52 @@
   line-height: 1.4;
 }
 
-.intelSource {
-  font-size: 0.74rem;
-  color: var(--text-muted);
-  margin: 0;
+.intelFooterRow {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.45rem;
+}
+
+.sourceWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.avatarMini {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: #ffffff;
+  border: 1.5px dashed var(--dialog-border);
+  border-radius: 0.75rem;
+}
+
+.emptyStateIcon {
+  font-size: 2.5rem;
+  color: var(--border-subtle);
+  margin-bottom: 0.5rem;
 }
 
 /* Footer & Actions */
@@ -617,7 +599,7 @@
   color: var(--text-primary);
 }
 
-/* Default project button component guideline */
+/* Project default button component rule */
 .actionButton {
   padding: 0.8rem 1.5rem;
   border-radius: 0.75rem;

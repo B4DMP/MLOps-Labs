@@ -16,6 +16,8 @@ import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
+import PitchActionCardModal from "./PitchActionCardModal";
+import ActionCardCreatedModal from "./ActionCardCreatedModal";
 
 interface OnlineIntelGatheringProps {
   onContinue: (pitchedCard?: any) => void;
@@ -40,6 +42,8 @@ interface OnlineIntelGatheringProps {
   chatMsgs?: ChatMsg[];
   setChatMsgs?: React.Dispatch<React.SetStateAction<ChatMsg[]>>;
   engagementCards?: EngagementCard[];
+  pitchedActionCard?: ActionCard | null;
+  onUpdatePitchedCard?: (card: ActionCard) => void;
 }
 
 export interface IntelItem {
@@ -85,6 +89,8 @@ export default function OnlineIntelGathering({
   chatMsgs: propsChatMsgs,
   setChatMsgs: propsSetChatMsgs,
   engagementCards: propsEngagementCards,
+  pitchedActionCard: propsPitchedActionCard,
+  onUpdatePitchedCard,
 }: OnlineIntelGatheringProps) {
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = stakeholderCtx?.stakeholders || {};
@@ -114,8 +120,21 @@ export default function OnlineIntelGathering({
   // Pitch Overlay Modal & Intel Selection State
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>([]);
-  const [pitchedCardTitle, setPitchedCardTitle] = useState<string | null>(null);
+  const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(propsPitchedActionCard?.intel_ids || []);
+  const [isGeneratingActionCard, setIsGeneratingActionCard] = useState(false);
+  const [pitchedActionCardState, setPitchedActionCardState] = useState<ActionCard | null>(propsPitchedActionCard || null);
+  const [pitchedCardTitle, setPitchedCardTitle] = useState<string | null>(propsPitchedActionCard?.title || null);
+  const [createdActionCardForModal, setCreatedActionCardForModal] = useState<ActionCard | null>(null);
+
+  useEffect(() => {
+    if (propsPitchedActionCard) {
+      setPitchedActionCardState(propsPitchedActionCard);
+      setPitchedCardTitle(propsPitchedActionCard.title);
+      if (propsPitchedActionCard.intel_ids) {
+        setSelectedIntelIds(propsPitchedActionCard.intel_ids);
+      }
+    }
+  }, [propsPitchedActionCard]);
 
   // Active Playing Engagement Card Modal State
   const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
@@ -321,11 +340,11 @@ export default function OnlineIntelGathering({
       setIsWaitingForResponse(false);
       if (!payload) return;
 
-      if (payload.played_card_ids) {
-        setPlayedCardIdsInPhase(payload.played_card_ids);
+      if (payload.played_engagement_card_ids) {
+        setPlayedCardIdsInPhase(payload.played_engagement_card_ids);
       }
-      if (payload.card_targets) {
-        setCardTargetedStakeholdersMap(payload.card_targets);
+      if (payload.engagement_card_targets) {
+        setCardTargetedStakeholdersMap(payload.engagement_card_targets);
       }
 
       if (payload.dossier && onUpdateIntelItems) {
@@ -344,11 +363,27 @@ export default function OnlineIntelGathering({
     const unsubResponse = subscribe("intel:engagement_response", handleEngagementFinished);
     const unsubDossier = subscribe("intel:dossier_data", (payload: any) => {
       if (!payload) return;
-      if (payload.played_card_ids) {
-        setPlayedCardIdsInPhase(payload.played_card_ids);
+      if (payload.played_engagement_card_ids) {
+        setPlayedCardIdsInPhase(payload.played_engagement_card_ids);
       }
-      if (payload.card_targets) {
-        setCardTargetedStakeholdersMap(payload.card_targets);
+      if (payload.engagement_card_targets) {
+        setCardTargetedStakeholdersMap(payload.engagement_card_targets);
+      }
+    });
+
+    const unsubActionCardGen = subscribe("intel:action_card_generated", (payload: any) => {
+      console.log("[WS] Received intel:action_card_generated in component:", payload);
+      setIsGeneratingActionCard(false);
+      if (payload && payload.action_card) {
+        setPitchedActionCardState(payload.action_card);
+        setPitchedCardTitle(payload.action_card.title);
+        if (payload.action_card.intel_ids) {
+          setSelectedIntelIds(payload.action_card.intel_ids);
+        }
+        if (onUpdatePitchedCard) {
+          onUpdatePitchedCard(payload.action_card);
+        }
+        setCreatedActionCardForModal(payload.action_card);
       }
     });
 
@@ -363,6 +398,7 @@ export default function OnlineIntelGathering({
       unsubResponse();
       unsubDossier();
       unsubSystemError();
+      unsubActionCardGen();
     };
   }, [subscribe, onUpdateIntelItems, setPlayedCardIdsInPhase, setCardTargetedStakeholdersMap]);
 
@@ -504,27 +540,6 @@ export default function OnlineIntelGathering({
 
     if (attentionTokens < card.token_cost || isSingleUseExhausted) return;
 
-    // Rule: eng_3 (stakeholder_selection_amount == -1) auto-selects all stakeholders without a modal screen!
-    if (card.stakeholder_selection_amount === -1) {
-      const nextTokens = attentionTokens - card.token_cost;
-      setAttentionTokens(nextTokens);
-      setPlayedCardIdsInPhase((prev) => [...prev, card.id]);
-      setIsWaitingForResponse(true);
-
-      const activeStakeholders = availableStakeholderList.filter((st: any) => isStakeholderActiveInPhase(st));
-      const activeIds = activeStakeholders.map((st: any) => st.id);
-
-      emit("intel:play_engagement_card", {
-        phase_id: currentPhase,
-        challenge_id: currentChallenge,
-        card_id: card.id,
-        stakeholder_ids: activeIds,
-        attention_tokens: nextTokens,
-      });
-      return;
-    }
-
-    // For eng_0, eng_1, eng_2, eng_4: open the target selection modal
     setPlayingCard(card);
   };
 
@@ -624,27 +639,23 @@ export default function OnlineIntelGathering({
     }
   };
 
-  const handleConfirmIntelMerge = () => {
-    if (selectedIntelIds.length === 0) return;
-    const selectedItems = intelItems.filter((item) => selectedIntelIds.includes(item.id));
-    const selectedTitles = selectedItems
-      .map((item) => item.description.length > 25 ? item.description.slice(0, 25) + "..." : item.description)
-      .join(" + ");
-    const fullProposalTitle = `Action Proposal: ${selectedTitles}`;
-    const pitchedCard = {
-      id: `ac_pitched_${currentPhase}_${currentChallenge}`,
-      ac_title: fullProposalTitle,
-      title: fullProposalTitle,
-      ac_descr: selectedItems.map((i) => i.description).join(" • "),
-      description: selectedItems.map((i) => i.description).join(" • "),
-      intel_items: selectedItems,
-      selected_intel_ids: selectedIntelIds,
-      stakeholder_ids: Array.from(new Set(selectedItems.map((i) => i.stakeholder_id).filter(Boolean))),
-    };
-    setPitchedCardTitle(fullProposalTitle);
+  const handleConfirmIntelMerge = (selectedIds: string[]) => {
+    if (selectedIds.length === 0) return;
+    setSelectedIntelIds(selectedIds);
+    setIsGeneratingActionCard(true);
     setIsPitchModalOpen(false);
+    emit("intel:generate_action_card", {
+      intel_ids: selectedIds,
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+    });
+  };
+
+  const handleProgressToPitchDebate = () => {
+    const card = createdActionCardForModal || pitchedActionCardState;
+    setCreatedActionCardForModal(null);
     if (onContinue) {
-      onContinue(pitchedCard);
+      onContinue(card);
     }
   };
 
@@ -660,6 +671,7 @@ export default function OnlineIntelGathering({
   };
 
   const bgIndex = (currentChallenge + currentPhase) % 4;
+
 
   const getTagBadgeColor = (type: string) => {
     switch (type) {
@@ -775,29 +787,44 @@ export default function OnlineIntelGathering({
                           {/* Center Tabletop: Evolving Proposal Drafting Desk */}
                           <div className={styles.tabletopCenterArea}>
                             <div
-                              className={`${styles.actionCardSurface} ${pitchedCardTitle
-                                  ? styles.actionCardConfigured
-                                  : intelItems.length > 0
-                                    ? styles.actionCardReady
-                                    : styles.actionCardBlueprint
+                              className={`${styles.actionCardSurface} ${pitchedActionCardState?.title ? styles.actionCardConfigured : styles.actionCardGreyedOut
                                 }`}
-                              onClick={() => setIsPitchModalOpen(true)}
+                              onClick={() => !isGeneratingActionCard && setIsPitchModalOpen(true)}
                               title={
-                                pitchedCardTitle
-                                  ? "Click to edit your action card proposal"
-                                  : intelItems.length > 0
-                                    ? "Click to assemble 1-3 discovered intel items into a proposal"
-                                    : "Play action cards below to gather intel first, then build your proposal here"
+                                pitchedActionCardState?.title
+                                  ? "Click to view or edit Action Card proposal"
+                                  : "Click to select 1-3 Intel Items & build proposal"
                               }
                             >
-                              {pitchedCardTitle ? (
-                                <div className="text-center">
-                                  <span className={`badge bg-primary ${styles.actionCardBadge}`}>🃏 Pitched Base AC</span>
-                                  <h6 className={`text-dark ${styles.actionCardProposalTitle}`}>{pitchedCardTitle}</h6>
-                                  <p className={`text-muted ${styles.actionCardProposalSub}`}>Intel merged into proposal</p>
-                                  <button type="button" className={`btn btn-sm btn-outline-primary ${styles.actionCardDraftBtn}`}>
-                                    ✏️ Edit Proposal
-                                  </button>
+                              {isGeneratingActionCard ? (
+                                <div className="text-center py-2">
+                                  <span className="spinner-border spinner-border-sm text-primary mb-2" role="status" />
+                                  <p className="small text-white mb-0" style={{ fontSize: "0.74rem" }}>
+                                    Synthesizing Action Card...
+                                  </p>
+                                </div>
+                              ) : pitchedActionCardState?.title ? (
+                                <div className={styles.actionCardInnerFrame}>
+                                  {/* Header matching ActionCardCardComponent & Pitch Deck */}
+                                  <div className={styles.actionCardHeader}>
+                                    <span className={styles.actionCardCategoryLabel}>Action Card</span>
+                                    <h6
+                                      className={styles.actionCardTitle}
+                                      title={pitchedActionCardState.title}
+                                    >
+                                      {pitchedActionCardState.title}
+                                    </h6>
+                                  </div>
+
+                                  {/* Description Box */}
+                                  <div className={styles.actionCardDescriptionBox}>
+                                    <p
+                                      className={styles.actionCardDescriptionPreview}
+                                      title={pitchedActionCardState.description}
+                                    >
+                                      {pitchedActionCardState.description}
+                                    </p>
+                                  </div>
                                 </div>
                               ) : intelItems.length > 0 ? (
                                 <div className="text-center">
@@ -952,103 +979,19 @@ export default function OnlineIntelGathering({
         />
       )}
 
-      {/* Action Card Pitch Modal with Blurred Backdrop */}
+      {/* Action Card Pitch Modal */}
       {isPitchModalOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsPitchModalOpen(false)}>
-          <div className={styles.intelModal} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h5 className="modal-title mb-0 fw-bold">
-                🎯 Assemble Proposal & Enter Pitch Debate
-              </h5>
-              <button
-                type="button"
-                className="btn-close btn-close-white"
-                onClick={() => setIsPitchModalOpen(false)}
-              ></button>
-            </div>
-
-            <div className={styles.modalBody}>
-              <p className="text-secondary small mb-3">
-                Select <b>1 to 3 Intel Items</b> to merge into your Action Card proposal. Confirming your proposal will conclude the intelligence gathering phase and advance the game to the Pitch Debate in the boardroom.
-              </p>
-
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <span className="fw-bold text-dark">Available Dossier Intel Items</span>
-                <span
-                  className={`badge ${selectedIntelIds.length > 0 ? "bg-success" : "bg-secondary"
-                    } fs-6`}
-                >
-                  Selected: {selectedIntelIds.length} / 3
-                </span>
-              </div>
-
-              <div className="row g-3">
-                {intelItems.map((item) => {
-                  const isSelected = selectedIntelIds.includes(item.id);
-                  return (
-                    <div key={item.id} className="col-12 col-md-6">
-                      <div
-                        className={`${styles.intelItemCard} ${isSelected ? styles.intelItemSelected : ""
-                          }`}
-                        onClick={() => handleToggleIntelSelection(item.id)}
-                      >
-                        {(() => {
-                          const catType = item.categorized_type || (item as any).type || "requirement";
-                          const certaintyLabel = item.intel_type || (item as any).certainty || "unconfirmed";
-                          const isVerified = (certaintyLabel || "").toLowerCase().includes("verified");
-
-                          return (
-                            <>
-                              <div className="d-flex justify-content-between align-items-start mb-2">
-                                <span className={`badge ${getTagBadgeColor(catType)}`}>
-                                  {catType.replace(/_/g, " ")}
-                                </span>
-                                <div className="d-flex align-items-center gap-2">
-                                  <span className={`badge ${isVerified ? "bg-success" : "bg-warning text-dark"}`}>
-                                    {certaintyLabel}
-                                  </span>
-                                  <input
-                                    type="checkbox"
-                                    className="form-check-input"
-                                    checked={isSelected}
-                                    onChange={() => { }}
-                                  />
-                                </div>
-                              </div>
-                              <h6 className="fw-bold text-dark mb-1">{item.description}</h6>
-                              {item.stakeholder_name && (
-                                <p className="small text-muted mb-0">
-                                  Source: {item.stakeholder_name}
-                                </p>
-                              )}
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="p-3 bg-light border-top d-flex justify-content-end gap-2">
-              <button
-                className="btn btn-secondary rounded-pill px-4"
-                onClick={() => setIsPitchModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-success rounded-pill px-4 fw-bold d-inline-flex align-items-center gap-2"
-                disabled={selectedIntelIds.length === 0}
-                onClick={handleConfirmIntelMerge}
-              >
-                <Icon icon="ph:paper-plane-tilt-bold" />
-                Submit Proposal & Start Pitch Debate ({selectedIntelIds.length}) ➔
-              </button>
-            </div>
-          </div>
-        </div>
+        <PitchActionCardModal
+          isOpen={isPitchModalOpen}
+          onClose={() => setIsPitchModalOpen(false)}
+          intelItems={intelItems}
+          initialSelectedIntelIds={selectedIntelIds}
+          onConfirmMerge={handleConfirmIntelMerge}
+          stakeholders={stakeholders}
+          getStakeholderColor={getStakeholderColor}
+          getTagBadgeColor={getTagBadgeColor}
+          isGenerating={isGeneratingActionCard}
+        />
       )}
 
       {/* Intel Verification Result PopUp Modal Component */}
@@ -1056,6 +999,16 @@ export default function OnlineIntelGathering({
         isOpen={Boolean(verificationResultModal)}
         onClose={() => setVerificationResultModal(null)}
         resultData={verificationResultModal}
+      />
+
+      {/* Action Card Created Pop-Up Modal */}
+      <ActionCardCreatedModal
+        isOpen={Boolean(createdActionCardForModal)}
+        actionCard={createdActionCardForModal}
+        intelItems={intelItems}
+        stakeholders={stakeholders}
+        getStakeholderColor={getStakeholderColor}
+        onProgressToPitchDebate={handleProgressToPitchDebate}
       />
     </div>
   );

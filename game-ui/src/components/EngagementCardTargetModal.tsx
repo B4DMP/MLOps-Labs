@@ -70,12 +70,19 @@ export default function EngagementCardTargetModal({
 
   // Reset selections upon modal opening or card switch
   useEffect(() => {
-    if (isOpen) {
-      setSelectedStakeholderIds([]);
+    if (isOpen && card) {
+      if (card.stakeholder_selection_amount === -1) {
+        const activeIds = availableStakeholderList
+          .filter(isStakeholderActive)
+          .map((st: any) => st.id);
+        setSelectedStakeholderIds(activeIds);
+      } else {
+        setSelectedStakeholderIds([]);
+      }
       setSelectedIntelId(null);
       setIsClosing(false);
     }
-  }, [isOpen, card?.id]);
+  }, [isOpen, card?.id, availableStakeholderList, isStakeholderActive]);
 
   const handleRequestClose = () => {
     if (isClosing) return;
@@ -89,9 +96,47 @@ export default function EngagementCardTargetModal({
   if (!isOpen || !card) return null;
 
   const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
-  const requiredAmount = isIntelCard ? 1 : card.stakeholder_selection_amount;
-
+  const isAllStakeholdersCard = card.stakeholder_selection_amount === -1;
   const activeStakeholders = availableStakeholderList.filter(isStakeholderActive);
+  const requiredAmount = isIntelCard
+    ? 1
+    : isAllStakeholdersCard
+    ? activeStakeholders.length
+    : card.stakeholder_selection_amount;
+
+  // Distinct requirement category details helper (Non-conflicting colors & icons)
+  const getCategoryDetails = (type: string) => {
+    switch (type) {
+      case "requirement":
+        return {
+          label: "Requirement",
+          shortLabel: "REQ",
+          icon: "ph:check-square-bold",
+          className: styles.categoryTagRequirement,
+        };
+      case "negotiable_preference":
+        return {
+          label: "Preference",
+          shortLabel: "PREF",
+          icon: "ph:sliders-horizontal-bold",
+          className: styles.categoryTagPreference,
+        };
+      case "personal_friction":
+        return {
+          label: "Friction",
+          shortLabel: "FRICT",
+          icon: "ph:warning-circle-bold",
+          className: styles.categoryTagFriction,
+        };
+      default:
+        return {
+          label: type.replace(/_/g, " "),
+          shortLabel: "INTEL",
+          icon: "ph:tag-bold",
+          className: styles.categoryTagDefault,
+        };
+    }
+  };
 
   // Filter out already targeted stakeholders for the card
   const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
@@ -146,9 +191,13 @@ export default function EngagementCardTargetModal({
       const names = selectedStakeholderIds
         .map((id) => stakeholders[id]?.name || availableStakeholderList.find((s) => s.id === id)?.name || id)
         .join(", ");
-      footerHint = `Ready to engage with ${names}.`;
+      footerHint = isAllStakeholdersCard
+        ? `Ready to synchronize with all team members (${names}).`
+        : `Ready to engage with ${names}.`;
     } else {
-      footerHint = `Select ${remaining} more stakeholder${remaining > 1 ? "s" : ""} to execute ${card.title}.`;
+      footerHint = isAllStakeholdersCard
+        ? `Please re-select all ${requiredAmount} stakeholders to synchronize perspectives.`
+        : `Select ${remaining} more stakeholder${remaining > 1 ? "s" : ""} to execute ${card.title}.`;
     }
   }
 
@@ -168,6 +217,8 @@ export default function EngagementCardTargetModal({
               <p className={styles.headerSubtitle}>
                 {isIntelCard
                   ? "Select an unverified dossier finding to authenticate with this engagement card"
+                  : isAllStakeholdersCard
+                  ? `All ${requiredAmount} active team stakeholders are selected by default. Confirm below to initiate the sync.`
                   : `Choose ${requiredAmount} stakeholder${requiredAmount > 1 ? "s" : ""} to initiate direct dialogue and uncover requirements`}
               </p>
             </div>
@@ -214,6 +265,8 @@ export default function EngagementCardTargetModal({
                         <strong>Target Scope:</strong>{" "}
                         {isIntelCard
                           ? "Select 1 unverified dossier finding to upgrade."
+                          : isAllStakeholdersCard
+                          ? `All ${requiredAmount} active team stakeholders are included in this sync.`
                           : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`}
                       </div>
                     </div>
@@ -254,22 +307,37 @@ export default function EngagementCardTargetModal({
                     <span>{isIntelCard ? "Select Intel Item to Verify" : "Available Stakeholders"}</span>
                   </h6>
 
-                  <span
-                    className={`${styles.selectionCountBadge} ${isSelectionValid ? styles.selectionCountValid : styles.selectionCountPending
+                  <div className="d-flex align-items-center gap-2">
+                    {isAllStakeholdersCard && selectedStakeholderIds.length < requiredAmount && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-info py-0 px-2"
+                        style={{ fontSize: "0.75rem", borderRadius: "4px" }}
+                        onClick={() => setSelectedStakeholderIds(activeStakeholders.map((st: any) => st.id))}
+                      >
+                        Select All
+                      </button>
+                    )}
+                    <span
+                      className={`${styles.selectionCountBadge} ${
+                        isSelectionValid ? styles.selectionCountValid : styles.selectionCountPending
                       }`}
-                  >
-                    <Icon
-                      icon={isSelectionValid ? "ph:check-circle-fill" : "ph:circle-dashed"}
-                      style={{ fontSize: "1rem" }}
-                    />
-                    <span>
-                      {isIntelCard
-                        ? selectedIntelId
-                          ? "1 / 1 Selected"
-                          : "0 / 1 Selected"
-                        : `${selectedStakeholderIds.length} / ${requiredAmount} Selected`}
+                    >
+                      <Icon
+                        icon={isSelectionValid ? "ph:check-circle-fill" : "ph:circle-dashed"}
+                        style={{ fontSize: "1rem" }}
+                      />
+                      <span>
+                        {isIntelCard
+                          ? selectedIntelId
+                            ? "1 / 1 Selected"
+                            : "0 / 1 Selected"
+                          : isAllStakeholdersCard
+                          ? `${selectedStakeholderIds.length} / ${requiredAmount} Selected (All Team)`
+                          : `${selectedStakeholderIds.length} / ${requiredAmount} Selected`}
+                      </span>
                     </span>
-                  </span>
+                  </div>
                 </div>
 
                 {/* Selection Cards Grid */}
@@ -282,7 +350,7 @@ export default function EngagementCardTargetModal({
                         const isSelected = selectedIntelId === item.id;
                         const isSelectable = !isVerified;
                         const catType = item.categorized_type || "requirement";
-                        const categoryLabel = catType.replace(/_/g, " ");
+                        const catDetails = getCategoryDetails(catType);
 
                         return (
                           <div
@@ -293,17 +361,27 @@ export default function EngagementCardTargetModal({
                           >
                             <div>
                               <div className={styles.intelHeader}>
-                                <span className={`badge ${getTagBadgeColor(catType)}`}>
-                                  {categoryLabel}
-                                </span>
-                                <span
-                                  className={`badge ${isVerified ? "bg-success" : "bg-warning text-dark"}`}
-                                >
-                                  {item.intel_type}
-                                </span>
+                                <div className={styles.intelBadges}>
+                                  <span className={`${styles.categoryTag} ${catDetails.className}`}>
+                                    <Icon icon={catDetails.icon} />
+                                    <span>{catDetails.label}</span>
+                                  </span>
+
+                                  <span
+                                    className={`${styles.confirmationPill} ${
+                                      isVerified ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
+                                    }`}
+                                  >
+                                    <Icon
+                                      icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
+                                      style={{ fontSize: "0.85rem" }}
+                                    />
+                                    <span>{isVerified ? "Verified" : "Unconfirmed"}</span>
+                                  </span>
+                                </div>
                               </div>
 
-                              <p className={styles.intelDescription} style={{ marginTop: "0.5rem" }}>
+                              <p className={styles.intelDescription} style={{ marginTop: "0.6rem" }}>
                                 {item.description}
                               </p>
                             </div>

@@ -1,8 +1,7 @@
 export type ActionCard = {
-  id?: string;
-  ac_title: string;
-  ac_descr: string;
-  metric_changes: Record<string, number>;
-  stakeholder_ids: string[];
-  ac_image: string;
+  id: string;
+  title: string;
+  description: string;
+  intel_ids: string[];
+  addendum_intel_item_ids: string[];
 };

@@ -64,22 +64,6 @@ function MetricTab({
                           </span>
                         )}
                       </div>
-                      {last_ac && showMetricValueChanges && (
-                        <span
-                          className={styles.metricChangeText}
-                          style={{
-                            color:
-                              (last_ac?.metric_changes[item.id] ?? 0) == 0
-                                ? "black"
-                                : (last_ac.metric_changes[item.id] ?? 0) > 0
-                                  ? "green"
-                                  : "red",
-                          }}
-                        >
-                          {(last_ac?.metric_changes[item.id] ?? 0) >= 0 && "+"}
-                          {(last_ac?.metric_changes[item.id] ?? 0)}
-                        </span>
-                      )}
                     </div>
 
                     <div className="mt-2">

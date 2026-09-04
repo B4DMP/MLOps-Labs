@@ -54,8 +54,6 @@ class PitchDebateState(MessagesState):
     challenge: str
     summary: str
     stakeholder_ids: list[str]
-    generate_card: bool
-    action_cards: list
     phase_id: int
     challenge_id: int
     cheating_detected: bool
