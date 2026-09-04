@@ -60,6 +60,12 @@ app.include_router(admin_router)
 app.include_router(websocket_router)
 
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for container readiness probes."""
+    return {"status": "ok"}
+
+
 @app.post("/reset-memory")
 async def reset_conversation():
     """Resets the conversation state."""
