@@ -137,7 +137,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 180px;
+  min-height: 0;
   background: rgba(15, 18, 26, 0.15);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
@@ -208,6 +208,108 @@
 }
 .chatMaximizeBtn:active {
   transform: scale(0.94);
+}
+
+.chatMaximizeBtnIcon {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chatWrapperMaximized .chatMaximizeBtnIcon {
+  transform: rotate(180deg);
+}
+
+/* ── Smooth Animated Columns for Conversation History Full View / Minimized Toggle ── */
+.boardCol {
+  flex: 7 1 0%;
+  width: 58%;
+  max-width: 58%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: flex 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease,
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.15s ease,
+              margin 0.15s ease;
+  overflow: hidden;
+  will-change: flex, width, max-width, opacity, transform;
+}
+
+.boardColCollapsed {
+  flex: 0 0 0% !important;
+  width: 0% !important;
+  max-width: 0% !important;
+  opacity: 0 !important;
+  transform: translateX(-20px);
+  pointer-events: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.boardColSpeaking {
+  overflow: visible !important;
+  z-index: 1700 !important;
+}
+
+.overflowVisibleSpeech {
+  overflow: visible !important;
+}
+
+.chatCol {
+  flex: 5 1 0%;
+  width: 42%;
+  max-width: 42%;
+  transition: flex 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: flex, width, max-width;
+}
+
+.chatColMaximized {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.chatCol .chatWrapper {
+  height: auto;
+  flex: 1 1 0%;
+}
+
+/* Wrapper for challenge card when conversation history is maximized */
+.maximizedChallengeWrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  pointer-events: none;
+  transition: max-height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease,
+              margin-bottom 0.2s ease;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.maximizedChallengeWrapperVisible {
+  max-height: 240px;
+  opacity: 1;
+  overflow: visible;
+  margin-bottom: 0.35rem;
+  pointer-events: auto;
+}
+
+@media (max-width: 991px) {
+  .boardCol {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+  .chatCol {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Help / Dashboard Base Layer */
@@ -290,21 +392,27 @@
   align-items: center;
 }
 
-/* The Pitch Deck Conference Table Surface (Uses Engagement Cards Major Theme) */
+/* The Pitch Deck Conference Table Surface (Authentic Oval Boardroom Table) */
 .pitchDeckTable {
   position: relative;
   width: 100%;
-  max-width: 580px;
-  min-height: 165px;
+  max-width: 590px;
+  min-height: 190px;
   background: radial-gradient(ellipse 90% 70% at 50% 50%, #2b3035 0%, var(--engagement-bg, #212529) 70%, #14171a 100%);
   border: 3px solid var(--engagement-accent, #a02222);
   border-radius: 50% / 34%;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12), 0 0 20px rgba(160, 34, 34, 0.3);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 0.35rem 0.8rem 0.25rem 0.8rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.8rem;
+  z-index: 10;
+}
+
+.pitchDeckTableSpeaking {
+  z-index: 1800 !important;
+  overflow: visible !important;
 }
 
 /* Top Seating: Avatars seated behind the table looking forward */
@@ -320,6 +428,10 @@
   z-index: 20;
 }
 
+.seatingSpeaking {
+  z-index: 2000 !important;
+}
+
 /* Center Table Surface: Lateral Seats + Central Action Card Dossier */
 .tableCenterSurface {
   display: flex;
@@ -330,6 +442,11 @@
   flex: 1;
   position: relative;
   z-index: 25;
+}
+
+.tableCenterSurfaceSpeaking {
+  z-index: 2500 !important;
+  overflow: visible !important;
 }
 
 .tableSideSeating {
@@ -349,6 +466,170 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 4px;
+}
+
+/* Table Center Plaque ("PITCH DECK" on tabletop) */
+.tableCenterPlaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 14px;
+  background: rgba(17, 48, 62, 0.7);
+  border: 1.5px solid var(--engagement-accent, #a02222);
+  border-radius: 12px;
+  color: var(--engagement-accent, #a02222);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+  user-select: none;
+}
+
+.tableCenterPlaqueIcon {
+  font-size: 0.95rem;
+  color: var(--engagement-accent, #a02222);
+}
+
+/* Dedicated Interaction Area along the Lower Border of the Table */
+.tableLowerInteractionArea {
+  background: rgba(14, 18, 26, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  z-index: 30;
+}
+
+.statChipsRowCentered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.statChipToken {
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.35);
+  border-radius: 12px;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+
+.statChipIntel {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  padding: 2px 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  user-select: none;
+}
+
+.tokenStatIcon {
+  font-size: 0.88rem;
+  color: var(--token-color, #ffc107);
+}
+
+.intelStatIcon {
+  font-size: 0.88rem;
+  color: #38bdf8;
+}
+
+.statNumber {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.statLabel {
+  font-size: 0.56rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pitchExplainerText {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.3;
+  text-align: center;
+  margin: 0;
+}
+
+.explainerToken {
+  color: var(--token-color, #ffc107);
+  font-weight: 700;
+}
+
+.explainerCard {
+  color: var(--engagement-accent, #a02222);
+  font-weight: 700;
+}
+
+.explainerIntel {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.explainerPitch {
+  color: #198754;
+  font-weight: 700;
+}
+
+/* Action Button following guideline */
+.actionButton {
+  padding: 0.45rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--secondary-bg);
+  background: var(--primary-bg);
+  color: white;
+  font-weight: 600;
+  font-size: 0.76rem;
+  transition: all var(--transition);
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.actionButton:hover:not(:disabled) {
+  background: var(--secondary-bg);
+}
+
+.actionButtonDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.actionButtonBlocked {
+  pointer-events: none !important;
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
 }
 
 /* Seated Stakeholder Item */
@@ -369,7 +650,8 @@
 }
 
 .seatedSpeaking {
-  z-index: 500 !important;
+  z-index: 2200 !important;
+  position: relative;
 }
 
 .seatedStakeholder:hover {
@@ -444,11 +726,12 @@
   width: max-content;
   min-width: 220px;
   max-width: 320px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
   border: 2px solid var(--st-color, #a02222);
-  z-index: 1000 !important;
+  z-index: 4000 !important;
   animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   text-align: center;
   word-break: break-word;
   display: flex;
@@ -529,12 +812,13 @@
   line-height: 1.3;
   width: max-content;
   min-width: 200px;
-  max-width: 320px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  max-width: 340px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
   border: 2px solid var(--engagement-accent, #a02222);
-  z-index: 100;
+  z-index: 4000 !important;
   animation: popInPlayer 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   text-align: center;
   word-break: break-word;
 }
@@ -597,20 +881,18 @@
   }
 }
 
-/* Plaque on the Bottom Table Rim */
 .tableEdgePlaque {
-  margin-top: 2px;
-  padding: 1px 12px;
+  padding: 2px 10px;
   background: var(--engagement-bg, #212529);
   border: 1px solid var(--engagement-accent, #a02222);
-  border-radius: 10px;
-  font-size: 0.62rem;
+  border-radius: 8px;
+  font-size: 0.6rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--engagement-accent, #a02222);
   text-transform: uppercase;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
 }

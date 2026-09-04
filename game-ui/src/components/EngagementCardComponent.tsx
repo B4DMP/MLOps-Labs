@@ -4,6 +4,7 @@ import type { EngagementCard } from "../types/EngagementCard";
 
 export interface EngagementCardComponentProps {
   card: EngagementCard;
+  is_minimized?: boolean;
   attentionTokens?: number;
   isSingleUseExhausted?: boolean;
   canAfford?: boolean;
@@ -18,6 +19,7 @@ export interface EngagementCardComponentProps {
 
 export default function EngagementCardComponent({
   card,
+  is_minimized = false,
   attentionTokens,
   isSingleUseExhausted = false,
   canAfford = true,
@@ -42,12 +44,12 @@ export default function EngagementCardComponent({
   const cardTooltip = isPreview
     ? `${card.title} - ${card.description}`
     : !isEnabled
-    ? "Interaction currently disabled"
-    : isSingleUseExhausted
-    ? "Already played in this phase (1x per phase limit)"
-    : attentionTokens !== undefined && attentionTokens < card.token_cost
-    ? `Requires ${card.token_cost} Attention Tokens (you have ${attentionTokens})`
-    : `Drag to Pitch Deck / Chat or click to play ${card.title}`;
+      ? "Interaction currently disabled"
+      : isSingleUseExhausted
+        ? "Already played in this phase (1x per phase limit)"
+        : attentionTokens !== undefined && attentionTokens < card.token_cost
+          ? `Requires ${card.token_cost} Attention Tokens (you have ${attentionTokens})`
+          : `Drag to Pitch Deck / Chat or click to play ${card.title}`;
 
   return (
     <div
@@ -58,6 +60,7 @@ export default function EngagementCardComponent({
       title={cardTooltip}
       className={`
         ${styles.playingCard}
+        ${is_minimized ? styles.minimizedCard : ""}
         ${isPlayable ? styles.playable : ""}
         ${!isPlayable && !isPreview ? styles.disabled : ""}
         ${isPreview ? styles.previewMode : ""}
@@ -78,46 +81,46 @@ export default function EngagementCardComponent({
           </div>
         </div>
 
-        {/* Card Artwork Illustration Window */}
-        <div className={styles.artworkFrame}>
-          <img
-            src={cardImage}
-            alt={card.title}
-            className={styles.cardImage}
-            draggable={false}
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (target.src.endsWith(".png")) {
-                target.src = target.src.replace(/\.png$/, ".jpg");
-              } else if (!target.src.includes("engagement_card_sample.jpg")) {
-                target.src = defaultSampleImage;
-              }
-            }}
-          />
+        {/* Card Artwork Illustration Window (omitted in compact/minimized view) */}
+        {!is_minimized && (
+          <div className={styles.artworkFrame}>
+            <img
+              src={cardImage}
+              alt={card.title}
+              className={styles.cardImage}
+              draggable={false}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src.endsWith(".png")) {
+                  target.src = target.src.replace(/\.png$/, ".jpg");
+                } else if (!target.src.includes("engagement_card_sample.jpg")) {
+                  target.src = defaultSampleImage;
+                }
+              }}
+            />
 
-          {/* Archetype Icon Watermark Pill */}
-          <div className={styles.artIconBadge}>
-            <Icon icon={card.icon || "ph:cards-bold"} />
-            <span>{card.target_type === "intel" ? "Intel" : "Dialogue"}</span>
+            {/* Archetype Icon Watermark Pill */}
+            <div className={styles.artIconBadge}>
+              <Icon icon={card.icon || "ph:cards-bold"} />
+              <span>{card.target_type === "intel" ? "Intel" : "Dialogue"}</span>
+            </div>
+
+            {/* AI Generated Attribution */}            <span className={styles.aiGeneratedLabel}>AI generated</span>
+
+            {/* Drag Handle Indicator */}
+            {isPlayable && (
+              <span title="Drag to play" style={{ display: "inline-flex" }}>
+                <Icon
+                  icon="teenyicons:drag-outline"
+                  className={styles.dragHandle}
+                />
+              </span>
+            )}
           </div>
-
-          {/* AI Generated Attribution */}
-          <span className={styles.aiGeneratedLabel}>AI generated</span>
-
-          {/* Drag Handle Indicator */}
-          {isPlayable && (
-            <span title="Drag to play" style={{ display: "inline-flex" }}>
-              <Icon
-                icon="teenyicons:drag-outline"
-                className={styles.dragHandle}
-              />
-            </span>
-          )}
-        </div>
+        )}
 
         {/* Type & Mechanics Ribbon */}
         <div className={styles.typeRibbon}>
-          <span className={styles.categoryLabel}>Engagement</span>
           <div className={styles.badgeGroup}>
             {/* Target Scope Badge */}
             {card.target_type === "intel" || card.id === "eng_0" ? (
@@ -157,7 +160,6 @@ export default function EngagementCardComponent({
 
         {/* Rules & Effect Description Box */}
         <div className={styles.descriptionBox}>
-
 
           <p className={styles.descriptionText}>
             {card.description}

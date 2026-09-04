@@ -12,12 +12,10 @@ import PerformanceDashboard from "./PerformanceDashboard";
 import EngagementCards from "./EngagementCards";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
-import HoverTooltip from "./HoverToolTip";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import PitchActionCardModal from "./PitchActionCardModal";
-import ActionCardCreatedModal from "./ActionCardCreatedModal";
 
 interface OnlineIntelGatheringProps {
   onContinue: (pitchedCard?: any) => void;
@@ -123,13 +121,10 @@ export default function OnlineIntelGathering({
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(propsPitchedActionCard?.intel_ids || []);
   const [isGeneratingActionCard, setIsGeneratingActionCard] = useState(false);
   const [pitchedActionCardState, setPitchedActionCardState] = useState<ActionCard | null>(propsPitchedActionCard || null);
-  const [pitchedCardTitle, setPitchedCardTitle] = useState<string | null>(propsPitchedActionCard?.title || null);
-  const [createdActionCardForModal, setCreatedActionCardForModal] = useState<ActionCard | null>(null);
 
   useEffect(() => {
     if (propsPitchedActionCard) {
       setPitchedActionCardState(propsPitchedActionCard);
-      setPitchedCardTitle(propsPitchedActionCard.title);
       if (propsPitchedActionCard.intel_ids) {
         setSelectedIntelIds(propsPitchedActionCard.intel_ids);
       }
@@ -182,6 +177,9 @@ export default function OnlineIntelGathering({
     message: string;
     isClosing?: boolean;
   } | null>(null);
+
+  const isAnySpeechActive = Boolean(activeSpeakingState || activePlayerSpeakingState);
+  const isSpeechBubbleCoveringButton = Boolean(activePlayerSpeakingState);
 
   const processSpeechQueue = () => {
     if (isProcessingQueueRef.current) return;
@@ -376,14 +374,15 @@ export default function OnlineIntelGathering({
       setIsGeneratingActionCard(false);
       if (payload && payload.action_card) {
         setPitchedActionCardState(payload.action_card);
-        setPitchedCardTitle(payload.action_card.title);
         if (payload.action_card.intel_ids) {
           setSelectedIntelIds(payload.action_card.intel_ids);
         }
         if (onUpdatePitchedCard) {
           onUpdatePitchedCard(payload.action_card);
         }
-        setCreatedActionCardForModal(payload.action_card);
+        if (onContinue) {
+          onContinue(payload.action_card);
+        }
       }
     });
 
@@ -629,16 +628,6 @@ export default function OnlineIntelGathering({
 
 
 
-  const handleToggleIntelSelection = (id: string) => {
-    if (selectedIntelIds.includes(id)) {
-      setSelectedIntelIds(selectedIntelIds.filter((item) => item !== id));
-    } else {
-      if (selectedIntelIds.length < 3) {
-        setSelectedIntelIds([...selectedIntelIds, id]);
-      }
-    }
-  };
-
   const handleConfirmIntelMerge = (selectedIds: string[]) => {
     if (selectedIds.length === 0) return;
     setSelectedIntelIds(selectedIds);
@@ -649,14 +638,6 @@ export default function OnlineIntelGathering({
       phase_id: currentPhase,
       challenge_id: currentChallenge,
     });
-  };
-
-  const handleProgressToPitchDebate = () => {
-    const card = createdActionCardForModal || pitchedActionCardState;
-    setCreatedActionCardForModal(null);
-    if (onContinue) {
-      onContinue(card);
-    }
   };
 
   const handleDropEngagementCard = (e: React.DragEvent) => {
@@ -717,9 +698,9 @@ export default function OnlineIntelGathering({
             }`}
         >
           {/* Main Board Grid: Left Column = Stakeholder Dossier, Right Column = Pitch Deck & Chat */}
-          <div className="row g-2 align-items-stretch flex-grow-1 h-100">
+          <div className="row g-2 align-items-stretch flex-grow-1 h-100" style={{ minHeight: 0 }}>
             {/* LEFT COLUMN: Stakeholder Dossier (Constantly Open & Embedded) */}
-            <div className="col-12 col-lg-4 d-flex flex-column h-100">
+            <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, zIndex: 1 }}>
               <div className={`flex-grow-1 ${styles.dossierContainer}`}>
                 <StakeholderDossier
                   isOpen={true}
@@ -736,12 +717,19 @@ export default function OnlineIntelGathering({
 
             {/* RIGHT COLUMN */}
             <div
-              className="col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all"
+              className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${
+                isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+              }`}
+              style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1500 : 1 }}
             >
               {/* Drop zone covers everything ABOVE the engagement cards */}
               <div
-                className={`flex-grow-1 d-flex flex-column gap-2 overflow-hidden ${isDraggingCard ? styles.singleDropZoneActive : ""
-                  }`}
+                className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
+                  isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+                } ${
+                  isDraggingCard ? styles.singleDropZoneActive : ""
+                }`}
+                style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1600 : 1 }}
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.dataTransfer.dropEffect = "copy";
@@ -751,184 +739,253 @@ export default function OnlineIntelGathering({
                   handleDropEngagementCard(e);
                 }}
               >
-                {/* 1. Above: Challenge Description Card (Full Width) */}
-                <div className="flex-shrink-0">
-                  <ChallengeDescriptionCard
-                    challengeTitle={challengeTitle}
-                    challengeDescription={challengeDescription}
-                    challengeIntro={challengeIntro}
-                    currentChallenge={currentChallenge}
-                    challengeAmount={challengeAmount}
-                  />
-                </div>
-
-                {/* 2+3. Middle Row: Side-by-Side Stakeholder Table (Left) + Chat History (Right) */}
-                <div className="flex-grow-1 row g-2 align-items-stretch overflow-hidden">
-                  {/* Left: Pitch Deck Boardroom Scene */}
-                  <div
-                    className={`${isChatMaximized ? "d-none" : "col-12 col-xl-7 col-lg-7"} d-flex flex-column align-items-center justify-content-center position-relative`}
-                  >
-                    <div className="w-100 d-flex justify-content-center">
-                      <div className={styles.pitchDeckTable}>
-                        {/* Top Row: Stakeholders sitting behind the table */}
-                        {topStakeholders.length > 0 && (
-                          <div className={styles.tableTopSeating}>
-                            {topStakeholders.map(renderSeatedStakeholder)}
-                          </div>
-                        )}
-
-                        {/* Middle Section: Left Seat, Central Pitch Action Card on Table, Right Seat */}
-                        <div className={styles.tableCenterSurface}>
-                          {/* Left Seat */}
-                          <div className={styles.tableSideSeating}>
-                            {leftStakeholders.map(renderSeatedStakeholder)}
-                          </div>
-
-                          {/* Center Tabletop: Evolving Proposal Drafting Desk */}
-                          <div className={styles.tabletopCenterArea}>
-                            <div
-                              className={`${styles.actionCardSurface} ${pitchedActionCardState?.title ? styles.actionCardConfigured : styles.actionCardGreyedOut
-                                }`}
-                              onClick={() => !isGeneratingActionCard && setIsPitchModalOpen(true)}
-                              title={
-                                pitchedActionCardState?.title
-                                  ? "Click to view or edit Action Card proposal"
-                                  : "Click to select 1-3 Intel Items & build proposal"
-                              }
-                            >
-                              {isGeneratingActionCard ? (
-                                <div className="text-center py-2">
-                                  <span className="spinner-border spinner-border-sm text-primary mb-2" role="status" />
-                                  <p className="small text-white mb-0" style={{ fontSize: "0.74rem" }}>
-                                    Synthesizing Action Card...
-                                  </p>
-                                </div>
-                              ) : pitchedActionCardState?.title ? (
-                                <div className={styles.actionCardInnerFrame}>
-                                  {/* Header matching ActionCardCardComponent & Pitch Deck */}
-                                  <div className={styles.actionCardHeader}>
-                                    <span className={styles.actionCardCategoryLabel}>Action Card</span>
-                                    <h6
-                                      className={styles.actionCardTitle}
-                                      title={pitchedActionCardState.title}
-                                    >
-                                      {pitchedActionCardState.title}
-                                    </h6>
-                                  </div>
-
-                                  {/* Description Box */}
-                                  <div className={styles.actionCardDescriptionBox}>
-                                    <p
-                                      className={styles.actionCardDescriptionPreview}
-                                      title={pitchedActionCardState.description}
-                                    >
-                                      {pitchedActionCardState.description}
-                                    </p>
-                                  </div>
-                                </div>
-                              ) : intelItems.length > 0 ? (
-                                <div className="text-center">
-                                  <div className={styles.readyProposalIcon}>
-                                    <Icon icon="ph:paper-plane-tilt-bold" />
-                                  </div>
-                                  <span className={`badge bg-success ${styles.actionCardBadge}`}>
-                                    ✨ {intelItems.length} Intel Ready
-                                  </span>
-                                  <h6 className={`fw-bold text-light ${styles.actionCardProposalTitle}`}>Draft Proposal</h6>
-                                  <button type="button" className={`btn btn-sm btn-success ${styles.actionCardDraftBtn}`}>
-                                    📝 Assemble & Pitch ➔
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="text-center">
-                                  <div className={styles.questionMarkIcon}>
-                                    <Icon icon="ph:magnifying-glass-bold" />
-                                  </div>
-                                  <h6 className={`fw-bold ${styles.actionCardProposalTitle}`}>Investigation Phase</h6>
-                                  <p className={styles.actionCardPrompt}>
-                                    Play cards below to uncover stakeholder stances
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Right Seat */}
-                          <div className={styles.tableSideSeating}>
-                            {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
-                          </div>
-                        </div>
-
-                        {/* Table Edge Plaque */}
-                        <div className={styles.tableEdgePlaque}>
-                          <Icon icon="ph:presentation-chart-bold" />
-                          <span>PITCH DECK</span>
-                        </div>
-
-                        {/* Active Player Speech Bubble on Pitch Deck */}
-                        {activePlayerSpeakingState && (
-                          <div
-                            className={`${styles.playerTableSpeechBubble} ${activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
-                              }`}
-                            onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                          >
-                            <div className={styles.playerSpeechHeader}>
-                              <Icon icon="ph:user-circle-bold" />
-                              <span>Player</span>
-                              <button
-                                type="button"
-                                className={styles.speechSkipBtn}
-                                onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                                title="Skip to next message"
-                              >
-                                <Icon icon="ph:skip-forward-fill" />
-                              </button>
-                            </div>
-                            <div className={styles.playerSpeechContent}>
-                              {activePlayerSpeakingState.message}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                {/* Left: Challenge Card (moved above Pitch Deck Table) + Pitch Deck Boardroom Scene */}
+                <div
+                  className={`${styles.boardCol} ${
+                    isChatMaximized ? styles.boardColCollapsed : ""
+                  } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
+                  style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1700 : 1 }}
+                >
+                  {/* 1. Challenge Description Card in the free space above the Pitch Deck Table */}
+                  <div className="w-100 flex-shrink-0 mb-1">
+                    <ChallengeDescriptionCard
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      currentChallenge={currentChallenge}
+                      challengeAmount={challengeAmount}
+                    />
                   </div>
 
-                  {/* Right: Chat History */}
+                  {/* 2. Boardroom Pitch Deck Table Scene */}
                   <div
-                    className={`${isChatMaximized ? "col-12" : "col-12 col-xl-5 col-lg-5"} d-flex flex-column h-100`}
+                    className="w-100 d-flex flex-column align-items-center justify-content-center flex-grow-1 pt-3 position-relative"
+                    style={{ zIndex: isAnySpeechActive ? 1800 : 2, overflow: isAnySpeechActive ? "visible" : undefined }}
                   >
                     <div
-                      className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
+                      className={`${styles.pitchDeckTable} ${
+                        isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""
+                      }`}
                     >
-                      <StakeholderInteractionArea
-                        className="w-100 h-100"
-                        chatMsgs={chatMsgs}
-                        current_phase={currentPhase}
-                        current_challenge={currentChallenge}
-                        isEnabled={!isWaitingForResponse}
-                        actionCards={[]}
-                        onHoverCard={() => { }}
-                        showStakeholderList={false}
-                        showDialogueOptions={false}
-                      />
-                      {/* Maximize / Minimize button */}
-                      <button
-                        type="button"
-                        className={styles.chatMaximizeBtn}
-                        onClick={() => setIsChatMaximized(!isChatMaximized)}
-                        title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                      {/* Top Row: Stakeholders sitting behind the table */}
+                      {topStakeholders.length > 0 && (
+                        <div
+                          className={`${styles.tableTopSeating} ${
+                            topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {topStakeholders.map((st) => renderSeatedStakeholder(st))}
+                        </div>
+                      )}
+
+                      {/* Middle Section: Left Seat, Central Pitch Action Card on Table, Right Seat */}
+                      <div className={`${styles.tableCenterSurface} ${
+                        [...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
+                          ? styles.tableCenterSurfaceSpeaking
+                          : ""
+                      }`}>
+                        {/* Left Seat */}
+                        <div
+                          className={`${styles.tableSideSeating} ${
+                            leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
+                        </div>
+
+                        {/* Center Tabletop: Pitch Deck Surface */}
+                        <div className={styles.tabletopCenterArea}>
+                          {isGeneratingActionCard ? (
+                            <div className="text-center py-2">
+                              <span className="spinner-border spinner-border-sm text-primary mb-1" role="status" />
+                              <p className="small text-white mb-0" style={{ fontSize: "0.74rem" }}>
+                                Synthesizing Action Card...
+                              </p>
+                            </div>
+                          ) : (
+                            <div
+                              className={styles.tableCenterPlaque}
+                              onClick={() => intelItems.length > 0 && setIsPitchModalOpen(true)}
+                              title={
+                                intelItems.length > 0
+                                  ? `${intelItems.length} Intel items collected - Click to assemble proposal`
+                                  : "Pitch Deck Table"
+                              }
+                            >
+                              <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
+                              <span>PITCH DECK</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Seat */}
+                        <div
+                          className={`${styles.tableSideSeating} ${
+                            rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
+                        </div>
+                      </div>
+
+                      {/* Lower Border Interaction Area */}
+                      <div
+                        className={styles.tableLowerInteractionArea}
+                        title="Spend Attention Tokens to play Engagement Cards below and uncover Intel. Gather at least 1 item to assemble an action proposal for the Pitch Debate."
                       >
-                        <Icon
-                          icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-                        />
-                      </button>
+                        {/* Status Badges: Tokens & Intel close together */}
+                        <div className={styles.statChipsRowCentered}>
+                          <div
+                            className={styles.statChipToken}
+                            title={`${attentionTokens} Attention Tokens available`}
+                          >
+                            <Icon icon="ph:coin-fill" className={styles.tokenStatIcon} />
+                            <span className={styles.statNumber}>{attentionTokens}</span>
+                            <span className={styles.statLabel}>Tokens</span>
+                          </div>
+
+                          <div
+                            className={styles.statChipIntel}
+                            title={`${intelItems.length} Intel items collected`}
+                          >
+                            <Icon icon="ph:files-bold" className={styles.intelStatIcon} />
+                            <span className={styles.statNumber}>{intelItems.length}</span>
+                            <span className={styles.statLabel}>Intel</span>
+                          </div>
+                        </div>
+
+                        {/* Explainer Guidance */}
+                        <p className={styles.pitchExplainerText}>
+                          Spend <strong className={styles.explainerToken}>Attention Tokens</strong> to play <strong className={styles.explainerCard}>Engagement Cards</strong> below and uncover <strong className={styles.explainerIntel}>Intel</strong>. Gather at least 1 item to assemble an action proposal for the <strong className={styles.explainerPitch}>Pitch Debate</strong>.
+                        </p>
+
+                        {/* Assemble and Pitch Action Button */}
+                        <button
+                          type="button"
+                          className={`${styles.actionButton} ${
+                            intelItems.length === 0 || isGeneratingActionCard ? styles.actionButtonDisabled : ""
+                          } ${isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""}`}
+                          disabled={
+                            intelItems.length === 0 || isGeneratingActionCard || isSpeechBubbleCoveringButton
+                          }
+                          onClick={() => setIsPitchModalOpen(true)}
+                          title={
+                            isSpeechBubbleCoveringButton
+                              ? "Action currently blocked by active speech message (click speech bubble to skip)"
+                              : isGeneratingActionCard
+                              ? "Synthesizing Action Card and progressing to Pitch Debate..."
+                              : intelItems.length > 0
+                              ? `Combine ${intelItems.length} discovered intel items into an action proposal`
+                              : "Play engagement cards below to uncover at least 1 intel item before pitching"
+                          }
+                        >
+                          {isGeneratingActionCard ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status" />
+                              <span>Synthesizing & Progressing to Debate...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Icon icon={intelItems.length > 0 ? "ph:paper-plane-tilt-bold" : "ph:lock-key-fill"} />
+                              <span>
+                                {intelItems.length > 0
+                                  ? `Assemble & Pitch Proposal (${intelItems.length} Intel) ➔`
+                                  : "Assemble & Pitch (Need ≥ 1 Intel)"}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Active Player Speech Bubble on Pitch Deck */}
+                      {activePlayerSpeakingState && (
+                        <div
+                          className={`${styles.playerTableSpeechBubble} ${
+                            activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                          }`}
+                          onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+                        >
+                          <div className={styles.playerSpeechHeader}>
+                            <Icon icon="ph:user-circle-bold" />
+                            <span>Player</span>
+                            <button
+                              type="button"
+                              className={styles.speechSkipBtn}
+                              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+                              title="Skip to next message"
+                            >
+                              <Icon icon="ph:skip-forward-fill" />
+                            </button>
+                          </div>
+                          <div className={styles.playerSpeechContent}>
+                            {activePlayerSpeakingState.message}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
+                {/* Right: Chat History (Spans Full Height) */}
+                <div
+                  className={`${styles.chatCol} ${
+                    isChatMaximized ? styles.chatColMaximized : ""
+                  } d-flex flex-column h-100 overflow-hidden position-relative`}
+                  style={{ minHeight: 0, zIndex: 1 }}
+                >
+                  {/* When conversation history is maximized, the challenge fills across the whole upper horizontal space */}
+                  <div
+                    className={`${styles.maximizedChallengeWrapper} ${
+                      isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
+                    }`}
+                  >
+                    <ChallengeDescriptionCard
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      currentChallenge={currentChallenge}
+                      challengeAmount={challengeAmount}
+                    />
+                  </div>
+
+                  <div
+                    className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
+                    style={{ minHeight: 0 }}
+                  >
+                    <StakeholderInteractionArea
+                      className="w-100 h-100"
+                      chatMsgs={chatMsgs}
+                      current_phase={currentPhase}
+                      current_challenge={currentChallenge}
+                      isEnabled={!isWaitingForResponse}
+                      actionCards={[]}
+                      onHoverCard={() => { }}
+                      showStakeholderList={false}
+                      showDialogueOptions={false}
+                    />
+                    {/* Maximize / Minimize button */}
+                    <button
+                      type="button"
+                      className={styles.chatMaximizeBtn}
+                      onClick={() => setIsChatMaximized(!isChatMaximized)}
+                      title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                    >
+                      <Icon
+                        icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+                        className={styles.chatMaximizeBtnIcon}
+                      />
+                    </button>
+                  </div>
+                </div>
               </div>{/* end drop zone */}
 
-              {/* 4. Dedicated Engagement Cards Component (OUTSIDE the drop zone) */}
+              {/* Dedicated Engagement Cards Deck (OUTSIDE the drop zone) */}
               <div className="flex-shrink-0">
                 <EngagementCards
                   attentionTokens={attentionTokens}
@@ -999,16 +1056,6 @@ export default function OnlineIntelGathering({
         isOpen={Boolean(verificationResultModal)}
         onClose={() => setVerificationResultModal(null)}
         resultData={verificationResultModal}
-      />
-
-      {/* Action Card Created Pop-Up Modal */}
-      <ActionCardCreatedModal
-        isOpen={Boolean(createdActionCardForModal)}
-        actionCard={createdActionCardForModal}
-        intelItems={intelItems}
-        stakeholders={stakeholders}
-        getStakeholderColor={getStakeholderColor}
-        onProgressToPitchDebate={handleProgressToPitchDebate}
       />
     </div>
   );
