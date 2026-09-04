@@ -1036,3 +1036,66 @@
   white-space: nowrap;
   letter-spacing: 0.1px;
 }
+
+/* Buy-In / Persuasion Breakdown Card */
+.buyInCard {
+  background: #fffdf8;
+  border: 1.5px dashed #94a3b8;
+  border-radius: 6px;
+  padding: 0;
+  margin: 3px 0 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.buyInVerticalSpine {
+  background: #f1f5f9;
+  border-right: 1.5px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 2px;
+  width: 22px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.buyInVerticalText {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.buyInMainBody {
+  flex: 1;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.buyInTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.buyInLegendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 2px;
+  padding: 0 2px;
+}

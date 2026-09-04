@@ -20,11 +20,14 @@ export interface IntelItem {
   stakeholder_name?: string;
 }
 
+import type { ActionCardAddendum } from "./ActionCardCardComponent";
+
 export interface ActionCardDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   actionCard: ActionCard | null;
   intelItems?: IntelItem[];
+  addendums?: ActionCardAddendum[];
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
 }
@@ -34,6 +37,7 @@ export default function ActionCardDetailModal({
   onClose,
   actionCard,
   intelItems = [],
+  addendums,
   stakeholders = {},
   getStakeholderColor = () => "var(--primary-bg)",
 }: ActionCardDetailModalProps) {
@@ -68,6 +72,8 @@ export default function ActionCardDetailModal({
           <ActionCardCardComponent
             card={actionCard}
             intelItems={intelItems}
+            addendums={addendums}
+            showAddendums={true}
             stakeholders={stakeholders}
             getStakeholderColor={getStakeholderColor}
             className={styles.cardExpanded}

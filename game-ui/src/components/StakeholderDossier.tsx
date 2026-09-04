@@ -32,7 +32,17 @@ export interface StakeholderDossierEntry {
   intel_items: IntelEntry[];
 }
 
-interface StakeholderDossierProps {
+export interface StakeholderBuyInInfo {
+  threshold: number;
+  actionCardScore: number;
+  dialogueScore: number;
+  emotionScore: number;
+  total: number;
+  isPersuaded: boolean;
+  currentEmotion?: string;
+}
+
+export interface StakeholderDossierProps {
   isOpen: boolean;
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
@@ -43,6 +53,7 @@ interface StakeholderDossierProps {
   isEmbedded?: boolean;
   emotionColors?: Record<string, string>;
   convincerArchetypes?: Record<string, any>;
+  buyInInfoMap?: Record<string, StakeholderBuyInInfo>;
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
@@ -63,6 +74,7 @@ export default function StakeholderDossier({
   isEmbedded = false,
   emotionColors: propEmotionColors,
   convincerArchetypes: propConvincerArchetypes,
+  buyInInfoMap,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -549,6 +561,95 @@ export default function StakeholderDossier({
             </div>
           </div>
         )}
+
+        {/* Buy-In / Persuasion Breakdown Bar Card (Rendered during Pitch Debate when buyInInfoMap prop is provided) */}
+        {(() => {
+          const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
+          if (!buyInInfo) return null;
+
+          return (
+            <div className={styles.buyInCard}>
+              <div className={styles.buyInVerticalSpine}>
+                <span className={styles.buyInVerticalText}>Buy-In</span>
+              </div>
+              <div className={styles.buyInMainBody}>
+                {/* Top row: Label, Target & Status badge */}
+                <div className={styles.buyInTopRow}>
+                  <div className="d-flex align-items-center gap-2">
+                    <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "#1e293b" }}>
+                      ⚖️ Buy-In Progress
+                    </span>
+                    <span
+                      className={`badge ${buyInInfo.isPersuaded ? "bg-success" : "bg-danger"}`}
+                      style={{ fontSize: "0.62rem" }}
+                    >
+                      {buyInInfo.isPersuaded ? "✅ Persuaded" : "⚠️ Resistant"} ({Math.round(buyInInfo.total * 100)}%)
+                    </span>
+                  </div>
+                  <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
+                    Target: <strong>{Math.round(buyInInfo.threshold * 100)}%</strong>
+                  </span>
+                </div>
+
+                {/* Stacked Progress Bar with Threshold Marker Notch */}
+                <div className="progress position-relative" style={{ height: "16px", backgroundColor: "#e2e8f0", borderRadius: "4px" }}>
+                  {/* Threshold Marker Notch */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${Math.min(99, Math.max(1, buyInInfo.threshold * 100))}%`,
+                      top: "-2px",
+                      bottom: "-2px",
+                      width: "3px",
+                      backgroundColor: "#dc3545",
+                      zIndex: 5,
+                      borderRadius: "1px",
+                    }}
+                    title={`Required Threshold: ${Math.round(buyInInfo.threshold * 100)}%`}
+                  />
+
+                  {buyInInfo.actionCardScore > 0 && (
+                    <div
+                      className="progress-bar bg-primary"
+                      role="progressbar"
+                      style={{ width: `${Math.min(100, buyInInfo.actionCardScore * 100)}%` }}
+                      title={`Action Card Intel: +${Math.round(buyInInfo.actionCardScore * 100)}%`}
+                    >
+                      {buyInInfo.actionCardScore >= 0.12 && `+${Math.round(buyInInfo.actionCardScore * 100)}%`}
+                    </div>
+                  )}
+                  {buyInInfo.dialogueScore > 0 && (
+                    <div
+                      className="progress-bar bg-info text-dark"
+                      role="progressbar"
+                      style={{ width: `${Math.min(100, buyInInfo.dialogueScore * 100)}%` }}
+                      title={`Dialogue Engagement: +${Math.round(buyInInfo.dialogueScore * 100)}%`}
+                    >
+                      {buyInInfo.dialogueScore >= 0.12 && `+${Math.round(buyInInfo.dialogueScore * 100)}%`}
+                    </div>
+                  )}
+                  {buyInInfo.emotionScore > 0 && (
+                    <div
+                      className="progress-bar bg-success"
+                      role="progressbar"
+                      style={{ width: `${Math.min(100, buyInInfo.emotionScore * 100)}%` }}
+                      title={`Emotional State (${buyInInfo.currentEmotion || "neutral"}): +${Math.round(buyInInfo.emotionScore * 100)}%`}
+                    >
+                      {buyInInfo.emotionScore >= 0.12 && `+${Math.round(buyInInfo.emotionScore * 100)}%`}
+                    </div>
+                  )}
+                </div>
+
+                {/* Breakdown Legend Row */}
+                <div className={styles.buyInLegendRow}>
+                  <span>🃏 Card: <b>+{Math.round(buyInInfo.actionCardScore * 100)}%</b></span>
+                  <span>💬 Dialogue: <b>+{Math.round(buyInInfo.dialogueScore * 100)}%</b></span>
+                  <span>🎭 Emotion: <b>+{Math.round(buyInInfo.emotionScore * 100)}%</b></span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>

@@ -15,9 +15,21 @@ export interface IntelItem {
   stakeholder_name?: string;
 }
 
+export interface ActionCardAddendum {
+  id: string;
+  title: string;
+  stakeholder_id?: string;
+  stakeholder_name?: string;
+  description: string;
+  status: "attached" | "proposed" | "available";
+  objection_resolved?: string;
+}
+
 export interface ActionCardCardComponentProps {
   card: ActionCard;
   intelItems?: IntelItem[];
+  addendums?: ActionCardAddendum[];
+  showAddendums?: boolean;
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
   onClick?: () => void;
@@ -28,6 +40,8 @@ export interface ActionCardCardComponentProps {
 export default function ActionCardCardComponent({
   card,
   intelItems = [],
+  addendums,
+  showAddendums = false,
   stakeholders: propStakeholders,
   getStakeholderColor: propGetColor,
   onClick,
@@ -142,6 +156,69 @@ export default function ActionCardCardComponent({
             {card.description}
           </p>
         </div>
+
+        {/* Attached Addendums & Proposal Modifiers Section */}
+        {showAddendums && (
+          <div className={styles.addendumsSection}>
+            <div className={styles.addendumsHeader}>
+              <h6 className={styles.addendumsTitle}>
+                <span>🧩</span> Attached Addendums & Modifiers
+              </h6>
+              <span className={styles.addendumsBadge}>
+                {(addendums || []).filter(a => a.status === "attached").length} / 2 Slots
+              </span>
+            </div>
+
+            <div className={styles.addendumsList}>
+              {(addendums && addendums.length > 0 ? addendums : [
+                {
+                  id: "placeholder_1",
+                  title: "Continuous Drift Alerting & Fallback SLA",
+                  stakeholder_name: "Security Manager",
+                  status: "attached",
+                  objection_resolved: "Compliance & Pipeline Safety",
+                  description: "Execute base pipeline deployment, but enforce automated daily schema validation and instant rollback triggers to prevent unverified model shifts.",
+                },
+                {
+                  id: "placeholder_2",
+                  title: "Sub-45ms Inferencing Latency Guarantee",
+                  stakeholder_name: "Lead Data Scientist",
+                  status: "attached",
+                  objection_resolved: "Live Latency Degradation",
+                  description: "Allocate local cache partitions and GPU batching to guarantee <45ms response times under peak customer traffic.",
+                },
+              ]).map((addendum) => (
+                addendum.status === "available" ? (
+                  <div key={addendum.id} className={styles.addendumCardSlot}>
+                    <span>{addendum.title}</span>
+                    <span className="badge bg-secondary" style={{ fontSize: "0.55rem" }}>Open Slot</span>
+                  </div>
+                ) : (
+                  <div key={addendum.id} className={styles.addendumCard}>
+                    <div className={styles.addendumCardTop}>
+                      <span className={styles.addendumCardTitle}>{addendum.title}</span>
+                      {addendum.stakeholder_name && (
+                        <span className={styles.addendumProposerBadge}>
+                          {addendum.stakeholder_name}
+                        </span>
+                      )}
+                    </div>
+                    {addendum.objection_resolved && (
+                      <div className={styles.addendumObjection}>
+                        Resolved: {addendum.objection_resolved}
+                      </div>
+                    )}
+                    <p className={styles.addendumCardText}>{addendum.description}</p>
+                  </div>
+                )
+              ))}
+            </div>
+
+            <div className={styles.proposalExplainer}>
+              <strong>Action Proposal:</strong> Combines the Base Action Card with stakeholder-negotiated addendums. High-power buy-in ensures execution in Simulation without sabotage.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

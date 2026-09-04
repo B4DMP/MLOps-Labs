@@ -164,7 +164,7 @@
 
 /* Description / Rules Box */
 .descriptionBox {
-  flex-grow: 1;
+  flex-shrink: 0;
   margin-bottom: 0;
   padding: 8px 10px;
   background: rgba(0, 0, 0, 0.35);
@@ -173,13 +173,131 @@
   display: flex;
   flex-direction: column;
   text-align: left;
-  overflow-y: auto;
 }
 
 .descriptionText {
-  font-size: 0.78rem;
-  line-height: 1.42;
+  font-size: 0.76rem;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.92);
   margin: 0;
   white-space: normal;
+}
+
+/* Addendums Section in Action Card */
+.addendumsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.addendumsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.addendumsTitle {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #fcd34d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.addendumsBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(252, 211, 77, 0.15);
+  color: #fcd34d;
+  border: 1px solid rgba(252, 211, 77, 0.35);
+}
+
+.addendumsList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.addendumCard {
+  background: rgba(20, 24, 33, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.addendumCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.addendumCardTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.addendumProposerBadge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  white-space: nowrap;
+}
+
+.addendumCardText {
+  font-size: 0.66rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+
+.addendumObjection {
+  font-size: 0.6rem;
+  color: #fca5a5;
+  font-style: italic;
+}
+
+.addendumCardSlot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.66rem;
+}
+
+.proposalExplainer {
+  font-size: 0.62rem;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 6px;
+  border-radius: 4px;
+  margin-top: 2px;
+  font-style: italic;
+  border-left: 2px solid #fcd34d;
 }

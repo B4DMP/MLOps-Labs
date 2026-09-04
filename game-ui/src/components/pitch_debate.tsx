@@ -1,18 +1,18 @@
 import { useState, useContext, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
 import type { DialogueOption } from "../types/DialogueOption";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import styles from "./pitch_debate.module.css";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
+import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo } from "./StakeholderDossier";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import ActionCardDetailModal from "./ActionCardDetailModal";
+import type { ActionCardAddendum } from "./ActionCardCardComponent";
 
 export interface IntelItem {
   id: string;
@@ -56,6 +56,7 @@ interface PitchDebateProps {
   setChatMsgs?: React.Dispatch<React.SetStateAction<ChatMsg[]>>;
   playActionCard?: (ac: ActionCard) => void;
   getNextChallenge?: (ac: ActionCard) => void;
+  onSelectDialogueOption?: (index: number) => void;
   pitchedActionCard?: ActionCard | null;
   dossierData?: StakeholderDossierEntry[];
   intelItems?: IntelItem[];
@@ -73,7 +74,6 @@ export default function PitchDebate({
   isChatEnabled,
   dialogueOptions = [],
   chat_msgs = [],
-  setChatMsgs,
   onSelectDialogueOption,
   pitchedActionCard,
   dossierData = [],
@@ -89,11 +89,8 @@ export default function PitchDebate({
   // Selected Stakeholder & UI States
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("requirements_reuben");
   const [showHelp, setShowHelp] = useState(false);
-  const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [isActionCardModalOpen, setIsActionCardModalOpen] = useState(false);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
-  const [hoveredPersuasionStakeholderId, setHoveredPersuasionStakeholderId] = useState<string | null>(null);
-  const [hoveredCardRect, setHoveredCardRect] = useState<DOMRect | null>(null);
 
   // Conversation history: only messages that have actually been spoken (shown in a speech bubble)
   const [displayedChatMsgs, setDisplayedChatMsgs] = useState<ChatMsg[]>(chat_msgs || []);
@@ -122,6 +119,9 @@ export default function PitchDebate({
     message: string;
     isClosing?: boolean;
   } | null>(null);
+
+  const isAnySpeechActive = Boolean(activeSpeakingState || activePlayerSpeakingState);
+  const isSpeechBubbleCoveringButton = Boolean(activePlayerSpeakingState);
 
   const processSpeechQueue = () => {
     if (isProcessingQueueRef.current) return;
@@ -220,8 +220,7 @@ export default function PitchDebate({
     processSpeechQueue();
   };
 
-  // Watch incoming chat_msgs prop for new messages from the parent (e.g. stakeholder responses),
-  // queue them for speech, and only add to displayedChatMsgs when the bubble actually appears.
+  // Watch incoming chat_msgs prop for new messages from the parent
   useEffect(() => {
     if (!chat_msgs || chat_msgs.length === 0) {
       setDisplayedChatMsgs([]);
@@ -234,12 +233,10 @@ export default function PitchDebate({
         if (!msg.message) return;
         const isUser = !msg.id || msg.id === "user" || msg.id === "player";
         if (isUser) {
-          // Player messages are already queued via handleSelectDialogue; skip duplicates
-          // (they arrive in chat_msgs because the parent echoes them back)
+          // Handled via handleSelectDialogue
         } else if (msg.id && msg.id !== "system") {
           triggerStakeholderSpeech(msg.id, msg.message, msg);
         } else if (msg.id === "system") {
-          // System messages appear immediately without a bubble
           setDisplayedChatMsgs((prev) => [...prev, msg]);
         }
       });
@@ -370,13 +367,11 @@ export default function PitchDebate({
     const matchingDialogueIntels = dialogueIntelsTargeted.filter(
       (item: any) => item.stakeholder_id === st.id || item.stakeholder_name === st.name
     );
-    // Also reward intel-based dialogue questions asked targeting this stakeholder
     const dialogueIntelScore = matchingDialogueIntels.reduce((sum: number, item: any) => {
       const type = item.categorized_type || item.intel_type || "requirement";
       return sum + getIntelTypeScore(type);
     }, 0);
 
-    // Baseline dialogue familiarity if dialogue engaged with this stakeholder
     const hasDialogue = (chat_msgs || []).some((m) => m.id === st.id);
     const dialogueScore = Math.min(0.35, dialogueIntelScore + (hasDialogue ? 0.05 : 0.0));
 
@@ -405,6 +400,11 @@ export default function PitchDebate({
     return isPersuaded;
   });
 
+  const persuadedCount = activeStakeholders.filter((st) => {
+    const { isPersuaded } = calculatePersuasionBreakdown(st);
+    return isPersuaded;
+  }).length;
+
   const handleEndPitchClick = () => {
     if (onEndPitch) {
       onEndPitch(allActiveStakeholdersPersuaded);
@@ -415,21 +415,56 @@ export default function PitchDebate({
     if (!isChatEnabled) return;
     const option = dialogueOptions[index];
     if (option) {
-      // Add to history only when the speech bubble appears
       triggerPlayerSpeech(option.text, {
         id: "user",
         message: option.text,
         ac_id: -1,
       });
     }
-    onSelectDialogueOption(index);
+    if (onSelectDialogueOption) {
+      onSelectDialogueOption(index);
+    }
   };
+
+  // Grounded Addendums Placeholders from GDD.txt
+  const placeholderAddendums: ActionCardAddendum[] = [
+    {
+      id: "addendum_1",
+      title: "Automated Drift Alerting & Fallback SLA",
+      stakeholder_name: "Security Manager",
+      stakeholder_id: "st_security",
+      status: "attached",
+      objection_resolved: "Compliance & Pipeline Safety",
+      description: "Execute base pipeline deployment, but enforce automated daily schema validation and instant rollback triggers to prevent unverified model shifts.",
+    },
+    {
+      id: "addendum_2",
+      title: "Sub-45ms Inferencing Latency Guarantee",
+      stakeholder_name: "Lead Data Scientist",
+      stakeholder_id: "st_data_sci",
+      status: "attached",
+      objection_resolved: "Live Latency Degradation",
+      description: "Allocate local cache partitions and GPU batching to guarantee <45ms response times under peak customer traffic.",
+    },
+  ];
+
+  const attachedAddendums = placeholderAddendums.filter((a) => a.status === "attached");
+
+  const buyInInfoMap: Record<string, StakeholderBuyInInfo> = {};
+  activeStakeholders.forEach((st) => {
+    const breakdown = calculatePersuasionBreakdown(st);
+    buyInInfoMap[st.id] = breakdown;
+    if (st.name) {
+      buyInInfoMap[st.name] = breakdown;
+    }
+  });
 
   const renderSeatedStakeholder = (st: any, isRightSide: boolean = false) => {
     const isSelected = selectedStakeholderId === st.id;
     const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
     const stakeholderColor = getStakeholderColor(st);
     const av = st.avatar || {};
+    const breakdown = calculatePersuasionBreakdown(st);
 
     return (
       <div
@@ -444,8 +479,7 @@ export default function PitchDebate({
         {/* Active Speech Bubble above speaking stakeholder */}
         {isSpeaking && activeSpeakingState && (
           <div
-            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
-              }`}
+            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""}`}
             style={{
               borderColor: stakeholderColor,
               pointerEvents: "auto",
@@ -472,7 +506,7 @@ export default function PitchDebate({
             play_blink_animation={true}
             isFramed={false}
             isSpeaking={isSpeaking}
-            size={108}
+            size={76}
             stakeholderColor={stakeholderColor}
             title={st.name}
             flip={isRightSide ? true : av.flip}
@@ -481,13 +515,22 @@ export default function PitchDebate({
 
         {/* Conference Desk Nameplate */}
         <div
-          className={styles.deskNameplate}
+          className={`${styles.deskNameplate} ${isSelected ? styles.activeDeskNameplate : ""}`}
           style={{
-            color: stakeholderColor,
-            borderColor: stakeholderColor,
+            color: isSelected ? "#ffc107" : stakeholderColor,
+            borderColor: isSelected ? "#ffc107" : stakeholderColor,
           }}
         >
           {st.name}
+        </div>
+
+        {/* Satisfaction / Resistance Gauge Pill under nameplate */}
+        <div
+          className={`${styles.satisfactionPill} ${breakdown.isPersuaded ? styles.satisfactionPillCommitted : styles.satisfactionPillResistant}`}
+          title={`${st.name}: ${Math.round(breakdown.total * 100)}% buy-in (Target: ${Math.round(breakdown.threshold * 100)}%)`}
+        >
+          <span>{breakdown.isPersuaded ? "🟢" : "🔴"}</span>
+          <span>{Math.round(breakdown.total * 100)}% {breakdown.isPersuaded ? "Committed" : "Resistant"}</span>
         </div>
       </div>
     );
@@ -495,22 +538,15 @@ export default function PitchDebate({
 
   const bgIndex = (currentChallenge + currentPhase) % 4;
 
-  const pitchedTitle = pitchedActionCard?.title || "Base Action Card Proposal";
-  const pitchedDescription = pitchedActionCard?.description || "Multi-stakeholder aligned strategic intervention";
-  const pitchedIntelsCount = pitchedActionCard?.intel_ids?.length || 0;
-
-  // Resolve stakeholders whose intel items formed this action card
+  const pitchedTitle = pitchedActionCard?.title || "Deploy High-Throughput Feature Store & Pipeline";
+  const pitchedDescription = pitchedActionCard?.description || "Centralize feature transformation, reduce data leakage, and establish unified serving pipelines across development and production.";
   const cardIntelIds = pitchedActionCard?.intel_ids || [];
-  const matchedIntels = intelItems.filter((i) =>
-    cardIntelIds.includes(i.id) || (i.requirement_id && cardIntelIds.includes(i.requirement_id))
-  );
-
 
   return (
     <div className={styles.container}>
       {/* Main Content Canvas with Dynamic Background */}
       <div
-        className="container-fluid flex-grow-1 d-flex flex-column p-3 position-relative overflow-auto"
+        className="container-fluid flex-grow-1 d-flex flex-column px-3 py-2 position-relative overflow-hidden"
         style={{
           backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
           backgroundSize: "cover",
@@ -527,34 +563,57 @@ export default function PitchDebate({
         >
           <Icon
             icon={showHelp ? "material-symbols:dashboard-rounded" : "ph:presentation-chart-bold"}
-            style={{
-              fontSize: "2.3rem",
-              color: "var(--engagement-text)",
-            }}
+            className={styles.circularHelpIcon}
           />
         </button>
 
-        {/* Layer 1: Default Pitch Debate Page (Board & Persuasion Grid) */}
+        {/* Layer 1: Default Pitch Debate Page (Board & Conversation History) */}
         <div
-          className={`flex-grow-1 d-flex flex-column w-100 ${styles.helpBaseLayer} ${showHelp ? styles.helpBaseLayerDimmed : styles.helpBaseLayerActive
-            }`}
+          className={`flex-grow-1 d-flex flex-column w-100 ${styles.helpBaseLayer} ${showHelp ? styles.helpBaseLayerDimmed : styles.helpBaseLayerActive}`}
         >
-          {/* 2-Column Grid: Left = Challenge + Pitch Deck + Chat + Dialogue Options, Right = Persuasion Bars + Addendums */}
-          <div className="row g-3 align-items-stretch flex-grow-1 h-100">
-            {/* LEFT COLUMN: Challenge -> Pitch Deck -> Conversation History -> Dialogue Options */}
-            <div className="col-12 col-lg-7 d-flex flex-column h-100">
-              <div className="transparent-div p-3 h-100 d-flex flex-column gap-2 rounded" style={{ overflow: "visible" }}>
-                <span className="transparent-div-label">
-                  🗣️ Pitch Debate
-                </span>
+          {/* Main Board Grid: Left Column = Stakeholder Dossier, Right Column = Pitch Deck & Chat */}
+          <div className="row g-2 align-items-stretch flex-grow-1 h-100" style={{ minHeight: 0 }}>
+            
+            {/* LEFT COLUMN: Stakeholder Dossier (Constantly Open & Embedded) */}
+            <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, zIndex: 1 }}>
+              <div className={`flex-grow-1 ${styles.dossierContainer}`}>
+                <StakeholderDossier
+                  isOpen={true}
+                  canClose={false}
+                  isEmbedded={true}
+                  dossierData={dossierData || []}
+                  activeStakeholderId={selectedStakeholderId}
+                  currentPhase={currentPhase}
+                  currentChallenge={currentChallenge}
+                  buyInInfoMap={buyInInfoMap}
+                  onClose={() => { }}
+                />
+              </div>
+            </div>
 
-                {/* 1+2. Collapsible: Challenge + Pitch Deck (animates away when chat is maximized) */}
+            {/* RIGHT COLUMN: Boardroom Table + Chat + Dialogue Options */}
+            <div
+              className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${
+                isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+              }`}
+              style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1500 : 1 }}
+            >
+              {/* Upper Section: Challenge & Pitch Deck Table (Left) + Chat History (Right) */}
+              <div
+                className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
+                  isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+                }`}
+                style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1600 : 1 }}
+              >
+                {/* Left: Challenge Card + Pitch Deck Boardroom Scene */}
                 <div
-                  className={`flex-shrink-0 d-flex flex-column gap-2 ${styles.collapsibleSection} ${isChatMaximized ? styles.collapsibleSectionHidden : styles.collapsibleSectionVisible
-                    }`}
+                  className={`${styles.boardCol} ${
+                    isChatMaximized ? styles.boardColCollapsed : ""
+                  } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
+                  style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1700 : 1 }}
                 >
-                  {/* 1. Above: Challenge Description Card */}
-                  <div>
+                  {/* 1. Challenge Description Card above table */}
+                  <div className="w-100 flex-shrink-0 mb-1">
                     <ChallengeDescriptionCard
                       challengeTitle={challengeTitle}
                       challengeDescription={challengeDescription}
@@ -564,144 +623,260 @@ export default function PitchDebate({
                     />
                   </div>
 
-                  {/* 2. Middle: Pitch Deck Boardroom Scene */}
-                  <div className="position-relative p-1 rounded" style={{ paddingBottom: "40px" }}>
-                    <div className={styles.tableScene}>
-                      <div className={styles.pitchDeckTable}>
-                        {/* Top Row Seating */}
-                        {topStakeholders.length > 0 && (
-                          <div className={styles.tableTopSeating}>
-                            {topStakeholders.map(renderSeatedStakeholder)}
-                          </div>
-                        )}
+                  {/* 2. Boardroom Pitch Deck Table Scene */}
+                  <div
+                    className="w-100 d-flex flex-column align-items-center justify-content-center flex-grow-1 pt-3 position-relative"
+                    style={{ zIndex: isAnySpeechActive ? 1800 : 2, overflow: isAnySpeechActive ? "visible" : undefined }}
+                  >
+                    <div
+                      className={`${styles.pitchDeckTable} ${
+                        isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""
+                      }`}
+                    >
+                      {/* Top Row: Stakeholders sitting behind the table */}
+                      {topStakeholders.length > 0 && (
+                        <div
+                          className={`${styles.tableTopSeating} ${
+                            topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {topStakeholders.map((st) => renderSeatedStakeholder(st))}
+                        </div>
+                      )}
 
-                        {/* Middle Section: Lateral Seats & Pitched Base Action Card */}
-                        <div className={styles.tableCenterSurface}>
-                          {/* Left Seat */}
-                          <div className={styles.tableSideSeating}>
-                            {leftStakeholders.map(renderSeatedStakeholder)}
-                          </div>
+                      {/* Middle Section: Left Seat, Central Pitched Action Card, Right Seat */}
+                      <div className={`${styles.tableCenterSurface} ${
+                        [...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
+                          ? styles.tableCenterSurfaceSpeaking
+                          : ""
+                      }`}>
+                        {/* Left Seat */}
+                        <div
+                          className={`${styles.tableSideSeating} ${
+                            leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
+                        </div>
 
-                          {/* Center Tabletop with Pitched Action Card */}
-                          <div className={styles.tabletopCenterArea}>
-                            <div
-                              className={styles.actionCardSurface}
-                              onClick={() => setIsActionCardModalOpen(true)}
-                              title="Click to view full 7:5 Action Card proposal"
-                            >
-                              <div className={styles.actionCardInnerFrame}>
-                                {/* Header matching ActionCardCardComponent */}
-                                <div className={styles.actionCardHeader}>
-                                  <span className={styles.actionCardCategoryLabel}>Action Card</span>
-                                  <h6
-                                    className={styles.actionCardTitle}
-                                    title={pitchedTitle}
-                                  >
-                                    {pitchedTitle}
-                                  </h6>
+                        {/* Center Tabletop: Pitched Action Card with Addendums (Minimized View) */}
+                        <div className={styles.tabletopCenterArea}>
+                          <div
+                            className={styles.actionCardSurface}
+                            onClick={() => setIsActionCardModalOpen(true)}
+                            title="Click to view full Action Proposal with detailed Addendums"
+                          >
+                            <div className={styles.actionCardInnerFrame}>
+                              {/* Header */}
+                              <div className={styles.actionCardHeader}>
+                                <span className={styles.actionCardCategoryLabel}>Base Action Card Proposal</span>
+                                <h6 className={styles.actionCardTitle} title={pitchedTitle}>
+                                  {pitchedTitle}
+                                </h6>
+                              </div>
+
+                              {/* Description Box */}
+                              <div className={styles.actionCardDescriptionBox}>
+                                <p className={styles.actionCardDescriptionPreview} title={pitchedDescription}>
+                                  {pitchedDescription}
+                                </p>
+                              </div>
+
+                              {/* Attached Addendums Mini Section */}
+                              <div className={styles.actionCardAddendumsSection}>
+                                <div className={styles.actionCardAddendumsHeader}>
+                                  <div className="d-flex align-items-center gap-1">
+                                    <Icon icon="ph:puzzle-piece-fill" style={{ fontSize: "0.75rem", color: "#fcd34d" }} />
+                                    <span>Attached Addendums:</span>
+                                  </div>
+                                  <span className="badge bg-warning text-dark" style={{ fontSize: "0.62rem", fontWeight: 700 }}>
+                                    {attachedAddendums.length} / 2
+                                  </span>
                                 </div>
-
-                                {/* Description Box */}
-                                <div className={styles.actionCardDescriptionBox}>
-                                  <p className={styles.actionCardDescriptionPreview} title={pitchedDescription}>
-                                    {pitchedDescription}
-                                  </p>
+                                <div className={styles.actionCardClickHint}>
+                                  Click card to expand proposal ➔
                                 </div>
-
-
                               </div>
                             </div>
                           </div>
-
-                          {/* Right Seat */}
-                          <div className={styles.tableSideSeating}>
-                            {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
-                          </div>
                         </div>
 
-                        {/* Table Edge Plaque */}
-                        <div className={styles.tableEdgePlaque}>
-                          <Icon icon="ph:scales-bold" style={{ fontSize: "0.85rem", color: "#ffc107" }} />
-                          <span>PITCH DECK</span>
+                        {/* Right Seat */}
+                        <div
+                          className={`${styles.tableSideSeating} ${
+                            rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                              ? styles.seatingSpeaking
+                              : ""
+                          }`}
+                        >
+                          {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
                         </div>
-
-                        {/* Player Speech Bubble */}
-                        {activePlayerSpeakingState && (
-                          <div
-                            className={`${styles.playerTableSpeechBubble} ${activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
-                              }`}
-                            style={{ pointerEvents: "auto", cursor: "pointer" }}
-                            onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                          >
-                            <div className={styles.playerSpeechHeader}>
-                              <Icon icon="ph:user-circle-bold" style={{ fontSize: "1rem" }} />
-                              <span>Player</span>
-                              <button
-                                type="button"
-                                className={styles.speechSkipBtn}
-                                onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
-                                title="Skip to next message"
-                              >
-                                <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.9rem" }} />
-                              </button>
-                            </div>
-                            <div className={styles.playerSpeechContent}>
-                              {activePlayerSpeakingState.message}
-                            </div>
-                          </div>
-                        )}
                       </div>
+
+                      {/* Lower Border Interaction Area: Addendums Explanation & Overview */}
+                      <div
+                        className={styles.tableLowerInteractionArea}
+                        title="Addendums modify the Base Action Card ('execute this action, but also do X'). Match presentation style to convincer profiles to resolve objections."
+                      >
+                        {/* Status Badges: Addendums & Consensus */}
+                        <div className={styles.statChipsRowCentered}>
+                          <div
+                            className={styles.statChipAddendum}
+                            title={`${attachedAddendums.length} Addendums currently attached to proposal (max 2)`}
+                          >
+                            <Icon icon="ph:puzzle-piece-bold" className={styles.addendumStatIcon} />
+                            <span className={styles.statNumber}>{attachedAddendums.length} / 2</span>
+                            <span className={styles.statLabel}>Addendums</span>
+                          </div>
+
+                          <div
+                            className={styles.statChipConsensus}
+                            title={`${persuadedCount} of ${activeStakeholders.length} stakeholders committed`}
+                          >
+                            <Icon icon="ph:scales-bold" className={styles.consensusStatIcon} />
+                            <span className={styles.statNumber}>{persuadedCount}/{activeStakeholders.length}</span>
+                            <span className={styles.statLabel}>{allActiveStakeholdersPersuaded ? "Consensus" : "Buy-In"}</span>
+                          </div>
+                        </div>
+
+                        {/* Explainer Guidance from GDD.txt */}
+                        <p className={styles.pitchExplainerText}>
+                          <strong className={styles.explainerAddendum}>Addendums</strong> modify the <strong className={styles.explainerBaseCard}>Base Action Card</strong> (<em>"execute this action, but also do X"</em>). Address objections to prevent <strong className={styles.explainerVeto}>high-power vetos</strong> and achieve <strong className={styles.explainerPass}>Consensus</strong>.
+                        </p>
+
+                        {/* Inspect Proposal Action Button following guideline */}
+                        <button
+                          type="button"
+                          className={`${styles.actionButton} ${isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""}`}
+                          onClick={() => setIsActionCardModalOpen(true)}
+                          title="Inspect the complete Action Proposal and attached Addendums in detail"
+                        >
+                          <Icon icon="ph:cards-bold" style={{ fontSize: "1.1rem" }} />
+                          <span>Inspect Proposal & Addendums Overview ({attachedAddendums.length} Attached) ➔</span>
+                        </button>
+                      </div>
+
+                      {/* Active Player Speech Bubble on Pitch Deck */}
+                      {activePlayerSpeakingState && (
+                        <div
+                          className={`${styles.playerTableSpeechBubble} ${
+                            activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                          }`}
+                          onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+                        >
+                          <div className={styles.playerSpeechHeader}>
+                            <Icon icon="ph:user-circle-bold" />
+                            <span>Player</span>
+                            <button
+                              type="button"
+                              className={styles.speechSkipBtn}
+                              onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
+                              title="Skip to next message"
+                            >
+                              <Icon icon="ph:skip-forward-fill" />
+                            </button>
+                          </div>
+                          <div className={styles.playerSpeechContent}>
+                            {activePlayerSpeakingState.message}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Below: Chat History — always flex-grow-1; maximize button anchored inside */}
+                {/* Right: Chat History (Spans Full Height) */}
                 <div
-                  className={`flex-grow-1 ${styles.chatWrapper}`}
-                  style={{ minHeight: "120px" }}
+                  className={`${styles.chatCol} ${
+                    isChatMaximized ? styles.chatColMaximized : ""
+                  } d-flex flex-column h-100 overflow-hidden position-relative`}
+                  style={{ minHeight: 0, zIndex: 1 }}
                 >
-                  <StakeholderInteractionArea
-                    className="w-100 h-100"
-                    chatMsgs={displayedChatMsgs}
-                    current_phase={currentPhase}
-                    current_challenge={currentChallenge}
-                    isEnabled={isChatEnabled}
-                    actionCards={[]}
-                    onHoverCard={() => { }}
-                    showStakeholderList={false}
-                    showDialogueOptions={false}
-                  />
-                  {/* Maximize / Minimize button — always bottom-right of this wrapper */}
-                  <button
-                    type="button"
-                    className={styles.chatMaximizeBtn}
-                    onClick={() => setIsChatMaximized(!isChatMaximized)}
-                    title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                  {/* When conversation history is maximized, the challenge fills across the whole upper space */}
+                  <div
+                    className={`${styles.maximizedChallengeWrapper} ${
+                      isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
+                    }`}
                   >
-                    <Icon
-                      icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-                      style={{ fontSize: "1.25rem" }}
+                    <ChallengeDescriptionCard
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      currentChallenge={currentChallenge}
+                      challengeAmount={challengeNumber}
                     />
-                  </button>
-                </div>
+                  </div>
 
-                {/* 4. Dialogue Options Area */}
-                <div className="flex-shrink-0" style={{ position: "relative", zIndex: 2 }}>
-                  <div className="d-flex justify-content-between align-items-center mb-2 px-1">
+                  <div
+                    className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
+                    style={{ minHeight: 0 }}
+                  >
+                    <StakeholderInteractionArea
+                      className="w-100 h-100"
+                      chatMsgs={displayedChatMsgs}
+                      current_phase={currentPhase}
+                      current_challenge={currentChallenge}
+                      isEnabled={isChatEnabled}
+                      actionCards={[]}
+                      onHoverCard={() => { }}
+                      showStakeholderList={false}
+                      showDialogueOptions={false}
+                    />
+                    {/* Maximize / Minimize button */}
+                    <button
+                      type="button"
+                      className={styles.chatMaximizeBtn}
+                      onClick={() => setIsChatMaximized(!isChatMaximized)}
+                      title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                    >
+                      <Icon
+                        icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+                        className={styles.chatMaximizeBtnIcon}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dedicated Lower Section: Dialogue Options Deck & Pitch Resolution Control */}
+              <div className="flex-shrink-0">
+                <div className={styles.dialogueOptionsDeck}>
+                  {/* Header Row */}
+                  <div className={styles.dialogueHeader}>
                     <div className="d-flex align-items-center gap-2">
                       <Icon icon="ph:chats-circle-bold" className="text-warning" style={{ fontSize: "1.1rem" }} />
-                      <span className="transparent-div-label mb-0" style={{ fontSize: "0.75rem", color: "#ffffff" }}>
-                        Dialogue Options
+                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#ffffff" }}>
+                        Dialogue Options & Inquiries
                       </span>
                     </div>
-                    {!isChatEnabled && (
-                      <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
-                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Stakeholders Deliberating...
-                      </span>
-                    )}
+
+                    <div className="d-flex align-items-center gap-2">
+                      {!isChatEnabled && (
+                        <span className="badge bg-warning text-dark d-flex align-items-center gap-1" style={{ fontSize: "0.68rem" }}>
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "0.7rem", height: "0.7rem" }}></span>
+                          Stakeholders Deliberating...
+                        </span>
+                      )}
+
+                      {/* End Pitch & Proceed Button */}
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${allActiveStakeholdersPersuaded ? "btn-success" : "btn-outline-success"} fw-bold d-flex align-items-center gap-1 px-3 py-1`}
+                        onClick={handleEndPitchClick}
+                        title="Conclude Pitch Debate and execute proposal in Simulation Phase"
+                        style={{ fontSize: "0.76rem" }}
+                      >
+                        <Icon icon="ph:check-circle-bold" style={{ fontSize: "0.95rem" }} />
+                        <span>End Pitch & Simulate {allActiveStakeholdersPersuaded ? "(Consensus Ready)" : ""} ➔</span>
+                      </button>
+                    </div>
                   </div>
 
+                  {/* Dialogue Option Cards Grid */}
                   <div className="row g-2">
                     {dialogueOptions && dialogueOptions.length > 0 ? (
                       dialogueOptions.map((opt, idx) => {
@@ -712,37 +887,29 @@ export default function PitchDebate({
                           <div key={idx} className="col-12 col-md-6">
                             <button
                               type="button"
-                              className="btn w-100 text-start p-2 d-flex flex-column justify-content-between transparent-div"
-                              style={{
-                                minHeight: "76px",
-                                color: "#f1f5f9",
-                                border: "1px solid rgba(255,255,255,0.2)",
-                                opacity: isChatEnabled ? 1 : 0.55,
-                                cursor: isChatEnabled ? "pointer" : "not-allowed",
-                                transition: "background 0.18s ease, border-color 0.18s ease, transform 0.15s ease",
-                              }}
-                              onMouseEnter={e => { if (isChatEnabled) { (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.18)"; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.45)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; } }}
-                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.2)"; (e.currentTarget as HTMLElement).style.transform = ""; }}
+                              className={`${styles.dialogueCard} ${!isChatEnabled ? styles.dialogueCardDisabled : ""}`}
                               disabled={!isChatEnabled}
                               onClick={() => handleSelectDialogue(idx)}
                             >
                               <div className="d-flex justify-content-between align-items-center mb-1 w-100">
                                 {isIntel ? (
-                                  <span className="badge bg-primary" style={{ fontSize: "0.68rem" }}>
+                                  <span className="badge bg-primary" style={{ fontSize: "0.65rem" }}>
                                     🧠 Intel: {opt.intel_stakeholder_name || opt.intel_type?.replace(/_/g, " ") || "Intelligence"}
                                   </span>
                                 ) : archetype ? (
-                                  <span className="badge bg-secondary" style={{ fontSize: "0.68rem" }}>
+                                  <span className="badge bg-secondary" style={{ fontSize: "0.65rem" }}>
                                     💡 {archetype}
                                   </span>
                                 ) : (
-                                  <span className="badge" style={{ fontSize: "0.68rem", background: "rgba(100,116,139,0.4)", color: "#cbd5e1" }}>
+                                  <span className="badge" style={{ fontSize: "0.65rem", background: "rgba(100,116,139,0.4)", color: "#cbd5e1" }}>
                                     💬 Inquiry
                                   </span>
                                 )}
-                                <span className="badge" style={{ fontSize: "0.62rem", background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}>#{idx + 1}</span>
+                                <span className="badge" style={{ fontSize: "0.6rem", background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                                  #{idx + 1}
+                                </span>
                               </div>
-                              <div style={{ fontSize: "0.8rem", lineHeight: "1.35", color: "#e2e8f0", fontWeight: 500 }}>
+                              <div className={styles.dialogueOptionText}>
                                 {opt.text}
                               </div>
                             </button>
@@ -750,279 +917,14 @@ export default function PitchDebate({
                         );
                       })
                     ) : (
-                      <div className="col-12 text-center py-3 text-white-50">
-                        <span className="small">Waiting for stakeholder opening statements...</span>
+                      <div className="col-12 text-center py-2 text-white-50">
+                        <span className="small">Waiting for stakeholder opening statements or reactions...</span>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* RIGHT COLUMN: Persuasion Bars + Addendums Placeholder + End Pitch Button */}
-            <div className="col-12 col-lg-5 d-flex flex-column h-100">
-              <div className="transparent-div p-3 h-100 d-flex flex-column rounded">
-                {/* Header Label */}
-                <span className="transparent-div-label mb-2">
-                  ⚖️ Stakeholder Buy-In
-                </span>
-
-                {/* Status Banner */}
-                {allActiveStakeholdersPersuaded && (
-                  <div className="d-flex justify-content-end align-items-center mb-2 px-1">
-                    <span
-                      className="badge bg-success fw-bold"
-                      style={{ fontSize: "0.72rem" }}
-                    >
-                      ✅ All Persuaded (Pass)
-                    </span>
-                  </div>
-                )}
-
-                {/* Scrollable Stakeholder Persuasion Cards */}
-                <div className="flex-grow-1 overflow-auto pe-1 mb-2" style={{ minHeight: 0, maxHeight: "390px" }}>
-                  {activeStakeholders.map((st) => {
-                    const stColor = getStakeholderColor(st);
-                    const breakdown = calculatePersuasionBreakdown(st);
-
-                    const formatCap = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "Low";
-                    const powerText = formatCap((st as any).power || "low");
-                    const interestText = formatCap((st as any).interest || "low");
-
-                    return (
-                      <div
-                        key={st.id}
-                        className="card border-secondary shadow-sm mb-2 text-dark bg-white"
-                        onMouseEnter={(e) => {
-                          setHoveredPersuasionStakeholderId(st.id);
-                          setHoveredCardRect(e.currentTarget.getBoundingClientRect());
-                        }}
-                        onMouseLeave={() => {
-                          setHoveredPersuasionStakeholderId(null);
-                          setHoveredCardRect(null);
-                        }}
-                      >
-                        {/* Card Header */}
-                        <div className="card-header bg-light d-flex justify-content-between align-items-center py-2 px-3 border-bottom">
-                          <div className="d-flex align-items-center gap-2">
-                            <span
-                              className="d-inline-block rounded-circle"
-                              style={{ width: "10px", height: "10px", backgroundColor: stColor }}
-                            />
-                            <strong className="text-dark" style={{ fontSize: "0.85rem" }}>{st.name}</strong>
-                            <span className="badge bg-secondary" style={{ fontSize: "0.65rem" }}>
-                              {powerText} Power • {interestText} Interest
-                            </span>
-                          </div>
-                          <span
-                            className={`badge ${breakdown.isPersuaded ? "bg-success" : "bg-danger"}`}
-                            style={{ fontSize: "0.7rem" }}
-                          >
-                            {breakdown.isPersuaded ? "✅ Persuaded" : "⚠️ Resistant"} ({Math.round(breakdown.total * 100)}%)
-                          </span>
-                        </div>
-
-                        {/* Card Body */}
-                        <div className="card-body p-2">
-                          {/* Bootswatch Progress Bar with Stacked Color Segments */}
-                          <div className="progress position-relative" style={{ height: "20px", backgroundColor: "#e9ecef" }}>
-                            {/* Threshold Marker Notch */}
-                            <div
-                              style={{
-                                position: "absolute",
-                                left: `${Math.min(99, Math.max(1, breakdown.threshold * 100))}%`,
-                                top: "-3px",
-                                bottom: "-3px",
-                                width: "3px",
-                                backgroundColor: "#dc3545",
-                                zIndex: 5,
-                                borderRadius: "1px",
-                              }}
-                              title={`Threshold required: ${Math.round(breakdown.threshold * 100)}%`}
-                            />
-
-                            {breakdown.actionCardScore > 0 && (
-                              <div
-                                className="progress-bar bg-primary"
-                                role="progressbar"
-                                style={{ width: `${Math.min(100, breakdown.actionCardScore * 100)}%` }}
-                                title={`Action Card Intel: +${Math.round(breakdown.actionCardScore * 100)}%`}
-                              >
-                                {breakdown.actionCardScore >= 0.15 && `+${Math.round(breakdown.actionCardScore * 100)}%`}
-                              </div>
-                            )}
-                            {breakdown.dialogueScore > 0 && (
-                              <div
-                                className="progress-bar bg-info text-dark"
-                                role="progressbar"
-                                style={{ width: `${Math.min(100, breakdown.dialogueScore * 100)}%` }}
-                                title={`Dialogue Engagement: +${Math.round(breakdown.dialogueScore * 100)}%`}
-                              >
-                                {breakdown.dialogueScore >= 0.15 && `+${Math.round(breakdown.dialogueScore * 100)}%`}
-                              </div>
-                            )}
-                            {breakdown.emotionScore > 0 && (
-                              <div
-                                className="progress-bar bg-success"
-                                role="progressbar"
-                                style={{ width: `${Math.min(100, breakdown.emotionScore * 100)}%` }}
-                                title={`Emotional State (${breakdown.currentEmotion}): +${Math.round(
-                                  breakdown.emotionScore * 100
-                                )}%`}
-                              >
-                                {breakdown.emotionScore >= 0.15 && `+${Math.round(breakdown.emotionScore * 100)}%`}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Origin Breakdown Summary Footer */}
-                          <div className="d-flex justify-content-between align-items-center mt-1 px-1 text-muted small" style={{ fontSize: "0.7rem" }}>
-                            <span>Target: <b>{Math.round(breakdown.threshold * 100)}%</b></span>
-                            <span>Action Card: <b>+{Math.round(breakdown.actionCardScore * 100)}%</b></span>
-                            <span>Dialogue: <b>+{Math.round(breakdown.dialogueScore * 100)}%</b></span>
-                            <span>Emotion ({breakdown.currentEmotion}): <b>+{Math.round(breakdown.emotionScore * 100)}%</b></span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Portal Floating Popover for Hovered Stakeholder (Never clipped by container bounds) */}
-                {hoveredPersuasionStakeholderId && hoveredCardRect && createPortal(
-                  (() => {
-                    const st = activeStakeholders.find((s) => s.id === hoveredPersuasionStakeholderId);
-                    if (!st) return null;
-                    const breakdown = calculatePersuasionBreakdown(st);
-
-                    const tooltipWidth = 340;
-                    const padding = 12;
-                    let left = hoveredCardRect.left - tooltipWidth - padding;
-                    if (left < 10) {
-                      left = Math.max(10, hoveredCardRect.left);
-                    }
-                    const top = Math.max(10, Math.min(window.innerHeight - 340, hoveredCardRect.top - 10));
-
-                    return (
-                      <div
-                        className="card border-primary shadow-lg"
-                        style={{
-                          position: "fixed",
-                          top: `${top}px`,
-                          left: `${left}px`,
-                          zIndex: 99999,
-                          width: `${tooltipWidth}px`,
-                          backgroundColor: "#ffffff",
-                          color: "#212529",
-                          pointerEvents: "none",
-                        }}
-                      >
-                        <div className="card-header bg-primary text-white py-1 px-3 d-flex justify-content-between align-items-center">
-                          <strong style={{ fontSize: "0.82rem" }}>{st.name} Buy-In Breakdown</strong>
-                          <span className="badge bg-light text-dark">
-                            Target: {Math.round(breakdown.threshold * 100)}%
-                          </span>
-                        </div>
-                        <div className="card-body p-2" style={{ fontSize: "0.78rem" }}>
-                          <div className="d-flex justify-content-between mb-1">
-                            <span className="text-primary fw-bold">🃏 Base Action Card Intel:</span>
-                            <strong>+{Math.round(breakdown.actionCardScore * 100)}%</strong>
-                          </div>
-                          {breakdown.matchingActionCardIntels.length > 0 && (
-                            <div className="ps-2 mb-1 text-muted small">
-                              {breakdown.matchingActionCardIntels.map((item: any, i: number) => (
-                                <div key={i}>• {item.description}</div>
-                              ))}
-                            </div>
-                          )}
-                          <div className="d-flex justify-content-between mb-1">
-                            <span className="text-info fw-bold">💬 Dialogue Engagement:</span>
-                            <strong>+{Math.round(breakdown.dialogueScore * 100)}%</strong>
-                          </div>
-                          <div className="d-flex justify-content-between mb-1">
-                            <span className="text-success fw-bold">🎭 Emotional State ({breakdown.currentEmotion}):</span>
-                            <strong>+{Math.round(breakdown.emotionScore * 100)}%</strong>
-                          </div>
-                          <hr className="my-1" />
-                          <div className="d-flex justify-content-between fw-bold">
-                            <span>Total Buy-In:</span>
-                            <span className={breakdown.isPersuaded ? "text-success" : "text-danger"}>
-                              {Math.round(breakdown.total * 100)}% / {Math.round(breakdown.threshold * 100)}% (
-                              {breakdown.isPersuaded ? "Pass" : "Resistant"})
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })(),
-                  document.body
-                )}
-
-                {/* Action Card Addendums Placeholder Card */}
-                <div className="card border-secondary shadow-sm mb-3 bg-white text-dark">
-                  <div className="card-header bg-light py-2 px-3 d-flex justify-content-between align-items-center border-bottom">
-                    <div className="d-flex align-items-center gap-2">
-                      <Icon icon="ph:puzzle-piece-bold" className="text-primary" style={{ fontSize: "1.1rem" }} />
-                      <strong style={{ fontSize: "0.85rem" }}>Action Card Addendums (PLACEHOLDER)</strong>
-                    </div>
-                    <span className="badge bg-secondary">Slots Available</span>
-                  </div>
-                  <div className="card-body p-2">
-                    <div className="row g-2">
-                      <div className="col-6">
-                        <div className="p-2 border border-2 border-dashed rounded text-center bg-light text-muted small" style={{ fontSize: "0.75rem" }}>
-                          <Icon icon="ph:plus-circle-bold" className="me-1 text-primary" /> Addendum Slot 1
-                        </div>
-                      </div>
-                      <div className="col-6">
-                        <div className="p-2 border border-2 border-dashed rounded text-center bg-light text-muted small" style={{ fontSize: "0.75rem" }}>
-                          <Icon icon="ph:plus-circle-bold" className="me-1 text-primary" /> Addendum Slot 2
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Control Row: End Pitch + Dossier Toggle Button */}
-                <div className="d-flex gap-2 mt-auto pt-1">
-                  <button
-                    type="button"
-                    className="btn btn-success flex-grow-1 fw-bold d-flex align-items-center justify-content-center gap-2 py-2"
-                    onClick={handleEndPitchClick}
-                    title="Conclude Pitch Debate and run System Simulation"
-                  >
-                    <Icon icon="ph:check-circle-bold" style={{ fontSize: "1.2rem" }} />
-                    End Pitch & Proceed to Simulation
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsDossierOpen(true)}
-                    style={{
-                      background: "linear-gradient(135deg, #4a382c, #2b1e16)",
-                      color: "#f3e9dc",
-                      border: "2px solid #8c6d58",
-                      borderRadius: "30px",
-                      padding: "8px 18px",
-                      fontFamily: "var(--dossier-font, 'Delius', cursive)",
-                      fontWeight: "bold",
-                      fontSize: "1.15rem",
-                      cursor: "pointer",
-                      boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      whiteSpace: "nowrap",
-                    }}
-                    onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.05) translateY(-2px)")}
-                    onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                    title="Open Stakeholder Dossier"
-                  >
-                    📓 Stakeholder Dossier
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1041,17 +943,7 @@ export default function PitchDebate({
         />
       </div>
 
-      {/* Stakeholder Dossier Modal (Closed by default) */}
-      <StakeholderDossier
-        isOpen={isDossierOpen}
-        onClose={() => setIsDossierOpen(false)}
-        dossierData={dossierData || []}
-        activeStakeholderId={selectedStakeholderId}
-        currentPhase={currentPhase}
-        currentChallenge={currentChallenge}
-      />
-
-      {/* Full 7:5 Action Card Detail Modal */}
+      {/* Action Card Detail Modal (Maximized View with full Addendums breakdown) */}
       <ActionCardDetailModal
         isOpen={isActionCardModalOpen}
         onClose={() => setIsActionCardModalOpen(false)}
@@ -1061,9 +953,11 @@ export default function PitchDebate({
             title: pitchedTitle,
             description: pitchedDescription,
             intel_ids: cardIntelIds,
+            addendum_intel_item_ids: [],
           }
         }
         intelItems={intelItems}
+        addendums={placeholderAddendums}
         stakeholders={stakeholders}
         getStakeholderColor={getStakeholderColor}
       />
