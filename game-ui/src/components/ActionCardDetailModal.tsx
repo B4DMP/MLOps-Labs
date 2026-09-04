@@ -77,8 +77,8 @@ export default function ActionCardDetailModal({
             stakeholders={stakeholders}
             getStakeholderColor={getStakeholderColor}
             className={styles.cardExpanded}
-            isInteractive={true}
-            onClick={handleRequestClose}
+            isInteractive={false}
+            onClose={handleRequestClose}
           />
         </DialogPanel>
       </div>

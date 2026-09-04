@@ -332,22 +332,22 @@
   align-items: stretch;
   justify-content: flex-start;
   padding: 5px;
-  background: #151c22;
-  border: 1.5px solid var(--action-card-primary, #dc2626);
-  color: #ffffff;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+  background: #ffffff;
+  border: 1.5px solid var(--action-card-primary, var(--primary-bg));
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .actionCardSurface:hover {
-  border-color: var(--action-card-accent, #ef4444);
+  border-color: var(--action-card-accent, #2e7a9e);
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 .actionCardInnerFrame {
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(38, 102, 130, 0.18);
   border-radius: 8px;
-  background: rgba(10, 14, 18, 0.65);
+  background: #f8fafc;
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -362,9 +362,9 @@
   justify-content: center;
   text-align: center;
   padding: 3px 4px;
-  background: var(--action-card-ribbon, rgba(185, 28, 28, 0.25));
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--action-card-ribbon, rgba(38, 102, 130, 0.14));
+  border-top: 1px solid rgba(38, 102, 130, 0.16);
+  border-bottom: 1px solid rgba(38, 102, 130, 0.16);
   border-radius: 4px;
   gap: 1px;
 }
@@ -373,7 +373,7 @@
   font-size: 0.55rem;
   font-weight: 800;
   letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--primary-bg, rgb(38, 102, 130));
   text-transform: uppercase;
   line-height: 1;
 }
@@ -381,7 +381,7 @@
 .actionCardTitle {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--secondary-bg, #11303e);
   margin: 0;
   letter-spacing: 0.2px;
   line-height: 1.2;
@@ -395,15 +395,15 @@
 
 .actionCardDescriptionBox {
   padding: 3px 5px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid rgba(38, 102, 130, 0.14);
   border-radius: 4px;
 }
 
 .actionCardDescriptionPreview {
   font-size: 0.64rem;
   line-height: 1.2;
-  color: rgba(255, 255, 255, 0.82);
+  color: #334155;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -419,7 +419,7 @@
   gap: 2px;
   margin-top: 2px;
   padding-top: 3px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(38, 102, 130, 0.15);
 }
 
 .actionCardAddendumsHeader {
@@ -428,7 +428,7 @@
   justify-content: space-between;
   font-size: 0.56rem;
   font-weight: 800;
-  color: #fcd34d;
+  color: var(--primary-bg, rgb(38, 102, 130));
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -443,9 +443,9 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  background: rgba(252, 211, 77, 0.12);
-  border: 1px solid rgba(252, 211, 77, 0.3);
-  color: #fcd34d;
+  background: rgba(38, 102, 130, 0.1);
+  border: 1px solid rgba(38, 102, 130, 0.25);
+  color: var(--primary-bg, rgb(38, 102, 130));
   padding: 1px 4px;
   border-radius: 4px;
   font-size: 0.58rem;
@@ -458,10 +458,11 @@
 
 .actionCardClickHint {
   font-size: 0.54rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--primary-bg, rgb(38, 102, 130));
   text-align: center;
   margin-top: 2px;
   font-style: italic;
+  font-weight: 600;
 }
 
 /* ── Lower Border Interaction Area (Addendums Overview & Explanation) ── */

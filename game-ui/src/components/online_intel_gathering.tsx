@@ -16,6 +16,8 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import PitchActionCardModal from "./PitchActionCardModal";
+import ActionCardDetailModal from "./ActionCardDetailModal";
+import ActionCardCardComponent from "./ActionCardCardComponent";
 
 interface OnlineIntelGatheringProps {
   onContinue: (pitchedCard?: any) => void;
@@ -117,6 +119,7 @@ export default function OnlineIntelGathering({
 
   // Pitch Overlay Modal & Intel Selection State
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
+  const [isActionCardModalOpen, setIsActionCardModalOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(propsPitchedActionCard?.intel_ids || []);
   const [isGeneratingActionCard, setIsGeneratingActionCard] = useState(false);
@@ -797,7 +800,7 @@ export default function OnlineIntelGathering({
                           {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
                         </div>
 
-                        {/* Center Tabletop: Pitch Deck Surface */}
+                        {/* Center Tabletop: Pitch Deck Surface or Minimized Action Card */}
                         <div className={styles.tabletopCenterArea}>
                           {isGeneratingActionCard ? (
                             <div className="text-center py-2">
@@ -806,6 +809,16 @@ export default function OnlineIntelGathering({
                                 Synthesizing Action Card...
                               </p>
                             </div>
+                          ) : pitchedActionCardState?.title ? (
+                            <ActionCardCardComponent
+                              card={pitchedActionCardState}
+                              intelItems={intelItems}
+                              stakeholders={stakeholders}
+                              getStakeholderColor={getStakeholderColor}
+                              isMinimized={true}
+                              isInteractive={true}
+                              onClick={() => setIsActionCardModalOpen(true)}
+                            />
                           ) : (
                             <div
                               className={styles.tableCenterPlaque}
@@ -1056,6 +1069,16 @@ export default function OnlineIntelGathering({
         isOpen={Boolean(verificationResultModal)}
         onClose={() => setVerificationResultModal(null)}
         resultData={verificationResultModal}
+      />
+
+      {/* Action Card Detail Modal (Maximized View) */}
+      <ActionCardDetailModal
+        isOpen={isActionCardModalOpen}
+        onClose={() => setIsActionCardModalOpen(false)}
+        actionCard={pitchedActionCardState}
+        intelItems={intelItems}
+        stakeholders={stakeholders}
+        getStakeholderColor={getStakeholderColor}
       />
     </div>
   );

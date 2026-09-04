@@ -12,7 +12,7 @@ import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import ActionCardDetailModal from "./ActionCardDetailModal";
-import type { ActionCardAddendum } from "./ActionCardCardComponent";
+import ActionCardCardComponent, { type ActionCardAddendum } from "./ActionCardCardComponent";
 
 export interface IntelItem {
   id: string;
@@ -665,44 +665,24 @@ export default function PitchDebate({
 
                         {/* Center Tabletop: Pitched Action Card with Addendums (Minimized View) */}
                         <div className={styles.tabletopCenterArea}>
-                          <div
-                            className={styles.actionCardSurface}
+                          <ActionCardCardComponent
+                            card={
+                              pitchedActionCard || {
+                                id: "pitched_ac_fallback",
+                                title: pitchedTitle,
+                                description: pitchedDescription,
+                                intel_ids: cardIntelIds,
+                                addendum_intel_item_ids: [],
+                              }
+                            }
+                            intelItems={intelItems}
+                            addendums={placeholderAddendums}
+                            stakeholders={stakeholders}
+                            getStakeholderColor={getStakeholderColor}
+                            isMinimized={true}
+                            isInteractive={true}
                             onClick={() => setIsActionCardModalOpen(true)}
-                            title="Click to view full Action Proposal with detailed Addendums"
-                          >
-                            <div className={styles.actionCardInnerFrame}>
-                              {/* Header */}
-                              <div className={styles.actionCardHeader}>
-                                <span className={styles.actionCardCategoryLabel}>Base Action Card Proposal</span>
-                                <h6 className={styles.actionCardTitle} title={pitchedTitle}>
-                                  {pitchedTitle}
-                                </h6>
-                              </div>
-
-                              {/* Description Box */}
-                              <div className={styles.actionCardDescriptionBox}>
-                                <p className={styles.actionCardDescriptionPreview} title={pitchedDescription}>
-                                  {pitchedDescription}
-                                </p>
-                              </div>
-
-                              {/* Attached Addendums Mini Section */}
-                              <div className={styles.actionCardAddendumsSection}>
-                                <div className={styles.actionCardAddendumsHeader}>
-                                  <div className="d-flex align-items-center gap-1">
-                                    <Icon icon="ph:puzzle-piece-fill" style={{ fontSize: "0.75rem", color: "#fcd34d" }} />
-                                    <span>Attached Addendums:</span>
-                                  </div>
-                                  <span className="badge bg-warning text-dark" style={{ fontSize: "0.62rem", fontWeight: 700 }}>
-                                    {attachedAddendums.length} / 2
-                                  </span>
-                                </div>
-                                <div className={styles.actionCardClickHint}>
-                                  Click card to expand proposal ➔
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          />
                         </div>
 
                         {/* Right Seat */}

@@ -72,11 +72,13 @@
     --quadrant-monitor: #94a3b8;
     --quadrant-keep-informed: #3b82f6;
 
-    /* Action Card Theme */
-    --action-card-primary: #dc2626;
-    --action-card-secondary: #991b1b;
-    --action-card-accent: #ef4444;
-    --action-card-bg-subtle: rgba(220, 38, 38, 0.15);
-    --action-card-border: #dc2626;
-    --action-card-ribbon: rgba(185, 28, 28, 0.25);
+    /* Action Card Theme (White Background + Blue Accents from --primary-bg) */
+    --action-card-bg: #ffffff;
+    --action-card-surface: #f8fafc;
+    --action-card-primary: var(--primary-bg);
+    --action-card-secondary: var(--secondary-bg);
+    --action-card-accent: #2e7a9e;
+    --action-card-bg-subtle: rgba(38, 102, 130, 0.12);
+    --action-card-border: var(--primary-bg);
+    --action-card-ribbon: rgba(38, 102, 130, 0.14);
 }
