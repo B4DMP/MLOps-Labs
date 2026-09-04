@@ -59,6 +59,7 @@ export default function PreRoundDialog({
               challengeIntro={challengeIntro}
               currentChallenge={currentChallenge}
               challengeAmount={challengeAmount}
+              is_minimized={false}
             />
 
             {/* Actions */}

@@ -25,6 +25,7 @@ export interface ChallengeDescriptionCardProps {
   challengeIntro?: string;
   currentChallenge?: number;
   challengeAmount?: number;
+  is_minimized?: boolean;
 }
 
 export default function ChallengeDescriptionCard({
@@ -33,6 +34,7 @@ export default function ChallengeDescriptionCard({
   challengeIntro = "",
   currentChallenge = 0,
   challengeAmount = 1,
+  is_minimized = true,
 }: ChallengeDescriptionCardProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { phases } = useContext(PhasesContext);
@@ -58,11 +60,20 @@ export default function ChallengeDescriptionCard({
       </div>
       <div className="card-body bg-white text-dark py-2 px-3">
         {challengeIntro && (
-          <p className="card-text text-center text-secondary mb-1" style={{ fontSize: "0.75rem", lineHeight: 1.25 }}>
-            <i>{challengeIntro}</i>
+          <p
+            className={`card-text text-center ${is_minimized ? "text-dark mb-0" : "text-secondary mb-1"}`}
+            style={{
+              fontSize: is_minimized ? "0.8rem" : "0.75rem",
+              lineHeight: 1.3,
+              fontStyle: is_minimized ? "normal" : "italic",
+              color: is_minimized ? "#000000" : undefined,
+            }}
+          >
+            {challengeIntro}
           </p>
         )}
-        <p className="card-text text-center text-dark mb-0" style={{ fontSize: "0.8rem", lineHeight: 1.3 }}>
+        {!is_minimized && (
+          <p className="card-text text-center text-dark mb-0" style={{ fontSize: "0.8rem", lineHeight: 1.3 }}>
           {challenge_desc_cutted.map((item, index) => {
             if (item.type === "text") {
               return <span key={index}>{item.value}</span>;
@@ -87,6 +98,7 @@ export default function ChallengeDescriptionCard({
             return null;
           })}
         </p>
+        )}
       </div>
     </div>
   );
