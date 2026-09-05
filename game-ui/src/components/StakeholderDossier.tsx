@@ -62,6 +62,30 @@ const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: s
   personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
 };
 
+const getEmotionIcon = (emotionStr: string): string => {
+  const lower = (emotionStr || "neutral").toLowerCase();
+  if (
+    lower.includes("positive") ||
+    lower.includes("happy") ||
+    lower.includes("supportive") ||
+    lower.includes("enthusiastic") ||
+    lower.includes("relieved")
+  ) {
+    return "ph:smiley-bold";
+  }
+  if (
+    lower.includes("negative") ||
+    lower.includes("angry") ||
+    lower.includes("frustrated") ||
+    lower.includes("skeptical") ||
+    lower.includes("anxious") ||
+    lower.includes("overwhelmed")
+  ) {
+    return "ph:smiley-sad-bold";
+  }
+  return "ph:smiley-meh-bold";
+};
+
 
 export default function StakeholderDossier({
   isOpen,
@@ -361,18 +385,7 @@ export default function StakeholderDossier({
                 title={`Emotional State: "${emotionDisplay}"`}
               >
                 <Icon
-                  icon={
-                    emotionDisplay.toLowerCase().includes("positive") ||
-                    emotionDisplay.toLowerCase().includes("happy") ||
-                    emotionDisplay.toLowerCase().includes("supportive")
-                      ? "ph:smiley-bold"
-                      : emotionDisplay.toLowerCase().includes("negative") ||
-                        emotionDisplay.toLowerCase().includes("angry") ||
-                        emotionDisplay.toLowerCase().includes("frustrated") ||
-                        emotionDisplay.toLowerCase().includes("skeptical")
-                      ? "ph:smiley-sad-bold"
-                      : "ph:smiley-meh-bold"
-                  }
+                  icon={getEmotionIcon(emotionDisplay)}
                   className={styles.metricIcon}
                   style={{ color: emotionColor }}
                 />
@@ -813,30 +826,39 @@ export default function StakeholderDossier({
             const stColor = getStakeholderColor(st);
             const stObj = stakeholders[st.stakeholder_id];
             const emotion = stObj?.emotional_state || "neutral";
-            const emotionDotColor =
+            const emotionColor =
               activeEmotionColors[emotion] ||
               activeEmotionColors[emotion.toLowerCase()] ||
-              "#94a3b8";
+              "#64748b";
+            const isActive = idx === currentPageIndex;
+
             return (
               <button
                 key={st.stakeholder_id || idx}
                 ref={idx === currentPageIndex ? activeTabRef : null}
-                className={`${styles.tabButton} ${idx === currentPageIndex ? styles.activeTab : ""}`}
+                className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                title={`${st.name} (Emotion: ${emotion})`}
+                title={`${st.name} (Emotional State: ${emotion})`}
+                style={
+                  {
+                    "--tab-color": stColor,
+                    "--emotion-color": emotionColor,
+                  } as React.CSSProperties
+                }
               >
-                <span
-                  className={styles.tabMarker}
-                  style={{
-                    background: `linear-gradient(180deg, transparent 50%, ${stColor}66 50%)`,
-                  }}
+                <span className={styles.tabName}>{st.name}</span>
+                <div
+                  className={styles.tabEmotionRow}
+                  title={`Emotional State: ${emotion}`}
                 >
-                  {st.name}
-                </span>
-                <span
-                  className={styles.tabStatusPip}
-                  style={{ background: emotionDotColor }}
-                />
+                  <Icon
+                    icon={getEmotionIcon(emotion)}
+                    className={styles.tabEmotionIcon}
+                  />
+                  <span className={styles.tabEmotionLabel}>
+                    {emotion}
+                  </span>
+                </div>
               </button>
             );
           })}
