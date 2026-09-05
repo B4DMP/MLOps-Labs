@@ -1,0 +1,71 @@
+.challengeCard {
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  overflow: visible;
+}
+
+.newBadge {
+  top: -8px;
+  right: -8px;
+  background: #f59e0b;
+  color: #1a1a1a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 1;
+  animation: badgePulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.cardHeader {
+  background: var(--challenge-color, #dc2626);
+  color: white;
+}
+
+.cardTitle {
+  color: white;
+  font-size: 0.9rem;
+}
+
+.counterBadge {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.72rem;
+}
+
+.introText {
+  line-height: 1.3;
+}
+
+.introMinimized {
+  font-size: 0.8rem;
+  font-style: normal;
+  color: #000000;
+}
+
+.introExpanded {
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.descriptionText {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.stakeholderHighlight {
+  font-weight: bold;
+  color: var(--stakeholder-color, inherit);
+}
