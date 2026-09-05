@@ -183,58 +183,74 @@
   margin: 0;
 }
 
-/* Actionable Strategy & Instruction Card */
-.actionPlanCard {
+/* Horizontal Directive Banner: full width across top of modal body */
+.directiveBanner {
   background: #f8fafc;
   border: 1px solid var(--dialog-border);
   border-left: 3px solid var(--primary-bg);
   border-radius: 0.65rem;
-  padding: 0.75rem 0.9rem;
+  padding: 0.55rem 0.85rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   flex-shrink: 0;
 }
 
-.actionPlanHeader {
+.directiveBannerHeader {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
+  gap: 0.4rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--primary-bg);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+  padding-right: 0.75rem;
+  border-right: 1px solid var(--dialog-border);
+  flex-shrink: 0;
 }
 
-.actionPlanIcon {
+.directiveIcon {
   font-size: 1.15rem;
   color: var(--primary-bg);
 }
 
-.actionPlanList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+.directiveStepsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 
-.actionPlanItem {
+.directiveStepItem {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  font-size: 0.79rem;
+  gap: 0.45rem;
+  font-size: 0.76rem;
   color: var(--text-secondary);
-  line-height: 1.35;
+  line-height: 1.32;
+}
+
+.directiveStepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.directiveStepContent strong {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .stepBadge {
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: var(--primary-bg);
   color: #ffffff;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -243,9 +259,24 @@
   margin-top: 1px;
 }
 
-.actionPlanItem strong {
-  color: var(--text-primary);
-  font-weight: 600;
+@media (max-width: 992px) {
+  .directiveBanner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .directiveBannerHeader {
+    border-right: none;
+    border-bottom: 1px solid var(--dialog-border);
+    padding-right: 0;
+    padding-bottom: 0.35rem;
+  }
+
+  .directiveStepsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
 }
 
 .highlightManage {

@@ -10,17 +10,38 @@ import { PhasesContext } from "./PhaseProvider";
 import { useContext } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
+import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   setIsRoundOpen?: (open: boolean) => void;
+  challengeTitle?: string;
+  challengeDescription?: string;
+  challengeIntro?: string;
+  currentChallenge?: number;
+  challengeAmount?: number;
+  /**
+   * See `ChallengeDescriptionCard.isNew` — surfaces a "NEW" tag on the
+   * embedded challenge card. Not wired up to any game logic yet: no caller
+   * currently reopens PrePhaseDialog for a new challenge within the same
+   * phase, so this always defaults to false today. Once that flow exists,
+   * pass `true` when the challenge shown differs from the last one the
+   * player has already seen this phase.
+   */
+  isNewChallenge?: boolean;
 }
 
 export default function PrePhaseDialog({
   isOpen,
   setIsOpen,
   setIsRoundOpen,
+  challengeTitle,
+  challengeDescription,
+  challengeIntro,
+  currentChallenge,
+  challengeAmount,
+  isNewChallenge = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
 
@@ -77,6 +98,34 @@ export default function PrePhaseDialog({
 
           {/* Modal Body */}
           <div className={styles.modalBody}>
+            {/* Horizontal Directive Banner: full width across top of modal body */}
+            <div className={styles.directiveBanner}>
+              <div className={styles.directiveBannerHeader}>
+                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
+                <span>Player Action Plan</span>
+              </div>
+              <div className={styles.directiveStepsGrid}>
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>1</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Deliver Objectives:</strong> Align your technical choices with the phase deliverables defined above.
+                  </div>
+                </div>
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>2</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders, but make sure to involve the others as well.
+                  </div>
+                </div>
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>3</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Navigate Trade-offs:</strong> Check newcomer and shifted badges on the radar to anticipate which stakeholder priorities may clash during round dilemmas.
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className={styles.dossierGrid}>
               {/* Left Column: Mission Directive & Objectives */}
               <div className={styles.missionColumn}>
@@ -104,33 +153,18 @@ export default function PrePhaseDialog({
                   </div>
                 </div>
 
-                {/* Actionable Strategy & Instructions for the Player */}
-                <div className={styles.actionPlanCard}>
-                  <div className={styles.actionPlanHeader}>
-                    <Icon icon="ph:list-checks-bold" className={styles.actionPlanIcon} />
-                    <span>Player Action Plan</span>
-                  </div>
-                  <div className={styles.actionPlanList}>
-                    <div className={styles.actionPlanItem}>
-                      <span className={styles.stepBadge}>1</span>
-                      <div>
-                        <strong>Deliver Objectives:</strong> Align your technical choices with the phase deliverables defined above.
-                      </div>
-                    </div>
-                    <div className={styles.actionPlanItem}>
-                      <span className={styles.stepBadge}>2</span>
-                      <div>
-                        <strong>Involve Others:</strong> Prioritize <span className={styles.highlightManage}>Manage Closely</span> stakeholders, but make sure to involve the others as well.
-                      </div>
-                    </div>
-                    <div className={styles.actionPlanItem}>
-                      <span className={styles.stepBadge}>3</span>
-                      <div>
-                        <strong>Navigate Trade-offs:</strong> Check newcomer and shifted badges on the radar to anticipate which stakeholder priorities may clash during round dilemmas.
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Minimized Challenge Briefing: the current challenge's story, excluding the stakeholder-specific breakdown */}
+                {challengeTitle && (
+                  <ChallengeDescriptionCard
+                    challengeTitle={challengeTitle}
+                    challengeDescription={challengeDescription}
+                    challengeIntro={challengeIntro}
+                    currentChallenge={currentChallenge}
+                    challengeAmount={challengeAmount}
+                    is_minimized={true}
+                    isNew={isNewChallenge}
+                  />
+                )}
               </div>
 
               {/* Right Column: Stakeholder Matrix */}
