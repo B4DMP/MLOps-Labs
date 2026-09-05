@@ -11,6 +11,11 @@ services:
       - POSTGRES_DB=mlops_labs
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mlops_labs -d mlops_labs"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
     networks:
       - mlops-serious-game-network
   api:
@@ -37,7 +42,14 @@ services:
       - ./game-api/tools:/app/tools
       - ./game-api/data:/app/data
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     networks:
       - mlops-serious-game-network
   ui:
@@ -52,7 +64,8 @@ services:
       - ./game-ui:/app
       - /app/node_modules
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - mlops-serious-game-network
 

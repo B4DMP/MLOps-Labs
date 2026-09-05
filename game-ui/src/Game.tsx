@@ -853,6 +853,11 @@ function App({ username: _username }: AppProps) {
               <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={setIsPhaseDialogueOpen}
+                challengeTitle={challengeTitle}
+                challengeDescription={challengeDescription}
+                challengeIntro={challengeIntro}
+                currentChallenge={currentChallenge}
+                challengeAmount={challengeAmount}
               />
               <ConvincerVerificationDialog
                 info={convincerVerificationInfo}

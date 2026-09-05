@@ -15,8 +15,8 @@
 }
 
 .navButton {
-    width: 44px;
-    height: 44px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: 1px solid var(--secondary-bg);
     background: var(--primary-bg);
@@ -40,6 +40,10 @@
     cursor: not-allowed;
 }
 
+.navButtonIcon {
+    font-size: 1.05rem;
+}
+
 .secondaryButton {
     padding: 0.7rem 1.6rem;
     border-radius: 0.75rem;
@@ -61,12 +65,14 @@
     width: 40%;
     flex: 0 0 40%;
     max-width: 40%;
+    min-height: 0;
 }
 
 .rightColumnIntel {
     width: 60%;
     flex: 0 0 60%;
     max-width: 60%;
+    min-height: 0;
 }
 
 @media (max-width: 991px) {
@@ -76,4 +82,549 @@
         flex: 0 0 100%;
         max-width: 100%;
     }
+}
+
+/* ==========================================================================
+   Layout & Container Styles
+   ========================================================================== */
+.mainContainer {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100%;
+}
+
+.boardRow {
+    min-height: 0;
+}
+
+.dossierContainer {
+    min-height: 0;
+}
+
+/* Vertical split of the right-hand panel: header takes its natural height,
+   the journal card takes all remaining space. This is the ONLY place that
+   decides the header/card split - nothing below re-declares height here. */
+.transparentDivWrapper {
+    border-radius: 16px;
+    padding: 0.5rem 0.75rem 0.35rem;
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    row-gap: 0.4rem;
+}
+
+.journalCard {
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 0;
+    /* Explicit height, not just implicit grid-item stretch - measured via
+       Playwright that relying on stretch alone left this shrink-wrapped to
+       content. Height:100% resolves against the parent grid row's definite
+       track size (transparentDivWrapper's minmax(0,1fr) row). */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   Header Row & Meta (merged Artifact info into header)
+   ========================================================================== */
+.headerRow {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.headerTitleGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Header Info Tooltip
+   ========================================================================== */
+.infoTooltipWrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.infoTooltipButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    font-size: 0.85rem;
+    padding: 0;
+    cursor: help;
+    transition: background var(--transition);
+}
+
+.infoTooltipButton:hover,
+.infoTooltipButton:focus-visible {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.infoTooltipContent {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    width: 300px;
+    max-width: 80vw;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out, visibility 0.15s;
+    pointer-events: none;
+}
+
+.infoTooltipContent strong {
+    color: #ffffff;
+}
+
+.infoTooltipWrapper:hover .infoTooltipContent,
+.infoTooltipWrapper:focus-within .infoTooltipContent {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ==========================================================================
+   First-time Intro Banner (shown once, on the first artifact only)
+   ========================================================================== */
+.introBanner {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: #fff7ed;
+    border: 1px solid #fdba74;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.65rem;
+    margin: 0.4rem 0.5rem 0.35rem;
+    flex-shrink: 0;
+}
+
+.introBannerIcon {
+    font-size: 1.3rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.introBannerBody {
+    flex-grow: 1;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #7c2d12;
+}
+
+.introBannerBody strong {
+    color: #431407;
+}
+
+.introBannerDismiss {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #c2410c;
+    font-weight: 700;
+    font-size: 0.76rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.introBannerDismiss:hover {
+    background: rgba(194, 65, 12, 0.1);
+}
+
+.headerArtifactMeta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.headerDivider {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.85rem;
+}
+
+.headerArtifactCount {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.headerArtifactBadge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    background: var(--primary-bg);
+    color: #ffffff;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.35rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   Navigation Pills
+   ========================================================================== */
+.navPillsContainer {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0.15rem 0.25rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.navPillsContainer::-webkit-scrollbar {
+    display: none;
+}
+
+.navPill {
+    font-size: 0.7rem;
+    white-space: nowrap;
+    height: 24px;
+    line-height: 22px;
+    border-radius: 0.5rem;
+    color: #ffffff;
+    box-shadow: none;
+    transition: all var(--transition);
+    flex-shrink: 0;
+    padding: 0 0.55rem;
+    border-style: solid;
+}
+
+.navPillUntagged {
+    background-color: #6c757d;
+    border: 1px solid #6c757d;
+    opacity: 0.85;
+}
+
+.navPillTagged {
+    background-color: var(--primary-bg);
+    border: 1px solid var(--primary-bg);
+    opacity: 0.85;
+}
+
+.navPillCurrent {
+    border: 1.5px solid #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* ==========================================================================
+   Active Tagging View
+   ========================================================================== */
+/* Active tagging state: a two-row grid inside the journal card - the
+   artifact area takes all remaining space, the tagging panel is pinned to a
+   fixed proportion of the card's height so it never jumps in size when
+   switching between the Stance (1 row) and Convincer (up to 3 rows) grids.
+   A minmax() floor keeps the Convincer grid comfortably usable even on
+   short viewports; the cap keeps the panel from ballooning on tall ones. */
+.activeStateGrid {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(200px, 42%);
+}
+
+.activeCardBody {
+    padding: 0;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewerWrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewerMotionContainer {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   Tagging Prompt & Buttons Panel (streamlined bottom vertical space)
+   ========================================================================== */
+.taggingPanel {
+    background: #eef2f7;
+    border-top: 3px solid var(--secondary-bg, #ced4da);
+    border-radius: 0 0 11px 11px;
+    padding: 0.4rem 0.65rem 0.45rem;
+    /* Height comes entirely from the .activeStateGrid row track above - this
+       element only lays out its own children (header / hint / button grid). */
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.taggingPanelStance {
+    border-top-color: #2563eb;
+}
+
+.taggingPanelConvincer {
+    border-top-color: #7c3aed;
+}
+
+.taggingPanelHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.taggingPanelHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.taggingTypeBadge {
+    align-self: flex-start;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    color: #ffffff;
+}
+
+.taggingTypeBadgeStance {
+    background: #2563eb;
+}
+
+.taggingTypeBadgeConvincer {
+    background: #7c3aed;
+}
+
+.taggingTitle {
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0;
+    font-size: 0.82rem;
+}
+
+.taggingSubtitle {
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
+.taggingHint {
+    font-size: 0.74rem;
+    color: #475569;
+    margin: 0 0 0.4rem;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+.tagGrid {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    /* align-content: flex-start keeps each row at its natural, comfortable
+       height instead of stretching to fill the panel - this is what keeps a
+       single row of Stance buttons from ballooning to fill the same space
+       reserved for three rows of Convincer buttons. Any leftover space below
+       the buttons is just empty panel, which reads better than oversized
+       buttons with dead space inside them. */
+    align-content: flex-start;
+}
+
+.tagButton {
+    width: 100%;
+    padding: 0.35rem 0.55rem;
+    text-align: left;
+    border-radius: 0.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    background-color: #ffffff;
+    color: #000000;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+    border-width: 2px;
+    border-style: solid;
+    transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.tagButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tagButtonSelected {
+    border-width: 3px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.tagButtonConvincer {
+    min-height: 62px;
+}
+
+.tagButtonRequirement {
+    min-height: 58px;
+}
+
+.tagButtonHeader {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.15rem;
+    font-size: 0.8rem;
+    color: #000000;
+}
+
+.tagButtonLabelGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #000000;
+}
+
+.tagButtonLabel {
+    font-weight: 700;
+}
+
+.tagButtonBadge {
+    font-size: 0.62rem;
+    background-color: var(--primary-bg);
+    color: #ffffff;
+    border-radius: 9999px;
+    padding: 0.1rem 0.4rem;
+    flex-shrink: 0;
+}
+
+.tagButtonDescription {
+    display: block;
+    font-weight: 600;
+    font-size: 0.7rem;
+    color: #334155;
+    opacity: 0.95;
+    line-height: 1.3;
+}
+
+/* ==========================================================================
+   Summary / Completion Screen & Loading
+   ========================================================================== */
+.summaryContainer {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.completionHeader {
+    background-color: var(--bs-light, #f8f9fa);
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    flex-shrink: 0;
+}
+
+.completionStatusIcon {
+    font-size: 1.1rem;
+}
+
+.completionHeaderText {
+    font-size: 0.82rem;
+    color: #212529;
+}
+
+.completionStatusBadge {
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.completionBody {
+    background-color: var(--bs-light, #f8f9fa);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    text-align: center;
+    min-height: 0;
+}
+
+.completionIconCircle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: #ffffff;
+    font-size: 2rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.completionIconSuccess {
+    background-color: var(--primary-bg);
+    border: 1px solid var(--secondary-bg);
+}
+
+.completionIconWarning {
+    background-color: #f59e0b;
+    border: 1px solid #d97706;
+}
+
+.completionDescription {
+    max-width: 520px;
+}
+
+.btnAutoWidth {
+    width: auto;
+}
+
+.btnIcon {
+    font-size: 1.2rem;
+}
+
+.loadingSpinner {
+    width: 2.5rem;
+    height: 2.5rem;
 }

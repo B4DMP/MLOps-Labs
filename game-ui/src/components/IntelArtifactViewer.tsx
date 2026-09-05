@@ -34,19 +34,6 @@ export default function IntelArtifactViewer({
   if (type === "email") {
     return (
       <div className={`${styles.artifactContainer} ${styles.mailWindow}`}>
-        {/* Webmail Client Toolbar */}
-        <div className={styles.mailToolbar}>
-          <div className={styles.mailActions}>
-            <button className={styles.actionBtn}>↩ Reply</button>
-            <button className={styles.actionBtn}>👥 Reply All</button>
-            <button className={styles.actionBtn}>➔ Forward</button>
-            <button className={styles.actionBtn}>📁 Archive</button>
-          </div>
-          <div className={styles.securityTag}>
-            <span>🔒</span> TLS 1.3 Encrypted
-          </div>
-        </div>
-
         {/* Webmail Sender & Meta */}
         <div className={styles.mailHeader}>
           <div className={styles.mailSubjectRow}>
@@ -74,7 +61,7 @@ export default function IntelArtifactViewer({
         <div className={styles.mailBody}>{cleanText}</div>
 
         {/* Corporate Email Signature */}
-        <div className={styles.mailHeader} style={{ borderBottom: "none" }}>
+        <div className={`${styles.mailHeader} ${styles.mailSignatureSection}`}>
           <div className={styles.mailSignature}>
             Regards,
             <br />
@@ -144,7 +131,7 @@ export default function IntelArtifactViewer({
           <div className={styles.breadcrumbs}>
             <span>📚 Enterprise Wiki</span> / <span>MLOps Governance</span> / <span>Meeting Minutes</span>
           </div>
-          <span className={styles.wikiStatusTag}>APPROVED MINUTES</span>
+          <span className={styles.wikiStatusTag}>SUMMARY</span>
         </div>
 
         {/* Body */}
