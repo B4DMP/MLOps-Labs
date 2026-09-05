@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
-import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import styles from "./offline_intel_gathering.module.css";
 
@@ -133,6 +132,22 @@ export default function OfflineIntelGathering({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [taggedTypes, setTaggedTypes] = useState<Record<string, string>>({});
   const [hoveredTag, setHoveredTag] = useState<string | null>(null);
+  const [showIntroBanner, setShowIntroBanner] = useState(() => {
+    try {
+      return localStorage.getItem("mlops_offline_intel_intro_seen") !== "true";
+    } catch {
+      return true;
+    }
+  });
+
+  const dismissIntroBanner = () => {
+    setShowIntroBanner(false);
+    try {
+      localStorage.setItem("mlops_offline_intel_intro_seen", "true");
+    } catch {
+      // ignore storage failures (e.g. private browsing)
+    }
+  };
 
   const hasRequestedRef = useRef(false);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -289,20 +304,16 @@ export default function OfflineIntelGathering({
     <div className="game-container">
       {/* Main Content Area over Game Background Canvas */}
       <div
-        className="container-fluid flex-grow-1 d-flex flex-column p-2 p-md-3 position-relative overflow-auto"
+        className={`container-fluid flex-grow-1 d-flex flex-column px-2 px-md-3 py-1 position-relative overflow-auto ${styles.mainContainer}`}
         style={{
           backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          height: "100%",
         }}
       >
         {/* Main Board Grid: Left Column = Stakeholder Dossier (2/5), Right Column = Artifact Viewer & Categorization (3/5) */}
-        <div className="row g-3 align-items-stretch flex-grow-1 h-100">
+        <div className={`row g-2 align-items-stretch h-100 ${styles.boardRow}`}>
           {/* LEFT COLUMN: Stakeholder Dossier (2/5 of screen) */}
           <div className={`col-12 d-flex flex-column h-100 ${styles.leftColumnDossier}`}>
-            <div className="flex-grow-1 h-100" style={{ minHeight: "500px" }}>
+            <div className={`h-100 ${styles.dossierContainer}`}>
               <StakeholderDossier
                 isOpen={true}
                 canClose={false}
@@ -320,24 +331,47 @@ export default function OfflineIntelGathering({
           <div className={`col-12 d-flex flex-column h-100 ${styles.rightColumnIntel}`}>
             {/* Transparent Div Wrapper */}
             <div
-              className="transparent-div p-2 p-md-3 shadow-lg flex-grow-1 d-flex flex-column w-100 h-100"
-              style={{
-                borderRadius: "16px",
-                minHeight: 0,
-              }}
+              className={`transparent-div shadow-lg w-100 ${styles.transparentDivWrapper}`}
             >
-              {/* Header Title inside transparent-div */}
-              <div className="w-100 d-flex justify-content-between align-items-center mb-1 flex-shrink-0">
-                <span className="transparent-div-label mb-0">
-                  🔍 Offline Intel Gathering
-                </span>
+              {/* Header Title inside transparent-div - Merged Artifact Info */}
+              <div className={styles.headerRow}>
+                <div className={styles.headerTitleGroup}>
+                  <span className="transparent-div-label mb-0">
+                    🔍 Offline Intel Gathering
+                  </span>
+                  <span className={styles.infoTooltipWrapper}>
+                    <button
+                      type="button"
+                      className={styles.infoTooltipButton}
+                      aria-label="How offline intel gathering works"
+                      tabIndex={0}
+                    >
+                      <Icon icon="ph:info-bold" />
+                    </button>
+                    <span className={styles.infoTooltipContent} role="tooltip">
+                      Every artifact reveals something about a stakeholder. Read it, then tag it below.
+                      Your call is saved as <strong>unconfirmed</strong> intel on their page in the Stakeholder
+                      Dossier. You'll get to confirm or correct it later by talking to them directly during
+                      Online Intel Gathering. Not sure yet? Use ◀ ▶ or the numbered tabs above to jump around
+                      before you lock everything in.
+                    </span>
+                  </span>
+                  {!isFinished && currentArtifact && (
+                    <div className={styles.headerArtifactMeta}>
+                      <span className={styles.headerDivider}>|</span>
+                      <span className={styles.headerArtifactCount}>
+                        Artifact {currentIndex + 1} of {artifacts.length}
+                      </span>
+                      <span className={styles.headerArtifactBadge}>
+                        {currentArtifact.artifact_type.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Quick direct item navigation pills */}
                 {artifacts.length > 0 && (
-                  <div
-                    className="d-flex align-items-center gap-1 overflow-x-auto py-1 px-1"
-                    style={{ scrollbarWidth: "none" }}
-                  >
+                  <div className={styles.navPillsContainer}>
                     {artifacts.map((art, idx) => {
                       const key = art.id || art.requirement_id;
                       const isTagged = !!taggedTypes[key];
@@ -356,329 +390,275 @@ export default function OfflineIntelGathering({
                               onTagArtifact(art.stakeholder_id || art.stakeholder_name);
                             }
                           }}
-                          className="btn btn-xs px-2 py-0 fw-bold"
-                      style={{
-                        fontSize: "0.7rem",
-                        whiteSpace: "nowrap",
-                        height: "24px",
-                        lineHeight: "22px",
-                        borderRadius: "0.5rem",
-                        backgroundColor: isTagged ? "var(--primary-bg)" : "#6c757d",
-                        borderColor: isCurrent ? "#ffffff" : isTagged ? "var(--primary-bg)" : "#6c757d",
-                        borderWidth: isCurrent ? "1.5px" : "1px",
-                        borderStyle: "solid",
-                        color: "#ffffff",
-                        boxShadow: "none",
-                        opacity: isCurrent ? 1 : 0.85,
-                        transition: "all var(--transition)",
-                        flexShrink: 0,
-                      }}
-                      title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${isTagged ? "Categorized" : "Uncategorized"})`}
-                    >
-                      {idx + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Bootswatch Journal Card */}
-          <div
-            className="card border-secondary shadow-sm text-start w-100 flex-grow-1 d-flex flex-column"
-            style={{
-              borderRadius: "12px",
-              overflow: "hidden",
-              minHeight: 0,
-            }}
-          >
-            {loading ? (
-              <div className="card-body bg-light p-4 text-center my-3 d-flex flex-column justify-content-center align-items-center flex-grow-1">
-                <div className="spinner-border text-primary mb-3" style={{ width: "2.5rem", height: "2.5rem" }} role="status" />
-                <h5 className="fw-bold text-dark mb-2">Generating Offline Intel Artifacts...</h5>
-                <p className="text-muted fs-6 mb-0">Analyzing scenario specifications across stakeholder items.</p>
-              </div>
-            ) : isFinished ? (
-              /* Completion State / Summary Screen */
-              <div className="d-flex flex-column flex-grow-1 h-100" style={{ minHeight: 0 }}>
-                {/* Header matching Journal style */}
-                <div className="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-1 px-3 flex-shrink-0">
-                  <div className="d-flex align-items-center gap-2">
-                    <Icon
-                      icon={allTagged ? "ph:check-circle-bold" : "ph:warning-circle-bold"}
-                      className={allTagged ? "text-success" : "text-warning"}
-                      style={{ fontSize: "1.1rem" }}
-                    />
-                    <strong className="text-dark" style={{ fontSize: "0.82rem" }}>
-                      {allTagged ? "Intel Artifacts Tagged" : "Incomplete Intel Categorization"}
-                    </strong>
-                  </div>
-                  <span
-                    className={`badge ${allTagged ? "bg-primary text-white" : "bg-warning text-dark"} fw-bold`}
-                    style={{ fontSize: "0.7rem" }}
-                  >
-                    {taggedArtifactsCount} / {totalArtifactsCount} Categorized
-                  </span>
-                </div>
-
-                <div className="card-body bg-light p-4 d-flex flex-column justify-content-center align-items-center flex-grow-1 text-center" style={{ minHeight: 0 }}>
-                  {allTagged ? (
-                    <>
-                      <div
-                        className="mb-3 d-flex align-items-center justify-content-center shadow-sm"
-                        style={{
-                          width: "64px",
-                          height: "64px",
-                          borderRadius: "50%",
-                          backgroundColor: "var(--primary-bg)",
-                          border: "1px solid var(--secondary-bg)",
-                          color: "#ffffff",
-                          fontSize: "2rem",
-                        }}
-                      >
-                        <Icon icon="ph:check-bold" />
-                      </div>
-                      <h4 className="fw-bold text-dark mb-2">Intel Artifacts Tagged!</h4>
-                      <p className="text-muted mb-4 fs-6" style={{ maxWidth: "520px" }}>
-                        All {totalArtifactsCount} stakeholder requirement stances have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div
-                        className="mb-3 d-flex align-items-center justify-content-center shadow-sm"
-                        style={{
-                          width: "64px",
-                          height: "64px",
-                          borderRadius: "50%",
-                          backgroundColor: "#f59e0b",
-                          border: "1px solid #d97706",
-                          color: "#ffffff",
-                          fontSize: "2rem",
-                        }}
-                      >
-                        <Icon icon="ph:warning-bold" />
-                      </div>
-                      <h4 className="fw-bold text-dark mb-2">Not All Artifacts Have Been Tagged</h4>
-                      <p className="text-muted mb-4 fs-6" style={{ maxWidth: "520px" }}>
-                        You have categorized <strong className="text-dark">{taggedArtifactsCount} of {totalArtifactsCount}</strong> artifacts. All artifacts must be tagged before proceeding to Online Intel Gathering.
-                      </p>
-                    </>
-                  )}
-
-                  {/* Action buttons styled like login screen button */}
-                  <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap mt-2">
-                    <button
-                      onClick={() => {
-                        if (transitionTimeoutRef.current) {
-                          clearTimeout(transitionTimeoutRef.current);
-                          transitionTimeoutRef.current = null;
-                        }
-                        setDirection(-1);
-                        setCurrentIndex(0);
-                      }}
-                      className={styles.secondaryButton}
-                    >
-                      ◀ Review All Tags
-                    </button>
-
-                    {!allTagged ? (
-                      <button
-                        onClick={() => {
-                          if (transitionTimeoutRef.current) {
-                            clearTimeout(transitionTimeoutRef.current);
-                            transitionTimeoutRef.current = null;
-                          }
-                          const targetIdx = firstUntaggedIndex !== -1 ? firstUntaggedIndex : 0;
-                          setDirection(targetIdx >= currentIndex ? 1 : -1);
-                          setCurrentIndex(targetIdx);
-                        }}
-                        className={`${styles.actionButton} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
-                        style={{ width: "auto" }}
-                      >
-                        <Icon icon="ph:arrow-circle-right-bold" style={{ fontSize: "1.2rem" }} />
-                        <span>Categorize Remaining ({totalArtifactsCount - taggedArtifactsCount} Left)</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleFinalContinue}
-                        disabled={isSubmitting}
-                        className={`${styles.actionButton} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
-                        style={{ width: "auto" }}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm" role="status" />
-                            <span>Proceeding...</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>Continue to Online Intel Gathering</span>
-                            <Icon icon="ph:arrow-right-bold" />
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : currentArtifact ? (
-              /* Active Tagging View */
-              <div className="d-flex flex-column flex-grow-1 h-100" style={{ minHeight: 0 }}>
-                {/* Card Header with Item Counter & Badges */}
-                <div className="card-header bg-light border-bottom d-flex justify-content-between align-items-center py-1 px-3 flex-shrink-0">
-                  <div className="d-flex align-items-center gap-2">
-                    <strong className="text-dark" style={{ fontSize: "0.82rem" }}>
-                      Artifact {currentIndex + 1} of {artifacts.length}
-                    </strong>
-                    <span
-                      className="badge fw-semibold"
-                      style={{ fontSize: "0.65rem", background: "var(--primary-bg)", color: "white" }}
-                    >
-                      {currentArtifact.artifact_type.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="card-body bg-light p-3 d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
-                  {/* Challenge Description Card above Artifact Viewer */}
-                  {(challengeTitle || challengeDescription) && (
-                    <div className="mb-2 flex-shrink-0">
-                      <ChallengeDescriptionCard
-                        challengeTitle={challengeTitle}
-                        challengeDescription={challengeDescription}
-                        challengeIntro={challengeIntro}
-                        currentChallenge={currentChallenge}
-                        challengeAmount={challengeAmount}
-                      />
-                    </div>
-                  )}
-
-                  {/* Formatted MLOps Intel Artifact Viewer with Left and Right Navigation Buttons */}
-                  <div className="d-flex align-items-center gap-2 mb-3 flex-grow-1 position-relative" style={{ minHeight: 0 }}>
-                    {/* Previous Button (Left) */}
-                    <button
-                      onClick={handlePrevItem}
-                      disabled={currentIndex <= 0}
-                      className={styles.navButton}
-                      title="Previous Intel Artifact"
-                      aria-label="Previous Intel Artifact"
-                    >
-                      <Icon icon="ph:caret-left-bold" style={{ fontSize: "1.5rem" }} />
-                    </button>
-
-                    {/* Artifact Viewer with Slide Transition */}
-                    <div className="flex-grow-1 h-100 position-relative overflow-hidden d-flex flex-column" style={{ minHeight: 0 }}>
-                      <AnimatePresence mode="wait" custom={direction}>
-                        <motion.div
-                          key={`${currentIndex}-${currentArtifactKey}`}
-                          custom={direction}
-                          initial={{ opacity: 0, x: direction > 0 ? 40 : -40 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: direction > 0 ? -40 : 40 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="h-100 flex-grow-1 d-flex flex-column"
-                          style={{ minHeight: 0 }}
+                          className={`btn btn-xs fw-bold ${styles.navPill} ${isTagged ? styles.navPillTagged : styles.navPillUntagged} ${isCurrent ? styles.navPillCurrent : ""}`}
+                          title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${isTagged ? "Categorized" : "Uncategorized"})`}
                         >
-                          <IntelArtifactViewer
-                            content={currentArtifact.content}
-                            artifactType={currentArtifact.artifact_type}
-                            stakeholderName={currentArtifact.stakeholder_name}
-                            stakeholderRole={currentArtifact.stakeholder_role}
-                          />
-                        </motion.div>
-                      </AnimatePresence>
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Bootswatch Journal Card */}
+              <div
+                className={`card border-secondary shadow-sm text-start w-100 ${styles.journalCard}`}
+              >
+                {loading ? (
+                  <div className="card-body bg-light p-4 text-center my-3 d-flex flex-column justify-content-center align-items-center flex-grow-1">
+                    <div className={`spinner-border text-primary mb-3 ${styles.loadingSpinner}`} role="status" />
+                    <h5 className="fw-bold text-dark mb-2">Generating Offline Intel Artifacts...</h5>
+                    <p className="text-muted fs-6 mb-0">Analyzing scenario specifications across stakeholder items.</p>
+                  </div>
+                ) : isFinished ? (
+                  /* Completion State / Summary Screen */
+                  <div className={styles.summaryContainer}>
+                    {/* Header matching Journal style */}
+                    <div className={styles.completionHeader}>
+                      <div className="d-flex align-items-center gap-2">
+                        <Icon
+                          icon={allTagged ? "ph:check-circle-bold" : "ph:warning-circle-bold"}
+                          className={`${allTagged ? "text-success" : "text-warning"} ${styles.completionStatusIcon}`}
+                        />
+                        <strong className={styles.completionHeaderText}>
+                          {allTagged ? "Intel Artifacts Tagged" : "Incomplete Intel Categorization"}
+                        </strong>
+                      </div>
+                      <span
+                        className={`badge ${allTagged ? "bg-primary text-white" : "bg-warning text-dark"} ${styles.completionStatusBadge}`}
+                      >
+                        {taggedArtifactsCount} / {totalArtifactsCount} Categorized
+                      </span>
                     </div>
 
-                    {/* Next / Finish Button (Right) */}
-                    <button
-                      onClick={handleNextItem}
-                      className={styles.navButton}
-                      title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
-                      aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                    <div className={styles.completionBody}>
+                      {allTagged ? (
+                        <>
+                          <div className={`${styles.completionIconCircle} ${styles.completionIconSuccess}`}>
+                            <Icon icon="ph:check-bold" />
+                          </div>
+                          <h4 className="fw-bold text-dark mb-2">Intel Artifacts Tagged!</h4>
+                          <p className={`text-muted mb-4 fs-6 ${styles.completionDescription}`}>
+                            All {totalArtifactsCount} stakeholder requirement stances have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier. You'll be able to verify or correct each tag by talking to that stakeholder directly during Online Intel Gathering.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`${styles.completionIconCircle} ${styles.completionIconWarning}`}>
+                            <Icon icon="ph:warning-bold" />
+                          </div>
+                          <h4 className="fw-bold text-dark mb-2">Not All Artifacts Have Been Tagged</h4>
+                          <p className={`text-muted mb-4 fs-6 ${styles.completionDescription}`}>
+                            You have categorized <strong className="text-dark">{taggedArtifactsCount} of {totalArtifactsCount}</strong> artifacts. All artifacts must be tagged before proceeding to Online Intel Gathering.
+                          </p>
+                        </>
+                      )}
+
+                      {/* Action buttons styled like login screen button */}
+                      <div className="d-flex justify-content-center align-items-center gap-3 flex-wrap mt-2">
+                        <button
+                          onClick={() => {
+                            if (transitionTimeoutRef.current) {
+                              clearTimeout(transitionTimeoutRef.current);
+                              transitionTimeoutRef.current = null;
+                            }
+                            setDirection(-1);
+                            setCurrentIndex(0);
+                          }}
+                          className={styles.secondaryButton}
+                        >
+                          ◀ Review All Tags
+                        </button>
+
+                        {!allTagged ? (
+                          <button
+                            onClick={() => {
+                              if (transitionTimeoutRef.current) {
+                                clearTimeout(transitionTimeoutRef.current);
+                                transitionTimeoutRef.current = null;
+                              }
+                              const targetIdx = firstUntaggedIndex !== -1 ? firstUntaggedIndex : 0;
+                              setDirection(targetIdx >= currentIndex ? 1 : -1);
+                              setCurrentIndex(targetIdx);
+                            }}
+                            className={`${styles.actionButton} ${styles.btnAutoWidth} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
+                          >
+                            <Icon icon="ph:arrow-circle-right-bold" className={styles.btnIcon} />
+                            <span>Categorize Remaining ({totalArtifactsCount - taggedArtifactsCount} Left)</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleFinalContinue}
+                            disabled={isSubmitting}
+                            className={`${styles.actionButton} ${styles.btnAutoWidth} shadow-sm d-inline-flex align-items-center justify-content-center gap-2`}
+                          >
+                            {isSubmitting ? (
+                              <>
+                                <span className="spinner-border spinner-border-sm" role="status" />
+                                <span>Proceeding...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Continue to Online Intel Gathering</span>
+                                <Icon icon="ph:arrow-right-bold" />
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : currentArtifact ? (
+                  /* Active Tagging View */
+                  <div className={styles.activeStateGrid}>
+                    <div className={`card-body bg-light ${styles.activeCardBody}`}>
+                      {/* One-time intro banner: shown on the first artifact only, until dismissed */}
+                      {showIntroBanner && currentIndex === 0 && (
+                        <div className={styles.introBanner}>
+                          <span className={styles.introBannerIcon}>🕵️</span>
+                          <span className={styles.introBannerBody}>
+                            <strong>New intel just came in.</strong> Read each item to learn more about your
+                            stakeholders, then tag it below. It's saved as unconfirmed intel in their Dossier
+                            until you verify it by talking to them in the next gameplay phase.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={dismissIntroBanner}
+                            className={styles.introBannerDismiss}
+                          >
+                            Got it
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Artifact Viewer with Slide Transition - fills all remaining space, no chrome around it */}
+                      <div className={styles.viewerWrapper}>
+                        <AnimatePresence mode="wait" custom={direction}>
+                          <motion.div
+                            key={`${currentIndex}-${currentArtifactKey}`}
+                            custom={direction}
+                            initial={{ opacity: 0, x: direction > 0 ? 40 : -40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: direction > 0 ? -40 : 40 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className={styles.viewerMotionContainer}
+                          >
+                            <IntelArtifactViewer
+                              content={currentArtifact.content}
+                              artifactType={currentArtifact.artifact_type}
+                              stakeholderName={currentArtifact.stakeholder_name}
+                              stakeholderRole={currentArtifact.stakeholder_role}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    {/* Compact Tagging Prompt & Buttons Panel - flush against the card's own edges, no nested box */}
+                    <div
+                      className={`${styles.taggingPanel} ${
+                        currentArtifact.is_convincer_profile ? styles.taggingPanelConvincer : styles.taggingPanelStance
+                      }`}
                     >
-                      <Icon
-                        icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
-                        style={{ fontSize: "1.5rem" }}
-                      />
+                      <div className={styles.taggingPanelHeader}>
+                        <button
+                          onClick={handlePrevItem}
+                          disabled={currentIndex <= 0}
+                          className={styles.navButton}
+                          title="Previous Intel Artifact"
+                          aria-label="Previous Intel Artifact"
+                        >
+                          <Icon icon="ph:caret-left-bold" className={styles.navButtonIcon} />
+                        </button>
+
+                        <div className={styles.taggingPanelHeaderText}>
+                          <span
+                            className={`${styles.taggingTypeBadge} ${
+                              currentArtifact.is_convincer_profile
+                                ? styles.taggingTypeBadgeConvincer
+                                : styles.taggingTypeBadgeStance
+                            }`}
+                          >
+                            {currentArtifact.is_convincer_profile ? "Convincer Profile" : "Stance"}
+                          </span>
+                          <h6 className={styles.taggingTitle}>
+                            {currentArtifact.is_convincer_profile
+                              ? `Categorize ${currentArtifact.stakeholder_name}'s Convincer Archetype:`
+                              : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
+                          </h6>
+                        </div>
+                        <small className={styles.taggingSubtitle}>
+                          {currentArtifact.is_convincer_profile ? "Select Archetype" : "Select Category"}
+                        </small>
+
+                        <button
+                          onClick={handleNextItem}
+                          className={styles.navButton}
+                          title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                          aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                        >
+                          <Icon
+                            icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
+                            className={styles.navButtonIcon}
+                          />
+                        </button>
+                      </div>
+
+                      <p className={styles.taggingHint}>
+                        {currentArtifact.is_convincer_profile
+                          ? "A Convincer Archetype is what will actually change this stakeholder's mind later on: tag the driver behind what they just said."
+                          : "Is this a must-have, a nice-to-have, or just interpersonal friction? Tag it based on what they're really asking for."}
+                      </p>
+
+                      <div className={`row ${currentArtifact.is_convincer_profile ? "g-1" : "g-2"} ${styles.tagGrid}`}>
+                        {(currentArtifact.is_convincer_profile ? CONVINCER_TAGS : REQUIREMENT_TAGS).map((tag) => {
+                          const isSelected = currentTaggedType === tag.type;
+                          const colClass = currentArtifact.is_convincer_profile
+                            ? "col-12 col-md-6 col-lg-4"
+                            : "col-12 col-md-4";
+                          const sizeClass = currentArtifact.is_convincer_profile
+                            ? styles.tagButtonConvincer
+                            : styles.tagButtonRequirement;
+
+                          return (
+                            <div key={tag.type} className={colClass}>
+                              <button
+                                onClick={() => handleTagArtifact(tag.type)}
+                                onMouseEnter={() => setHoveredTag(tag.type)}
+                                onMouseLeave={() => setHoveredTag(null)}
+                                className={`btn ${styles.tagButton} ${sizeClass} ${isSelected ? styles.tagButtonSelected : ""}`}
+                                style={{ borderColor: tag.color }}
+                              >
+                                <div className={styles.tagButtonHeader}>
+                                  <span className={styles.tagButtonLabelGroup}>
+                                    <span>{tag.icon}</span>{" "}
+                                    <span className={styles.tagButtonLabel} style={{ color: tag.color }}>{tag.label}</span>
+                                  </span>
+                                  {isSelected && (
+                                    <span className={`badge text-white ${styles.tagButtonBadge}`}>
+                                      Selected
+                                    </span>
+                                  )}
+                                </div>
+                                <small className={styles.tagButtonDescription}>
+                                  {tag.description}
+                                </small>
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="card-body bg-light p-4 text-center">
+                    <p className="text-muted">No artifacts available for this challenge.</p>
+                    <button onClick={handleFinalContinue} className={`${styles.actionButton} ${styles.btnAutoWidth}`}>
+                      Continue
                     </button>
                   </div>
-
-                  {/* Compact Tagging Prompt & Buttons Panel */}
-                  <div className="card border-secondary p-2 p-md-3 bg-white shadow-sm flex-shrink-0">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h6 className="fw-bold text-dark mb-0 fs-6">
-                        {currentArtifact.is_convincer_profile
-                          ? `Categorize ${currentArtifact.stakeholder_name}'s Convincer Archetype:`
-                          : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
-                      </h6>
-                      <small className="text-muted" style={{ fontSize: "0.78rem" }}>
-                        {currentArtifact.is_convincer_profile ? "Select Archetype" : "Select Category"}
-                      </small>
-                    </div>
-
-                    <div className="row g-2">
-                      {(currentArtifact.is_convincer_profile ? CONVINCER_TAGS : REQUIREMENT_TAGS).map((tag) => {
-                        const isSelected = currentTaggedType === tag.type;
-                        const isHovered = hoveredTag === tag.type;
-                        const colClass = currentArtifact.is_convincer_profile
-                          ? "col-12 col-md-6 col-lg-4"
-                          : "col-12 col-md-4";
-
-                        return (
-                          <div key={tag.type} className={colClass}>
-                            <button
-                              onClick={() => handleTagArtifact(tag.type)}
-                              onMouseEnter={() => setHoveredTag(tag.type)}
-                              onMouseLeave={() => setHoveredTag(null)}
-                              className="btn w-100 py-2 px-3 text-start rounded-3 h-100 d-flex flex-column justify-content-between position-relative"
-                              style={{
-                                backgroundColor: "#ffffff",
-                                border: isSelected
-                                  ? `3px solid ${tag.color}`
-                                  : `2px solid ${tag.color}`,
-                                boxShadow: isSelected
-                                  ? "0 4px 12px rgba(0, 0, 0, 0.15)"
-                                  : isHovered
-                                    ? "0 6px 14px rgba(0, 0, 0, 0.12)"
-                                    : "0 2px 5px rgba(0, 0, 0, 0.06)",
-                                transform: isHovered ? "translateY(-2px)" : "translateY(0px)",
-                                color: "#000000",
-                                cursor: "pointer",
-                                minHeight: currentArtifact.is_convincer_profile ? "72px" : "68px",
-                                transition: "all 0.15s ease-in-out",
-                              }}
-                            >
-                              <div className="fw-bold d-flex align-items-center justify-content-between mb-1" style={{ color: "#000000", fontSize: "0.85rem" }}>
-                                <span className="d-flex align-items-center gap-1" style={{ color: "#000000" }}>
-                                  <span>{tag.icon}</span>{" "}
-                                  <span style={{ color: tag.color, fontWeight: 700 }}>{tag.label}</span>
-                                </span>
-                                {isSelected && (
-                                  <span className="badge text-white rounded-pill px-2 py-1 shadow-sm flex-shrink-0" style={{ backgroundColor: "var(--primary-bg)", fontSize: "0.65rem" }}>
-                                    Selected
-                                  </span>
-                                )}
-                              </div>
-                              <small className="d-block fw-semibold" style={{ fontSize: "0.74rem", color: "#334155", opacity: 0.95, lineHeight: 1.35 }}>
-                                {tag.description}
-                              </small>
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="card-body bg-light p-4 text-center">
-                <p className="text-muted">No artifacts available for this challenge.</p>
-                <button onClick={handleFinalContinue} className="btn btn-primary" style={{ color: "#000000" }}>
-                  Continue
-                </button>
-              </div>
-            )}
+                )}
               </div>
             </div>
           </div>
