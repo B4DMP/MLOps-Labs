@@ -42,7 +42,8 @@ class OfflineIntelArtifactFactory:
                 stakeholder_role=str(item.get("stakeholder_role", "")),
                 artifact_type=art_type,
                 content=str(item.get("content", "")),
-                wrong_descriptions=item.get("wrong_descriptions", {})
+                wrong_descriptions=item.get("wrong_descriptions", {}),
+                is_known=item["is_known"],
             )
             cls.artifacts_by_requirement[req_id] = artifact
 

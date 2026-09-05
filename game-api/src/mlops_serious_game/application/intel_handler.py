@@ -185,35 +185,24 @@ def correct_and_verify_convincer_archetype(
 
 
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
-    """Loads 5 offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
-    reqs = select_reqs_for_offl_intel_gathering(curr_challenge)
+    """Loads unconfirmed offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
+    challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
+    unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known]
+
     results = []
-    missing_reqs = []
+    for art in unconfirmed_artifacts:
+        stakeholder = StakeholderFactory.get_stakeholder(art.stakeholder_id)
+        results.append({
+            "id": art.id,
+            "requirement_id": art.requirement_id,
+            "stakeholder_id": art.stakeholder_id,
+            "stakeholder_name": stakeholder.name if stakeholder else art.stakeholder_name,
+            "stakeholder_role": stakeholder.role_description if stakeholder else art.stakeholder_role,
+            "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
+            "content": art.content,
+            "is_known": False,
+        })
 
-    for req in reqs:
-        pre_artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(req.id)
-        if pre_artifact:
-            stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
-            results.append({
-                "id": pre_artifact.id,
-                "requirement_id": req.id,
-                "stakeholder_id": req.stakeholder_id,
-                "stakeholder_name": stakeholder.name,
-                "stakeholder_role": stakeholder.role_description,
-                "artifact_type": pre_artifact.artifact_type.value if isinstance(pre_artifact.artifact_type, ArtifactType) else str(pre_artifact.artifact_type),
-                "content": pre_artifact.content,
-            })
-        else:
-            missing_reqs.append(req)
-
-    if missing_reqs:
-        artifact_types = list(ArtifactType)
-        tasks = [
-            _generate_single_artifact(curr_challenge, req, random.choice(artifact_types))
-            for req in missing_reqs
-        ]
-        fallback_results = await asyncio.gather(*tasks)
-        results.extend(list(fallback_results))
 
     # Append convincer profile artifacts for stakeholders newly introduced in this phase
     # Append convincer profile artifacts for stakeholders active in this phase that need introduction/categorization
@@ -287,6 +276,63 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
 from sqlalchemy.orm.attributes import flag_modified
 
+def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: str) -> List[StakeholderIntelItem]:
+    """Loads all is_known==True intel items for the current challenge into the DB as verified and returns them."""
+    known_artifacts = [
+        art for art in OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
+        if art.is_known
+    ]
+    if not known_artifacts:
+        return []
+
+    loaded_items: List[StakeholderIntelItem] = []
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == username)
+        ).all()
+        existing_req_ids = {
+            r.intel_item_data.get("requirement_id")
+            for r in records
+            if isinstance(r.intel_item_data, dict)
+        }
+
+        for art in known_artifacts:
+            req = RequirementFactory.get_requirement(art.requirement_id)
+            if not req:
+                continue
+
+            if art.requirement_id not in existing_req_ids:
+                new_item = StakeholderIntelItem(
+                    id=str(art.id),
+                    requirement_id=art.requirement_id,
+                    intel_type=ConfidenceType.VERIFIED,
+                    categorized_type=req.type,
+                    description=req.description,
+                )
+                new_record = IntelItem(
+                    user_name=username,
+                    intel_item_data=new_item.model_dump(mode="json"),
+                )
+                session.add(new_record)
+                existing_req_ids.add(art.requirement_id)
+                loaded_items.append(new_item)
+            else:
+                for r in records:
+                    if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("requirement_id") == art.requirement_id:
+                        data = dict(r.intel_item_data)
+                        cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
+                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description:
+                            data["intel_type"] = ConfidenceType.VERIFIED.value
+                            data["categorized_type"] = cat_type_str
+                            data["description"] = req.description
+                            r.intel_item_data = data
+                            flag_modified(r, "intel_item_data")
+                        loaded_items.append(StakeholderIntelItem(**data))
+                        break
+        session.commit()
+    return loaded_items
+
+
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Stores or updates an intel item in the database."""
     with get_session() as session:
@@ -346,6 +392,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
                     intel_items.append(item)
 
     return intel_items
+
 
 
 async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
@@ -624,6 +671,7 @@ correct_and_infer_intel_item = correct_and_verify_intel_item
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
     """Retrieves full dossier summary data for all stakeholders in the current challenge."""
+    username = ws.query_params["username"]
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
@@ -643,12 +691,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "description": item.description,
             })
 
-    username = ""
-    if ws:
-        if hasattr(ws, "query_params") and isinstance(ws.query_params, dict):
-            username = ws.query_params.get("username", "")
-        elif hasattr(ws, "query_params"):
-            username = ws.query_params.get("username", "")
+
 
     session_archs = {}
     if username:

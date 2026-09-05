@@ -11,7 +11,7 @@
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
       "type": "requirement",
-      "description": "Model Monica requires that model training leverages deep learning architectures.",
+      "description": "Model Monica proposes a complex ML model architecture leveraging deep learning to maximize predictive accuracy.",
       "id": "req_0_model_monica_requirement_1"
     },
     {
@@ -46,7 +46,7 @@
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "type": "negotiable_preference",
-      "description": "Efficiency Emilia prefers simpler models if they provide comparable business value.",
+      "description": "Efficiency Emilia argues that a simpler model is sufficient and will generate more business value.",
       "id": "req_0_efficiency_emilia_negotiable_preference_6"
     },
     {
@@ -67,7 +67,7 @@
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "Efficiency Emilia requires the platform to be hosted and managed by a 3rd party to minimize development overhead.",
+      "description": "Efficiency Emilia proposes using a cloud-based 3rd-party managed MLOps platform to minimize development overhead.",
       "id": "req_1_efficiency_emilia_requirement_9"
     },
     {
@@ -95,7 +95,7 @@
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
       "type": "requirement",
-      "description": "Requirements Reuben requires that the architecture design supports custom plugin integrations.",
+      "description": "Requirements Reuben argues for designing and developing a custom platform to ensure project requirements are fully met.",
       "id": "req_1_requirements_reuben_requirement_13"
     },
     {
@@ -172,7 +172,7 @@
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
       "type": "requirement",
-      "description": "Data Dave mandates that data snapshot versioning must be immutable to ensure reproducibility of training sets.",
+      "description": "Data Dave advocates creating versioned immutable snapshots of input signals to prevent unpredictable performance degradation.",
       "id": "req_2_data_dave_hard_constraint_24"
     },
     {
@@ -221,7 +221,7 @@
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Reliability Ruth is worried that outdated data signal snapshots will silently degrade model predictions.",
+      "description": "Reliability Ruth warns that fixed snapshots become stale and degrade model performance without regular retraining.",
       "id": "req_2_reliability_ruth_personal_friction_31"
     },
     {
@@ -291,7 +291,7 @@
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
       "type": "requirement",
-      "description": "Data Dave requires strict validation rules to be enforced for feature inputs.",
+      "description": "Data Dave warns of feature entanglement and proposes an ensemble model with independent signals.",
       "id": "req_3_data_dave_requirement_41"
     },
     {
@@ -333,7 +333,7 @@
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
       "type": "personal_friction",
-      "description": "Model Monica is concerned that complex ensemble modeling will lead to overfitting and debug complexity.",
+      "description": "Model Monica warns that ensemble models add excessive complexity that may hurt performance and debugging.",
       "id": "req_3_model_monica_personal_friction_47"
     },
     {
@@ -396,7 +396,7 @@
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
       "type": "requirement",
-      "description": "Automation Alex mandates that all production model updates must be triggered and validated via CI/CD pipelines.",
+      "description": "Automation Alex proposes a fully automated deployment and validation pipeline to comply with CI/CD.",
       "id": "req_4_automation_alex_hard_constraint_56"
     },
     {
@@ -445,7 +445,7 @@
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
       "type": "personal_friction",
-      "description": "Requirements Reuben is worried that fully automated validation pipelines will ignore critical fairness issues.",
+      "description": "Requirements Reuben warns that fully automated validation may violate responsible AI practices and miss fairness issues.",
       "id": "req_4_requirements_reuben_personal_friction_63"
     },
     {
@@ -508,7 +508,7 @@
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
       "type": "requirement",
-      "description": "Efficiency Emilia mandates that retraining triggers must activate automatically when business metrics drop below baseline.",
+      "description": "Efficiency Emilia is concerned about business impact and demands rapid retraining when accuracy drops.",
       "id": "req_5_efficiency_emilia_hard_constraint_72"
     },
     {
@@ -557,7 +557,7 @@
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
       "type": "personal_friction",
-      "description": "Reliability Ruth is anxious that automated retraining without diagnostics will deploy corrupt weights.",
+      "description": "Reliability Ruth warns that hasty retraining without diagnosis and validation risks locking in bad patterns.",
       "id": "req_5_reliability_ruth_personal_friction_79"
     },
     {

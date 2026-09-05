@@ -17,7 +17,8 @@
           "stakeholder_role",
           "artifact_type",
           "content",
-          "wrong_descriptions"
+          "wrong_descriptions",
+          "is_known"
         ],
         "properties": {
           "id": {
@@ -73,6 +74,11 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "is_known": {
+            "type": "boolean",
+            "title": "Is Known by Start of Round",
+            "description": "Describes if an intel item is known by the start of the round."
           }
         }
       }

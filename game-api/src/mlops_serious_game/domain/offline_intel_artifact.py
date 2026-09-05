@@ -17,3 +17,4 @@ class OfflineIntelArtifact(BaseModel):
         default_factory=dict,
         description="Map of miscategorized RequirementType values to their wrong description strings"
     )
+    is_known: bool = Field(description="Describes if an intel item is known by the start of the round")

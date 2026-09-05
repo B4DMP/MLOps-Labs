@@ -18,6 +18,7 @@ from mlops_serious_game.domain.requirement import StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
+    load_known_intel_items_for_challenge,
     get_default_stakeholder_archetypes,
 )
 from mlops_serious_game.application.dialogue_options_service import (
@@ -554,6 +555,8 @@ async def handle_state_update_request(
                         payload={"progressionIndex": 4}
                     )
                     return (phase_id,challenge_id+1,0)
+
+                load_known_intel_items_for_challenge(challenge, username)
                 
                 #calculate new metric values
                 new_metric_values=[]    

@@ -15,6 +15,7 @@ from mlops_serious_game.application.action_card_service.service import (
 )
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
+    load_known_intel_items_for_challenge,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
     tag_stakeholder_convincer_archetype,
@@ -40,6 +41,8 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
 
     # Clear previous challenge intel items when starting offline intel gathering phase
     await clear_intel_items_for_user(websocket)
+    # Load known dispute intel items into DB as verified for the new challenge
+    load_known_intel_items_for_challenge(curr_challenge, username)
 
     artifacts = await generate_offline_intel_artifacts(curr_challenge, username=username)
     await manager.send_event(
