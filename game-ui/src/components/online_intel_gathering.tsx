@@ -7,7 +7,7 @@ import { MetricsContext } from "./MetricProvider";
 import styles from "./online_intel_gathering.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
+import StakeholderInteractionArea, { type ChatMsg, type RevealedIntel } from "./StakeholderInteractionArea";
 import PerformanceDashboard from "./PerformanceDashboard";
 import EngagementCards from "./EngagementCards";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
@@ -106,6 +106,8 @@ export default function OnlineIntelGathering({
 
   // Active Stakeholder & Speech Bubble
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("st_security");
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  const inspectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [_stakeholderResponses, setStakeholderResponses] = useState<Record<string, string>>({
     st_security: "We must ensure strict data privacy before approving any deployment pipeline.",
     st_data_sci: "Our model latency needs to remain under 50ms for live inferencing.",
@@ -281,6 +283,44 @@ export default function OnlineIntelGathering({
     processSpeechQueue();
   };
 
+  const handleInspectIntel = (intel: RevealedIntel, stakeholderId?: string) => {
+    let targetIntelId = intel.id || intel.requirement_id || intel.description || "";
+    let targetStakeholderId = intel.stakeholder_id || stakeholderId;
+
+    if (dossierData && dossierData.length > 0) {
+      for (const st of dossierData) {
+        const matchingItem = st.intel_items?.find(
+          (item) =>
+            (intel.id && (item.id === intel.id || item.requirement_id === intel.id)) ||
+            (intel.requirement_id && (item.requirement_id === intel.requirement_id || item.id === intel.requirement_id)) ||
+            (intel.description && item.description === intel.description)
+        );
+        if (matchingItem) {
+          targetIntelId = matchingItem.id || matchingItem.requirement_id || targetIntelId;
+          targetStakeholderId = targetStakeholderId || st.stakeholder_id;
+          break;
+        }
+      }
+    }
+
+    if (targetStakeholderId) {
+      setSelectedStakeholderId(targetStakeholderId);
+    }
+
+    if (inspectTimerRef.current) {
+      clearTimeout(inspectTimerRef.current);
+    }
+    // Briefly reset to ensure React effect fires even if the same intel item is clicked again
+    setHighlightedIntelId(null);
+    setTimeout(() => {
+      setHighlightedIntelId(targetIntelId);
+      inspectTimerRef.current = setTimeout(() => {
+        setHighlightedIntelId((curr) => (curr === targetIntelId ? null : curr));
+      }, 5000);
+    }, 10);
+  };
+
+
   // Clear speech timers on unmount
   useEffect(() => {
     return () => {
@@ -289,6 +329,7 @@ export default function OnlineIntelGathering({
       if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
       if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
       if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+      if (inspectTimerRef.current) clearTimeout(inspectTimerRef.current);
     };
   }, []);
 
@@ -711,6 +752,7 @@ export default function OnlineIntelGathering({
                   isEmbedded={true}
                   dossierData={dossierData || []}
                   activeStakeholderId={selectedStakeholderId || activeStakeholderId}
+                  highlightedIntelId={highlightedIntelId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
                   onClose={() => { }}
@@ -981,6 +1023,7 @@ export default function OnlineIntelGathering({
                       onHoverCard={() => { }}
                       showStakeholderList={false}
                       showDialogueOptions={false}
+                      onInspectIntel={handleInspectIntel}
                     />
                     {/* Maximize / Minimize button */}
                     <button

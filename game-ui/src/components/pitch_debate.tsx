@@ -897,6 +897,14 @@ export default function PitchDebate({
                       onHoverCard={() => { }}
                       showStakeholderList={false}
                       showDialogueOptions={false}
+                      onInspectIntel={(intel, stId) => {
+                        const targetOpt = {
+                          intel_item_id: intel.id || intel.requirement_id,
+                          intel_stakeholder_id: intel.stakeholder_id || stId,
+                          intel_stakeholder_name: intel.stakeholder_name,
+                        };
+                        handleInspectIntel(targetOpt as any);
+                      }}
                     />
                     {/* Maximize / Minimize button */}
                     <button

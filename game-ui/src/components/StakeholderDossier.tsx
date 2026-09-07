@@ -248,7 +248,8 @@ export default function StakeholderDossier({
           item.id === intelId ||
           item.requirement_id === intelId ||
           String(item.id) === String(intelId) ||
-          String(item.requirement_id) === String(intelId)
+          String(item.requirement_id) === String(intelId) ||
+          (item.description && item.description === intelId)
       )
     );
   };
@@ -292,7 +293,8 @@ export default function StakeholderDossier({
       const el =
         document.getElementById(`intel-sticky-${highlightedIntelId}`) ||
         document.querySelector(`[data-intel-id="${highlightedIntelId}"]`) ||
-        document.querySelector(`[data-requirement-id="${highlightedIntelId}"]`);
+        document.querySelector(`[data-requirement-id="${highlightedIntelId}"]`) ||
+        (highlightedIntelId ? document.querySelector(`[data-intel-description="${CSS.escape(highlightedIntelId)}"]`) : null);
 
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -762,12 +764,18 @@ export default function StakeholderDossier({
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
-                (noteId === highlightedIntelId || item.id === highlightedIntelId || item.requirement_id === highlightedIntelId)
+                (noteId === highlightedIntelId ||
+                  item.id === highlightedIntelId ||
+                  item.requirement_id === highlightedIntelId ||
+                  (item.description && item.description === highlightedIntelId))
               );
               const isFadingOut = Boolean(
                 !isHighlighted &&
                 fadingOutIntelId &&
-                (noteId === fadingOutIntelId || item.id === fadingOutIntelId || item.requirement_id === fadingOutIntelId)
+                (noteId === fadingOutIntelId ||
+                  item.id === fadingOutIntelId ||
+                  item.requirement_id === fadingOutIntelId ||
+                  (item.description && item.description === fadingOutIntelId))
               );
 
               return (
@@ -776,6 +784,7 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-requirement-id={item.requirement_id}
+                  data-intel-description={item.description}
                   className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""}`}
                 >
                   <div className={styles.paperclip} />

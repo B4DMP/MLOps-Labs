@@ -65,6 +65,7 @@ interface StakeholderInteractionAreaProps {
   showDialogueOptions?: boolean;
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
+  onInspectIntel?: (intel: RevealedIntel, stakeholderId?: string) => void;
 }
 
 export default function StakeholderInteractionArea({
@@ -81,6 +82,7 @@ export default function StakeholderInteractionArea({
   showDialogueOptions = true,
   isMaximized = false,
   onToggleMaximize,
+  onInspectIntel,
 }: StakeholderInteractionAreaProps) {
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
@@ -223,49 +225,65 @@ export default function StakeholderInteractionArea({
                       </Message>
                       {item.revealed_intel && item.revealed_intel.length > 0 && (
                         <div
-                          className="d-flex flex-column justify-content-center align-items-center w-100 gap-2"
-                          style={{ margin: "12px 0" }}
+                          className={`d-flex flex-column justify-content-center align-items-center ${styles.revealedIntelContainer} gap-2`}
                         >
-                          {item.revealed_intel.map((intel, idx) => (
-                            <div
-                              key={intel.id || intel.requirement_id || idx}
-                              className="transparent-div"
-                              style={{ height: "40px", display: "flex", alignItems: "center", padding: "0 16px" }}
-                            >
-                              <p
-                                className="text-center m-0"
-                                style={{ color: "#c3c3c3ff" }}
+                          {item.revealed_intel.map((intel, idx) => {
+                            const isClickable = Boolean(onInspectIntel);
+                            return (
+                              <div
+                                key={intel.id || intel.requirement_id || idx}
+                                className={`transparent-div ${styles.indicationPill} ${isClickable ? styles.revealedIntelItemClickable : ""}`}
+                                onClick={() => {
+                                  if (onInspectIntel) {
+                                    onInspectIntel(intel, intel.stakeholder_id || item.id);
+                                  }
+                                }}
+                                role={isClickable ? "button" : undefined}
+                                tabIndex={isClickable ? 0 : undefined}
+                                onKeyDown={(e) => {
+                                  if (isClickable && (e.key === "Enter" || e.key === " ")) {
+                                    e.preventDefault();
+                                    onInspectIntel!(intel, intel.stakeholder_id || item.id);
+                                  }
+                                }}
+                                title={
+                                  isClickable
+                                    ? `Click to highlight this note in ${intel.stakeholder_name || "stakeholder"}'s dossier`
+                                    : intel.description
+                                }
                               >
-                                {intel.is_corrected ? "corrected intel item " : "revealed intel item "}
-                                <span
-                                  style={{ fontWeight: "bold", color: "#60a5fa" }}
-                                  title={intel.description}
-                                >
-                                  {intel.description.length > 50 ? `${intel.description.slice(0, 50)}...` : intel.description}
-                                </span>{" "}
-                                <span
-                                  className="badge bg-success ms-1"
-                                  style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
-                                >
-                                  verified
-                                </span>
-                              </p>
-                            </div>
-                          ))}
+                                <div className={styles.indicationText}>
+                                  <span className={styles.revealedIntelLabel}>
+                                    {intel.is_corrected ? "corrected intel item: " : "revealed intel item: "}
+                                  </span>
+                                  <span
+                                    style={{ fontWeight: "bold", color: "#60a5fa" }}
+                                    title={intel.description}
+                                  >
+                                    {intel.description.length > 60 ? `${intel.description.slice(0, 60)}...` : intel.description}
+                                  </span>
+                                  {isClickable && (
+                                    <Icon
+                                      icon="ph:arrow-square-out-bold"
+                                      className={styles.revealedIntelInspectIcon}
+                                      style={{ fontSize: "0.85rem", color: "#60a5fa" }}
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                       {item.convincer_verification && (
                         <div
-                          className="d-flex flex-column justify-content-center align-items-center w-100 gap-2"
-                          style={{ margin: "12px 0" }}
+                          className={`d-flex flex-column justify-content-center align-items-center ${styles.revealedIntelContainer} gap-2`}
                         >
                           <div
-                            className="transparent-div"
-                            style={{ minHeight: "40px", display: "flex", alignItems: "center", padding: "6px 16px" }}
+                            className={`transparent-div ${styles.indicationPill}`}
                           >
-                            <p
-                              className="text-center m-0"
-                              style={{ color: "#c3c3c3ff", fontSize: "0.85rem" }}
+                            <div
+                              className={styles.indicationText}
                             >
                               {item.convincer_verification.was_correct ? (
                                 <>
@@ -305,38 +323,35 @@ export default function StakeholderInteractionArea({
                                   </span>
                                 </>
                               )}
-                            </p>
+                            </div>
                           </div>
                         </div>
                       )}
                       {item.ac_id !== -1 && actionCards[item.ac_id] && (
                         <div
-                          className={`d-flex justify-content-center align-items-center w-100 ${item.ac_id === 0 && "intro5"}`}
+                          className={`d-flex justify-content-center align-items-center ${styles.revealedIntelContainer} ${item.ac_id === 0 && "intro5"}`}
                           {...(item.ac_id === 0 ? {
                             "data-intro-group": "intro5",
                             "data-intro": "If one or multiple stakeholders propose a concrete action plan to mitigate the challenge, the game automatically generates an action card that reflects the stakeholders' proposals.",
                             "data-step": "2",
                             "data-position": "bottom"
                           } : {})}
-                          style={{ margin: "15px 0" }}
                         >
                           <div
-                            className="transparent-div"
-                            style={{ height: "40px", display: "flex", alignItems: "center" }}
+                            className={`transparent-div ${styles.indicationPill}`}
                           >
-                            <p
-                              className="text-center m-0"
-                              style={{ color: "#c3c3c3ff" }}
+                            <div
+                              className={styles.indicationText}
                             >
-                              generated action card{" "}
+                              <span>generated action card </span>
                               <span
-                                style={{ fontWeight: "bold", cursor: "pointer" }}
+                                style={{ fontWeight: "bold", cursor: "pointer", color: "#60a5fa" }}
                                 onMouseEnter={() => onHoverCard?.(item.ac_id)}
                                 onMouseLeave={() => onHoverCard?.(null)}
                               >
                                 {actionCards[item.ac_id]?.title}
-                              </span>{" "}
-                            </p>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       )}
