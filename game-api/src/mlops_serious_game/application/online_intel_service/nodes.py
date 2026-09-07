@@ -9,6 +9,7 @@ from mlops_serious_game.application.intel_handler import (
     retrieve_intel_items,
     store_intel_item,
 )
+from mlops_serious_game.application.message_parser import sanitize_dashes, sanitize_messages
 from mlops_serious_game.application.online_intel_service.chains import (
     get_player_engagement_chain,
     get_stakeholder_engagement_chain,
@@ -40,7 +41,8 @@ async def generate_player_message_node(state: OnlineIntelState, config: Runnable
 
     # Format recent conversation history
     history_msgs = state.get("messages", [])
-    history_str = "\n".join([f"{msg.type}: {msg.content}" for msg in history_msgs[-6:]]) if history_msgs else "No previous messages."
+    parsed_history_msgs = sanitize_messages(history_msgs)
+    history_str = "\n".join([msg.content for msg in parsed_history_msgs[-6:]]) if parsed_history_msgs else "No previous messages."
 
     chain = get_player_engagement_chain()
     player_msg = await chain.ainvoke({
@@ -52,6 +54,7 @@ async def generate_player_message_node(state: OnlineIntelState, config: Runnable
     })
 
     clean_player_msg = player_msg.strip().strip('"').strip("'")
+    clean_player_msg = sanitize_dashes(clean_player_msg)
 
     configurable = config.get("configurable", {}) if config else {}
     ws = configurable.get("ws")
@@ -143,6 +146,20 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
     }
 
 
+def _format_revealed_intel_item(item: dict[str, Any]) -> str:
+    cat = item.get("categorized_type") or item.get("type")
+    if hasattr(cat, "value"):
+        cat = cat.value
+    cat_str = str(cat).lower()
+    desc = item.get("description", "")
+    if cat_str == "negotiable_preference":
+        return f"- [Negotiable Preference (flexible preference open to compromise, NOT non-negotiable)]: {desc}"
+    elif cat_str == "personal_friction":
+        return f"- [Personal Friction (interpersonal tension or team dynamic concern)]: {desc}"
+    else:
+        return f"- [Core Requirement (mandatory requirement)]: {desc}"
+
+
 async def generate_stakeholder_responses_node(state: OnlineIntelState, config: RunnableConfig = None) -> dict[str, Any]:
     """Generates LLM responses for each addressed stakeholder incorporating the revealed intel items."""
     revealed_map = state.get("revealed_intel_by_stakeholder", {})
@@ -169,9 +186,9 @@ async def generate_stakeholder_responses_node(state: OnlineIntelState, config: R
 
         st_intel_items = revealed_map.get(st_id, [])
         if st_intel_items:
-            revealed_text = "\n".join([f"- {item['description']}" for item in st_intel_items])
+            revealed_text = "\n".join(list(map(_format_revealed_intel_item, st_intel_items)))
         else:
-            revealed_text = "None. (No new or unrevealed requirements to disclose at this time)."
+            revealed_text = "None. (No new or unrevealed stances or requirements to disclose at this time)."
 
         constraints = getattr(st, "constraints", getattr(st, "requirements", ""))
 
@@ -187,6 +204,7 @@ async def generate_stakeholder_responses_node(state: OnlineIntelState, config: R
         })
 
         clean_response = response_text.strip().strip('"').strip("'")
+        clean_response = sanitize_dashes(clean_response)
         
         st_resp = {
             "stakeholder_id": st.id,

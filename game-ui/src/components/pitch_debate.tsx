@@ -675,7 +675,7 @@ export default function PitchDebate({
         >
           {/* Main Board Grid: Left Column = Stakeholder Dossier, Right Column = Pitch Deck & Chat */}
           <div className="row g-2 align-items-stretch flex-grow-1 h-100" style={{ minHeight: 0 }}>
-            
+
             {/* LEFT COLUMN: Stakeholder Dossier (Constantly Open & Embedded) */}
             <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, zIndex: 1 }}>
               <div className={`flex-grow-1 ${styles.dossierContainer}`}>
@@ -696,23 +696,20 @@ export default function PitchDebate({
 
             {/* RIGHT COLUMN: Boardroom Table + Chat + Dialogue Options */}
             <div
-              className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${
-                isAnySpeechActive || Boolean(openDropdownOptionId) ? styles.overflowVisibleSpeech : "overflow-hidden"
-              }`}
+              className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${isAnySpeechActive || Boolean(openDropdownOptionId) ? styles.overflowVisibleSpeech : "overflow-hidden"
+                }`}
               style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1500 : (openDropdownOptionId ? 2500 : 1) }}
             >
               {/* Upper Section: Challenge & Pitch Deck Table (Left) + Chat History (Right) */}
               <div
-                className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
-                  isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
-                }`}
+                className={`flex-grow-1 row g-2 align-items-stretch position-relative ${isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+                  }`}
                 style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1600 : 1 }}
               >
                 {/* Left: Challenge Card + Pitch Deck Boardroom Scene */}
                 <div
-                  className={`${styles.boardCol} ${
-                    isChatMaximized ? styles.boardColCollapsed : ""
-                  } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
+                  className={`${styles.boardCol} ${isChatMaximized ? styles.boardColCollapsed : ""
+                    } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
                   style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1700 : 1 }}
                 >
                   {/* 1. Challenge Description Card above table */}
@@ -732,36 +729,32 @@ export default function PitchDebate({
                     style={{ zIndex: isAnySpeechActive ? 1800 : 2, overflow: isAnySpeechActive ? "visible" : undefined }}
                   >
                     <div
-                      className={`${styles.pitchDeckTable} ${
-                        isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""
-                      }`}
+                      className={`${styles.pitchDeckTable} ${isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""
+                        }`}
                     >
                       {/* Top Row: Stakeholders sitting behind the table */}
                       {topStakeholders.length > 0 && (
                         <div
-                          className={`${styles.tableTopSeating} ${
-                            topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
+                          className={`${styles.tableTopSeating} ${topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                            ? styles.seatingSpeaking
+                            : ""
+                            }`}
                         >
                           {topStakeholders.map((st) => renderSeatedStakeholder(st))}
                         </div>
                       )}
 
                       {/* Middle Section: Left Seat, Central Pitched Action Card, Right Seat */}
-                      <div className={`${styles.tableCenterSurface} ${
-                        [...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
-                          ? styles.tableCenterSurfaceSpeaking
-                          : ""
-                      }`}>
+                      <div className={`${styles.tableCenterSurface} ${[...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
+                        ? styles.tableCenterSurfaceSpeaking
+                        : ""
+                        }`}>
                         {/* Left Seat */}
                         <div
-                          className={`${styles.tableSideSeating} ${
-                            leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
+                          className={`${styles.tableSideSeating} ${leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                            ? styles.seatingSpeaking
+                            : ""
+                            }`}
                         >
                           {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
                         </div>
@@ -790,11 +783,10 @@ export default function PitchDebate({
 
                         {/* Right Seat */}
                         <div
-                          className={`${styles.tableSideSeating} ${
-                            rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
+                          className={`${styles.tableSideSeating} ${rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                            ? styles.seatingSpeaking
+                            : ""
+                            }`}
                         >
                           {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
                         </div>
@@ -846,9 +838,8 @@ export default function PitchDebate({
                       {/* Active Player Speech Bubble on Pitch Deck */}
                       {activePlayerSpeakingState && (
                         <div
-                          className={`${styles.playerTableSpeechBubble} ${
-                            activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
-                          }`}
+                          className={`${styles.playerTableSpeechBubble} ${activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                            }`}
                           onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
                         >
                           <div className={styles.playerSpeechHeader}>
@@ -874,16 +865,14 @@ export default function PitchDebate({
 
                 {/* Right: Chat History (Spans Full Height) */}
                 <div
-                  className={`${styles.chatCol} ${
-                    isChatMaximized ? styles.chatColMaximized : ""
-                  } d-flex flex-column h-100 overflow-hidden position-relative`}
+                  className={`${styles.chatCol} ${isChatMaximized ? styles.chatColMaximized : ""
+                    } d-flex flex-column h-100 overflow-hidden position-relative`}
                   style={{ minHeight: 0, zIndex: 1 }}
                 >
                   {/* When conversation history is maximized, the challenge fills across the whole upper space */}
                   <div
-                    className={`${styles.maximizedChallengeWrapper} ${
-                      isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
-                    }`}
+                    className={`${styles.maximizedChallengeWrapper} ${isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
+                      }`}
                   >
                     <ChallengeDescriptionCard
                       challengeTitle={challengeTitle}
@@ -931,9 +920,8 @@ export default function PitchDebate({
                 style={{ zIndex: openDropdownOptionId ? 2800 : 20 }}
               >
                 <div
-                  className={`${styles.dialogueOptionsDeck} ${
-                    openDropdownOptionId ? styles.dialogueOptionsDeckOpen : ""
-                  }`}
+                  className={`${styles.dialogueOptionsDeck} ${openDropdownOptionId ? styles.dialogueOptionsDeckOpen : ""
+                    }`}
                   style={{ position: "relative", zIndex: openDropdownOptionId ? 2800 : 20 }}
                 >
                   {/* Header Row */}
@@ -941,7 +929,7 @@ export default function PitchDebate({
                     <div className="d-flex align-items-center gap-2">
                       <Icon icon="ph:chats-circle-bold" className="text-warning" style={{ fontSize: "1.1rem" }} />
                       <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#ffffff" }}>
-                        Dialogue Options & Inquiries
+                        Dialogue Options
                       </span>
                     </div>
 
@@ -949,7 +937,7 @@ export default function PitchDebate({
                       {!isChatEnabled && (
                         <span className="badge bg-warning text-dark d-flex align-items-center gap-1" style={{ fontSize: "0.68rem" }}>
                           <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" style={{ width: "0.7rem", height: "0.7rem" }}></span>
-                          Stakeholders Deliberating...
+                          stakeholders are typing...
                         </span>
                       )}
 
@@ -994,7 +982,7 @@ export default function PitchDebate({
 
                         const intelStakeholderObj = opt.intel_stakeholder_id
                           ? stakeholders[opt.intel_stakeholder_id] ||
-                            activeStakeholders.find((s) => s.id === opt.intel_stakeholder_id)
+                          activeStakeholders.find((s) => s.id === opt.intel_stakeholder_id)
                           : null;
                         const intelStColor = intelStakeholderObj
                           ? getStakeholderColor(intelStakeholderObj)
@@ -1012,11 +1000,9 @@ export default function PitchDebate({
                             <div
                               role="button"
                               tabIndex={isChatEnabled ? 0 : -1}
-                              className={`${styles.dialogueCardContainer} ${
-                                isIntel ? styles.dialogueCardIntel : styles.dialogueCardNoise
-                              } ${!isChatEnabled ? styles.dialogueCardDisabled : ""} ${
-                                isDropdownOpen ? styles.dialogueCardDropdownActive : ""
-                              }`}
+                              className={`${styles.dialogueCardContainer} ${isIntel ? styles.dialogueCardIntel : styles.dialogueCardNoise
+                                } ${!isChatEnabled ? styles.dialogueCardDisabled : ""} ${isDropdownOpen ? styles.dialogueCardDropdownActive : ""
+                                }`}
                               style={{ zIndex: isDropdownOpen ? 3100 : undefined }}
                               onClick={(e) => handleSelectDialogue(opt, e)}
                               onKeyDown={(e) => {
@@ -1039,11 +1025,10 @@ export default function PitchDebate({
                                     <div className="d-flex align-items-center gap-2">
                                       <button
                                         type="button"
-                                        className={`${
-                                          isVerified
-                                            ? styles.dialogueBadgeConfirmedIntel
-                                            : styles.dialogueBadgeUnconfirmedIntel
-                                        } ${styles.dialogueBadgeIntelClickable}`}
+                                        className={`${isVerified
+                                          ? styles.dialogueBadgeConfirmedIntel
+                                          : styles.dialogueBadgeUnconfirmedIntel
+                                          } ${styles.dialogueBadgeIntelClickable}`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleInspectIntel(opt);
@@ -1177,9 +1162,8 @@ export default function PitchDebate({
                                                 <button
                                                   key={st.id}
                                                   type="button"
-                                                  className={`${styles.dropdownMenuItem} ${
-                                                    isSelected ? styles.dropdownMenuItemActive : ""
-                                                  }`}
+                                                  className={`${styles.dropdownMenuItem} ${isSelected ? styles.dropdownMenuItemActive : ""
+                                                    }`}
                                                   onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleSelectNoiseTarget(opt.id, st.id);

@@ -54,15 +54,20 @@ Game Master Directives:
 {% endif %}
 
 IMPORTANT RULES:
-1. USER IDENTITY: The Human user sending messages in the chat is the MLOps Project Manager leading the meeting. Other names in the conversation history (e.g. Willis, Mathis, Dave, Monica) are your fellow colleagues participating in the meeting. Always respond directly to the Project Manager, and refer to your colleagues in the 3rd person if mentioning them. NEVER call or address the Human user by a colleague's name!
+1. USER IDENTITY: The Human user sending messages in the chat is the MLOps Project Manager leading the meeting. Other participants in the conversation are your fellow colleagues participating in the meeting. Always respond directly to the Project Manager, and refer to your colleagues in the 3rd person whenever mentioning them. Whenever referring to or addressing any stakeholder, always use their complete full name. Never address or refer to anyone by only a part of their name. NEVER call or address the Human user by a colleague's name!
 2. INTEL & REQUIREMENT SECRECY RULE: You know your underlying priorities and requirements. However, DO NOT directly state, list, or blurt out what your specific requirements/solutions are unless:
    (a) The Project Manager has just played a dialogue option that satisfies your requirement (in which case you confirm and praise it), OR
    (b) The Project Manager stated a false assumption about you (in which case you correct them and reveal your true requirement).
    Otherwise, discuss your general concerns, risks, and feelings about the situation without giving away the exact solution.
-3. RESPONSE STYLE: Be conversational, professional, and natural. Write as if you are speaking in a project meeting. Your message should sound like a spoken comment in a meeting, not like a formal academic statement. Write the responses without using any EM dashes or EN dashes
-4. BREVITY: Keep your answer brief — at most 2 sentences.
-5. NO TOOLS: Speak directly based on your knowledge and the conversation context. DO NOT USE TOOLS!
-6. IN-CHARACTER ONLY: Output ONLY {{stakeholder_name}}'s spoken dialogue in the meeting. NEVER output meta-commentary, affirmations, or prompt acknowledgments (such as "Understood", "I will maintain a professional tone", "Let's begin", or repeating system rules). Do NOT include your name or prefix at the beginning of your response.
+3. STANCE CATEGORY CONSISTENCY: Always strictly adhere to the true category of your intel items, priorities, and requirements when discussing them:
+   - For Negotiable Preference: Treat it as a flexible preference, workflow choice, or nice-to-have that is open to discussion and compromise. You must NEVER claim, imply, or state that a negotiable preference is non-negotiable, a core requirement, a must-have, or a hard constraint. Always maintain willingness to be flexible or compromise.
+   - For Core Requirement: Treat it as a mandatory, essential operational or technical requirement.
+   - For Personal Friction: Treat it as interpersonal friction, team relationship tension, or emotional concern rather than a technical requirement.
+4. RESPONSE STYLE: Be conversational, professional, and natural. Write as if you are speaking in a project meeting. Your message should sound like a spoken comment in a meeting, not like a formal academic statement.
+5. NO DASHES: Do NOT use any dashes of any kind (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use standard commas (',') or separate sentences with periods ('.') instead.
+6. BREVITY: Keep your answer brief (maximum 2 sentences).
+7. NO TOOLS: Speak directly based on your knowledge and the conversation context. DO NOT USE TOOLS!
+8. IN-CHARACTER ONLY: Output ONLY {{stakeholder_name}}'s spoken dialogue in the meeting. NEVER output meta-commentary, affirmations, or prompt acknowledgments (such as "Understood", "I will maintain a professional tone", "Let's begin", or repeating system rules). Do NOT include your name or prefix at the beginning of your response.
 """
 
 STAKEHOLDER_CHARACTER_CARD = Prompt(
@@ -147,12 +152,12 @@ Conversation History Context:
 
 Instructions:
 1. Write a natural, professional, spoken workplace message from the player's perspective to initiate the engagement action.
-2. Specifically address the targeted stakeholder(s) by name (or say "Hi everyone" / "Hi team" if the engagement targets the entire team).
-3. The message must fit the purpose of the engagement card (e.g., inviting to a 1-on-1 deep dive, probing specific technical constraints/requirements, kicking off a weekly sync, or asking general thoughts/sentiment). Write the responses without using any EM dashes or EN dashes
-
+2. Specifically address the targeted stakeholder(s) by their complete full name. Always use their complete full name and never use only part of their name (or address the entire team if the engagement targets the whole team).
+3. The message must fit the purpose of the engagement card.
 4. Fit the context of the team challenge and recent conversation history.
-5. BREVITY: Keep it very brief — exactly 1 or 2 sentences.
-6. Output ONLY the player's message text without quotes, formatting, or prefixes like "Player:".
+5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for natural pauses instead.
+6. BREVITY: Keep it very brief (exactly 1 or 2 sentences).
+7. Output ONLY the player's message text without quotes, formatting, or prefixes like "Player:".
 """
 
 ONLINE_INTEL_PLAYER_PROMPT = Prompt(
@@ -176,12 +181,17 @@ Information to Reveal:
 {{revealed_intel}}
 
 Instructions:
-1. Respond to the player's message in your natural, spoken workplace persona. Write the response without using any EM dashes or EN dashes
-2. If "Information to Reveal" contains intel items, you MUST naturally describe and communicate that information as part of your answer, expressing your stance, requirements, or constraints.
+1. Respond to the player's message in your natural, spoken workplace persona.
+2. Follow the true category of each revealed intel item strictly:
+   - For Negotiable Preference: Treat it as a flexible preference, personal leaning, or nice-to-have that is open to discussion and compromise. You must NEVER state or imply that a negotiable preference is non-negotiable, a core requirement, a must-have, or a hard constraint.
+   - For Core Requirement: Treat it as an essential, non-negotiable requirement.
+   - For Personal Friction: Treat it as personal friction, relationship tension, or team dynamics concern.
+   Naturally integrate this information into your answer following its true category.
 3. If "Information to Reveal" is empty or indicates no new items, acknowledge the player's message politely in character, stating that you have already shared your main points or have no additional updates right now.
-4. BREVITY: Keep your answer concise — at most {{max_sentences}} sentence{% if max_sentences > 1 %}s{% endif %}.
-5. Output ONLY your direct spoken response. Do NOT include your name, role prefix, or quotation marks. Write the responses without using any EM dashes or EN dashes
-
+4. When mentioning or addressing any fellow stakeholders or colleagues, always use their complete full name and never use only part of their name.
+5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods instead.
+6. BREVITY: Keep your answer concise (at most {{max_sentences}} sentence{% if max_sentences > 1 %}s{% endif %}).
+7. Output ONLY your direct spoken response. Do NOT include your name, role prefix, or quotation marks.
 """
 
 ONLINE_INTEL_STAKEHOLDER_PROMPT = Prompt(

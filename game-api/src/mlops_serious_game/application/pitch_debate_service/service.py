@@ -8,7 +8,7 @@ from opik.integrations.langchain import OpikTracer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from mlops_serious_game.application.intel_handler import determine_dialogue_options
+
 from mlops_serious_game.application.pitch_debate_service.graph import (
     create_pitch_debate_graph,
 )
@@ -247,6 +247,7 @@ async def get_response(
                 or intel_items
                 or []
             )
+            from mlops_serious_game.application.intel_handler import determine_dialogue_options
             next_dialogue_options = determine_dialogue_options(
                 discovered_intel_items=discovered_intels
             )

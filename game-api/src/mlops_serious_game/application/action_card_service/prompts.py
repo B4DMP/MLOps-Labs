@@ -16,7 +16,7 @@ CRITICAL INSTRUCTIONS:
 3. EXCLUSION RULE: Do NOT include ANY information about which stakeholders were involved, mentioned, or satisfied by this action card. Keep the description strictly focused on the technical/operational/organizational execution.
 4. LENGTH: The description MUST be limited to at most two sentences (maximum 2 sentences).
 5. Tone: Realistic, authoritative, and aligned with enterprise MLOps engineering best practices.
-6. Formatting: Do NOT use markdown asterisks or quotes inside the title or description text. Do not use EM or EN dashes."""
+6. Formatting: Do NOT use markdown asterisks or quotes inside the title or description text. Strictly do not use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use standard commas or periods instead."""
 
 
 ACTION_CARD_PROMPT = ChatPromptTemplate.from_messages(

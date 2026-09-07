@@ -8,6 +8,7 @@ from typing import Any, Optional
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+from mlops_serious_game.application.message_parser import sanitize_dashes, sanitize_messages
 from mlops_serious_game.application.pitch_debate_service.chains import (
     get_player_utterance_chain,
     get_stakeholder_response_chain,
@@ -86,29 +87,35 @@ async def player_prompt_node(
             target_st = None
 
     target_st_name = target_st.name if target_st else (target_st_id or "Stakeholder")
-    target_st_first_name = (target_st_name.split()[0].replace(",", "")) if target_st_name else "Team"
     target_st_role = getattr(target_st, "role_description", "") if target_st else ""
 
-    history_msgs = messages[-6:] if len(messages) >= 6 else messages
+    parsed_messages = sanitize_messages(messages)
+    history_msgs = parsed_messages[-6:] if len(parsed_messages) >= 6 else parsed_messages
     history_str = (
-        "\n".join([f"{getattr(m, 'type', 'message')}: {getattr(m, 'content', str(m))}" for m in history_msgs])
+        "\n".join([m.content for m in history_msgs])
         if history_msgs
         else "(Meeting started)"
     )
-    last_msg = messages[-1] if messages else None
+    last_msg = parsed_messages[-1] if parsed_messages else None
     latest_statement = getattr(last_msg, "content", str(last_msg)) if last_msg else "(Meeting started)"
 
     utterance_chain = get_player_utterance_chain()
     if last_selected_option.type == "intel":
+        intel_type_str = str(last_selected_option.intel_type or "requirement").lower()
+        if intel_type_str == "negotiable_preference":
+            type_desc = "negotiable preference (flexible preference open to compromise, NOT non-negotiable)"
+        elif intel_type_str == "personal_friction":
+            type_desc = "personal friction (interpersonal tension or team dynamic concern)"
+        else:
+            type_desc = "core requirement (mandatory, essential requirement)"
         intel_context = (
-            f"Specific claim or constraint to voice: '{last_selected_option.intel_description}'\n"
-            f"Intel type: {last_selected_option.intel_type or 'requirement'}"
+            f"Specific claim or stance to voice: '{last_selected_option.intel_description}'\n"
+            f"Intel type: {type_desc}"
         )
         player_text = await utterance_chain.ainvoke(
             {
                 "challenge": challenge,
                 "target_stakeholder_name": target_st_name,
-                "target_stakeholder_first_name": target_st_first_name,
                 "target_stakeholder_role": target_st_role,
                 "option_type": "intel",
                 "intel_context": intel_context,
@@ -126,7 +133,6 @@ async def player_prompt_node(
             {
                 "challenge": challenge,
                 "target_stakeholder_name": target_st_name,
-                "target_stakeholder_first_name": target_st_first_name,
                 "target_stakeholder_role": target_st_role,
                 "option_type": "corporate_noise",
                 "intel_context": "",
@@ -138,6 +144,7 @@ async def player_prompt_node(
         )
 
     player_text = str(player_text).strip().strip('"')
+    player_text = sanitize_dashes(player_text)
     last_selected_option.text = player_text
     new_msg = HumanMessage(content=player_text)
 
@@ -305,9 +312,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The player's latest response expressed a MISCATEGORIZED intel assumption!\n"
                 f"The player falsely assumed: '{last_selected_intel.categorized_description}'\n"
-                f"Your ACTUAL requirement is: [{intel_intent_val}] '{last_selected_intel.correct_description}'\n"
-                f"You MUST react negatively! Express frustration or irritation at their false claim, "
-                f"explicitly correct their misunderstanding, and EXPLICITLY REVEAL your actual requirement to demand that it is met."
+                f"Your ACTUAL stance is: [{intel_intent_val}] '{last_selected_intel.correct_description}'\n"
+                f"You MUST explicitly correct their misunderstanding and reveal your actual stance following its true category."
             )
             from mlops_serious_game.domain.requirement_factory import RequirementFactory
             req = RequirementFactory.get_requirement(last_selected_intel.requirement_id)
@@ -325,9 +331,9 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             }]
         else:
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - REQUIREMENT SATISFIED]: The player's dialogue option correctly satisfied your requirement: "
+                f"[GAME MASTER SPECIAL INSTRUCTION - STANCE ADDRESSED]: The player's dialogue option correctly addressed your stance: "
                 f"[{intel_intent_val}] '{last_selected_intel.correct_description}'.\n"
-                f"Acknowledge their understanding positively, express satisfaction/relief, and confirm that your requirement has been addressed!"
+                f"Acknowledge their understanding positively and confirm that your stance has been addressed!"
             )
     else:
         last_selected_option = state.get("last_selected_option")
@@ -359,13 +365,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     conversation_chain = get_stakeholder_response_chain()
     raw_messages = state.get("messages", [])
-    input_messages = []
-    for m in raw_messages:
-        if isinstance(m, AIMessage) or getattr(m, "type", "") == "ai":
-            content_str = getattr(m, "content", str(m))
-            input_messages.append(HumanMessage(content=content_str))
-        else:
-            input_messages.append(m)
+    input_messages = sanitize_messages(raw_messages)
 
     if not input_messages:
         input_messages = [HumanMessage(content="The meeting begins. The Project Manager has opened the floor.")]
@@ -393,6 +393,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     )
 
     cleaned_content = (response.content).strip()
+    cleaned_content = sanitize_dashes(cleaned_content)
 
     add_kwargs = {
         **response.additional_kwargs,
