@@ -61,6 +61,8 @@ interface PitchDebateProps {
   dossierData?: StakeholderDossierEntry[];
   intelItems?: IntelItem[];
   onEndPitch?: (passed: boolean) => void;
+  isExistingSave?: boolean;
+  onClearExistingSave?: () => void;
 }
 
 export default function PitchDebate({
@@ -80,6 +82,8 @@ export default function PitchDebate({
   intelItems = [],
   onEndPitch,
   last_ac,
+  isExistingSave = false,
+  onClearExistingSave,
 }: PitchDebateProps) {
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = stakeholderCtx?.stakeholders || {};
@@ -106,8 +110,14 @@ export default function PitchDebate({
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
 
-  // Conversation history: only messages that have actually been spoken (shown in a speech bubble)
-  const [displayedChatMsgs, setDisplayedChatMsgs] = useState<ChatMsg[]>(chat_msgs || []);
+  // Conversation history: only messages that have actually been spoken (shown in a speech bubble),
+  // or existing messages when loading a saved game.
+  const [displayedChatMsgs, setDisplayedChatMsgs] = useState<ChatMsg[]>(() => {
+    if (isExistingSave && chat_msgs && chat_msgs.length > 0) {
+      return chat_msgs;
+    }
+    return [];
+  });
 
   // Speech Queue System
   const speechQueueRef = useRef<Array<{
@@ -121,7 +131,16 @@ export default function PitchDebate({
   const activeSpeechTimerRef = useRef<any>(null);
   const activeFadeTimerRef = useRef<any>(null);
   const activeNextTimerRef = useRef<any>(null);
-  const previousMsgsLengthRef = useRef<number>(chat_msgs?.length || 0);
+  const previousMsgsLengthRef = useRef<number>(
+    isExistingSave && chat_msgs ? chat_msgs.length : 0
+  );
+  const isExistingSaveRef = useRef<boolean>(isExistingSave || false);
+
+  useEffect(() => {
+    if (isExistingSave) {
+      isExistingSaveRef.current = true;
+    }
+  }, [isExistingSave]);
 
   const [activeSpeakingState, setActiveSpeakingState] = useState<{
     stakeholderId: string;
@@ -241,6 +260,18 @@ export default function PitchDebate({
       previousMsgsLengthRef.current = 0;
       return;
     }
+
+    if (isExistingSaveRef.current) {
+      // Restore all existing messages to displayed chat immediately without speech bubbles
+      setDisplayedChatMsgs(chat_msgs);
+      previousMsgsLengthRef.current = chat_msgs.length;
+      isExistingSaveRef.current = false;
+      if (onClearExistingSave) {
+        onClearExistingSave();
+      }
+      return;
+    }
+
     if (chat_msgs.length > previousMsgsLengthRef.current) {
       const newMessages = chat_msgs.slice(previousMsgsLengthRef.current);
       newMessages.forEach((msg) => {
@@ -256,7 +287,7 @@ export default function PitchDebate({
       });
     }
     previousMsgsLengthRef.current = chat_msgs.length;
-  }, [chat_msgs]);
+  }, [chat_msgs, isExistingSave, onClearExistingSave]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -1193,20 +1224,20 @@ export default function PitchDebate({
                                   <div
                                     className={styles.dialogueNoiseStrategyBox}
                                     style={{
-                                      borderLeft: `3.5px solid ${archInfo.color}`,
-                                      borderColor: `color-mix(in srgb, ${archInfo.color} 35%, transparent)`,
+                                      borderLeft: `3.5px solid ${archInfo?.color || "#38bdf8"}`,
+                                      borderColor: `color-mix(in srgb, ${archInfo?.color || "#38bdf8"} 35%, transparent)`,
                                     }}
                                   >
                                     <span
                                       style={{
-                                        color: archInfo.color,
+                                        color: archInfo?.color || "#38bdf8",
                                         fontSize: "0.85rem",
                                         flexShrink: 0,
                                         marginTop: "2px",
                                         lineHeight: 1,
                                       }}
                                     >
-                                      {archInfo.icon}
+                                      {archInfo?.icon || ""}
                                     </span>
                                     <p className={styles.dialogueNoiseStrategyText}>
                                       {opt.archetype?.strategy || "Foster strategic alignment and consensus across stakeholders."}

@@ -83,6 +83,7 @@ function App({ username: _username }: AppProps) {
   const [engagementCards, setEngagementCards] = useState<EngagementCard[]>([]);
   const [attentionTokens, setAttentionTokens] = useState<number>(8);
   const [hasPitchDebateStarted, setHasPitchDebateStarted] = useState<boolean>(false);
+  const [isExistingDebateSave, setIsExistingDebateSave] = useState<boolean>(false);
   const [actionCards, setActionCards] = useState<ActionCard[]>(
     debug
       ? [
@@ -343,16 +344,20 @@ function App({ username: _username }: AppProps) {
       const loopId = data.challenge_loop_id !== undefined ? data.challenge_loop_id : challengeLoopId;
 
       if (isFirstLoad) {
+        currentPhaseRef.current = data["phase_id"];
+        currentChallengeRef.current = data["challenge_id"];
         setCurrentPhase(data["phase_id"]);
         setCurrentChallenge(data["challenge_id"]);
         if (data.pitch_debate_messages && Array.isArray(data.pitch_debate_messages) && data.pitch_debate_messages.length > 0) {
           setChatMsgs(data.pitch_debate_messages);
+          setIsExistingDebateSave(true);
           if (loopId >= 2) {
             setHasPitchDebateStarted(true);
             hasPitchDebateStartedRef.current = true;
           }
         } else {
           setChatMsgs([]);
+          setIsExistingDebateSave(false);
         }
         if (data.online_intel_gathering_messages && Array.isArray(data.online_intel_gathering_messages)) {
           setOnlineIntelChatMsgs(data.online_intel_gathering_messages);
@@ -367,9 +372,12 @@ function App({ username: _username }: AppProps) {
         }
       } else if (data["challenge_id"] !== currentChallengeRef.current || data["phase_id"] !== currentPhaseRef.current) {
         // If we transitioned to a new challenge (round completed after simulation), reset local state
+        currentPhaseRef.current = data["phase_id"];
+        currentChallengeRef.current = data["challenge_id"];
         setCurrentPhase(data["phase_id"]);
         setCurrentChallenge(data["challenge_id"]);
         setChatMsgs([]);
+        setIsExistingDebateSave(false);
         setOnlineIntelChatMsgs([]);
         setAttentionTokens(data.attention_tokens);
         setPlayedCardIdsInPhase([]);
@@ -693,6 +701,7 @@ function App({ username: _username }: AppProps) {
   };
 
   const handleOnlineIntelGatheringContinue = (pitchedCard?: any) => {
+    setIsExistingDebateSave(false);
     let _metric_values: any = [];
     Object.values(metrics).forEach((x) => {
       _metric_values.push(x.value ?? 0);
@@ -823,6 +832,7 @@ function App({ username: _username }: AppProps) {
     });
     setChatMsgs([]);
     setActionCards([]);
+    setIsExistingDebateSave(false);
   };
 
   const handleSelectDialogueOption = (optionId: string, addressedStakeholderId?: string, option?: DialogueOption) => {
@@ -982,6 +992,8 @@ function App({ username: _username }: AppProps) {
                   dialogueOptions={dialogueOptions}
                   chat_msgs={chat_msgs}
                   setChatMsgs={setChatMsgs}
+                  isExistingSave={isExistingDebateSave}
+                  onClearExistingSave={() => setIsExistingDebateSave(false)}
                   playActionCard={playActionCard}
                   getNextChallenge={getNextChallenge}
                   onSelectDialogueOption={handleSelectDialogueOption}

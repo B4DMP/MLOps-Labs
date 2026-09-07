@@ -186,22 +186,13 @@ async def handle_chat_message(
                 for st_id, ev in updated_emotion_values.items()
             }
 
-        user_text = ""
-        if not initial_start and output_state.get("last_selected_option"):
-            user_text = output_state["last_selected_option"].text
-
-        with get_session() as db_session:
-            stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username
-            ).order_by(GameChallenge.id.desc())
-            existing = db_session.scalars(stmt).first()
-            if existing:
-                if user_text:
-                    current_msgs = list(existing.pitch_debate_messages or [])
-                    current_msgs.append({"id": "", "message": user_text, "ac_id": -1})
-                    existing.pitch_debate_messages = current_msgs
-                    flag_modified(existing, "pitch_debate_messages")
-                if serialized_emotion_values:
+        if serialized_emotion_values:
+            with get_session() as db_session:
+                stmt = select(GameChallenge).where(
+                    GameChallenge.user_name == username
+                ).order_by(GameChallenge.id.desc())
+                existing = db_session.scalars(stmt).first()
+                if existing:
                     existing.emotion_values = serialized_emotion_values
                     flag_modified(existing, "emotion_values")
 

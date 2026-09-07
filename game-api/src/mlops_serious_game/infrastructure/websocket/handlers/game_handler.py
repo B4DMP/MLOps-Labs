@@ -555,7 +555,7 @@ async def handle_state_update_request(
                 if attention_tokens is None and challenge:
                     attention_tokens = challenge.attention_tokens
                 if challenge_loop_index == 2:
-                    messages = [{"id": "", "message": "Welcome to the meeting everybody", "ac_id": -1}]
+                    messages = []
             case _:
                 # next challenge / round completion (after simulation phase)
                 await clear_intel_items_for_user(websocket)
