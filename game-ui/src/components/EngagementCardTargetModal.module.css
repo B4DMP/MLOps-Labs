@@ -267,6 +267,57 @@
   justify-content: space-between;
   margin-bottom: 0.65rem;
   flex-shrink: 0;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.stakeholderFilterSelect {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: #ffffff;
+  border: 1.5px solid var(--dialog-border);
+  border-radius: 0.5rem;
+  padding: 0.28rem 1.8rem 0.28rem 0.65rem;
+  min-width: 170px;
+  max-width: 250px;
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.stakeholderFilterSelect:focus {
+  border-color: var(--primary-bg);
+  outline: none;
+  box-shadow: none;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: #ffffff;
+  border: 1.5px dashed var(--dialog-border);
+  border-radius: 0.75rem;
+}
+
+.emptyStateIcon {
+  font-size: 2.5rem;
+  color: var(--border-subtle);
+  margin-bottom: 0.5rem;
 }
 
 .sectionTitle {

@@ -55,12 +55,14 @@ export default function PitchActionCardModal({
   isGenerating = false,
 }: PitchActionCardModalProps) {
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(initialSelectedIntelIds);
+  const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
   const [isClosing, setIsClosing] = useState(false);
 
   // Sync state upon opening or initialSelectedIntelIds change
   useEffect(() => {
     if (isOpen) {
       setSelectedIntelIds(initialSelectedIntelIds);
+      setSelectedStakeholderFilter("ALL");
       setIsClosing(false);
     }
   }, [isOpen, initialSelectedIntelIds]);
@@ -88,6 +90,28 @@ export default function PitchActionCardModal({
 
   const selectedItems = intelItems.filter((item) => selectedIntelIds.includes(item.id));
   const isValidSelection = selectedItems.length >= 1 && selectedItems.length <= 3;
+
+  // Stakeholder filter options derived from intel findings
+  const stakeholderOptions = Array.from(
+    new Set(intelItems.map((item) => item.stakeholder_id).filter(Boolean) as string[])
+  ).map((stId) => {
+    const st = stakeholders[stId];
+    const name = st?.name || intelItems.find((i) => i.stakeholder_id === stId)?.stakeholder_name || stId;
+    const count = intelItems.filter((i) => i.stakeholder_id === stId).length;
+    const selectedCount = selectedIntelIds.filter((id) => {
+      const it = intelItems.find((item) => item.id === id);
+      return it && it.stakeholder_id === stId;
+    }).length;
+    return { id: stId, name, count, selectedCount };
+  });
+
+  const unassignedCount = intelItems.filter((i) => !i.stakeholder_id).length;
+
+  const filteredIntelItems = intelItems.filter((item) => {
+    if (selectedStakeholderFilter === "ALL") return true;
+    if (selectedStakeholderFilter === "UNASSIGNED") return !item.stakeholder_id;
+    return item.stakeholder_id === selectedStakeholderFilter;
+  });
 
   const handleConfirm = () => {
     if (!isValidSelection || isGenerating) return;
@@ -192,10 +216,41 @@ export default function PitchActionCardModal({
             </div>
           </div>
 
-          {/* Modal Body: Two-Column Layout */}
+          {/* Modal Body: Strategy Banner at Top + Two-Column Layout */}
           <div className={styles.modalBody}>
+            {/* Horizontal Strategy Directive Banner: full width across top of modal body */}
+            <div className={styles.directiveBanner}>
+              <div className={styles.directiveBannerHeader}>
+                <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
+                <span>Proposal Synthesis Strategy</span>
+              </div>
+
+              <div className={styles.directiveStepsGrid}>
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>1</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Select 1 to 3 Findings:</strong> Combine up to 3 Intel findings discovered from stakeholder research into your Action Card.
+                  </div>
+                </div>
+
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>2</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Address Conflicting Stances:</strong> Targeting requirements from multiple stakeholders increases stakeholder consensus in the debate.
+                  </div>
+                </div>
+
+                <div className={styles.directiveStepItem}>
+                  <span className={styles.stepBadge}>3</span>
+                  <div className={styles.directiveStepContent}>
+                    <strong>Verified Impact:</strong> Verified findings carry higher certainty and sway during stakeholder pitch deliberations.
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className={styles.dossierGrid}>
-              {/* Left Column: Action Card Synthesized Preview & Rules */}
+              {/* Left Column: Action Card Synthesized Preview */}
               <div className={styles.previewColumn}>
                 {/* Synthesized Action Card Preview */}
                 <div className={styles.synthesizedCard}>
@@ -271,50 +326,63 @@ export default function PitchActionCardModal({
                     )}
                   </div>
                 </div>
-
-                {/* Directive & Rules Card */}
-                <div className={styles.directiveCard}>
-                  <div className={styles.directiveHeader}>
-                    <Icon icon="ph:list-checks-bold" className={styles.directiveIcon} />
-                    <span>Proposal Synthesis Strategy</span>
-                  </div>
-
-                  <div className={styles.directiveList}>
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>1</span>
-                      <div>
-                        <strong>Select 1 to 3 Findings:</strong> Combine up to 3 Intel findings discovered from stakeholder research into your Action Card.
-                      </div>
-                    </div>
-
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>2</span>
-                      <div>
-                        <strong>Address Conflicting Stances:</strong> Targeting requirements from multiple stakeholders increases stakeholder consensus in the debate.
-                      </div>
-                    </div>
-
-                    <div className={styles.directiveItem}>
-                      <span className={styles.stepBadge}>3</span>
-                      <div>
-                        <strong>Verified Impact:</strong> Verified findings carry higher certainty and sway during stakeholder pitch deliberations.
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column: Intel Findings Selection Grid */}
               <div className={styles.selectionColumn}>
                 <div className={styles.selectionHeader}>
-                  <h6 className={styles.sectionTitle}>
-                    <Icon icon="ph:notebook-bold" className={styles.sectionIcon} />
-                    <span>Available Dossier Intel Items</span>
-                  </h6>
+                  <div className="d-flex align-items-center gap-2">
+                    <h6 className={styles.sectionTitle}>
+                      <Icon icon="ph:notebook-bold" className={styles.sectionIcon} />
+                      <span>Available Dossier Intel Items</span>
+                    </h6>
+                    {stakeholderOptions.length > 0 && (
+                      <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
+                        {filteredIntelItems.length} of {intelItems.length}
+                      </span>
+                    )}
+                  </div>
 
-                  <span className="small text-muted">
-                    Click to toggle inclusion (max 3)
-                  </span>
+                  <div className="d-flex align-items-center gap-2">
+                    {stakeholderOptions.length > 0 && (
+                      <div className="d-flex align-items-center gap-1">
+                        <label htmlFor="stakeholder-filter" className={styles.filterLabel}>
+                          <Icon icon="ph:funnel-bold" className="me-1" />
+                          Stakeholder:
+                        </label>
+                        <select
+                          id="stakeholder-filter"
+                          className={`form-select form-select-sm ${styles.stakeholderFilterSelect}`}
+                          value={selectedStakeholderFilter}
+                          onChange={(e) => setSelectedStakeholderFilter(e.target.value)}
+                        >
+                          <option value="ALL">All Stakeholders ({intelItems.length})</option>
+                          {stakeholderOptions.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.name} ({opt.count}{opt.selectedCount > 0 ? ` • ${opt.selectedCount} selected` : ""})
+                            </option>
+                          ))}
+                          {unassignedCount > 0 && (
+                            <option value="UNASSIGNED">General / Unassigned ({unassignedCount})</option>
+                          )}
+                        </select>
+                        {selectedStakeholderFilter !== "ALL" && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary py-1 px-2"
+                            style={{ fontSize: "0.72rem" }}
+                            onClick={() => setSelectedStakeholderFilter("ALL")}
+                            title="Reset filter to show all stakeholders"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <span className="small text-muted ms-1">
+                      (max 3)
+                    </span>
+                  </div>
                 </div>
 
                 <div className={styles.cardsScrollContainer}>
@@ -326,9 +394,24 @@ export default function PitchActionCardModal({
                         Play Engagement Cards to research and uncover stakeholder stances.
                       </p>
                     </div>
+                  ) : filteredIntelItems.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
+                      <h6 className="fw-bold text-dark mb-1">No Intel for this Stakeholder</h6>
+                      <p className="small text-muted mb-2">
+                        No discovered intel items match the selected stakeholder filter.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setSelectedStakeholderFilter("ALL")}
+                      >
+                        Show All Intel Items
+                      </button>
+                    </div>
                   ) : (
                     <div className={styles.intelGrid}>
-                      {intelItems.map((item) => {
+                      {filteredIntelItems.map((item) => {
                         const isSelected = selectedIntelIds.includes(item.id);
                         const catType = item.categorized_type || (item as any).type || "requirement";
                         const catDetails = getCategoryDetails(catType);

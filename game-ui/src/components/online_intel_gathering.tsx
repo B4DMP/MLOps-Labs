@@ -703,7 +703,7 @@ export default function OnlineIntelGathering({
           {/* Main Board Grid: Left Column = Stakeholder Dossier, Right Column = Pitch Deck & Chat */}
           <div className="row g-2 align-items-stretch flex-grow-1 h-100" style={{ minHeight: 0 }}>
             {/* LEFT COLUMN: Stakeholder Dossier (Constantly Open & Embedded) */}
-            <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, zIndex: 1 }}>
+            <div className="col-12 col-lg-4 d-flex flex-column h-100 position-relative" style={{ minHeight: 0, minWidth: 0, zIndex: 1 }}>
               <div className={`flex-grow-1 ${styles.dossierContainer}`}>
                 <StakeholderDossier
                   isOpen={true}
@@ -723,7 +723,7 @@ export default function OnlineIntelGathering({
               className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${
                 isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
               }`}
-              style={{ minHeight: 0, zIndex: isAnySpeechActive ? 1500 : 1 }}
+              style={{ minHeight: 0, minWidth: 0, zIndex: isAnySpeechActive ? 1500 : 1 }}
             >
               {/* Drop zone covers everything ABOVE the engagement cards */}
               <div
@@ -999,7 +999,7 @@ export default function OnlineIntelGathering({
               </div>{/* end drop zone */}
 
               {/* Dedicated Engagement Cards Deck (OUTSIDE the drop zone) */}
-              <div className="flex-shrink-0">
+              <div className="w-100 flex-shrink-0" style={{ minWidth: 0, maxWidth: "100%" }}>
                 <EngagementCards
                   attentionTokens={attentionTokens}
                   cards={engagementCards}

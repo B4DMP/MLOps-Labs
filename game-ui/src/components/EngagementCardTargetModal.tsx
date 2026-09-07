@@ -66,6 +66,7 @@ export default function EngagementCardTargetModal({
 }: EngagementCardTargetModalProps) {
   const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([]);
   const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);
+  const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
   const [isClosing, setIsClosing] = useState(false);
 
   // Reset selections upon modal opening or card switch
@@ -80,6 +81,7 @@ export default function EngagementCardTargetModal({
         setSelectedStakeholderIds([]);
       }
       setSelectedIntelId(null);
+      setSelectedStakeholderFilter("ALL");
       setIsClosing(false);
     }
   }, [isOpen, card?.id, availableStakeholderList, isStakeholderActive]);
@@ -140,6 +142,24 @@ export default function EngagementCardTargetModal({
 
   // Filter out already targeted stakeholders for the card
   const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
+
+  // Stakeholder filter options for intel verification items
+  const stakeholderOptions = Array.from(
+    new Set(intelItems.map((item) => item.stakeholder_id).filter(Boolean) as string[])
+  ).map((stId) => {
+    const st = stakeholders[stId];
+    const name = st?.name || intelItems.find((i) => i.stakeholder_id === stId)?.stakeholder_name || stId;
+    const count = intelItems.filter((i) => i.stakeholder_id === stId).length;
+    return { id: stId, name, count };
+  });
+
+  const unassignedCount = intelItems.filter((i) => !i.stakeholder_id).length;
+
+  const filteredIntelItems = intelItems.filter((item) => {
+    if (selectedStakeholderFilter === "ALL") return true;
+    if (selectedStakeholderFilter === "UNASSIGNED") return !item.stakeholder_id;
+    return item.stakeholder_id === selectedStakeholderFilter;
+  });
 
   const handleToggleStakeholder = (stId: string) => {
     if (targetedStakeholderIds.includes(stId)) return;
@@ -306,15 +326,58 @@ export default function EngagementCardTargetModal({
               {/* Right Column: Stakeholder/Intel Selection Screen */}
               <div className={styles.selectionColumn}>
                 <div className={styles.selectionHeader}>
-                  <h6 className={styles.sectionTitle}>
-                    <Icon
-                      icon={isIntelCard ? "ph:files-bold" : "ph:users-three-bold"}
-                      className={styles.sectionIcon}
-                    />
-                    <span>{isIntelCard ? "Select Intel Item to Verify" : "Available Stakeholders"}</span>
-                  </h6>
+                  <div className="d-flex align-items-center gap-2">
+                    <h6 className={styles.sectionTitle}>
+                      <Icon
+                        icon={isIntelCard ? "ph:files-bold" : "ph:users-three-bold"}
+                        className={styles.sectionIcon}
+                      />
+                      <span>{isIntelCard ? "Select Intel Item to Verify" : "Available Stakeholders"}</span>
+                    </h6>
+                    {isIntelCard && stakeholderOptions.length > 0 && (
+                      <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
+                        {filteredIntelItems.length} of {intelItems.length}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="d-flex align-items-center gap-2">
+                    {isIntelCard && stakeholderOptions.length > 0 && (
+                      <div className="d-flex align-items-center gap-1">
+                        <label htmlFor="target-stakeholder-filter" className={styles.filterLabel}>
+                          <Icon icon="ph:funnel-bold" className="me-1" />
+                          Stakeholder:
+                        </label>
+                        <select
+                          id="target-stakeholder-filter"
+                          className={`form-select form-select-sm ${styles.stakeholderFilterSelect}`}
+                          value={selectedStakeholderFilter}
+                          onChange={(e) => setSelectedStakeholderFilter(e.target.value)}
+                        >
+                          <option value="ALL">All Stakeholders ({intelItems.length})</option>
+                          {stakeholderOptions.map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.name} ({opt.count})
+                            </option>
+                          ))}
+                          {unassignedCount > 0 && (
+                            <option value="UNASSIGNED">General / Unassigned ({unassignedCount})</option>
+                          )}
+                        </select>
+                        {selectedStakeholderFilter !== "ALL" && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary py-1 px-2"
+                            style={{ fontSize: "0.72rem" }}
+                            onClick={() => setSelectedStakeholderFilter("ALL")}
+                            title="Reset filter to show all stakeholders"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     {isAllStakeholdersCard && selectedStakeholderIds.length < requiredAmount && (
                       <button
                         type="button"
@@ -350,73 +413,98 @@ export default function EngagementCardTargetModal({
                 {/* Selection Cards Grid */}
                 <div className={styles.cardsScrollContainer}>
                   {isIntelCard ? (
-                    /* Intel Items Grid */
-                    <div className={styles.intelGrid}>
-                      {intelItems.map((item) => {
-                        const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
-                        const isSelected = selectedIntelId === item.id;
-                        const isSelectable = !isVerified;
-                        const catType = item.categorized_type || "requirement";
-                        const catDetails = getCategoryDetails(catType);
+                    intelItems.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <Icon icon="ph:magnifying-glass-bold" className={styles.emptyStateIcon} />
+                        <h6 className="fw-bold text-dark mb-1">No Intel Items Discovered Yet</h6>
+                        <p className="small text-muted mb-0">
+                          Play research engagement cards to uncover stakeholder stances first.
+                        </p>
+                      </div>
+                    ) : filteredIntelItems.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
+                        <h6 className="fw-bold text-dark mb-1">No Intel for this Stakeholder</h6>
+                        <p className="small text-muted mb-2">
+                          No discovered intel items match the selected stakeholder filter.
+                        </p>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={() => setSelectedStakeholderFilter("ALL")}
+                        >
+                          Show All Intel Items
+                        </button>
+                      </div>
+                    ) : (
+                      /* Intel Items Grid */
+                      <div className={styles.intelGrid}>
+                        {filteredIntelItems.map((item) => {
+                          const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
+                          const isSelected = selectedIntelId === item.id;
+                          const isSelectable = !isVerified;
+                          const catType = item.categorized_type || "requirement";
+                          const catDetails = getCategoryDetails(catType);
 
-                        return (
-                          <div
-                            key={item.id}
-                            className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${!isSelectable ? styles.intelDisabled : ""
-                              }`}
-                            onClick={() => isSelectable && handleToggleIntel(item)}
-                          >
-                            <div>
-                              <div className={styles.intelHeader}>
-                                <div className={styles.intelBadges}>
-                                  <span className={`${styles.categoryTag} ${catDetails.className}`}>
-                                    <Icon icon={catDetails.icon} />
-                                    <span>{catDetails.label}</span>
-                                  </span>
+                          return (
+                            <div
+                              key={item.id}
+                              className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${!isSelectable ? styles.intelDisabled : ""
+                                }`}
+                              onClick={() => isSelectable && handleToggleIntel(item)}
+                            >
+                              <div>
+                                <div className={styles.intelHeader}>
+                                  <div className={styles.intelBadges}>
+                                    <span className={`${styles.categoryTag} ${catDetails.className}`}>
+                                      <Icon icon={catDetails.icon} />
+                                      <span>{catDetails.label}</span>
+                                    </span>
 
-                                  <span
-                                    className={`${styles.confirmationPill} ${
-                                      isVerified ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
-                                    }`}
-                                  >
-                                    <Icon
-                                      icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
-                                      style={{ fontSize: "0.85rem" }}
-                                    />
-                                    <span>{isVerified ? "Verified" : "Unconfirmed"}</span>
-                                  </span>
+                                    <span
+                                      className={`${styles.confirmationPill} ${
+                                        isVerified ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
+                                      }`}
+                                    >
+                                      <Icon
+                                        icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
+                                        style={{ fontSize: "0.85rem" }}
+                                      />
+                                      <span>{isVerified ? "Verified" : "Unconfirmed"}</span>
+                                    </span>
+                                  </div>
                                 </div>
+
+                                <p className={styles.intelDescription} style={{ marginTop: "0.6rem" }}>
+                                  {item.description}
+                                </p>
                               </div>
 
-                              <p className={styles.intelDescription} style={{ marginTop: "0.6rem" }}>
-                                {item.description}
-                              </p>
-                            </div>
+                              <div className="d-flex justify-content-between align-items-center mt-2">
+                                {item.stakeholder_name ? (
+                                  <p className={styles.intelSource}>
+                                    <Icon icon="ph:user-circle" />
+                                    <span>Source: {item.stakeholder_name}</span>
+                                  </p>
+                                ) : (
+                                  <span />
+                                )}
 
-                            <div className="d-flex justify-content-between align-items-center mt-2">
-                              {item.stakeholder_name ? (
-                                <p className={styles.intelSource}>
-                                  <Icon icon="ph:user-circle" />
-                                  <span>Source: {item.stakeholder_name}</span>
-                                </p>
-                              ) : (
-                                <span />
-                              )}
-
-                              {!isSelectable ? (
-                                <span className={styles.lockedBadge}>
-                                  <Icon icon="ph:check-circle-fill" /> Already Verified
-                                </span>
-                              ) : isSelected ? (
-                                <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
-                              ) : (
-                                <span className={styles.uncheckCircle} />
-                              )}
+                                {!isSelectable ? (
+                                  <span className={styles.lockedBadge}>
+                                    <Icon icon="ph:check-circle-fill" /> Already Verified
+                                  </span>
+                                ) : isSelected ? (
+                                  <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
+                                ) : (
+                                  <span className={styles.uncheckCircle} />
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )
                   ) : (
                     /* Stakeholder Cards Grid with prominent Avatars */
                     <div className={styles.stakeholderGrid}>
