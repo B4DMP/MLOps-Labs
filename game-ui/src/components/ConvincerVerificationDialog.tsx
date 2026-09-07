@@ -51,7 +51,7 @@ export default function ConvincerVerificationDialog({
   const strategyText = info.strategy || matchedArchetype?.strategy || "";
 
   return (
-    <Dialog open={Boolean(info)} onClose={onClose} className="position-relative z-50">
+    <Dialog open={Boolean(info)} onClose={onClose} className={styles.dialogRoot}>
       <DialogBackdrop className={styles.backdrop} />
       <div className={styles.dialogWrapper}>
         <DialogPanel className={`${styles.panel} card shadow-lg border-0`}>

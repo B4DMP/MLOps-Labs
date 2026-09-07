@@ -905,53 +905,483 @@
 
 /* ── Dedicated Dialogue Options Deck (Bottom Section) ── */
 .dialogueOptionsDeck {
-  background: rgba(18, 24, 32, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 8px 12px;
+  background: rgba(18, 24, 32, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 4px 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  gap: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 20;
+}
+
+.dialogueOptionsDeckOpen {
+  z-index: 2800 !important;
+}
+
+.dialogueCardDropdownActive {
+  z-index: 3100 !important;
+  transform: none !important;
 }
 
 .dialogueHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2px;
+  padding: 0 2px 3px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.dialogueCard {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 8px;
-  padding: 8px 10px;
+.dialogueCardContainer {
+  border-radius: 9px;
+  padding: 8px 12px;
   color: #f1f5f9;
-  cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
   width: 100%;
-  text-align: left;
+  height: 100%;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 64px;
+  gap: 6px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
 }
 
-.dialogueCard:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
+.dialogueCardIntel {
+  background: linear-gradient(135deg, rgba(38, 102, 130, 0.28) 0%, rgba(15, 23, 42, 0.78) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.38);
+  border-left: 4.5px solid #38bdf8;
+}
+
+.dialogueCardIntel:hover:not(.dialogueCardDisabled) {
+  background: linear-gradient(135deg, rgba(38, 102, 130, 0.44) 0%, rgba(15, 23, 42, 0.92) 100%);
+  border-color: #38bdf8;
+  transform: translateY(-1.5px);
+}
+
+.dialogueCardNoise {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(26, 20, 10, 0.78) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.38);
+  border-left: 4.5px solid #f59e0b;
+}
+
+.dialogueCardNoise:hover:not(.dialogueCardDisabled) {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.26) 0%, rgba(26, 20, 10, 0.92) 100%);
+  border-color: #f59e0b;
+  transform: translateY(-1.5px);
+}
+
+.dialogueCardContainer:active:not(.dialogueCardDisabled) {
+  transform: translateY(0px) scale(0.995);
 }
 
 .dialogueCardDisabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed !important;
+  pointer-events: none;
 }
 
-.dialogueOptionText {
-  font-size: 0.78rem;
-  line-height: 1.32;
-  color: #e2e8f0;
+.dialogueCardTopLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.dialogueBadgeConfirmedIntel,
+.dialogueBadgeUnconfirmedIntel {
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.65);
+  color: #7dd3fc;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2.5px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.dialogueBadgeIntelClickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+  user-select: none;
+}
+
+.dialogueBadgeIntelClickable:hover {
+  filter: brightness(1.15);
+  transform: translateY(-0.5px);
+  background: rgba(56, 189, 248, 0.32);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.dialogueBadgeClickableIcon {
+  font-size: 0.74rem;
+  opacity: 0.85;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  margin-left: 2px;
+}
+
+.dialogueBadgeIntelClickable:hover .dialogueBadgeClickableIcon {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.dialogueCategoryBadgeIntel {
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  color: #7dd3fc;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dialogueCategoryBadgeNoise {
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fcd34d;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Confirmation State Pills */
+.confirmationPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+
+.confirmationPillVerified {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.45);
+}
+
+.confirmationPillUnconfirmed {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+}
+
+/* Category Tag */
+.categoryTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+
+.categoryTagRequirement {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #7dd3fc;
+}
+
+.categoryTagPreference {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+}
+
+.categoryTagFriction {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Archetype Badge with Symbols and Colors */
+.archetypeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1.5px solid;
+  line-height: 1.2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.archetypeIcon {
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.archetypeName {
+  font-weight: 700;
+  letter-spacing: 0.15px;
+}
+
+.dialogueCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  flex: 1;
+}
+
+.dialogueTargetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.74rem;
+}
+
+.dialogueTargetLabel {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  font-size: 0.72rem;
+}
+
+.dialogueTargetName {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.dialogueIntelDescriptionBox {
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 6px;
+  padding: 6px 9px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  flex: 1;
+  min-height: 42px;
+}
+
+.dialogueIntelDescriptionText {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.38;
+  color: #e0f2fe;
   font-weight: 500;
+}
+
+.dialogueNoiseStrategyBox {
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 6px;
+  padding: 6px 9px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  flex: 1;
+  min-height: 42px;
+}
+
+.dialogueNoiseStrategyText {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.38;
+  color: #fef3c7;
+  font-weight: 500;
+}
+
+.dialogueQuoteIcon {
+  font-size: 0.85rem;
+  color: #38bdf8;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.dialogueQuoteIconNoise {
+  font-size: 0.85rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Clickable Intel Link to Stakeholder Dossier */
+.intelLinkWrapper {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.intelLinkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(38, 102, 130, 0.28);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: #e0f2fe;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.intelLinkButton:hover {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+.intelLinkText {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.intelLinkIcon {
+  font-size: 0.72rem;
+  flex-shrink: 0;
+  color: #38bdf8;
+}
+
+/* Stakeholder Dropdown Selector for Corporate Noise */
+.dropdownWrapper {
+  position: relative;
+  max-width: 52%;
+  z-index: 3200;
+}
+
+.dropdownToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  padding: 2px 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  max-width: 100%;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dropdownToggleBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.dropdownMiniAvatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.dropdownSelectedName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 125px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dropdownMenuFloating {
+  position: absolute;
+  bottom: 115%;
+  left: 0;
+  z-index: 5000 !important;
+  background: rgba(15, 20, 26, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75);
+  padding: 4px;
+  min-width: 175px;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  pointer-events: auto;
+}
+
+.dropdownMenuHeader {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  padding: 2px 6px;
+  letter-spacing: 0.3px;
+}
+
+.dropdownMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #f1f5f9;
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.dropdownMenuItem:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dropdownMenuItemActive {
+  background: rgba(38, 102, 130, 0.45) !important;
+  color: #38bdf8 !important;
+  font-weight: 700;
+}
+
+.dropdownItemName {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.7rem;
+  font-weight: 600;
 }

@@ -252,6 +252,9 @@ function App({ username: _username }: AppProps) {
         setEmotionColors(data["emotion_colors"]);
         (window as any).__EMOTION_COLORS__ = data["emotion_colors"];
       }
+      if (data["convincer_archetypes"]) {
+        setConvincerArchetypes(data["convincer_archetypes"]);
+      }
     });
 
     const unsubProgress = subscribe("game:progress_change", (data: any) => {
@@ -538,6 +541,10 @@ function App({ username: _username }: AppProps) {
         setDialogueOptions(data.dialogue_options);
       }
 
+      if (data && data.convincer_archetypes && typeof data.convincer_archetypes === "object") {
+        setConvincerArchetypes(data.convincer_archetypes);
+      }
+
       if (data && data.facial_expressions && typeof data.facial_expressions === "object") {
         setStakeholders((prev) => {
           const updated = { ...prev };
@@ -818,12 +825,15 @@ function App({ username: _username }: AppProps) {
     setActionCards([]);
   };
 
-  const handleSelectDialogueOption = (optionIndex: number) => {
+  const handleSelectDialogueOption = (optionId: string, addressedStakeholderId?: string, option?: DialogueOption) => {
     if (!isChatEnabled) return;
     setIsChatEnabled(false);
+    const chosenOpt = option || dialogueOptions.find((o) => o.id === optionId);
     sendJsonMessage({
       type: "chat:send_message",
-      option_index: optionIndex,
+      option_id: optionId,
+      dialogue_option: chosenOpt,
+      addressed_stakeholder_id: addressedStakeholderId,
       phase_id: currentPhaseRef.current,
       challenge_id: currentChallengeRef.current,
     });

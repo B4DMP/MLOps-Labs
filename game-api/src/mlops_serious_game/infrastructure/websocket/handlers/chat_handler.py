@@ -37,19 +37,15 @@ async def handle_chat_message(
         phase_id = payload.get("phase_id", 0)
         challenge_id = payload.get("challenge_id", 0)
 
-        option_index = payload.get("option_index")
+        option_id = payload.get("option_id")
+        dialogue_option = payload.get("dialogue_option")
+        addressed_stakeholder_id = payload.get("addressed_stakeholder_id")
         initial_start = payload.get("initial_start", False)
 
-        if option_index is None and not initial_start:
+        if not option_id and not initial_start:
             raise ValueError(
-                "Missing 'option_index' in payload. Dialogue options must be selected by index."
+                "Missing 'option_id' in payload. Dialogue options must be selected by ID."
             )
-
-        if option_index is not None and isinstance(option_index, str):
-            if option_index.isdigit():
-                option_index = int(option_index)
-            else:
-                raise ValueError(f"Invalid option_index '{option_index}'. Must be an integer.")
 
         async def callback(ws: WebSocket = None, state: dict = None, websocket: WebSocket = None, **kwargs):
             ws = websocket or ws
@@ -171,7 +167,9 @@ async def handle_chat_message(
             _thread_id=session_id,
             phase_id=phase_id,
             challenge_id=challenge_id,
-            option_index=option_index,
+            option_id=option_id,
+            dialogue_option=dialogue_option,
+            addressed_stakeholder_id=addressed_stakeholder_id,
             initial_start=initial_start,
             initial_emotion_values=initial_emotion_values,
             intel_items=intel_items,
@@ -303,10 +301,10 @@ async def handle_chat_message(
                 payload={"dossier": dossier_data},
             )
 
-        # Serialize dialogue options for the next turn
+        # Serialize dialogue options for the next turn (excluding prompt text)
         raw_options = output_state.get("dialogue_options", [])
         dialogue_options = [
-            opt.model_dump() if hasattr(opt, "model_dump") else opt
+            opt.model_dump(exclude={"text"}, exclude_none=True) if hasattr(opt, "model_dump") else opt
             for opt in raw_options
         ]
 
@@ -326,6 +324,7 @@ async def handle_chat_message(
             "emotional_states": emotional_states,
             "emotion_values": serialized_emotion_values,
             "emotion_deltas": serialized_deltas,
+            "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             "error": False,
             "errorMsg": None,
         }

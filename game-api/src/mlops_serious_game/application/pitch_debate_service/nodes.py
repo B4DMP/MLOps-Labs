@@ -8,14 +8,12 @@ from typing import Any, Optional
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from mlops_serious_game.application.dialogue_options_service import (
-    DialogueOption,
-    dialogue_option_node,
-)
 from mlops_serious_game.application.pitch_debate_service.chains import (
+    get_player_utterance_chain,
     get_stakeholder_response_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import (
+    DialogueOption,
     EmotionDelta,
     EmotionValues,
     PitchDebateState,
@@ -38,7 +36,125 @@ def calculate_system_emotion_deltas(
     return EmotionDelta(**deltas)
 
 
-async def router_node(state: PitchDebateState, config: RunnableConfig):
+async def player_prompt_node(
+    state: PitchDebateState, config: RunnableConfig = None
+) -> dict[str, Any]:
+    """Determines the player's prompt dynamically within the Pitch Debate LangGraph workflow.
+
+    If initial_start is True or no option was chosen, yields the meeting kickoff message.
+    Otherwise, invokes the player utterance chain to dynamically generate what the player
+    says based on the chosen dialogue option and current discussion context.
+    """
+    last_selected_option = state.get("last_selected_option")
+    last_selected_intel = state.get("last_selected_intel")
+    addressed_stakeholder_id = state.get("addressed_stakeholder_id")
+    challenge = state.get("challenge", "")
+    messages = state.get("messages", [])
+
+    configurable = (config or {}).get("configurable", {}) if config else {}
+    ws = configurable.get("ws")
+    callback = configurable.get("callback")
+
+    # Case 1: Initial start or no option chosen yet
+    if not last_selected_option:
+        welcome_text = "Welcome to the meeting everybody"
+        welcome_msg = HumanMessage(content=welcome_text)
+        if callback:
+            cb_state = {"messages": [welcome_msg]}
+            if asyncio.iscoroutinefunction(callback):
+                await callback(websocket=ws, state=cb_state)
+            else:
+                callback(websocket=ws, state=cb_state)
+        return {"messages": [welcome_msg]}
+
+    # Case 2: Option chosen - determine target stakeholder and generate player speech
+    target_st_id = None
+    if last_selected_option.type == "intel":
+        target_st_id = (
+            last_selected_intel.stakeholder_id
+            if last_selected_intel
+            else last_selected_option.intel_stakeholder_id
+        )
+    else:
+        target_st_id = addressed_stakeholder_id
+
+    target_st = None
+    if target_st_id:
+        try:
+            target_st = StakeholderFactory.get_stakeholder(target_st_id)
+        except Exception:
+            target_st = None
+
+    target_st_name = target_st.name if target_st else (target_st_id or "Stakeholder")
+    target_st_first_name = (target_st_name.split()[0].replace(",", "")) if target_st_name else "Team"
+    target_st_role = getattr(target_st, "role_description", "") if target_st else ""
+
+    history_msgs = messages[-6:] if len(messages) >= 6 else messages
+    history_str = (
+        "\n".join([f"{getattr(m, 'type', 'message')}: {getattr(m, 'content', str(m))}" for m in history_msgs])
+        if history_msgs
+        else "(Meeting started)"
+    )
+    last_msg = messages[-1] if messages else None
+    latest_statement = getattr(last_msg, "content", str(last_msg)) if last_msg else "(Meeting started)"
+
+    utterance_chain = get_player_utterance_chain()
+    if last_selected_option.type == "intel":
+        intel_context = (
+            f"Specific claim or constraint to voice: '{last_selected_option.intel_description}'\n"
+            f"Intel type: {last_selected_option.intel_type or 'requirement'}"
+        )
+        player_text = await utterance_chain.ainvoke(
+            {
+                "challenge": challenge,
+                "target_stakeholder_name": target_st_name,
+                "target_stakeholder_first_name": target_st_first_name,
+                "target_stakeholder_role": target_st_role,
+                "option_type": "intel",
+                "intel_context": intel_context,
+                "archetype_name": "",
+                "archetype_strategy": "",
+                "history": history_str,
+                "latest_statement": latest_statement,
+            }
+        )
+    else:
+        arch = last_selected_option.archetype
+        arch_name = arch.name if arch else "General Alignment"
+        arch_strat = arch.strategy if arch else "Align on general project goals"
+        player_text = await utterance_chain.ainvoke(
+            {
+                "challenge": challenge,
+                "target_stakeholder_name": target_st_name,
+                "target_stakeholder_first_name": target_st_first_name,
+                "target_stakeholder_role": target_st_role,
+                "option_type": "corporate_noise",
+                "intel_context": "",
+                "archetype_name": arch_name,
+                "archetype_strategy": arch_strat,
+                "history": history_str,
+                "latest_statement": latest_statement,
+            }
+        )
+
+    player_text = str(player_text).strip().strip('"')
+    last_selected_option.text = player_text
+    new_msg = HumanMessage(content=player_text)
+
+    if callback:
+        cb_state = {"messages": [new_msg]}
+        if asyncio.iscoroutinefunction(callback):
+            await callback(websocket=ws, state=cb_state)
+        else:
+            callback(websocket=ws, state=cb_state)
+
+    return {
+        "messages": [new_msg],
+        "last_selected_option": last_selected_option,
+    }
+
+
+async def router_node(state: PitchDebateState, config: RunnableConfig = None):
     last_selected_option = state.get("last_selected_option")
     last_selected_intel = state.get("last_selected_intel")
     messages = state.get("messages", [])
@@ -53,42 +169,41 @@ async def router_node(state: PitchDebateState, config: RunnableConfig):
         all_stakeholders = StakeholderFactory.get_available_stakeholders()
 
     # Rule 1: At the beginning of the discussion (no dialogue option chosen yet), route to everyone
-    if not last_selected_option and len(messages) <= 1:
+    if not last_selected_option:
         return {"stakeholder_ids": all_stakeholders}
 
     # Rule 2: When an intel item-based dialogue option is chosen, route ONLY to the target stakeholder
-    if last_selected_intel:
-        target_id = last_selected_intel.stakeholder_id
-        return {"stakeholder_ids": [target_id]}
+    if last_selected_option.type == "intel":
+        target_id = (
+            last_selected_intel.stakeholder_id
+            if last_selected_intel
+            else last_selected_option.intel_stakeholder_id
+        )
+        if target_id:
+            return {"stakeholder_ids": [target_id]}
 
-    # Rule 3: Corporate noise should be routed to 1) the stakeholder that wrote the last message and 2) a random different stakeholder
-    last_speaker_id = None
-    for msg in reversed(messages):
-        if isinstance(msg, AIMessage) or getattr(msg, "type", "") == "ai":
-            content_str = getattr(msg, "content", str(msg))
-            match = re.match(r"^\[(.*?)\]", content_str)
-            if match:
-                last_speaker_id = match.group(1).strip()
-                break
+    # Rule 3: Corporate noise is routed to 1) the adressat from state and 2) a random other stakeholder
+    addressed_id = state.get("addressed_stakeholder_id")
+    if not addressed_id:
+        for msg in reversed(messages):
+            if isinstance(msg, AIMessage) or getattr(msg, "type", "") == "ai":
+                content_str = getattr(msg, "content", str(msg))
+                match = re.match(r"^\[(.*?)\]", content_str)
+                if match:
+                    addressed_id = match.group(1).strip()
+                    break
 
-    if not last_speaker_id and len(messages) >= 2:
-        prev_msg = messages[-2]
-        content_str = getattr(prev_msg, "content", str(prev_msg))
-        match = re.match(r"^\[(.*?)\]", content_str)
-        if match:
-            last_speaker_id = match.group(1).strip()
+    if not addressed_id or (all_stakeholders and addressed_id not in all_stakeholders):
+        addressed_id = all_stakeholders[0] if all_stakeholders else "willis_slif_business_manager"
 
-    if not last_speaker_id:
-        last_speaker_id = all_stakeholders[0] if all_stakeholders else "willis_slif_business_manager"
-
-    other_stakeholders = [st_id for st_id in all_stakeholders if st_id != last_speaker_id]
+    other_stakeholders = [st_id for st_id in all_stakeholders if st_id != addressed_id]
     if other_stakeholders:
         random_other_id = random.choice(other_stakeholders)
-        # Processed in LIFO stack order in graph: [random_other_id, last_speaker_id]
-        # pops last_speaker_id first (1), then random_other_id second (2)
-        routed_stakeholders = [random_other_id, last_speaker_id]
+        # Processed in LIFO stack order in graph: [random_other_id, addressed_id]
+        # pops addressed_id first (1), then random_other_id second (2)
+        routed_stakeholders = [random_other_id, addressed_id]
     else:
-        routed_stakeholders = [last_speaker_id]
+        routed_stakeholders = [addressed_id]
 
     return {"stakeholder_ids": routed_stakeholders}
 

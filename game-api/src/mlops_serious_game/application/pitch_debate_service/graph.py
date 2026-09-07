@@ -2,11 +2,11 @@ from functools import lru_cache
 
 from langgraph.graph import END, START, StateGraph
 
-from mlops_serious_game.application.dialogue_options_service import dialogue_option_node
 from .edges import has_more_stakeholders
 from .nodes import (
     conversation_node,
     emotion_node,
+    player_prompt_node,
     router_node,
 )
 from .state import PitchDebateState
@@ -17,13 +17,14 @@ def create_pitch_debate_graph():
     graph_builder = StateGraph(PitchDebateState)
 
     # Add all nodes
+    graph_builder.add_node("player_prompt_node", player_prompt_node)
     graph_builder.add_node("router", router_node)
     graph_builder.add_node("emotion_node", emotion_node)
     graph_builder.add_node("conversation_node", conversation_node)
-    graph_builder.add_node("dialogue_option_node", dialogue_option_node)
 
-    # Define the flow
-    graph_builder.add_edge(START, "router")
+    # Define the flow: START -> player_prompt_node -> router -> emotion_node -> conversation_node
+    graph_builder.add_edge(START, "player_prompt_node")
+    graph_builder.add_edge("player_prompt_node", "router")
     graph_builder.add_edge("router", "emotion_node")
     graph_builder.add_edge("emotion_node", "conversation_node")
 
@@ -32,10 +33,9 @@ def create_pitch_debate_graph():
         has_more_stakeholders,
         {
             "emotion_node": "emotion_node",
-            "dialogue_option_node": "dialogue_option_node",
+            END: END,
         },
     )
-    graph_builder.add_edge("dialogue_option_node", END)
 
     return graph_builder
 

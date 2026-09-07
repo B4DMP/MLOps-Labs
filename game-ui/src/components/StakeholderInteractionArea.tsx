@@ -393,7 +393,7 @@ export default function StakeholderInteractionArea({
                         if (
                           (searchName && (stNameLower === searchName || stNameLower.includes(searchName) || searchName.includes(stNameLower))) ||
                           (searchId && (searchId.includes(stKey.toLowerCase()) || (stNameLower && searchId.includes(stNameLower.replace(/\s+/g, "_"))))) ||
-                          (stNameLower && opt.text.toLowerCase().includes(stNameLower))
+                          (stNameLower && (opt.text || "").toLowerCase().includes(stNameLower))
                         ) {
                           stMatch = st;
                           break;
@@ -404,7 +404,7 @@ export default function StakeholderInteractionArea({
                         stakeholderName = stMatch.name;
                         stakeholderColor = getStakeholderColor(stMatch);
                       } else if (!stakeholderName) {
-                        const nameMatch = opt.text.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)[,:]/);
+                        const nameMatch = (opt.text || "").match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)[,:]/);
                         stakeholderName = nameMatch ? nameMatch[1] : "Stakeholder";
                       }
                     }

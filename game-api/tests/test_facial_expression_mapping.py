@@ -1,7 +1,7 @@
 import pytest
 from mlops_serious_game.domain.emotion import EmotionConfig, EmotionalStateRule
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
-from mlops_serious_game.application.dialogue_options_service.state import DialogueOption
+from mlops_serious_game.application.pitch_debate_service import DialogueOption
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 
 
@@ -97,7 +97,7 @@ def test_dialogue_option_serialization():
 @pytest.mark.anyio
 async def test_unverified_intel_item_dialogue_option_generation():
     from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, RequirementType
-    from mlops_serious_game.application.dialogue_options_service.nodes import dialogue_option_node
+    from mlops_serious_game.application.intel_handler import determine_dialogue_options
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from pathlib import Path
 
@@ -115,14 +115,7 @@ async def test_unverified_intel_item_dialogue_option_generation():
     assert unverified_item.stakeholder_id == "model_monica"
     assert unverified_item.categorized_description == "Model Monica mandates that the model must achieve at least 95% accuracy."
 
-    state = {
-        "messages": [],
-        "challenge": "Model Monica proposes a complex ML model. Efficiency Emilia argues for simpler model.",
-        "discovered_intel_items": [unverified_item],
-    }
-
-    result = await dialogue_option_node(state)
-    options = result["dialogue_options"]
+    options = determine_dialogue_options(discovered_intel_items=[unverified_item])
     assert len(options) == 4
 
     # Verify at least one dialogue option is intel-based
@@ -134,7 +127,7 @@ async def test_unverified_intel_item_dialogue_option_generation():
 @pytest.mark.anyio
 async def test_misclassified_intel_item_dialogue_option_generation():
     from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, RequirementType
-    from mlops_serious_game.application.dialogue_options_service.nodes import dialogue_option_node
+    from mlops_serious_game.application.intel_handler import determine_dialogue_options
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from pathlib import Path
 
@@ -154,14 +147,7 @@ async def test_misclassified_intel_item_dialogue_option_generation():
     assert misclassified_item.correct_description != ""
     assert misclassified_item.correct_intent == RequirementType.REQUIREMENT
 
-    state = {
-        "messages": [],
-        "challenge": "Model Monica proposes a complex ML model. Efficiency Emilia argues for simpler model.",
-        "discovered_intel_items": [misclassified_item],
-    }
-
-    result = await dialogue_option_node(state)
-    options = result["dialogue_options"]
+    options = determine_dialogue_options(discovered_intel_items=[misclassified_item])
     assert len(options) == 4
 
     # Verify wrongly classified intel still generates an intel-based dialogue option

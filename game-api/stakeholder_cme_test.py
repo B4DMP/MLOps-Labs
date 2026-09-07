@@ -48,10 +48,8 @@ from langgraph.graph import END, START, StateGraph,MessagesState
 from enum import Enum
 from pydantic import BaseModel, Field
 
-from mlops_serious_game.application.dialogue_options_service import (
+from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
-    dialogue_option_node,
-    get_dialogue_option_generator_chain,
 )
 
 # Override PostgreSQL connection string
@@ -895,7 +893,7 @@ async def custom_router_node(state: PitchDebateState, config: RunnableConfig):
 def has_more_stakeholders(state: PitchDebateState):
     if len(state.get("stakeholder_ids", [])) > 0:
         return "emotion_node"
-    return "dialogue_option_node"
+    return END
 
 
 def create_workflow_graph():
@@ -905,7 +903,6 @@ def create_workflow_graph():
     graph_builder.add_node("router", custom_router_node)
     graph_builder.add_node("emotion_node", emotion_node)
     graph_builder.add_node("conversation_node", conversation_node)
-    graph_builder.add_node("dialogue_option_node", dialogue_option_node)
 
     # Define the flow
     graph_builder.add_edge(START, "router")
@@ -919,10 +916,9 @@ def create_workflow_graph():
         has_more_stakeholders,
         {
             "emotion_node": "emotion_node",
-            "dialogue_option_node": "dialogue_option_node",
+            END: END,
         },
     )
-    graph_builder.add_edge("dialogue_option_node", END)
     
     return graph_builder
 

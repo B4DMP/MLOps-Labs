@@ -24,6 +24,18 @@ body {
     width: 100vw;
 }
 
+#root {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    width: 100%;
+}
+
+#headlessui-portal-root {
+    position: relative;
+    z-index: 999999 !important;
+}
+
 .power-icon {
     width: 1.25rem;
 }

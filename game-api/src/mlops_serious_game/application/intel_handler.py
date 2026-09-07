@@ -26,6 +26,7 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
 )
+from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
 from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
 
 
@@ -735,3 +736,102 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         })
 
     return dossier_list
+
+
+def determine_dialogue_options(
+    discovered_intel_items: Optional[list[Any]] = None,
+) -> list[DialogueOption]:
+    """Determines 4 distinct dialogue options (intel-based and corporate noise) for the player outside of LangGraph.
+
+    Selects up to 2 discovered intel items and fills the remaining slots with random corporate noise archetypes.
+    Concrete prompts are NOT generated here; they are determined dynamically inside the debate graph once chosen.
+    """
+    options: list[DialogueOption] = []
+    items = list(discovered_intel_items or [])
+    selected_intels = []
+
+    if items:
+        k = min(2, len(items))
+        selected_intels = random.sample(items, k)
+        for idx, item in enumerate(selected_intels, 1):
+            if isinstance(item, dict):
+                req_id = item.get("requirement_id")
+                item_desc = item.get("description") or item.get("categorized_description", "")
+                st_id = item.get("stakeholder_id")
+                item_id = item.get("id") or req_id
+                intel_type = (
+                    item.get("intel_type")
+                    or item.get("categorized_type")
+                    or item.get("categorized_intent")
+                )
+            else:
+                req_id = getattr(item, "requirement_id", None)
+                item_desc = getattr(item, "description", None) or getattr(
+                    item, "categorized_description", ""
+                )
+                st_id = getattr(item, "stakeholder_id", None)
+                item_id = getattr(item, "id", None) or req_id
+                intel_type = (
+                    getattr(item, "intel_type", None)
+                    or getattr(item, "categorized_type", None)
+                    or getattr(item, "categorized_intent", None)
+                )
+
+            if hasattr(intel_type, "value"):
+                intel_type = intel_type.value
+
+            if not st_id and req_id:
+                req = RequirementFactory.get_requirement(req_id)
+                if req:
+                    st_id = req.stakeholder_id
+                    if not item_desc:
+                        item_desc = req.description
+
+            if not item_id:
+                item_id = f"intel_{st_id}_{idx}" if st_id else f"intel_{idx}"
+
+            st_obj = None
+            if st_id:
+                try:
+                    st_obj = StakeholderFactory.get_stakeholder(st_id)
+                except Exception:
+                    st_obj = None
+
+            if st_obj:
+                st_name = st_obj.name
+            elif st_id:
+                st_name = " ".join([w.capitalize() for w in st_id.split("_")])
+            else:
+                st_name = "Stakeholder"
+
+            options.append(
+                DialogueOption(
+                    id=f"opt_intel_{idx}_{uuid.uuid4().hex[:6]}",
+                    type="intel",
+                    text=None,
+                    intel_item_id=str(item_id) if item_id else None,
+                    intel_description=str(item_desc) if item_desc else None,
+                    intel_stakeholder_id=str(st_id) if st_id else None,
+                    intel_stakeholder_name=str(st_name) if st_name else None,
+                    intel_type=str(intel_type) if intel_type else None,
+                )
+            )
+
+    all_archetypes = list(EmotionFactory.get_convincer_archetypes().values())
+    needed_noise = 4 - len(selected_intels)
+    assigned_archetypes = random.sample(
+        all_archetypes, min(needed_noise, len(all_archetypes))
+    )
+
+    for idx, arch in enumerate(assigned_archetypes, 1):
+        options.append(
+            DialogueOption(
+                id=f"opt_noise_{idx}_{uuid.uuid4().hex[:6]}",
+                type="corporate_noise",
+                text=None,
+                archetype=arch,
+            )
+        )
+
+    random.shuffle(options)
+    return options

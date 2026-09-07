@@ -20,10 +20,12 @@ from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
     get_default_stakeholder_archetypes,
+    determine_dialogue_options,
 )
-from mlops_serious_game.application.dialogue_options_service import (
+from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
-    generate_dialogue_options,
+    get_checkpoint_dialogue_options,
+    save_checkpoint_dialogue_options,
 )
 from mlops_serious_game.infrastructure.database import (
     GameProgression,
@@ -184,17 +186,30 @@ async def get_dialogue_options(
     username: Optional[str] = None,
     session_id: Optional[str] = None,
 ) -> list[dict[str, Any]]:
-    """Builds the dialogue options LangGraph workflow and generates serialized dialogue options."""
+    """Determines dialogue options outside of LangGraph and returns serialized options.
+    If dialogue options are already saved in the LangGraph checkpoint for this thread, returns those.
+    Otherwise, generates new options and persists them into the checkpoint.
+    """
+    thread_id = session_id or (f"MLOps_Convo_{username}" if username else None)
+    if thread_id:
+        existing_options = await get_checkpoint_dialogue_options(thread_id)
+        if existing_options:
+            return [
+                opt.model_dump(exclude={"text"}, exclude_none=True)
+                if hasattr(opt, "model_dump")
+                else opt
+                for opt in existing_options
+            ]
+
     if discovered_intel_items is None and username:
         discovered_intel_items = get_discovered_intel_items(username=username, challenge=challenge)
 
-    options, _ = await generate_dialogue_options(
-        messages=messages or [],
-        challenge=challenge.description,
-        discovered_intel_items=discovered_intel_items or [],
-        session_id=session_id,
-    )
-    return [opt.model_dump() for opt in options]
+    options = determine_dialogue_options(discovered_intel_items=discovered_intel_items or [])
+
+    if thread_id:
+        await save_checkpoint_dialogue_options(thread_id, options)
+
+    return [opt.model_dump(exclude={"text"}, exclude_none=True) for opt in options]
 
 
 async def handle_game_init(
@@ -212,6 +227,7 @@ async def handle_game_init(
             "stakeholders": get_stakeholders(),
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
+            "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
         }
     )
 

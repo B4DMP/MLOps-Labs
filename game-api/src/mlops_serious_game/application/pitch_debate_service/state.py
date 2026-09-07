@@ -1,11 +1,33 @@
-import enum
 from typing import Any, Optional
 from pydantic import BaseModel, Field, create_model
 from langgraph.graph import MessagesState
 
-from mlops_serious_game.application.dialogue_options_service import DialogueOption
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.requirement import StakeholderIntelItem
+
+
+class DialogueOption(BaseModel):
+    """Represents a selectable player dialogue option in the Pitch Debate."""
+
+    id: str = ""
+    type: str = "corporate_noise"  # "intel" or "corporate_noise"
+    text: Optional[str] = None
+    intel_item_id: Optional[str] = None
+    intel_description: Optional[str] = None
+    intel_stakeholder_id: Optional[str] = None
+    intel_stakeholder_name: Optional[str] = None
+    intel_type: Optional[str] = None
+    archetype: Optional[ConvincerArchetype] = None
+
+    def is_correct(self, discovered_intel_items: Optional[list[StakeholderIntelItem]] = None) -> bool:
+        """Derives whether this dialogue option is based on a correctly classified intel item."""
+        if not self.intel_item_id or not discovered_intel_items:
+            return True
+        for item in discovered_intel_items:
+            if item.id == self.intel_item_id or item.requirement_id == self.intel_item_id:
+                return item.is_correct_intel()
+        return True
 
 
 def _build_dynamic_emotion_models():
@@ -43,9 +65,6 @@ def _build_dynamic_emotion_models():
 EmotionValues, EmotionDelta = _build_dynamic_emotion_models()
 
 
-from mlops_serious_game.domain.requirement import StakeholderIntelItem
-
-
 class PitchDebateState(MessagesState):
     """State class for the LangGraph CME workflow. It keeps track of the information necessary to maintain a coherent
     conversation between the Stakeholders and the user based on selected dialogue options.
@@ -64,3 +83,4 @@ class PitchDebateState(MessagesState):
     stakeholder_convincer_profile: dict[str, list[StakeholderIntelItem]]
     last_selected_intel: Optional[StakeholderIntelItem]
     last_selected_option: Optional[DialogueOption]
+    addressed_stakeholder_id: Optional[str]

@@ -884,6 +884,64 @@
   will-change: transform, opacity;
 }
 
+@keyframes highlightFadeInStickyNote {
+  0% {
+    outline: 0px solid transparent;
+    outline-offset: 0px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transform: translateY(0);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+  100% {
+    outline: 2.5px solid #d97706;
+    outline-offset: 1.5px;
+    border: 1px solid #92400e;
+    transform: translateY(-1.5px);
+    box-shadow:
+      0 6px 14px rgba(0, 0, 0, 0.14),
+      0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+}
+
+@keyframes highlightFadeOutStickyNote {
+  0% {
+    outline: 2.5px solid #d97706;
+    outline-offset: 1.5px;
+    border: 1px solid #92400e;
+    transform: translateY(-1.5px);
+    box-shadow:
+      0 6px 14px rgba(0, 0, 0, 0.14),
+      0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  100% {
+    outline: 0px solid transparent;
+    outline-offset: 0px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transform: translateY(0);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.highlightedStickyNote {
+  outline: 2.5px solid #d97706 !important;
+  outline-offset: 1.5px !important;
+  border: 1px solid #92400e !important;
+  z-index: 25 !important;
+  animation: highlightFadeInStickyNote 0.3s ease-out forwards !important;
+  box-shadow:
+    0 6px 14px rgba(0, 0, 0, 0.14),
+    0 2px 4px rgba(0, 0, 0, 0.08) !important;
+}
+
+.fadingOutStickyNote {
+  animation: highlightFadeOutStickyNote 0.3s ease-out forwards !important;
+  z-index: 20 !important;
+}
+
 .stickyNote:nth-child(odd) {
   --note-rotate: rotate(-1.2deg);
   transform: var(--note-rotate);

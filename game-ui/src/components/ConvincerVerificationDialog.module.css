@@ -1,22 +1,33 @@
+.dialogRoot {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  overflow: hidden !important;
+}
+
 .backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: 1060;
+  position: fixed !important;
+  inset: 0 !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  z-index: 999998 !important;
 }
 
 .dialogWrapper {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  z-index: 1070;
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
 }
 
 .panel {
+  position: relative !important;
+  z-index: 1000000 !important;
   max-width: 680px;
   width: 95%;
   max-height: 90vh;
@@ -25,6 +36,7 @@
   background: #f8f9fa;
   border-radius: 1rem;
   overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
 }
 
 .modalBody {

@@ -47,6 +47,7 @@ export interface StakeholderDossierProps {
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  highlightedIntelId?: string | null;
   currentPhase?: number;
   currentChallenge?: number;
   canClose?: boolean;
@@ -92,6 +93,7 @@ export default function StakeholderDossier({
   onClose,
   dossierData,
   activeStakeholderId,
+  highlightedIntelId,
   currentPhase: propPhase,
   currentChallenge: propChallenge = 0,
   canClose = true,
@@ -119,6 +121,28 @@ export default function StakeholderDossier({
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  // Track fading out highlight state
+  const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
+  const prevHighlightedIdRef = useRef<string | null | undefined>(highlightedIntelId);
+  const fadeOutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const prevId = prevHighlightedIdRef.current;
+    if (prevId && !highlightedIntelId) {
+      // Highlight was just removed, trigger fade out
+      setFadingOutIntelId(prevId);
+      if (fadeOutTimerRef.current) clearTimeout(fadeOutTimerRef.current);
+      fadeOutTimerRef.current = setTimeout(() => {
+        setFadingOutIntelId(null);
+      }, 300); // match fade out animation duration
+    } else if (highlightedIntelId) {
+      // New highlight active, clear any pending fade-out
+      setFadingOutIntelId(null);
+      if (fadeOutTimerRef.current) clearTimeout(fadeOutTimerRef.current);
+    }
+    prevHighlightedIdRef.current = highlightedIntelId;
+  }, [highlightedIntelId]);
 
   // Position state for window dragging
   const [position, setPosition] = useState({ x: 120, y: 60 });
@@ -197,28 +221,86 @@ export default function StakeholderDossier({
     setCurrentPageIndex(targetIndex);
   };
 
-  // Auto-switch page when opened or when activeStakeholderId changes
+  // Helper to find a stakeholder page index by ID, name, or sub-matches
+  const findStakeholderIndex = (stIdentifier?: string | null): number => {
+    if (!stIdentifier || !effectiveDossierData.length) return -1;
+    const target = stIdentifier.toLowerCase().trim();
+    return effectiveDossierData.findIndex((st) => {
+      const stId = (st.stakeholder_id || "").toLowerCase().trim();
+      const stName = (st.name || "").toLowerCase().trim();
+      return (
+        stId === target ||
+        stName === target ||
+        target.includes(stId) ||
+        stId.includes(target) ||
+        target.includes(stName) ||
+        stName.includes(target)
+      );
+    });
+  };
+
+  // Helper to find stakeholder page index that contains a given intel item
+  const findStakeholderIndexByIntelId = (intelId?: string | null): number => {
+    if (!intelId || !effectiveDossierData.length) return -1;
+    return effectiveDossierData.findIndex((st) =>
+      st.intel_items?.some(
+        (item) =>
+          item.id === intelId ||
+          item.requirement_id === intelId ||
+          String(item.id) === String(intelId) ||
+          String(item.requirement_id) === String(intelId)
+      )
+    );
+  };
+
+  // Auto-switch page when opened or when activeStakeholderId or highlightedIntelId changes
   useEffect(() => {
+    if (!isOpen || effectiveDossierData.length === 0) return;
+
+    // 1. If an intel item is highlighted, prioritize jumping to that intel item's owner page
+    if (highlightedIntelId) {
+      const intelOwnerIdx = findStakeholderIndexByIntelId(highlightedIntelId);
+      if (intelOwnerIdx !== -1) {
+        if (intelOwnerIdx !== currentPageIndex) {
+          setCurrentPageIndex(intelOwnerIdx);
+        }
+        return;
+      }
+    }
+
+    // 2. If activeStakeholderId is provided and changed (or just opened), jump to stakeholder page
     const justOpened = isOpen && !prevIsOpenRef.current;
     const activeStChanged = activeStakeholderId !== prevActiveStIdRef.current;
 
-    if (isOpen && (justOpened || activeStChanged)) {
-      if (activeStakeholderId) {
-        const foundIdx = effectiveDossierData.findIndex(
-          (st) =>
-            st.stakeholder_id === activeStakeholderId ||
-            st.name.toLowerCase() === activeStakeholderId.toLowerCase() ||
-            st.name.toLowerCase().includes(activeStakeholderId.toLowerCase())
-        );
-        if (foundIdx !== -1) {
-          setCurrentPageIndex(foundIdx);
-        }
+    if (activeStakeholderId && (justOpened || activeStChanged)) {
+      const stIdx = findStakeholderIndex(activeStakeholderId);
+      if (stIdx !== -1 && stIdx !== currentPageIndex) {
+        setCurrentPageIndex(stIdx);
       }
     }
 
     prevIsOpenRef.current = isOpen;
     prevActiveStIdRef.current = activeStakeholderId;
-  }, [isOpen, activeStakeholderId, effectiveDossierData]);
+  }, [isOpen, activeStakeholderId, highlightedIntelId, effectiveDossierData]);
+
+  // Auto-scroll to highlighted intel sticky note
+  useEffect(() => {
+    if (!highlightedIntelId) return;
+
+    // Small delay to allow DOM render after possible page switch
+    const scrollTimer = setTimeout(() => {
+      const el =
+        document.getElementById(`intel-sticky-${highlightedIntelId}`) ||
+        document.querySelector(`[data-intel-id="${highlightedIntelId}"]`) ||
+        document.querySelector(`[data-requirement-id="${highlightedIntelId}"]`);
+
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 60);
+
+    return () => clearTimeout(scrollTimer);
+  }, [highlightedIntelId, currentPageIndex]);
 
   // Detect when artifact tagging adds new intel to a stakeholder & auto-switch to their page
   useEffect(() => {
@@ -678,11 +760,23 @@ export default function StakeholderDossier({
               const noteId = item.id || item.requirement_id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
+              const isHighlighted = Boolean(
+                highlightedIntelId &&
+                (noteId === highlightedIntelId || item.id === highlightedIntelId || item.requirement_id === highlightedIntelId)
+              );
+              const isFadingOut = Boolean(
+                !isHighlighted &&
+                fadingOutIntelId &&
+                (noteId === fadingOutIntelId || item.id === fadingOutIntelId || item.requirement_id === fadingOutIntelId)
+              );
 
               return (
                 <div
                   key={`${st.stakeholder_id}-${noteId}`}
-                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""}`}
+                  id={`intel-sticky-${noteId}`}
+                  data-intel-id={item.id}
+                  data-requirement-id={item.requirement_id}
+                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""}`}
                 >
                   <div className={styles.paperclip} />
 
