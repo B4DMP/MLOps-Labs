@@ -488,6 +488,45 @@ function App({ username: _username }: AppProps) {
             revealed_intel: msg.revealed_intel || [],
           })),
         ]);
+
+        const allRevealed: any[] = data.messages.flatMap((m: any) => m.revealed_intel || []);
+        if (allRevealed.length > 0) {
+          setDossierData((prevDossier) => {
+            if (!prevDossier || prevDossier.length === 0) return prevDossier;
+            return prevDossier.map((st) => {
+              const updatedItems = (st.intel_items || []).map((item) => {
+                const matchingRev = allRevealed.find((r) => r.id === item.id);
+                if (matchingRev) {
+                  return {
+                    ...item,
+                    description: matchingRev.description || item.description,
+                    intel_type: matchingRev.intel_type || "verified",
+                    categorized_type: matchingRev.categorized_type || item.categorized_type,
+                    is_correct: matchingRev.is_corrected !== undefined ? matchingRev.is_corrected : true,
+                  };
+                }
+                return item;
+              });
+              return { ...st, intel_items: updatedItems };
+            });
+          });
+
+          setIntelItems((prevItems) => {
+            return prevItems.map((item) => {
+              const matchingRev = allRevealed.find((r) => r.id === item.id);
+              if (matchingRev) {
+                return {
+                  ...item,
+                  description: matchingRev.description || item.description,
+                  intel_type: matchingRev.intel_type || "verified",
+                  categorized_type: matchingRev.categorized_type || item.categorized_type,
+                  is_correct: matchingRev.is_corrected !== undefined ? matchingRev.is_corrected : true,
+                };
+              }
+              return item;
+            });
+          });
+        }
       }
 
       if (data.facial_expressions && typeof data.facial_expressions === "object") {

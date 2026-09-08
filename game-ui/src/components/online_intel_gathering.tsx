@@ -177,6 +177,30 @@ export default function OnlineIntelGathering({
     isClosing?: boolean;
   } | null>(null);
 
+  const speechBubbleRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeSpeakingState || activeSpeakingState.isClosing || !speechBubbleRef.current) {
+      return;
+    }
+    const el = speechBubbleRef.current;
+    el.style.maxWidth = "";
+    el.style.width = "";
+    el.style.marginTop = "";
+
+    const rect = el.getBoundingClientRect();
+    if (rect.top < 10) {
+      const targetWidth = Math.min(680, window.innerWidth * 0.92);
+      el.style.maxWidth = `${targetWidth}px`;
+      el.style.width = `${targetWidth}px`;
+
+      const newRect = el.getBoundingClientRect();
+      if (newRect.top < 10) {
+        el.style.marginTop = `${10 - newRect.top}px`;
+      }
+    }
+  }, [activeSpeakingState]);
+
   // Active player speaking state (triggers player speech bubble on the pitch deck table)
   const [activePlayerSpeakingState, setActivePlayerSpeakingState] = useState<{
     message: string;
@@ -507,11 +531,27 @@ export default function OnlineIntelGathering({
     return st?.stakeholder_color || "#38bdf8";
   };
 
-  const renderSeatedStakeholder = (st: any, isRightSide: boolean = false) => {
+  const renderSeatedStakeholder = (
+    st: any,
+    isRightSide: boolean = false,
+    isTop: boolean = false,
+    topIndex?: number
+  ) => {
     const isSelected = (selectedStakeholderId || activeStakeholderId) === st.id;
     const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
     const stakeholderColor = getStakeholderColor(st);
     const av = st.avatar || {};
+
+    let topBubbleClass = "";
+    if (isTop) {
+      if (topIndex === 0) {
+        topBubbleClass = styles.tableSpeechBubbleTopLeft;
+      } else if (topIndex === 1) {
+        topBubbleClass = styles.tableSpeechBubbleTopRight;
+      } else {
+        topBubbleClass = styles.tableSpeechBubbleTopCenter;
+      }
+    }
 
     return (
       <div
@@ -526,7 +566,8 @@ export default function OnlineIntelGathering({
         {/* Active Speech Bubble above speaking stakeholder (Complete text visible) */}
         {isSpeaking && activeSpeakingState && (
           <div
-            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
+            ref={speechBubbleRef}
+            className={`${styles.tableSpeechBubble} ${topBubbleClass} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""
               }`}
             style={{
               borderColor: stakeholderColor,
@@ -820,7 +861,7 @@ export default function OnlineIntelGathering({
                               : ""
                           }`}
                         >
-                          {topStakeholders.map((st) => renderSeatedStakeholder(st))}
+                          {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, false, true, idx))}
                         </div>
                       )}
 

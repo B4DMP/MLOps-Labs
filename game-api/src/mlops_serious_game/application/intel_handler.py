@@ -315,10 +315,11 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
                         data = dict(r.intel_item_data)
                         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
-                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description:
+                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description:
                             data["intel_type"] = ConfidenceType.VERIFIED.value
                             data["categorized_type"] = cat_type_str
                             data["description"] = req.description
+                            data["categorized_description"] = req.description
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -593,6 +594,7 @@ async def handle_intel_verification(
     if req:
         target_item.categorized_type = req.type
         target_item.description = req.description
+        target_item.categorized_description = req.description
 
     await store_intel_item(curr_challenge, ws, target_item)
 
@@ -635,6 +637,7 @@ def correct_and_verify_intel_item(
             data["intel_type"] = ConfidenceType.VERIFIED.value
             data["categorized_type"] = cat_type_str
             data["description"] = req.description
+            data["categorized_description"] = req.description
             target_record.intel_item_data = data
             flag_modified(target_record, "intel_item_data")
             session.commit()
@@ -671,7 +674,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 stakeholder_intel_map[st_id] = []
             intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
             cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
-            display_desc = item.categorized_description if item.categorized_description else item.description
+            is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
+            display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
             stakeholder_intel_map[st_id].append({
                 "id": item.id,
                 "intel_type": intel_type_val,

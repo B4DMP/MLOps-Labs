@@ -40,15 +40,19 @@ class StakeholderIntelItem(StakeholderRequirement):
         categorized_description: str = "",
         description: Optional[str] = None,
     ) -> "StakeholderIntelItem":
+        resolved_desc = description if description is not None else req.description
+        resolved_cat_desc = categorized_description
+        if not resolved_cat_desc and (intel_type == ConfidenceType.VERIFIED or str(intel_type).lower() == "verified"):
+            resolved_cat_desc = resolved_desc
         return cls(
             id=req.id,
             challenge_id=req.challenge_id,
             stakeholder_id=req.stakeholder_id,
             type=req.type,
-            description=description if description is not None else req.description,
+            description=resolved_desc,
             intel_type=intel_type,
             categorized_type=categorized_type or req.type,
-            categorized_description=categorized_description,
+            categorized_description=resolved_cat_desc,
         )
 
     @property

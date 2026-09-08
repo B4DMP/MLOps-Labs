@@ -222,6 +222,30 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
     verified_item = next((it for it in updated_intels if getattr(it, "id", None) == target_req.id), None)
     assert verified_item is not None
     assert verified_item.is_correct_intel() is True
+    assert verified_item.description == target_req.description
+    assert verified_item.categorized_description == target_req.description
+
+    # 4. Verify that correct_and_verify_intel_item updates the dossier description
+    from mlops_serious_game.application.intel_handler import correct_and_verify_intel_item, retrieve_dossier_data, store_intel_item
+    from unittest.mock import AsyncMock
+    test_user = f"user_{thread_id}"
+    mock_ws = AsyncMock()
+    mock_ws.query_params = {"username": test_user}
+
+    await store_intel_item(curr_challenge, mock_ws, wrong_intel)
+    correct_and_verify_intel_item(
+        username=test_user,
+        requirement_id=target_req.id,
+        curr_challenge=curr_challenge,
+    )
+
+    dossier = await retrieve_dossier_data(curr_challenge, mock_ws)
+    st_entry = next((s for s in dossier if s["stakeholder_id"] == target_req.stakeholder_id), None)
+    assert st_entry is not None
+    dossier_intel = next((i for i in st_entry["intel_items"] if i["id"] == target_req.id), None)
+    assert dossier_intel is not None
+    assert dossier_intel["intel_type"] == "verified"
+    assert dossier_intel["description"] == target_req.description
 
     # Clean up thread
     await reset_thread(thread_id)

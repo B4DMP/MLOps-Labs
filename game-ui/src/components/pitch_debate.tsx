@@ -148,6 +148,30 @@ export default function PitchDebate({
     isClosing?: boolean;
   } | null>(null);
 
+  const speechBubbleRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeSpeakingState || activeSpeakingState.isClosing || !speechBubbleRef.current) {
+      return;
+    }
+    const el = speechBubbleRef.current;
+    el.style.maxWidth = "";
+    el.style.width = "";
+    el.style.marginTop = "";
+
+    const rect = el.getBoundingClientRect();
+    if (rect.top < 10) {
+      const targetWidth = Math.min(680, window.innerWidth * 0.92);
+      el.style.maxWidth = `${targetWidth}px`;
+      el.style.width = `${targetWidth}px`;
+
+      const newRect = el.getBoundingClientRect();
+      if (newRect.top < 10) {
+        el.style.marginTop = `${10 - newRect.top}px`;
+      }
+    }
+  }, [activeSpeakingState]);
+
   const [activePlayerSpeakingState, setActivePlayerSpeakingState] = useState<{
     message: string;
     isClosing?: boolean;
@@ -568,12 +592,28 @@ export default function PitchDebate({
     }
   });
 
-  const renderSeatedStakeholder = (st: any, isRightSide: boolean = false) => {
+  const renderSeatedStakeholder = (
+    st: any,
+    isRightSide: boolean = false,
+    isTop: boolean = false,
+    topIndex?: number
+  ) => {
     const isSelected = selectedStakeholderId === st.id;
     const isSpeaking = activeSpeakingState?.stakeholderId === st.id;
     const stakeholderColor = getStakeholderColor(st);
     const av = st.avatar || {};
     const breakdown = calculatePersuasionBreakdown(st);
+
+    let topBubbleClass = "";
+    if (isTop) {
+      if (topIndex === 0) {
+        topBubbleClass = styles.tableSpeechBubbleTopLeft;
+      } else if (topIndex === 1) {
+        topBubbleClass = styles.tableSpeechBubbleTopRight;
+      } else {
+        topBubbleClass = styles.tableSpeechBubbleTopCenter;
+      }
+    }
 
     return (
       <div
@@ -588,7 +628,8 @@ export default function PitchDebate({
         {/* Active Speech Bubble above speaking stakeholder */}
         {isSpeaking && activeSpeakingState && (
           <div
-            className={`${styles.tableSpeechBubble} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""}`}
+            ref={speechBubbleRef}
+            className={`${styles.tableSpeechBubble} ${topBubbleClass} ${activeSpeakingState.isClosing ? styles.tableSpeechBubbleClosing : ""}`}
             style={{
               borderColor: stakeholderColor,
               pointerEvents: "auto",
@@ -747,7 +788,7 @@ export default function PitchDebate({
                             : ""
                             }`}
                         >
-                          {topStakeholders.map((st) => renderSeatedStakeholder(st))}
+                          {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, false, true, idx))}
                         </div>
                       )}
 

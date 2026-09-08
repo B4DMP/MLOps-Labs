@@ -735,19 +735,19 @@
 /* Enlarged Speech Bubble above speaking stakeholder */
 .tableSpeechBubble {
   position: absolute;
-  bottom: 110%;
+  bottom: 104%;
   left: 50%;
   transform: translateX(-50%);
   background: #ffffff;
   color: #111827;
-  padding: 10px 14px;
+  padding: 8px 14px;
   border-radius: 14px;
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.35;
   width: max-content;
-  min-width: 220px;
-  max-width: 320px;
+  min-width: 240px;
+  max-width: min(480px, 85vw);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
   border: 2px solid var(--st-color, #a02222);
   z-index: 4000 !important;
@@ -759,7 +759,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .tableSpeechBubble::after {
@@ -771,6 +771,44 @@
   border-width: 8px 8px 0 8px;
   border-style: solid;
   border-color: #ffffff transparent transparent transparent;
+}
+
+/* Upper / Top row stakeholders: wider bubble with adjusted positioning so long statements don't exceed vertical screen size */
+.tableSpeechBubbleTopLeft,
+.tableSpeechBubbleTopRight,
+.tableSpeechBubbleTopCenter {
+  bottom: 100%;
+  min-width: 280px;
+  max-width: min(580px, 88vw);
+  padding: 6px 14px;
+}
+
+/* Biasing left/right positioning toward center of table to prevent side clipping */
+.tableSpeechBubbleTopLeft {
+  left: 40%;
+  transform: translateX(-35%);
+}
+
+.tableSpeechBubbleTopLeft::after {
+  left: 35%;
+}
+
+.tableSpeechBubbleTopRight {
+  left: 60%;
+  transform: translateX(-65%);
+}
+
+.tableSpeechBubbleTopRight::after {
+  left: 65%;
+}
+
+.tableSpeechBubbleTopCenter {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tableSpeechBubbleTopCenter::after {
+  left: 50%;
 }
 
 @keyframes popIn {

@@ -25,7 +25,7 @@ CRITICAL INSTRUCTIONS:
 {% else %}
 3. Persuade and reassure {{target_stakeholder_name}} following the archetype strategy. Stay high-level, diplomatic, and aligned without proposing unapproved new pilots or technical tools.
 {% endif %}
-4. Keep it concise (1-2 sentences). Do not include stage directions, quotes around the whole text, or formatting.
+4. BREVITY & SENTENCE LIMIT: Keep it concise, strictly at most 2 sentences (maximum 2 sentences). Never write more than 2 sentences under any circumstances. Do not include stage directions, quotes around the whole text, or formatting.
 5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead. Output ONLY the exact spoken utterance."""
 
 PLAYER_UTTERANCE_HUMAN_PROMPT = """Recent Discussion History:
@@ -55,7 +55,7 @@ Proposed Action Plan:
 CRITICAL INSTRUCTIONS:
 1. Speak in 1st person ('I' or 'We').
 2. Welcome the stakeholders to the meeting, and briefly introduce the proposed action plan in one clear, concise sentence.
-3. Keep the entire opening to 1-2 sentences total (a brief welcome + 1 sentence introducing the proposed action plan).
+3. BREVITY & SENTENCE LIMIT: Keep the entire opening strictly to at most 2 sentences total (maximum 2 sentences: e.g. a brief welcome + 1 concise sentence introducing the proposed action plan). Never exceed 2 sentences under any circumstances.
 4. Do NOT include stage directions, meta-commentary, or quotes around the output.
 5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
 6. Output ONLY the exact spoken opening utterance."""
