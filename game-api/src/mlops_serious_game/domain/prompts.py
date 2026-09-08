@@ -103,7 +103,8 @@ Instructions:
    - If categorized as 'preference' or 'negotiable_preference': Frame the stance as an optional tool preference or personal workflow choice.
 2. The wrong description MUST fit into the context of the team challenge, maintain thematic relevance to the correct description, and align naturally with the stakeholder's profile.
 3. The description MUST be exactly one sentence long.
-4. Output ONLY the generated single-sentence wrong intel description without any additional text, quotes, formatting labels, or preamble.
+4. NO DASHES: Do NOT use any em-dashes ('—'), en-dashes ('–'), or double hyphens ('--'). Use standard punctuation (commas, periods, or hyphens) instead.
+5. Output ONLY the generated single-sentence wrong intel description without any additional text, quotes, formatting labels, or preamble.
 """
 
 WRONG_INTEL_PROMPT = Prompt(
@@ -114,26 +115,21 @@ WRONG_INTEL_PROMPT = Prompt(
 # --- Intel Artifact Generation ---
 
 __INTEL_ARTIFACT_PROMPT = """
-You are an AI game designer generating an MLOps environment artifact document (e.g., Email, Slack Message, Meeting Notes, Document) for a serious game.
-Artifacts are workplace documents from the MLOps environment that reveal information (intel) about a stakeholder's stance on the project.
+You are an AI game designer generating body content for an MLOps workplace document ({{artifact_type}}) written by or involving {{stakeholder_name}}.
+The document must convey {{stakeholder_name}}'s stance on the team challenge so the player can determine their requirement type.
 
 Context:
-- Team Challenge: {{challenge}}
-- Stakeholder Name: {{stakeholder_name}}
-- Stakeholder Profile: {{stakeholder_profile}}
-- True Requirement Stance: {{requirement_description}}
-- True Requirement Type: {{requirement_type}}
-- Artifact Type: {{artifact_type}}
+- Challenge: {{challenge}}
+- Stakeholder: {{stakeholder_name}}
+- Stance to Reveal: {{requirement_description}}
+- Stance Category: {{requirement_type}} (requirement = critical technical/operational need, negotiable_preference = flexible tool/workflow choice, personal_friction = interpersonal friction/emotional grievance)
 
-Instructions:
-1. Generate realistic content for an MLOps document of type '{{artifact_type}}' written by or involving {{stakeholder_name}}.
-2. The artifact's content must reveal {{stakeholder_name}}'s stance ("{{requirement_description}}") in a way that allows the player to correctly categorize the artifact into its requirement type ("{{requirement_type}}"):
-   - requirement: High-priority operational or technical requirement essential for project success.
-   - negotiable_preference: Desirable tool, framework, or workflow choice that is flexible/open to negotiation.
-   - personal_friction: Interpersonal tension, emotional friction, or personal grievance regarding team members or dynamics.
-3. The content MUST NOT exceed 5 sentences in length.
-4. Output ONLY the generated artifact content text without any surrounding explanation, quotes, or markdown wrappers.
-5. CRITICAL: Do NOT mention the requirement type, do NOT output any 'Game Master' comments, explanations, solutions, or requirement classification spoilers! The player must deduce the requirement type themselves from reading the document.
+Rules:
+1. NO TITLES, HEADINGS, OR METADATA: Start directly with the body text. Do NOT write any document title, heading, subject line, topic header, or author line (e.g. NEVER write "Incident Post-Mortem", "Meeting Notes", "Subject: ...", or "Author: ..."). The game interface already provides all titles and headers.
+2. STRICTLY NO DASHES (NO "—", NO "–", NO "--"): The dash character '—' is strictly forbidden. Never join clauses or sentences with dashes. Use commas (,), semicolons (;), or start a new sentence with a period (.) instead.
+3. AUTHENTIC MARKDOWN ONLY (NO HIGHLIGHTING TEXT SECTIONS): Markdown must look authentic to a real workplace artifact (such as bulleted lists for action points or backticks for technical parameters, config names, or metrics). Absolutely NEVER bold, italicize, or highlight entire sentences, clauses, or text sections to emphasize takeaways or stances. Bolding full sentences in the middle of a paragraph looks like artificial test question highlighting and is strictly forbidden.
+4. AUTHENTIC & CONCISE: Write realistic workplace communication of at most 4-5 sentences. Do NOT quote or summarize the stakeholder's resume or background profile.
+5. NO SPOILERS: Never mention the category name or include meta-commentary. Output ONLY the raw document body text.
 """
 
 INTEL_ARTIFACT_PROMPT = Prompt(

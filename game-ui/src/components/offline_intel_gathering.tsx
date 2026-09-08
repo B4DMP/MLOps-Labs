@@ -546,7 +546,6 @@ export default function OfflineIntelGathering({
                               content={currentArtifact.content}
                               artifactType={currentArtifact.artifact_type}
                               stakeholderName={currentArtifact.stakeholder_name}
-                              stakeholderRole={currentArtifact.stakeholder_role}
                             />
                           </motion.div>
                         </AnimatePresence>

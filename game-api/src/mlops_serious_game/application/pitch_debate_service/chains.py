@@ -60,12 +60,7 @@ def get_wrong_intel_chain():
             ("system", WRONG_INTEL_PROMPT.prompt),
             (
                 "human",
-                "Original Requirement: {{original_requirement}}\n"
-                "Target Category: {{target_category}}\n"
-                "Target Layer: {{target_layer}}\n"
-                "Stakeholder: {{stakeholder_name}}\n"
-                "Stakeholder Profile: {{stakeholder_profile}}\n"
-                "Challenge Context: {{challenge_context}}",
+                "Please generate the single-sentence wrong intel description for {{stakeholder_name}} miscategorized as {{categorized_type}}.",
             ),
         ],
         template_format="jinja2",
@@ -80,12 +75,10 @@ def get_intel_artifact_chain():
             ("system", INTEL_ARTIFACT_PROMPT.prompt),
             (
                 "human",
-                "Artifact Type: {{artifact_type}}\n"
-                "Stakeholder: {{stakeholder_name}}\n"
-                "Stakeholder Profile: {{stakeholder_profile}}\n"
-                "Intel Statement / Requirement: {{intel_statement}}\n"
-                "Confidence / Evidence Level: {{evidence_level}}\n"
-                "Challenge Context: {{challenge_context}}",
+                "Write ONLY the body content for this {{artifact_type}} involving {{stakeholder_name}}. "
+                "Markdown formatting (bullets, bold) is allowed. "
+                "Strictly NO titles, headings, subject lines, author lines, or dashes (strictly ban '—' and '–'). "
+                "Start directly with the first sentence of the body text:",
             ),
         ],
         template_format="jinja2",
@@ -105,4 +98,4 @@ def get_player_kickoff_chain():
     model = get_chat_model(temperature=0.6)
     output_parser = StrOutputParser()
     return PLAYER_KICKOFF_PROMPT | model | output_parser
-
+

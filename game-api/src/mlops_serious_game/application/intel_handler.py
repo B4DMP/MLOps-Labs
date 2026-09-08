@@ -182,7 +182,7 @@ def correct_and_verify_convincer_archetype(
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
     """Loads unconfirmed offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
-    unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known]
+    unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known][:3]
 
     results = []
     for art in unconfirmed_artifacts:
@@ -431,9 +431,13 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
     import json
     from mlops_serious_game.domain.gameConfigLoader import GameConfigLoader
 
+    existing_artifacts = OfflineIntelArtifactFactory.artifacts_by_requirement
     all_reqs = RequirementFactory.get_requirements()
     if not all_reqs:
         return {"status": "error", "message": "No requirement objects found to generate artifacts for."}
+
+    # Only process requirements that are configured in OfflineIntelArtifactFactory
+    reqs_to_process = [r for r in all_reqs if r.id in existing_artifacts] if existing_artifacts else all_reqs
 
     artifact_types = list(ArtifactType)
     semaphore = asyncio.Semaphore(10)
@@ -446,7 +450,10 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
                 curr_challenge = phases[0].challenges[0]
             
             stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
-            art_type = random.choice(artifact_types)
+            existing_art = existing_artifacts.get(req.id)
+            art_type = existing_art.artifact_type if existing_art else random.choice(artifact_types)
+            art_id = existing_art.id if existing_art else f"art_{req.id}"
+            is_known = existing_art.is_known if existing_art is not None else False
 
             temp_item = StakeholderIntelItem.from_requirement(req)
 
@@ -455,7 +462,7 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
                 content = await generate_intel_item_artifact_content(curr_challenge, temp_item, art_type)
             except Exception as e:
                 print(f"[Offline Intel Generator Warning] Content generation failed for {req.id}: {e}")
-                content = f"Stakeholder Note from {stakeholder.name} ({stakeholder.role_description}): {req.description}"
+                content = f"Stakeholder Note from {stakeholder.name}: {req.description}"
 
             # 2. Generate wrong descriptions for all 3 miscategorizations
             wrong_descriptions: Dict[str, str] = {}
@@ -472,18 +479,19 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
                 wrong_descriptions[wrong_type.value] = wrong_desc
 
             return {
-                "id": f"art_{req.id}",
+                "id": art_id,
                 "requirement_id": req.id,
                 "challenge_id": req.challenge_id,
                 "stakeholder_id": req.stakeholder_id,
                 "stakeholder_name": stakeholder.name,
                 "stakeholder_role": stakeholder.role_description,
-                "artifact_type": art_type.value,
+                "artifact_type": art_type.value if hasattr(art_type, "value") else str(art_type),
                 "content": content,
-                "wrong_descriptions": wrong_descriptions
+                "wrong_descriptions": wrong_descriptions,
+                "is_known": is_known,
             }
 
-    tasks = [_process_requirement(req) for req in all_reqs]
+    tasks = [_process_requirement(req) for req in reqs_to_process]
     generated_artifacts = await asyncio.gather(*tasks)
 
     # Save to gameConfig/OfflineIntelArtifacts.json

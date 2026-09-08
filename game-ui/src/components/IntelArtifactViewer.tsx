@@ -1,30 +1,19 @@
+import Markdown from "react-markdown";
 import styles from "./IntelArtifactViewer.module.css";
 
 interface IntelArtifactViewerProps {
   content: string;
   artifactType: string;
   stakeholderName: string;
-  stakeholderRole: string;
 }
 
 export default function IntelArtifactViewer({
   content,
   artifactType,
   stakeholderName,
-  stakeholderRole,
 }: IntelArtifactViewerProps) {
-  // Clean raw markdown, game master tags, and quotes
-  let cleanText = content ? content.trim() : "";
-  if (cleanText.includes("[GAME MASTER]")) {
-    cleanText = cleanText.split("[GAME MASTER]")[0].trim();
-  }
-  cleanText = cleanText
-    .replace(/^["']+|["']+$|^\*\*Meeting Notes\*\*\s*/gi, "")
-    .trim();
-
   const type = (artifactType || "").toLowerCase();
   const name = stakeholderName || "Stakeholder";
-  const role = stakeholderRole || "Project Stakeholder";
   const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@enterprise.internal`;
   const initial = name.charAt(0).toUpperCase();
 
@@ -58,14 +47,16 @@ export default function IntelArtifactViewer({
         </div>
 
         {/* Email Body */}
-        <div className={styles.mailBody}>{cleanText}</div>
+        <div className={`${styles.mailBody} ${styles.markdownContent}`}>
+          <Markdown>{content}</Markdown>
+        </div>
 
         {/* Corporate Email Signature */}
         <div className={`${styles.mailHeader} ${styles.mailSignatureSection}`}>
           <div className={styles.mailSignature}>
             Regards,
             <br />
-            <div className={styles.sigName}>{name} ({role})</div>
+            <div className={styles.sigName}>{name}</div>
             <div className={styles.sigCompany}>Enterprise AI & Data Operations Division</div>
             <div className={styles.disclaimer}>
               This communication is intended solely for internal enterprise deployment teams. Containment of proprietary infrastructure constraints apply.
@@ -106,7 +97,9 @@ export default function IntelArtifactViewer({
             </div>
           </div>
 
-          <div className={styles.chatBubble}>{cleanText}</div>
+          <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
+            <Markdown>{content}</Markdown>
+          </div>
 
           {/* Emoji Reactions & Thread Bar */}
           <div className={styles.reactionBar}>
@@ -147,8 +140,9 @@ export default function IntelArtifactViewer({
 
           <div className={styles.executiveCallout}>
             <strong>Executive Takeaway / Stance:</strong>
-            <br />
-            {cleanText}
+            <div className={styles.markdownContent}>
+              <Markdown>{content}</Markdown>
+            </div>
           </div>
 
           <div className={styles.actionChecklist}>
@@ -183,7 +177,9 @@ export default function IntelArtifactViewer({
           Author: <strong>{name}</strong> | Department: MLOps Infrastructure
         </div>
 
-        <div className={styles.specContentBox}>{cleanText}</div>
+        <div className={`${styles.specContentBox} ${styles.markdownContent}`}>
+          <Markdown>{content}</Markdown>
+        </div>
       </div>
     </div>
   );
