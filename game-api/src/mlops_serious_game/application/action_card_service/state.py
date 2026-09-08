@@ -9,6 +9,7 @@ class ActionCard(BaseModel):
     description: str = Field(description="Clear, synthesized description of the action proposal addressing the merged intel items")
     intel_ids: list[str] = Field(default_factory=list, description="List of intel item IDs merged to generate this action card")
     addendum_intel_item_ids: list[str] = Field(default_factory=list, description="List of addendum intel item IDs")
+    wrong_intel_ids: list[str] = Field(default_factory=list, description="List of wrongly categorized intel item IDs merged")
 
 
 class ActionCardGenerationOutput(BaseModel):

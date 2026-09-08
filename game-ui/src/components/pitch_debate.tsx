@@ -399,8 +399,14 @@ export default function PitchDebate({
 
     // 1. Action Card Intel Contribution
     const cardIntelIds = pitchedActionCard?.intel_ids || [];
+    const wrongCardIntelIds = (pitchedActionCard as any)?.wrong_intel_ids || [];
     const matchingActionCardIntels = (intelItems || []).filter(
-      (item) => cardIntelIds.includes(item.id) && (item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name))
+      (item) =>
+        cardIntelIds.includes(item.id) &&
+        !wrongCardIntelIds.includes(item.id) &&
+        (!item.requirement_id || !wrongCardIntelIds.includes(item.requirement_id)) &&
+        ((item as any).is_correct !== false) &&
+        (item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name))
     );
     const actionCardScore = matchingActionCardIntels.reduce((sum, item) => {
       const type = item.categorized_type || item.intel_type || "requirement";
@@ -410,7 +416,9 @@ export default function PitchDebate({
     // 2. Dialogue Questions Contribution
     const dialogueIntelsTargeted = (chat_msgs || []).flatMap((msg) => msg.revealed_intel || []);
     const matchingDialogueIntels = dialogueIntelsTargeted.filter(
-      (item: any) => item.stakeholder_id === st.id || item.stakeholder_name === st.name
+      (item: any) =>
+        (item.stakeholder_id === st.id || item.stakeholder_name === st.name) &&
+        !item.is_corrected
     );
     const dialogueIntelScore = matchingDialogueIntels.reduce((sum: number, item: any) => {
       const type = item.categorized_type || item.intel_type || "requirement";

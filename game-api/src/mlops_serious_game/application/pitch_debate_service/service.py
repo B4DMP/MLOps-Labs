@@ -81,6 +81,7 @@ async def get_response(
     initial_emotion_values: Optional[dict[str, EmotionValues]] = None,
     intel_items: Optional[list[StakeholderIntelItem]] = None,
     stakeholder_convincer_profile: Optional[dict[str, list[StakeholderIntelItem]]] = None,
+    action_card: Optional[dict[str, Any]] = None,
     ws: Optional[Any] = None,
     callback: Optional[Any] = None,
 ) -> tuple[dict[str, Any], PitchDebateState]:
@@ -234,6 +235,11 @@ async def get_response(
 
             if stakeholder_convincer_profile is not None:
                 input_data["stakeholder_convincer_profile"] = stakeholder_convincer_profile
+
+            if action_card is not None:
+                input_data["action_card"] = action_card
+            elif checkpoint_values.get("action_card"):
+                input_data["action_card"] = checkpoint_values.get("action_card")
 
             output_state = await graph.ainvoke(
                 input=input_data,

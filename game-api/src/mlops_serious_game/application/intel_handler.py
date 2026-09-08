@@ -690,6 +690,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "intel_type": intel_type_val,
                 "categorized_type": cat_type_val,
                 "description": item.description,
+                "is_correct": item.is_correct_intel(),
             })
 
 

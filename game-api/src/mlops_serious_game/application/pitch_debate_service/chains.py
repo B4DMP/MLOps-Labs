@@ -3,7 +3,10 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
-from mlops_serious_game.application.pitch_debate_service.prompts import PLAYER_UTTERANCE_PROMPT
+from mlops_serious_game.application.pitch_debate_service.prompts import (
+    PLAYER_KICKOFF_PROMPT,
+    PLAYER_UTTERANCE_PROMPT,
+)
 from mlops_serious_game.application.pitch_debate_service.tools import tools
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.prompts import (
@@ -94,4 +97,12 @@ def get_player_utterance_chain():
     """Builds and returns the LCEL chain for dynamically generating the player's spoken utterance upon option selection."""
     model = get_chat_model(temperature=0.6)
     output_parser = StrOutputParser()
-    return PLAYER_UTTERANCE_PROMPT | model | output_parser
+    return PLAYER_UTTERANCE_PROMPT | model | output_parser
+
+
+def get_player_kickoff_chain():
+    """Builds and returns the LCEL chain for dynamically generating the player's opening welcome and action card introduction."""
+    model = get_chat_model(temperature=0.6)
+    output_parser = StrOutputParser()
+    return PLAYER_KICKOFF_PROMPT | model | output_parser
+

@@ -8,8 +8,10 @@ from typing import Any, Optional
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+from loguru import logger
 from mlops_serious_game.application.message_parser import sanitize_dashes, sanitize_messages
 from mlops_serious_game.application.pitch_debate_service.chains import (
+    get_player_kickoff_chain,
     get_player_utterance_chain,
     get_stakeholder_response_chain,
 )
@@ -58,7 +60,28 @@ async def player_prompt_node(
 
     # Case 1: Initial start or no option chosen yet
     if not last_selected_option:
-        welcome_text = "Welcome to the meeting everybody"
+        action_card = state.get("action_card") or {}
+        ac_title = action_card.get("title", "").strip() if isinstance(action_card, dict) else ""
+        ac_desc = action_card.get("description", "").strip() if isinstance(action_card, dict) else ""
+
+        if ac_title or ac_desc:
+            try:
+                kickoff_chain = get_player_kickoff_chain()
+                welcome_raw = await kickoff_chain.ainvoke(
+                    {
+                        "challenge": challenge,
+                        "action_card_title": ac_title or "Proposed Action Plan",
+                        "action_card_description": ac_desc or ac_title,
+                    }
+                )
+                welcome_text = str(welcome_raw).strip().strip('"').strip("'")
+                welcome_text = sanitize_dashes(welcome_text)
+            except Exception as err:
+                logger.warning(f"[player_prompt_node kickoff generation error] {err}")
+                welcome_text = f"Welcome to the meeting everybody. Today I would like to propose our mitigation strategy: {ac_title}, where {ac_desc}."
+        else:
+            welcome_text = "Welcome to the meeting everybody."
+
         welcome_msg = HumanMessage(content=welcome_text)
         if callback:
             cb_state = {"messages": [welcome_msg]}
@@ -227,12 +250,33 @@ async def emotion_node(state: PitchDebateState, config: RunnableConfig):
     last_selected_intel = state.get("last_selected_intel")
     last_selected_option = state.get("last_selected_option")
 
-    # 100% System-based emotion updates calculated via vector distance & deterministic rules
-    delta = calculate_system_emotion_deltas(
-        st_id=st.id,
-        last_intel=last_selected_intel,
-        selected_option=last_selected_option,
-    )
+    # If kickoff turn (no option chosen yet), check if action card contains a miscategorized intel for this stakeholder
+    if not last_selected_option:
+        action_card = state.get("action_card") or {}
+        card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
+        wrong_card_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
+        all_intel_items = list(state.get("intel_items", []) or [])
+        st_wrong_intels = [
+            item for item in all_intel_items
+            if (getattr(item, "stakeholder_id", None) == st.id)
+            and (item.id in card_intel_ids or item.requirement_id in card_intel_ids or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+            and (not item.is_correct_intel() or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+        ]
+        if st_wrong_intels:
+            delta = calculate_system_emotion_deltas(
+                st_id=st.id,
+                last_intel=st_wrong_intels[0],
+                selected_option=None,
+            )
+        else:
+            delta = EmotionDelta()
+    else:
+        # 100% System-based emotion updates calculated via vector distance & deterministic rules
+        delta = calculate_system_emotion_deltas(
+            st_id=st.id,
+            last_intel=last_selected_intel,
+            selected_option=last_selected_option,
+        )
 
     # Retrieve current emotion values from state or initialize baseline
     emotion_values_map = dict(state.get("emotion_values", {}) or {})
@@ -303,10 +347,62 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         private_intel_lines.append(f"- [{intent_val}]: {getattr(item, 'correct_description', getattr(item, 'description', ''))}")
     private_intel_context = "\n".join(private_intel_lines) if private_intel_lines else "None"
 
+    action_card = state.get("action_card") or {}
+    card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
+    wrong_card_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
+
+    st_wrong_card_intels = [
+        item for item in st_intel_items
+        if (item.id in card_intel_ids or item.requirement_id in card_intel_ids or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+        and (not item.is_correct_intel() or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+    ]
+
     last_selected_intel = state.get("last_selected_intel")
+    last_selected_option = state.get("last_selected_option")
     intel_instruction = ""
     revealed_intel_list = []
-    if last_selected_intel and st.id == last_selected_intel.stakeholder_id:
+
+    # Case A: Kickoff round (initial turn, player presented action card)
+    if not last_selected_option:
+        if st_wrong_card_intels:
+            wrong_item = st_wrong_card_intels[0]
+            intel_intent_val = (
+                getattr(wrong_item.correct_intent, "value", str(wrong_item.correct_intent))
+                if getattr(wrong_item, "correct_intent", None)
+                else "requirement"
+            )
+            from mlops_serious_game.domain.requirement_factory import RequirementFactory
+            req = RequirementFactory.get_requirement(wrong_item.requirement_id)
+            req_desc = req.description if req else wrong_item.correct_description
+            cat_type = req.type.value if req and hasattr(req.type, "value") else (str(req.type) if req else intel_intent_val)
+
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION IN PROPOSED ACTION CARD]:\n"
+                f"The Project Manager's proposed action card is built upon a MISUNDERSTANDING of your stance!\n"
+                f"The proposal falsely assumes: '{wrong_item.categorized_description}'\n"
+                f"Your ACTUAL stance is: [{intel_intent_val}] '{wrong_item.correct_description}'\n"
+                f"In this initial response to the proposal, you MUST explicitly refute this misconception, object to this aspect of the proposed plan, and reveal your actual stance following its true category ({intel_intent_val})!"
+            )
+            revealed_intel_list = [{
+                "id": wrong_item.id,
+                "requirement_id": wrong_item.requirement_id,
+                "description": req_desc,
+                "categorized_type": cat_type,
+                "intel_type": "verified",
+                "stakeholder_id": st.id,
+                "stakeholder_name": st.name,
+                "is_corrected": True,
+            }]
+        else:
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - PROPOSAL EVALUATION & WHAT COULD GO WRONG]:\n"
+                f"The Project Manager has opened the meeting and pitched their proposed action card.\n"
+                f"Critically evaluate the proposed action plan from your specific MLOps perspective and responsibilities. Voice what could go wrong, pointing out realistic risks, potential bottlenecks, or failure modes from your domain before simulation.\n"
+                f"Remember to keep your specific underlying requirements hidden unless addressed or corrected:\n{private_intel_context}"
+            )
+
+    # Case B: An intel item option was selected for this stakeholder
+    elif last_selected_intel and st.id == last_selected_intel.stakeholder_id:
         intel_intent_val = getattr(last_selected_intel.correct_intent, "value", str(last_selected_intel.correct_intent)) if getattr(last_selected_intel, "correct_intent", None) else "requirement"
         if not last_selected_intel.is_correct_intel():
             intel_instruction = (
@@ -335,8 +431,9 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 f"[{intel_intent_val}] '{last_selected_intel.correct_description}'.\n"
                 f"Acknowledge their understanding positively and confirm that your stance has been addressed!"
             )
+
+    # Case C: Corporate noise or addressing another stakeholder
     else:
-        last_selected_option = state.get("last_selected_option")
         opt_arch = last_selected_option.archetype if last_selected_option else None
         opt_name = opt_arch.name if opt_arch else ""
 
@@ -376,6 +473,12 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     # Combine static requirements with dynamic private_intel_context
     combined_requirements = f"{st.requirements}\n\nPrivate Intel Requirements:\n{private_intel_context}"
 
+    proposed_ac_title = ""
+    proposed_ac_desc = ""
+    if isinstance(action_card, dict) and (action_card.get("title") or action_card.get("description")):
+        proposed_ac_title = action_card.get("title", "")
+        proposed_ac_desc = action_card.get("description", "")
+
     response = await conversation_chain.ainvoke(
         {
             "messages": input_messages,
@@ -385,6 +488,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
             "stakeholder_requirements": combined_requirements,
+            "proposed_action_card_title": proposed_ac_title,
+            "proposed_action_card_description": proposed_ac_desc,
             "current_emotion": current_emotion,
             "emotion_instruction": emotion_instruction,
             "intel_instruction": intel_instruction,
@@ -426,21 +531,25 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     # Update intel_items in state if corrected
     updated_intel_items = list(state.get("intel_items", []) or [])
-    if last_selected_intel and not last_selected_intel.is_correct_intel():
-        for i, item in enumerate(updated_intel_items):
-            if getattr(item, "requirement_id", None) == last_selected_intel.requirement_id or getattr(item, "id", None) == last_selected_intel.id:
-                from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
-                from mlops_serious_game.domain.requirement_factory import RequirementFactory
-                req = RequirementFactory.get_requirement(last_selected_intel.requirement_id)
-                if req:
-                    updated_intel_items[i] = StakeholderIntelItem(
-                        id=getattr(item, "id", str(uuid.uuid4()) if "uuid" in globals() else "item"),
-                        requirement_id=req.id,
-                        intel_type=ConfidenceType.VERIFIED,
-                        categorized_type=req.type,
-                        description=req.description,
-                    )
-                break
+    if revealed_intel_list:
+        for rev_item in revealed_intel_list:
+            if rev_item.get("is_corrected"):
+                rev_req_id = rev_item.get("requirement_id")
+                rev_id = rev_item.get("id")
+                for i, item in enumerate(updated_intel_items):
+                    if getattr(item, "requirement_id", None) == rev_req_id or getattr(item, "id", None) == rev_id:
+                        from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
+                        from mlops_serious_game.domain.requirement_factory import RequirementFactory
+                        req = RequirementFactory.get_requirement(rev_req_id)
+                        if req:
+                            updated_intel_items[i] = StakeholderIntelItem(
+                                id=getattr(item, "id", str(uuid.uuid4()) if "uuid" in globals() else "item"),
+                                requirement_id=req.id,
+                                intel_type=ConfidenceType.VERIFIED,
+                                categorized_type=req.type,
+                                description=req.description,
+                            )
+                        break
 
     if named_response.tool_calls:
         return {"messages": named_response, "intel_items": updated_intel_items}

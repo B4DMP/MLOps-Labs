@@ -42,6 +42,9 @@ async def handle_chat_message(
         addressed_stakeholder_id = payload.get("addressed_stakeholder_id")
         initial_start = payload.get("initial_start", False)
 
+        if "action_card" in payload:
+            payload.pop("action_card", None)
+
         if not option_id and not initial_start:
             raise ValueError(
                 "Missing 'option_id' in payload. Dialogue options must be selected by ID."
@@ -161,6 +164,26 @@ async def handle_chat_message(
                         for st in StakeholderFactory.stakeholders
                     }
 
+        action_card = None
+        with get_session() as db_session:
+            stmt_ac = select(GameChallenge).where(
+                GameChallenge.user_name == username
+            ).order_by(GameChallenge.id.desc())
+            existing_challenge = db_session.scalars(stmt_ac).first()
+            if existing_challenge and isinstance(existing_challenge.action_card, dict) and existing_challenge.action_card.get("title"):
+                action_card = dict(existing_challenge.action_card)
+                card_intel_ids = action_card.get("intel_ids", [])
+                wrong_intel_ids = list(action_card.get("wrong_intel_ids", []))
+                for it in intel_items:
+                    it_id = getattr(it, "id", None)
+                    it_req_id = getattr(it, "requirement_id", None)
+                    if (it_id in card_intel_ids or it_req_id in card_intel_ids) and not it.is_correct_intel():
+                        if it_id and it_id not in wrong_intel_ids:
+                            wrong_intel_ids.append(it_id)
+                        if it_req_id and it_req_id not in wrong_intel_ids:
+                            wrong_intel_ids.append(it_req_id)
+                action_card["wrong_intel_ids"] = wrong_intel_ids
+
         # Run pitch debate graph
         emotion_deltas, output_state = await get_response(
             challenge=challenge_context,
@@ -173,6 +196,7 @@ async def handle_chat_message(
             initial_start=initial_start,
             initial_emotion_values=initial_emotion_values,
             intel_items=intel_items,
+            action_card=action_card,
             ws=websocket,
             callback=callback,
         )
@@ -196,14 +220,25 @@ async def handle_chat_message(
                     existing.emotion_values = serialized_emotion_values
                     flag_modified(existing, "emotion_values")
 
-        # If a wrongly categorized intel item was played, correct and mark it as verified in DB and update dossier
+        # If any wrongly categorized intel items were refuted or played, mark them as verified in DB and update dossier
+        corrected_req_ids = set()
         last_intel = output_state.get("last_selected_intel")
         if last_intel and not last_intel.is_correct_intel():
-            correct_and_verify_intel_item(
-                username=username,
-                requirement_id=last_intel.requirement_id,
-                curr_challenge=curr_challenge,
-            )
+            corrected_req_ids.add(last_intel.requirement_id)
+
+        for m in output_state.get("messages", []):
+            add_kw = getattr(m, "additional_kwargs", {}) or {}
+            for rev in add_kw.get("revealed_intel", []):
+                if rev.get("is_corrected") and rev.get("requirement_id"):
+                    corrected_req_ids.add(rev.get("requirement_id"))
+
+        if corrected_req_ids:
+            for req_id in corrected_req_ids:
+                correct_and_verify_intel_item(
+                    username=username,
+                    requirement_id=req_id,
+                    curr_challenge=curr_challenge,
+                )
             dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
             await manager.send_event(
                 websocket=websocket,

@@ -448,6 +448,15 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             session_id=f"ActionCard_{username}",
         )
 
+        wrong_intel_ids = []
+        for i_id in intel_ids:
+            item = collected_map.get(i_id)
+            if item and not item.is_correct_intel():
+                wrong_intel_ids.append(item.id)
+                if item.requirement_id:
+                    wrong_intel_ids.append(item.requirement_id)
+        action_card["wrong_intel_ids"] = wrong_intel_ids
+
         with get_session() as db_session:
             stmt = select(GameChallenge).where(
                 GameChallenge.user_name == username

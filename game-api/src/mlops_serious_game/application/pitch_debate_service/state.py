@@ -84,3 +84,4 @@ class PitchDebateState(MessagesState):
     last_selected_intel: Optional[StakeholderIntelItem]
     last_selected_option: Optional[DialogueOption]
     addressed_stakeholder_id: Optional[str]
+    action_card: Optional[dict[str, Any]]
