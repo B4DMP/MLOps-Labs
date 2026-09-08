@@ -43,7 +43,7 @@ export default function ActionCardCreatedModal({
   // Resolve matching intel items from the action card's intel_ids
   const cardIntelIds = actionCard.intel_ids || [];
   const mergedIntelItems = intelItems.filter((i) =>
-    cardIntelIds.includes(i.id) || (i.requirement_id && cardIntelIds.includes(i.requirement_id))
+    cardIntelIds.includes(i.id)
   );
 
   const getCategoryClass = (type: string) => {

@@ -68,9 +68,9 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
     """Handles tagging an intel artifact (requirement or convincer) and updating user dossier."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
-    requirement_id = payload.get("requirement_id")
+    intel_id = payload.get("intel_id") or payload.get("id") or payload.get("requirement_id")
     categorized_type = payload.get("categorized_type")
-    is_convincer = payload.get("is_convincer", False) or (requirement_id and str(requirement_id).startswith("convincer_"))
+    is_convincer = payload.get("is_convincer", False) or (intel_id and str(intel_id).startswith("convincer_"))
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -81,16 +81,19 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         curr_challenge = phases[0].challenges[0]
 
     if is_convincer and categorized_type:
-        st_id = payload.get("stakeholder_id") or (str(requirement_id).replace("convincer_", "") if requirement_id else "")
+        st_id = payload.get("stakeholder_id") or (str(intel_id).replace("convincer_", "") if intel_id else "")
         if st_id:
             await tag_stakeholder_convincer_archetype(username, st_id, categorized_type)
-    elif requirement_id and categorized_type:
-        intel_item = await handle_intel_tagging(curr_challenge, websocket, requirement_id, categorized_type)
+    elif intel_id and categorized_type:
+        intel_item = await handle_intel_tagging(curr_challenge, websocket, intel_id, categorized_type)
+        item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
+        if getattr(intel_item, "categorized_description", None):
+            item_dict["description"] = intel_item.categorized_description
         await manager.send_event(
             websocket=websocket,
             event="intel:tagged_ack",
             payload={
-                "intel_item": intel_item.model_dump() if hasattr(intel_item, "model_dump") else intel_item
+                "intel_item": item_dict
             }
         )
 
@@ -195,7 +198,7 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
                     engagement_card_targets = existing.action_card.get("engagement_card_targets", {})
                 
                 if result.get("status") == "success":
-                    req_id = result.get("requirement_id")
+                    req_id = result.get("id")
                     from mlops_serious_game.domain.requirement_factory import RequirementFactory
                     req = RequirementFactory.get_requirement(req_id)
                     st_id = req.stakeholder_id if req else "system"
@@ -324,8 +327,8 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
                 "player_message": f"Played {card.title if card else card_id}",
                 "stakeholder_responses": [],
                 "dossier": dossier_data,
-                "played_card_ids": played_cards,
-                "card_targets": card_targets,
+                "played_engagement_card_ids": played_cards,
+                "engagement_card_targets": engagement_card_targets,
                 "error": str(e),
             }
         )
@@ -403,21 +406,16 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
 
     collected_items = await retrieve_intel_items(curr_challenge, websocket)
     collected_map = {item.id: item for item in collected_items}
-    for item in collected_items:
-        if item.requirement_id:
-            collected_map[item.requirement_id] = item
 
     merged_intel_data = []
     for i_id in intel_ids:
         if i_id in collected_map:
             item = collected_map[i_id]
-            req = RequirementFactory.get_requirement(item.requirement_id)
-            st = StakeholderFactory.get_stakeholder(req.stakeholder_id) if req else None
-            st_name = st.name if st else (req.stakeholder_id if req else "Stakeholder")
+            st = StakeholderFactory.get_stakeholder(item.stakeholder_id)
+            st_name = st.name if st else (item.stakeholder_id or "Stakeholder")
             cat_type = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
             merged_intel_data.append({
                 "id": item.id,
-                "requirement_id": item.requirement_id,
                 "description": item.description,
                 "stakeholder_name": st_name,
                 "categorized_type": cat_type,
@@ -430,7 +428,6 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
                 cat_type = req.type.value if hasattr(req.type, "value") else str(req.type)
                 merged_intel_data.append({
                     "id": req.id,
-                    "requirement_id": req.id,
                     "description": req.description,
                     "stakeholder_name": st_name,
                     "categorized_type": cat_type,
@@ -453,8 +450,6 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             item = collected_map.get(i_id)
             if item and not item.is_correct_intel():
                 wrong_intel_ids.append(item.id)
-                if item.requirement_id:
-                    wrong_intel_ids.append(item.requirement_id)
         action_card["wrong_intel_ids"] = wrong_intel_ids
 
         with get_session() as db_session:

@@ -36,7 +36,7 @@ async def generate_intel_item_artifact_content(
     artifact_type: ArtifactType = ArtifactType.EMAIL,
 ) -> str:
     """Generates the content of an intel item artifact based on the stakeholder's stance."""
-    req = RequirementFactory.get_requirement(intel_item.requirement_id)
+    req = RequirementFactory.get_requirement(intel_item.id)
     stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
     stakeholder_name = stakeholder.name
     stakeholder_profile = (
@@ -80,13 +80,7 @@ def select_reqs_for_offl_intel_gathering(curr_challenge: Challenge) -> List[Stak
 
 async def _generate_single_artifact(curr_challenge: Challenge, req: StakeholderRequirement, art_type: ArtifactType) -> Dict[str, Any]:
     stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
-    temp_item = StakeholderIntelItem(
-        id=str(uuid.uuid4()),
-        requirement_id=req.id,
-        intel_type=ConfidenceType.UNCONFIRMED,
-        categorized_type=req.type,
-        description=req.description
-    )
+    temp_item = StakeholderIntelItem.from_requirement(req)
     try:
         content = await generate_intel_item_artifact_content(curr_challenge, temp_item, art_type)
     except Exception as e:
@@ -291,8 +285,8 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
         records = session.scalars(
             select(IntelItem).where(IntelItem.user_name == username)
         ).all()
-        existing_req_ids = {
-            r.intel_item_data.get("requirement_id")
+        existing_ids = {
+            r.intel_item_data.get("id")
             for r in records
             if isinstance(r.intel_item_data, dict)
         }
@@ -302,10 +296,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
             if not req:
                 continue
 
-            if art.requirement_id not in existing_req_ids:
-                new_item = StakeholderIntelItem(
-                    id=str(art.id),
-                    requirement_id=art.requirement_id,
+            if req.id not in existing_ids:
+                new_item = StakeholderIntelItem.from_requirement(
+                    req,
                     intel_type=ConfidenceType.VERIFIED,
                     categorized_type=req.type,
                     description=req.description,
@@ -315,11 +308,11 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     intel_item_data=new_item.model_dump(mode="json"),
                 )
                 session.add(new_record)
-                existing_req_ids.add(art.requirement_id)
+                existing_ids.add(req.id)
                 loaded_items.append(new_item)
             else:
                 for r in records:
-                    if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("requirement_id") == art.requirement_id:
+                    if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
                         data = dict(r.intel_item_data)
                         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
                         if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description:
@@ -344,9 +337,8 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
         target_record = None
         for record in records:
             if isinstance(record.intel_item_data, dict):
-                req_id = record.intel_item_data.get("requirement_id")
                 item_id = record.intel_item_data.get("id")
-                if req_id == intel_item.requirement_id or (intel_item.id and item_id == intel_item.id):
+                if item_id == intel_item.id:
                     target_record = record
                     break
 
@@ -388,8 +380,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
             data = record.intel_item_data
             if isinstance(data, dict):
                 item = StakeholderIntelItem(**data)
-                req = RequirementFactory.get_requirement(item.requirement_id)
-                if req and req.challenge_id == curr_challenge.id:
+                if item.challenge_id == curr_challenge.id:
                     intel_items.append(item)
 
     return intel_items
@@ -398,27 +389,28 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
 
 async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Handles the categorization of intel items using pre-generated descriptions when available."""
-    req = RequirementFactory.get_requirement(intel_item.requirement_id)
-    if intel_item.categorized_type == req.type:
-        intel_item.description = req.description
+    cat_type = intel_item.categorized_type.value if hasattr(intel_item.categorized_type, "value") else str(intel_item.categorized_type)
+    true_type = intel_item.type.value if hasattr(intel_item.type, "value") else str(intel_item.type)
+    if cat_type == true_type:
+        intel_item.categorized_description = intel_item.description
     else:
         wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(
-            intel_item.requirement_id,
-            intel_item.categorized_type.value if hasattr(intel_item.categorized_type, "value") else str(intel_item.categorized_type)
+            intel_item.id,
+            cat_type,
         )
         if wrong_desc:
-            intel_item.description = wrong_desc
+            intel_item.categorized_description = wrong_desc
         else:
-            intel_item.description = await create_wrong_intel_item_description(curr_challenge, intel_item)
+            intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
     await store_intel_item(curr_challenge, ws, intel_item)
 
 async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_item: StakeholderIntelItem) -> str:
     """Creates a wrong description for the given intel item"""
-    req = RequirementFactory.get_requirement(intel_item.requirement_id)
-    stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
-    stakeholder_name = stakeholder.name
+    stakeholder = StakeholderFactory.get_stakeholder(intel_item.stakeholder_id)
+    stakeholder_name = stakeholder.name if stakeholder else "Stakeholder"
     stakeholder_profile = (
         f"Responsibilities: {stakeholder.responsibilities}, Priorities: {stakeholder.priorities}"
+        if stakeholder else ""
     )
 
     chain = get_wrong_intel_chain()
@@ -426,8 +418,8 @@ async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_i
         "challenge": curr_challenge.description,
         "stakeholder_name": stakeholder_name,
         "stakeholder_profile": stakeholder_profile,
-        "correct_description": req.description,
-        "categorized_type": intel_item.categorized_type.value
+        "correct_description": intel_item.description,
+        "categorized_type": intel_item.categorized_type.value if hasattr(intel_item.categorized_type, "value") else str(intel_item.categorized_type)
     })
     return res.strip()
 
@@ -455,13 +447,7 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
             stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id)
             art_type = random.choice(artifact_types)
 
-            temp_item = StakeholderIntelItem(
-                id=str(uuid.uuid4()),
-                requirement_id=req.id,
-                intel_type=ConfidenceType.UNCONFIRMED,
-                categorized_type=req.type,
-                description=req.description
-            )
+            temp_item = StakeholderIntelItem.from_requirement(req)
 
             # 1. Generate main artifact content
             try:
@@ -475,13 +461,7 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
             possible_types = [t for t in RequirementType if t != req.type]
 
             for wrong_type in possible_types:
-                temp_wrong_item = StakeholderIntelItem(
-                    id=str(uuid.uuid4()),
-                    requirement_id=req.id,
-                    intel_type=ConfidenceType.UNCONFIRMED,
-                    categorized_type=wrong_type,
-                    description=""
-                )
+                temp_wrong_item = StakeholderIntelItem.from_requirement(req, categorized_type=wrong_type)
                 try:
                     wrong_desc = await create_wrong_intel_item_description(curr_challenge, temp_wrong_item)
                 except Exception as e:
@@ -534,21 +514,29 @@ async def handle_intel_tagging(
 ) -> StakeholderIntelItem:
     """Processes tagging or re-tagging of an intel artifact by the player, creating or updating an intel item."""
     collected_items = await retrieve_intel_items(curr_challenge, ws)
-    existing_item = next((item for item in collected_items if item.requirement_id == requirement_id), None)
+    existing_item = next((item for item in collected_items if item.id == requirement_id), None)
 
     if existing_item:
         item_conf = existing_item.intel_type.value if hasattr(existing_item.intel_type, "value") else str(existing_item.intel_type)
         if item_conf.lower() != "unconfirmed":
             return existing_item
         existing_item.categorized_type = RequirementType(categorized_type)
+        req = RequirementFactory.get_requirement(existing_item.id)
+        if req:
+            existing_item.description = req.description
+            existing_item.type = req.type
         intel_item = existing_item
     else:
-        intel_item = StakeholderIntelItem(
-            id=str(uuid.uuid4()),
-            requirement_id=requirement_id,
+        req = RequirementFactory.get_requirement(requirement_id)
+        if not req:
+            all_reqs = RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
+            req = next((r for r in all_reqs if r.id == requirement_id), None)
+        if not req:
+            raise ValueError(f"Requirement '{requirement_id}' not found.")
+        intel_item = StakeholderIntelItem.from_requirement(
+            req,
             intel_type=ConfidenceType.UNCONFIRMED,
             categorized_type=RequirementType(categorized_type),
-            description=""
         )
 
     await handle_intel_item_categorization(curr_challenge, ws, intel_item)
@@ -567,13 +555,10 @@ async def handle_intel_verification(
     """
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     target_item = next(
-        (item for item in collected_items if item.id == intel_item_id or item.requirement_id == intel_item_id),
+        (item for item in collected_items if item.id == intel_item_id),
         None
     )
-    req = None
-    if target_item:
-        req = RequirementFactory.get_requirement(target_item.requirement_id)
-    else:
+    if not target_item:
         req = RequirementFactory.get_requirement(intel_item_id)
         if not req:
             all_reqs = RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
@@ -582,25 +567,32 @@ async def handle_intel_verification(
         if not req:
             return {"status": "error", "message": f"Intel requirement '{intel_item_id}' not found."}
 
-        target_item = StakeholderIntelItem(
-            id=str(uuid.uuid4()),
-            requirement_id=req.id,
-            intel_type=ConfidenceType.UNCONFIRMED,
+        target_item = StakeholderIntelItem.from_requirement(
+            req,
+            intel_type=ConfidenceType.VERIFIED,
             categorized_type=req.type,
             description=req.description,
         )
+    else:
+        req = RequirementFactory.get_requirement(target_item.id)
 
-    stakeholder = StakeholderFactory.get_stakeholder(req.stakeholder_id) if req else None
+    stakeholder = StakeholderFactory.get_stakeholder(target_item.stakeholder_id) if target_item else None
 
     old_categorized_type = (
         target_item.categorized_type.value
+        if hasattr(target_item.categorized_type, "value")
+        else str(target_item.categorized_type)
     )
-    true_categorized_type = req.type.value if (req and hasattr(req.type, "value")) else (str(req.type) if req else old_categorized_type)
+    true_categorized_type = (
+        req.type.value if (req and hasattr(req.type, "value"))
+        else (str(req.type) if req else old_categorized_type)
+    )
 
     # Perform verification & correction
     target_item.intel_type = ConfidenceType.VERIFIED
-    target_item.categorized_type = req.type
-    target_item.description = req.description
+    if req:
+        target_item.categorized_type = req.type
+        target_item.description = req.description
 
     await store_intel_item(curr_challenge, ws, target_item)
 
@@ -608,8 +600,8 @@ async def handle_intel_verification(
         "status": "success",
         "old_categorized_type": old_categorized_type,
         "true_categorized_type": true_categorized_type,
-        "requirement_id": target_item.requirement_id,
-        "stakeholder_name": stakeholder.name,
+        "id": target_item.id,
+        "stakeholder_name": stakeholder.name if stakeholder else "",
         "description": target_item.description,
         "intel_item": target_item.model_dump(mode="json"),
     }
@@ -632,12 +624,9 @@ def correct_and_verify_intel_item(
 
         target_record = None
         for record in records:
-            if isinstance(record.intel_item_data, dict):
-                r_id = record.intel_item_data.get("requirement_id")
-                item_id = record.intel_item_data.get("id")
-                if r_id == requirement_id or item_id == requirement_id:
-                    target_record = record
-                    break
+            if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == requirement_id:
+                target_record = record
+                break
 
         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
 
@@ -651,9 +640,8 @@ def correct_and_verify_intel_item(
             session.commit()
             return StakeholderIntelItem(**data)
         else:
-            new_item = StakeholderIntelItem(
-                id=str(uuid.uuid4()),
-                requirement_id=req.id,
+            new_item = StakeholderIntelItem.from_requirement(
+                req,
                 intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
@@ -677,19 +665,18 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
     for item in collected_items:
-        req = RequirementFactory.get_requirement(item.requirement_id)
-        if req:
-            st_id = req.stakeholder_id
+        st_id = item.stakeholder_id
+        if st_id:
             if st_id not in stakeholder_intel_map:
                 stakeholder_intel_map[st_id] = []
             intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
             cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
+            display_desc = item.categorized_description if item.categorized_description else item.description
             stakeholder_intel_map[st_id].append({
                 "id": item.id,
-                "requirement_id": item.requirement_id,
                 "intel_type": intel_type_val,
                 "categorized_type": cat_type_val,
-                "description": item.description,
+                "description": display_desc,
                 "is_correct": item.is_correct_intel(),
             })
 
@@ -756,37 +743,24 @@ def determine_dialogue_options(
         selected_intels = random.sample(items, k)
         for idx, item in enumerate(selected_intels, 1):
             if isinstance(item, dict):
-                req_id = item.get("requirement_id")
-                item_desc = item.get("description") or item.get("categorized_description", "")
+                item_id = item.get("id")
+                item_desc = item.get("categorized_description") or item.get("description", "")
                 st_id = item.get("stakeholder_id")
-                item_id = item.get("id") or req_id
                 intel_type = (
                     item.get("intel_type")
                     or item.get("categorized_type")
-                    or item.get("categorized_intent")
                 )
             else:
-                req_id = getattr(item, "requirement_id", None)
-                item_desc = getattr(item, "description", None) or getattr(
-                    item, "categorized_description", ""
-                )
+                item_id = getattr(item, "id", None)
+                item_desc = getattr(item, "categorized_description", "") or getattr(item, "description", "")
                 st_id = getattr(item, "stakeholder_id", None)
-                item_id = getattr(item, "id", None) or req_id
                 intel_type = (
                     getattr(item, "intel_type", None)
                     or getattr(item, "categorized_type", None)
-                    or getattr(item, "categorized_intent", None)
                 )
 
             if hasattr(intel_type, "value"):
                 intel_type = intel_type.value
-
-            if not st_id and req_id:
-                req = RequirementFactory.get_requirement(req_id)
-                if req:
-                    st_id = req.stakeholder_id
-                    if not item_desc:
-                        item_desc = req.description
 
             if not item_id:
                 item_id = f"intel_{st_id}_{idx}" if st_id else f"intel_{idx}"

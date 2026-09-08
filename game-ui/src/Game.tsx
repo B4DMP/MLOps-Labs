@@ -935,7 +935,7 @@ function App({ username: _username }: AppProps) {
                         ...st,
                         intel_items: (st.intel_items || []).map((item) => {
                           const matchingUpdated = items.find(
-                            (u) => u.id === item.id || u.requirement_id === item.requirement_id
+                            (u) => u.id === item.id
                           );
                           if (matchingUpdated) {
                             return {

@@ -165,12 +165,11 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
         if target_req.type != RequirementType.PERSONAL_FRICTION
         else RequirementType.REQUIREMENT
     )
-    wrong_intel = StakeholderIntelItem(
-        id="test_wrong_intel_1",
-        requirement_id=target_req.id,
+    wrong_intel = StakeholderIntelItem.from_requirement(
+        target_req,
         intel_type=ConfidenceType.UNCONFIRMED,
         categorized_type=wrong_type,
-        description=f"False assumption regarding {target_req.stakeholder_id}'s stance",
+        categorized_description=f"False assumption regarding {target_req.stakeholder_id}'s stance",
     )
 
     action_card = {
@@ -216,11 +215,11 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
     revealed_intels = target_st_msg.additional_kwargs.get("revealed_intel", [])
     assert len(revealed_intels) >= 1
     assert revealed_intels[0]["is_corrected"] is True
-    assert revealed_intels[0]["requirement_id"] == target_req.id
+    assert revealed_intels[0]["id"] == target_req.id
 
     # 3. State intel items should be updated to verified
     updated_intels = output_state["intel_items"]
-    verified_item = next((it for it in updated_intels if getattr(it, "requirement_id", None) == target_req.id), None)
+    verified_item = next((it for it in updated_intels if getattr(it, "id", None) == target_req.id), None)
     assert verified_item is not None
     assert verified_item.is_correct_intel() is True
 

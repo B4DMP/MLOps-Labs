@@ -167,7 +167,7 @@ export default function OfflineIntelGathering({
         const initialTagged: Record<string, string> = {};
         data.artifacts.forEach((art: IntelArtifact) => {
           if (art.categorized_type) {
-            initialTagged[art.id || art.requirement_id] = art.categorized_type;
+            initialTagged[art.id] = art.categorized_type;
           }
         });
         setTaggedTypes(initialTagged);
@@ -205,7 +205,7 @@ export default function OfflineIntelGathering({
     if (transitionTimeoutRef.current) return; // Prevent multiple rapid clicks while transitioning
 
     const currentArtifact = artifacts[currentIndex];
-    const artKey = currentArtifact.id || currentArtifact.requirement_id;
+    const artKey = currentArtifact.id;
 
     setTaggedTypes((prev) => ({
       ...prev,
@@ -225,7 +225,7 @@ export default function OfflineIntelGathering({
       emit("intel:tag_item", {
         phase_id: currentPhase,
         challenge_id: currentChallenge,
-        requirement_id: currentArtifact.requirement_id,
+        intel_id: currentArtifact.requirement_id || currentArtifact.id,
         categorized_type: categorizedType,
       });
     }
@@ -284,18 +284,16 @@ export default function OfflineIntelGathering({
   const bgIndex = (currentChallenge + currentPhase) % 4;
   const currentArtifact = artifacts[currentIndex];
   const isFinished = artifacts.length > 0 && currentIndex >= artifacts.length;
-  const currentArtifactKey = currentArtifact ? currentArtifact.id || currentArtifact.requirement_id : "";
+  const currentArtifactKey = currentArtifact ? currentArtifact.id : "";
   const currentTaggedType = currentArtifactKey ? taggedTypes[currentArtifactKey] : undefined;
 
   const totalArtifactsCount = artifacts.length;
   const taggedArtifactsCount = artifacts.filter((art) => {
-    const key = art.id || art.requirement_id;
-    return Boolean(taggedTypes[key]);
+    return Boolean(taggedTypes[art.id]);
   }).length;
   const allTagged = totalArtifactsCount > 0 && taggedArtifactsCount === totalArtifactsCount;
   const firstUntaggedIndex = artifacts.findIndex((art) => {
-    const key = art.id || art.requirement_id;
-    return !taggedTypes[key];
+    return !taggedTypes[art.id];
   });
 
   const currentStakeholderId = currentArtifact?.stakeholder_id || currentArtifact?.stakeholder_name;
@@ -373,7 +371,7 @@ export default function OfflineIntelGathering({
                 {artifacts.length > 0 && (
                   <div className={styles.navPillsContainer}>
                     {artifacts.map((art, idx) => {
-                      const key = art.id || art.requirement_id;
+                      const key = art.id;
                       const isTagged = !!taggedTypes[key];
                       const isCurrent = idx === currentIndex;
                       return (

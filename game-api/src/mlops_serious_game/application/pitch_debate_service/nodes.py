@@ -259,8 +259,8 @@ async def emotion_node(state: PitchDebateState, config: RunnableConfig):
         st_wrong_intels = [
             item for item in all_intel_items
             if (getattr(item, "stakeholder_id", None) == st.id)
-            and (item.id in card_intel_ids or item.requirement_id in card_intel_ids or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
-            and (not item.is_correct_intel() or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+            and (item.id in card_intel_ids or item.id in wrong_card_intel_ids)
+            and (not item.is_correct_intel() or item.id in wrong_card_intel_ids)
         ]
         if st_wrong_intels:
             delta = calculate_system_emotion_deltas(
@@ -353,8 +353,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     st_wrong_card_intels = [
         item for item in st_intel_items
-        if (item.id in card_intel_ids or item.requirement_id in card_intel_ids or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
-        and (not item.is_correct_intel() or item.id in wrong_card_intel_ids or item.requirement_id in wrong_card_intel_ids)
+        if (item.id in card_intel_ids or item.id in wrong_card_intel_ids)
+        and (not item.is_correct_intel() or item.id in wrong_card_intel_ids)
     ]
 
     last_selected_intel = state.get("last_selected_intel")
@@ -367,25 +367,22 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         if st_wrong_card_intels:
             wrong_item = st_wrong_card_intels[0]
             intel_intent_val = (
-                getattr(wrong_item.correct_intent, "value", str(wrong_item.correct_intent))
-                if getattr(wrong_item, "correct_intent", None)
+                getattr(wrong_item.type, "value", str(wrong_item.type))
+                if getattr(wrong_item, "type", None)
                 else "requirement"
             )
-            from mlops_serious_game.domain.requirement_factory import RequirementFactory
-            req = RequirementFactory.get_requirement(wrong_item.requirement_id)
-            req_desc = req.description if req else wrong_item.correct_description
-            cat_type = req.type.value if req and hasattr(req.type, "value") else (str(req.type) if req else intel_intent_val)
+            req_desc = wrong_item.description
+            cat_type = wrong_item.type.value if hasattr(wrong_item.type, "value") else str(wrong_item.type)
 
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION IN PROPOSED ACTION CARD]:\n"
                 f"The Project Manager's proposed action card is built upon a MISUNDERSTANDING of your stance!\n"
                 f"The proposal falsely assumes: '{wrong_item.categorized_description}'\n"
-                f"Your ACTUAL stance is: [{intel_intent_val}] '{wrong_item.correct_description}'\n"
+                f"Your ACTUAL stance is: [{intel_intent_val}] '{wrong_item.description}'\n"
                 f"In this initial response to the proposal, you MUST explicitly refute this misconception, object to this aspect of the proposed plan, and reveal your actual stance following its true category ({intel_intent_val})!"
             )
             revealed_intel_list = [{
                 "id": wrong_item.id,
-                "requirement_id": wrong_item.requirement_id,
                 "description": req_desc,
                 "categorized_type": cat_type,
                 "intel_type": "verified",
@@ -403,23 +400,22 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     # Case B: An intel item option was selected for this stakeholder
     elif last_selected_intel and st.id == last_selected_intel.stakeholder_id:
-        intel_intent_val = getattr(last_selected_intel.correct_intent, "value", str(last_selected_intel.correct_intent)) if getattr(last_selected_intel, "correct_intent", None) else "requirement"
+        intel_intent_val = (
+            last_selected_intel.type.value
+            if hasattr(last_selected_intel.type, "value")
+            else str(last_selected_intel.type)
+        )
         if not last_selected_intel.is_correct_intel():
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The player's latest response expressed a MISCATEGORIZED intel assumption!\n"
                 f"The player falsely assumed: '{last_selected_intel.categorized_description}'\n"
-                f"Your ACTUAL stance is: [{intel_intent_val}] '{last_selected_intel.correct_description}'\n"
+                f"Your ACTUAL stance is: [{intel_intent_val}] '{last_selected_intel.description}'\n"
                 f"You MUST explicitly correct their misunderstanding and reveal your actual stance following its true category."
             )
-            from mlops_serious_game.domain.requirement_factory import RequirementFactory
-            req = RequirementFactory.get_requirement(last_selected_intel.requirement_id)
-            req_desc = req.description if req else last_selected_intel.correct_description
-            cat_type = req.type.value if req and hasattr(req.type, "value") else (str(req.type) if req else intel_intent_val)
             revealed_intel_list = [{
                 "id": last_selected_intel.id,
-                "requirement_id": last_selected_intel.requirement_id,
-                "description": req_desc,
-                "categorized_type": cat_type,
+                "description": last_selected_intel.description,
+                "categorized_type": intel_intent_val,
                 "intel_type": "verified",
                 "stakeholder_id": st.id,
                 "stakeholder_name": st.name,
@@ -428,7 +424,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         else:
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - STANCE ADDRESSED]: The player's dialogue option correctly addressed your stance: "
-                f"[{intel_intent_val}] '{last_selected_intel.correct_description}'.\n"
+                f"[{intel_intent_val}] '{last_selected_intel.description}'.\n"
                 f"Acknowledge their understanding positively and confirm that your stance has been addressed!"
             )
 
@@ -534,17 +530,15 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     if revealed_intel_list:
         for rev_item in revealed_intel_list:
             if rev_item.get("is_corrected"):
-                rev_req_id = rev_item.get("requirement_id")
                 rev_id = rev_item.get("id")
                 for i, item in enumerate(updated_intel_items):
-                    if getattr(item, "requirement_id", None) == rev_req_id or getattr(item, "id", None) == rev_id:
+                    if getattr(item, "id", None) == rev_id:
                         from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
                         from mlops_serious_game.domain.requirement_factory import RequirementFactory
-                        req = RequirementFactory.get_requirement(rev_req_id)
+                        req = RequirementFactory.get_requirement(rev_id)
                         if req:
-                            updated_intel_items[i] = StakeholderIntelItem(
-                                id=getattr(item, "id", str(uuid.uuid4()) if "uuid" in globals() else "item"),
-                                requirement_id=req.id,
+                            updated_intel_items[i] = StakeholderIntelItem.from_requirement(
+                                req,
                                 intel_type=ConfidenceType.VERIFIED,
                                 categorized_type=req.type,
                                 description=req.description,

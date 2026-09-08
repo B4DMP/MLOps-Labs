@@ -47,7 +47,7 @@ export default function ActionCardComponent({
   // Resolve contributing stakeholders if intel items are available
   const cardIntelIds = ac.intel_ids || [];
   const matchedIntels = intelItems.filter((i) =>
-    cardIntelIds.includes(i.id) || (i.requirement_id && cardIntelIds.includes(i.requirement_id))
+    cardIntelIds.includes(i.id)
   );
 
   const contributingStakeholdersMap = new Map<

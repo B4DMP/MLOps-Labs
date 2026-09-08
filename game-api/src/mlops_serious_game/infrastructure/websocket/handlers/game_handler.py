@@ -158,22 +158,16 @@ def get_discovered_intel_items(
         for record in records:
             data = record.intel_item_data
             if isinstance(data, dict):
-                try:
-                    item = StakeholderIntelItem(**data)
-                except Exception:
-                    item = StakeholderIntelItem(
-                        id=str(data.get("id", "")),
-                        requirement_id=str(data.get("requirement_id", "")),
-                        intel_type=data.get("intel_type", "unconfirmed"),
-                        categorized_type=data.get("categorized_type", "requirement"),
-                        description=data.get("description", ""),
-                    )
-                req = RequirementFactory.get_requirement(item.requirement_id)
+                item_id = data.get("id")
+                req = RequirementFactory.get_requirement(item_id)
                 if req and req.challenge_id == challenge.id:
-                    if not item.description:
-                        item.description = req.description
-                    intel_items.append(item)
-                elif not req and str(data.get("challenge_id", "")) == str(challenge.id):
+                    item = StakeholderIntelItem.from_requirement(
+                        req,
+                        intel_type=data.get("intel_type", "unconfirmed"),
+                        categorized_type=data.get("categorized_type", req.type),
+                        categorized_description=data.get("categorized_description", ""),
+                        description=data.get("description", req.description),
+                    )
                     intel_items.append(item)
 
     return intel_items

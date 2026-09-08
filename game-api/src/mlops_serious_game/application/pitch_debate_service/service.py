@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 from typing import Any, Optional
 
 from langchain_core.messages import HumanMessage
@@ -7,6 +8,26 @@ from loguru import logger
 from opik.integrations.langchain import OpikTracer
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
+
+warnings.filterwarnings("ignore", message=".*Deserializing unregistered type.*")
+
+
+def _get_checkpointer_kwargs() -> dict:
+    try:
+        from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+        import inspect
+        if "allowed_msgpack_modules" in inspect.signature(JsonPlusSerializer.__init__).parameters:
+            return {
+                "serde": JsonPlusSerializer(allowed_msgpack_modules=[
+                    ("mlops_serious_game.application.pitch_debate_service.state", "DialogueOption"),
+                    ("mlops_serious_game.application.pitch_debate_service.state", "EmotionValues"),
+                    ("mlops_serious_game.domain.requirement", "StakeholderIntelItem"),
+                    ("mlops_serious_game.domain.requirement", "StakeholderRequirement"),
+                ])
+            }
+    except Exception:
+        pass
+    return {}
 
 
 from mlops_serious_game.application.pitch_debate_service.graph import (
@@ -28,7 +49,7 @@ async def get_checkpoint_dialogue_options(
 ) -> Optional[list[DialogueOption]]:
     """Retrieves existing dialogue options from the LangGraph checkpoint for a given thread, if any."""
     try:
-        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI, **_get_checkpointer_kwargs()) as checkpointer:
             await checkpointer.setup()
             config = {"configurable": {"thread_id": thread_id}}
             checkpoint = await checkpointer.aget(config)
@@ -56,7 +77,7 @@ async def save_checkpoint_dialogue_options(
     """Updates the dialogue options in the LangGraph checkpoint for a given thread."""
     try:
         graph_builder = create_pitch_debate_graph()
-        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI, **_get_checkpointer_kwargs()) as checkpointer:
             await checkpointer.setup()
             graph = graph_builder.compile(checkpointer=checkpointer)
             config = {"configurable": {"thread_id": thread_id}}
@@ -111,7 +132,7 @@ async def get_response(
     graph_builder = create_pitch_debate_graph()
 
     try:
-        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI) as checkpointer:
+        async with AsyncPostgresSaver.from_conn_string(settings.POSTGRES_CHECKPOINTER_URI, **_get_checkpointer_kwargs()) as checkpointer:
             await checkpointer.setup()
             graph = graph_builder.compile(checkpointer=checkpointer)
             opik_tracer = OpikTracer(
@@ -202,21 +223,30 @@ async def get_response(
                 if selected_opt.intel_item_id:
                     for item in available_intels:
                         item_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
-                        req_id = getattr(item, "requirement_id", None) or (item.get("requirement_id") if isinstance(item, dict) else None)
-                        if (item_id and str(item_id) == str(selected_opt.intel_item_id)) or (req_id and str(req_id) == str(selected_opt.intel_item_id)):
+                        if item_id and str(item_id) == str(selected_opt.intel_item_id):
                             last_selected_intel = (
                                 item if isinstance(item, StakeholderIntelItem) else StakeholderIntelItem(**item)
                             )
                             break
 
                 if selected_opt.type == "intel" and not last_selected_intel and selected_opt.intel_item_id:
-                    last_selected_intel = StakeholderIntelItem(
-                        id=selected_opt.intel_item_id,
-                        stakeholder_id=selected_opt.intel_stakeholder_id or "",
-                        description=selected_opt.intel_description or "",
-                        categorized_description=selected_opt.intel_description or "",
-                        categorized_type=selected_opt.intel_type or "requirement",
-                    )
+                    req = RequirementFactory.get_requirement(selected_opt.intel_item_id)
+                    if req:
+                        last_selected_intel = StakeholderIntelItem.from_requirement(
+                            req,
+                            categorized_type=selected_opt.intel_type or req.type,
+                            categorized_description=selected_opt.intel_description or req.description,
+                        )
+                    else:
+                        last_selected_intel = StakeholderIntelItem(
+                            id=selected_opt.intel_item_id,
+                            challenge_id=challenge_id,
+                            stakeholder_id=selected_opt.intel_stakeholder_id or "",
+                            type=selected_opt.intel_type or "requirement",
+                            description=selected_opt.intel_description or "",
+                            categorized_description=selected_opt.intel_description or "",
+                            categorized_type=selected_opt.intel_type or "requirement",
+                        )
 
             input_data: dict[str, Any] = {
                 "challenge": challenge,

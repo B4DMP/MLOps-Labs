@@ -231,7 +231,7 @@ export default function StakeholderInteractionArea({
                             const isClickable = Boolean(onInspectIntel);
                             return (
                               <div
-                                key={intel.id || intel.requirement_id || idx}
+                                key={intel.id || idx}
                                 className={`transparent-div ${styles.indicationPill} ${isClickable ? styles.revealedIntelItemClickable : ""}`}
                                 onClick={() => {
                                   if (onInspectIntel) {

@@ -23,3 +23,7 @@ Buy in
 Interactions
 - Instead of having to wait for the correct archetype or intel to appear in the dialogue options, players should be able to freely chose which intel/archetype they want to use on which stakeholder. It makes no sense that players can choose the stakeholder of corporate noise but not the kind of noise they want to communicate. 
 - go back to pitch debate/ progress to simulation buttons
+
+UI
+- show the stakeholders objections in the dossier instead of their buy-in
+- show which of the stakeholders intel items are already part of the action propsal (ac+addendums)

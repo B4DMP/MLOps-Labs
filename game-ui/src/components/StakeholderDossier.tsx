@@ -10,10 +10,11 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 
 export interface IntelEntry {
   id: string;
-  requirement_id: string;
+  requirement_id?: string;
   intel_type: string; // e.g. "unconfirmed", "verified"
   categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
   description: string;
+  is_correct?: boolean;
 }
 
 export interface StakeholderDossierEntry {
@@ -246,9 +247,7 @@ export default function StakeholderDossier({
       st.intel_items?.some(
         (item) =>
           item.id === intelId ||
-          item.requirement_id === intelId ||
           String(item.id) === String(intelId) ||
-          String(item.requirement_id) === String(intelId) ||
           (item.description && item.description === intelId)
       )
     );
@@ -377,12 +376,12 @@ export default function StakeholderDossier({
     );
   };
 
-  const handleReTagIntel = (requirementId: string, newType: string) => {
+  const handleReTagIntel = (intelId: string, newType: string) => {
     setActiveRetagNoteId(null);
     emit("intel:tag_item", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
-      requirement_id: requirementId,
+      intel_id: intelId,
       categorized_type: newType,
     });
     emit("intel:get_dossier", {
@@ -759,14 +758,13 @@ export default function StakeholderDossier({
             {st.intel_items.map((item, idx) => {
               const typeKey = item.categorized_type || "requirement";
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
-              const noteId = item.id || item.requirement_id || `note-${idx}`;
+              const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
                 (noteId === highlightedIntelId ||
                   item.id === highlightedIntelId ||
-                  item.requirement_id === highlightedIntelId ||
                   (item.description && item.description === highlightedIntelId))
               );
               const isFadingOut = Boolean(
@@ -774,7 +772,6 @@ export default function StakeholderDossier({
                 fadingOutIntelId &&
                 (noteId === fadingOutIntelId ||
                   item.id === fadingOutIntelId ||
-                  item.requirement_id === fadingOutIntelId ||
                   (item.description && item.description === fadingOutIntelId))
               );
 
@@ -783,7 +780,6 @@ export default function StakeholderDossier({
                   key={`${st.stakeholder_id}-${noteId}`}
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
-                  data-requirement-id={item.requirement_id}
                   data-intel-description={item.description}
                   className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""}`}
                 >
@@ -831,7 +827,7 @@ export default function StakeholderDossier({
                             className={`${styles.retagOptionBtn} ${typeOptKey === typeKey ? styles.activeOptionBtn : ""}`}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleReTagIntel(item.requirement_id, typeOptKey);
+                              handleReTagIntel(item.id, typeOptKey);
                             }}
                           >
                             {metaOpt.icon} {metaOpt.label}

@@ -104,12 +104,12 @@ async def test_unverified_intel_item_dialogue_option_generation():
     RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
 
     # Unverified / unconfirmed intel item
-    unverified_item = StakeholderIntelItem(
-        id="test_unverified_1",
-        requirement_id="req_0_model_monica_hard_constraint_0",
+    req1 = RequirementFactory.get_requirement("req_0_model_monica_hard_constraint_0")
+    unverified_item = StakeholderIntelItem.from_requirement(
+        req1,
         intel_type=ConfidenceType.UNCONFIRMED,
         categorized_type=RequirementType.REQUIREMENT,
-        description="Model Monica mandates that the model must achieve at least 95% accuracy.",
+        categorized_description="Model Monica mandates that the model must achieve at least 95% accuracy.",
     )
 
     assert unverified_item.stakeholder_id == "model_monica"
@@ -134,12 +134,12 @@ async def test_misclassified_intel_item_dialogue_option_generation():
     RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
 
     # Misclassified intel item (categorized as PERSONAL_FRICTION instead of HARD_CONSTRAINT)
-    misclassified_item = StakeholderIntelItem(
-        id="test_wrong_1",
-        requirement_id="req_0_model_monica_hard_constraint_0",
+    req2 = RequirementFactory.get_requirement("req_0_model_monica_hard_constraint_0")
+    misclassified_item = StakeholderIntelItem.from_requirement(
+        req2,
         intel_type=ConfidenceType.UNCONFIRMED,
         categorized_type=RequirementType.PERSONAL_FRICTION,
-        description="Model Monica expresses strong personal frustration about accuracy standards.",
+        categorized_description="Model Monica expresses strong personal frustration about accuracy standards.",
     )
 
     assert misclassified_item.stakeholder_id == "model_monica"

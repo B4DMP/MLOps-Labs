@@ -25,7 +25,7 @@ class DialogueOption(BaseModel):
         if not self.intel_item_id or not discovered_intel_items:
             return True
         for item in discovered_intel_items:
-            if item.id == self.intel_item_id or item.requirement_id == self.intel_item_id:
+            if item.id == self.intel_item_id:
                 return item.is_correct_intel()
         return True
 

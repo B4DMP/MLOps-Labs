@@ -98,7 +98,7 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
 
     # Fetch all already collected/known intel items for this user in DB
     collected_items = await retrieve_intel_items(curr_challenge, ws) if ws else []
-    collected_req_ids = {item.requirement_id for item in collected_items}
+    collected_req_ids = {item.id for item in collected_items}
 
     revealed_by_st: dict[str, list[dict[str, Any]]] = {}
 
@@ -121,9 +121,8 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
 
         st_revealed_items = []
         for req in selected_reqs:
-            intel_item = StakeholderIntelItem(
-                id=str(uuid.uuid4()),
-                requirement_id=req.id,
+            intel_item = StakeholderIntelItem.from_requirement(
+                req,
                 intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,

@@ -404,7 +404,6 @@ export default function PitchDebate({
       (item) =>
         cardIntelIds.includes(item.id) &&
         !wrongCardIntelIds.includes(item.id) &&
-        (!item.requirement_id || !wrongCardIntelIds.includes(item.requirement_id)) &&
         ((item as any).is_correct !== false) &&
         (item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name))
     );
@@ -907,7 +906,7 @@ export default function PitchDebate({
                       showDialogueOptions={false}
                       onInspectIntel={(intel, stId) => {
                         const targetOpt = {
-                          intel_item_id: intel.id || intel.requirement_id,
+                          intel_item_id: intel.id,
                           intel_stakeholder_id: intel.stakeholder_id || stId,
                           intel_stakeholder_name: intel.stakeholder_name,
                         };
@@ -984,11 +983,11 @@ export default function PitchDebate({
 
                         // Intel verification state resolution
                         const matchingIntel = intelItems?.find(
-                          (item) => item.id === opt.intel_item_id || item.requirement_id === opt.intel_item_id
+                          (item) => item.id === opt.intel_item_id
                         );
                         const matchingDossierItem = dossierData
                           ?.flatMap((d) => d.intel_items || [])
-                          .find((item) => item.id === opt.intel_item_id || item.requirement_id === opt.intel_item_id);
+                          .find((item) => item.id === opt.intel_item_id);
 
                         const isVerified = Boolean(
                           (matchingIntel?.intel_type || "").toLowerCase().includes("verified") ||

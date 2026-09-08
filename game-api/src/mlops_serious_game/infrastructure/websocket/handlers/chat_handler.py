@@ -176,12 +176,9 @@ async def handle_chat_message(
                 wrong_intel_ids = list(action_card.get("wrong_intel_ids", []))
                 for it in intel_items:
                     it_id = getattr(it, "id", None)
-                    it_req_id = getattr(it, "requirement_id", None)
-                    if (it_id in card_intel_ids or it_req_id in card_intel_ids) and not it.is_correct_intel():
+                    if it_id in card_intel_ids and not it.is_correct_intel():
                         if it_id and it_id not in wrong_intel_ids:
                             wrong_intel_ids.append(it_id)
-                        if it_req_id and it_req_id not in wrong_intel_ids:
-                            wrong_intel_ids.append(it_req_id)
                 action_card["wrong_intel_ids"] = wrong_intel_ids
 
         # Run pitch debate graph
@@ -224,13 +221,13 @@ async def handle_chat_message(
         corrected_req_ids = set()
         last_intel = output_state.get("last_selected_intel")
         if last_intel and not last_intel.is_correct_intel():
-            corrected_req_ids.add(last_intel.requirement_id)
+            corrected_req_ids.add(last_intel.id)
 
         for m in output_state.get("messages", []):
             add_kw = getattr(m, "additional_kwargs", {}) or {}
             for rev in add_kw.get("revealed_intel", []):
-                if rev.get("is_corrected") and rev.get("requirement_id"):
-                    corrected_req_ids.add(rev.get("requirement_id"))
+                if rev.get("is_corrected") and rev.get("id"):
+                    corrected_req_ids.add(rev.get("id"))
 
         if corrected_req_ids:
             for req_id in corrected_req_ids:

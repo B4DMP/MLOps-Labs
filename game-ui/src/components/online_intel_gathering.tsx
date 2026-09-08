@@ -284,19 +284,18 @@ export default function OnlineIntelGathering({
   };
 
   const handleInspectIntel = (intel: RevealedIntel, stakeholderId?: string) => {
-    let targetIntelId = intel.id || intel.requirement_id || intel.description || "";
+    let targetIntelId = intel.id || intel.description || "";
     let targetStakeholderId = intel.stakeholder_id || stakeholderId;
 
     if (dossierData && dossierData.length > 0) {
       for (const st of dossierData) {
         const matchingItem = st.intel_items?.find(
           (item) =>
-            (intel.id && (item.id === intel.id || item.requirement_id === intel.id)) ||
-            (intel.requirement_id && (item.requirement_id === intel.requirement_id || item.id === intel.requirement_id)) ||
+            (intel.id && item.id === intel.id) ||
             (intel.description && item.description === intel.description)
         );
         if (matchingItem) {
-          targetIntelId = matchingItem.id || matchingItem.requirement_id || targetIntelId;
+          targetIntelId = matchingItem.id || targetIntelId;
           targetStakeholderId = targetStakeholderId || st.stakeholder_id;
           break;
         }
@@ -638,7 +637,7 @@ export default function OnlineIntelGathering({
     emit("intel:verify_item", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
-      intel_item_id: targetIntel.requirement_id || targetIntel.id,
+      intel_item_id: targetIntel.id,
       attention_tokens: nextTokens,
     });
 

@@ -59,8 +59,7 @@ export default function ActionCardCardComponent({
   // Resolve stakeholders whose intel items formed this action card
   const cardIntelIds = card.intel_ids || [];
   const matchedIntels = intelItems.filter(
-    (i) =>
-      cardIntelIds.includes(i.id) || (i.requirement_id && cardIntelIds.includes(i.requirement_id))
+    (i) => cardIntelIds.includes(i.id)
   );
 
   // Group unique contributing stakeholders
