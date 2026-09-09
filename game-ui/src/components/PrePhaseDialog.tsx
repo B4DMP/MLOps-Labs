@@ -6,7 +6,7 @@ import {
 } from "@headlessui/react";
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
-import { PhasesContext } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useContext, useState } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
@@ -55,9 +55,11 @@ export default function PrePhaseDialog({
 
   const currentPhaseData = phases[currentPhase];
   
-  // Phase 0 ("Introduction") is a skipped/hidden tutorial challenge; treat Phase 1 as the first playable game phase
-  const hasIntroPhase = phases.length > 0 && phases[0]?.id === 0 && phases[0]?.phase_name?.toLowerCase() === "introduction";
-  const isFirstPhase = hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
+  const hasIntroPhase =
+    phases.length > 0 &&
+    phases[0]?.id === 0 &&
+    phases[0]?.phase_name?.toLowerCase() === "introduction";
+  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase);
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
   const currentStakeholders = currentPhaseData?.stakeholder_power_interest || [];

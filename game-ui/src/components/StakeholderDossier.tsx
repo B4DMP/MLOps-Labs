@@ -4,7 +4,7 @@ import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 export type { ConvincerProfileConfig } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
-import { PhasesContext } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 
@@ -56,7 +56,18 @@ export interface StakeholderDossierProps {
   emotionColors?: Record<string, string>;
   convincerArchetypes?: Record<string, any>;
   buyInInfoMap?: Record<string, StakeholderBuyInInfo>;
+  /**
+   * Carries the phase briefing's NEW / SHIFTED markers onto the stakeholder
+   * tabs. Off by default: only the offline intel phase asks for them.
+   */
+  showPhaseChangeBadges?: boolean;
 }
+
+/** How long the markers keep pulsing when the player never opens their tab. */
+const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
+
+/** Dwell on a tab before its marker counts as seen. */
+const CHANGE_BADGE_SEEN_MS = 1000;
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
   requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
@@ -102,6 +113,7 @@ export default function StakeholderDossier({
   emotionColors: propEmotionColors,
   convincerArchetypes: propConvincerArchetypes,
   buyInInfoMap,
+  showPhaseChangeBadges = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -112,7 +124,10 @@ export default function StakeholderDossier({
   const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
   const activeConvincerArchetypes = propConvincerArchetypes || contextConvincerArchetypes || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
-  const { currentPhase: contextPhase } = useContext(PhasesContext) || { currentPhase: 0 };
+  const { currentPhase: contextPhase, phases } = useContext(PhasesContext) || {
+    currentPhase: 0,
+    phases: [],
+  };
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
 
@@ -217,6 +232,80 @@ export default function StakeholderDossier({
       }));
     }
   }, [stakeholders, metrics, currentPhase, dossierData]);
+
+  // The same comparison the phase briefing's radar makes, so the markers here
+  // agree with what the player was just shown. Derived rather than handed over,
+  // and stable for the whole phase.
+  const phaseChanges = React.useMemo(() => {
+    const changes = new Map<string, { isNew: boolean; shiftText: string }>();
+    if (!showPhaseChangeBadges || !phases || phases.length === 0) return changes;
+
+    const current = phases[currentPhase]?.stakeholder_power_interest || [];
+    const previous = isFirstPlayablePhase(phases, currentPhase)
+      ? []
+      : phases[currentPhase - 1]?.stakeholder_power_interest || [];
+    const previousById = new Map(previous.map((ps) => [ps.stakeholder_id, ps]));
+
+    current.forEach((cs) => {
+      const prev = previousById.get(cs.stakeholder_id);
+      const power = (cs.power || "low").toLowerCase();
+      const interest = (cs.interest || "low").toLowerCase();
+
+      if (!prev) {
+        changes.set(cs.stakeholder_id, { isNew: true, shiftText: "" });
+        return;
+      }
+
+      const parts: string[] = [];
+      if (prev.power.toLowerCase() !== power) {
+        parts.push(`Power: ${prev.power.toUpperCase()} ➔ ${cs.power.toUpperCase()}`);
+      }
+      if (prev.interest.toLowerCase() !== interest) {
+        parts.push(`Interest: ${prev.interest.toUpperCase()} ➔ ${cs.interest.toUpperCase()}`);
+      }
+      if (parts.length > 0) {
+        changes.set(cs.stakeholder_id, { isNew: false, shiftText: parts.join(", ") });
+      }
+    });
+
+    return changes;
+  }, [showPhaseChangeBadges, phases, currentPhase]);
+
+  const phaseChangeKey = Array.from(phaseChanges.keys()).join("|");
+
+  // Markers pulse only until the player has had a fair chance to notice them:
+  // either they open that stakeholder's tab, or the timeout runs out. After
+  // that the marker stays put, quietly, for the rest of the phase.
+  const [pulsingChangeIds, setPulsingChangeIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    setPulsingChangeIds(new Set(phaseChanges.keys()));
+  }, [phaseChangeKey]);
+
+  useEffect(() => {
+    if (phaseChanges.size === 0) return;
+    const timer = setTimeout(() => setPulsingChangeIds(new Set()), CHANGE_BADGE_PULSE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [phaseChangeKey]);
+
+  // Leaving the tab before the dwell elapses cancels it, so a tab flicked past
+  // on the way somewhere else does not count as read.
+  useEffect(() => {
+    if (pulsingChangeIds.size === 0) return;
+    const visible = effectiveDossierData[currentPageIndex];
+    if (!visible || !pulsingChangeIds.has(visible.stakeholder_id)) return;
+
+    const timer = setTimeout(() => {
+      setPulsingChangeIds((prev) => {
+        if (!prev.has(visible.stakeholder_id)) return prev;
+        const next = new Set(prev);
+        next.delete(visible.stakeholder_id);
+        return next;
+      });
+    }, CHANGE_BADGE_SEEN_MS);
+
+    return () => clearTimeout(timer);
+  }, [pulsingChangeIds, currentPageIndex, effectiveDossierData]);
 
   const totalPages = effectiveDossierData.length;
 
@@ -1017,13 +1106,25 @@ export default function StakeholderDossier({
               isHighInterest ? "High interest" : null,
             ].filter(Boolean).join(", ");
 
+            // New and shifted are mutually exclusive: shifted needs a previous
+            // reading to compare against, new means there wasn't one.
+            const change = phaseChanges.get(st.stakeholder_id);
+            const isPulsingChange = Boolean(change && pulsingChangeIds.has(st.stakeholder_id));
+            const changeHint = change
+              ? change.isNew
+                ? "New this phase"
+                : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
+              : "";
+
             return (
               <button
                 key={st.stakeholder_id || idx}
                 ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                title={`${st.name} (Emotional State: ${emotion})${keyPlayerHint ? ` - ${keyPlayerHint}` : ""}`}
+                title={`${st.name} (Emotional State: ${emotion})${
+                  keyPlayerHint ? ` - ${keyPlayerHint}` : ""
+                }${changeHint ? ` - ${changeHint}` : ""}`}
                 style={
                   {
                     "--tab-color": stColor,
@@ -1031,6 +1132,15 @@ export default function StakeholderDossier({
                   } as React.CSSProperties
                 }
               >
+                {change && (
+                  <span
+                    className={`${styles.tabChangeBadge} ${
+                      change.isNew ? styles.tabChangeBadgeNew : styles.tabChangeBadgeShifted
+                    } ${isPulsingChange ? styles.tabChangeBadgePulsing : ""}`}
+                  >
+                    {change.isNew ? "NEW" : "SHIFTED"}
+                  </span>
+                )}
                 <span className={styles.tabName}>{st.name}</span>
                 <div className={styles.tabEmotionRow}>
                   <Icon

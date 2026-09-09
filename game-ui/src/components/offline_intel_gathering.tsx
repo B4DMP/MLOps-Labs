@@ -314,6 +314,7 @@ export default function OfflineIntelGathering({
                 isEmbedded={true}
                 dossierData={dossierData || []}
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
+                showPhaseChangeBadges={true}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}

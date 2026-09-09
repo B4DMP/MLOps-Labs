@@ -1280,3 +1280,50 @@
   margin-top: 2px;
   padding: 0 2px;
 }
+
+/* ==========================================================================
+   PHASE CHANGE MARKERS ON THE TABS
+   Carries the phase briefing's NEW / SHIFTED flags onto the stakeholder tabs.
+   Absolutely positioned so a badged tab keeps the same height as its
+   neighbours; the tab already clips its own overflow.
+   ========================================================================== */
+
+.tabChangeBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  transform-origin: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.tabChangeBadgeNew {
+  background: #16a34a;
+  color: #f0fdf4;
+}
+
+.tabChangeBadgeShifted {
+  background: #d97706;
+  color: #fffbeb;
+}
+
+/* Dropped once the player opens the tab, or after the pulse timeout */
+.tabChangeBadgePulsing {
+  animation: tabChangeBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes tabChangeBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
