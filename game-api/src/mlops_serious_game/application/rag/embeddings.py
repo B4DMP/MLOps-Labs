@@ -1,40 +1,22 @@
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 
-EmbeddingsModel = HuggingFaceEmbeddings
+EmbeddingsModel = FastEmbedEmbeddings
 
 
 def get_embedding_model(
     model_id: str,
-    device: str = "cuda",
+    threads: int | None = None,
 ) -> EmbeddingsModel:
-    """Gets an instance of a HuggingFace embedding model.
+    """Gets an instance of a FastEmbed embedding model.
 
     Args:
-        model_id (str): The ID/name of the HuggingFace embedding model to use
-        device (str): The compute device to run the model on (e.g. "cpu", "cuda").
-            Defaults to "cpu"
+        model_id (str): The ID/name of the embedding model to use.
+        threads (int | None): Number of threads for ONNX runtime inference.
 
     Returns:
-        EmbeddingsModel: A configured HuggingFace embeddings model instance
+        EmbeddingsModel: A configured FastEmbed embeddings model instance.
     """
-    return get_huggingface_embedding_model(model_id, device)
-
-
-def get_huggingface_embedding_model(
-    model_id: str, device: str
-) -> HuggingFaceEmbeddings:
-    """Gets a HuggingFace embedding model instance.
-
-    Args:
-        model_id (str): The ID/name of the HuggingFace embedding model to use
-        device (str): The compute device to run the model on (e.g. "cpu", "cuda")
-
-    Returns:
-        HuggingFaceEmbeddings: A configured HuggingFace embeddings model instance
-            with remote code trust enabled and embedding normalization disabled
-    """
-    return HuggingFaceEmbeddings(
+    return FastEmbedEmbeddings(
         model_name=model_id,
-        model_kwargs={"device": device, "trust_remote_code": True},
-        encode_kwargs={"normalize_embeddings": False},
+        threads=threads,
     )

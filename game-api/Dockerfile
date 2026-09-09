@@ -9,8 +9,6 @@ WORKDIR /app
 # Install dependencies (cached unless pyproject.toml changes).
 COPY pyproject.toml README.md ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system torch --index-url https://download.pytorch.org/whl/cpu
-RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system -r pyproject.toml
 
 # Copy application source files.

@@ -17,7 +17,7 @@ class LongTermMemoryCreator:
     @classmethod
     def build_from_settings(cls) -> "LongTermMemoryCreator":
         embedding_model = get_embedding_model(
-            settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_DEVICE
+            settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_THREADS
         )
         vectorstore = get_vectorstore(embedding_model)
         retriever = vectorstore.as_retriever(search_kwargs={"k": settings.RAG_TOP_K})
@@ -67,7 +67,7 @@ class LongTermMemoryRetriever:
         retriever = get_retriever(
             embedding_model_id=settings.RAG_TEXT_EMBEDDING_MODEL_ID,
             k=settings.RAG_TOP_K,
-            device=settings.RAG_DEVICE,
+            threads=settings.RAG_THREADS,
         )
 
         return cls(retriever)
