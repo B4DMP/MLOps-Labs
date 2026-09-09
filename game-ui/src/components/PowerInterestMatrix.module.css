@@ -699,9 +699,9 @@
   flex-shrink: 0;
 }
 
-.axisBadgeSeparator {
-  opacity: 0.5;
-  margin: 0 1px;
+/* Sets the interest half apart from the power half, in place of a separator */
+.axisBadgeIconSecond {
+  margin-left: 6px;
 }
 
 /*

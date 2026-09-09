@@ -472,10 +472,9 @@ export default function PowerInterestMatrix({
                         style={{ color: quad.key.startsWith("high") ? "#f87171" : "#60a5fa" }}
                       />
                       <span>{quad.key.startsWith("high") ? "High" : "Low"} Power</span>
-                      <span className={styles.axisBadgeSeparator}>•</span>
                       <Icon
                         icon="ph:eye-fill"
-                        className={styles.axisBadgeIcon}
+                        className={`${styles.axisBadgeIcon} ${styles.axisBadgeIconSecond}`}
                         style={{ color: quad.key.endsWith("high") ? "#f87171" : "#60a5fa" }}
                       />
                       <span>{quad.key.endsWith("high") ? "High" : "Low"} Interest</span>
