@@ -148,30 +148,6 @@
   /* Higher than header, tabs, and footer so flipping page stays on top */
 }
 
-.spiralRings {
-  position: absolute;
-  left: 12px;
-  top: 0;
-  bottom: 0;
-  width: 32px;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  pointer-events: none;
-}
-
-.ringLoop {
-  width: 34px;
-  height: 12px;
-  background: linear-gradient(180deg, #d1d5db 0%, #6b7280 50%, #374151 100%);
-  border-radius: 6px;
-  box-shadow:
-    0 3px 5px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.8);
-  transform: rotate(-5deg);
-}
-
 /* Bookmark Sticky Tabs (Top Bar) */
 .tabsContainer {
   display: flex;
@@ -308,7 +284,6 @@
   overflow: visible;
   /* Crucial: allow 3D page rotation without clipping! */
   margin-left: 10px;
-  /* Leave space for left spiral rings */
   border-left: 4px solid #3d2d23;
   z-index: 40;
 }

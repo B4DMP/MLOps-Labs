@@ -1173,15 +1173,8 @@ export default function StakeholderDossier({
         </div>
       )}
 
-      {/* Main Notebook Binding Container with Left Spiral Rings */}
+      {/* Main Notebook Binding Container */}
       <div className={styles.notebookBindingContainer}>
-        {/* Left Wire Spiral Rings (12 rings) */}
-        <div className={styles.spiralRings}>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className={styles.ringLoop} />
-          ))}
-        </div>
-
         {/* Paper Canvas */}
         <div className={styles.flipBookWrapper}>
           <div className={styles.pageBase} key={currentPageIndex}>
