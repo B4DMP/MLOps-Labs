@@ -788,7 +788,7 @@ export default function PitchDebate({
                             : ""
                             }`}
                         >
-                          {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, false, true, idx))}
+                          {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, idx === 1, true, idx))}
                         </div>
                       )}
 
