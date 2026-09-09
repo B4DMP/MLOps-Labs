@@ -117,10 +117,6 @@ export default function OfflineIntelGathering({
   currentPhase = 0,
   currentChallenge = 0,
   onTagArtifact,
-  challengeTitle = "",
-  challengeDescription = "",
-  challengeIntro = "",
-  challengeAmount = 1,
   dossierData = [],
   activeStakeholderId,
 }: OfflineIntelGatheringProps) {
@@ -131,7 +127,7 @@ export default function OfflineIntelGathering({
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [taggedTypes, setTaggedTypes] = useState<Record<string, string>>({});
-  const [hoveredTag, setHoveredTag] = useState<string | null>(null);
+  const [, setHoveredTag] = useState<string | null>(null);
   const [showIntroBanner, setShowIntroBanner] = useState(() => {
     try {
       return localStorage.getItem("mlops_offline_intel_intro_seen") !== "true";
