@@ -152,16 +152,9 @@ export default function StakeholderDossier({
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
 
-  // Track intel items that just arrived so they can play an "appear" animation once
+  // Intel items that arrived but have not yet played their "appear" animation
   const [newIntelIds, setNewIntelIds] = useState<Set<string>>(new Set());
   const seenIntelIdsRef = useRef<Set<string> | null>(null);
-  const newIntelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (newIntelTimerRef.current) clearTimeout(newIntelTimerRef.current);
-    };
-  }, []);
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
@@ -358,13 +351,35 @@ export default function StakeholderDossier({
 
     if (added.size === 0) return;
 
-    setNewIntelIds(added);
-    if (newIntelTimerRef.current) clearTimeout(newIntelTimerRef.current);
-    newIntelTimerRef.current = setTimeout(() => {
-      newIntelTimerRef.current = null;
-      setNewIntelIds(new Set());
-    }, 1000); // slightly longer than the newIntelDrop animation
+    setNewIntelIds((prev) => new Set([...prev, ...added]));
   }, [effectiveDossierData]);
+
+  // Consume the "new" flag only while the item's own page is on screen. Tagging an
+  // artifact during offline intel gathering flips the dossier to the next artifact's
+  // stakeholder almost immediately, so a flag consumed on a timer alone would be spent
+  // while the note is off-screen. Pending flags survive until that tab is visited.
+  useEffect(() => {
+    if (newIntelIds.size === 0) return;
+
+    const visibleSt = effectiveDossierData[currentPageIndex];
+    if (!visibleSt) return;
+
+    const playingIds = (visibleSt.intel_items || [])
+      .map((item) => `${visibleSt.stakeholder_id}-${item.id}`)
+      .filter((key) => newIntelIds.has(key));
+    if (playingIds.length === 0) return;
+
+    // Leaving the page before this fires cancels it, so the animation replays on return
+    const timer = setTimeout(() => {
+      setNewIntelIds((prev) => {
+        const next = new Set(prev);
+        playingIds.forEach((key) => next.delete(key));
+        return next;
+      });
+    }, 1000); // slightly longer than the newIntelDrop animation
+
+    return () => clearTimeout(timer);
+  }, [newIntelIds, currentPageIndex, effectiveDossierData]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
