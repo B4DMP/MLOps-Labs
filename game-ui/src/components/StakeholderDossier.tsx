@@ -1002,6 +1002,12 @@ export default function StakeholderDossier({
               activeEmotionColors[emotion.toLowerCase()] ||
               "#64748b";
             const isActive = idx === currentPageIndex;
+            const isHighPower = (st.power || stObj?.power || "").toLowerCase() === "high";
+            const isHighInterest = (st.interest || stObj?.interest || "").toLowerCase() === "high";
+            const keyPlayerHint = [
+              isHighPower ? "High power" : null,
+              isHighInterest ? "High interest" : null,
+            ].filter(Boolean).join(", ");
 
             return (
               <button
@@ -1009,7 +1015,7 @@ export default function StakeholderDossier({
                 ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                title={`${st.name} (Emotional State: ${emotion})`}
+                title={`${st.name} (Emotional State: ${emotion})${keyPlayerHint ? ` - ${keyPlayerHint}` : ""}`}
                 style={
                   {
                     "--tab-color": stColor,
@@ -1018,6 +1024,20 @@ export default function StakeholderDossier({
                 }
               >
                 <span className={styles.tabName}>{st.name}</span>
+                {(isHighPower || isHighInterest) && (
+                  <div className={styles.tabKeyFlags}>
+                    {isHighPower && (
+                      <span title="High power: strong organizational authority & influence">
+                        <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
+                      </span>
+                    )}
+                    {isHighInterest && (
+                      <span title="High interest: closely engaged with this project">
+                        <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
+                      </span>
+                    )}
+                  </div>
+                )}
                 <div
                   className={styles.tabEmotionRow}
                   title={`Emotional State: ${emotion}`}

@@ -222,6 +222,22 @@
   filter: brightness(1.08);
 }
 
+/* Key-player markers on the bookmark tab: high power and/or high interest */
+.tabKeyFlags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.tabKeyFlagIcon {
+  font-size: 0.68rem;
+  color: #dc2626;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
+}
+
 .tabName {
   font-size: 0.74rem;
   font-weight: 700;
