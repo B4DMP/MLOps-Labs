@@ -1024,31 +1024,30 @@ export default function StakeholderDossier({
                 }
               >
                 <span className={styles.tabName}>{st.name}</span>
-                {(isHighPower || isHighInterest) && (
-                  <div className={styles.tabKeyFlags}>
-                    {isHighPower && (
-                      <span title="High power: strong organizational authority & influence">
-                        <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
-                      </span>
-                    )}
-                    {isHighInterest && (
-                      <span title="High interest: closely engaged with this project">
-                        <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div
-                  className={styles.tabEmotionRow}
-                  title={`Emotional State: ${emotion}`}
-                >
+                <div className={styles.tabEmotionRow}>
                   <Icon
                     icon={getEmotionIcon(emotion)}
                     className={styles.tabEmotionIcon}
                   />
-                  <span className={styles.tabEmotionLabel}>
+                  <span className={styles.tabEmotionLabel} title={`Emotional State: ${emotion}`}>
                     {emotion}
                   </span>
+                  {isHighPower && (
+                    <span
+                      className={styles.tabKeyFlag}
+                      title="High power: strong organizational authority & influence"
+                    >
+                      <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
+                    </span>
+                  )}
+                  {isHighInterest && (
+                    <span
+                      className={styles.tabKeyFlag}
+                      title="High interest: closely engaged with this project"
+                    >
+                      <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
+                    </span>
+                  )}
                 </div>
               </button>
             );

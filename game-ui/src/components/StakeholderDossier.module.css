@@ -222,14 +222,12 @@
   filter: brightness(1.08);
 }
 
-/* Key-player markers on the bookmark tab: high power and/or high interest */
-.tabKeyFlags {
-  display: flex;
+/* Key-player markers, inline at the end of the tab's emotion row */
+.tabKeyFlag {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
+  flex-shrink: 0;
   line-height: 1;
-  margin-top: 1px;
 }
 
 .tabKeyFlagIcon {
