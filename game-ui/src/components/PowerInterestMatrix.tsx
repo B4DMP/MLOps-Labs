@@ -25,7 +25,6 @@ type QuadrantKey = "high-low" | "high-high" | "low-low" | "low-high";
 interface QuadrantConfig {
   key: QuadrantKey;
   title: string;
-  axisLabel: string;
   cardStyle: string;
   icon: string;
   iconColor: string;
@@ -35,7 +34,6 @@ const QUADRANTS: QuadrantConfig[] = [
   {
     key: "high-low",
     title: "Keep Satisfied",
-    axisLabel: "High Power | Low Interest",
     cardStyle: styles.sectorTopLeft,
     icon: "ph:warning-circle-bold",
     iconColor: "#f97316",
@@ -43,7 +41,6 @@ const QUADRANTS: QuadrantConfig[] = [
   {
     key: "high-high",
     title: "Manage Closely",
-    axisLabel: "High Power | High Interest",
     cardStyle: styles.sectorTopRight,
     icon: "ph:star-bold",
     iconColor: "#ef4444",
@@ -51,7 +48,6 @@ const QUADRANTS: QuadrantConfig[] = [
   {
     key: "low-low",
     title: "Monitor",
-    axisLabel: "Low Power | Low Interest",
     cardStyle: styles.sectorBottomLeft,
     icon: "ph:eye-bold",
     iconColor: "#94a3b8",
@@ -59,7 +55,6 @@ const QUADRANTS: QuadrantConfig[] = [
   {
     key: "low-high",
     title: "Keep Informed",
-    axisLabel: "Low Power | High Interest",
     cardStyle: styles.sectorBottomRight,
     icon: "ph:info-bold",
     iconColor: "#38bdf8",
