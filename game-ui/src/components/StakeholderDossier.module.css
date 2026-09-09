@@ -942,6 +942,45 @@
   z-index: 20 !important;
 }
 
+/* Freshly added intel: drops onto the page and settles with a short glow */
+@keyframes newIntelDrop {
+  0% {
+    opacity: 0;
+    transform: var(--note-rotate, rotate(-1deg)) scale(0.7) translateY(-34px);
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+  }
+
+  45% {
+    opacity: 1;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1.06) translateY(4px);
+    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.35);
+  }
+
+  70% {
+    transform: var(--note-rotate, rotate(-1deg)) scale(0.98) translateY(-2px);
+    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.22);
+  }
+
+  100% {
+    opacity: 1;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1) translateY(0);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.newStickyNote {
+  animation: newIntelDrop 0.9s cubic-bezier(0.34, 1.42, 0.5, 1) forwards;
+  z-index: 22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newStickyNote {
+    animation: fadeInStickyNote 0.2s ease-out forwards;
+  }
+}
+
 .stickyNote:nth-child(odd) {
   --note-rotate: rotate(-1.2deg);
   transform: var(--note-rotate);
@@ -1186,4 +1225,4 @@
   color: #64748b;
   margin-top: 2px;
   padding: 0 2px;
-}
+}

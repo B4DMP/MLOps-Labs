@@ -151,6 +151,17 @@ export default function StakeholderDossier({
   const dragStartRef = useRef({ x: 0, y: 0 });
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
+
+  // Track intel items that just arrived so they can play an "appear" animation once
+  const [newIntelIds, setNewIntelIds] = useState<Set<string>>(new Set());
+  const seenIntelIdsRef = useRef<Set<string> | null>(null);
+  const newIntelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (newIntelTimerRef.current) clearTimeout(newIntelTimerRef.current);
+    };
+  }, []);
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
@@ -325,6 +336,35 @@ export default function StakeholderDossier({
     }
     prevDossierRef.current = dossierData;
   }, [dossierData, effectiveDossierData]);
+
+  // Flag intel items that were not present on the previous dossier payload
+  useEffect(() => {
+    const currentIds = new Set<string>();
+    for (const st of effectiveDossierData) {
+      for (const item of st.intel_items || []) {
+        if (item.id) currentIds.add(`${st.stakeholder_id}-${item.id}`);
+      }
+    }
+
+    // First payload establishes the baseline - nothing is "new" on initial load
+    if (seenIntelIdsRef.current === null) {
+      seenIntelIdsRef.current = currentIds;
+      return;
+    }
+
+    const seen = seenIntelIdsRef.current;
+    const added = new Set([...currentIds].filter((id) => !seen.has(id)));
+    seenIntelIdsRef.current = new Set([...seen, ...currentIds]);
+
+    if (added.size === 0) return;
+
+    setNewIntelIds(added);
+    if (newIntelTimerRef.current) clearTimeout(newIntelTimerRef.current);
+    newIntelTimerRef.current = setTimeout(() => {
+      newIntelTimerRef.current = null;
+      setNewIntelIds(new Set());
+    }, 1000); // slightly longer than the newIntelDrop animation
+  }, [effectiveDossierData]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
@@ -767,6 +807,7 @@ export default function StakeholderDossier({
                   item.id === highlightedIntelId ||
                   (item.description && item.description === highlightedIntelId))
               );
+              const isNewIntel = newIntelIds.has(`${st.stakeholder_id}-${item.id}`);
               const isFadingOut = Boolean(
                 !isHighlighted &&
                 fadingOutIntelId &&
@@ -781,7 +822,7 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
-                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""}`}
+                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
                   <div className={styles.paperclip} />
 
