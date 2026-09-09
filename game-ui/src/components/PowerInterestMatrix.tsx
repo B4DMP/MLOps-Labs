@@ -541,9 +541,9 @@ export default function PowerInterestMatrix({
                                   : ""
                               }`}
                               style={
-                                activeIntro?.stakeholderId === item.stakeholderId
-                                  ? { borderColor: stColor }
-                                  : undefined
+                                {
+                                  "--stakeholder-color": stColor,
+                                } as React.CSSProperties
                               }
                               role={introsById.has(item.stakeholderId) ? "button" : undefined}
                               tabIndex={introsById.has(item.stakeholderId) ? 0 : undefined}
@@ -557,8 +557,12 @@ export default function PowerInterestMatrix({
                             >
                               <div className={styles.stakeholderLeft}>
                                 <div
-                                  className={styles.avatarWrapper}
-                                  style={{ border: `2px solid ${stColor}` }}
+                                  className={`${styles.avatarWrapper} ${
+                                    activeIntro?.stakeholderId === item.stakeholderId
+                                      ? styles.avatarWrapperSpeaking
+                                      : ""
+                                  }`}
+                                  style={{ borderColor: stColor }}
                                 >
                                   {st?.avatar ? (
                                     <StakeholderAvatarComponent

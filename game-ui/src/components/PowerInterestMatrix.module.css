@@ -285,8 +285,9 @@
   background: rgba(22, 34, 52, 0.8) !important;
   /* Always present so the speaking state changes only its color, never the box */
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 0.45rem;
-  padding: 0.35rem 0.55rem;
+  border-radius: 22px 0.5rem 0.5rem 22px;
+  padding: 0 0.55rem 0 0;
+  min-height: 44px;
   display: flex !important;
   align-items: center;
   justify-content: space-between;
@@ -300,23 +301,25 @@
 }
 
 .stakeholderItem:hover {
-  background: rgba(30, 46, 70, 0.95) !important;
-  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(41, 60, 89, 0.98) !important;
 }
 
 .stakeholderLeft {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
   min-width: 0;
   flex: 1;
   overflow: hidden;
 }
 
-/* Colored Avatar Ring */
+/* Colored Avatar Ring, sized to fill the chip from top to bottom */
 .avatarWrapper {
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
+  /* Width here rather than inline so the speaking state can thicken it. With
+     border-box sizing the ring grows inward and the 42px circle is unchanged. */
+  border: 2px solid transparent;
   border-radius: 50%;
   overflow: hidden;
   background: #1e293b;
@@ -502,9 +505,23 @@
 }
 
 /* Speaking stakeholder chip gets a subtle pulse so the bubble's owner is obvious */
+/*
+ * The chip border and the avatar ring are separate rings that only meet at the
+ * top and bottom tangent points, so colouring both reads as one broken ring.
+ * The speaking colour goes on the avatar and the chip's fill instead, leaving
+ * the chip border at its resting grey.
+ */
 .stakeholderItemSpeaking {
-  background: rgba(30, 46, 70, 0.98) !important;
+  background: color-mix(
+    in srgb,
+    var(--stakeholder-color, #38bdf8) 20%,
+    rgba(24, 37, 57, 0.98)
+  ) !important;
   animation: introChipPulse 1.4s ease-in-out infinite;
+}
+
+.avatarWrapperSpeaking {
+  border-width: 3px;
 }
 
 /*
