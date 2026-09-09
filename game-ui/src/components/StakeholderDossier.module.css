@@ -176,7 +176,7 @@
 .tabsContainer {
   display: flex;
   background: #251c15;
-  padding: 4px 8px 0 44px;
+  padding: 4px 8px 0 16px;
   gap: 3px;
   width: 100%;
   box-sizing: border-box;
