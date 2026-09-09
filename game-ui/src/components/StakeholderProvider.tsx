@@ -8,6 +8,7 @@ export type Stakeholder = {
   priorities: string;
   constraints?: string;
   role_description: string;
+  introduction?: string;
   metric_id: string;
   stakeholder_color?: string;
   avatar?: StakeholderAvatar;

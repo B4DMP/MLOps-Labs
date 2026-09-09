@@ -27,7 +27,21 @@
   border-radius: 0.85rem;
   overflow: hidden;
   box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.35), 0 10px 20px -5px rgba(0, 0, 0, 0.2);
-  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /*
+   * `backwards` rather than `both` on purpose: `both` keeps the final
+   * `transform` applied forever, which makes the panel a containing block for
+   * `position: fixed` descendants and would clip .bubbleLayer's children
+   * against `overflow: hidden`. With `backwards` the transform is gone once the
+   * entrance finishes, so those children resolve against the viewport.
+   */
+  animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Click-through overlay; portaled children re-enable their own pointer events */
+.bubbleLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
 }
 
 .header {

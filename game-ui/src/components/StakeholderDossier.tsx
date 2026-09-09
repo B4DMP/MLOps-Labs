@@ -547,7 +547,11 @@ export default function StakeholderDossier({
               </div>
               <div
                 className={styles.powerInterestBadge}
-                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (Organizational authority & influence)`}
+                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (${
+                  (st.power || stObj?.power || "").toLowerCase() === "high"
+                    ? "strong authority"
+                    : "limited authority"
+                })`}
               >
                 <Icon
                   icon="ph:lightning-bold"
@@ -567,7 +571,11 @@ export default function StakeholderDossier({
               </div>
               <div
                 className={styles.powerInterestBadge}
-                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (Stakeholder engagement & active interest)`}
+                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (${
+                  (st.interest || stObj?.interest || "").toLowerCase() === "high"
+                    ? "closely engaged"
+                    : "loosely engaged"
+                })`}
               >
                 <Icon
                   icon="ph:eye-bold"
@@ -1035,7 +1043,7 @@ export default function StakeholderDossier({
                   {isHighPower && (
                     <span
                       className={styles.tabKeyFlag}
-                      title="High power: strong organizational authority & influence"
+                      title="High power: strong authority"
                     >
                       <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
                     </span>
@@ -1043,7 +1051,7 @@ export default function StakeholderDossier({
                   {isHighInterest && (
                     <span
                       className={styles.tabKeyFlag}
-                      title="High interest: closely engaged with this project"
+                      title="High interest: closely engaged"
                     >
                       <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
                     </span>

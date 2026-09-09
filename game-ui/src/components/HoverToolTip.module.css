@@ -30,4 +30,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     pointer-events: none;
     line-height: 1.4;
+    /* Descriptions may use 
+ to separate their parts onto their own lines */
+    white-space: pre-line;
 }

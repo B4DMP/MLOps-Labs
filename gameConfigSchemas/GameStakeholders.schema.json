@@ -28,6 +28,11 @@
             "type": "string",
             "title": "Role Description"
           },
+          "introduction": {
+            "type": "string",
+            "title": "Self-Introduction (Phase Briefing Speech Bubble)",
+            "description": "One or two friendly, human-sounding sentences the stakeholder says when introducing themselves at the start of a phase."
+          },
           "responsibilities": {
             "type": "string",
             "title": "Responsibilities"

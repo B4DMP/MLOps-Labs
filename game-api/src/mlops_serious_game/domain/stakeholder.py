@@ -14,6 +14,7 @@ class Stakeholder(BaseModel):
         responsibilities (str): Core responsibilities of the stakeholder.
         priorities (str): Primary goals and priorities guiding decisions.
         requirements (str): Requrements on the development environment introduced by the stakeholder.
+        introduction (str): Short, friendly self-introduction spoken in the phase briefing.
     """
 
     id: str = Field(description="Unique identifier for the stakeholder")
@@ -22,6 +23,9 @@ class Stakeholder(BaseModel):
     priorities: str = Field(description="Primary goals and priorities guiding decisions")
     requirements: str = Field(description="Requirements on the development environment")
     role_description: str = Field(description="Description of the Stakeholder role")
+    introduction: str = Field(
+        default="", description="Short, friendly self-introduction spoken in the phase briefing"
+    )
     metric_id: str = Field(description="associated metric")
     convincer_archetype: str = Field(default="", description="Name of the convincer archetype")
     avatar: dict = Field(default_factory=dict, description="Open Peeps avatar configuration")

@@ -7,7 +7,7 @@ import {
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext } from "./PhaseProvider";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
@@ -23,11 +23,12 @@ interface PrePhaseDialogProps {
   challengeAmount?: number;
   /**
    * See `ChallengeDescriptionCard.isNew` — surfaces a "NEW" tag on the
-   * embedded challenge card. Not wired up to any game logic yet: no caller
-   * currently reopens PrePhaseDialog for a new challenge within the same
-   * phase, so this always defaults to false today. Once that flow exists,
-   * pass `true` when the challenge shown differs from the last one the
-   * player has already seen this phase.
+   * embedded challenge card. No caller sets this yet: nothing reopens
+   * PrePhaseDialog for a new challenge within the same phase, so it defaults
+   * to false. Once that flow exists, pass `true` when the challenge shown
+   * differs from the last one the player has already seen this phase. The
+   * card is tagged NEW on the first phase regardless, since every challenge
+   * is new at that point.
    */
   isNewChallenge?: boolean;
 }
@@ -44,6 +45,11 @@ export default function PrePhaseDialog({
   isNewChallenge = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
+  // Overlay layer for the radar's speech bubbles and tooltips. It has to live
+  // *inside* DialogPanel: Headless UI treats a click anywhere else in the dialog
+  // wrapper as an outside click and would close the briefing (advancing the
+  // round) when the player uses the bubble's skip or close button.
+  const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
 
   if (!isOpen) return null;
 
@@ -162,7 +168,8 @@ export default function PrePhaseDialog({
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
                     is_minimized={true}
-                    isNew={isNewChallenge}
+                    // The opening phase's challenge is new by definition
+                    isNew={isNewChallenge || isFirstPhase}
                   />
                 )}
               </div>
@@ -175,6 +182,7 @@ export default function PrePhaseDialog({
                     <span>Stakeholder Power & Interest Radar</span>
                   </h6>
                   <HoverTooltip
+                    portalTarget={bubbleLayer}
                     description="Radar Gameplay Guide: Power reflects authority to approve or veto your ML systems. Interest reflects how directly daily work is impacted. Focus your attention on 'Manage Closely' stakeholders, but don't disregard the others."
                   >
                     <span className={styles.radarHelpBtn}>
@@ -187,6 +195,7 @@ export default function PrePhaseDialog({
                   currentStakeholders={currentStakeholders}
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
+                  bubblePortalTarget={bubbleLayer}
                 />
               </div>
             </div>
@@ -205,6 +214,9 @@ export default function PrePhaseDialog({
               </div>
             </div>
           </div>
+
+          {/* Fixed, click-through overlay the radar portals its bubbles into */}
+          <div ref={setBubbleLayer} className={styles.bubbleLayer} />
         </DialogPanel>
       </div>
     </Dialog>
