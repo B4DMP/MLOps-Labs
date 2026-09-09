@@ -27,7 +27,7 @@ def main(table_name: str, postgres_uri: str) -> None:
         postgres_uri: The PostgreSQL connection URI string.
     """
     embedding_model = get_embedding_model(
-        settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_DEVICE
+        settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_THREADS
     )
     vectorstore = PGVector(
         embeddings=embedding_model,

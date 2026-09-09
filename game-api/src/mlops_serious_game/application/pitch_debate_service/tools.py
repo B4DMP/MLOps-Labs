@@ -16,7 +16,7 @@ def _get_vectorstore():
     
     if _vectorstore is None:
         embedding_model = get_embedding_model(
-            settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_DEVICE
+            settings.RAG_TEXT_EMBEDDING_MODEL_ID, settings.RAG_THREADS
         )
         _vectorstore = get_vectorstore(embedding_model)
     

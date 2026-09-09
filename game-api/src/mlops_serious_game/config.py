@@ -113,7 +113,7 @@ class Settings(BaseSettings):
     RAG_TEXT_EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
     RAG_TEXT_EMBEDDING_MODEL_DIM: int = 384
     RAG_TOP_K: int = 3
-    RAG_DEVICE: str = "cpu"
+    RAG_THREADS: int | None = None
     RAG_CHUNK_SIZE: int = 256
 
     # --- Paths Configuration ---
