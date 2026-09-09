@@ -152,9 +152,10 @@ export default function StakeholderDossier({
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
 
-  // Intel items that arrived but have not yet played their "appear" animation
-  const [newIntelIds, setNewIntelIds] = useState<Set<string>>(new Set());
-  const seenIntelIdsRef = useRef<Set<string> | null>(null);
+  // Dossier entries that arrived but have not yet played their "appear" animation.
+  // Keys are `intel-<stakeholder>-<intel id>` and `convincer-<stakeholder>-<archetype>`.
+  const [pendingAppearKeys, setPendingAppearKeys] = useState<Set<string>>(new Set());
+  const seenAppearKeysRef = useRef<Set<string> | null>(null);
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
@@ -330,56 +331,65 @@ export default function StakeholderDossier({
     prevDossierRef.current = dossierData;
   }, [dossierData, effectiveDossierData]);
 
-  // Flag intel items that were not present on the previous dossier payload
+  // All animatable keys a stakeholder page currently holds. The convincer key carries the
+  // archetype itself so re-tagging to a different archetype counts as a new appearance.
+  const appearKeysForStakeholder = (st: StakeholderDossierEntry): string[] => {
+    const keys = (st.intel_items || [])
+      .filter((item) => item.id)
+      .map((item) => `intel-${st.stakeholder_id}-${item.id}`);
+    const archetype = st.convincer_archetype || stakeholders[st.stakeholder_id]?.convincer_archetype;
+    if (archetype) keys.push(`convincer-${st.stakeholder_id}-${archetype}`);
+    return keys;
+  };
+
+  // Flag intel items and convincer archetypes that the previous dossier payload did not have
   useEffect(() => {
-    const currentIds = new Set<string>();
+    const currentKeys = new Set<string>();
     for (const st of effectiveDossierData) {
-      for (const item of st.intel_items || []) {
-        if (item.id) currentIds.add(`${st.stakeholder_id}-${item.id}`);
+      for (const key of appearKeysForStakeholder(st)) {
+        currentKeys.add(key);
       }
     }
 
     // First payload establishes the baseline - nothing is "new" on initial load
-    if (seenIntelIdsRef.current === null) {
-      seenIntelIdsRef.current = currentIds;
+    if (seenAppearKeysRef.current === null) {
+      seenAppearKeysRef.current = currentKeys;
       return;
     }
 
-    const seen = seenIntelIdsRef.current;
-    const added = new Set([...currentIds].filter((id) => !seen.has(id)));
-    seenIntelIdsRef.current = new Set([...seen, ...currentIds]);
+    const seen = seenAppearKeysRef.current;
+    const added = new Set([...currentKeys].filter((key) => !seen.has(key)));
+    seenAppearKeysRef.current = new Set([...seen, ...currentKeys]);
 
     if (added.size === 0) return;
 
-    setNewIntelIds((prev) => new Set([...prev, ...added]));
-  }, [effectiveDossierData]);
+    setPendingAppearKeys((prev) => new Set([...prev, ...added]));
+  }, [effectiveDossierData, stakeholders]);
 
-  // Consume the "new" flag only while the item's own page is on screen. Tagging an
-  // artifact during offline intel gathering flips the dossier to the next artifact's
-  // stakeholder almost immediately, so a flag consumed on a timer alone would be spent
-  // while the note is off-screen. Pending flags survive until that tab is visited.
+  // Consume a flag only while its own page is on screen. Tagging an artifact during offline
+  // intel gathering flips the dossier to the next artifact's stakeholder almost immediately,
+  // so a flag consumed on a timer alone would be spent while the card is off-screen. Pending
+  // flags survive until that tab is visited.
   useEffect(() => {
-    if (newIntelIds.size === 0) return;
+    if (pendingAppearKeys.size === 0) return;
 
     const visibleSt = effectiveDossierData[currentPageIndex];
     if (!visibleSt) return;
 
-    const playingIds = (visibleSt.intel_items || [])
-      .map((item) => `${visibleSt.stakeholder_id}-${item.id}`)
-      .filter((key) => newIntelIds.has(key));
-    if (playingIds.length === 0) return;
+    const playingKeys = appearKeysForStakeholder(visibleSt).filter((key) => pendingAppearKeys.has(key));
+    if (playingKeys.length === 0) return;
 
     // Leaving the page before this fires cancels it, so the animation replays on return
     const timer = setTimeout(() => {
-      setNewIntelIds((prev) => {
+      setPendingAppearKeys((prev) => {
         const next = new Set(prev);
-        playingIds.forEach((key) => next.delete(key));
+        playingKeys.forEach((key) => next.delete(key));
         return next;
       });
-    }, 1000); // slightly longer than the newIntelDrop animation
+    }, 1000); // slightly longer than the appear animations
 
     return () => clearTimeout(timer);
-  }, [newIntelIds, currentPageIndex, effectiveDossierData]);
+  }, [pendingAppearKeys, currentPageIndex, effectiveDossierData, stakeholders]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
@@ -479,6 +489,10 @@ export default function StakeholderDossier({
 
     const convincerArchetypeName = st.convincer_archetype || stObj?.convincer_archetype;
     const convincerProfileConfig = convincerArchetypeName ? activeConvincerArchetypes[convincerArchetypeName] : null;
+    const isNewConvincer = Boolean(
+      convincerArchetypeName &&
+      pendingAppearKeys.has(`convincer-${st.stakeholder_id}-${convincerArchetypeName}`)
+    );
 
     return (
       <>
@@ -577,7 +591,9 @@ export default function StakeholderDossier({
 
         {/* Convincer Profile & Persuasion Strategy Card */}
         {convincerArchetypeName ? (
-          <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`}>
+          <div
+            className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""} ${isNewConvincer ? styles.newConvincerCard : ""}`}
+          >
             <div className={styles.convincerVerticalSpine}>
               <span className={styles.convincerVerticalText}>Convincer</span>
             </div>
@@ -822,7 +838,7 @@ export default function StakeholderDossier({
                   item.id === highlightedIntelId ||
                   (item.description && item.description === highlightedIntelId))
               );
-              const isNewIntel = newIntelIds.has(`${st.stakeholder_id}-${item.id}`);
+              const isNewIntel = pendingAppearKeys.has(`intel-${st.stakeholder_id}-${item.id}`);
               const isFadingOut = Boolean(
                 !isHighlighted &&
                 fadingOutIntelId &&

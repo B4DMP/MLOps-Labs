@@ -545,6 +545,46 @@
   overflow: hidden;
 }
 
+/* Freshly tagged convincer archetype: the card presses in like a stamp landing */
+@keyframes newConvincerStamp {
+  0% {
+    transform: scale(1.14);
+    border-color: #d97706;
+    box-shadow: 0 0 0 8px rgba(217, 119, 6, 0);
+  }
+
+  35% {
+    transform: scale(0.985);
+    border-color: #d97706;
+    box-shadow: 0 0 0 5px rgba(217, 119, 6, 0.32);
+  }
+
+  65% {
+    transform: scale(1.012);
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18);
+  }
+
+  100% {
+    transform: scale(1);
+    border-color: #94a3b8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.newConvincerCard {
+  animation: newConvincerStamp 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* keep the glow ring from being clipped by the card's own overflow */
+  overflow: visible;
+  z-index: 22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newConvincerCard {
+    animation: fadeInRetag 0.2s ease-out forwards;
+  }
+}
+
 .convincerVerticalSpine {
   background: #f1f5f9;
   border-right: 1.5px dashed #cbd5e1;
