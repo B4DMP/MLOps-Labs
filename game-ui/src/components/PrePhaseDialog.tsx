@@ -50,7 +50,7 @@ export default function PrePhaseDialog({
   const currentPhaseData = phases[currentPhase];
   
   // Phase 0 ("Introduction") is a skipped/hidden tutorial challenge; treat Phase 1 as the first playable game phase
-  const hasIntroPhase = phases.length > 0 && phases[0]?.id === 0 && phases[0]?.name?.toLowerCase() === "introduction";
+  const hasIntroPhase = phases.length > 0 && phases[0]?.id === 0 && phases[0]?.phase_name?.toLowerCase() === "introduction";
   const isFirstPhase = hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 

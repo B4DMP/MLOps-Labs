@@ -40,18 +40,6 @@ export default function PitchActionCardModal({
   onConfirmMerge,
   stakeholders,
   getStakeholderColor,
-  getTagBadgeColor = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return "bg-primary";
-      case "negotiable_preference":
-        return "bg-success";
-      case "personal_friction":
-        return "bg-warning text-dark";
-      default:
-        return "bg-secondary";
-    }
-  },
   isGenerating = false,
 }: PitchActionCardModalProps) {
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>(initialSelectedIntelIds);

@@ -1,7 +1,6 @@
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
-import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import type { ActionCard } from "../types/ActionCard";
 import styles from "./PerformanceDashboard.module.css";
 
@@ -20,13 +19,8 @@ interface PerformanceDashboardProps {
 export default function PerformanceDashboard({
   isOpen,
   currentPhase = 0,
-  currentChallenge = 0,
   showMetricValueChanges = false,
   last_ac,
-  challengeTitle = "",
-  challengeDescription = "",
-  challengeIntro = "",
-  challengeAmount = 1,
 }: PerformanceDashboardProps) {
   return (
     <div

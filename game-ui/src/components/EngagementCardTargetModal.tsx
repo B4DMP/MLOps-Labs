@@ -51,18 +51,6 @@ export default function EngagementCardTargetModal({
   onConfirmStakeholders,
   onConfirmIntel,
   getStakeholderColor,
-  getTagBadgeColor = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return "bg-primary";
-      case "negotiable_preference":
-        return "bg-success";
-      case "personal_friction":
-        return "bg-warning text-dark";
-      default:
-        return "bg-secondary";
-    }
-  },
 }: EngagementCardTargetModalProps) {
   const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([]);
   const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);

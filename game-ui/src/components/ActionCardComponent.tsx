@@ -1,7 +1,6 @@
 import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
 import styles from "./ActionCardComponent.module.css";
-import { MetricsContext } from "./MetricProvider";
 import { useContext } from "react";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
@@ -33,15 +32,11 @@ export default function ActionCardComponent({
   id,
   ac,
   current_phase,
-  tutorial_card = false,
-  displayMetrics = true,
-  showValues = false,
   highlight = false,
   interactable = true,
   hasDropIndicator = true,
   intelItems = [],
 }: ActionCardProps) {
-  const { metrics } = useContext(MetricsContext);
   const { stakeholders } = useContext(StakeholderContext);
 
   // Resolve contributing stakeholders if intel items are available
@@ -83,8 +78,6 @@ export default function ActionCardComponent({
   ) => {
     e.dataTransfer.setData("cardId", card.id);
   };
-
-  const is_card_playable = true;
 
   return (
     <>

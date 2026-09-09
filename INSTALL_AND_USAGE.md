@@ -117,7 +117,7 @@ The project is divided into two main applications and shared configuration:
 We use Docker to set up the local infrastructure (Game UI, Agent API, PostgreSQL with pgvector).
 
 > [!WARNING]
-> Before running the command below, ensure you do not have any processes running on ports `5432` (PostgreSQL), `8000` (Agent API) and `5173` (Game UI).
+> Before running the command below, ensure you do not have any processes running on ports `8000` (Agent API) and `5173` (Game UI).
 
 From the root directory, to start the Docker infrastructure, run:
 ```bash
@@ -149,22 +149,34 @@ To delete the long term memory from your PostgreSQL instance, you can run the fo
 make delete-long-term-memory
 ```
 > [!NOTE]
-> To visualize the raw and RAG data from PostgreSQL, we recommend using pgAdmin or DBeaver. To connect to the working PostgreSQL instance, use the `POSTGRES_URI` value from the `.env` file or found inside the [config.py](game-api/src/mlops_serious_game/config.py) file.
+> To visualize the raw and RAG data from PostgreSQL, we recommend using pgAdmin or DBeaver.
+> The database port is **not published to the host** by default, so it does not clash with any other
+> PostgreSQL you may be running. To attach a client, either open a shell on the container:
+>
+> ```bash
+> docker compose exec postgres psql -U mlops_labs -d mlops_labs
+> ```
+>
+> or publish the port temporarily by adding a `ports` entry (e.g. `"5433:5432"`) to the `postgres`
+> service in [docker-compose.yml](docker-compose.yml) and connecting to `localhost:5433`
+> with the credentials `mlops_labs` / `mlops_labs`.
 
 ## 🗄️ Database & Schema Migrations (PostgreSQL + Alembic)
 
 ### Managing Schema Changes with Alembic
 Modifying SQLAlchemy model classes in `game-api/src/mlops_serious_game/infrastructure/database/models.py` does not automatically update live database tables. To update your PostgreSQL schema:
 
+Alembic runs inside the `api` container, which is where the database is reachable
+(PostgreSQL is not published to the host). The `alembic/` directory is mounted into the
+container, so generated migration scripts appear in your working tree as usual.
+
 1. **Autogenerate a new migration script**:
    ```bash
-   cd game-api
-   alembic revision --autogenerate -m "Describe your schema changes"
+   docker compose exec api alembic revision --autogenerate -m "Describe your schema changes"
    ```
 2. **Apply the migration to PostgreSQL**:
    ```bash
-   cd game-api
-   alembic upgrade head
+   docker compose exec api alembic upgrade head
    ```
 
 ## Agent Evaluation

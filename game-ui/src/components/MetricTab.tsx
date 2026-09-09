@@ -2,7 +2,6 @@ import { MetricsContext } from "./MetricProvider";
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
 import type { ActionCard } from "../types/ActionCard";
-import styles from "./MetricTab.module.css";
 
 interface MetricTabProps {
   current_phase: number;
@@ -13,7 +12,6 @@ interface MetricTabProps {
 function MetricTab({
   current_phase,
   showMetricValueChanges,
-  last_ac,
 }: MetricTabProps) {
   const { metrics } = useContext(MetricsContext);
 

@@ -809,7 +809,7 @@ function App({ username: _username }: AppProps) {
     const updatedMetrics: Record<string, Metric> = {};
     const metricsList = Object.values(metrics);
     metricsList.forEach((m) => {
-      const nextVal = (m.value ?? m.start_value) + (ac.metric_changes[m.id] ?? 0);
+      const nextVal = (m.value ?? m.start_value) + (ac.metric_changes?.[m.id] ?? 0);
       updatedMetrics[m.id] = {
         ...m,
         value: nextVal,
