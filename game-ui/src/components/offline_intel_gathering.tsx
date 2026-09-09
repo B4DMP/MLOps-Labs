@@ -629,7 +629,11 @@ export default function OfflineIntelGathering({
                                     <span className={styles.tagButtonLabel} style={{ color: tag.color }}>{tag.label}</span>
                                   </span>
                                   {isSelected && (
-                                    <span className={`badge text-white ${styles.tagButtonBadge}`}>
+                                    <span
+                                      className={`badge text-white ${styles.tagButtonBadge}`}
+                                      title="Pick another category to re-tag this artifact"
+                                    >
+                                      <Icon icon="ph:pencil-simple-bold" className={styles.tagButtonBadgeIcon} />
                                       Selected
                                     </span>
                                   )}

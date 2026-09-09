@@ -532,6 +532,15 @@
     border-radius: 9999px;
     padding: 0.1rem 0.4rem;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+/* Subtle hint that the choice can still be changed */
+.tagButtonBadgeIcon {
+    font-size: 0.66rem;
+    opacity: 0.85;
 }
 
 .tagButtonDescription {
