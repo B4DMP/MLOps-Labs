@@ -144,7 +144,7 @@
       },
       "apathetic": {
          "color": "#7c3aed",
-         "facial_expression": "tired",
+         "facial_expression": "serious",
          "conditions": [
             { "metric": "interest", "op": "<=", "value": 0.3 },
             { "metric": "sense_of_control", "op": "<=", "value": 0.3 }
@@ -159,7 +159,7 @@
       },
       "relieved": {
          "color": "#22c55e",
-         "facial_expression": "smile",
+         "facial_expression": "calm",
          "conditions": [
             { "metric": "stress", "op": "<=", "value": 0.35 },
             { "metric": "perceived_risk", "op": "<=", "value": 0.35 },
@@ -193,7 +193,7 @@
       },
       "neutral": {
          "color": "#64748b",
-         "facial_expression": "serious",
+         "facial_expression": "smile",
          "conditions": [],
          "formula": {
             "type": "constant",
@@ -204,11 +204,11 @@
    "emotion_colors": {
       "enthusiastic": "#16a34a",
       "relieved": "#22c55e",
-      "smile": "#22c55e",
+      "smile": "#64748b",
       "smileBig": "#16a34a",
-      "calm": "#10b981",
+      "calm": "#22c55e",
       "neutral": "#64748b",
-      "serious": "#64748b",
+      "serious": "#7c3aed",
       "skeptical": "#d97706",
       "suspicious": "#d97706",
       "frustrated": "#ea580c",
