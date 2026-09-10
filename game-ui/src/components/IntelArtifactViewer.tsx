@@ -5,12 +5,19 @@ interface IntelArtifactViewerProps {
   content: string;
   artifactType: string;
   stakeholderName: string;
+  /**
+   * Already on the public record. Changes where the message appears to have been posted:
+   * a big open channel is *why* an item counts as on record, so a message the player still
+   * has to interpret must not look like it came from the same room.
+   */
+  isPublicRecord?: boolean;
 }
 
 export default function IntelArtifactViewer({
   content,
   artifactType,
   stakeholderName,
+  isPublicRecord = false,
 }: IntelArtifactViewerProps) {
   const type = (artifactType || "").toLowerCase();
   const name = stakeholderName || "Stakeholder";
@@ -76,10 +83,15 @@ export default function IntelArtifactViewer({
         {/* Channel Header */}
         <div className={styles.chatChannelHeader}>
           <div className={styles.channelTitle}>
-            <span>💬</span> #mlops-architecture-sync
-            <span className={styles.channelTopic}>| Model Monitoring & System SLA</span>
+            <span>{isPublicRecord ? "📣" : "💬"}</span>{" "}
+            {isPublicRecord ? "#project-general" : "#mlops-architecture-sync"}
+            <span className={styles.channelTopic}>
+              {isPublicRecord ? "| Everyone on the project" : "| Model Monitoring & System SLA"}
+            </span>
           </div>
-          <div className={styles.channelMembers}>👥 42 Members</div>
+          <div className={styles.channelMembers}>
+            {isPublicRecord ? "👥 128 Members" : "👥 6 Members"}
+          </div>
         </div>
 
         {/* Message Container */}

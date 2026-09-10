@@ -180,9 +180,16 @@ def correct_and_verify_convincer_archetype(
 
 
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
-    """Loads unconfirmed offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
+    """Loads offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders.
+
+    Known artifacts are dealt into the deck too, already tagged and locked. They used to be seeded
+    straight into the dossier without ever being shown, which left players staring at verified intel
+    with no idea where it came from. Reading them costs a couple of clicks and gives the player a
+    worked example of a correct tag before their first real call.
+    """
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
     unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known][:3]
+    known_artifacts = [art for art in challenge_artifacts if art.is_known]
 
     results = []
     for art in unconfirmed_artifacts:
@@ -244,7 +251,8 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
                 else str(art_def.artifact_type)
             )
         else:
-            template = f"#team-chat Slack\n{{stakeholder_name}}: Let's make sure our approach is aligned with our priorities."
+            # The viewer draws the channel header and the speaker's name, so the body is body only.
+            template = "Let's make sure our approach is aligned with our priorities."
             artifact_type_val = "slack_message"
 
         content = template.replace("{stakeholder_name}", st.name)
@@ -266,7 +274,28 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
     # Shuffle the combined list so convincer and intel artifacts are mixed
     random.shuffle(results)
-    return results
+
+    # Known artifacts go in front, unshuffled: they are the briefing the player reads before
+    # making any call of their own, so they must not land in the middle of the deck.
+    known_results = []
+    for art in known_artifacts:
+        req = RequirementFactory.get_requirement(art.requirement_id)
+        if not req:
+            continue
+        stakeholder = StakeholderFactory.get_stakeholder(art.stakeholder_id)
+        known_results.append({
+            "id": art.id,
+            "requirement_id": art.requirement_id,
+            "stakeholder_id": art.stakeholder_id,
+            "stakeholder_name": stakeholder.name if stakeholder else art.stakeholder_name,
+            "stakeholder_role": stakeholder.role_description if stakeholder else art.stakeholder_role,
+            "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
+            "content": art.content,
+            "is_known": True,
+            "categorized_type": req.type.value if hasattr(req.type, "value") else str(req.type),
+        })
+
+    return known_results + results
 
 
 from sqlalchemy.orm.attributes import flag_modified
