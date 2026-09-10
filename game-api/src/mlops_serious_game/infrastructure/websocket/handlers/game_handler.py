@@ -658,6 +658,7 @@ async def handle_state_update_request(
                 "phase_id": challenge.phase_id,
                 "challenge_id": challenge.id,
                 "initial_start": True,
+                "action_card": persisted_ac or action_card,
             }
             asyncio.create_task(
                 handle_chat_message(

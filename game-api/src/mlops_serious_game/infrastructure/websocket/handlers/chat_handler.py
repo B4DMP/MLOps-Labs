@@ -13,7 +13,9 @@ from mlops_serious_game.application.pitch_debate_service import (
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session
+from mlops_serious_game.domain.requirement import StakeholderIntelItem
+from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session
 from mlops_serious_game.application.intel_handler import (
     correct_and_verify_intel_item,
     correct_and_verify_convincer_archetype,
@@ -42,8 +44,7 @@ async def handle_chat_message(
         addressed_stakeholder_id = payload.get("addressed_stakeholder_id")
         initial_start = payload.get("initial_start", False)
 
-        if "action_card" in payload:
-            payload.pop("action_card", None)
+        action_card_payload = payload.get("action_card")
 
         if not option_id and not initial_start:
             raise ValueError(
@@ -164,22 +165,56 @@ async def handle_chat_message(
                         for st in StakeholderFactory.stakeholders
                     }
 
-        action_card = None
-        with get_session() as db_session:
-            stmt_ac = select(GameChallenge).where(
-                GameChallenge.user_name == username
-            ).order_by(GameChallenge.id.desc())
-            existing_challenge = db_session.scalars(stmt_ac).first()
-            if existing_challenge and isinstance(existing_challenge.action_card, dict) and existing_challenge.action_card.get("title"):
-                action_card = dict(existing_challenge.action_card)
-                card_intel_ids = action_card.get("intel_ids", [])
-                wrong_intel_ids = list(action_card.get("wrong_intel_ids", []))
-                for it in intel_items:
-                    it_id = getattr(it, "id", None)
-                    if it_id in card_intel_ids and not it.is_correct_intel():
-                        if it_id and it_id not in wrong_intel_ids:
-                            wrong_intel_ids.append(it_id)
-                action_card["wrong_intel_ids"] = wrong_intel_ids
+        action_card = action_card_payload if (isinstance(action_card_payload, dict) and action_card_payload.get("title")) else None
+        if not action_card:
+            with get_session() as db_session:
+                stmt_ac = select(GameChallenge).where(
+                    GameChallenge.user_name == username,
+                    GameChallenge.phase_index == phase_id,
+                    GameChallenge.challenge_index == challenge_id
+                ).order_by(GameChallenge.id.desc())
+                existing_challenge = db_session.scalars(stmt_ac).first()
+                if not existing_challenge:
+                    stmt_fallback = select(GameChallenge).where(
+                        GameChallenge.user_name == username
+                    ).order_by(GameChallenge.id.desc())
+                    existing_challenge = db_session.scalars(stmt_fallback).first()
+                if existing_challenge and isinstance(existing_challenge.action_card, dict) and existing_challenge.action_card.get("title"):
+                    action_card = dict(existing_challenge.action_card)
+
+        # Complement intel_items to ensure all intel items in action card are present
+        if action_card and isinstance(action_card, dict):
+            card_intel_ids = action_card.get("intel_ids", [])
+            existing_ids = {getattr(it, "id", None) for it in intel_items}
+            with get_session() as db_session:
+                records = db_session.scalars(
+                    select(IntelItem).where(IntelItem.user_name == username)
+                ).all()
+                for record in records:
+                    if isinstance(record.intel_item_data, dict):
+                        data = record.intel_item_data
+                        iid = data.get("id")
+                        if iid and (iid in card_intel_ids or iid not in existing_ids):
+                            req = RequirementFactory.get_requirement(iid)
+                            if req:
+                                item = StakeholderIntelItem.from_requirement(
+                                    req,
+                                    intel_type=data.get("intel_type", "unconfirmed"),
+                                    categorized_type=data.get("categorized_type", req.type),
+                                    categorized_description=data.get("categorized_description", ""),
+                                    description=data.get("description", req.description),
+                                )
+                                if iid not in existing_ids:
+                                    intel_items.append(item)
+                                    existing_ids.add(iid)
+
+            wrong_intel_ids = list(action_card.get("wrong_intel_ids", []))
+            for it in intel_items:
+                it_id = getattr(it, "id", None)
+                if it_id in card_intel_ids and not it.is_correct_intel():
+                    if it_id and it_id not in wrong_intel_ids:
+                        wrong_intel_ids.append(it_id)
+            action_card["wrong_intel_ids"] = wrong_intel_ids
 
         # Run pitch debate graph
         emotion_deltas, output_state = await get_response(
@@ -217,7 +252,10 @@ async def handle_chat_message(
                     existing.emotion_values = serialized_emotion_values
                     flag_modified(existing, "emotion_values")
 
-        # If any wrongly categorized intel items were refuted or played, mark them as verified in DB and update dossier
+        # Dossier updates:
+        # 1. Any wrongly categorized intel items refuted in debate are corrected and marked Verified
+        # 2. Correctly categorized intel items in pitched action card that were not refuted are confirmed as Verified
+        dossier_updated = False
         corrected_req_ids = set()
         last_intel = output_state.get("last_selected_intel")
         if last_intel and not last_intel.is_correct_intel():
@@ -236,6 +274,25 @@ async def handle_chat_message(
                     requirement_id=req_id,
                     curr_challenge=curr_challenge,
                 )
+            dossier_updated = True
+
+        if initial_start and action_card and isinstance(action_card, dict):
+            card_intel_ids = action_card.get("intel_ids", [])
+            wrong_card_set = set(action_card.get("wrong_intel_ids", []))
+            for cid in card_intel_ids:
+                if cid not in wrong_card_set and cid not in corrected_req_ids:
+                    matching_item = next((it for it in intel_items if getattr(it, "id", None) == cid), None)
+                    if matching_item and matching_item.is_correct_intel():
+                        item_conf = matching_item.intel_type.value if hasattr(matching_item.intel_type, "value") else str(matching_item.intel_type)
+                        if item_conf.lower() != "verified":
+                            correct_and_verify_intel_item(
+                                username=username,
+                                requirement_id=cid,
+                                curr_challenge=curr_challenge,
+                            )
+                            dossier_updated = True
+
+        if dossier_updated:
             dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
             await manager.send_event(
                 websocket=websocket,
