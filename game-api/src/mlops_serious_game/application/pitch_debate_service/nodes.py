@@ -26,6 +26,98 @@ from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
+from mlops_serious_game.domain.requirement import ConfidenceType, RequirementType
+from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
+
+
+def _normalize_intel_items(intel_items: list) -> list[StakeholderIntelItem]:
+    normalized = []
+    for raw in intel_items:
+        if isinstance(raw, StakeholderIntelItem):
+            normalized.append(raw)
+        elif isinstance(raw, dict):
+            try:
+                normalized.append(StakeholderIntelItem(**raw))
+            except Exception:
+                pass
+    return normalized
+
+
+def _get_stakeholder_wrong_card_intels(
+    st_id: str,
+    action_card: dict,
+    intel_items: list,
+) -> list[StakeholderIntelItem]:
+    card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
+    wrong_card_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
+    normalized_items = _normalize_intel_items(intel_items)
+
+    found_items = []
+    seen_ids = set()
+    for item in normalized_items:
+        if getattr(item, "stakeholder_id", None) == st_id:
+            if item.id in card_intel_ids or item.id in wrong_card_intel_ids:
+                if not item.is_correct_intel() or item.id in wrong_card_intel_ids:
+                    found_items.append(item)
+                    seen_ids.add(item.id)
+
+    for cid in list(wrong_card_intel_ids):
+        if cid not in seen_ids:
+            req = RequirementFactory.get_requirement(cid)
+            if req and req.stakeholder_id == st_id:
+                other_type = (
+                    RequirementType.NEGOTIABLE_PREFERENCE
+                    if req.type != RequirementType.NEGOTIABLE_PREFERENCE
+                    else RequirementType.PERSONAL_FRICTION
+                )
+                wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(cid, "negotiable_preference") or req.description
+                item = StakeholderIntelItem.from_requirement(
+                    req,
+                    intel_type=ConfidenceType.UNCONFIRMED,
+                    categorized_type=other_type,
+                    categorized_description=wrong_desc,
+                )
+                found_items.append(item)
+                seen_ids.add(cid)
+
+    return found_items
+
+
+def _get_stakeholder_correct_card_intels(
+    st_id: str,
+    action_card: dict,
+    intel_items: list,
+) -> list[StakeholderIntelItem]:
+    card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
+    wrong_card_intel_ids = set(action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else [])
+    normalized_items = _normalize_intel_items(intel_items)
+
+    found_items = []
+    seen_ids = set()
+    for item in normalized_items:
+        if getattr(item, "stakeholder_id", None) == st_id:
+            if item.id in card_intel_ids and item.id not in wrong_card_intel_ids:
+                if item.is_correct_intel():
+                    found_items.append(item)
+                    seen_ids.add(item.id)
+
+    for cid in card_intel_ids:
+        if cid not in wrong_card_intel_ids and cid not in seen_ids:
+            req = RequirementFactory.get_requirement(cid)
+            if req and req.stakeholder_id == st_id:
+                item = StakeholderIntelItem.from_requirement(
+                    req,
+                    intel_type=ConfidenceType.VERIFIED,
+                    categorized_type=req.type,
+                    description=req.description,
+                )
+                found_items.append(item)
+                seen_ids.add(cid)
+
+    return found_items
+
+
 def calculate_system_emotion_deltas(
     st_id: str,
     last_intel: Optional[StakeholderIntelItem],
@@ -200,6 +292,13 @@ async def router_node(state: PitchDebateState, config: RunnableConfig = None):
 
     # Rule 1: At the beginning of the discussion (no dialogue option chosen yet), route to everyone
     if not last_selected_option:
+        action_card = state.get("action_card") or {}
+        card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
+        wrong_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
+        for iid in list(card_intel_ids) + list(wrong_intel_ids):
+            req = RequirementFactory.get_requirement(iid)
+            if req and req.stakeholder_id and req.stakeholder_id not in all_stakeholders:
+                all_stakeholders.append(req.stakeholder_id)
         return {"stakeholder_ids": all_stakeholders}
 
     # Rule 2: When an intel item-based dialogue option is chosen, route ONLY to the target stakeholder
@@ -253,19 +352,29 @@ async def emotion_node(state: PitchDebateState, config: RunnableConfig):
     # If kickoff turn (no option chosen yet), check if action card contains a miscategorized intel for this stakeholder
     if not last_selected_option:
         action_card = state.get("action_card") or {}
-        card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
-        wrong_card_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
-        all_intel_items = list(state.get("intel_items", []) or [])
-        st_wrong_intels = [
-            item for item in all_intel_items
-            if (getattr(item, "stakeholder_id", None) == st.id)
-            and (item.id in card_intel_ids or item.id in wrong_card_intel_ids)
-            and (not item.is_correct_intel() or item.id in wrong_card_intel_ids)
-        ]
+        st_wrong_intels = _get_stakeholder_wrong_card_intels(
+            st_id=st.id,
+            action_card=action_card,
+            intel_items=state.get("intel_items", []) or [],
+        )
         if st_wrong_intels:
+            wrong_item = st_wrong_intels[0]
+            # Ensure wrong_item evaluates as incorrect so misattributed_intel delta rule triggers
+            if wrong_item.is_correct_intel():
+                other_type = (
+                    RequirementType.NEGOTIABLE_PREFERENCE
+                    if wrong_item.type != RequirementType.NEGOTIABLE_PREFERENCE
+                    else RequirementType.PERSONAL_FRICTION
+                )
+                wrong_item = StakeholderIntelItem.from_requirement(
+                    RequirementFactory.get_requirement(wrong_item.id) or wrong_item,
+                    intel_type=ConfidenceType.UNCONFIRMED,
+                    categorized_type=other_type,
+                    categorized_description=wrong_item.categorized_description or wrong_item.description,
+                )
             delta = calculate_system_emotion_deltas(
                 st_id=st.id,
-                last_intel=st_wrong_intels[0],
+                last_intel=wrong_item,
                 selected_option=None,
             )
         else:
@@ -351,12 +460,6 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     card_intel_ids = action_card.get("intel_ids", []) if isinstance(action_card, dict) else []
     wrong_card_intel_ids = action_card.get("wrong_intel_ids", []) if isinstance(action_card, dict) else []
 
-    st_wrong_card_intels = [
-        item for item in st_intel_items
-        if (item.id in card_intel_ids or item.id in wrong_card_intel_ids)
-        and (not item.is_correct_intel() or item.id in wrong_card_intel_ids)
-    ]
-
     last_selected_intel = state.get("last_selected_intel")
     last_selected_option = state.get("last_selected_option")
     intel_instruction = ""
@@ -364,6 +467,17 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
 
     # Case A: Kickoff round (initial turn, player presented action card)
     if not last_selected_option:
+        st_wrong_card_intels = _get_stakeholder_wrong_card_intels(
+            st_id=st.id,
+            action_card=action_card,
+            intel_items=all_intel_items,
+        )
+        st_correct_card_intels = _get_stakeholder_correct_card_intels(
+            st_id=st.id,
+            action_card=action_card,
+            intel_items=all_intel_items,
+        )
+
         if st_wrong_card_intels:
             wrong_item = st_wrong_card_intels[0]
             intel_intent_val = (
@@ -389,6 +503,28 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 "stakeholder_id": st.id,
                 "stakeholder_name": st.name,
                 "is_corrected": True,
+            }]
+        elif st_correct_card_intels:
+            correct_item = st_correct_card_intels[0]
+            intel_intent_val = (
+                getattr(correct_item.type, "value", str(correct_item.type))
+                if getattr(correct_item, "type", None)
+                else "requirement"
+            )
+            intel_instruction = (
+                f"[GAME MASTER SPECIAL INSTRUCTION - PROPOSAL EVALUATION & STANCE CONFIRMED]:\n"
+                f"The Project Manager has presented their proposed action plan, which correctly incorporates your stance: "
+                f"[{intel_intent_val}] '{correct_item.description}'.\n"
+                f"Acknowledge and confirm that this aspect of the plan aligns with your expectations, while also evaluating any remaining risks, questions, or bottlenecks from your MLOps perspective."
+            )
+            revealed_intel_list = [{
+                "id": correct_item.id,
+                "description": correct_item.description,
+                "categorized_type": intel_intent_val,
+                "intel_type": "verified",
+                "stakeholder_id": st.id,
+                "stakeholder_name": st.name,
+                "is_corrected": False,
             }]
         else:
             intel_instruction = (
@@ -525,25 +661,22 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             else:
                 callback(websocket=ws, state=cb_state)
 
-    # Update intel_items in state if corrected
-    updated_intel_items = list(state.get("intel_items", []) or [])
+    # Update intel_items in state if revealed (both corrected refutations and confirmed correct items)
+    updated_intel_items = _normalize_intel_items(state.get("intel_items", []) or [])
     if revealed_intel_list:
         for rev_item in revealed_intel_list:
-            if rev_item.get("is_corrected"):
-                rev_id = rev_item.get("id")
-                for i, item in enumerate(updated_intel_items):
-                    if getattr(item, "id", None) == rev_id:
-                        from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
-                        from mlops_serious_game.domain.requirement_factory import RequirementFactory
-                        req = RequirementFactory.get_requirement(rev_id)
-                        if req:
-                            updated_intel_items[i] = StakeholderIntelItem.from_requirement(
-                                req,
-                                intel_type=ConfidenceType.VERIFIED,
-                                categorized_type=req.type,
-                                description=req.description,
-                            )
-                        break
+            rev_id = rev_item.get("id")
+            for i, item in enumerate(updated_intel_items):
+                if getattr(item, "id", None) == rev_id:
+                    req = RequirementFactory.get_requirement(rev_id)
+                    if req:
+                        updated_intel_items[i] = StakeholderIntelItem.from_requirement(
+                            req,
+                            intel_type=ConfidenceType.VERIFIED,
+                            categorized_type=req.type,
+                            description=req.description,
+                        )
+                    break
 
     if named_response.tool_calls:
         return {"messages": named_response, "intel_items": updated_intel_items}
