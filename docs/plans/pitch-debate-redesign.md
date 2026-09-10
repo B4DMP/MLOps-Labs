@@ -36,11 +36,6 @@ The current pitch debate is decoupled from the Analyze and Strategize phases: ob
 
 ---
 
-## Resolving Objections via Corporate Noise
-
-Personal frictions or negotiable preference-based objections can be (partly) resolved by choosing the correct corporate noise (= convincing the stakeholder). Hard Constraints cannot be resolved this way; however, the correct corporate noise can lighten the mood of a stakeholder and thus slightly increase their buy-in.
-
----
 
 ## Buy-in and Objections
 
@@ -50,6 +45,8 @@ Personal frictions or negotiable preference-based objections can be (partly) res
 |---|---|
 | $st$ | A stakeholder |
 | $\text{power}(st) \in [0,1]$ | The stakeholder's organisational power |
+| $\text{interest}(st) \in [0,1]$ | The stakeholder's level of interest / engagement in the project |
+| $w(st) \in [0,1]$ | The stakeholder's overall influence weight combining power and interest |
 | $\text{atoms}(o)$ | The set of primitive (canonical, indivisible) graph operations that compose operation $o$; for an atomic operation $\text{atoms}(o) = \{o\}$ |
 | $\text{pitch\_objections}(st)$ | The set of all intel item operations gathered on $st$ during the current round (Analyze + Strategize phases) |
 | $o_i$ | The MLOps graph operation associated with the $i$-th intel item of $st$; each intel item maps to exactly one such operation |
@@ -87,9 +84,19 @@ $$\text{buy\_in}(st) := \text{coverage}(st) \cdot x \;+\; \text{emotions}(st) \c
 
 Since $\text{coverage}(st) \in [0,1]$, $\text{emotions}(st) \in [0,1]$, and $x + y = 1$ with $x,y \geq 0$, the formula is a convex combination and $\text{buy\_in}(st) \in [0,1]$. This requires emotion metrics to be **normalized to $[0,1]$** before use.
 
-> **Note:** $\text{power}(st)$ is intentionally **not** included in $\text{buy\_in}(st)$. Power is applied once in the final pitch debate score to avoid accidental $\text{power}^2$ weighting:
+> **Note:** Neither $\text{power}(st)$ nor $\text{interest}(st)$ is included directly in $\text{buy\_in}(st)$ to avoid double-weighting. Instead, stakeholder influence is applied in the final pitch debate score (overall pitch buy-in), where both power and interest weight the stakeholder's buy-in, with **power having a larger impact than interest**:
 
-$$\text{pitch\_score} := \sum_{st} \text{power}(st) \cdot \text{buy\_in}(st)$$
+$$\text{pitch\_score} := \sum_{st} w(st) \cdot \text{buy\_in}(st)$$
+
+where $w(st)$ is the stakeholder's composite influence weight:
+
+$$w(st) := \alpha \cdot \text{power}(st) \;+\; \beta \cdot \text{interest}(st) \qquad \alpha > \beta > 0,\quad \alpha + \beta = 1$$
+
+*(e.g., $\alpha = 0.7$, $\beta = 0.3$, ensuring power is the primary driver of pitch success while interest provides a meaningful secondary contribution).*
+
+> Optionally, if normalizing $\text{pitch\_score} \in [0, 1]$ across all active stakeholders:
+>
+> $$\text{pitch\_score}_{\text{norm}} := \frac{\sum_{st} w(st) \cdot \text{buy\_in}(st)}{\sum_{st} w(st)}$$
 
 ---
 
