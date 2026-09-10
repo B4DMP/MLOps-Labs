@@ -17,7 +17,7 @@ from mlops_serious_game.application.online_intel_service.chains import (
 from mlops_serious_game.application.online_intel_service.state import OnlineIntelState
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
+from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
@@ -126,6 +126,7 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
                 intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
+                source=IntelSource.INTERVIEW,
             )
             if ws:
                 await store_intel_item(curr_challenge, ws, intel_item)

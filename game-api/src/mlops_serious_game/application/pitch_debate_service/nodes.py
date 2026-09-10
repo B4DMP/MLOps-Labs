@@ -533,7 +533,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 rev_id = rev_item.get("id")
                 for i, item in enumerate(updated_intel_items):
                     if getattr(item, "id", None) == rev_id:
-                        from mlops_serious_game.domain.requirement import ConfidenceType, StakeholderIntelItem
+                        from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, StakeholderIntelItem
                         from mlops_serious_game.domain.requirement_factory import RequirementFactory
                         req = RequirementFactory.get_requirement(rev_id)
                         if req:
@@ -542,6 +542,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                                 intel_type=ConfidenceType.VERIFIED,
                                 categorized_type=req.type,
                                 description=req.description,
+                                source=IntelSource.DEBATE,
                             )
                         break
 

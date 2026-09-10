@@ -15,7 +15,7 @@ from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.requirement import StakeholderIntelItem
+from mlops_serious_game.domain.requirement import IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
@@ -182,6 +182,13 @@ def get_discovered_intel_items(
                         # take it from the config rather than the stored copy. That copy
                         # holds whichever names were rendered when the row was written.
                         description=req.description,
+                        # Provenance is the player's, not the config's: it says how they came
+                        # by the item, so it has to survive this rebuild.
+                        source=data.get("source") or (
+                            IntelSource.PUBLIC_RECORD
+                            if data.get("is_public_record")
+                            else IntelSource.OFFLINE_ARTIFACT
+                        ),
                     )
                     intel_items.append(item)
 

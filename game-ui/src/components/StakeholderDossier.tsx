@@ -16,8 +16,10 @@ export interface IntelEntry {
   categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
   description: string;
   is_correct?: boolean;
-  /** Verified because it was already public at the start of the challenge, not because the player confirmed it. */
-  is_public_record?: boolean;
+  /** Where the item came from: "public_record", "offline_artifact", "interview" or "debate". */
+  source?: string;
+  /** For offline artifacts: which kind of document the player read it off. */
+  artifact_type?: string;
 }
 
 export interface StakeholderDossierEntry {
@@ -78,6 +80,51 @@ const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: s
   requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
   negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
   personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
+};
+
+/** Document wording for the "your read of their ..." caption. */
+const ARTIFACT_TYPE_LABEL: Record<string, string> = {
+  email: "email",
+  slack_message: "Slack message",
+  meeting_notes: "meeting notes",
+  document: "document",
+};
+
+/**
+ * Where a note came from. The stamp already says how sure the player can be; this says how it
+ * got here, which the stamp cannot: two confirmed notes can have arrived by very different
+ * routes. Player language, one line, no system words.
+ */
+const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title: string } | null => {
+  switch ((item.source || "").toLowerCase()) {
+    case "public_record":
+      return {
+        icon: "ph:megaphone-bold",
+        text: "Said openly in the team channel",
+        title: "They said this in a channel the whole team reads, before you started digging.",
+      };
+    case "interview":
+      return {
+        icon: "ph:chats-circle-bold",
+        text: "They told you this directly",
+        title: "You got this straight from them while gathering intel.",
+      };
+    case "debate":
+      return {
+        icon: "ph:microphone-stage-bold",
+        text: "Came out during the pitch",
+        title: "This surfaced when they pushed back on your proposal.",
+      };
+    case "offline_artifact":
+    default: {
+      const label = ARTIFACT_TYPE_LABEL[(item.artifact_type || "").toLowerCase()];
+      return {
+        icon: "ph:file-text-bold",
+        text: label ? `Your read of their ${label}` : "Your read of a document",
+        title: "Your own reading of a document you found. Nobody has confirmed it yet.",
+      };
+    }
+  }
 };
 
 const getEmotionIcon = (emotionStr: string): string => {
@@ -985,10 +1032,12 @@ export default function StakeholderDossier({
               const hasSubjectLead = Boolean(st.name) && noteDescription.startsWith(st.name);
               const noteSubject = hasSubjectLead ? st.name : "";
               const noteReading = hasSubjectLead ? noteDescription.slice(st.name.length) : noteDescription;
+              const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
+              const sourceCaption = getSourceCaption(item);
               // Paper colour matches the stamp: orange still open, blue public, green earned.
               const noteStatusClass = isUnconfirmed
                 ? ""
-                : item.is_public_record
+                : isPublicRecord
                   ? styles.noteOnRecord
                   : styles.noteConfirmed;
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
@@ -1044,7 +1093,7 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
-                      {renderRubberStamp(item.intel_type, item.is_public_record)}
+                      {renderRubberStamp(item.intel_type, isPublicRecord)}
                     </div>
                   </div>
 
@@ -1082,6 +1131,12 @@ export default function StakeholderDossier({
                       )}
                       "
                     </div>
+                    {sourceCaption && (
+                      <div className={styles.intelSourceCaption} title={sourceCaption.title}>
+                        <Icon icon={sourceCaption.icon} className={styles.intelSourceIcon} />
+                        <span>{sourceCaption.text}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

@@ -5,6 +5,7 @@ from mlops_serious_game.domain.requirement import (
     StakeholderIntelItemArtifact,
     ArtifactType,
     ConfidenceType,
+    IntelSource,
     RequirementType,
     StakeholderIntelItem,
     StakeholderRequirement,
@@ -332,7 +333,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     intel_type=ConfidenceType.VERIFIED,
                     categorized_type=req.type,
                     description=req.description,
-                    is_public_record=True,
+                    source=IntelSource.PUBLIC_RECORD,
                 )
                 new_record = IntelItem(
                     user_name=username,
@@ -346,14 +347,16 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
                         data = dict(r.intel_item_data)
                         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
-                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description or not data.get("is_public_record"):
+                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description or data.get("source") != IntelSource.PUBLIC_RECORD.value:
                             data["intel_type"] = ConfidenceType.VERIFIED.value
                             data["categorized_type"] = cat_type_str
                             data["description"] = req.description
                             data["categorized_description"] = req.description
-                            # Items persisted before the two-stamp split carry no provenance flag;
-                            # anything the known-intel loader touches is on the public record.
-                            data["is_public_record"] = True
+                            # Items persisted before provenance was tracked say nothing about
+                            # where they came from; anything the known-intel loader touches was
+                            # said openly before the player started digging.
+                            data.pop("is_public_record", None)
+                            data["source"] = IntelSource.PUBLIC_RECORD.value
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -615,6 +618,7 @@ async def handle_intel_verification(
             intel_type=ConfidenceType.VERIFIED,
             categorized_type=req.type,
             description=req.description,
+            source=IntelSource.INTERVIEW,
         )
     else:
         req = RequirementFactory.get_requirement(target_item.id)
@@ -633,6 +637,9 @@ async def handle_intel_verification(
 
     # Perform verification & correction
     target_item.intel_type = ConfidenceType.VERIFIED
+    # Public-record items never reach this phase unverified, so nothing to overwrite there.
+    if target_item.source != IntelSource.PUBLIC_RECORD:
+        target_item.source = IntelSource.INTERVIEW
     if req:
         target_item.categorized_type = req.type
         target_item.description = req.description
@@ -680,6 +687,9 @@ def correct_and_verify_intel_item(
             data["categorized_type"] = cat_type_str
             data["description"] = req.description
             data["categorized_description"] = req.description
+            if data.get("source") != IntelSource.PUBLIC_RECORD.value:
+                data.pop("is_public_record", None)
+                data["source"] = IntelSource.DEBATE.value
             target_record.intel_item_data = data
             flag_modified(target_record, "intel_item_data")
             session.commit()
@@ -690,6 +700,7 @@ def correct_and_verify_intel_item(
                 intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
+                source=IntelSource.DEBATE,
             )
             new_record = IntelItem(
                 user_name=username,
@@ -703,19 +714,35 @@ def correct_and_verify_intel_item(
 correct_and_infer_intel_item = correct_and_verify_intel_item
 
 
-def _is_public_record(item: StakeholderIntelItem) -> bool:
-    """True when the item was already public at challenge start rather than confirmed by the player.
+def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
+    """Where the item came from, repaired for saves written before provenance was tracked.
 
-    The persisted flag only exists on items written since the two-stamp split, and the known-intel
-    loader repairs items for the *current* challenge only, so saves in progress would keep showing
-    the wrong stamp on earlier challenges. Fall back to the artifact config, which is the source of
-    truth: an `is_known` artifact never reaches the player's tagging deck, so it can only be public
+    The persisted value only exists on items written since, and the known-intel loader repairs
+    items for the *current* challenge only, so saves in progress would keep showing the wrong
+    story on earlier challenges. Fall back to the artifact config, which is the source of truth:
+    an `is_known` artifact never reaches the player's tagging deck, so it can only be public
     record.
     """
-    if getattr(item, "is_public_record", False):
-        return True
+    source = getattr(item, "source", None)
+    if source == IntelSource.PUBLIC_RECORD:
+        return source
     artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
-    return bool(artifact and artifact.is_known)
+    if artifact and artifact.is_known:
+        return IntelSource.PUBLIC_RECORD
+    return source or IntelSource.OFFLINE_ARTIFACT
+
+
+def _artifact_type_for(item: StakeholderIntelItem) -> str:
+    """The kind of document the player read this off, for the note's caption.
+
+    Empty when the requirement has no artifact in the config: the caption falls back to a
+    generic line rather than naming a document that does not exist.
+    """
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+    if not artifact:
+        return ""
+    art_type = artifact.artifact_type
+    return art_type.value if hasattr(art_type, "value") else str(art_type)
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
@@ -739,7 +766,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "categorized_type": cat_type_val,
                 "description": display_desc,
                 "is_correct": item.is_correct_intel(),
-                "is_public_record": _is_public_record(item),
+                "source": _resolve_source(item).value,
+                "artifact_type": _artifact_type_for(item),
             })
 
 

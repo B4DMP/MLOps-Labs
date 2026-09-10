@@ -1097,6 +1097,29 @@
   font-style: italic;
 }
 
+/* Where the note came from, pencilled under the quote: quieter than the text it explains,
+   separated by a hairline so it never reads as part of what the stakeholder said. */
+.intelSourceCaption {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  padding-top: 3px;
+  border-top: 1px dashed rgba(28, 25, 23, 0.18);
+  font-size: 0.58rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.1px;
+  color: rgba(28, 25, 23, 0.55);
+  line-height: 1.2;
+}
+
+.intelSourceIcon {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  opacity: 0.75;
+}
+
 /* Distressed Ink Rubber Stamps for Confidence Levels */
 .stampContainer {
   display: flex;

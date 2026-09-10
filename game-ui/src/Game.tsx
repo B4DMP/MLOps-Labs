@@ -511,6 +511,9 @@ function App({ username: _username }: AppProps) {
                     intel_type: matchingRev.intel_type || "verified",
                     categorized_type: matchingRev.categorized_type || item.categorized_type,
                     is_correct: matchingRev.is_corrected !== undefined ? matchingRev.is_corrected : true,
+                    // The stakeholder just said it out loud, so the note's caption has to move
+                    // with the stamp instead of still crediting the document it came from.
+                    source: "debate",
                   };
                 }
                 return item;
@@ -996,6 +999,7 @@ function App({ username: _username }: AppProps) {
                               intel_type: matchingUpdated.intel_type,
                               categorized_type: matchingUpdated.categorized_type,
                               description: matchingUpdated.description,
+                              source: (matchingUpdated as any).source || item.source,
                             };
                           }
                           return item;
