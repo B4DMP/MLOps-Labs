@@ -1,29 +1,39 @@
 from pathlib import Path
 import json
 from typing import List
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.requirement import StakeholderRequirement
 from mlops_serious_game.domain.Challenge import Challenge
 
 class RequirementFactory:
     requirements: List[StakeholderRequirement] = []
 
+    @staticmethod
+    def _personalized(req: StakeholderRequirement) -> StakeholderRequirement:
+        """Renders the stored name tokens for the player currently being served."""
+        return req.model_copy(update={"description": personalize(req.description)})
+
     @classmethod
     def get_requirements(cls) -> List[StakeholderRequirement]:
-        return cls.requirements
+        return [cls._personalized(r) for r in cls.requirements]
     @classmethod
     def get_requirement(cls, id:str)->StakeholderRequirement:
         for req in cls.requirements:
             if req.id==id:
-                return req
+                return cls._personalized(req)
         return None
 
     @classmethod
     def get_requirements_for_challenge(cls, challenge_id: int) -> List[StakeholderRequirement]:
-        return [r for r in cls.requirements if r.challenge_id == challenge_id]
+        return [cls._personalized(r) for r in cls.requirements if r.challenge_id == challenge_id]
 
     @classmethod
     def get_requirements_for_stakeholder_in_challenge(cls, challenge_id: int, stakeholder_id: str) -> List[StakeholderRequirement]:
-        return [r for r in cls.requirements if r.challenge_id == challenge_id and r.stakeholder_id == stakeholder_id]
+        return [
+            cls._personalized(r)
+            for r in cls.requirements
+            if r.challenge_id == challenge_id and r.stakeholder_id == stakeholder_id
+        ]
 
     @classmethod
     def load_requirements(cls, requirements_config: Path) -> None:

@@ -3,6 +3,7 @@ from fastapi import WebSocket
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
@@ -433,7 +434,10 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
                     "categorized_type": cat_type,
                 })
 
-    challenge_context = f"{curr_challenge.name}: {curr_challenge.roundIntroduction} {curr_challenge.description}"
+    challenge_context = (
+        f"{curr_challenge.name}: {curr_challenge.roundIntroduction} "
+        f"{personalize(curr_challenge.description, resolve_markers=True)}"
+    )
 
     try:
         action_card = await generate_action_card(

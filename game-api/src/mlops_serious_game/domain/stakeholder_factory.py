@@ -1,10 +1,14 @@
 from pathlib import Path
 import json
+import random
+from typing import Optional
 
 from mlops_serious_game.domain.exceptions import (
     StakeholderNameNotFound,
 )
 
+from mlops_serious_game.domain.persona import Persona
+from mlops_serious_game.domain.persona_resolver import PersonaMap, current_personas
 from mlops_serious_game.domain.stakeholder import Stakeholder
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
@@ -34,10 +38,62 @@ class StakeholderFactory:
 
     @classmethod
     def get_stakeholder(cls, id: str) -> Stakeholder:
+        personas = current_personas()
         for st in cls.stakeholders:
-            if st.id == id or st.name == id:
-                return st
+            if cls._matches(st, id, personas):
+                return st.with_persona((personas or {}).get(st.id), personas)
         raise StakeholderNameNotFound(id)
+
+    @classmethod
+    def get_all_stakeholders(cls) -> list[Stakeholder]:
+        """Every stakeholder, wearing the current player's personas."""
+        personas = current_personas()
+        return [st.with_persona((personas or {}).get(st.id), personas) for st in cls.stakeholders]
+
+    @staticmethod
+    def _matches(st: Stakeholder, id: str, personas: Optional[PersonaMap]) -> bool:
+        """Resolves an id, the canonical name, or the name the player is seeing.
+
+        The last case matters because a language model only ever hears the
+        personalized name and will hand it back that way.
+        """
+        if st.id == id or st.name == id:
+            return True
+        persona = (personas or {}).get(st.id)
+        return bool(persona and persona.name == id)
+
+    @classmethod
+    def choose_personas(cls, player: str, existing: Optional[dict] = None) -> dict[str, str]:
+        """Deals one persona key per stakeholder for `player`.
+
+        Seeded per stakeholder so that the draw is reproducible if a session
+        record is ever lost, and so that adding a stakeholder later back-fills
+        that one alone instead of recasting the whole team mid-game. Keys that
+        are no longer in the config are re-drawn.
+        """
+        chosen = dict(existing or {})
+        for st in cls.stakeholders:
+            if not st.personas:
+                chosen.pop(st.id, None)
+                continue
+            available = {p.key for p in st.personas}
+            if chosen.get(st.id) in available:
+                continue
+            rng = random.Random(f"{player}:{st.id}")
+            chosen[st.id] = rng.choice(sorted(available))
+        return chosen
+
+    @classmethod
+    def resolve_personas(cls, chosen: Optional[dict]) -> PersonaMap:
+        """Turns a stored {stakeholder_id: persona_key} map into Persona objects."""
+        resolved: PersonaMap = {}
+        for st in cls.stakeholders:
+            key = (chosen or {}).get(st.id)
+            for persona in st.personas:
+                if persona.key == key:
+                    resolved[st.id] = persona
+                    break
+        return resolved
 
     @classmethod
     def register_stakeholder(cls, stakeholder: Stakeholder) -> None:
@@ -73,6 +129,14 @@ class StakeholderFactory:
                 introduction=to_str(j.get("introduction", "")),
                 metric_id=j.get("metric_id", ""),
                 convincer_archetype=str(j.get("convincer_archetype", "")),
-                avatar=j.get("avatar", {})
+                avatar=j.get("avatar", {}),
+                personas=[
+                    Persona(
+                        key=str(p["key"]),
+                        name=str(p["name"]),
+                        avatar=p.get("avatar", {}),
+                    )
+                    for p in j.get("personas", [])
+                ],
             )
             cls.stakeholders.append(st)

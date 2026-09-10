@@ -3,11 +3,38 @@ import json
 from typing import List, Dict, Optional
 
 from mlops_serious_game.domain.offline_intel_artifact import OfflineIntelArtifact
+from mlops_serious_game.domain.persona_resolver import personalize, personalize_mapping
 from mlops_serious_game.domain.requirement import ArtifactType
 
 
 class OfflineIntelArtifactFactory:
     artifacts_by_requirement: Dict[str, OfflineIntelArtifact] = {}
+
+    @staticmethod
+    def _personalized(artifact: OfflineIntelArtifact) -> OfflineIntelArtifact:
+        """Renders name tokens and fills the stakeholder fields from the config.
+
+        Name and role are not stored on the artifact any more: they are the
+        stakeholder's, they change with the persona the player drew, and having
+        two copies of them meant they could drift apart.
+        """
+        from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+
+        try:
+            stakeholder = StakeholderFactory.get_stakeholder(artifact.stakeholder_id)
+        except Exception:
+            stakeholder = None
+
+        return artifact.model_copy(
+            update={
+                "content": personalize(artifact.content),
+                "wrong_descriptions": personalize_mapping(artifact.wrong_descriptions),
+                "stakeholder_name": stakeholder.name if stakeholder else artifact.stakeholder_name,
+                "stakeholder_role": (
+                    stakeholder.role_description if stakeholder else artifact.stakeholder_role
+                ),
+            }
+        )
 
     @classmethod
     def load_artifacts(cls, artifacts_config: Path) -> None:
@@ -50,17 +77,23 @@ class OfflineIntelArtifactFactory:
     @classmethod
     def get_artifact_for_requirement(cls, requirement_id: str) -> Optional[OfflineIntelArtifact]:
         """Gets the pre-generated offline intel artifact for a specific requirement ID."""
-        return cls.artifacts_by_requirement.get(requirement_id)
+        artifact = cls.artifacts_by_requirement.get(requirement_id)
+        return cls._personalized(artifact) if artifact else None
 
     @classmethod
     def get_artifacts_for_challenge(cls, challenge_id: int) -> List[OfflineIntelArtifact]:
         """Gets all offline intel artifacts belonging to a specific challenge ID."""
-        return [art for art in cls.artifacts_by_requirement.values() if art.challenge_id == challenge_id]
+        return [
+            cls._personalized(art)
+            for art in cls.artifacts_by_requirement.values()
+            if art.challenge_id == challenge_id
+        ]
 
     @classmethod
     def get_wrong_description(cls, requirement_id: str, categorized_type: str) -> Optional[str]:
         """Gets the wrong description for a given requirement ID and miscategorized type."""
         artifact = cls.artifacts_by_requirement.get(requirement_id)
         if artifact and artifact.wrong_descriptions:
-            return artifact.wrong_descriptions.get(categorized_type)
+            wrong = artifact.wrong_descriptions.get(categorized_type)
+            return personalize(wrong) if wrong else None
         return None

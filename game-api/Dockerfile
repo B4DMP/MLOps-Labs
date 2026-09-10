@@ -14,6 +14,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy application source files.
 COPY src/mlops_serious_game mlops_serious_game/
 COPY tools tools/
+# Needed at startup: the API applies pending revisions itself.
+COPY alembic.ini ./
+COPY alembic alembic/
 COPY --from=gameconfig . /gameConfig
 
 # Install current package without reinstalling dependencies.

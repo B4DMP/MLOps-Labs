@@ -525,18 +525,32 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
             </div>
             <span className="badge bg-info text-dark fw-semibold">
               {currentData.stakeholders.length} Stakeholders
+              {" • "}
+              {currentData.stakeholders.reduce(
+                (total: number, st: any) => total + Math.max(1, st.personas?.length || 0),
+                0
+              )}{" "}
+              personas
             </span>
           </div>
 
           <div className="card-body p-3" style={{ backgroundColor: "#0f172a" }}>
             <div className="row g-3">
-              {currentData.stakeholders.map((st: any, idx: number) => {
-                const av = st.avatar || {};
-                const stName = st.name || `Stakeholder ${idx + 1}`;
+              {currentData.stakeholders.flatMap((st: any, idx: number) => {
+                // One card per persona: a stakeholder's look now lives on the
+                // persona a player is dealt, layered over the role-level base.
+                const personas =
+                  st.personas && st.personas.length
+                    ? st.personas
+                    : [{ key: "base", name: st.name, avatar: {} }];
+
+                return personas.map((persona: any) => {
+                const av = { ...(st.avatar || {}), ...(persona.avatar || {}) };
+                const stName = persona.name || st.name || `Stakeholder ${idx + 1}`;
                 const metricId = st.metric_id || "";
 
                 return (
-                  <div key={st.id || idx} className="col-12 col-md-6 col-lg-4">
+                  <div key={`${st.id || idx}-${persona.key}`} className="col-12 col-md-6 col-lg-4">
                     <div
                       className="p-3 rounded border border-secondary d-flex gap-3 align-items-center position-relative transition-all h-100 shadow-sm"
                       style={{
@@ -627,6 +641,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                     </div>
                   </div>
                 );
+                });
               })}
             </div>
           </div>

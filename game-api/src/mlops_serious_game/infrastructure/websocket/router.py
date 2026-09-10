@@ -5,6 +5,8 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
+from mlops_serious_game.application.persona_service import personas_or_default
+from mlops_serious_game.domain.persona_resolver import bind_personas, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
 from .handlers.chat_handler import handle_chat_message
@@ -57,6 +59,11 @@ async def unified_websocket_endpoint(
     last_gamestate_id = (0,0,0)
     emotion_values_dict={}
 
+    # Bind this player's persona draw for the life of the connection. Every
+    # handler, and every task they spawn, inherits it, so config prose and
+    # avatars come out personalized without threading the player around.
+    bind_personas(personas_or_default(username))
+
     try:
         while True:
             try:
@@ -85,7 +92,10 @@ async def unified_websocket_endpoint(
                         if curr_challenge:
                             payload["challenge"] = payload.get(
                                 "challenge",
-                                curr_challenge.name + ": " + curr_challenge.roundIntroduction + curr_challenge.description
+                                curr_challenge.name
+                                + ": "
+                                + curr_challenge.roundIntroduction
+                                + personalize(curr_challenge.description, resolve_markers=True),
                             )
                             if "phase_id" not in payload:
                                 payload["phase_id"] = curr_challenge.phase_id

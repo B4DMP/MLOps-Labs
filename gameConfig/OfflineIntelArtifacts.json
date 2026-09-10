@@ -5,13 +5,11 @@
       "requirement_id": "req_0_model_monica_requirement_1",
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
-      "stakeholder_name": "Model Monica",
-      "stakeholder_role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
       "artifact_type": "slack_message",
       "content": "I strongly believe that we need to implement a complex deep learning model to maximize predictive accuracy. The additional complexity is justified by the significant improvements in performance we've seen in preliminary testing. While a simpler model might be easier to deploy, it wouldn't provide the same level of precision. We should prioritize accuracy, as it will ultimately lead to better decision-making and business outcomes. Let's focus on optimizing the model architecture and ensure we have the necessary computational resources to support it.",
       "wrong_descriptions": {
-        "negotiable_preference": "Model Monica prefers to use complex deep learning models as a matter of personal workflow choice, even though simpler models might be more efficient.",
-        "personal_friction": "Model Monica insists on using the complex ML model simply because she personally dislikes Efficiency Emilia and wants to see her fail."
+        "negotiable_preference": "{model_monica} prefers to use complex deep learning models as a matter of personal workflow choice, even though simpler models might be more efficient.",
+        "personal_friction": "{model_monica} insists on using the complex ML model simply because she personally dislikes {efficiency_emilia} and wants to see her fail."
       },
       "is_known": true
     },
@@ -20,13 +18,11 @@
       "requirement_id": "req_0_model_monica_personal_friction_3",
       "challenge_id": 0,
       "stakeholder_id": "model_monica",
-      "stakeholder_name": "Model Monica",
-      "stakeholder_role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
       "artifact_type": "slack_message",
       "content": "I've spent months optimizing this model, and now you're telling me to just throw all that work away for some arbitrary cloud budget constraints? It's not about business value; it's about doing the best work we can. Simplifying just because it's easier isn't the answer. We need to push the boundaries, not play it safe.",
       "wrong_descriptions": {
-        "requirement": "Model Monica insists on using high-complexity models to ensure her department meets quarterly innovation targets.",
-        "negotiable_preference": "Model Monica prefers using complex models over simpler ones because she finds the greater challenge more enjoyable."
+        "requirement": "{model_monica} insists on using high-complexity models to ensure her department meets quarterly innovation targets.",
+        "negotiable_preference": "{model_monica} prefers using complex models over simpler ones because she finds the greater challenge more enjoyable."
       },
       "is_known": false
     },
@@ -35,13 +31,11 @@
       "requirement_id": "req_0_efficiency_emilia_hard_constraint_4",
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "email",
       "content": "I appreciate the focus on accuracy, but we need to prioritize user experience. The model's latency must stay under 50ms; anything longer risks degrading the user interface. A simpler model could achieve this while delivering more business value. Let's discuss how we can balance these priorities effectively.",
       "wrong_descriptions": {
-        "negotiable_preference": "Efficiency Emilia prefers to use a lightweight spreadsheet for initial data analysis instead of complex modeling tools.",
-        "personal_friction": "Efficiency Emilia mandates that model inference latency must remain under 50ms purely to undermine the executive authority of #Model Monica#."
+        "negotiable_preference": "{efficiency_emilia} prefers to use a lightweight spreadsheet for initial data analysis instead of complex modeling tools.",
+        "personal_friction": "{efficiency_emilia} mandates that model inference latency must remain under 50ms purely to undermine the executive authority of #model_monica#."
       },
       "is_known": false
     },
@@ -50,13 +44,11 @@
       "requirement_id": "req_0_efficiency_emilia_negotiable_preference_6",
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "email",
-      "content": "Hey Team,\n\nI've been looking at the model Monica proposed and while it's impressive, I think we might be overcomplicating things. A simpler model could achieve similar accuracy with much lower operational costs. This would free up resources for other business initiatives. Let's consider the trade-offs before committing to a complex solution.\n\nThanks,\nEfficiency Emilia",
+      "content": "Hey Team,\n\nI've been looking at the model {model_monica.first} proposed and while it's impressive, I think we might be overcomplicating things. A simpler model could achieve similar accuracy with much lower operational costs. This would free up resources for other business initiatives. Let's consider the trade-offs before committing to a complex solution.\n\nThanks,\nEfficiency {efficiency_emilia.first}",
       "wrong_descriptions": {
-        "requirement": "Efficiency Emilia insists on using a massive spreadsheet because she is uncomfortable with new software tools and prefers her old workflows.",
-        "personal_friction": "Efficiency Emilia insists on a simpler model out of sheer spite for Monica's complex design."
+        "requirement": "{efficiency_emilia} insists on using a massive spreadsheet because she is uncomfortable with new software tools and prefers her old workflows.",
+        "personal_friction": "{efficiency_emilia} insists on a simpler model out of sheer spite for {model_monica.first}'s complex design."
       },
       "is_known": true
     },
@@ -65,13 +57,11 @@
       "requirement_id": "req_1_efficiency_emilia_requirement_9",
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "slack_message",
       "content": "I think we should consider using a cloud-based 3rd-party managed MLOps platform. It would significantly reduce our development overhead and let us focus on our core ML tasks. Sure, it might not fit every single requirement perfectly, but it covers all the critical needs. Plus, it’s quicker to deploy and maintain. Custom development would take too much time and effort.",
       "wrong_descriptions": {
-        "negotiable_preference": "Efficiency Emilia prefers a cloud-based 3rd-party managed MLOps platform because she likes the user interface better than building a custom solution.",
-        "personal_friction": "Efficiency Emilia insists on using a cloud-based 3rd-party managed MLOps platform solely to spite Requirements Reuben and his prior failed attempts at custom development."
+        "negotiable_preference": "{efficiency_emilia} prefers a cloud-based 3rd-party managed MLOps platform because she likes the user interface better than building a custom solution.",
+        "personal_friction": "{efficiency_emilia} insists on using a cloud-based 3rd-party managed MLOps platform solely to spite {requirements_reuben} and his prior failed attempts at custom development."
       },
       "is_known": true
     },
@@ -80,13 +70,11 @@
       "requirement_id": "req_1_efficiency_emilia_negotiable_preference_10",
       "challenge_id": 1,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "meeting_notes",
       "content": "I think we should seriously consider a cloud-based MLOps platform. It would save us a lot of development time. Plus, I really like that they offer integrated visual analytics dashboards. That's a feature we might struggle to build ourselves.\n\nI've seen some platforms like `DataRobot` or `H2O.ai` that have these dashboards. They make it so easy to track model performance and other metrics. I think it's a huge advantage for our team.",
       "wrong_descriptions": {
-        "requirement": "Efficiency Emilia demands that the platform must use Linux-based container orchestration to ensure compliance with her preferred workflows.",
-        "personal_friction": "Efficiency Emilia refuses to consider cloud platforms because she had a bad experience with a similar service years ago."
+        "requirement": "{efficiency_emilia} demands that the platform must use Linux-based container orchestration to ensure compliance with her preferred workflows.",
+        "personal_friction": "{efficiency_emilia} refuses to consider cloud platforms because she had a bad experience with a similar service years ago."
       },
       "is_known": false
     },
@@ -95,13 +83,11 @@
       "requirement_id": "req_1_requirements_reuben_requirement_13",
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
-      "stakeholder_name": "Requirements Reuben",
-      "stakeholder_role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
       "artifact_type": "document",
       "content": "Using a third-party managed MLOps platform may introduce hidden costs and limitations that could jeopardize our project's success. We need a solution that is tailored to our specific requirements. Developing a custom platform ensures that we have full control over the features and functionalities that are critical to our workflow. While it may require more initial effort, the long-term benefits of a tailored solution outweigh the short-term convenience of an off-the-shelf platform. We should prioritize building something that perfectly fits our needs rather than trying to adapt a generic solution.",
       "wrong_descriptions": {
-        "negotiable_preference": "Requirements Reuben prefers a custom platform because it fits better with his personal workflow.",
-        "personal_friction": "Requirements Reuben refuses to use a managed MLOps platform because he has a personal vendetta against cloud service providers."
+        "negotiable_preference": "{requirements_reuben} prefers a custom platform because it fits better with his personal workflow.",
+        "personal_friction": "{requirements_reuben} refuses to use a managed MLOps platform because he has a personal vendetta against cloud service providers."
       },
       "is_known": true
     },
@@ -110,13 +96,11 @@
       "requirement_id": "req_1_requirements_reuben_personal_friction_15",
       "challenge_id": 1,
       "stakeholder_id": "requirements_reuben",
-      "stakeholder_name": "Requirements Reuben",
-      "stakeholder_role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
       "artifact_type": "document",
       "content": "Using a third-party MLOps platform introduces significant legal and compliance risks. We're not just talking about a misaligned requirement here; this is about potential liabilities that could come back to haunt us. I've seen projects where a SaaS provider's sudden policy change or even shutdown left teams scrambling to recover lost data. Plus, with sensitive data involved, we can't afford to take chances on a platform that might not prioritize our compliance needs. It's not just about efficiency; it's about control and peace of mind.",
       "wrong_descriptions": {
-        "requirement": "Requirements Reuben insists on a custom platform because they believe it will use fewer CPU cycles during model deployment.",
-        "negotiable_preference": "Requirements Reuben personally prefers to develop a custom MLOps platform to keep his team's workflow consistent."
+        "requirement": "{requirements_reuben} insists on a custom platform because they believe it will use fewer CPU cycles during model deployment.",
+        "negotiable_preference": "{requirements_reuben} personally prefers to develop a custom MLOps platform to keep his team's workflow consistent."
       },
       "is_known": false
     },
@@ -125,13 +109,11 @@
       "requirement_id": "req_2_data_dave_hard_constraint_24",
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
-      "stakeholder_name": "Data Dave",
-      "stakeholder_role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
       "artifact_type": "meeting_notes",
       "content": "We need to ensure model stability by using versioned copies of input signals. Each model version should rely on a fixed snapshot of its inputs to avoid unpredictable performance degradation. This approach allows us to track changes and maintain consistency over time. However, we must also consider the trade-off with stale data. If models aren't frequently retrained with new signal snapshots, performance could degrade. We should find a balance between stability and freshness.",
       "wrong_descriptions": {
-        "negotiable_preference": "Data Dave prefers using versioned signal snapshots because he finds them more convenient for his personal workflow, even though they might become outdated.",
-        "personal_friction": "Data Dave insists on creating versioned input signal snapshots because he enjoys undermining Reliability Ruth's efforts to keep models updated with fresh data."
+        "negotiable_preference": "{data_dave} prefers using versioned signal snapshots because he finds them more convenient for his personal workflow, even though they might become outdated.",
+        "personal_friction": "{data_dave} insists on creating versioned input signal snapshots because he enjoys undermining {reliability_ruth}'s efforts to keep models updated with fresh data."
       },
       "is_known": true
     },
@@ -140,13 +122,11 @@
       "requirement_id": "req_2_data_dave_negotiable_preference_26",
       "challenge_id": 2,
       "stakeholder_id": "data_dave",
-      "stakeholder_name": "Data Dave",
-      "stakeholder_role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
       "artifact_type": "meeting_notes",
       "content": "We need to address the issue of input signal changes. Automated detection of upstream schema changes is crucial here. It helps us catch inconsistencies early before they affect model performance. We should integrate this into our workflow. This approach ensures that we're always working with the most relevant data snapshots.",
       "wrong_descriptions": {
-        "requirement": "Data Dave insists on manually auditing every schema change to personally approve or reject them.",
-        "personal_friction": "Data Dave insists on manual schema change detection because he secretly enjoys the extra work it creates for the team."
+        "requirement": "{data_dave} insists on manually auditing every schema change to personally approve or reject them.",
+        "personal_friction": "{data_dave} insists on manual schema change detection because he secretly enjoys the extra work it creates for the team."
       },
       "is_known": false
     },
@@ -155,13 +135,11 @@
       "requirement_id": "req_2_reliability_ruth_hard_constraint_28",
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
-      "stakeholder_name": "Reliability Ruth",
-      "stakeholder_role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
       "artifact_type": "meeting_notes",
       "content": "We need to ensure system reliability isn't compromised by stale data. Data pipeline failures should immediately alert on-call engineers so we can address issues before model performance degrades. This is non-negotiable for maintaining service quality. Let's implement automated alerts for any pipeline disruptions.",
       "wrong_descriptions": {
-        "negotiable_preference": "Reliability Ruth prefers using Slack for issue reporting over email because it integrates better with her personal workflow tools.",
-        "personal_friction": "Reliability Ruth insists on automated alerts for data pipeline failures purely to make Data Dave's life more difficult."
+        "negotiable_preference": "{reliability_ruth} prefers using Slack for issue reporting over email because it integrates better with her personal workflow tools.",
+        "personal_friction": "{reliability_ruth} insists on automated alerts for data pipeline failures purely to make {data_dave}'s life more difficult."
       },
       "is_known": false
     },
@@ -170,13 +148,11 @@
       "requirement_id": "req_2_reliability_ruth_personal_friction_31",
       "challenge_id": 2,
       "stakeholder_id": "reliability_ruth",
-      "stakeholder_name": "Reliability Ruth",
-      "stakeholder_role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
       "artifact_type": "meeting_notes",
       "content": "I understand the need for versioning, but fixed snapshots will become stale. If we don't regularly retrain models with updated signals, performance will degrade over time. This could lead to outdated models in production, which is a serious risk. We need a balance between version control and ensuring models stay current.\n\n* Action item: Schedule regular retraining sessions for models using snapshotted inputs.",
       "wrong_descriptions": {
-        "requirement": "Reliability Ruth requires that models must be retrained daily to comply with the latest software development standards.",
-        "negotiable_preference": "Reliability Ruth prefers using rolling snapshots for input signals because she finds them more intuitive to manage during deployment operations."
+        "requirement": "{reliability_ruth} requires that models must be retrained daily to comply with the latest software development standards.",
+        "negotiable_preference": "{reliability_ruth} prefers using rolling snapshots for input signals because she finds them more intuitive to manage during deployment operations."
       },
       "is_known": true
     },
@@ -185,13 +161,11 @@
       "requirement_id": "req_3_data_dave_requirement_41",
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
-      "stakeholder_name": "Data Dave",
-      "stakeholder_role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
       "artifact_type": "document",
-      "content": "Adding more features will lead to feature entanglement, making it hard to isolate improvements. Any changes in feature weights, distribution, or quantity could have unpredictable effects on the model's performance. To avoid this, I propose using an ensemblement model with multiple component models that have independent signals. This approach will make the model more robust and easier to maintain. However, Monica raised concerns about the increased complexity and potential impact on performance. We need to weigh these trade-offs carefully.",
+      "content": "Adding more features will lead to feature entanglement, making it hard to isolate improvements. Any changes in feature weights, distribution, or quantity could have unpredictable effects on the model's performance. To avoid this, I propose using an ensemblement model with multiple component models that have independent signals. This approach will make the model more robust and easier to maintain. However, {model_monica.first} raised concerns about the increased complexity and potential impact on performance. We need to weigh these trade-offs carefully.",
       "wrong_descriptions": {
-        "negotiable_preference": "Data Dave prefers to use ensemble models because he finds them easier to debug and maintain, despite their potential complexity.",
-        "personal_friction": "Data Dave insists on using an ensemble model because he has a personal vendetta against simple feature engineering."
+        "negotiable_preference": "{data_dave} prefers to use ensemble models because he finds them easier to debug and maintain, despite their potential complexity.",
+        "personal_friction": "{data_dave} insists on using an ensemble model because he has a personal vendetta against simple feature engineering."
       },
       "is_known": true
     },
@@ -200,13 +174,11 @@
       "requirement_id": "req_3_data_dave_negotiable_preference_42",
       "challenge_id": 3,
       "stakeholder_id": "data_dave",
-      "stakeholder_name": "Data Dave",
-      "stakeholder_role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
       "artifact_type": "email",
       "content": "Hey team, I’ve been thinking about the feature entanglement issue. An ensemblement model might seem complex but it’s the best way to keep our signals independent. Plus, I think integrating a feature store with automated schema updates will make our lives easier in the long run. It’s worth the extra setup to avoid future headaches. Let me know your thoughts.",
       "wrong_descriptions": {
-        "requirement": "Data Dave insists on using only open-source feature store solutions to avoid vendor lock-in and reduce licensing costs.",
-        "personal_friction": "Data Dave insists on using feature store integrations with automated schema updates simply to make Model Monica's job more difficult."
+        "requirement": "{data_dave} insists on using only open-source feature store solutions to avoid vendor lock-in and reduce licensing costs.",
+        "personal_friction": "{data_dave} insists on using feature store integrations with automated schema updates simply to make {model_monica}'s job more difficult."
       },
       "is_known": false
     },
@@ -215,13 +187,11 @@
       "requirement_id": "req_3_model_monica_requirement_45",
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
-      "stakeholder_name": "Model Monica",
-      "stakeholder_role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
       "artifact_type": "document",
       "content": "While I understand the appeal of an ensemblement model, we must ensure that each component model is trained on independent features. Feature entanglement is a real risk. This approach will not only maintain model performance but also make it easier to isolate improvements. Let's prioritize this to avoid any unforeseen complexities.",
       "wrong_descriptions": {
-        "negotiable_preference": "Model Monica prefers using simpler models as she finds ensemble methods overly complex and troublesome for her workflow.",
-        "personal_friction": "Model Monica insists on using an ensemblement model simply to prove Data Dave wrong about feature entanglement."
+        "negotiable_preference": "{model_monica} prefers using simpler models as she finds ensemble methods overly complex and troublesome for her workflow.",
+        "personal_friction": "{model_monica} insists on using an ensemblement model simply to prove {data_dave} wrong about feature entanglement."
       },
       "is_known": false
     },
@@ -230,13 +200,11 @@
       "requirement_id": "req_3_model_monica_personal_friction_47",
       "challenge_id": 3,
       "stakeholder_id": "model_monica",
-      "stakeholder_name": "Model Monica",
-      "stakeholder_role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
       "artifact_type": "slack_message",
       "content": "I understand the appeal of ensemble models, but we need to consider the trade-offs. Adding more complexity can make debugging a nightmare. Plus, there's no guarantee that performance will improve. We need to be careful not to overcomplicate things.",
       "wrong_descriptions": {
-        "requirement": "Model Monica insists on using simpler models to reduce budget allocations and align with quarterly financial targets.",
-        "negotiable_preference": "Model Monica prefers simpler models because she finds ensemble methods tedious to implement and debug."
+        "requirement": "{model_monica} insists on using simpler models to reduce budget allocations and align with quarterly financial targets.",
+        "negotiable_preference": "{model_monica} prefers simpler models because she finds ensemble methods tedious to implement and debug."
       },
       "is_known": true
     },
@@ -245,13 +213,11 @@
       "requirement_id": "req_4_automation_alex_hard_constraint_56",
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
-      "stakeholder_name": "Automation Alex",
-      "stakeholder_role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
       "artifact_type": "document",
       "content": "To meet our CI/CD goals, we need a fully automated deployment and validation pipeline. This ensures rapid and reliable updates without manual intervention. Automated testing scripts can validate functionality and performance, making the process efficient and scalable. While it's important to consider responsible AI practices, automated validation can still catch major issues and maintain consistency across deployments. We should prioritize speed and reliability in our pipeline while exploring ways to integrate fairness checks in subsequent stages.",
       "wrong_descriptions": {
-        "negotiable_preference": "Automation Alex prefers using Jenkins for deployments because it aligns better with their personal workflow, even though other tools might be more suitable.",
-        "personal_friction": "Automation Alex insists on a fully automated deployment pipeline, not because of operational needs, but to make Requirements Reuben's life harder with extra monitoring work."
+        "negotiable_preference": "{automation_alex} prefers using Jenkins for deployments because it aligns better with their personal workflow, even though other tools might be more suitable.",
+        "personal_friction": "{automation_alex} insists on a fully automated deployment pipeline, not because of operational needs, but to make {requirements_reuben}'s life harder with extra monitoring work."
       },
       "is_known": true
     },
@@ -260,13 +226,11 @@
       "requirement_id": "req_4_automation_alex_negotiable_preference_58",
       "challenge_id": 4,
       "stakeholder_id": "automation_alex",
-      "stakeholder_name": "Automation Alex",
-      "stakeholder_role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
       "artifact_type": "document",
-      "content": "To ensure consistency and efficiency in our CI/CD pipeline, I strongly advocate for using standardized Kubernetes templates for deployment. This approach minimizes human error and accelerates the deployment process. While I understand Reuben's concerns about fairness and bias, automating the deployment itself does not inherently compromise responsible AI practices. We can integrate separate validation steps for fairness and bias checks, maintaining both automation and ethical standards. Kubernetes templates provide a robust framework that aligns with our operational goals while allowing flexibility for additional checks.",
+      "content": "To ensure consistency and efficiency in our CI/CD pipeline, I strongly advocate for using standardized Kubernetes templates for deployment. This approach minimizes human error and accelerates the deployment process. While I understand {requirements_reuben.first}'s concerns about fairness and bias, automating the deployment itself does not inherently compromise responsible AI practices. We can integrate separate validation steps for fairness and bias checks, maintaining both automation and ethical standards. Kubernetes templates provide a robust framework that aligns with our operational goals while allowing flexibility for additional checks.",
       "wrong_descriptions": {
-        "requirement": "Automation Alex insists on using Kubernetes templates to minimize cloud spending and optimize budget allocations across all ML projects.",
-        "personal_friction": "Automation Alex enforces the use of standardized Kubernetes templates because he has a personal vendetta against other deployment methodologies."
+        "requirement": "{automation_alex} insists on using Kubernetes templates to minimize cloud spending and optimize budget allocations across all ML projects.",
+        "personal_friction": "{automation_alex} enforces the use of standardized Kubernetes templates because he has a personal vendetta against other deployment methodologies."
       },
       "is_known": false
     },
@@ -275,13 +239,11 @@
       "requirement_id": "req_4_requirements_reuben_requirement_61",
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
-      "stakeholder_name": "Requirements Reuben",
-      "stakeholder_role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
       "artifact_type": "slack_message",
       "content": "While I understand the push for full automation, we can't overlook the need for human oversight in model validation. Automated processes might miss critical aspects like fairness and bias. We should ensure the model validation report is generated automatically, but it must be signed off by a human. This way, we comply with CI/CD while maintaining responsible AI practices. It's a small step that makes a big difference.",
       "wrong_descriptions": {
-        "negotiable_preference": "Requirements Reuben prefers to use manual validation tools for model sign-off to maintain consistency with his personal workflow.",
-        "personal_friction": "Requirements Reuben insists on manually signing off on every model validation report just to spite Automation Alex."
+        "negotiable_preference": "{requirements_reuben} prefers to use manual validation tools for model sign-off to maintain consistency with his personal workflow.",
+        "personal_friction": "{requirements_reuben} insists on manually signing off on every model validation report just to spite {automation_alex}."
       },
       "is_known": false
     },
@@ -290,13 +252,11 @@
       "requirement_id": "req_4_requirements_reuben_personal_friction_63",
       "challenge_id": 4,
       "stakeholder_id": "requirements_reuben",
-      "stakeholder_name": "Requirements Reuben",
-      "stakeholder_role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
       "artifact_type": "email",
       "content": "While automation is key for CI/CD, we can't overlook the risks of fully automated validation. Responsible AI practices, especially fairness and bias identification, may suffer if we don't involve human oversight. Automated systems might miss nuanced biases that humans can catch. We should consider a hybrid approach where automation handles the initial validation but flags cases for human review. This way, we maintain efficiency without compromising our ethical standards.\n\nAdditionally, we need to ensure that our validation process aligns with regulatory requirements. Automated systems might not adequately capture the context needed for compliance. By integrating human review, we can better address these concerns and ensure our models are both efficient and responsible.\n\nLet's discuss this further in our next meeting to find a balanced solution.",
       "wrong_descriptions": {
-        "requirement": "Requirements Reuben insists on manual validation steps to increase his team's headcount and budget through procedural bureaucracy.",
-        "negotiable_preference": "Requirements Reuben prefers to manually validate each deployment to maintain a personal sense of control over the process."
+        "requirement": "{requirements_reuben} insists on manual validation steps to increase his team's headcount and budget through procedural bureaucracy.",
+        "negotiable_preference": "{requirements_reuben} prefers to manually validate each deployment to maintain a personal sense of control over the process."
       },
       "is_known": true
     },
@@ -305,13 +265,11 @@
       "requirement_id": "req_5_efficiency_emilia_hard_constraint_72",
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "meeting_notes",
       "content": "Our model's accuracy is dropping rapidly, and we can't afford to wait for a full investigation. Every day we delay, we're losing revenue and damaging customer trust. We need to retrain the model immediately with the latest data to stop the bleeding. Reliability is important, but so is our bottom line. We can't let perfect be the enemy of good here. Let's get this fixed ASAP and then figure out the root cause.",
       "wrong_descriptions": {
-        "negotiable_preference": "Efficiency Emilia prefers to use simple spreadsheet models for decision-making whenever possible, finding them more intuitive than complex machine learning systems.",
-        "personal_friction": "Efficiency Emilia insists on rapid retraining because she has a personal vendetta against Ruth."
+        "negotiable_preference": "{efficiency_emilia} prefers to use simple spreadsheet models for decision-making whenever possible, finding them more intuitive than complex machine learning systems.",
+        "personal_friction": "{efficiency_emilia} insists on rapid retraining because she has a personal vendetta against {reliability_ruth.first}."
       },
       "is_known": true
     },
@@ -320,13 +278,11 @@
       "requirement_id": "req_5_efficiency_emilia_negotiable_preference_74",
       "challenge_id": 5,
       "stakeholder_id": "efficiency_emilia",
-      "stakeholder_name": "Efficiency Emilia",
-      "stakeholder_role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "artifact_type": "document",
       "content": "I understand the concerns about stability, but we can't ignore the immediate business impact. The model's accuracy is dropping fast, and we need to act quickly. Simple data windowing techniques would allow us to retrain the model rapidly. We can use the most recent data to update the model, and it's a straightforward approach that won't disrupt our current workflow.\n\nIf we spend too much time on diagnosis and validation, we might lose valuable time to address the accuracy decline. The business can't afford to wait while we perfect the solution. We need to prioritize speed and simplicity to minimize the impact on our operations.",
       "wrong_descriptions": {
-        "requirement": "Efficiency Emilia requires a comprehensive audit trail of all model retraining activities to satisfy her department's financial reporting obligations.",
-        "personal_friction": "Efficiency Emilia insists on simple data windowing techniques for retraining updates out of sheer stubbornness and a desire to prove Reliability Ruth wrong."
+        "requirement": "{efficiency_emilia} requires a comprehensive audit trail of all model retraining activities to satisfy her department's financial reporting obligations.",
+        "personal_friction": "{efficiency_emilia} insists on simple data windowing techniques for retraining updates out of sheer stubbornness and a desire to prove {reliability_ruth} wrong."
       },
       "is_known": false
     },
@@ -335,13 +291,11 @@
       "requirement_id": "req_5_reliability_ruth_requirement_77",
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
-      "stakeholder_name": "Reliability Ruth",
-      "stakeholder_role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
       "artifact_type": "email",
       "content": "We can't afford to retrain the model without understanding the root cause of the drift. Real-time monitoring of model performance metrics is essential to diagnose the issue and validate any fixes. Without proper tracking, we risk exacerbating the problem. Let's implement logging for key metrics like accuracy, precision, and recall in production. This will give us the data we need to make informed decisions.",
       "wrong_descriptions": {
-        "negotiable_preference": "Reliability Ruth prefers using a specific dashboard tool for monitoring model performance, even if it requires additional setup time.",
-        "personal_friction": "Reliability Ruth wants to slow down the retraining process to make Emilia look bad in front of the executives."
+        "negotiable_preference": "{reliability_ruth} prefers using a specific dashboard tool for monitoring model performance, even if it requires additional setup time.",
+        "personal_friction": "{reliability_ruth} wants to slow down the retraining process to make {efficiency_emilia.first} look bad in front of the executives."
       },
       "is_known": false
     },
@@ -350,13 +304,11 @@
       "requirement_id": "req_5_reliability_ruth_personal_friction_79",
       "challenge_id": 5,
       "stakeholder_id": "reliability_ruth",
-      "stakeholder_name": "Reliability Ruth",
-      "stakeholder_role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
       "artifact_type": "slack_message",
       "content": "I understand the urgency, but we need to diagnose the issue first. Retraining without understanding the root cause of the drift risks baking bad patterns into our model. We should validate the data and model performance before making any changes. A hasty fix could lead to more instability down the line. Let's take the time to do this right.",
       "wrong_descriptions": {
-        "requirement": "Reliability Ruth demands that all retraining processes must follow a strict 48-hour approval cycle to align with her preferred CI/CD toolchain.",
-        "negotiable_preference": "Reliability Ruth prefers to use manual model validation scripts over automated pipelines for her workflow."
+        "requirement": "{reliability_ruth} demands that all retraining processes must follow a strict 48-hour approval cycle to align with her preferred CI/CD toolchain.",
+        "negotiable_preference": "{reliability_ruth} prefers to use manual model validation scripts over automated pipelines for her workflow."
       },
       "is_known": true
     }

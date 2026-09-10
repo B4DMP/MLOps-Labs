@@ -16,6 +16,7 @@ from fastapi import WebSocket
 from sqlalchemy import select
 
 from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -45,7 +46,7 @@ async def generate_intel_item_artifact_content(
 
     chain = get_intel_artifact_chain()
     res = await chain.ainvoke({
-        "challenge": curr_challenge.description,
+        "challenge": personalize(curr_challenge.description, resolve_markers=True),
         "stakeholder_name": stakeholder_name,
         "stakeholder_profile": stakeholder_profile,
         "requirement_description": req.description,
@@ -449,7 +450,7 @@ async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_i
 
     chain = get_wrong_intel_chain()
     res = await chain.ainvoke({
-        "challenge": curr_challenge.description,
+        "challenge": personalize(curr_challenge.description, resolve_markers=True),
         "stakeholder_name": stakeholder_name,
         "stakeholder_profile": stakeholder_profile,
         "correct_description": intel_item.description,

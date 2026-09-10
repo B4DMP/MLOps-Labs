@@ -9,6 +9,7 @@ from mlops_serious_game.application.online_intel_service.graph import (
 from mlops_serious_game.application.online_intel_service.state import OnlineIntelState
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.persona_resolver import personalize
 
 
 async def run_engagement_card_workflow(
@@ -39,7 +40,10 @@ async def run_engagement_card_workflow(
         tuple[str, list[dict], OnlineIntelState]: Player message, stakeholder responses, and final state.
     """
     thread_id = session_id or f"Online_Intel_{username}"
-    challenge_desc = f"{curr_challenge.name}: {curr_challenge.roundIntroduction} {curr_challenge.description}"
+    challenge_desc = (
+        f"{curr_challenge.name}: {curr_challenge.roundIntroduction} "
+        f"{personalize(curr_challenge.description, resolve_markers=True)}"
+    )
 
     graph_builder = create_online_intel_workflow_graph()
 

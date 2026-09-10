@@ -17,7 +17,7 @@ from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_
 from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
 from mlops_serious_game.infrastructure.websocket.router import router as websocket_router
 
-from mlops_serious_game.infrastructure.database import init_db, init_checkpointer
+from mlops_serious_game.infrastructure.database import init_db, init_checkpointer, run_migrations
 
 configure()
 
@@ -25,6 +25,9 @@ configure()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles startup and shutdown events for the API."""
+    # Migrations first: on an empty database the revision chain builds the
+    # schema, and init_db then only fills in anything alembic does not create.
+    run_migrations()
     init_db()
     await init_checkpointer()
     if settings.MISTRAL_API_KEY:
