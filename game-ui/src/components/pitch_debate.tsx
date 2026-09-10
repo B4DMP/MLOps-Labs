@@ -63,6 +63,8 @@ interface PitchDebateProps {
   onEndPitch?: (passed: boolean) => void;
   isExistingSave?: boolean;
   onClearExistingSave?: () => void;
+  /** Lets the embedded dossier reopen the phase briefing. */
+  onOpenPhaseBriefing?: () => void;
 }
 
 export default function PitchDebate({
@@ -84,6 +86,7 @@ export default function PitchDebate({
   last_ac,
   isExistingSave = false,
   onClearExistingSave,
+  onOpenPhaseBriefing,
 }: PitchDebateProps) {
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = stakeholderCtx?.stakeholders || {};
@@ -733,6 +736,7 @@ export default function PitchDebate({
                   isEmbedded={true}
                   dossierData={dossierData || []}
                   activeStakeholderId={selectedStakeholderId}
+                  onOpenPhaseBriefing={onOpenPhaseBriefing}
                   highlightedIntelId={highlightedIntelId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}

@@ -44,6 +44,8 @@ interface OnlineIntelGatheringProps {
   engagementCards?: EngagementCard[];
   pitchedActionCard?: ActionCard | null;
   onUpdatePitchedCard?: (card: ActionCard) => void;
+  /** Lets the embedded dossier reopen the phase briefing. */
+  onOpenPhaseBriefing?: () => void;
 }
 
 export interface IntelItem {
@@ -91,6 +93,7 @@ export default function OnlineIntelGathering({
   engagementCards: propsEngagementCards,
   pitchedActionCard: propsPitchedActionCard,
   onUpdatePitchedCard,
+  onOpenPhaseBriefing,
 }: OnlineIntelGatheringProps) {
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = stakeholderCtx?.stakeholders || {};
@@ -792,6 +795,7 @@ export default function OnlineIntelGathering({
                   isEmbedded={true}
                   dossierData={dossierData || []}
                   activeStakeholderId={selectedStakeholderId || activeStakeholderId}
+                  onOpenPhaseBriefing={onOpenPhaseBriefing}
                   highlightedIntelId={highlightedIntelId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}

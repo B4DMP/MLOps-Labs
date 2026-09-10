@@ -1,32 +1,24 @@
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
-  z-index: 40;
-}
-
-.dialogWrapper {
+/* The briefing is its own page now, not an overlay over the phase behind it */
+.pageWrapper {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 0.5rem;
-  z-index: 50;
+  background: var(--primary-bg, #0f1826);
+  /* The phase views stay mounted underneath so they keep their state, so this
+     has to clear everything they raise (pitch debate reaches 5000) or bits of
+     the phase punch through the briefing. */
+  z-index: 9500;
 }
 
 .panel {
-  max-width: 1280px;
-  width: 97%;
-  height: 94vh;
-  max-height: 98vh;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--dialog-bg);
-  border-radius: 0.85rem;
   overflow: hidden;
-  box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.35), 0 10px 20px -5px rgba(0, 0, 0, 0.2);
   /*
    * `backwards` rather than `both` on purpose: `both` keeps the final
    * `transform` applied forever, which makes the panel a containing block for

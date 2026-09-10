@@ -18,6 +18,12 @@ interface PowerInterestMatrixProps {
    * Falls back to `document.body`.
    */
   bubblePortalTarget?: HTMLElement | null;
+  /**
+   * Whether newcomers introduce themselves on their own when the briefing
+   * opens. Off when the player reopens the briefing mid-phase: they have met
+   * everyone already. Clicking a chip still replays an introduction.
+   */
+  autoPlayIntroductions?: boolean;
 }
 
 type QuadrantKey = "high-low" | "high-high" | "low-low" | "low-high";
@@ -85,6 +91,7 @@ export default function PowerInterestMatrix({
   previousStakeholders = [],
   isFirstPhase = false,
   bubblePortalTarget = null,
+  autoPlayIntroductions = true,
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
 
@@ -248,7 +255,7 @@ export default function PowerInterestMatrix({
     isClosing: boolean;
     nonce: number;
   } | null>(() =>
-    introQueue.length > 0
+    autoPlayIntroductions && introQueue.length > 0
       ? { stakeholderId: introQueue[0], queueIndex: 0, isClosing: false, nonce: 0 }
       : null
   );
@@ -313,11 +320,11 @@ export default function PowerInterestMatrix({
     clearIntroTimers();
     setIntroStopped(false);
     setIntroState(
-      introQueue.length > 0
+      autoPlayIntroductions && introQueue.length > 0
         ? { stakeholderId: introQueue[0], queueIndex: 0, isClosing: false, nonce: 0 }
         : null
     );
-  }, [introQueueKey]);
+  }, [introQueueKey, autoPlayIntroductions]);
 
   // Hold each bubble long enough to read it, fade out, then hand over to the next speaker
   useEffect(() => {

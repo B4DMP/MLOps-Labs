@@ -1,9 +1,3 @@
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  DialogBackdrop,
-} from "@headlessui/react";
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
@@ -31,6 +25,11 @@ interface PrePhaseDialogProps {
    * is new at that point.
    */
   isNewChallenge?: boolean;
+  /**
+   * Reopened from the dossier during a phase rather than shown on entering it.
+   * The briefing then just closes again instead of starting the round.
+   */
+  isReview?: boolean;
 }
 
 export default function PrePhaseDialog({
@@ -43,12 +42,12 @@ export default function PrePhaseDialog({
   currentChallenge,
   challengeAmount,
   isNewChallenge = false,
+  isReview = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
-  // Overlay layer for the radar's speech bubbles and tooltips. It has to live
-  // *inside* DialogPanel: Headless UI treats a click anywhere else in the dialog
-  // wrapper as an outside click and would close the briefing (advancing the
-  // round) when the player uses the bubble's skip or close button.
+  // Overlay layer the radar portals its bubbles and tooltips into. The page
+  // clips its own overflow and the matrix column keeps a transform from its
+  // entrance animation, so neither can host a fixed-position bubble.
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
 
   if (!isOpen) return null;
@@ -70,29 +69,29 @@ export default function PrePhaseDialog({
 
   const handleClose = () => {
     setIsOpen(false);
-    if (setIsRoundOpen) {
+    // Reviewing mid-phase just returns the player to where they were; only the
+    // briefing shown on entering a phase starts the round.
+    if (!isReview && setIsRoundOpen) {
       setIsRoundOpen(true);
     }
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} className="position-relative z-50">
-      <DialogBackdrop className={styles.backdrop} />
-      <div
-        className={`${styles.dialogWrapper} intro2`}
-        data-intro-group="intro2"
-        data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
-        data-step="1"
-        data-position="middle-aligned"
-      >
-        <DialogPanel className={styles.panel}>
+    <div
+      className={`${styles.pageWrapper} intro2`}
+      data-intro-group="intro2"
+      data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
+      data-step="1"
+      data-position="middle-aligned"
+    >
+      <div className={styles.panel}>
           {/* Header */}
           <div className={styles.header}>
             <div>
-              <DialogTitle className={styles.headerTitle}>
+              <h1 className={styles.headerTitle}>
                 <Icon icon="ph:projector-screen-chart-bold" className={styles.headerIcon} />
                 <span>Phase Briefing</span>
-              </DialogTitle>
+              </h1>
               <p className={styles.headerSubtitle}>
                 Project Milestone Overview • Align technical decisions with stakeholder priorities
               </p>
@@ -198,6 +197,7 @@ export default function PrePhaseDialog({
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
                   bubblePortalTarget={bubbleLayer}
+                  autoPlayIntroductions={!isReview}
                 />
               </div>
             </div>
@@ -206,11 +206,11 @@ export default function PrePhaseDialog({
             <div className={styles.footer}>
               <div className={styles.footerHint}>
                 <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-                <span>You can review this stakeholder matrix anytime during the phase.</span>
+                <span>You can review this stakeholder matrix anytime.</span>
               </div>
               <div className={styles.actions}>
                 <button className={styles.actionButton} onClick={handleClose}>
-                  <span>Enter Phase & Begin Round</span>
+                  <span>{isReview ? "Back to the Phase" : "Enter Phase & Begin Round"}</span>
                   <Icon icon="ph:arrow-right-bold" />
                 </button>
               </div>
@@ -219,8 +219,7 @@ export default function PrePhaseDialog({
 
           {/* Fixed, click-through overlay the radar portals its bubbles into */}
           <div ref={setBubbleLayer} className={styles.bubbleLayer} />
-        </DialogPanel>
       </div>
-    </Dialog>
+    </div>
   );
 }
