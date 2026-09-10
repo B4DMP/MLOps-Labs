@@ -811,6 +811,11 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
+            # The whole pool for this challenge, found or not, so the dossier can show how much
+            # is still out there. A count only: nothing about what the missing items say.
+            "intel_total": len(
+                RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+            ),
         })
 
     return dossier_list

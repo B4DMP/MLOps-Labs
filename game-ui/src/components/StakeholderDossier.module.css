@@ -145,7 +145,10 @@
   /* Prevent 3D page flip clipping */
   background: #1c140e;
   z-index: 40;
-  /* Higher than header, tabs, and footer so flipping page stays on top */
+  /* Higher than header and tabs so flipping page stays on top */
+  /* A strip of binding under the page, so it still ends on a bound edge */
+  padding-bottom: 8px;
+  border-radius: 0 0 10px 10px;
 }
 
 /* Bookmark Sticky Tabs (Top Bar) */
@@ -440,7 +443,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
   margin-top: 2px;
 }
 
@@ -459,12 +462,12 @@
 .powerInterestBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 1px 7px;
+  gap: 3px;
+  padding: 0 6px;
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   cursor: help;
   user-select: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -478,7 +481,7 @@
 }
 
 .metricIcon {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
 }
 
 .highlightRed {
@@ -906,10 +909,14 @@
   --note-bg-alt: #fdba74;
   background: var(--note-bg);
   padding: 6px 10px;
-  border-radius: 2px;
+  /* Sticky notes hold themselves on, so none gets a fastener drawn on it. The bottom right
+     corner lifts off the page instead: a long shallow sweep along the bottom edge, a short
+     one up the side, and a shadow pooling under the tip. */
+  border-radius: 2px 2px 30px 2px / 2px 2px 6px 2px;
   box-shadow:
     0 3px 8px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    6px 5px 6px -4px rgba(0, 0, 0, 0.28);
   position: relative;
   transition: box-shadow 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -1058,12 +1065,27 @@
   right: 24px;
   width: 14px;
   height: 28px;
-  border: 3px solid #94a3b8;
+  border: 2.5px solid #94a3b8;
   border-radius: 8px;
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
   pointer-events: none;
   background: transparent;
   z-index: 25;
+}
+
+/* The inner loop of the wire. A real clip's inner loop is open: it hangs from the top as an
+   upside-down U whose legs stop partway down, nearly as wide as the outer loop. */
+.paperclip::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 11px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2.5px solid #94a3b8;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
 }
 
 .intelBody {
@@ -1211,6 +1233,47 @@
   line-height: 1.25;
 }
 
+/* Stand-in for the notes still out there: a real note's outline, curled corner and all, with
+   no paper in it yet. One card however many are missing, with a second sheet peeking out
+   behind it when there is more than one. */
+.ghostNote {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 5px 5px 0;
+  padding: 6px 10px;
+  background: #faf7ef;
+  border: 1.5px dashed #b5a48b;
+  border-radius: 2px 2px 30px 2px / 2px 2px 6px 2px;
+  color: #8a7862;
+  font-size: 0.7rem;
+  font-style: italic;
+  line-height: 1.25;
+  cursor: help;
+}
+
+/* Carries on the tilt zebra of the real notes above it */
+.ghostNote:nth-child(odd) {
+  transform: rotate(-1.2deg);
+}
+
+.ghostNote:nth-child(even) {
+  transform: rotate(1deg);
+}
+
+.ghostNoteStacked {
+  box-shadow:
+    4px 4px 0 -1.5px #faf7ef,
+    4px 4px 0 0 #cbbca6;
+}
+
+.ghostNoteIcon {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
 /* Margins Annotation Doodle */
 .marginDoodleNote {
   margin-top: 16px;
@@ -1224,34 +1287,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* Notebook Footer (Page Controls) */
-.pageFooter {
-  background: #251c15;
-  border-top: 2px solid #140d09;
-  padding: 6px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 0 0 10px 10px;
-  z-index: 30;
-}
-
-.pageIndicator {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #d8c8b4;
-  white-space: nowrap;
-  letter-spacing: 0.2px;
-}
-
-.intelCounter {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #fbbf24;
-  white-space: nowrap;
-  letter-spacing: 0.1px;
 }
 
 /* Buy-In / Persuasion Breakdown Card */
@@ -1362,6 +1397,88 @@
   50% {
     transform: scale(1.15);
   }
+}
+
+/* ==========================================================================
+   INTEL PIPS
+   One pip per note in a stakeholder's pool. On the page each pip is a tiny
+   sticky note in the same paper as the real one below: orange unconfirmed,
+   blue on record, green confirmed, a dashed pencil outline for the ones not
+   found yet. The status classes only set colours.
+   ========================================================================== */
+
+.pipOnRecord {
+  --pip-paper: #7dd3fc;
+  --pip-edge: #0284c7;
+}
+
+.pipConfirmed {
+  --pip-paper: #86efac;
+  --pip-edge: #16a34a;
+}
+
+.pipUnconfirmed {
+  --pip-paper: #fdba74;
+  --pip-edge: #ea580c;
+}
+
+.pipHidden {
+  --pip-paper: transparent;
+  --pip-edge: #a8977f;
+}
+
+/* Lives in the badge row, so it borrows .powerInterestBadge for the pill itself */
+.intelBadgeInk {
+  color: #7c5a3a;
+}
+
+.intelPips {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.intelPip {
+  width: 9px;
+  height: 11px;
+  box-sizing: border-box;
+  border-radius: 1px;
+  background: var(--pip-paper);
+  border: 1px solid var(--pip-edge);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);
+  transform: rotate(-4deg);
+}
+
+.intelPip:nth-child(even) {
+  transform: rotate(3deg);
+}
+
+.intelPip.pipHidden {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* The page pips as a thin stacked bar across the bottom of the tab: one segment per stamp,
+   in pip order and colour, over a faint track for the notes still out there. Sits 2px up
+   because the tab tucks its bottom 2px under the page. */
+.tabIntelBar {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 1px;
+  display: flex;
+  background: rgba(26, 18, 11, 0.12);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tabIntelBarFill {
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--pip-edge);
+  transition: width 0.4s ease;
 }
 
 /* Reopens the phase briefing from the binder header */

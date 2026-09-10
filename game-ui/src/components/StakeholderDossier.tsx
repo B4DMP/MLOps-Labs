@@ -36,6 +36,8 @@ export interface StakeholderDossierEntry {
   convincer_status?: "validated" | "unconfirmed" | "unknown";
   is_validated?: boolean;
   intel_items: IntelEntry[];
+  /** How many notes this stakeholder has in the challenge, found or not. */
+  intel_total?: number;
 }
 
 export interface StakeholderBuyInInfo {
@@ -125,6 +127,47 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
       };
     }
   }
+};
+
+type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
+
+/** Pips follow the stamps' colours, so they teach the player nothing new. */
+const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
+  on_record: { label: "On record", styleClass: styles.pipOnRecord },
+  confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
+  unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
+  hidden: { label: "Not found yet", styleClass: styles.pipHidden },
+};
+
+/** Settled first, so the row fills up from the left like a progress bar. */
+const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
+
+const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
+  if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
+  return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+};
+
+/**
+ * One pip per note in the stakeholder's pool: the found ones by stamp, then a hollow one for
+ * each still out there. Hollow pips say how many, never what: no category, no source. Found
+ * pips go by stamp, never by `is_correct`, so they cannot give away a wrong tag either.
+ */
+const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
+  const found = (st.intel_items || []).map(getIntelPipStatus);
+  const hiddenCount = Math.max(0, (st.intel_total ?? 0) - found.length);
+  return [...found, ...Array<IntelPipStatus>(hiddenCount).fill("hidden")].sort(
+    (a, b) => INTEL_PIP_ORDER.indexOf(a) - INTEL_PIP_ORDER.indexOf(b)
+  );
+};
+
+/** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
+const describeIntelPips = (pips: IntelPipStatus[]): string => {
+  const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
+  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
+    .filter((status) => countOf(status) > 0)
+    .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
+  const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
+  return breakdown.length > 0 ? `${summary}: ${breakdown.join(", ")}` : summary;
 };
 
 const getEmotionIcon = (emotionStr: string): string => {
@@ -659,6 +702,8 @@ export default function StakeholderDossier({
     if (!st) return null;
 
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
+    const intelPips = getIntelPips(st);
+    const hiddenIntelCount = intelPips.filter((status) => status === "hidden").length;
     const stObj = stakeholders[st.stakeholder_id];
     const avatar = stObj?.avatar;
     const stakeholderColor = getStakeholderColor(st);
@@ -778,6 +823,23 @@ export default function StakeholderDossier({
                   {(st.interest || stObj?.interest || "low").toUpperCase()}
                 </span>
               </div>
+              {intelPips.length > 0 && (
+                <div className={styles.powerInterestBadge} title={describeIntelPips(intelPips)}>
+                  <Icon icon="ph:push-pin-bold" className={`${styles.metricIcon} ${styles.intelBadgeInk}`} />
+                  <span className={styles.intelPips}>
+                    {intelPips.map((status, idx) => (
+                      <span
+                        key={idx}
+                        className={`${styles.intelPip} ${INTEL_PIP_META[status].styleClass}`}
+                        title={INTEL_PIP_META[status].label}
+                      />
+                    ))}
+                  </span>
+                  <span className={styles.intelBadgeInk} style={{ fontWeight: 700 }}>
+                    {intelPips.length - hiddenIntelCount}/{intelPips.length}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1064,8 +1126,6 @@ export default function StakeholderDossier({
                   data-intel-description={item.description}
                   className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
-                  <div className={styles.paperclip} />
-
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
                     {isUnconfirmed ? (
@@ -1141,6 +1201,19 @@ export default function StakeholderDossier({
                 </div>
               );
             })}
+            {hiddenIntelCount > 0 && (
+              <div
+                className={`${styles.ghostNote} ${hiddenIntelCount > 1 ? styles.ghostNoteStacked : ""}`}
+                title="Notes you have not found yet. Their pips stay hollow until you do."
+              >
+                <Icon icon="ph:magnifying-glass-bold" className={styles.ghostNoteIcon} />
+                <span>
+                  {hiddenIntelCount === 1
+                    ? `1 more note about ${st.name} is still out there`
+                    : `${hiddenIntelCount} more notes about ${st.name} are still out there`}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.emptyStateContainer}>
@@ -1256,6 +1329,7 @@ export default function StakeholderDossier({
                 ? "New this phase"
                 : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
               : "";
+            const tabPips = getIntelPips(st);
 
             return (
               <button
@@ -1265,7 +1339,9 @@ export default function StakeholderDossier({
                 onClick={() => requestPageChange(idx)}
                 title={`${st.name} (Emotional State: ${emotion})${
                   keyPlayerHint ? ` - ${keyPlayerHint}` : ""
-                }${changeHint ? ` - ${changeHint}` : ""}`}
+                }${changeHint ? ` - ${changeHint}` : ""}${
+                  tabPips.length > 0 ? ` - Intel: ${describeIntelPips(tabPips)}` : ""
+                }`}
                 style={
                   {
                     "--tab-color": stColor,
@@ -1308,6 +1384,20 @@ export default function StakeholderDossier({
                     </span>
                   )}
                 </div>
+                {tabPips.length > 0 && (
+                  <span className={styles.tabIntelBar} aria-hidden="true">
+                    {/* Every segment renders, even at zero width, so a stamp change animates */}
+                    {INTEL_PIP_ORDER.filter((status) => status !== "hidden").map((status) => (
+                      <span
+                        key={status}
+                        className={`${styles.tabIntelBarFill} ${INTEL_PIP_META[status].styleClass}`}
+                        style={{
+                          width: `${(tabPips.filter((p) => p === status).length / tabPips.length) * 100}%`,
+                        }}
+                      />
+                    ))}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -1322,22 +1412,6 @@ export default function StakeholderDossier({
             {renderPageContent(activeStakeholder)}
           </div>
         </div>
-      </div>
-
-      {/* Page Turning Footer Controls & Intel Counter */}
-      <div className={styles.pageFooter}>
-        <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages}
-        </span>
-        <span
-          className={styles.intelCounter}
-          title="Verified covers both stamps: items already on the public record, and items you confirmed yourself."
-        >
-          📌 Intel Collected: {activeStakeholder?.intel_items?.length || 0}
-          {activeStakeholder?.intel_items && activeStakeholder.intel_items.length > 0
-            ? ` (${activeStakeholder.intel_items.filter((item: IntelEntry) => item.intel_type?.toLowerCase() === "verified").length} verified)`
-            : ""}
-        </span>
       </div>
     </div>
   );
