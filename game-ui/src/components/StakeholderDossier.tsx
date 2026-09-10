@@ -15,6 +15,8 @@ export interface IntelEntry {
   categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
   description: string;
   is_correct?: boolean;
+  /** Verified because it was already public at the start of the challenge, not because the player confirmed it. */
+  is_public_record?: boolean;
 }
 
 export interface StakeholderDossierEntry {
@@ -61,6 +63,8 @@ export interface StakeholderDossierProps {
    * tabs. Off by default: only the offline intel phase asks for them.
    */
   showPhaseChangeBadges?: boolean;
+  /** Reopens the phase briefing. The button only appears when this is given. */
+  onOpenPhaseBriefing?: () => void;
 }
 
 /** How long the markers keep pulsing when the player never opens their tab. */
@@ -114,6 +118,7 @@ export default function StakeholderDossier({
   convincerArchetypes: propConvincerArchetypes,
   buyInInfoMap,
   showPhaseChangeBadges = false,
+  onOpenPhaseBriefing,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -277,10 +282,34 @@ export default function StakeholderDossier({
   // either they open that stakeholder's tab, or the timeout runs out. After
   // that the marker stays put, quietly, for the rest of the phase.
   const [pulsingChangeIds, setPulsingChangeIds] = useState<Set<string>>(new Set());
+  // Markers the player has read and then navigated away from: those are done
+  // with, and the tab goes back to being uncluttered.
+  const [dismissedChangeIds, setDismissedChangeIds] = useState<Set<string>>(new Set());
+  const previousChangePageRef = useRef<number>(currentPageIndex);
 
   useEffect(() => {
     setPulsingChangeIds(new Set(phaseChanges.keys()));
+    setDismissedChangeIds(new Set());
   }, [phaseChangeKey]);
+
+  // Drop a marker when the player leaves that tab, but only once it has stopped
+  // pulsing: a tab flicked past on the way elsewhere was never actually read.
+  useEffect(() => {
+    const leftIndex = previousChangePageRef.current;
+    previousChangePageRef.current = currentPageIndex;
+    if (leftIndex === currentPageIndex) return;
+
+    const left = effectiveDossierData[leftIndex];
+    if (!left || !phaseChanges.has(left.stakeholder_id)) return;
+    if (pulsingChangeIds.has(left.stakeholder_id)) return;
+
+    setDismissedChangeIds((prev) => {
+      if (prev.has(left.stakeholder_id)) return prev;
+      const next = new Set(prev);
+      next.add(left.stakeholder_id);
+      return next;
+    });
+  }, [currentPageIndex, effectiveDossierData, phaseChanges, pulsingChangeIds]);
 
   useEffect(() => {
     if (phaseChanges.size === 0) return;
@@ -508,15 +537,30 @@ export default function StakeholderDossier({
 
   if (!isOpen) return null;
 
-  const renderRubberStamp = (conf: string) => {
+  /**
+   * Verified intel comes from two different places and players could not tell them apart:
+   * items the game hands them already true because the stakeholder said it in public, and
+   * items they earned by confirming a guess. Same confidence, different story, two stamps.
+   */
+  const renderRubberStamp = (conf: string, isPublicRecord = false) => {
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
     if (lower === "verified") {
+      if (isPublicRecord) {
+        return (
+          <div
+            className={`${styles.rubberStamp} ${styles.stampOnRecord}`}
+            title="On Record: they said this openly, in a channel the whole team reads, before you started digging. Nothing left to confirm."
+          >
+            ★ ON RECORD
+          </div>
+        );
+      }
       return (
         <div
           className={`${styles.rubberStamp} ${styles.stampVerified}`}
-          title="Verified Intelligence: This stance or archetype has been confirmed through stakeholder interaction."
+          title="Confirmed: you verified this yourself by talking to them."
         >
-          ✓ VERIFIED
+          ✓ CONFIRMED
         </div>
       );
     }
@@ -928,6 +972,19 @@ export default function StakeholderDossier({
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
               const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
+              // Re-tagging swaps the whole sentence, and the only span that reliably survives the
+              // swap is the stakeholder's name. Hold that steady in bold and italicise the rest,
+              // so the part that moves when you change your mind looks like the part that moves.
+              const noteDescription = item.description || "";
+              const hasSubjectLead = Boolean(st.name) && noteDescription.startsWith(st.name);
+              const noteSubject = hasSubjectLead ? st.name : "";
+              const noteReading = hasSubjectLead ? noteDescription.slice(st.name.length) : noteDescription;
+              // Paper colour matches the stamp: orange still open, blue public, green earned.
+              const noteStatusClass = isUnconfirmed
+                ? ""
+                : item.is_public_record
+                  ? styles.noteOnRecord
+                  : styles.noteConfirmed;
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
@@ -950,7 +1007,7 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
-                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
+                  className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
                   <div className={styles.paperclip} />
 
@@ -981,7 +1038,7 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
-                      {renderRubberStamp(item.intel_type)}
+                      {renderRubberStamp(item.intel_type, item.is_public_record)}
                     </div>
                   </div>
 
@@ -1007,7 +1064,16 @@ export default function StakeholderDossier({
                   )}
 
                   <div className={styles.intelBody}>
-                    <div className={styles.intelText}>"{item.description}"</div>
+                    <div className={styles.intelText}>
+                      "
+                      {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
+                      {isUnconfirmed ? (
+                        <em className={styles.intelReading}>{noteReading}</em>
+                      ) : (
+                        noteReading
+                      )}
+                      "
+                    </div>
                   </div>
                 </div>
               );
@@ -1063,6 +1129,16 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {onOpenPhaseBriefing && (
+            <button
+              className={styles.briefingButton}
+              onClick={onOpenPhaseBriefing}
+              title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
+            >
+              <Icon icon="ph:projector-screen-chart-bold" />
+              <span>Briefing</span>
+            </button>
+          )}
           <button
             className={styles.topNavArrow}
             disabled={currentPageIndex <= 0}
@@ -1108,7 +1184,9 @@ export default function StakeholderDossier({
 
             // New and shifted are mutually exclusive: shifted needs a previous
             // reading to compare against, new means there wasn't one.
-            const change = phaseChanges.get(st.stakeholder_id);
+            const change = dismissedChangeIds.has(st.stakeholder_id)
+              ? undefined
+              : phaseChanges.get(st.stakeholder_id);
             const isPulsingChange = Boolean(change && pulsingChangeIds.has(st.stakeholder_id));
             const changeHint = change
               ? change.isNew
@@ -1188,7 +1266,10 @@ export default function StakeholderDossier({
         <span className={styles.pageIndicator}>
           📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages}
         </span>
-        <span className={styles.intelCounter}>
+        <span
+          className={styles.intelCounter}
+          title="Verified covers both stamps: items already on the public record, and items you confirmed yourself."
+        >
           📌 Intel Collected: {activeStakeholder?.intel_items?.length || 0}
           {activeStakeholder?.intel_items && activeStakeholder.intel_items.length > 0
             ? ` (${activeStakeholder.intel_items.filter((item: IntelEntry) => item.intel_type?.toLowerCase() === "verified").length} verified)`

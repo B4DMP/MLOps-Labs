@@ -899,8 +899,12 @@
 }
 
 .stickyNote {
-  background: #fef08a;
-  /* Post-it Yellow */
+  /* Status sets the pair, the zebra picks which of the two a given note gets. Defaults are
+     the unconfirmed pair, so a note needs a status class only once it is settled. */
+  --note-bg: #fed7aa;
+  /* Light Orange: your call, not settled yet */
+  --note-bg-alt: #fdba74;
+  background: var(--note-bg);
   padding: 6px 10px;
   border-radius: 2px;
   box-shadow:
@@ -1010,18 +1014,32 @@
   }
 }
 
+/* The zebra used to alternate hue, which made the loudest property of a note mean nothing.
+   Hue now carries status; the zebra alternates tilt and one shade of the status colour, so
+   the pile still reads as loose paper rather than a table. */
 .stickyNote:nth-child(odd) {
   --note-rotate: rotate(-1.2deg);
   transform: var(--note-rotate);
-  background: #fef08a;
-  /* Yellow */
 }
 
 .stickyNote:nth-child(even) {
   --note-rotate: rotate(1deg);
   transform: var(--note-rotate);
-  background: #bae6fd;
-  /* Pastel Blue */
+  background: var(--note-bg-alt);
+}
+
+/* Status hues. These set the pair only: the zebra above decides which one lands.
+   Specificity matters here, so never set `background` in these rules. */
+.noteOnRecord {
+  --note-bg: #bae6fd;
+  /* Pastel Blue: said in public, true from the start */
+  --note-bg-alt: #7dd3fc;
+}
+
+.noteConfirmed {
+  --note-bg: #bbf7d0;
+  /* Pastel Green: you verified this yourself */
+  --note-bg-alt: #86efac;
 }
 
 
@@ -1068,6 +1086,17 @@
   margin-bottom: 0;
 }
 
+/* The fixed half of the sentence: who this is about. Survives every re-tag. */
+.intelSubject {
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* The half that swaps when the player changes the tag: their reading, not a fact yet. */
+.intelReading {
+  font-style: italic;
+}
+
 /* Distressed Ink Rubber Stamps for Confidence Levels */
 .stampContainer {
   display: flex;
@@ -1096,6 +1125,15 @@
   border: 1.5px dashed #15803d;
   background: rgba(220, 252, 231, 0.65);
   transform: rotate(-3deg);
+}
+
+/* Verified because it was public from the start, not because the player earned it.
+   Tilted the other way from .stampVerified so the two read apart at a glance. */
+.stampOnRecord {
+  color: #1d4ed8;
+  border: 1.5px solid #1d4ed8;
+  background: rgba(219, 234, 254, 0.65);
+  transform: rotate(2deg);
 }
 
 .stampUnconfirmed {
@@ -1301,4 +1339,27 @@
   50% {
     transform: scale(1.15);
   }
+}
+
+/* Reopens the phase briefing from the binder header */
+.briefingButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.35rem;
+  padding: 2px 7px;
+  border: 1px solid rgba(245, 235, 217, 0.35);
+  border-radius: 4px;
+  background: rgba(245, 235, 217, 0.1);
+  color: #f5ebd9;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.briefingButton:hover {
+  background: rgba(245, 235, 217, 0.22);
+  border-color: rgba(245, 235, 217, 0.6);
 }

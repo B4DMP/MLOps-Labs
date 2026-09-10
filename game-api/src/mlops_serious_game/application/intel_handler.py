@@ -302,6 +302,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     intel_type=ConfidenceType.VERIFIED,
                     categorized_type=req.type,
                     description=req.description,
+                    is_public_record=True,
                 )
                 new_record = IntelItem(
                     user_name=username,
@@ -315,11 +316,14 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
                         data = dict(r.intel_item_data)
                         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
-                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description:
+                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description or not data.get("is_public_record"):
                             data["intel_type"] = ConfidenceType.VERIFIED.value
                             data["categorized_type"] = cat_type_str
                             data["description"] = req.description
                             data["categorized_description"] = req.description
+                            # Items persisted before the two-stamp split carry no provenance flag;
+                            # anything the known-intel loader touches is on the public record.
+                            data["is_public_record"] = True
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -669,6 +673,21 @@ def correct_and_verify_intel_item(
 correct_and_infer_intel_item = correct_and_verify_intel_item
 
 
+def _is_public_record(item: StakeholderIntelItem) -> bool:
+    """True when the item was already public at challenge start rather than confirmed by the player.
+
+    The persisted flag only exists on items written since the two-stamp split, and the known-intel
+    loader repairs items for the *current* challenge only, so saves in progress would keep showing
+    the wrong stamp on earlier challenges. Fall back to the artifact config, which is the source of
+    truth: an `is_known` artifact never reaches the player's tagging deck, so it can only be public
+    record.
+    """
+    if getattr(item, "is_public_record", False):
+        return True
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+    return bool(artifact and artifact.is_known)
+
+
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
     """Retrieves full dossier summary data for all stakeholders in the current challenge."""
     username = ws.query_params["username"]
@@ -690,6 +709,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "categorized_type": cat_type_val,
                 "description": display_desc,
                 "is_correct": item.is_correct_intel(),
+                "is_public_record": _is_public_record(item),
             })
 
 

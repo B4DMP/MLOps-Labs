@@ -30,6 +30,14 @@ class StakeholderIntelItem(StakeholderRequirement):
     intel_type: ConfidenceType = Field(default=ConfidenceType.UNCONFIRMED, description="The type of the intel")
     categorized_type: RequirementType = Field(default=RequirementType.REQUIREMENT, description="The categorized requirement type")
     categorized_description: str = Field(default="", description="Description of the categorized requirement")
+    is_public_record: bool = Field(
+        default=False,
+        description=(
+            "True when the item was already on the public record at the start of the challenge "
+            "(said in a channel everyone reads) rather than confirmed by the player through "
+            "stakeholder interaction. Both are verified; this separates how they got there."
+        ),
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -80,6 +88,7 @@ class StakeholderIntelItem(StakeholderRequirement):
         categorized_type: Optional[RequirementType] = None,
         categorized_description: str = "",
         description: Optional[str] = None,
+        is_public_record: bool = False,
     ) -> "StakeholderIntelItem":
         resolved_desc = description if description is not None else req.description
         resolved_cat_desc = categorized_description
@@ -94,6 +103,7 @@ class StakeholderIntelItem(StakeholderRequirement):
             intel_type=intel_type,
             categorized_type=categorized_type or req.type,
             categorized_description=resolved_cat_desc,
+            is_public_record=is_public_record,
         )
 
     @property
