@@ -8,6 +8,7 @@ import styles from "./pitch_debate.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo } from "./StakeholderDossier";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
+import GlossaryText from "./glossary/GlossaryText";
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
@@ -640,7 +641,7 @@ export default function PitchDebate({
             }}
             onClick={(e) => { e.stopPropagation(); skipCurrentSpeech(); }}
           >
-            {activeSpeakingState.message}
+            <GlossaryText text={activeSpeakingState.message} surface="speech_bubbles" />
             <button
               type="button"
               className={styles.speechSkipBtn}
@@ -907,7 +908,7 @@ export default function PitchDebate({
                             </button>
                           </div>
                           <div className={styles.playerSpeechContent}>
-                            {activePlayerSpeakingState.message}
+                            <GlossaryText text={activePlayerSpeakingState.message} surface="speech_bubbles" />
                           </div>
                         </div>
                       )}
@@ -1260,7 +1261,10 @@ export default function PitchDebate({
                                   <div className={styles.dialogueIntelDescriptionBox}>
                                     <Icon icon="ph:quotes-fill" className={styles.dialogueQuoteIcon} />
                                     <p className={styles.dialogueIntelDescriptionText}>
-                                      {opt.intel_description || "Specific stakeholder constraint and requirement."}
+                                      <GlossaryText
+                                        text={opt.intel_description || "Specific stakeholder constraint and requirement."}
+                                        surface="dialogue_options"
+                                      />
                                     </p>
                                   </div>
                                 ) : (
@@ -1284,7 +1288,10 @@ export default function PitchDebate({
                                       {archInfo?.icon || ""}
                                     </span>
                                     <p className={styles.dialogueNoiseStrategyText}>
-                                      {opt.archetype?.strategy || "Foster strategic alignment and consensus across stakeholders."}
+                                      <GlossaryText
+                                        text={opt.archetype?.strategy || "Foster strategic alignment and consensus across stakeholders."}
+                                        surface="dialogue_options"
+                                      />
                                     </p>
                                   </div>
                                 )}

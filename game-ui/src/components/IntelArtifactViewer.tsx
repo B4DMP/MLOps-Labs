@@ -1,5 +1,5 @@
-import Markdown from "react-markdown";
 import styles from "./IntelArtifactViewer.module.css";
+import { GlossaryMarkdown } from "./glossary/GlossaryText";
 
 interface IntelArtifactViewerProps {
   content: string;
@@ -55,7 +55,7 @@ export default function IntelArtifactViewer({
 
         {/* Email Body */}
         <div className={`${styles.mailBody} ${styles.markdownContent}`}>
-          <Markdown>{content}</Markdown>
+          <GlossaryMarkdown content={content} surface="intel_artifacts" />
         </div>
 
         {/* Corporate Email Signature */}
@@ -110,7 +110,7 @@ export default function IntelArtifactViewer({
           </div>
 
           <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
-            <Markdown>{content}</Markdown>
+            <GlossaryMarkdown content={content} surface="intel_artifacts" />
           </div>
 
           {/* Emoji Reactions & Thread Bar */}
@@ -153,7 +153,7 @@ export default function IntelArtifactViewer({
           <div className={styles.executiveCallout}>
             <strong>Executive Takeaway / Stance:</strong>
             <div className={styles.markdownContent}>
-              <Markdown>{content}</Markdown>
+              <GlossaryMarkdown content={content} surface="intel_artifacts" />
             </div>
           </div>
 
@@ -190,7 +190,7 @@ export default function IntelArtifactViewer({
         </div>
 
         <div className={`${styles.specContentBox} ${styles.markdownContent}`}>
-          <Markdown>{content}</Markdown>
+          <GlossaryMarkdown content={content} surface="intel_artifacts" />
         </div>
       </div>
     </div>

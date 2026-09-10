@@ -19,6 +19,8 @@ import type { ActionCard } from "../types/ActionCard";
 import introJs from "intro.js";
 
 import styles from "./StakeholderInteractionArea.module.css";
+import { useGlossaryHighlighter } from "./glossary/GlossaryText";
+import { useGlossary } from "./glossary/GlossaryProvider";
 
 export type RevealedIntel = {
   id?: string;
@@ -99,6 +101,10 @@ export default function StakeholderInteractionArea({
     }
     return st?.stakeholder_color || "#38bdf8";
   };
+
+  const highlightMessage = useGlossaryHighlighter("stakeholder_messages");
+  const { isSurfaceEnabled } = useGlossary();
+  const highlightMessages = isSurfaceEnabled("stakeholder_messages");
 
   useEffect(() => {
     if (!isEnabled && current_challenge === 0 && current_phase === 0 && !isintro4DoneRef.current) {
@@ -212,6 +218,13 @@ export default function StakeholderInteractionArea({
                         }}
                         avatarSpacer={isUser ? false : true}
                       >
+                        {/* Custom content only when the glossary is on for this surface, so
+                            with highlighting off the bubble renders exactly as it always did. */}
+                        {highlightMessages && (
+                          <Message.CustomContent>
+                            {highlightMessage(item.message)}
+                          </Message.CustomContent>
+                        )}
                         {!isUser && (
                           <Avatar
                             name={senderName}

@@ -1,0 +1,93 @@
+{
+  "type": "Categorization",
+  "elements": [
+    {
+      "type": "Category",
+      "label": "Highlighting Settings",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/enabled"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/case_sensitive"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/match_whole_words"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/max_highlights_per_term_per_block"
+        },
+        {
+          "type": "Control",
+          "scope": "#/properties/settings/properties/min_term_length"
+        },
+        {
+          "type": "Group",
+          "label": "Where Highlighting Applies",
+          "elements": [
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/stakeholder_messages"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/speech_bubbles"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/intel_notes"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/intel_artifacts"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/dossier_profile"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/dialogue_options"
+            },
+            {
+              "type": "Control",
+              "scope": "#/properties/settings/properties/surfaces/properties/challenge_briefing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Glossary Terms",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/terms",
+          "label": "Highlighted MLOps Terms",
+          "options": {
+            "elementLabelProp": "term"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Category",
+      "label": "Categories",
+      "elements": [
+        {
+          "type": "Control",
+          "scope": "#/properties/categories",
+          "label": "Term Categories & Accent Colours",
+          "options": {
+            "elementLabelProp": "label"
+          }
+        }
+      ]
+    }
+  ]
+}

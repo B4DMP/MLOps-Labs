@@ -1,0 +1,189 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "MLOps Glossary Configuration",
+  "description": "Terms highlighted inside stakeholder messages, intel notes, intel artifacts and dossier text, with the explanation shown on hover.",
+  "required": ["terms"],
+  "properties": {
+    "settings": {
+      "type": "object",
+      "title": "Highlighting Settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enable Glossary Highlighting",
+          "description": "Master switch. When off, all game text renders unchanged.",
+          "default": true
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "title": "Case Sensitive Matching",
+          "description": "When off (recommended), 'Data Drift' and 'data drift' both match.",
+          "default": false
+        },
+        "match_whole_words": {
+          "type": "boolean",
+          "title": "Match Whole Words Only",
+          "description": "When on (recommended), 'feature' does not match inside 'features store'.",
+          "default": true
+        },
+        "max_highlights_per_term_per_block": {
+          "type": "integer",
+          "title": "Max Highlights Per Term Per Text Block",
+          "description": "How often the same term is highlighted within one message or note. 1 keeps text readable; 0 means unlimited.",
+          "minimum": 0,
+          "default": 1
+        },
+        "min_term_length": {
+          "type": "integer",
+          "title": "Minimum Term Length",
+          "description": "Terms and aliases shorter than this are ignored, which stops very short strings from peppering the text.",
+          "minimum": 1,
+          "default": 2
+        },
+        "surfaces": {
+          "type": "object",
+          "title": "Where Highlighting Applies",
+          "description": "Turn highlighting on or off per surface of the game.",
+          "properties": {
+            "stakeholder_messages": {
+              "type": "boolean",
+              "title": "Stakeholder Chat Messages",
+              "default": true
+            },
+            "speech_bubbles": {
+              "type": "boolean",
+              "title": "Pitch Debate Speech Bubbles",
+              "description": "Off by default: those bubbles are click-to-skip and disappear on a timer, so hovering them fights the interaction.",
+              "default": false
+            },
+            "intel_notes": {
+              "type": "boolean",
+              "title": "Dossier Intel Sticky Notes",
+              "default": true
+            },
+            "intel_artifacts": {
+              "type": "boolean",
+              "title": "Offline Intel Artifacts (emails, chats, docs)",
+              "default": true
+            },
+            "dossier_profile": {
+              "type": "boolean",
+              "title": "Dossier Profile Text (role, responsibilities, priorities)",
+              "default": true
+            },
+            "dialogue_options": {
+              "type": "boolean",
+              "title": "Pitch Debate Dialogue Cards",
+              "default": true
+            },
+            "challenge_briefing": {
+              "type": "boolean",
+              "title": "Challenge Description & Briefing",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "title": "Term Categories",
+      "description": "Grouping used for the colour of the underline and the label on the hover card.",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "color"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Category ID",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "label": {
+            "type": "string",
+            "title": "Display Label"
+          },
+          "color": {
+            "type": "string",
+            "title": "Accent Colour (hex)",
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Iconify Icon Name"
+          }
+        }
+      }
+    },
+    "terms": {
+      "type": "array",
+      "title": "Glossary Terms",
+      "items": {
+        "type": "object",
+        "required": ["id", "term", "category", "definition"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Term ID",
+            "description": "Stable, unique identifier. Used as the React key and in the highlight markup.",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "term": {
+            "type": "string",
+            "title": "Term",
+            "description": "The canonical spelling, shown as the heading of the hover card.",
+            "minLength": 1
+          },
+          "aliases": {
+            "type": "array",
+            "title": "Aliases & Inflections",
+            "description": "Other spellings that should highlight to this same explanation (plurals, abbreviations, British/American spellings).",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Must match one of the category IDs above.",
+            "enum": [
+              "lifecycle",
+              "requirements",
+              "data",
+              "model",
+              "metrics",
+              "deployment",
+              "monitoring",
+              "infrastructure",
+              "governance",
+              "debt"
+            ]
+          },
+          "definition": {
+            "type": "string",
+            "title": "Definition",
+            "description": "One or two sentences of plain language. Shown as the body of the hover card.",
+            "minLength": 1
+          },
+          "why_it_matters": {
+            "type": "string",
+            "title": "Why It Matters Here",
+            "description": "Optional second paragraph tying the term to this game's stakeholders and challenges."
+          },
+          "read_more": {
+            "type": "string",
+            "title": "Read More URL",
+            "description": "Optional link shown at the foot of the hover card."
+          },
+          "disabled": {
+            "type": "boolean",
+            "title": "Disabled",
+            "description": "Keep the entry but stop highlighting it.",
+            "default": false
+          }
+        }
+      }
+    }
+  }
+}

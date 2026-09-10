@@ -10,6 +10,7 @@ from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineInte
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
+from mlops_serious_game.domain.glossary_factory import GlossaryFactory
 
 
 class GameConfigLoader:
@@ -61,6 +62,15 @@ class GameConfigLoader:
             if emotion_path.exists():
                 EmotionFactory.load_config(emotion_path)
                 print(f"loaded emotion configs.")
+
+            glossary_path = (base_dir / "../../../../gameConfig/MLOpsGlossary.json").resolve()
+            if glossary_path.exists():
+                # A broken glossary costs highlighting, not a game: never let it block startup.
+                try:
+                    GlossaryFactory.load_glossary(glossary_path)
+                    print(f"loaded glossary: {len(GlossaryFactory.get_terms())} terms.")
+                except Exception as e:
+                    print(f"failed to load glossary, highlighting disabled: {e}")
 
         except Exception as e:
             raise ConfigLoaderError(e)

@@ -7,6 +7,7 @@ import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import GlossaryText from "./glossary/GlossaryText";
 
 export interface IntelEntry {
   id: string;
@@ -662,7 +663,11 @@ export default function StakeholderDossier({
 
           <div className={styles.stakeholderMainInfo}>
             <div className={styles.stakeholderRole}>
-              <strong className={styles.fieldLabel}>Role:</strong> {st.role_description || "Project Stakeholder"}
+              <strong className={styles.fieldLabel}>Role:</strong>{" "}
+              <GlossaryText
+                text={st.role_description || "Project Stakeholder"}
+                surface="dossier_profile"
+              />
             </div>
             <div className={styles.stakeholderMetaRow}>
               <div
@@ -807,7 +812,8 @@ export default function StakeholderDossier({
                 <div className={styles.convincerStrategyText}>
                   <span className={styles.strategyBulb}>💡</span>
                   <span>
-                    <strong>Strategy:</strong> {convincerProfileConfig.strategy}
+                    <strong>Strategy:</strong>{" "}
+                    <GlossaryText text={convincerProfileConfig.strategy} surface="dossier_profile" />
                   </span>
                 </div>
               )}
@@ -1068,9 +1074,11 @@ export default function StakeholderDossier({
                       "
                       {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
                       {isUnconfirmed ? (
-                        <em className={styles.intelReading}>{noteReading}</em>
+                        <em className={styles.intelReading}>
+                          <GlossaryText text={noteReading} surface="intel_notes" />
+                        </em>
                       ) : (
-                        noteReading
+                        <GlossaryText text={noteReading} surface="intel_notes" />
                       )}
                       "
                     </div>

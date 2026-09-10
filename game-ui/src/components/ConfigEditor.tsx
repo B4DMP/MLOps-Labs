@@ -14,6 +14,7 @@ import {
   generateOfflineIntelArtifacts,
   type ConfigFileInfo
 } from "../services/api/admin";
+import GlossaryPreview from "./glossary/GlossaryPreview";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import styles from "./Admin.module.css";
 
@@ -512,6 +513,11 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
           ></button>
         </div>
       )}
+
+      {/* Glossary Highlighting Live Preview (When MLOpsGlossary.json is opened) */}
+      {(selectedFilename === "MLOpsGlossary.json" ||
+        (Array.isArray(currentData?.terms) && currentData?.terms?.[0]?.definition !== undefined)) &&
+        currentData && <GlossaryPreview config={currentData} />}
 
       {/* Stakeholder Avatars Live Preview (When GameStakeholders.json is opened) */}
       {(selectedFilename === "GameStakeholders.json" || selectedFilename === "FullStakeholders.json" || Array.isArray(currentData?.stakeholders)) && currentData?.stakeholders && (
