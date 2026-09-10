@@ -1,5 +1,7 @@
 # Possible Pitch Debate Design Changes
 
+> Superseded by [graph-redesign/](graph-redesign/STATE.md). This file stays as motivation and notation reference only.
+
 ## Motivation
 
 The current pitch debate is decoupled from the Analyze and Strategize phases: objections are generic, buy-in ignores what the proposal actually covers, and the player has no live negotiation tools. Four specific gaps drive the changes below:
