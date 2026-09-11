@@ -318,3 +318,6 @@ pyrightconfig.json
 # Local docker-compose configurations
 docker-compose.yml
 docker-compose.override.yml
+
+# content_gen harness scratch (the ledger, outputs and reviews are committed)
+game-api/tools/content_gen/work/*.tmp
