@@ -1,8 +1,9 @@
 """The model the harness talks to. Same providers as the game (settings), structured output only."""
 
+import json
 from typing import Any, Callable, NamedTuple, Optional, Protocol, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -30,7 +31,8 @@ def _usage_from(raw: Any) -> Usage:
 class LangchainLLM:
     """Uses the provider the game is configured for: Mistral, WestAI, else Groq."""
 
-    def __init__(self, temperature: float = 0.6, model_name: Optional[str] = None):
+    def __init__(self, temperature: float = 0.6, model_name: Optional[str] = None,
+                 max_tokens: int = 4096, timeout_s: float = 180):
         from langchain_groq import ChatGroq
         from langchain_openai import ChatOpenAI
 
@@ -39,14 +41,17 @@ class LangchainLLM:
         if settings.MISTRAL_API_KEY:
             self.model_id = model_name or settings.MISTRAL_LLM_MODEL
             self.chat = ChatOpenAI(api_key=settings.MISTRAL_API_KEY, base_url=settings.MISTRAL_API_BASE,
-                                   model_name=self.model_id, temperature=temperature)
+                                   model_name=self.model_id, temperature=temperature,
+                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=1)
         elif settings.WESTAI_API_KEY:
             self.model_id = model_name or settings.WESTAI_LLM_MODEL
             self.chat = ChatOpenAI(api_key=settings.WESTAI_API_KEY, base_url=settings.WESTAI_API_BASE,
-                                   model_name=self.model_id, temperature=temperature)
+                                   model_name=self.model_id, temperature=temperature,
+                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=1)
         else:
             self.model_id = model_name or settings.GROQ_LLM_MODEL
-            self.chat = ChatGroq(api_key=settings.GROQ_API_KEY, model_name=self.model_id, temperature=temperature)
+            self.chat = ChatGroq(api_key=settings.GROQ_API_KEY, model_name=self.model_id, temperature=temperature,
+                                 max_tokens=max_tokens, timeout=timeout_s, max_retries=1)
 
     def _callbacks(self, tags: Optional[dict]) -> list:
         try:
@@ -57,15 +62,26 @@ class LangchainLLM:
             return []
 
     async def structured(self, schema: type[T], system: str, user: str, tags: Optional[dict] = None) -> tuple[T, Usage]:
-        runnable = self.chat.with_structured_output(schema, include_raw=True)
-        result = await runnable.ainvoke(
+        # JSON mode with the schema in the prompt. Function calling with large nested schemas makes
+        # the server's guided decoding crawl or run to the length limit; this is fast and the
+        # pydantic validation below is just as strict. Parse errors surface as retries.
+        system = (
+            f"{system}\n\nReply with exactly one JSON object and nothing else. It must match this "
+            f"JSON schema:\n{json.dumps(schema.model_json_schema())}"
+        )
+        message = await self.chat.bind(response_format={"type": "json_object"}).ainvoke(
             [("system", system), ("human", user)],
             config={"callbacks": self._callbacks(tags), "metadata": tags or {}},
         )
-        parsed = result.get("parsed")
-        if parsed is None:
-            raise ValueError(f"model returned no parseable {schema.__name__}: {result.get('parsing_error')}")
-        return parsed, _usage_from(result.get("raw"))
+        text = message.content if isinstance(message.content, str) else str(message.content)
+        start, end = text.find("{"), text.rfind("}")
+        if start < 0 or end < start:
+            raise ValueError(f"model returned no JSON object for {schema.__name__}")
+        try:
+            parsed = schema.model_validate_json(text[start : end + 1])
+        except ValidationError as e:
+            raise ValueError(f"model JSON does not match {schema.__name__}: {e}") from None
+        return parsed, _usage_from(message)
 
 
 class FakeLLM:

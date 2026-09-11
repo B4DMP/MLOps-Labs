@@ -6,7 +6,7 @@ from pathlib import Path
 
 from content_gen.ledger import WorkItem
 from content_gen.stages import STAGES
-from content_gen.stages.items import ItemsStage
+from content_gen.stages.items import ItemsStage, wrong_readings
 
 ID_LOCK = "assembly_ids.json"
 
@@ -27,6 +27,7 @@ def collect(ctx) -> dict:
     """Everything approved, checked for completeness. Raises with the list of what is missing."""
     templates = ctx.approved("templates")
     items = {r["inputs"]["challenge"]["template_id"]: r for r in ctx.approved("items")}
+    readings_by_req: dict[str, dict] = {}
     artifacts = {r["inputs"]["requirement"]["id"]: r for r in ctx.approved("artifacts")}
     objections = {r["item_id"].removeprefix("objections:"): r for r in ctx.approved("objections")}
     fragments = ctx.approved("fragments")
@@ -44,6 +45,7 @@ def collect(ctx) -> dict:
             continue
         for req in ItemsStage.to_requirements(irec["output"], ch):
             requirements.append((ch["template_id"], req))
+            readings_by_req[req.id] = wrong_readings(irec["output"], req.id)
             if req.id not in artifacts:
                 missing.append(f"artifact for {req.id}")
             if req.type != "fact" and req.id not in objections:
@@ -62,7 +64,7 @@ def collect(ctx) -> dict:
     if missing:
         raise AssemblyError("not everything is approved yet:\n  " + "\n  ".join(missing))
     return {"challenges": challenges, "requirements": requirements, "artifacts": artifacts,
-            "objections": objections, "fragments": fragments}
+            "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req}
 
 
 def assemble(ctx, dry_run: bool = False) -> dict:
@@ -90,7 +92,6 @@ def assemble(ctx, dry_run: bool = False) -> dict:
     reqs["requirements"] = [r for r in reqs["requirements"] if not str(r["id"]).startswith("gen_")]
     arts = _load(cfg / "OfflineIntelArtifacts.json")
     arts["artifacts"] = [a for a in arts["artifacts"] if not str(a["id"]).startswith("art_gen_")]
-    astage = STAGES["artifacts"]
     known_done: set[str] = set()
     for template_id, req in data["requirements"]:
         req = req.model_copy(update={"challenge_id": ids[template_id]})
@@ -107,7 +108,8 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             "stakeholder_id": req.stakeholder_id,
             "artifact_type": art["inputs"]["artifact_type"],
             "content": art["output"]["content"],
-            "wrong_descriptions": astage.wrong_descriptions(art["output"], req.type),
+            # Readings only: the game puts the unchanged fact in front of them (split wording).
+            "wrong_descriptions": data["wrong_readings"][req.id],
             "is_known": is_known,
         })
 

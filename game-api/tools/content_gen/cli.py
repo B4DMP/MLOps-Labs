@@ -5,6 +5,8 @@
   review --stage S                    writes work/review/S.csv and prints one line per item
   approve --stage S [--only GLOB]     marks done items approved; the next stage builds on approved ones
   reject ITEM_ID --note "..."         queues an item for regeneration with the note in the prompt
+  try --stage S --item ID [--attempts N] [--show]   one item, printed, nothing written (prompt iteration)
+  unstick                             releases items a killed run left running
   diff [--stage S]                    what the current config would make stale
   assemble [--dry-run]                writes approved content into gameConfig
   validate                            runs the content gates on gameConfig
@@ -54,6 +56,9 @@ def cmd_run(ctx, ledger, args) -> int:
         print(f"  FAILED {item_id}: {err[:300]}")
     if report.stopped:
         print(f"stopped: {report.stopped}")
+    stuck = [r.item_id for r in ledger.rows(stage.name) if r.status == "running"]
+    if stuck and not report.todo:
+        print(f"{len(stuck)} item(s) still marked running; if no other run is active, `unstick` releases them")
     return 1 if report.failed else 0
 
 
@@ -84,6 +89,43 @@ def cmd_approve(ctx, ledger, args) -> int:
 def cmd_reject(ctx, ledger, args) -> int:
     ledger.reject(args.item_id, args.note)
     print(f"rejected {args.item_id}; the next run regenerates it with your note")
+    return 0
+
+
+def cmd_try(ctx, ledger, args) -> int:
+    """Prompt iteration: generate one item and show the output and the checks. Writes nothing."""
+    from content_gen.runner import log
+
+    stage = STAGES[args.stage]
+    items = [i for i in stage.plan(ctx) if fnmatch.fnmatch(i.item_id, args.item)]
+    if not items:
+        print(f"no planned {stage.name} item matches {args.item}; `diff --stage {stage.name}` lists them")
+        return 1
+    item = items[0]
+    llm = _llm(args)
+    feedback: list[str] = []
+    for attempt in range(1, args.attempts + 1):
+        try:
+            output, usage = asyncio.run(stage.generate(item, ctx, llm, feedback))
+        except Exception as e:
+            log(f"{item.item_id} attempt {attempt}: generation error: {e}")
+            continue
+        errors = stage.check(output, item, ctx)
+        log(f"{item.item_id} attempt {attempt}: tokens {usage.tokens_in}+{usage.tokens_out}, "
+            + ("ok" if not errors else f"{len(errors)} problem(s)"))
+        if args.show or not errors:
+            print(json.dumps(output, indent=1, ensure_ascii=False))
+        for e in errors:
+            print(f"  - {e}")
+        if not errors:
+            return 0
+        feedback = ["Your previous answer:", json.dumps(output, ensure_ascii=False),
+                    "It was rejected. Return a corrected version that fixes these problems:", *errors]
+    return 1
+
+
+def cmd_unstick(ctx, ledger, args) -> int:
+    print(f"released {ledger.unstick()} item(s) left running by a killed run")
     return 0
 
 
@@ -150,6 +192,12 @@ def main(argv=None) -> int:
     p = sub.add_parser("reject")
     p.add_argument("item_id")
     p.add_argument("--note", required=True)
+    sub.add_parser("unstick")
+    p = sub.add_parser("try")
+    p.add_argument("--stage", required=True, choices=ORDER)
+    p.add_argument("--item", required=True, help="item id or glob; the first match is used")
+    p.add_argument("--attempts", type=int, default=1)
+    p.add_argument("--show", action="store_true", help="print the output even when it fails")
     p = sub.add_parser("diff")
     p.add_argument("--stage", choices=ORDER)
     p = sub.add_parser("assemble")

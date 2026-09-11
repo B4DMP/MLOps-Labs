@@ -10,7 +10,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "component": "ops.production_drift_monitoring",
@@ -44,7 +45,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "component": "data.feature_store",
@@ -73,7 +75,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "on": "nominal"
           },
           {
             "any": [
@@ -125,7 +128,8 @@
           {
             "component": "model.training_pipeline",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "on": "nominal"
           },
           {
             "any": [
@@ -163,12 +167,14 @@
           {
             "component": "data.ingestion",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "on": "nominal"
           },
           {
             "component": "model.training_pipeline",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "any": [
@@ -249,7 +255,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "on": "nominal"
           },
           {
             "component": "model.registry",
@@ -277,7 +284,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "component": "ops.rollback",
@@ -305,7 +313,8 @@
           {
             "component": "ops.alerting",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "any": [
@@ -353,17 +362,20 @@
               {
                 "component": "model.hpo",
                 "op": "gte",
-                "level": 3
+                "level": 3,
+                "on": "nominal"
               },
               {
                 "component": "deploy.orchestration",
                 "op": "gte",
-                "level": 3
+                "level": 3,
+                "on": "nominal"
               },
               {
                 "component": "gov.compute_scheduling",
                 "op": "gte",
-                "level": 3
+                "level": 3,
+                "on": "nominal"
               }
             ]
           }
@@ -395,12 +407,14 @@
               {
                 "component": "deploy.api_gateway",
                 "op": "gte",
-                "level": 3
+                "level": 3,
+                "on": "nominal"
               },
               {
                 "component": "data.feature_store",
                 "op": "gte",
-                "level": 3
+                "level": 3,
+                "on": "nominal"
               }
             ]
           }
@@ -426,7 +440,8 @@
           {
             "component": "model.registry",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "component": "gov.model_cards",
@@ -1092,7 +1107,8 @@
           {
             "component": "deploy.serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "instance": {
@@ -1129,7 +1145,8 @@
           {
             "component": "model.training_pipeline",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "on": "nominal"
           },
           {
             "instance": {

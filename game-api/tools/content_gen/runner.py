@@ -8,6 +8,8 @@ import asyncio
 import fnmatch
 import json
 import signal
+import sys
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -22,7 +24,7 @@ class RunOptions:
     force: bool = False
     dry_run: bool = False
     concurrency: int = 3
-    max_attempts: int = 3
+    max_attempts: int = 5
     budget_tokens: Optional[int] = None
     retries_on_error: int = 3
 
@@ -45,6 +47,13 @@ class Stop:
 
     def set(self, reason: str) -> None:
         self.reason = self.reason or reason
+
+
+_T0 = time.time()
+
+
+def log(msg: str) -> None:
+    print(f"[{time.time() - _T0:6.1f}s] {msg}", file=sys.stderr, flush=True)
 
 
 def _install_sigint(stop: Stop):
@@ -87,6 +96,7 @@ async def run_stage(stage, ctx, ledger: Ledger, llm: LLM, opts: RunOptions, stop
             feedback = list(note)
             used_in = used_out = 0
             last_errors: list[str] = []
+            earlier: list[str] = []
             for attempt in range(1, opts.max_attempts + 1):
                 output = None
                 for retry in range(opts.retries_on_error):
@@ -99,8 +109,13 @@ async def run_stage(stage, ctx, ledger: Ledger, llm: LLM, opts: RunOptions, stop
                         last_errors = [f"generation error: {e}"]
                         await asyncio.sleep(min(30, 2 ** retry))
                 if output is None:
+                    log(f"{item.item_id} attempt {attempt}: {last_errors[0][:200]}")
                     continue
-                last_errors = stage.check(output, item, ctx)
+                try:
+                    last_errors = stage.check(output, item, ctx)
+                except Exception as e:  # malformed model output must never crash the run
+                    last_errors = [f"the answer could not be checked ({type(e).__name__}: {e}); follow the schema exactly"]
+                log(f"{item.item_id} attempt {attempt}: " + ("ok" if not last_errors else f"{len(last_errors)} problem(s): " + " | ".join(e[:160] for e in last_errors[:4])))
                 if not last_errors:
                     path = ctx.out_path(stage.name, item.item_id)
                     path.parent.mkdir(parents=True, exist_ok=True)
@@ -117,10 +132,18 @@ async def run_stage(stage, ctx, ledger: Ledger, llm: LLM, opts: RunOptions, stop
                     ledger.finish(item.item_id, path.relative_to(ctx.work_dir).as_posix(), used_in, used_out, llm.model_id, attempt)
                     report.done.append(item.item_id)
                     break
+                # Correct the previous answer rather than start over, and remember every problem seen
+                # so a fix for one does not bring back another.
                 feedback = note + [
-                    "Your previous answer was rejected by the game's checks. Fix exactly these problems:",
+                    "Your previous answer:",
+                    json.dumps(output, ensure_ascii=False),
+                    "It was rejected by the game's checks. Return a corrected version of that answer that fixes "
+                    "these problems and keeps everything that was fine:",
                     *last_errors,
                 ]
+                if earlier:
+                    feedback += ["Earlier answers also failed on these, do not reintroduce them:", *earlier]
+                earlier += [e for e in last_errors if e not in earlier]
             else:
                 ledger.fail(item.item_id, "; ".join(last_errors), used_in, used_out, opts.max_attempts)
                 report.failed[item.item_id] = "; ".join(last_errors)

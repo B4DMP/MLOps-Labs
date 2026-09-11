@@ -81,3 +81,17 @@ def ops_errors(label: str, ops: list[dict], graph, allowed_kinds: set[str], allo
 
 def render(obj: Any) -> str:
     return json.dumps(obj, indent=1, ensure_ascii=False)
+
+
+def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
+    """Rewrites plain stakeholder names into the tokens the game renders per player, so persona
+    names stay consistent: {data_dave} in intel text, #data_dave# in challenge descriptions.
+    Deterministic, so the model does not spend attempts on it."""
+    if not text:
+        return text
+    for sid, st in sorted(stakeholders.items(), key=lambda kv: -len(kv[1].name or "")):
+        if not st.name:
+            continue
+        token = f"{{{sid}}}" if style == "brace" else f"#{sid}#"
+        text = re.sub(re.escape(st.name), token, text, flags=re.I)
+    return text

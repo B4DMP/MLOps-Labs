@@ -160,6 +160,12 @@ class Ledger:
             attempts=row.attempts + attempts,
         )
 
+    def unstick(self) -> int:
+        """Items a killed run left in `running` go back to pending."""
+        cur = self.conn.execute("UPDATE items SET status = 'pending' WHERE status = 'running'")
+        self.conn.commit()
+        return cur.rowcount
+
     def release(self, item_id: str) -> None:
         """An item interrupted before it started stays pending."""
         self._set(item_id, status="pending")

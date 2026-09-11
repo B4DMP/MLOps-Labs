@@ -28,12 +28,12 @@ SCOPE = {
 
 TEMPLATE = {
     "slug": "ingest_outage",
-    "name": "The Ingestion Outage",
+    "name": "The Silent Export",
     "description": "The nightly export died and took the labels with it. #data_dave# wants validation automated "
                    "before anyone trains again, #efficiency_emilia# thinks that is money spent on the wrong problem.",
     "round_introduction": "Overnight the export job failed and the labelling tool stopped with it. Nobody noticed until "
                           "the morning stand up.",
-    "preconditions_json": json.dumps({"component": "data.validation", "op": "lte", "level": 1}),
+    "preconditions": {"component": "data.validation", "op": "lte", "level": 1},
     "priority": 60,
     "on_enter_ops": [
         {"kind": "set_to", "target": "data.ingestion", "value": "0", "reason": "the nightly export died"},
@@ -47,40 +47,40 @@ TEMPLATE = {
 ITEMS = {"items": [
     {"key": "dave_validation", "tag": "driver", "stakeholder_id": "data_dave",
      "fact": "{data_dave} wants every incoming batch validated automatically.",
-     "reading": "He would take any improvement he can get.",
+     "readings": {"driver": "D: He would take any improvement he can get.", "boundary": "B: He would take any improvement he can get.", "trade_off": "T: He would take any improvement he can get.", "fact": "F: He would take any improvement he can get."},
      "metric_id": "data", "suggested_target": "data.validation", "suggested_level": 3},
     {"key": "dave_versioning", "tag": "driver", "stakeholder_id": "data_dave",
      "fact": "{data_dave} wants each dataset versioned.",
-     "reading": "More versioning is always better in his book.",
+     "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: More versioning is always better in his book.", "trade_off": "T: More versioning is always better in his book.", "fact": "F: More versioning is always better in his book."},
      "metric_id": "data", "suggested_target": "data.versioning", "suggested_level": 3},
     {"key": "ruth_ingestion", "tag": "boundary", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the ingestion job running again.",
-     "reading": "She will not sign off on anything until it is.",
-     "holds_json": json.dumps({"component": "data.ingestion", "op": "gte", "level": 2}),
+     "readings": {"driver": "D: She will not sign off on anything until it is.", "boundary": "B: She will not sign off on anything until it is.", "trade_off": "T: She will not sign off on anything until it is.", "fact": "F: She will not sign off on anything until it is."},
+     "holds": {"component": "data.ingestion", "op": "gte", "level": 2},
      "ops": [{"kind": "raise_to", "target": "data.ingestion", "value": "2"}]},
     {"key": "ruth_handover", "tag": "driver", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the hand over into validation to run on its own.",
-     "reading": "Every step closer to that helps her.",
+     "readings": {"driver": "D: Every step closer to that helps her.", "boundary": "B: Every step closer to that helps her.", "trade_off": "T: Every step closer to that helps her.", "fact": "F: Every step closer to that helps her."},
      "metric_id": "reliability", "suggested_target": "e.ingest_validate", "suggested_level": 3},
     {"key": "emilia_cost", "tag": "trade_off", "stakeholder_id": "efficiency_emilia",
      "fact": "{efficiency_emilia} agreed to discuss automated validation.",
-     "reading": "She can live with paying for it if the outages end.",
+     "readings": {"driver": "D: She can live with paying for it if the outages end.", "boundary": "B: She can live with paying for it if the outages end.", "trade_off": "T: She can live with paying for it if the outages end.", "fact": "F: She can live with paying for it if the outages end."},
      "concedes_target": "data.validation", "concedes_max_level": 3},
     {"key": "reuben_contract", "tag": "driver", "stakeholder_id": "requirements_reuben",
      "fact": "{requirements_reuben} wants the data contract applied to every ingestion run.",
-     "reading": "The closer the better, as far as he is concerned.",
+     "readings": {"driver": "D: The closer the better, as far as he is concerned.", "boundary": "B: The closer the better, as far as he is concerned.", "trade_off": "T: The closer the better, as far as he is concerned.", "fact": "F: The closer the better, as far as he is concerned."},
      "metric_id": "requirements", "suggested_target": "e.contracts_ingest", "suggested_level": 2},
     {"key": "fact_ingestion", "tag": "fact",
      "fact": "The ingestion job has produced no new records since last night.",
-     "reading": "That is simply the current state of the pipeline.",
+     "readings": {"driver": "D: That is simply the current state of the pipeline.", "boundary": "B: That is simply the current state of the pipeline.", "trade_off": "T: That is simply the current state of the pipeline.", "fact": "F: That is simply the current state of the pipeline."},
      "asserts_target": "data.ingestion", "asserts_level": 0},
     {"key": "fact_handover", "tag": "fact",
      "fact": "New data is moved into validation by hand, on request.",
-     "reading": "That is how it works today.",
+     "readings": {"driver": "D: That is how it works today.", "boundary": "B: That is how it works today.", "trade_off": "T: That is how it works today.", "fact": "F: That is how it works today."},
      "asserts_target": "e.ingest_validate", "asserts_level": 2, "asserts_trigger": "manual_request"},
     {"key": "fact_versioning", "tag": "fact",
      "fact": "Datasets are not versioned at all.",
-     "reading": "Nothing more to it than that.",
+     "readings": {"driver": "D: Nothing more to it than that.", "boundary": "B: Nothing more to it than that.", "trade_off": "T: Nothing more to it than that.", "fact": "F: Nothing more to it than that."},
      "asserts_target": "data.versioning", "asserts_level": 1},
 ]}
 
@@ -96,9 +96,7 @@ def respond(schema, system, user):
         return ITEMS
     if name == "ArtifactOut":
         tag = re.search(r"Intel item \((\w+)\)", user).group(1)
-        return {"content": f"[{tag}] {FILLER}",
-                **{f"wrong_as_{t}": f"A player reading it as a {t} sees it differently."
-                   for t in ("driver", "boundary", "trade_off", "fact") if t != tag}}
+        return {"content": f"[{tag}] {FILLER}"}
     if name == "Classification":
         return {"tag": re.match(r"\[(\w+)\]", user).group(1), "reason": "it says so"}
     if name == "StanceObjection":

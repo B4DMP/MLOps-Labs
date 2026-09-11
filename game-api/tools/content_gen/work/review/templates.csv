@@ -1,0 +1,5 @@
+item_id,status,summary,error,note,output_file
+templates:p2:s0,done,Data Quality Compromise | conflict on data.validation: data_dave=3 vs reliability_ruth=1,,,out/templates/templates__p2__s0.json
+templates:p2:s1,done,Data Validation Conflict | conflict on data.validation: data_dave=3 vs requirements_reuben=1,,,out/templates/templates__p2__s1.json
+templates:p3:s0,done,Model Evaluation Conflict | conflict on model.evaluation: requirements_reuben=4 vs efficiency_emilia=2,,,out/templates/templates__p3__s0.json
+templates:p3:s1,done,Training Pipeline Debate | conflict on model.training_pipeline: requirements_reuben=2 vs model_monica=4,,,out/templates/templates__p3__s1.json

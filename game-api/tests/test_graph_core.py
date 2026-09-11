@@ -436,6 +436,7 @@ def test_unknown_clause_raises_and_validation_reports_bad_references():
         pattern_ids={"dp_x"},
     )
     assert len(errors) == 4
+    assert validate_predicate({"any": [{"edge": {"id": "e.src_mid"}}, {"instance": "model"}, {"pattern": 3}]}, g)
 
 
 # ---------- stage graph ----------

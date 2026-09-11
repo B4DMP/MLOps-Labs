@@ -159,10 +159,15 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
             walk(p["not"])
             return
         if "pattern" in p:
-            if pattern_ids is not None and p["pattern"] not in pattern_ids:
+            if not isinstance(p["pattern"], str):
+                errors.append(f"'pattern' must be a pattern id, got {p['pattern']!r}")
+            elif pattern_ids is not None and p["pattern"] not in pattern_ids:
                 errors.append(f"unknown pattern '{p['pattern']}'")
             return
         if "attr" in p:
+            if not isinstance(p["attr"], str):
+                errors.append(f"'attr' must be a 'component.attribute' string, got {p['attr']!r}")
+                return
             component, _, attr = p["attr"].rpartition(".")
             if not graph.is_component(component) or attr not in graph.component(component).attributes:
                 errors.append(f"unknown attribute '{p['attr']}'")
@@ -170,13 +175,16 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
                 errors.append(f"value '{p.get('value')}' not allowed for '{p['attr']}'")
             return
         if "edge" in p and "trigger" in p:
-            if not graph.is_edge(p["edge"]):
+            if not isinstance(p["edge"], str) or not graph.is_edge(p["edge"]):
                 errors.append(f"unknown edge '{p['edge']}'")
             elif p.get("value") not in graph.triggers:
                 errors.append(f"unknown trigger '{p.get('value')}'")
             return
         for key, exists in (("component", graph.is_component), ("edge", graph.is_edge)):
             if key in p:
+                if not isinstance(p[key], str):
+                    errors.append(f"'{key}' must be an id string, got {p[key]!r}")
+                    return
                 if not exists(p[key]):
                     errors.append(f"unknown {key} '{p[key]}'")
                 if p.get("op", "gte") not in _OPS:
@@ -188,6 +196,9 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
                 return
         if "instance" in p:
             spec = p["instance"]
+            if not isinstance(spec, dict):
+                errors.append(f"'instance' must be an object, got {spec!r}")
+                return
             if "kind" in spec and spec["kind"] not in graph.instance_kinds:
                 errors.append(f"unknown instance kind '{spec['kind']}'")
                 return

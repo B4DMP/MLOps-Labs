@@ -20,10 +20,6 @@ TAGS = ["driver", "boundary", "trade_off", "fact"]
 
 class ArtifactOut(BaseModel):
     content: str = Field(description="the artifact body, 60 to 150 words, no title or subject line")
-    wrong_as_driver: Optional[str] = Field(default=None, description="one sentence: the READING a player who tags this as a driver takes away")
-    wrong_as_boundary: Optional[str] = None
-    wrong_as_trade_off: Optional[str] = None
-    wrong_as_fact: Optional[str] = None
 
 
 class Classification(BaseModel):
@@ -41,9 +37,7 @@ intel item, and a careful reader must be able to tell which kind it is:
 - fact: a neutral technical record of how the system is. Nobody's wish, refusal or acceptance.
 Stance artifacts are written by the stakeholder in their own voice. Fact artifacts read like
 system output or engineering notes. No title, subject line, greeting header or signature block.
-Also write, for each OTHER tag, the reading a player who picked that wrong tag would take away:
-one short sentence in the same style as the item's reading, about how much the stakeholder cares.
-Never restate the fact; the game shows the fact in front of it unchanged."""
+"""
 
 CLASSIFY = """You read one workplace artifact from an MLOps project. Decide what it tells you,
 using this test in order:
@@ -61,7 +55,7 @@ def artifact_type(item_id: str, tag: str) -> str:
 
 class ArtifactsStage:
     name = "artifacts"
-    prompt_version = "a1"
+    prompt_version = "a2"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -104,9 +98,6 @@ class ArtifactsStage:
         out["reclassify_reason"] = verdict.reason
         return out, Usage(u1.tokens_in + u2.tokens_in, u1.tokens_out + u2.tokens_out)
 
-    def wrong_descriptions(self, output: dict, true_tag: str) -> dict:
-        return {t: output[f"wrong_as_{t}"] for t in TAGS if t != true_tag and output.get(f"wrong_as_{t}")}
-
     def check(self, output: dict, item, ctx) -> list[str]:
         req = item.inputs["requirement"]
         tag = req["type"]
@@ -121,13 +112,6 @@ class ArtifactsStage:
                 f"a blind reader classified this as {output.get('reclassified_as')} ({output.get('reclassify_reason')}); "
                 f"rewrite it so it clearly reads as a {tag}"
             )
-        fact = (req.get("fact") or "").strip().rstrip(".").lower()
-        for t in TAGS:
-            if t != tag:
-                wrong = output.get(f"wrong_as_{t}")
-                errors += text_errors(f"wrong_as_{t}", wrong, 3, 22)
-                if fact and wrong and fact in wrong.lower():
-                    errors.append(f"wrong_as_{t} repeats the fact; write only the reading")
         return errors
 
     def summary(self, output: dict) -> str:
