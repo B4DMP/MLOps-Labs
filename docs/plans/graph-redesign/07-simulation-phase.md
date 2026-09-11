@@ -70,16 +70,16 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 
 ## Steps
 
-- [ ] 1. `graph_service/pipeline.py`, 13 steps, pure except store calls.
-- [ ] 2. Owner resolution per component, stage default fallback.
-- [ ] 3. `on_exit_ops`, antipattern consequence ops.
-- [ ] 4. `component_weights` in `GameMetrics.json`, delete the LLM metric path.
-- [ ] 5. Grudge resolution, deterministic effect pick.
-- [ ] 6. Outcome branches.
+- [x] 1. `graph_service/pipeline.py`, 13 steps, pure except store calls. `simulate` is pure, `run_simulation` loads and appends the batch (idempotent per challenge). Step 13 stays with the caller, see step 9.
+- [x] 2. Owner resolution per component, stage default fallback. `graph.owner_of` already falls back; `owner_buyin_from_reads` turns the COMMIT reads into what `apply_ops` wants.
+- [x] 3. `on_exit_ops` on the challenge template (schema and config gate), antipattern `consequence_ops` fired from the patterns still active after the card, with a config gate on their targets.
+- [x] 4. `component_weights` on all eight metrics, `metric_prompt` deleted from config, schema, model and factory. Targets validated on load.
+- [x] 5. Grudge resolution: `domain/grudge.py`, effect picked by owner and age, spent after `GRUDGE_LIFETIME` firings.
+- [x] 6. Outcome branches: PASS, SOFT_PASS (grudge per neglected low power stakeholder), VETO_BROKEN (card applies, overridden area drops one level, double weight grudge), STALEMATE (card skipped, `stalemate_ops` fire, grudges for the room).
 - [ ] 7. `graph:delta_report` event.
 - [ ] 8. Rewrite `ac_simulation.tsx` as the four beat report.
 - [ ] 9. Next challenge selection at the end of the report.
-- [ ] 10. Tests: capped raise reports its cap, propagation after a break, unhappy owner degrades, debt repaid later, design pattern gained lifts health.
+- [x] 10. Tests: capped raise reports its cap, propagation after a break, unhappy owner degrades, debt repaid later, design pattern gained lifts health, plus grudge determinism, metric arithmetic and the outcome branches (`tests/test_simulation_pipeline.py`, 12 tests).
 
 ## Done when
 

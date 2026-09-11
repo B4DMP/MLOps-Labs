@@ -16,7 +16,18 @@
         true
       ],
       "metric_desc": "Accuracy, robustness, and generalization of the model in both lab and real-world conditions.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the model's accuracy, robustness, or generalization. The metric is not affected if the proposed actions do not affect the model at all. The metric decreases if the proposed action degrade model performance (e.g. by reducing the amount of training data or choosing a less accurate model candidate)."
+      "component_weights": {
+        "model.training_pipeline": 1.0,
+        "model.evaluation": 0.8,
+        "model.hpo": 0.6,
+        "model.registry": 0.4,
+        "model.experiment_tracking": 0.4,
+        "data.feature_store": 0.3,
+        "e.fs_train": 0.3,
+        "e.train_eval": 0.3,
+        "deploy.canary_ab": 0.2,
+        "deploy.shadow": 0.2
+      }
     },
     {
       "id": "automation",
@@ -34,7 +45,19 @@
         false
       ],
       "metric_desc": "Degree to which workflows - from data pipelines to deployment - are automated.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the degree of automation of the ML system and workflows (e.g. by introducing CI/CD pipelines, automated testing, or automated deployment). The metric is not affected if the proposed actions do not affect the automation at all. The metric decreases if the proposed action degrade overall automation by introducing manual workflows. This should always happen when new complexity is introduced to the system without automation."
+      "component_weights": {
+        "deploy.cicd": 1.0,
+        "deploy.orchestration": 0.8,
+        "deploy.containerization": 0.6,
+        "ops.retraining_trigger": 0.6,
+        "gov.iac": 0.6,
+        "e.registry_cicd": 0.4,
+        "e.cicd_container": 0.4,
+        "e.container_orch": 0.4,
+        "e.alert_retrain": 0.4,
+        "e.retrain_train": 0.4,
+        "gov.compute_scheduling": 0.3
+      }
     },
     {
       "id": "reliability",
@@ -52,7 +75,18 @@
       ],
       "max_value": 50,
       "metric_desc": "Stability, scalability, and resilience of the deployed ML system in production.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the stability, scalability, or resilience of the ML system (e.g. by introducing monitoring, alerting, or automated recovery mechanisms). The metric is not affected if the proposed actions do not affect the reliability at all. The metric decreases if the proposed action increase the complexity of the system without sufficient regard to reliability."
+      "component_weights": {
+        "ops.performance_monitoring": 0.8,
+        "ops.alerting": 0.8,
+        "ops.observability": 0.8,
+        "ops.rollback": 0.8,
+        "ops.production_drift_monitoring": 0.6,
+        "deploy.serving": 0.6,
+        "deploy.canary_ab": 0.4,
+        "e.alert_rollback": 0.4,
+        "e.rollback_serving": 0.4,
+        "e.serving_observe": 0.3
+      }
     },
     {
       "id": "data",
@@ -70,7 +104,18 @@
         false
       ],
       "metric_desc": "Integrity, representativeness, fairness, and traceability of datasets.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the integrity, representativeness, fairness, or traceability of the datasets (e.g. by introducing new diverse data sources, data validation, data versioning, or data quality checks). The metric is not affected if the proposed actions do not affect the data at all. The metric decreases if the proposed action degrade the data quality or data availability, e.g. by removing data sources or not addressing data quality issues."
+      "component_weights": {
+        "data.validation": 1.0,
+        "data.ingestion": 0.8,
+        "data.versioning": 0.8,
+        "data.feature_store": 0.6,
+        "data.training_drift_check": 0.6,
+        "data.labeling": 0.4,
+        "req.data_contracts": 0.4,
+        "e.ingest_validate": 0.4,
+        "e.validate_version": 0.4,
+        "e.version_fs": 0.3
+      }
     },
     {
       "id": "requirements",
@@ -88,7 +133,16 @@
         true
       ],
       "metric_desc": "Clarity, alignment, and completeness of business, ethical, and technical goals that guide ML development.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the clarity, alignment, or completeness of business, ethical, or technical goals that guide ML development. The metric is not affected if the proposed actions do not affect the requirements at all. The metric decreases if the proposed action introduce ambiguity or conflicts between requirements."
+      "component_weights": {
+        "req.kpi_definition": 1.0,
+        "req.acceptance_criteria": 0.8,
+        "req.data_contracts": 0.6,
+        "req.risk_assessment": 0.6,
+        "gov.audit": 0.4,
+        "gov.model_cards": 0.4,
+        "e.risk_acceptance": 0.3,
+        "e.acceptance_eval": 0.3
+      }
     },
     {
       "id": "efficiency",
@@ -106,7 +160,15 @@
         true
       ],
       "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
+      "component_weights": {
+        "gov.cost_monitoring": 1.0,
+        "gov.compute_scheduling": 0.8,
+        "model.hpo": 0.4,
+        "deploy.orchestration": 0.4,
+        "gov.iac": 0.3,
+        "e.cost_serving": 0.3,
+        "e.compute_train": 0.3
+      }
     },
     {
       "id": "efficiency_intro",
@@ -124,7 +186,15 @@
         false
       ],
       "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the efficiency of the system, by delivering value to the users and ROI for the company (e.g. by optimizing the model, reducing the amount of training data, or improving the deployment process). The metric is not affected if the proposed actions do not affect the efficiency at all. The metric decreases if the proposed action demands large amounts of time, compute, or budget with litte benefits for the users."
+      "component_weights": {
+        "gov.cost_monitoring": 1.0,
+        "gov.compute_scheduling": 0.8,
+        "model.hpo": 0.4,
+        "deploy.orchestration": 0.4,
+        "gov.iac": 0.3,
+        "e.cost_serving": 0.3,
+        "e.compute_train": 0.3
+      }
     },
     {
       "id": "model_intro",
@@ -142,7 +212,18 @@
         false
       ],
       "metric_desc": "Accuracy, robustness, and generalization of the model in both lab and real-world conditions.",
-      "metric_prompt": "This metric increases if the proposal contains concrete steps to improve the model's accuracy, robustness, or generalization. The metric is not affected if the proposed actions do not affect the model at all. The metric decreases if the proposed action degrade model performance (e.g. by reducing the amount of training data or choosing a less accurate model candidate)."
+      "component_weights": {
+        "model.training_pipeline": 1.0,
+        "model.evaluation": 0.8,
+        "model.hpo": 0.6,
+        "model.registry": 0.4,
+        "model.experiment_tracking": 0.4,
+        "data.feature_store": 0.3,
+        "e.fs_train": 0.3,
+        "e.train_eval": 0.3,
+        "deploy.canary_ab": 0.2,
+        "deploy.shadow": 0.2
+      }
     }
   ]
 }

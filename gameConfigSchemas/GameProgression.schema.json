@@ -185,6 +185,41 @@
               }
             }
           },
+          "on_exit_ops": {
+            "type": "array",
+            "title": "World events on simulation",
+            "description": "Fired in the simulation that closes the challenge, after the card is applied",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "raise_to",
+                    "set_to",
+                    "set_trigger",
+                    "set_attr",
+                    "instance_upsert",
+                    "set_instance_prop"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "value": {},
+                "attr": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
           "stalemate_ops": {
             "type": "array",
             "title": "World events on stalemate",
