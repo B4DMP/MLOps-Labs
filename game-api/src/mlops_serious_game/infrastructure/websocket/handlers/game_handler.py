@@ -17,6 +17,7 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
@@ -334,6 +335,15 @@ async def handle_game_init(
             challenge_index=last_gamestate_id[1],
             phase_index=last_gamestate_id[0]
         )
+        # The graph ships dark for now: a failure here must never block the game.
+        try:
+            graph_store.seed_if_empty(
+                username,
+                phase_index=curr_challenge.phase_id,
+                challenge_template=str(curr_challenge.id),
+            )
+        except Exception as e:
+            print(f"[Graph seed error] {e}")
         if saved_tokens is None:
             saved_tokens = curr_challenge.attention_tokens
 

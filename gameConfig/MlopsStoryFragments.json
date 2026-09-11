@@ -1,0 +1,37 @@
+{
+  "generic": {
+    "component": {
+      "0": "{name} exists, but it is failing and nobody trusts what it reports.",
+      "1": "There is no {name} yet.",
+      "2": "{name} is done by hand, whenever someone remembers.",
+      "3": "{name} runs from scripts that someone has to start.",
+      "4": "{name} runs automatically.",
+      "5": "{name} runs automatically, is monitored, and has a clear owner."
+    },
+    "edge": {
+      "0": "The hand over from {source} to {target} is broken.",
+      "1": "Nothing moves from {source} to {target}.",
+      "2": "Someone moves work from {source} to {target} by hand.",
+      "3": "A script moves work from {source} to {target} when started ({trigger}).",
+      "4": "Work flows from {source} to {target} automatically ({trigger}).",
+      "5": "Work flows from {source} to {target} automatically ({trigger}), with checks and an owner."
+    }
+  },
+  "targets": {
+    "data.validation": {
+      "2": "Dave eyeballs new data dumps in a notebook before anyone trains on them.",
+      "4": "Every incoming batch is validated against the schema before it is stored.",
+      "4|tool=great_expectations": "Great Expectations validates every incoming batch before it is stored.",
+      "4|sourcing=bought|tool=great_expectations": "A licensed Great Expectations setup validates every incoming batch, maintained by the vendor."
+    },
+    "deploy.serving": {
+      "2": "The model is served from a hand started process on a single machine.",
+      "4|hosting=on_prem": "The model serves live traffic from the on premises cluster.",
+      "4|hosting=public_cloud": "The model serves live traffic from a public cloud endpoint."
+    },
+    "e.fs_train": {
+      "2": "Someone exports features to a CSV and hands it to the training job.",
+      "4|trigger=on_data_arrival": "New features arriving in the store start a training run on their own."
+    }
+  }
+}

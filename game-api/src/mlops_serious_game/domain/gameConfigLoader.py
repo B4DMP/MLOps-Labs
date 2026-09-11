@@ -11,6 +11,8 @@ from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactor
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 from mlops_serious_game.domain.glossary_factory import GlossaryFactory
+from mlops_serious_game.domain.graph_factory import GraphFactory
+from mlops_serious_game.domain.story_factory import StoryFactory
 
 
 class GameConfigLoader:
@@ -46,6 +48,12 @@ class GameConfigLoader:
             if convincer_artifacts_path.exists():
                 ConvincerArchetypeArtifactFactory.load_artifacts(convincer_artifacts_path)
                 print(f"loaded convincer archetype artifacts.")
+
+            graph_path = (base_dir / "../../../../gameConfig/MlopsGraph.json").resolve()
+            graph = GraphFactory.load_graph(graph_path)
+            story_path = (base_dir / "../../../../gameConfig/MlopsStoryFragments.json").resolve()
+            StoryFactory.load(story_path, graph)
+            print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges.")
 
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)

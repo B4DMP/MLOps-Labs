@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "MLOps Graph Story Fragments",
+  "description": "Deterministic story lines per graph target. Keys are '<level>' or '<level>|key=value|...'; components match attributes, edges match 'trigger'. The most specific matching key wins, generic templates are the fallback and must cover every level.",
+  "required": ["generic"],
+  "properties": {
+    "generic": {
+      "type": "object",
+      "required": ["component", "edge"],
+      "properties": {
+        "component": {
+          "type": "object",
+          "title": "Per level, placeholder {name}",
+          "patternProperties": {"^[0-5]$": {"type": "string"}},
+          "additionalProperties": false
+        },
+        "edge": {
+          "type": "object",
+          "title": "Per level, placeholders {source}, {target}, {trigger}",
+          "patternProperties": {"^[0-5]$": {"type": "string"}},
+          "additionalProperties": false
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "patternProperties": {"^[0-5](\\|[a-z_]+=[a-z_]+)*$": {"type": "string"}},
+        "additionalProperties": false
+      }
+    }
+  }
+}

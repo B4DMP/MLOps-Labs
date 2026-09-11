@@ -160,7 +160,7 @@ class Knowledge:  seen: dict[target_id, SeenEntry]     # level, trigger or attrs
 - `raise_to` takes max, never silently downgrades
 - `set_to` is forced, world events and owner degradation, can reach `broken`
 - level snaps down to the nearest `allowed_levels` value, logged
-- owner degradation: `applied = previous allowed level below intended` when owner buy-in is under the debt threshold
+- owner degradation: `applied = previous allowed level below intended` when owner buy-in is under the debt threshold. Resolved once, when the card is applied: the logged op carries `intended`, so replay needs no buy-in and always reproduces the same debt
 - `set_trigger` and `set_attr` validate enum membership. Attributes stay out of health but Boundaries may read them ([02](02-intel-taxonomy.md))
 
 ## Knowledge fold
@@ -190,7 +190,7 @@ Ops `eq ne lt lte gt gte`, `exists` and `count` for instances, combinators `all 
 
 ## Story
 
-`MlopsStoryFragments.json`, lookup keyed by target, level, and trigger or attribute combination, most specific first, level-only fallback. Gate: every reachable component level and edge level has a fallback fragment.
+`MlopsStoryFragments.json`, lookup keyed by target, level, and trigger or attribute combination, most specific first. Generic per-level templates for components and edges are the fallback, and the loader requires them for every level. Coverage of target-specific fragments is reported by `missing_specific_fragments` and enforced as a content gate in [04](04-content-pipeline.md), scoped to tier 0. `StoryFactory` lives in `domain/story_factory.py` so config loading never imports the application layer.
 
 ## Persistence
 
@@ -206,17 +206,17 @@ class GraphOpLog(Base):
 
 ## Steps
 
-- [ ] 1. Author `MlopsGraph.json` plus schema: stages, 34 components, edge skeleton with slack defaults, triggers, allowed levels. Review with content owner.
-- [ ] 2. Domain models, factory mirroring `phase_factory.py`.
-- [ ] 3. `apply.py`: six op kinds, degradation, snapping.
-- [ ] 4. `effective.py`: topological effective levels, `capped_by` trace, DAG gate.
-- [ ] 5. `predicates.py` with trace, including edge, trigger, attr clauses.
-- [ ] 6. `stage_graph.py`: stage flows, maturity term. Pattern terms plug in from 03.
-- [ ] 7. `knowledge.py` fold.
-- [ ] 8. `story.py` plus fragment gate.
-- [ ] 9. Migration for `GraphOpLog`, `store.py`.
-- [ ] 10. Tests: max versus forced, broken below absent, capping on hard and soft edges, propagation after a break, feedback edges ignored by the DAG, knowledge stale after a world event, replay equals live fold.
-- [ ] 11. Seed on `handle_game_init`. No client payload yet.
+- [x] 1. Author `MlopsGraph.json` plus schema: stages, 34 components, edge skeleton with slack defaults, triggers, allowed levels. Content owner review pending, see Q20 in STATE.
+- [x] 2. Domain models, factory mirroring `phase_factory.py`.
+- [x] 3. `apply.py`: six op kinds, degradation, snapping.
+- [x] 4. `effective.py`: topological effective levels, `capped_by` trace, DAG gate.
+- [x] 5. `predicates.py` with trace, including edge, trigger, attr clauses.
+- [x] 6. `stage_graph.py`: stage flows, maturity term. Pattern terms plug in from 03.
+- [x] 7. `knowledge.py` fold.
+- [x] 8. `story.py` plus fragment gate.
+- [x] 9. Migration for `GraphOpLog`, `store.py`.
+- [x] 10. Tests: max versus forced, broken below absent, capping on hard and soft edges, propagation after a break, feedback edges ignored by the DAG, knowledge stale after a world event, replay equals live fold.
+- [x] 11. Seed on `handle_game_init`. No client payload yet.
 
 ## Done when
 

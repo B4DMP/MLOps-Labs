@@ -17,7 +17,7 @@ Single source of truth for progress. Update after every completed step.
 | # | Plan | Depends | Status | Notes |
 |---|---|---|---|---|
 | 00 | [Overview and decisions](00-overview.md) | - | DONE | Read first. Two graphs, fog of war, taxonomy, loop. |
-| 01 | [Graph core](01-graph-core.md) | 00 | TODO | Technical graph, edges, effective levels, stage graph, knowledge fold. |
+| 01 | [Graph core](01-graph-core.md) | 00 | DONE | 30 tests green, migration applied, seeding on game init. Ships dark. Config review pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | TODO | Driver, Boundary, Trade-off, Fact, plus Language profile. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | TODO | Anti and design patterns for health and scheduling. |
 | 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | TODO | Tier 0 first, then full set. Resumable harness, 9 gates. |
@@ -65,7 +65,9 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 
 ## Open questions
 
-None. New questions raised during implementation go here with the plan number that needs them.
+| ID | Question | Needed by |
+|---|---|---|
+| Q20 | Review `gameConfig/MlopsGraph.json`: component names, initial levels, allowed levels per component, attribute enums (tools, hosting, sourcing), edge skeleton and slack, `briefing_observed`. Cheap to change now, expensive once content is generated against it. | 04 |
 
 ## Deferred scope
 
@@ -79,3 +81,4 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **v2.2** Q9 to Q11 answered.
 - **v3** Driver / Boundary / Trade-off / Fact taxonomy with Language as profile. Reviewer notes ([REVISION_NOTES.md](REVISION_NOTES.md)) folded in: two-graph architecture with edges as mechanics, 34 component set, health and scheduling from anti and design patterns, facts as intel with defined pitch effects, fog of war sharpened, chains shown as one card, card of intel only, fit against all stakeholders, Defer, Cite Evidence and Trade removed. Plan 03 renamed.
 - **v3.1** Q16 to Q19 answered: risk assessment added, registry absorbs versioning, drift pair renamed, any-mix card with slottable Boundaries, slack defaults, tier 0 content first.
+- **impl** plan 01 implemented: `domain/graph.py`, `domain/graph_factory.py`, `domain/story_factory.py`, `application/graph_service/` (apply, effective, predicates, stage_graph, story, store), migration `e5f6a7b8c9d0`, `tests/test_graph_core.py`.

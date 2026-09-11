@@ -1,0 +1,1862 @@
+{
+  "levels": [
+    "broken",
+    "absent",
+    "manual",
+    "scripted",
+    "automated",
+    "governed"
+  ],
+  "triggers": [
+    "none",
+    "manual_request",
+    "scheduled",
+    "on_commit",
+    "on_data_arrival",
+    "on_new_version",
+    "on_metric_threshold",
+    "on_alert",
+    "on_approval"
+  ],
+  "instance_kinds": [
+    "dataset",
+    "feature",
+    "model",
+    "endpoint",
+    "pipeline"
+  ],
+  "instance_states": [
+    "proposed",
+    "active",
+    "stale",
+    "deprecated",
+    "failed"
+  ],
+  "thresholds": {
+    "healthy": 75,
+    "degraded": 45,
+    "health_base": 20,
+    "maturity_weight": 40,
+    "debt_penalty_per_entry": 6,
+    "debt_buyin_threshold": 0.4
+  },
+  "briefing_observed": [
+    "data.ingestion",
+    "model.training_pipeline",
+    "deploy.serving",
+    "e.ingest_validate",
+    "e.fs_train"
+  ],
+  "stages": [
+    {
+      "id": "req",
+      "name": "Requirements",
+      "phase_id": 1,
+      "weight": 0.8,
+      "owner_role": "requirements_reuben",
+      "band": false
+    },
+    {
+      "id": "data",
+      "name": "Data",
+      "phase_id": 2,
+      "weight": 1.0,
+      "owner_role": "data_dave",
+      "band": false
+    },
+    {
+      "id": "model",
+      "name": "Modeling",
+      "phase_id": 3,
+      "weight": 1.0,
+      "owner_role": "model_monica",
+      "band": false
+    },
+    {
+      "id": "deploy",
+      "name": "Deployment",
+      "phase_id": 4,
+      "weight": 1.0,
+      "owner_role": "automation_alex",
+      "band": false
+    },
+    {
+      "id": "ops",
+      "name": "Monitoring and Ops",
+      "phase_id": 5,
+      "weight": 1.0,
+      "owner_role": "reliability_ruth",
+      "band": false
+    },
+    {
+      "id": "gov",
+      "name": "Governance and Infra",
+      "phase_id": null,
+      "weight": 0.7,
+      "owner_role": null,
+      "band": true
+    }
+  ],
+  "components": [
+    {
+      "id": "req.kpi_definition",
+      "stage_id": "req",
+      "name": "KPI Definition",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "req.acceptance_criteria",
+      "stage_id": "req",
+      "name": "Acceptance Criteria",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "req.data_contracts",
+      "stage_id": "req",
+      "name": "Data Contracts",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "req.risk_assessment",
+      "stage_id": "req",
+      "name": "Risk Assessment",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "data.ingestion",
+      "stage_id": "data",
+      "name": "Data Ingestion Pipeline",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        },
+        "tool": {
+          "values": [
+            "none",
+            "custom_scripts",
+            "airbyte",
+            "kafka"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "data.validation",
+      "stage_id": "data",
+      "name": "Data Validation",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        },
+        "tool": {
+          "values": [
+            "none",
+            "great_expectations",
+            "deequ",
+            "inhouse"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "data.feature_store",
+      "stage_id": "data",
+      "name": "Feature Store",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        },
+        "tool": {
+          "values": [
+            "none",
+            "feast",
+            "tecton",
+            "inhouse"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "data.versioning",
+      "stage_id": "data",
+      "name": "Data Versioning",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "dvc",
+            "lakefs",
+            "delta_lake"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "data.labeling",
+      "stage_id": "data",
+      "name": "Data Labeling Pipeline",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "data.training_drift_check",
+      "stage_id": "data",
+      "name": "Training Data Drift Check",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "model.experiment_tracking",
+      "stage_id": "model",
+      "name": "Experiment Tracking",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "spreadsheet",
+            "mlflow",
+            "wandb"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "model.registry",
+      "stage_id": "model",
+      "name": "Model Registry",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        },
+        "tool": {
+          "values": [
+            "none",
+            "mlflow",
+            "sagemaker",
+            "inhouse"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "model.training_pipeline",
+      "stage_id": "model",
+      "name": "Training Pipeline",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "notebooks",
+            "airflow",
+            "kubeflow"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "model.hpo",
+      "stage_id": "model",
+      "name": "Hyperparameter Tuning",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "grid_search",
+            "optuna",
+            "ray_tune"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "model.evaluation",
+      "stage_id": "model",
+      "name": "Model Evaluation Harness",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "deploy.cicd",
+      "stage_id": "deploy",
+      "name": "CI/CD Pipeline",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "jenkins",
+            "gitlab_ci",
+            "github_actions"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "deploy.serving",
+      "stage_id": "deploy",
+      "name": "Model Serving Endpoint",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "hosting": {
+          "values": [
+            "none",
+            "on_prem",
+            "private_cloud",
+            "public_cloud"
+          ],
+          "initial": "on_prem"
+        },
+        "tool": {
+          "values": [
+            "none",
+            "fastapi",
+            "seldon",
+            "kserve",
+            "sagemaker"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "deploy.canary_ab",
+      "stage_id": "deploy",
+      "name": "Canary and A/B Testing",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "deploy.shadow",
+      "stage_id": "deploy",
+      "name": "Shadow Deployment",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "deploy.containerization",
+      "stage_id": "deploy",
+      "name": "Containerization",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "docker",
+            "podman"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "deploy.orchestration",
+      "stage_id": "deploy",
+      "name": "Orchestration",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "docker_compose",
+            "nomad",
+            "kubernetes"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "deploy.api_gateway",
+      "stage_id": "deploy",
+      "name": "API Gateway",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "sourcing": {
+          "values": [
+            "none",
+            "custom",
+            "open_source",
+            "bought"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "ops.performance_monitoring",
+      "stage_id": "ops",
+      "name": "Model Performance Monitoring",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "ops.production_drift_monitoring",
+      "stage_id": "ops",
+      "name": "Production Drift Monitoring",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "evidently",
+            "whylabs",
+            "inhouse"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "ops.alerting",
+      "stage_id": "ops",
+      "name": "Alerting System",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "email",
+            "pagerduty",
+            "opsgenie"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "ops.observability",
+      "stage_id": "ops",
+      "name": "Logging and Observability",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "elk",
+            "prometheus_grafana",
+            "datadog"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "ops.retraining_trigger",
+      "stage_id": "ops",
+      "name": "Retraining Trigger",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "ops.rollback",
+      "stage_id": "ops",
+      "name": "Rollback Mechanism",
+      "owner_role": null,
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "gov.iam",
+      "stage_id": "gov",
+      "name": "Access Control and IAM",
+      "owner_role": "reliability_ruth",
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "ldap",
+            "keycloak",
+            "cloud_iam"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "gov.audit",
+      "stage_id": "gov",
+      "name": "Audit Logging and Compliance",
+      "owner_role": "requirements_reuben",
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "gov.model_cards",
+      "stage_id": "gov",
+      "name": "Model Documentation and Cards",
+      "owner_role": "model_monica",
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "gov.cost_monitoring",
+      "stage_id": "gov",
+      "name": "Cost Monitoring",
+      "owner_role": "efficiency_emilia",
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {}
+    },
+    {
+      "id": "gov.iac",
+      "stage_id": "gov",
+      "name": "Infrastructure as Code",
+      "owner_role": "automation_alex",
+      "weight": 1.0,
+      "initial_level": 1,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "ansible",
+            "pulumi",
+            "terraform"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    {
+      "id": "gov.compute_scheduling",
+      "stage_id": "gov",
+      "name": "Compute Scheduling",
+      "owner_role": "efficiency_emilia",
+      "weight": 1.0,
+      "initial_level": 2,
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "attributes": {
+        "tool": {
+          "values": [
+            "none",
+            "manual_booking",
+            "slurm",
+            "kubernetes_quotas"
+          ],
+          "initial": "none"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e.contracts_ingest",
+      "from": "req.data_contracts",
+      "to": "data.ingestion",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.risk_acceptance",
+      "from": "req.risk_assessment",
+      "to": "req.acceptance_criteria",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.acceptance_eval",
+      "from": "req.acceptance_criteria",
+      "to": "model.evaluation",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.ingest_validate",
+      "from": "data.ingestion",
+      "to": "data.validation",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
+      ]
+    },
+    {
+      "id": "e.validate_version",
+      "from": "data.validation",
+      "to": "data.versioning",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
+      ]
+    },
+    {
+      "id": "e.version_fs",
+      "from": "data.versioning",
+      "to": "data.feature_store",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
+      ]
+    },
+    {
+      "id": "e.fs_train",
+      "from": "data.feature_store",
+      "to": "model.training_pipeline",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.label_version",
+      "from": "data.labeling",
+      "to": "data.versioning",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
+      ]
+    },
+    {
+      "id": "e.version_driftcheck",
+      "from": "data.versioning",
+      "to": "data.training_drift_check",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival"
+      ]
+    },
+    {
+      "id": "e.driftcheck_train",
+      "from": "data.training_drift_check",
+      "to": "model.training_pipeline",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.hpo_train",
+      "from": "model.hpo",
+      "to": "model.training_pipeline",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.train_tracking",
+      "from": "model.training_pipeline",
+      "to": "model.experiment_tracking",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.train_eval",
+      "from": "model.training_pipeline",
+      "to": "model.evaluation",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.eval_registry",
+      "from": "model.evaluation",
+      "to": "model.registry",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_data_arrival",
+        "on_commit",
+        "on_new_version"
+      ]
+    },
+    {
+      "id": "e.registry_cicd",
+      "from": "model.registry",
+      "to": "deploy.cicd",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.cicd_container",
+      "from": "deploy.cicd",
+      "to": "deploy.containerization",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.container_orch",
+      "from": "deploy.containerization",
+      "to": "deploy.orchestration",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.orch_serving",
+      "from": "deploy.orchestration",
+      "to": "deploy.serving",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.serving_gateway",
+      "from": "deploy.serving",
+      "to": "deploy.api_gateway",
+      "kind": "pipeline",
+      "slack": 0,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.cicd_canary",
+      "from": "deploy.cicd",
+      "to": "deploy.canary_ab",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.canary_serving",
+      "from": "deploy.canary_ab",
+      "to": "deploy.serving",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.cicd_shadow",
+      "from": "deploy.cicd",
+      "to": "deploy.shadow",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "on_commit",
+        "on_new_version",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.serving_observe",
+      "from": "deploy.serving",
+      "to": "ops.observability",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.observe_perf",
+      "from": "ops.observability",
+      "to": "ops.performance_monitoring",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.observe_drift",
+      "from": "ops.observability",
+      "to": "ops.production_drift_monitoring",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.perf_alert",
+      "from": "ops.performance_monitoring",
+      "to": "ops.alerting",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.drift_alert",
+      "from": "ops.production_drift_monitoring",
+      "to": "ops.alerting",
+      "kind": "pipeline",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.alert_retrain",
+      "from": "ops.alerting",
+      "to": "ops.retraining_trigger",
+      "kind": "feedback",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.retrain_train",
+      "from": "ops.retraining_trigger",
+      "to": "model.training_pipeline",
+      "kind": "feedback",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.alert_rollback",
+      "from": "ops.alerting",
+      "to": "ops.rollback",
+      "kind": "feedback",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.rollback_serving",
+      "from": "ops.rollback",
+      "to": "deploy.serving",
+      "kind": "feedback",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_metric_threshold",
+        "on_alert"
+      ]
+    },
+    {
+      "id": "e.iam_gateway",
+      "from": "gov.iam",
+      "to": "deploy.api_gateway",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.iam_fs",
+      "from": "gov.iam",
+      "to": "data.feature_store",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.audit_registry",
+      "from": "gov.audit",
+      "to": "model.registry",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.cards_registry",
+      "from": "gov.model_cards",
+      "to": "model.registry",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.cost_serving",
+      "from": "gov.cost_monitoring",
+      "to": "deploy.serving",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.iac_orch",
+      "from": "gov.iac",
+      "to": "deploy.orchestration",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.compute_train",
+      "from": "gov.compute_scheduling",
+      "to": "model.training_pipeline",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 2,
+      "initial_trigger": "manual_request",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.risk_audit",
+      "from": "req.risk_assessment",
+      "to": "gov.audit",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    },
+    {
+      "id": "e.risk_cards",
+      "from": "req.risk_assessment",
+      "to": "gov.model_cards",
+      "kind": "governs",
+      "slack": 1,
+      "initial_level": 1,
+      "initial_trigger": "none",
+      "allowed_levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "allowed_triggers": [
+        "none",
+        "manual_request",
+        "scheduled",
+        "on_approval"
+      ]
+    }
+  ]
+}

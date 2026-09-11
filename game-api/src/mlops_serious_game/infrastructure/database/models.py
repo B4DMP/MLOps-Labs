@@ -76,4 +76,23 @@ class IntelItem(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     intel_item_data: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
-    
+
+
+class GraphOpLog(Base):
+    """Append-only log of MLOps graph ops per player. One row per batch; the graph state is
+    the fold of all rows in `seq` order, see application/graph_service."""
+
+    __tablename__ = settings.POSTGRES_GRAPH_OP_LOG_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    seq: Mapped[int] = mapped_column(Integer, nullable=False)
+    phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    challenge_template: Mapped[str] = mapped_column(String(255), nullable=False)
+    challenge_loop_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    source_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    source_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    ops: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )

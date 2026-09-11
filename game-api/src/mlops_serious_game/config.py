@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
     POSTGRES_USER_DATA_TABLE: str = "user_data"
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
+    POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
