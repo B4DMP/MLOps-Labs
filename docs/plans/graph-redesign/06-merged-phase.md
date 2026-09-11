@@ -118,8 +118,8 @@ Their owned components with story fragments, the targets in their objection set,
 - [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`.
 - [ ] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars.
 - [ ] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
-- [ ] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested.
-- [ ] 5. `pitch_debate_service/objections.py`, pure: five objection kinds, ordering, option availability with reasons. Tested.
+- [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
+- [x] 5. `pitch_debate_service/objections.py`, pure: five objection kinds, ordering, option availability with reasons. Tested. (Objection + DialogueOptionSpec models, fire_objections, dialogue_options_for; boundary/technical are hard, correction separated)
 - [ ] 6. Objection UI, one stakeholder at a time, amendment budget shown.
 - [ ] 7. Commit: outcomes, Veto Breaker, Rebuild with delta check, patience, stalemate, risk read.
 - [ ] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card`, `objection_state`. Update the checkpointer allowlist in `service.py`.

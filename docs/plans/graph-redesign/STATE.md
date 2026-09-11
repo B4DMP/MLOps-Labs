@@ -96,3 +96,4 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **v3.3** health measures problems (D32), start green with stage-level fog (D33), gameplay data wiped (D34).
 - **impl** content harness (plan 04 steps 0, 1, 1b); intel description split folded in (fact holds still, reading changes with the tag).
 - **impl** tier 0 generated and assembled: 4 challenge templates, 46 items, 46 artifacts, 41 objections, 24 fragments. Name tokenizer no longer eats role words, repairs dropped apostrophes; dry runs no longer mark items stale.
+- **impl** plan 06 steps 4–5: `pitch_debate_service/scoring.py` (fit, coverage, emotions_norm, loss, buy_in, outcome — all pure, no factory calls) and `pitch_debate_service/objections.py` (Objection + DialogueOptionSpec models, fire_objections firing boundary→technical→stance→price→correction in order, dialogue_options_for). 153 tests green.
