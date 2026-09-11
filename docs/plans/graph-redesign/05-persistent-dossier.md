@@ -78,9 +78,9 @@ Objections write into the dossier as `source: objection`, `intel_type: verified`
 - [x] 2. Replace the challenge filter in `intel_handler.py`. (`load_known_intel_items(username, up_to_phase)` added — cross-phase loader; existing per-challenge functions kept until plan 06 is ready to integrate)
 - [x] 3. Chain assembly in `retrieve_dossier_data`, locked link counts. (`assemble_chains(items)` added; follows `refines_id` links, handles cycles, groups into oldest-first chains)
 - [ ] 4. Objections write dossier entries onto chains. (plan 06)
-- [ ] 5. Chain card component, headline plus stacked layers, locked rows. (plan 06)
-- [ ] 6. Stakeholder and environment views, stage filter, search. (plan 06)
-- [ ] 7. Card builder treats a chain as one item. (plan 06)
+- [x] 5. Chain card component, headline plus stacked layers, locked rows. (the sticky note in `StakeholderDossier.tsx` is now one card per chain: newest link as the headline, older readings stacked underneath newest first with their phase, a locked row from `locked_links`, and status badges read off the graph. `assemble_chains` looked for its roots at the wrong end and never joined a chain; fixed.)
+- [x] 6. Stakeholder and environment views, stage filter, search. (`retrieve_dossier_data` is persistent across phases and ships an environment page of Facts grouped by stage, placed by the player's own tag; filter bar with stage chips defaulting to `focus_stage_ids`, search box and collapse-done toggle)
+- [x] 7. Card builder treats a chain as one item. (`chain_id`, `chain_position` and `chain_length` in `_item_payload`; `pitch_phase.tsx` groups `available_items` into one row per chain, pitched as the newest link, in both the builder and the amend list)
 - [ ] 8. Playtest two phases: a phase 1 item grows a phase 3 layer and reads as one card.
 
 ## Done when

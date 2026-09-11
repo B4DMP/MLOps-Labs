@@ -1503,3 +1503,269 @@
   background: rgba(245, 235, 217, 0.22);
   border-color: rgba(245, 235, 217, 0.6);
 }
+
+/* ==========================================================================
+   DOSSIER FILTERS (plan 05)
+   The dossier keeps every note the player ever found, so it needs a way to
+   cut it down: which stages to look at, a search box, and a fold for the
+   notes somebody has already acted on.
+   ========================================================================== */
+
+.filterBar {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0 0 8px 0;
+  padding: 6px 8px;
+  background: rgba(241, 245, 249, 0.55);
+  border: 1px dashed #cbd5e1;
+  border-radius: 5px;
+}
+
+.stageRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.stageChip {
+  padding: 2px 8px;
+  border: 1.5px solid var(--stage-color, #94a3b8);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--stage-color, #94a3b8);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.stageChipOn {
+  background: var(--stage-color, #94a3b8);
+  color: #fff;
+}
+
+.stageChipClear {
+  padding: 2px 8px;
+  border: 1.5px dashed #94a3b8;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 2px 7px;
+  background: #fffdf8;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #64748b;
+}
+
+.searchBox input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.72rem;
+  color: #1e293b;
+}
+
+.collapseToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fffdf8;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.collapseToggleOn {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: #f8fafc;
+}
+
+.filterHint {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   REFINEMENT CHAINS (D24)
+   One card per chain: the newest reading is the headline, the readings it
+   grew out of stack underneath in smaller type, and a locked row says when
+   there is more of the same note still out there.
+   ========================================================================== */
+
+.chainStack {
+  margin-top: 5px;
+  padding-left: 7px;
+  border-left: 2px solid rgba(120, 100, 70, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chainLayer {
+  display: flex;
+  gap: 5px;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: #7c6a52;
+}
+
+.chainLayerPhase {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a8977f;
+}
+
+.lockedRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 3px 6px;
+  border: 1.5px dashed #b5a48b;
+  border-radius: 3px;
+  background: rgba(250, 247, 239, 0.75);
+  color: #8a7862;
+  font-size: 0.65rem;
+  font-style: italic;
+  cursor: help;
+}
+
+.lockedIcon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* Folded form of a note nobody needs to read again, one line each */
+.collapsedNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 5px 4px 0;
+  padding: 3px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background: rgba(248, 250, 252, 0.85);
+  text-align: left;
+  cursor: pointer;
+}
+
+.collapsedText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* What the graph says about a note right now, next to the confidence stamp */
+.statusBadge {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.statusAddressed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.statusViolated {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.statusStale {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.contestedBadge {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* ==========================================================================
+   THE ENVIRONMENT PAGE
+   Facts are about the pipeline, not about a person, so this page has no face
+   and no mood: a header, then the notes grouped by the stage they describe.
+   ========================================================================== */
+
+.environmentHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px dashed #cbd5e1;
+}
+
+.environmentIcon {
+  flex-shrink: 0;
+  font-size: 1.8rem;
+  color: #64748b;
+}
+
+.environmentTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.environmentSubtitle {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.stageGroupTitle {
+  flex-basis: 100%;
+  margin: 6px 0 3px 0;
+  padding-left: 6px;
+  border-left: 3px solid #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.environmentTab {
+  font-style: italic;
+}
