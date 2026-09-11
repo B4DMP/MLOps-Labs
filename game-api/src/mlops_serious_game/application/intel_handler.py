@@ -366,6 +366,120 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
     return loaded_items
 
 
+# ── Plan 05: Persistent dossier ───────────────────────────────────────────────
+
+
+def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> List[StakeholderIntelItem]:
+    """Return all intel items the player has ever collected, across all phases.
+
+    If `up_to_phase` is given, only items with `discovered_phase_id <= up_to_phase` are returned
+    (items without the field are always included for backward compatibility).
+    """
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == username)
+        ).all()
+        items: List[StakeholderIntelItem] = []
+        for r in records:
+            if not isinstance(r.intel_item_data, dict):
+                continue
+            try:
+                item = StakeholderIntelItem(**r.intel_item_data)
+            except Exception:
+                continue
+            if up_to_phase is not None and item.discovered_phase_id is not None:
+                if item.discovered_phase_id > up_to_phase:
+                    continue
+            items.append(item)
+        return items
+
+
+def assemble_chains(
+    items: List[StakeholderIntelItem],
+) -> List[Dict[str, Any]]:
+    """Group items into refinement chains using refines_id links.
+
+    Returns a list of chain dicts:
+        {
+            "tag": "driver" | ...,
+            "stakeholder_id": str | None,
+            "target": str | None,       # from asserts or suggested
+            "links": [item, ...],       # oldest first
+            "status": "open" | "stale" | ...,  # placeholder, computed later with graph state
+        }
+
+    Items with no refines_id and not referenced by any other item form single-link chains.
+    Items forming a cycle are each placed in their own chain (defensive).
+    """
+    by_id: Dict[str, StakeholderIntelItem] = {i.id: i for i in items}
+    # Build reverse map: item_id → the item that refines it (its successor).
+    refined_by: Dict[str, str] = {}
+    for item in items:
+        if item.refines_id and item.refines_id in by_id:
+            refined_by[item.refines_id] = item.id
+
+    visited: set[str] = set()
+    chains: List[Dict[str, Any]] = []
+
+    def _follow(root_id: str) -> List[StakeholderIntelItem]:
+        chain: List[StakeholderIntelItem] = []
+        cur_id: Optional[str] = root_id
+        seen: set[str] = set()
+        while cur_id and cur_id not in seen:
+            seen.add(cur_id)
+            node = by_id.get(cur_id)
+            if node is None:
+                break
+            chain.append(node)
+            cur_id = refined_by.get(cur_id)
+        return chain
+
+    # Roots: items not refined by anyone in the set.
+    roots = [i.id for i in items if i.id not in refined_by]
+    # Also include items whose predecessor is not in the set (chain continuation from older phases).
+    for item in items:
+        if item.refines_id and item.refines_id not in by_id and item.id not in refined_by:
+            roots.append(item.id)
+
+    for root_id in roots:
+        if root_id in visited:
+            continue
+        chain_items = _follow(root_id)
+        for ci in chain_items:
+            visited.add(ci.id)
+        if not chain_items:
+            continue
+        head = chain_items[-1]  # newest = headline
+        target = None
+        if head.asserts:
+            target = head.asserts.target
+        elif head.suggested:
+            target = head.suggested.target
+        chains.append({
+            "tag": head.type.value if hasattr(head.type, "value") else str(head.type),
+            "stakeholder_id": head.stakeholder_id,
+            "target": target,
+            "links": chain_items,
+            "status": "open",  # caller must enrich with graph state
+        })
+
+    # Any remaining items (broken chains, cycles) become lone chains.
+    for item in items:
+        if item.id not in visited:
+            chains.append({
+                "tag": item.type.value if hasattr(item.type, "value") else str(item.type),
+                "stakeholder_id": item.stakeholder_id,
+                "target": None,
+                "links": [item],
+                "status": "open",
+            })
+
+    return chains
+
+
+# ── End Plan 05 ───────────────────────────────────────────────────────────────
+
+
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Stores or updates an intel item in the database."""
     with get_session() as session:

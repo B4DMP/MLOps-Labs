@@ -125,6 +125,9 @@ class Settings(BaseSettings):
     RAG_THREADS: int | None = None
     RAG_CHUNK_SIZE: int = 256
 
+    # --- Feature flags ---
+    ENABLE_GRAPH_DEBUG: bool = False
+
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
     EXTRACTION_METADATA_FILE_PATH: Path = Path("data/extraction_metadata.json")

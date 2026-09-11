@@ -138,6 +138,23 @@ class StakeholderIntelItem(StakeholderRequirement):
             "intel gathering, or something that came out during the pitch."
         ),
     )
+    # Plan 05: persistent dossier fields.
+    refines_id: Optional[str] = Field(
+        default=None,
+        description="Id of the earlier StakeholderIntelItem this one refines (same target + stakeholder, later phase).",
+    )
+    discovered_phase_id: Optional[int] = Field(
+        default=None,
+        description="Phase index when this item entered the player's dossier.",
+    )
+    discovered_challenge_template: Optional[str] = Field(
+        default=None,
+        description="Template id of the challenge that produced this item.",
+    )
+    dossier_source: Optional[str] = Field(
+        default=None,
+        description="How the item reached the dossier: 'artifact' | 'engagement_card' | 'objection'.",
+    )
 
     @classmethod
     def from_requirement(

@@ -20,12 +20,12 @@ Single source of truth for progress. Update after every completed step.
 | 01 | [Graph core](01-graph-core.md) | 00 | DONE | Migration applied, seeding on game init, refactor tool. Ships dark. Review findings pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
-| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Templates fixed (p3/s0 Dave want 1→2, p3/s1 Monica want 2→3). Items regenerating with i8+Qwen. Gates+CI wired (step 6 ✓). Conflict blocks fixed (step 7 ✓). Blocked on step 3 regen + human review, then steps 8-9. |
-| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | TODO | Cross phase intel, chains shown as one growing card. |
+| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Tier 0 assembled (4 templates, 46 items, 46 artifacts, 41 objections, 24 fragments). 4 items re-gen pending (template fixes invalidated hashes; regen in background). Golden path ready for plans 05–09. Steps 8-9 after playtest. |
+| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | WIP | Steps 1–3 done (new StakeholderIntelItem fields, cross-phase loader, chain assembler). Steps 4–8 depend on plan 06 to integrate into live gameplay and UI. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | TODO | Any-mix card, five objection kinds, escalation, veto, stalemate. |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | TODO | Apply, capping, propagation, patterns, grudges, delta report. |
 | 08 | [Player graph view](08-graph-viz.md) | 01 | WIP | Steps 1–6, 8 done (Q21 closed: curved feedback arcs added to strip). Only step 7 (before/after toggle, blocked on 07). |
-| 09 | [Admin debug view](09-debug-view.md) | 04 | TODO | Full dump, health breakdown, orphans, selection trace. |
+| 09 | [Admin debug view](09-debug-view.md) | 04 | DONE | Steps 1–5 done. ENABLE_GRAPH_DEBUG flag, /api/admin/graph-debug endpoint, GraphDebug.tsx 11-section table view, Graph Debug tab in admin panel. Intel/objection/action_card sections stubbed (plans 05–06). |
 
 Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alongside, then 05, 06, 07.
 

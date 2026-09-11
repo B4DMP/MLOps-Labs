@@ -26,6 +26,7 @@ ChartJS.register(
 );
 
 import { ConfigEditor } from "./ConfigEditor";
+import { GraphDebug } from "./GraphDebug";
 
 interface Campaign {
   name: string;
@@ -72,7 +73,7 @@ export function Admin({
   questionaire_results
 }: AdminProps) {
 
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "graph_debug">("config");
   const [campaignName, setCampaignName] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
 
@@ -201,6 +202,17 @@ export function Admin({
               onClick={() => setActiveSubpage("analysis")}
             >
               Analysis & Statistics
+            </button>
+            <button
+              type="button"
+              className={`btn px-4 py-2 fw-bold ${
+                activeSubpage === "graph_debug"
+                  ? "btn-info text-dark shadow"
+                  : "btn-outline-light border-0"
+              }`}
+              onClick={() => setActiveSubpage("graph_debug")}
+            >
+              Graph Debug
             </button>
           </div>
         </div>
@@ -459,6 +471,14 @@ export function Admin({
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* SUBPAGE 4: GRAPH DEBUG */}
+        {activeSubpage === "graph_debug" && (
+          <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+            <h4 className="mb-3 text-info fw-bold">Graph Debug View</h4>
+            <GraphDebug adminToken={adminToken} />
           </div>
         )}
 

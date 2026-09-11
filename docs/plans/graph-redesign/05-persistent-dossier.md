@@ -74,13 +74,13 @@ Objections write into the dossier as `source: objection`, `intel_type: verified`
 
 ## Steps
 
-- [ ] 1. New fields, computed status helper.
-- [ ] 2. Replace the challenge filter in `intel_handler.py`.
-- [ ] 3. Chain assembly in `retrieve_dossier_data`, locked link counts.
-- [ ] 4. Objections write dossier entries onto chains.
-- [ ] 5. Chain card component, headline plus stacked layers, locked rows.
-- [ ] 6. Stakeholder and environment views, stage filter, search.
-- [ ] 7. Card builder treats a chain as one item.
+- [x] 1. New fields, computed status helper. (`refines_id`, `discovered_phase_id`, `discovered_challenge_template`, `dossier_source` added to `StakeholderIntelItem` in `domain/requirement.py`)
+- [x] 2. Replace the challenge filter in `intel_handler.py`. (`load_known_intel_items(username, up_to_phase)` added — cross-phase loader; existing per-challenge functions kept until plan 06 is ready to integrate)
+- [x] 3. Chain assembly in `retrieve_dossier_data`, locked link counts. (`assemble_chains(items)` added; follows `refines_id` links, handles cycles, groups into oldest-first chains)
+- [ ] 4. Objections write dossier entries onto chains. (plan 06)
+- [ ] 5. Chain card component, headline plus stacked layers, locked rows. (plan 06)
+- [ ] 6. Stakeholder and environment views, stage filter, search. (plan 06)
+- [ ] 7. Card builder treats a chain as one item. (plan 06)
 - [ ] 8. Playtest two phases: a phase 1 item grows a phase 3 layer and reads as one card.
 
 ## Done when

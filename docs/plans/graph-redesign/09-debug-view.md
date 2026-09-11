@@ -56,11 +56,11 @@ Plain tables, filter box per section.
 
 ## Steps
 
-- [ ] 1. Endpoint, admin guard, env flag.
-- [ ] 2. Payload assembly including health breakdown and orphan detection.
-- [ ] 3. Predicate traces for rejected challenges and near miss patterns.
-- [ ] 4. `GraphDebug.tsx` with the eleven tables.
-- [ ] 5. Tab into `Admin.tsx`.
+- [x] 1. Endpoint, admin guard, env flag. (`GET /api/admin/graph-debug?username=...`, `ENABLE_GRAPH_DEBUG` in settings)
+- [x] 2. Payload assembly including health breakdown and orphan detection. (`application/graph_service/debug.py`)
+- [x] 3. Predicate traces for rejected challenges and near miss patterns. (full predicate trace in near_miss and challenges.rejected)
+- [x] 4. `GraphDebug.tsx` with the eleven tables. (all sections; intel_index/objections/action_cards stubbed, available plans 05-06)
+- [x] 5. Tab into `Admin.tsx`. (Graph Debug tab in admin nav)
 
 ## Done when
 
