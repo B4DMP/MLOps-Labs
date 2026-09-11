@@ -102,6 +102,14 @@ function App({ username: _username }: AppProps) {
   const [challengeIntro, setChallengeIntro] = useState("");
   const [progressionIndex, setProgressionIndex] = useState(0);
   const [isPhaseDialogueOpen, setIsPhaseDialogueOpen] = useState(false);
+  // True when the briefing was reopened from the dossier mid-phase, so closing
+  // it returns to the phase instead of starting the round.
+  const [isBriefingReview, setIsBriefingReview] = useState(false);
+
+  const openBriefingForReview = () => {
+    setIsBriefingReview(true);
+    setIsPhaseDialogueOpen(true);
+  };
   const [isChatEnabled, setIsChatEnabled] = useState(true);
   const [hoveredCardId, setHoveredCardId] = useState<number | null>(null);
   const [isintro5Done, setIsintro5Done] = useState(false);
@@ -503,6 +511,9 @@ function App({ username: _username }: AppProps) {
                     intel_type: matchingRev.intel_type || "verified",
                     categorized_type: matchingRev.categorized_type || item.categorized_type,
                     is_correct: matchingRev.is_corrected !== undefined ? matchingRev.is_corrected : true,
+                    // The stakeholder just said it out loud, so the note's caption has to move
+                    // with the stamp instead of still crediting the document it came from.
+                    source: "debate",
                   };
                 }
                 return item;
@@ -911,7 +922,11 @@ function App({ username: _username }: AppProps) {
               <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
               <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}
-                setIsOpen={setIsPhaseDialogueOpen}
+                setIsOpen={(open) => {
+                  setIsPhaseDialogueOpen(open);
+                  if (!open) setIsBriefingReview(false);
+                }}
+                isReview={isBriefingReview}
                 challengeTitle={challengeTitle}
                 challengeDescription={challengeDescription}
                 challengeIntro={challengeIntro}
@@ -931,6 +946,7 @@ function App({ username: _username }: AppProps) {
                   showMetricValueChanges={showMetricValueChanges}
                   last_ac={last_ac}
                   onTagArtifact={(stId) => setActiveStakeholderId(stId)}
+                  onOpenPhaseBriefing={openBriefingForReview}
                   isDossierOpen={isDossierOpen}
                   setIsDossierOpen={setIsDossierOpen}
                   dossierData={dossierData}
@@ -943,6 +959,7 @@ function App({ username: _username }: AppProps) {
               )}
               {challengeLoopId === 1 && (
                 <OnlineIntelGathering
+                  onOpenPhaseBriefing={openBriefingForReview}
                   onContinue={handleOnlineIntelGatheringContinue}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
@@ -982,6 +999,7 @@ function App({ username: _username }: AppProps) {
                               intel_type: matchingUpdated.intel_type,
                               categorized_type: matchingUpdated.categorized_type,
                               description: matchingUpdated.description,
+                              source: (matchingUpdated as any).source || item.source,
                             };
                           }
                           return item;
@@ -1002,6 +1020,7 @@ function App({ username: _username }: AppProps) {
               )}
               {challengeLoopId === 2 && (
                 <PitchDebate
+                  onOpenPhaseBriefing={openBriefingForReview}
                   currentPhase={currentPhase}
                   setCurrentPhase={setCurrentPhase}
                   phases={phases}

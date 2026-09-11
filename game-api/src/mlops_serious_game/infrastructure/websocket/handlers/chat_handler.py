@@ -11,6 +11,7 @@ from mlops_serious_game.application.pitch_debate_service import (
     get_response,
 )
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement import StakeholderIntelItem
@@ -138,7 +139,10 @@ async def handle_chat_message(
                 curr_challenge = None
 
         if not challenge_context and curr_challenge:
-            challenge_context = f"{curr_challenge.name}: {curr_challenge.roundIntroduction} {curr_challenge.description}"
+            challenge_context = (
+                f"{curr_challenge.name}: {curr_challenge.roundIntroduction} "
+                f"{personalize(curr_challenge.description, resolve_markers=True)}"
+            )
 
         intel_items = (
             get_discovered_intel_items(username=username, challenge=curr_challenge)

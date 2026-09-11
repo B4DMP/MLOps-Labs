@@ -7,7 +7,7 @@
       "challenges": [
         {
           "challenge_title": "The Introduction",
-          "challenge_description": "#Model Monica# proposes a complex ML model for maximizing accuracy. #Efficiency Emilia# argues that a simpler model would be sufficient and could generate more business value.",
+          "challenge_description": "#model_monica# proposes a complex ML model for maximizing accuracy. #efficiency_emilia# argues that a simpler model would be sufficient and could generate more business value.",
           "round_introduction_text": "This sample challenge introduces you to the game and its mechanics.",
           "metric_changes": {
             "model_intro": 0,
@@ -24,7 +24,7 @@
       "challenges": [
         {
           "challenge_title": "The Platform Choice",
-          "challenge_description": "For minimizing the development effort, #Efficiency Emilia# proposes to use a cloud-based 3rd-party managed MLOps platform. #Requirements Reuben# warns that the platform may not fully meet the projects requirements and instead argues for designing and developing a custom platform that fits the projects requirements.",
+          "challenge_description": "For minimizing the development effort, #efficiency_emilia# proposes to use a cloud-based 3rd-party managed MLOps platform. #requirements_reuben# warns that the platform may not fully meet the projects requirements and instead argues for designing and developing a custom platform that fits the projects requirements.",
           "round_introduction_text": "Moving to system and architecture design, the team faces a fundamental dilemma: should they build a custom platform or buy a managed solution?",
           "metric_changes": {
             "automation": 0,
@@ -36,7 +36,7 @@
         },
         {
           "challenge_title": "The Automation Deadline",
-          "challenge_description": "#Requirements Reuben# proposes to fully automate workflows using CI/CD pipelines. #Efficiency Emilia# fears that setting up the pipelines could delay the project and opts for a semi-automated approach where some steps are still executed manually. ",
+          "challenge_description": "#requirements_reuben# proposes to fully automate workflows using CI/CD pipelines. #efficiency_emilia# fears that setting up the pipelines could delay the project and opts for a semi-automated approach where some steps are still executed manually. ",
           "round_introduction_text": "While defining workflow strategies, an upcoming deadline causes a conflict over the initial level of automation required for the project.",
           "metric_changes": {
             "automation": 0,
@@ -48,7 +48,7 @@
         },
         {
           "challenge_title": "Subject-Matter Expert Resistance",
-          "challenge_description": "#Efficiency Emilia# puts up passive resistance to the AI project because he believes that it is intended to replace his job. #Requirements Reuben# attempts to resolve the conflict by assuring him that the AI is only meant to act as a supportive tool.",
+          "challenge_description": "#efficiency_emilia# puts up passive resistance to the AI project because she believes that it is intended to replace her job. #requirements_reuben# attempts to resolve the conflict by assuring her that the AI is only meant to act as a supportive tool.",
           "round_introduction_text": "As the project begins to take shape, the AI team encounters unexpected difficulties in getting the necessary domain knowledge from the experts.",
           "metric_changes": {
             "automation": 0,
@@ -67,7 +67,7 @@
       "challenges": [
         {
           "challenge_title": "The Legacy Dataset",
-          "challenge_description": "Fearing that the ML model will not reach the targeted accuracy otherwise, #Data Dave# proposes a complex data structuring and augmentation process.",
+          "challenge_description": "Fearing that the ML model will not reach the targeted accuracy otherwise, #data_dave# proposes a complex data structuring and augmentation process.",
           "round_introduction_text": "With requirements set, the data engineering team moves to ingest data from various internal systems. It has discovered legacy logging data that lacks context needed for proper ML model training.",
           "metric_changes": {
             "reliability": 0,
@@ -79,7 +79,7 @@
         },
         {
           "challenge_title": "The Unbalanced Data",
-          "challenge_description": "#Requirements Reuben# warns that if the imbalance is not addressed, models trained on the data may become biased or overfit.",
+          "challenge_description": "#requirements_reuben# warns that if the imbalance is not addressed, models trained on the data may become biased or overfit.",
           "round_introduction_text": "The data acquisition has been completed. When the team begins data exploration, it becomes clear that one class is significantly overrepresented.",
           "metric_changes": {
             "reliability": 0,
@@ -91,7 +91,7 @@
         },
         {
           "challenge_title": "The Data Instability",
-          "challenge_description": "#Data Dave# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #Reliability Ruth# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
+          "challenge_description": "#data_dave# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #reliability_ruth# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
           "round_introduction_text": "During data analysis, it was revealed that a data source changes its behavior over time.",
           "metric_changes": {
             "reliability": -2,
@@ -110,7 +110,7 @@
       "challenges": [
         {
           "challenge_title": "The Entanglement Problem",
-          "challenge_description": " #Data Dave# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, he proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #Model Monica# warns that this would come with a higher complexity and may hurt the model's performance.",
+          "challenge_description": " #data_dave# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, he proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #model_monica# warns that this would come with a higher complexity and may hurt the model's performance.",
           "round_introduction_text": "With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system.",
           "metric_changes": {
             "model": 0,
@@ -122,7 +122,7 @@
         },
         {
           "challenge_title": "The Complexity Trade-off",
-          "challenge_description": "#Data Dave# proposes a complex deep learning model for highest accuracy, while #Model Monica# argues for a simpler model that is easier to maintain in production.",
+          "challenge_description": "#data_dave# proposes a complex deep learning model for highest accuracy, while #model_monica# argues for a simpler model that is easier to maintain in production.",
           "round_introduction_text": "Model experimentation is reaching a critical phase. The data science team has narrowed down the candidates, but the remaining options present a dilemma between performance and operational stability.",
           "metric_changes": {
             "model": 0,
@@ -141,7 +141,7 @@
       "challenges": [
         {
           "challenge_title": "The Automation Risk",
-          "challenge_description": "To comply with CI/CD, #Automation Alex# proposes a fully automated deployment and validation process. #Requirements Reuben# warns that an automated validation may violate responsible AI practices as fairness and bias identification may fall short.",
+          "challenge_description": "To comply with CI/CD, #automation_alex# proposes a fully automated deployment and validation process. #requirements_reuben# warns that an automated validation may violate responsible AI practices as fairness and bias identification may fall short.",
           "round_introduction_text": "A ML model that matches the performance goals has been selected for production, but scaling it introduces new hurdles. As the team prepares the deployment pipeline, a conflict arises over how to safely push the model without compromising ethical standards.",
           "metric_changes": {
             "automation": 0,
@@ -153,7 +153,7 @@
         },
         {
           "challenge_title": "Final Reservations",
-          "challenge_description": "It was found that the current architecture relies on a legacy model whose output is transformed by a transformer model and used as a an input. #Model Monica# warns that this additional system dependency to a model that is not directly in control of the development team could lead to correction cascades, where downstream models continuously compensate for upstream errors, amplifying noise and bias over time and thus degrading overall system performance.",
+          "challenge_description": "It was found that the current architecture relies on a legacy model whose output is transformed by a transformer model and used as a an input. #model_monica# warns that this additional system dependency to a model that is not directly in control of the development team could lead to correction cascades, where downstream models continuously compensate for upstream errors, amplifying noise and bias over time and thus degrading overall system performance.",
           "round_introduction_text": "The deployment is well on its way when a random check of the architecture sparks concerns within the data science division. ",
           "metric_changes": {
             "automation": 0,
@@ -172,7 +172,7 @@
       "challenges": [
         {
           "challenge_title": "Model Accuracy Drops",
-          "challenge_description": "The deployed model shows declining accuracy as live data drifts away from training data. #Efficiency Emilia# is concerned about business impact and requests a rapid retraining. #Reliability Ruth# argues that a quick quick damage control without diagnosis and validation risks locking in bad patterns and increase instability.",
+          "challenge_description": "The deployed model shows declining accuracy as live data drifts away from training data. #efficiency_emilia# is concerned about business impact and requests a rapid retraining. #reliability_ruth# argues that a quick quick damage control without diagnosis and validation risks locking in bad patterns and increase instability.",
           "round_introduction_text": "The ML solution has been running successfully in production until a subtle but concerning trend emerges.",
           "metric_changes": {
             "model": -4,

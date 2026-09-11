@@ -85,6 +85,13 @@ class Settings(BaseSettings):
     POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
     POSTGRES_USER_DATA_TABLE: str = "user_data"
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
+    AUTO_MIGRATE: bool = Field(
+        default=True,
+        description=(
+            "Apply pending alembic revisions when the API starts. Turn off to "
+            "manage the schema yourself with `alembic upgrade head`."
+        ),
+    )
 
     @property
     def POSTGRES_CHECKPOINTER_URI(self) -> str:

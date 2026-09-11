@@ -1,0 +1,1477 @@
+{
+  "settings": {
+    "enabled": true,
+    "case_sensitive": false,
+    "match_whole_words": true,
+    "max_highlights_per_term_per_block": 1,
+    "min_term_length": 2,
+    "surfaces": {
+      "stakeholder_messages": true,
+      "speech_bubbles": false,
+      "intel_notes": true,
+      "intel_artifacts": true,
+      "dossier_profile": true,
+      "dialogue_options": true,
+      "challenge_briefing": true
+    }
+  },
+  "categories": [
+    {
+      "id": "lifecycle",
+      "label": "MLOps Practice",
+      "color": "#6366f1",
+      "icon": "ph:arrows-clockwise-bold"
+    },
+    {
+      "id": "requirements",
+      "label": "Requirements & Stakeholders",
+      "color": "#0ea5e9",
+      "icon": "ph:clipboard-text-bold"
+    },
+    {
+      "id": "data",
+      "label": "Data Engineering",
+      "color": "#14b8a6",
+      "icon": "ph:database-bold"
+    },
+    {
+      "id": "model",
+      "label": "Model Engineering",
+      "color": "#a855f7",
+      "icon": "ph:brain-bold"
+    },
+    {
+      "id": "metrics",
+      "label": "Evaluation & Metrics",
+      "color": "#f59e0b",
+      "icon": "ph:chart-line-up-bold"
+    },
+    {
+      "id": "deployment",
+      "label": "Deployment & Serving",
+      "color": "#22c55e",
+      "icon": "ph:rocket-launch-bold"
+    },
+    {
+      "id": "monitoring",
+      "label": "Monitoring & Reliability",
+      "color": "#ef4444",
+      "icon": "ph:pulse-bold"
+    },
+    {
+      "id": "infrastructure",
+      "label": "Platform & Infrastructure",
+      "color": "#64748b",
+      "icon": "ph:stack-bold"
+    },
+    {
+      "id": "governance",
+      "label": "Governance & Responsible AI",
+      "color": "#e11d48",
+      "icon": "ph:scales-bold"
+    },
+    {
+      "id": "debt",
+      "label": "ML Technical Debt",
+      "color": "#b45309",
+      "icon": "ph:warning-octagon-bold"
+    }
+  ],
+  "terms": [
+    {
+      "id": "class_imbalance",
+      "term": "class imbalance",
+      "aliases": [
+        "imbalanced data",
+        "imbalanced classes"
+      ],
+      "category": "data",
+      "definition": "A dataset where one outcome vastly outnumbers the others, letting a model score well while learning nothing useful.",
+      "why_it_matters": "It is how \"99% accurate\" can mean \"always predicts no\". Ask which metric they used."
+    },
+    {
+      "id": "data_engineering",
+      "term": "data engineering",
+      "aliases": [],
+      "category": "data",
+      "definition": "Building the pipelines that collect, clean, validate and serve data, along with the storage, schemas and access rules around them.",
+      "why_it_matters": "This phase decides whether the model is trained on something trustworthy or on quietly rotting inputs."
+    },
+    {
+      "id": "data_ingestion",
+      "term": "data ingestion",
+      "aliases": [
+        "ingestion",
+        "ingest"
+      ],
+      "category": "data",
+      "definition": "Pulling data out of source systems into your own storage, in batches or as a stream.",
+      "why_it_matters": "Ingestion is the boundary you do not control, which is exactly why it needs validation."
+    },
+    {
+      "id": "data_leakage",
+      "term": "data leakage",
+      "aliases": [
+        "leakage",
+        "label leakage",
+        "target leakage"
+      ],
+      "category": "data",
+      "definition": "Information that would not exist at prediction time leaking into training features, producing offline scores that cannot survive contact with production.",
+      "why_it_matters": "The classic reason a model that evaluated brilliantly collapses on its first live day."
+    },
+    {
+      "id": "data_lineage",
+      "term": "data lineage",
+      "aliases": [
+        "lineage",
+        "provenance",
+        "data provenance"
+      ],
+      "category": "data",
+      "definition": "The recorded path of data from its origin, through every transformation, to the model that consumed it.",
+      "why_it_matters": "Lineage is how you find every model affected when one upstream source turns out to have been wrong."
+    },
+    {
+      "id": "data_pipeline",
+      "term": "data pipeline",
+      "aliases": [],
+      "category": "data",
+      "definition": "The automated flow that moves and transforms data between systems on a schedule or in response to events.",
+      "why_it_matters": "When a data pipeline breaks overnight, the model keeps serving predictions from whatever it last saw."
+    },
+    {
+      "id": "data_quality",
+      "term": "data quality",
+      "aliases": [],
+      "category": "data",
+      "definition": "How fit data is for its purpose, judged on completeness, accuracy, consistency, timeliness and validity.",
+      "why_it_matters": "Nearly every production model failure, traced back far enough, turns out to be a data quality failure."
+    },
+    {
+      "id": "data_validation",
+      "term": "data validation",
+      "aliases": [
+        "input validation",
+        "data checks"
+      ],
+      "category": "data",
+      "definition": "Automated checks that incoming data matches the expected schema, ranges and distributions before it reaches training or serving.",
+      "why_it_matters": "The cheapest way to catch a broken upstream feed before it poisons a model in silence."
+    },
+    {
+      "id": "data_versioning",
+      "term": "data versioning",
+      "aliases": [
+        "versioned data",
+        "dataset versioning",
+        "versioned copies"
+      ],
+      "category": "data",
+      "definition": "Keeping immutable, addressable versions of datasets so every model can be tied to exactly the data it learned from.",
+      "why_it_matters": "Dave's fixed snapshots are data versioning. It is what lets you answer \"what changed?\" when accuracy drops."
+    },
+    {
+      "id": "dataset",
+      "term": "dataset",
+      "aliases": [
+        "datasets",
+        "data set"
+      ],
+      "category": "data",
+      "definition": "A defined collection of records assembled for a specific purpose, such as training, validating or testing a model.",
+      "why_it_matters": "\"The dataset\" is rarely one thing. Ask which version, cut on which date, filtered how."
+    },
+    {
+      "id": "etl",
+      "term": "ETL",
+      "aliases": [
+        "ELT",
+        "extract transform load"
+      ],
+      "category": "data",
+      "definition": "Extract, Transform, Load: the batch process that moves data out of source systems, reshapes it, and lands it where it can be used.",
+      "why_it_matters": "Unglamorous plumbing that quietly decides whether the model team has anything to work with."
+    },
+    {
+      "id": "feature",
+      "term": "feature",
+      "aliases": [
+        "features",
+        "input signal",
+        "signal",
+        "signals"
+      ],
+      "category": "data",
+      "definition": "A single input variable a model reads, derived from raw data, such as \"orders in the last seven days\".",
+      "why_it_matters": "Features are where data engineering and model engineering meet, and where they blame each other."
+    },
+    {
+      "id": "feature_distribution",
+      "term": "feature distribution",
+      "aliases": [
+        "distribution",
+        "input distribution"
+      ],
+      "category": "data",
+      "definition": "The statistical shape of a feature's values: its range, spread and frequencies.",
+      "why_it_matters": "A model learns a distribution, not a world. When the distribution moves, the learning quietly expires."
+    },
+    {
+      "id": "feature_engineering",
+      "term": "feature engineering",
+      "aliases": [],
+      "category": "data",
+      "definition": "Designing and computing the input variables a model learns from, turning raw records into signals with predictive value.",
+      "why_it_matters": "Often the highest-leverage work on a model, and the hardest to hand to someone else."
+    },
+    {
+      "id": "feature_store",
+      "term": "feature store",
+      "aliases": [],
+      "category": "data",
+      "definition": "A shared service that computes, stores and serves features so that training and serving use the same definitions and the same values.",
+      "why_it_matters": "The standard cure for training-serving skew, priced at one more platform component to operate."
+    },
+    {
+      "id": "label",
+      "term": "label",
+      "aliases": [
+        "labels",
+        "ground truth",
+        "labelling",
+        "labeling",
+        "annotation"
+      ],
+      "category": "data",
+      "definition": "The known correct answer attached to a training example, and the thing a supervised model learns to predict.",
+      "why_it_matters": "Labels are expensive, usually delayed, and in production often arrive far too late to catch a problem early."
+    },
+    {
+      "id": "schema",
+      "term": "schema",
+      "aliases": [
+        "data schema"
+      ],
+      "category": "data",
+      "definition": "The formal contract describing a dataset's fields, their types and their allowed values.",
+      "why_it_matters": "A schema is what turns a silent upstream change into a loud, catchable error."
+    },
+    {
+      "id": "schema_drift",
+      "term": "schema drift",
+      "aliases": [
+        "schema change"
+      ],
+      "category": "data",
+      "definition": "An upstream source quietly changing its fields, types, units or encoding.",
+      "why_it_matters": "This is Dave's warning in the data phase: nothing errors, the numbers simply start meaning something else."
+    },
+    {
+      "id": "snapshot",
+      "term": "snapshot",
+      "aliases": [
+        "data snapshot",
+        "snapshots",
+        "frozen snapshot"
+      ],
+      "category": "data",
+      "definition": "A frozen copy of a data source at one moment, used so a training run has a stable, reproducible input.",
+      "why_it_matters": "Snapshots buy stability and pay for it in staleness. That trade is the whole Data Instability challenge."
+    },
+    {
+      "id": "stale_data",
+      "term": "stale data",
+      "aliases": [
+        "staleness",
+        "stale signal",
+        "outdated data"
+      ],
+      "category": "data",
+      "definition": "Data that no longer reflects the current world because the snapshot behind it has not been refreshed.",
+      "why_it_matters": "Ruth's objection in one line: a frozen snapshot stops surprising you, and also stops being true."
+    },
+    {
+      "id": "training_data",
+      "term": "training data",
+      "aliases": [
+        "training set"
+      ],
+      "category": "data",
+      "definition": "The examples a model learns from.",
+      "why_it_matters": "Everything the model believes about the world, it believes because this set told it so."
+    },
+    {
+      "id": "configuration_debt",
+      "term": "configuration debt",
+      "aliases": [
+        "config debt"
+      ],
+      "category": "debt",
+      "definition": "Sprawling, unreviewed configuration where a single wrong value quietly changes model behaviour with no test to catch it.",
+      "why_it_matters": "Configuration is code that nobody reviews, and it ships to production more often than code does."
+    },
+    {
+      "id": "data_dependency_debt",
+      "term": "data dependency",
+      "aliases": [
+        "data dependencies",
+        "unstable data dependency"
+      ],
+      "category": "debt",
+      "definition": "A model's reliance on an input owned by someone else, who may change or retire it on their own schedule.",
+      "why_it_matters": "Data dependencies cost more than code dependencies and almost nobody tracks them with the same care."
+    },
+    {
+      "id": "entanglement",
+      "term": "entanglement",
+      "aliases": [
+        "feature entanglement",
+        "CACE"
+      ],
+      "category": "debt",
+      "definition": "In an ML model, changing anything changes everything: alter one feature's weight, distribution or presence and every other feature's contribution shifts too.",
+      "why_it_matters": "The Entanglement Problem challenge. It is why you cannot improve one part of a model in isolation and prove it."
+    },
+    {
+      "id": "hidden_feedback_loop",
+      "term": "feedback loop",
+      "aliases": [
+        "hidden feedback loop",
+        "feedback loops"
+      ],
+      "category": "debt",
+      "definition": "A model influencing the world that generates its next training data, so it ends up learning from its own past behaviour.",
+      "why_it_matters": "Loops make offline evaluation optimistic and make cause and effect very hard to separate afterwards."
+    },
+    {
+      "id": "glue_code",
+      "term": "glue code",
+      "aliases": [],
+      "category": "debt",
+      "definition": "The mass of adapter code written to connect general-purpose ML packages to a specific system, which ends up outweighing the modelling code.",
+      "why_it_matters": "It is where most of the maintenance goes, and nobody puts it on a roadmap."
+    },
+    {
+      "id": "hidden_technical_debt",
+      "term": "hidden technical debt",
+      "aliases": [
+        "hidden debt",
+        "Sculley"
+      ],
+      "category": "debt",
+      "definition": "The argument that ML systems accumulate maintenance cost in ways ordinary software does not, because data dependencies and feedback loops erode a system even while its code sits still.",
+      "why_it_matters": "Two of this game's challenges come straight from that paper. The debt is invisible until you try to change something."
+    },
+    {
+      "id": "pipeline_jungle",
+      "term": "pipeline jungle",
+      "aliases": [],
+      "category": "debt",
+      "definition": "Data preparation grown by accretion into a thicket of scrapes, joins and one-off steps that only works because nobody has touched it.",
+      "why_it_matters": "The predictable end state of always adding one more signal under time pressure."
+    },
+    {
+      "id": "technical_debt",
+      "term": "technical debt",
+      "aliases": [
+        "tech debt"
+      ],
+      "category": "debt",
+      "definition": "The future cost of a shortcut taken today: the extra work every later change has to pay because the quick solution was kept.",
+      "why_it_matters": "ML systems accrue it faster than ordinary software, because data and models rot even when the code never changes."
+    },
+    {
+      "id": "training_serving_skew",
+      "term": "training-serving skew",
+      "aliases": [
+        "training serving skew",
+        "train/serve skew"
+      ],
+      "category": "debt",
+      "definition": "Features being computed one way during training and a subtly different way at serving time, so the live model sees inputs it was never trained on.",
+      "why_it_matters": "A silent accuracy killer that no offline evaluation can reveal, and the main argument for a feature store."
+    },
+    {
+      "id": "undeclared_consumer",
+      "term": "undeclared consumer",
+      "aliases": [
+        "undeclared consumers",
+        "visibility debt"
+      ],
+      "category": "debt",
+      "definition": "A downstream team quietly depending on your model's output without telling you, so your next change breaks something you did not know existed.",
+      "why_it_matters": "It is the reason a harmless-looking model update takes down an unrelated dashboard."
+    },
+    {
+      "id": "automated_validation",
+      "term": "automated validation",
+      "aliases": [
+        "automated testing",
+        "validation gate",
+        "quality gate"
+      ],
+      "category": "deployment",
+      "definition": "Checks a pipeline runs on its own before promoting a model: performance thresholds, data checks, fairness tests, smoke tests.",
+      "why_it_matters": "The Automation Risk challenge in one phrase. It catches what you thought to encode, and nothing else."
+    },
+    {
+      "id": "batch_inference",
+      "term": "batch inference",
+      "aliases": [
+        "batch scoring",
+        "batch prediction"
+      ],
+      "category": "deployment",
+      "definition": "Scoring a large set of records on a schedule and storing the results for later lookup.",
+      "why_it_matters": "Far cheaper and calmer than real-time serving, and impossible when the answer must reflect the last few seconds."
+    },
+    {
+      "id": "blue_green",
+      "term": "blue/green deployment",
+      "aliases": [
+        "blue green deployment"
+      ],
+      "category": "deployment",
+      "definition": "Keeping two complete environments and switching traffic from the old to the new in one move, with the old kept warm for instant reversal.",
+      "why_it_matters": "Buys a fast, boring rollback at the price of running two of everything."
+    },
+    {
+      "id": "canary",
+      "term": "canary release",
+      "aliases": [
+        "canary",
+        "canary deployment",
+        "progressive rollout"
+      ],
+      "category": "deployment",
+      "definition": "Releasing a change to a small slice of traffic first and widening only while the metrics hold.",
+      "why_it_matters": "The compromise between Alex's full automation and Reuben's demand that a human check the result."
+    },
+    {
+      "id": "inference",
+      "term": "inference",
+      "aliases": [
+        "prediction",
+        "predictions",
+        "scoring"
+      ],
+      "category": "deployment",
+      "definition": "Running a trained model on new input to produce an output.",
+      "why_it_matters": "Inference is what the user actually experiences, and it is where latency and cost per call are measured."
+    },
+    {
+      "id": "model_deployment",
+      "term": "model deployment",
+      "aliases": [
+        "deployment",
+        "deploying a model",
+        "deploy"
+      ],
+      "category": "deployment",
+      "definition": "Moving a trained model into a production system where real users or services consume its predictions.",
+      "why_it_matters": "The moment a model stops being an experiment and starts producing real business and compliance risk."
+    },
+    {
+      "id": "model_serving",
+      "term": "model serving",
+      "aliases": [
+        "serving",
+        "serving infrastructure"
+      ],
+      "category": "deployment",
+      "definition": "The infrastructure that hosts a model behind an interface and answers prediction requests reliably and at scale.",
+      "why_it_matters": "Serving is a production service with uptime obligations, not an attachment to a model."
+    },
+    {
+      "id": "online_inference",
+      "term": "online inference",
+      "aliases": [
+        "real-time inference",
+        "real-time serving",
+        "online serving"
+      ],
+      "category": "deployment",
+      "definition": "Scoring a single request on demand, inside a live user interaction, under a latency budget.",
+      "why_it_matters": "This is the mode where Emilia's 50ms ceiling turns into an architecture constraint."
+    },
+    {
+      "id": "production",
+      "term": "production",
+      "aliases": [
+        "prod",
+        "in production"
+      ],
+      "category": "deployment",
+      "definition": "The live environment serving real traffic, where failure has real consequences, as opposed to a notebook or sandbox.",
+      "why_it_matters": "Whoever owns production values stability far above the last percent of accuracy, and they are not being difficult."
+    },
+    {
+      "id": "rollback",
+      "term": "rollback",
+      "aliases": [
+        "roll back",
+        "revert"
+      ],
+      "category": "deployment",
+      "definition": "Returning to the previously known-good version after a release misbehaves.",
+      "why_it_matters": "A deployment plan without a rehearsed rollback is a plan to argue during an incident."
+    },
+    {
+      "id": "shadow_deployment",
+      "term": "shadow deployment",
+      "aliases": [
+        "shadow mode",
+        "dark launch"
+      ],
+      "category": "deployment",
+      "definition": "Running a new model alongside the live one on real traffic while discarding its output, purely to compare behaviour.",
+      "why_it_matters": "Lets you earn confidence on production data without exposing a single user to the new model."
+    },
+    {
+      "id": "unit_test",
+      "term": "unit test",
+      "aliases": [
+        "unit testing",
+        "smoke test",
+        "integration test"
+      ],
+      "category": "deployment",
+      "definition": "An automated check that one piece of a system behaves as specified, run on every change.",
+      "why_it_matters": "ML code is testable like any other code; the models are the part that need a different kind of gate."
+    },
+    {
+      "id": "auditability",
+      "term": "auditability",
+      "aliases": [
+        "audit trail",
+        "auditable"
+      ],
+      "category": "governance",
+      "definition": "Keeping enough record of data, code, approvals and decisions that an outsider can reconstruct what happened and when.",
+      "why_it_matters": "Auditability is why an approval step that feels like bureaucracy is sometimes genuinely non-negotiable."
+    },
+    {
+      "id": "bias",
+      "term": "bias",
+      "aliases": [
+        "biased",
+        "algorithmic bias"
+      ],
+      "category": "governance",
+      "definition": "A systematic skew in data or model behaviour that disadvantages particular groups or outcomes.",
+      "why_it_matters": "Bias is inherited from data by default. Not looking for it is a decision, not a neutral position."
+    },
+    {
+      "id": "compliance",
+      "term": "compliance",
+      "aliases": [
+        "regulatory compliance",
+        "comply"
+      ],
+      "category": "governance",
+      "definition": "Meeting the legal and policy obligations that apply to the system, and being able to demonstrate that you do.",
+      "why_it_matters": "Compliance requirements do not negotiate, and the stakeholder repeating them is usually the one who will be held responsible."
+    },
+    {
+      "id": "explainability",
+      "term": "explainability",
+      "aliases": [
+        "interpretability",
+        "explainable",
+        "XAI"
+      ],
+      "category": "governance",
+      "definition": "Being able to say why a model produced a particular output, in terms a human, an auditor or an affected person can follow.",
+      "why_it_matters": "Often a hard constraint in regulated settings, and one that quietly rules out the most complex architectures."
+    },
+    {
+      "id": "fairness",
+      "term": "fairness",
+      "aliases": [
+        "fair",
+        "fairness testing"
+      ],
+      "category": "governance",
+      "definition": "Whether a model's errors and benefits fall evenly across groups of people, rather than concentrating on some of them.",
+      "why_it_matters": "Aggregate accuracy hides this completely, which is why a fairness check is a separate gate."
+    },
+    {
+      "id": "human_in_the_loop",
+      "term": "human in the loop",
+      "aliases": [
+        "human-in-the-loop",
+        "manual review",
+        "human oversight"
+      ],
+      "category": "governance",
+      "definition": "Keeping a person in a decision path, either reviewing outputs or approving a promotion, instead of letting the system act alone.",
+      "why_it_matters": "Reuben's position: some judgements, especially fairness ones, cannot be delegated to a test suite."
+    },
+    {
+      "id": "model_card",
+      "term": "model card",
+      "aliases": [
+        "model documentation",
+        "datasheet"
+      ],
+      "category": "governance",
+      "definition": "A short standard document recording a model's intended use, training data, evaluation results and known limitations.",
+      "why_it_matters": "The cheapest artefact that stops a model being used for something it was never validated for."
+    },
+    {
+      "id": "model_governance",
+      "term": "model governance",
+      "aliases": [
+        "ML governance"
+      ],
+      "category": "governance",
+      "definition": "The controls around models in production: who may approve, promote, change or retire one, and on what evidence.",
+      "why_it_matters": "Governance is the machinery that makes an agreement survive the departure of the people who made it."
+    },
+    {
+      "id": "responsible_ai",
+      "term": "responsible AI",
+      "aliases": [
+        "ethical AI",
+        "AI ethics",
+        "responsible AI practices"
+      ],
+      "category": "governance",
+      "definition": "Building and running ML systems so their effects on people are examined and defensible: fairness, transparency, accountability, privacy and safety.",
+      "why_it_matters": "Reuben's objection to full automation lives here, and it is the one that carries regulatory teeth."
+    },
+    {
+      "id": "security",
+      "term": "security",
+      "aliases": [
+        "access control",
+        "secure"
+      ],
+      "category": "governance",
+      "definition": "Protecting data, models and infrastructure from unauthorised access, alteration or exfiltration.",
+      "why_it_matters": "Security requirements shape where data may live, which reshapes the whole architecture underneath."
+    },
+    {
+      "id": "batching",
+      "term": "batching",
+      "aliases": [
+        "request batching",
+        "GPU batching"
+      ],
+      "category": "infrastructure",
+      "definition": "Grouping several requests so they are processed together, raising throughput per unit of hardware.",
+      "why_it_matters": "Improves cost per prediction and adds waiting time, which is exactly the wrong direction under a latency cap."
+    },
+    {
+      "id": "build_vs_buy",
+      "term": "build versus buy",
+      "aliases": [
+        "build vs buy",
+        "custom platform",
+        "managed platform",
+        "3rd-party managed"
+      ],
+      "category": "infrastructure",
+      "definition": "Choosing between building tooling that fits your requirements exactly and adopting a vendor product that fits most of them today.",
+      "why_it_matters": "Buying converts engineering effort into a subscription and a dependency. Building converts it into a permanent maintenance obligation."
+    },
+    {
+      "id": "caching",
+      "term": "caching",
+      "aliases": [
+        "cache",
+        "cache partition"
+      ],
+      "category": "infrastructure",
+      "definition": "Keeping recent or precomputed results close to where they are needed so repeat work is skipped.",
+      "why_it_matters": "A common way to buy back latency without simplifying the model, as long as the cached answer is still valid."
+    },
+    {
+      "id": "cloud_cost",
+      "term": "cloud cost",
+      "aliases": [
+        "compute cost",
+        "cloud spend",
+        "TCO",
+        "total cost of ownership"
+      ],
+      "category": "infrastructure",
+      "definition": "What running the workload actually costs, including training compute, serving capacity, storage and data movement.",
+      "why_it_matters": "Model complexity is usually paid monthly. That is why the efficiency stakeholder keeps reappearing."
+    },
+    {
+      "id": "containerisation",
+      "term": "containerization",
+      "aliases": [
+        "containerisation",
+        "container",
+        "containers",
+        "Docker"
+      ],
+      "category": "infrastructure",
+      "definition": "Packaging code with its dependencies into a portable image that runs identically wherever it is deployed.",
+      "why_it_matters": "The usual fix for \"it worked in training\" being different from \"it works in serving\"."
+    },
+    {
+      "id": "gpu",
+      "term": "GPU",
+      "aliases": [
+        "accelerator",
+        "GPUs"
+      ],
+      "category": "infrastructure",
+      "definition": "Specialised hardware that makes training and heavy inference far faster, at a substantial hourly price.",
+      "why_it_matters": "The most visible line item when someone asks why the model budget doubled."
+    },
+    {
+      "id": "iac",
+      "term": "infrastructure as code",
+      "aliases": [
+        "IaC",
+        "Terraform"
+      ],
+      "category": "infrastructure",
+      "definition": "Defining infrastructure in version-controlled files so environments can be recreated and reviewed like software.",
+      "why_it_matters": "It is what makes an environment reproducible, which is a precondition for a reproducible model."
+    },
+    {
+      "id": "kubernetes",
+      "term": "Kubernetes",
+      "aliases": [
+        "K8s"
+      ],
+      "category": "infrastructure",
+      "definition": "An orchestration system that schedules, scales and restarts containerised workloads across a cluster.",
+      "why_it_matters": "Powerful, and an operational commitment of its own. Someone has to run the thing that runs your model."
+    },
+    {
+      "id": "platform",
+      "term": "MLOps platform",
+      "aliases": [
+        "platform",
+        "ML platform"
+      ],
+      "category": "infrastructure",
+      "definition": "The integrated tooling a team uses to run the ML lifecycle: pipelines, tracking, registry, serving and monitoring in one place.",
+      "why_it_matters": "The Platform Choice challenge is a build-versus-buy decision about exactly this."
+    },
+    {
+      "id": "saas",
+      "term": "SaaS",
+      "aliases": [
+        "software as a service",
+        "managed service"
+      ],
+      "category": "infrastructure",
+      "definition": "Software run and operated by a vendor and consumed over the network for a recurring fee.",
+      "why_it_matters": "Predictable monthly pricing is Emilia's stated constraint, and it is a real one for anyone defending a budget."
+    },
+    {
+      "id": "scalability",
+      "term": "scalability",
+      "aliases": [
+        "scalable",
+        "scaling",
+        "autoscaling"
+      ],
+      "category": "infrastructure",
+      "definition": "A system's ability to handle more load by adding resources, without a redesign.",
+      "why_it_matters": "\"It works on my laptop\" and \"it works at peak traffic\" are different claims with different price tags."
+    },
+    {
+      "id": "vendor_lock_in",
+      "term": "vendor lock-in",
+      "aliases": [
+        "lock-in",
+        "vendor lockin"
+      ],
+      "category": "infrastructure",
+      "definition": "Depending on one supplier's proprietary interfaces so heavily that leaving would mean rebuilding.",
+      "why_it_matters": "The cost that never appears in the first year's pricing comparison."
+    },
+    {
+      "id": "artifact",
+      "term": "artifact",
+      "aliases": [
+        "artefact",
+        "artifacts"
+      ],
+      "category": "lifecycle",
+      "definition": "Any versioned output of the pipeline that later steps depend on: a dataset, a trained model, an evaluation report.",
+      "why_it_matters": "Treating outputs as named artifacts, not files on someone's machine, is what makes a pipeline auditable."
+    },
+    {
+      "id": "cicd",
+      "term": "CI/CD",
+      "aliases": [
+        "continuous integration",
+        "continuous delivery",
+        "continuous deployment"
+      ],
+      "category": "lifecycle",
+      "definition": "Continuous Integration and Continuous Delivery: automatically building, testing and releasing changes so small updates ship often and safely.",
+      "why_it_matters": "Alex pushes CI/CD because manual releases are slow and error-prone. The counter-argument is that automation also removes the human who would have said no."
+    },
+    {
+      "id": "continuous_training",
+      "term": "continuous training",
+      "aliases": [
+        "CT",
+        "continuous retraining"
+      ],
+      "category": "lifecycle",
+      "definition": "Extending CI/CD to the model itself: the pipeline retrains and re-evaluates automatically when fresh data or a drift alarm arrives.",
+      "why_it_matters": "It is the standard answer to drift, and the standard fear is that it silently promotes a worse model."
+    },
+    {
+      "id": "experiment_tracking",
+      "term": "experiment tracking",
+      "aliases": [
+        "experiment management",
+        "run tracking"
+      ],
+      "category": "lifecycle",
+      "definition": "Recording every training run together with its code version, data version, hyperparameters and metrics, so runs can be compared and rebuilt.",
+      "why_it_matters": "It turns \"the model that worked last Tuesday\" into something you can actually retrieve."
+    },
+    {
+      "id": "handoff",
+      "term": "hand-off",
+      "aliases": [
+        "handoff",
+        "throw over the wall"
+      ],
+      "category": "lifecycle",
+      "definition": "The point where work passes from one team to another, for instance data science handing a trained model to operations.",
+      "why_it_matters": "Most friction in this game lives at hand-offs, where one group's finished work becomes another group's problem."
+    },
+    {
+      "id": "ml_lifecycle",
+      "term": "ML lifecycle",
+      "aliases": [
+        "machine learning lifecycle",
+        "model lifecycle"
+      ],
+      "category": "lifecycle",
+      "definition": "The end-to-end loop a model travels: requirements, data engineering, model engineering, deployment, monitoring, and back around to retraining.",
+      "why_it_matters": "The phases you play follow this loop. A decision taken early keeps charging you rent in every later phase."
+    },
+    {
+      "id": "ml_pipeline",
+      "term": "ML pipeline",
+      "aliases": [
+        "machine learning pipeline",
+        "training pipeline",
+        "pipeline",
+        "pipelines"
+      ],
+      "category": "lifecycle",
+      "definition": "An automated chain of steps (ingest, validate, transform, train, evaluate, register, deploy) that turns raw data into a deployable model with no manual hand-offs in the middle.",
+      "why_it_matters": "A pipeline is what makes a result reproducible. A notebook run by one person cannot be rerun the same way six months later."
+    },
+    {
+      "id": "mlops",
+      "term": "MLOps",
+      "aliases": [
+        "ML Ops",
+        "machine learning operations"
+      ],
+      "category": "lifecycle",
+      "definition": "The practice of running machine learning in production: joining ML, software engineering and operations so models are built, shipped, monitored and retrained on a repeatable pipeline instead of by hand.",
+      "why_it_matters": "Every phase of this game is one stage of the MLOps lifecycle. The stakeholders argue because each of them owns a different stage."
+    },
+    {
+      "id": "mlops_maturity",
+      "term": "MLOps maturity",
+      "aliases": [
+        "maturity level",
+        "maturity model"
+      ],
+      "category": "lifecycle",
+      "definition": "A ladder describing how automated an organisation's ML practice is, from manual notebooks, through automated training pipelines, to full CI/CD/CT.",
+      "why_it_matters": "Useful shorthand when stakeholders argue about how much process is enough for the team they actually have."
+    },
+    {
+      "id": "model_registry",
+      "term": "model registry",
+      "aliases": [
+        "registry"
+      ],
+      "category": "lifecycle",
+      "definition": "A catalogue of trained models with their versions, lineage, evaluation results and promotion status (staging, production, archived).",
+      "why_it_matters": "It is the single place that answers \"what exactly is serving right now, and who approved it?\""
+    },
+    {
+      "id": "model_versioning",
+      "term": "model versioning",
+      "aliases": [
+        "model version",
+        "versioning"
+      ],
+      "category": "lifecycle",
+      "definition": "Giving every trained model an immutable identity tied to its code, data and configuration.",
+      "why_it_matters": "Rollback, audit and blame all depend on being able to name the exact version that misbehaved."
+    },
+    {
+      "id": "notebook",
+      "term": "notebook",
+      "aliases": [
+        "Jupyter",
+        "notebooks"
+      ],
+      "category": "lifecycle",
+      "definition": "An interactive document mixing code, output and notes, and the usual place ML work starts.",
+      "why_it_matters": "Excellent for exploring, poor at reproducing. Most MLOps effort is spent getting work out of one."
+    },
+    {
+      "id": "reproducibility",
+      "term": "reproducibility",
+      "aliases": [
+        "reproducible",
+        "reproduce"
+      ],
+      "category": "lifecycle",
+      "definition": "The ability to rerun a training job later with the same code, data and configuration and get the same model back.",
+      "why_it_matters": "Without it you cannot debug a regression, defend a result to an auditor, or roll back with any confidence."
+    },
+    {
+      "id": "ab_test",
+      "term": "A/B test",
+      "aliases": [
+        "A/B testing",
+        "online experiment",
+        "split test"
+      ],
+      "category": "metrics",
+      "definition": "Splitting live traffic between two versions and comparing an agreed metric to decide which actually performs better.",
+      "why_it_matters": "The only measurement that settles \"better for the business\" rather than \"better on the test set\"."
+    },
+    {
+      "id": "accuracy",
+      "term": "accuracy",
+      "aliases": [],
+      "category": "metrics",
+      "definition": "The share of predictions that are correct.",
+      "why_it_matters": "The most quoted and least informative metric. On imbalanced data a high figure can mean the model never says yes."
+    },
+    {
+      "id": "auc",
+      "term": "AUC",
+      "aliases": [
+        "ROC AUC",
+        "AUROC"
+      ],
+      "category": "metrics",
+      "definition": "How well a model ranks positives above negatives across every possible threshold.",
+      "why_it_matters": "Threshold-free, which makes it good for comparing models and poor for describing live behaviour."
+    },
+    {
+      "id": "business_metric",
+      "term": "business metric",
+      "aliases": [
+        "business value",
+        "business impact",
+        "KPI"
+      ],
+      "category": "metrics",
+      "definition": "The outcome the organisation actually cares about, such as revenue, retention, cost saved or time saved.",
+      "why_it_matters": "Emilia's recurring point: model metrics only count once someone shows they move a business metric."
+    },
+    {
+      "id": "confusion_matrix",
+      "term": "confusion matrix",
+      "aliases": [
+        "false positive",
+        "false negative",
+        "false positives",
+        "false negatives"
+      ],
+      "category": "metrics",
+      "definition": "The table of predicted against actual outcomes, splitting errors into false positives and false negatives.",
+      "why_it_matters": "It shows which kind of mistake the model makes, which is the part the business actually feels."
+    },
+    {
+      "id": "cross_validation",
+      "term": "cross-validation",
+      "aliases": [
+        "cross validation",
+        "k-fold"
+      ],
+      "category": "metrics",
+      "definition": "Rotating which slice of the data is held out, training several times, and averaging the scores for a more stable estimate.",
+      "why_it_matters": "Buys a more honest performance number for more compute, which is a trade Emilia will notice."
+    },
+    {
+      "id": "threshold",
+      "term": "decision threshold",
+      "aliases": [
+        "threshold",
+        "cutoff"
+      ],
+      "category": "metrics",
+      "definition": "The score above which a model's output is treated as a positive decision.",
+      "why_it_matters": "Moving the threshold changes precision and recall with no retraining, and is often the fastest lever available."
+    },
+    {
+      "id": "evaluation",
+      "term": "evaluation",
+      "aliases": [
+        "evaluate",
+        "model evaluation"
+      ],
+      "category": "metrics",
+      "definition": "Measuring a model against agreed metrics on data it did not learn from, before anyone decides to ship it.",
+      "why_it_matters": "Whoever defines the evaluation set has quietly defined what \"good\" means for the whole project."
+    },
+    {
+      "id": "f1",
+      "term": "F1 score",
+      "aliases": [
+        "F1"
+      ],
+      "category": "metrics",
+      "definition": "The harmonic mean of precision and recall, giving one number when both matter and neither may collapse.",
+      "why_it_matters": "Useful when someone demands a single figure and accuracy would flatter the model."
+    },
+    {
+      "id": "generalisation",
+      "term": "generalization",
+      "aliases": [
+        "generalisation",
+        "generalize"
+      ],
+      "category": "metrics",
+      "definition": "How well a model performs on data it has never seen, as opposed to data it was fitted to.",
+      "why_it_matters": "The only performance that survives deployment. Everything else is a rehearsal."
+    },
+    {
+      "id": "precision",
+      "term": "precision",
+      "aliases": [],
+      "category": "metrics",
+      "definition": "Of everything the model flagged, the share that really was positive.",
+      "why_it_matters": "This is the metric you care about when a false alarm is expensive."
+    },
+    {
+      "id": "recall",
+      "term": "recall",
+      "aliases": [
+        "sensitivity"
+      ],
+      "category": "metrics",
+      "definition": "Of everything that really was positive, the share the model actually caught.",
+      "why_it_matters": "This is the metric you care about when a miss is expensive. It usually trades against precision."
+    },
+    {
+      "id": "test_set",
+      "term": "test set",
+      "aliases": [
+        "holdout",
+        "hold-out set",
+        "test data"
+      ],
+      "category": "metrics",
+      "definition": "Data held back from training and used once, at the end, to estimate performance on inputs the model has never seen.",
+      "why_it_matters": "Monica's 95% target is measured here, so how the split was made matters as much as the number."
+    },
+    {
+      "id": "validation_set",
+      "term": "validation set",
+      "aliases": [
+        "dev set"
+      ],
+      "category": "metrics",
+      "definition": "A second held-back split used during development to tune choices, keeping the test set clean for the final estimate.",
+      "why_it_matters": "Reusing the test set to tune is how teams talk themselves into a number they cannot reproduce."
+    },
+    {
+      "id": "baseline",
+      "term": "baseline",
+      "aliases": [
+        "baseline model"
+      ],
+      "category": "model",
+      "definition": "The simplest reasonable model or rule used as a reference point, so any complex alternative has to prove it earns its complexity.",
+      "why_it_matters": "The most useful question in a model debate: how much better is this than the boring option?"
+    },
+    {
+      "id": "deep_learning",
+      "term": "deep learning",
+      "aliases": [
+        "neural network",
+        "neural networks",
+        "DNN"
+      ],
+      "category": "model",
+      "definition": "Models built from many layers of learned transformations, powerful on unstructured data and expensive in data, compute and interpretability.",
+      "why_it_matters": "Monica's preferred hammer. Its costs land on Emilia's budget and Ruth's pager."
+    },
+    {
+      "id": "ensemble",
+      "term": "ensemble",
+      "aliases": [
+        "ensembling",
+        "ensemblement",
+        "ensemble model"
+      ],
+      "category": "model",
+      "definition": "Combining several component models and merging their outputs, so no single model has to carry every signal.",
+      "why_it_matters": "Dave's answer to entanglement: isolate the signals so one change stops moving everything at once."
+    },
+    {
+      "id": "hyperparameter",
+      "term": "hyperparameter",
+      "aliases": [
+        "hyperparameters",
+        "hyper-parameter",
+        "hyperparameter tuning",
+        "HPO"
+      ],
+      "category": "model",
+      "definition": "A setting chosen before training rather than learned from data, such as learning rate, depth or regularisation strength.",
+      "why_it_matters": "Tuning them is where a lot of compute budget silently disappears."
+    },
+    {
+      "id": "model_architecture",
+      "term": "model architecture",
+      "aliases": [
+        "architecture"
+      ],
+      "category": "model",
+      "definition": "The structural choice behind a model: its type, its layers or components, and how information flows through it.",
+      "why_it_matters": "Architecture sets the floor on inference cost and latency long before anyone tunes anything."
+    },
+    {
+      "id": "model_complexity",
+      "term": "model complexity",
+      "aliases": [
+        "complexity",
+        "complex model"
+      ],
+      "category": "model",
+      "definition": "How much capacity and structure a model carries, in parameters, components and interactions.",
+      "why_it_matters": "Complexity is paid for in compute, latency, debugging time and every future change. It rarely appears on the accuracy slide."
+    },
+    {
+      "id": "model_engineering",
+      "term": "model engineering",
+      "aliases": [
+        "model development"
+      ],
+      "category": "model",
+      "definition": "Designing, training, tuning and evaluating candidate models until one is good enough to promote toward production.",
+      "why_it_matters": "Where accuracy ambitions collide with the cost and latency limits agreed in earlier phases."
+    },
+    {
+      "id": "overfitting",
+      "term": "overfitting",
+      "aliases": [
+        "overfit"
+      ],
+      "category": "model",
+      "definition": "A model learning the noise and quirks of its training data instead of the pattern, so it scores well there and poorly everywhere else.",
+      "why_it_matters": "A suspiciously high training score is a warning, not an achievement."
+    },
+    {
+      "id": "regularisation",
+      "term": "regularization",
+      "aliases": [
+        "regularisation"
+      ],
+      "category": "model",
+      "definition": "Deliberately constraining a model during training to discourage it from fitting noise.",
+      "why_it_matters": "A cheap lever for generalisation that costs a little training-set accuracy, which some stakeholders will read as a loss."
+    },
+    {
+      "id": "training",
+      "term": "training",
+      "aliases": [
+        "train",
+        "model training"
+      ],
+      "category": "model",
+      "definition": "Fitting a model's parameters to data by repeatedly measuring error and adjusting.",
+      "why_it_matters": "Training cost is recurring, not one-off, once you commit to retraining on a schedule."
+    },
+    {
+      "id": "underfitting",
+      "term": "underfitting",
+      "aliases": [
+        "underfit"
+      ],
+      "category": "model",
+      "definition": "A model too simple to capture the real pattern, performing poorly on training and new data alike.",
+      "why_it_matters": "The honest failure mode. At least it is visible before deployment."
+    },
+    {
+      "id": "alerting",
+      "term": "alerting",
+      "aliases": [
+        "alert",
+        "alerts",
+        "alarm"
+      ],
+      "category": "monitoring",
+      "definition": "Automatic notification when a monitored signal crosses a threshold that a human needs to know about.",
+      "why_it_matters": "Alerts nobody trusts are worse than no alerts, because they train the team to look away."
+    },
+    {
+      "id": "concept_drift",
+      "term": "concept drift",
+      "aliases": [],
+      "category": "monitoring",
+      "definition": "The relationship between inputs and the correct answer itself changing, so the old pattern is now wrong even on familiar-looking data.",
+      "why_it_matters": "Worse than data drift: retraining on recent data helps only once you can tell which kind you have."
+    },
+    {
+      "id": "data_drift",
+      "term": "data drift",
+      "aliases": [
+        "drift",
+        "covariate shift",
+        "input drift",
+        "distribution shift",
+        "drifts"
+      ],
+      "category": "monitoring",
+      "definition": "The live input distribution moving away from the one the model was trained on, so its learned assumptions stop matching reality.",
+      "why_it_matters": "The declining accuracy in the final phase is drift. Nothing in the code changed; the world did."
+    },
+    {
+      "id": "incident",
+      "term": "incident",
+      "aliases": [
+        "outage",
+        "postmortem",
+        "post-mortem"
+      ],
+      "category": "monitoring",
+      "definition": "An unplanned disruption to a live service, and by extension the process of responding to and learning from one.",
+      "why_it_matters": "The people who carry the pager weigh every proposal by how it will read at 3am."
+    },
+    {
+      "id": "latency",
+      "term": "latency",
+      "aliases": [
+        "response time",
+        "inference latency"
+      ],
+      "category": "monitoring",
+      "definition": "How long a single request takes to answer, usually quoted at a high percentile rather than as an average.",
+      "why_it_matters": "Emilia's 50ms ceiling is a latency budget, and every layer of model complexity spends part of it."
+    },
+    {
+      "id": "model_decay",
+      "term": "model decay",
+      "aliases": [
+        "model degradation",
+        "performance degradation",
+        "model staleness"
+      ],
+      "category": "monitoring",
+      "definition": "A deployed model's real-world performance eroding over time as data and behaviour move on.",
+      "why_it_matters": "Decay is the default state of a deployed model. Retraining is maintenance, not a bug fix."
+    },
+    {
+      "id": "monitoring",
+      "term": "monitoring",
+      "aliases": [
+        "model monitoring",
+        "production monitoring"
+      ],
+      "category": "monitoring",
+      "definition": "Continuously watching a live system's inputs, outputs, performance and health, and raising an alert when they leave the expected range.",
+      "why_it_matters": "Models fail silently. Without monitoring the first person to notice is a customer, or a regulator."
+    },
+    {
+      "id": "observability",
+      "term": "observability",
+      "aliases": [],
+      "category": "monitoring",
+      "definition": "Being able to work out what a system is doing internally from the signals it emits, rather than only whether it is up.",
+      "why_it_matters": "Monitoring tells you something broke. Observability is what lets you find out why before the meeting."
+    },
+    {
+      "id": "reliability",
+      "term": "reliability",
+      "aliases": [
+        "stability",
+        "robustness"
+      ],
+      "category": "monitoring",
+      "definition": "How consistently a system does the right thing under real conditions, including load, partial failures and bad input.",
+      "why_it_matters": "Ruth's whole agenda. It is measured over months, which is why it always loses a demo and wins a review."
+    },
+    {
+      "id": "retraining",
+      "term": "retraining",
+      "aliases": [
+        "retrain",
+        "retrained",
+        "model refresh"
+      ],
+      "category": "monitoring",
+      "definition": "Fitting a new version of a model on fresher data, then evaluating it against the incumbent before it replaces anything.",
+      "why_it_matters": "Ruth's warning: retraining without diagnosis locks in whatever went wrong, and does it faster next time."
+    },
+    {
+      "id": "root_cause_analysis",
+      "term": "root cause analysis",
+      "aliases": [
+        "root cause",
+        "diagnosis",
+        "RCA"
+      ],
+      "category": "monitoring",
+      "definition": "Working back from a symptom to the underlying cause, instead of treating whichever surface fault is easiest to reach.",
+      "why_it_matters": "\"Accuracy dropped, retrain it\" skips this step, which is exactly the objection raised against a rapid fix."
+    },
+    {
+      "id": "sla",
+      "term": "SLA",
+      "aliases": [
+        "service level agreement",
+        "SLO",
+        "service level objective"
+      ],
+      "category": "monitoring",
+      "definition": "A committed level of service (uptime, latency, freshness), usually with agreed consequences when it is missed.",
+      "why_it_matters": "An SLA turns a preference about speed into a contractual hard constraint. Check which one you are being handed."
+    },
+    {
+      "id": "throughput",
+      "term": "throughput",
+      "aliases": [
+        "requests per second",
+        "QPS"
+      ],
+      "category": "monitoring",
+      "definition": "How many requests a system can serve per unit of time.",
+      "why_it_matters": "Latency and throughput are traded against each other by batching, which helps one and hurts the other."
+    },
+    {
+      "id": "acceptance_criteria",
+      "term": "acceptance criteria",
+      "aliases": [
+        "definition of done"
+      ],
+      "category": "requirements",
+      "definition": "The concrete, checkable conditions a deliverable must meet before stakeholders consider it finished.",
+      "why_it_matters": "\"Accurate enough\" is not acceptance criteria. \"95% on the agreed test set\" is."
+    },
+    {
+      "id": "elicitation",
+      "term": "elicitation",
+      "aliases": [
+        "requirements elicitation",
+        "intel gathering"
+      ],
+      "category": "requirements",
+      "definition": "Actively drawing requirements out of stakeholders through interviews, documents, observation and workshops, rather than waiting for them to be written down.",
+      "why_it_matters": "The intel phases are elicitation. What people volunteer is never the whole constraint set."
+    },
+    {
+      "id": "functional_requirement",
+      "term": "functional requirement",
+      "aliases": [],
+      "category": "requirements",
+      "definition": "A statement of what the system must do: an input, a behaviour, an output.",
+      "why_it_matters": "Easy to agree on and rarely the thing that sinks an ML project."
+    },
+    {
+      "id": "hard_constraint",
+      "term": "hard constraint",
+      "aliases": [
+        "non-negotiable",
+        "must-have"
+      ],
+      "category": "requirements",
+      "definition": "A requirement that cannot be traded away: violating it makes the solution unacceptable, regardless of what it gains elsewhere.",
+      "why_it_matters": "Mistagging a hard constraint as a preference is the most expensive filing error you can make in this game."
+    },
+    {
+      "id": "negotiable_preference",
+      "term": "negotiable preference",
+      "aliases": [
+        "preference",
+        "nice-to-have"
+      ],
+      "category": "requirements",
+      "definition": "Something a stakeholder would like, stated as a want rather than a limit, and tradeable against other goals.",
+      "why_it_matters": "Preferences are your negotiating currency. Spend them to protect the constraints that really are hard."
+    },
+    {
+      "id": "nfr",
+      "term": "non-functional requirement",
+      "aliases": [
+        "NFR",
+        "quality attribute",
+        "non-functional requirements"
+      ],
+      "category": "requirements",
+      "definition": "A requirement about how well the system must behave rather than what it does: latency, cost, availability, security, maintainability.",
+      "why_it_matters": "Latency ceilings, budget caps and audit rules are all NFRs, and they are what usually kills an otherwise accurate model."
+    },
+    {
+      "id": "power_interest",
+      "term": "power/interest matrix",
+      "aliases": [
+        "power interest grid",
+        "stakeholder matrix"
+      ],
+      "category": "requirements",
+      "definition": "A grid sorting stakeholders by how much influence they hold and how much they care, used to decide who to manage closely and who to merely keep informed.",
+      "why_it_matters": "High power, low interest is the dangerous quadrant: they are not paying attention until they veto you."
+    },
+    {
+      "id": "requirements_engineering",
+      "term": "requirements engineering",
+      "aliases": [
+        "requirement engineering"
+      ],
+      "category": "requirements",
+      "definition": "Eliciting, negotiating and recording what a system must do, and getting the people who care about it to agree on that record before it is built.",
+      "why_it_matters": "This is your actual job here: turn what stakeholders say into requirements all of them will sign."
+    },
+    {
+      "id": "scope_creep",
+      "term": "scope creep",
+      "aliases": [],
+      "category": "requirements",
+      "definition": "Requirements quietly expanding after the plan was agreed, without a matching adjustment to time, budget or staffing.",
+      "why_it_matters": "Most scope creep enters as a reasonable-sounding preference from someone senior."
+    },
+    {
+      "id": "stakeholder",
+      "term": "stakeholder",
+      "aliases": [
+        "stakeholders"
+      ],
+      "category": "requirements",
+      "definition": "Anyone whose interests are affected by the system: users, owners, operators, regulators, and the teams who must maintain it.",
+      "why_it_matters": "The ones who can block you are rarely the ones who asked for the project."
+    },
+    {
+      "id": "stakeholder_alignment",
+      "term": "stakeholder alignment",
+      "aliases": [
+        "alignment",
+        "buy-in"
+      ],
+      "category": "requirements",
+      "definition": "The state where the people who can approve, fund or block a system agree on what it is for and what it must not do.",
+      "why_it_matters": "Alignment, not accuracy, is what gets a model into production in a real organisation."
+    },
+    {
+      "id": "traceability",
+      "term": "traceability",
+      "aliases": [
+        "requirements traceability"
+      ],
+      "category": "requirements",
+      "definition": "Keeping a link from each requirement to its source stakeholder and to the design and test that satisfy it.",
+      "why_it_matters": "When a constraint is challenged later, traceability is how you prove where it came from."
+    }
+  ]
+}

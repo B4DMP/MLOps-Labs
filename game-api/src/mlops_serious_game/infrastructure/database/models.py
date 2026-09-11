@@ -63,6 +63,8 @@ class GameSession(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     player: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
+    stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )

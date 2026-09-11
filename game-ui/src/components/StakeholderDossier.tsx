@@ -4,9 +4,10 @@ import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 export type { ConvincerProfileConfig } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
-import { PhasesContext } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import GlossaryText from "./glossary/GlossaryText";
 
 export interface IntelEntry {
   id: string;
@@ -15,6 +16,10 @@ export interface IntelEntry {
   categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
   description: string;
   is_correct?: boolean;
+  /** Where the item came from: "public_record", "offline_artifact", "interview" or "debate". */
+  source?: string;
+  /** For offline artifacts: which kind of document the player read it off. */
+  artifact_type?: string;
 }
 
 export interface StakeholderDossierEntry {
@@ -31,6 +36,8 @@ export interface StakeholderDossierEntry {
   convincer_status?: "validated" | "unconfirmed" | "unknown";
   is_validated?: boolean;
   intel_items: IntelEntry[];
+  /** How many notes this stakeholder has in the challenge, found or not. */
+  intel_total?: number;
 }
 
 export interface StakeholderBuyInInfo {
@@ -56,12 +63,111 @@ export interface StakeholderDossierProps {
   emotionColors?: Record<string, string>;
   convincerArchetypes?: Record<string, any>;
   buyInInfoMap?: Record<string, StakeholderBuyInInfo>;
+  /**
+   * Carries the phase briefing's NEW / SHIFTED markers onto the stakeholder
+   * tabs. Off by default: only the offline intel phase asks for them.
+   */
+  showPhaseChangeBadges?: boolean;
+  /** Reopens the phase briefing. The button only appears when this is given. */
+  onOpenPhaseBriefing?: () => void;
 }
+
+/** How long the markers keep pulsing when the player never opens their tab. */
+const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
+
+/** Dwell on a tab before its marker counts as seen. */
+const CHANGE_BADGE_SEEN_MS = 1000;
 
 const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
   requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
   negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
   personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
+};
+
+/** Document wording for the "your read of their ..." caption. */
+const ARTIFACT_TYPE_LABEL: Record<string, string> = {
+  email: "email",
+  slack_message: "Slack message",
+  meeting_notes: "meeting notes",
+  document: "document",
+};
+
+/**
+ * Where a note came from. The stamp already says how sure the player can be; this says how it
+ * got here, which the stamp cannot: two confirmed notes can have arrived by very different
+ * routes. Player language, one line, no system words.
+ */
+const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title: string } | null => {
+  switch ((item.source || "").toLowerCase()) {
+    case "public_record":
+      return {
+        icon: "ph:megaphone-bold",
+        text: "Said openly in the team channel",
+        title: "They said this in a channel the whole team reads, before you started digging.",
+      };
+    case "interview":
+      return {
+        icon: "ph:chats-circle-bold",
+        text: "They told you this directly",
+        title: "You got this straight from them while gathering intel.",
+      };
+    case "debate":
+      return {
+        icon: "ph:microphone-stage-bold",
+        text: "Came out during the pitch",
+        title: "This surfaced when they pushed back on your proposal.",
+      };
+    case "offline_artifact":
+    default: {
+      const label = ARTIFACT_TYPE_LABEL[(item.artifact_type || "").toLowerCase()];
+      return {
+        icon: "ph:file-text-bold",
+        text: label ? `Your read of their ${label}` : "Your read of a document",
+        title: "Your own reading of a document you found. Nobody has confirmed it yet.",
+      };
+    }
+  }
+};
+
+type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
+
+/** Pips follow the stamps' colours, so they teach the player nothing new. */
+const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
+  on_record: { label: "On record", styleClass: styles.pipOnRecord },
+  confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
+  unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
+  hidden: { label: "Not found yet", styleClass: styles.pipHidden },
+};
+
+/** Settled first, so the row fills up from the left like a progress bar. */
+const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
+
+const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
+  if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
+  return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+};
+
+/**
+ * One pip per note in the stakeholder's pool: the found ones by stamp, then a hollow one for
+ * each still out there. Hollow pips say how many, never what: no category, no source. Found
+ * pips go by stamp, never by `is_correct`, so they cannot give away a wrong tag either.
+ */
+const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
+  const found = (st.intel_items || []).map(getIntelPipStatus);
+  const hiddenCount = Math.max(0, (st.intel_total ?? 0) - found.length);
+  return [...found, ...Array<IntelPipStatus>(hiddenCount).fill("hidden")].sort(
+    (a, b) => INTEL_PIP_ORDER.indexOf(a) - INTEL_PIP_ORDER.indexOf(b)
+  );
+};
+
+/** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
+const describeIntelPips = (pips: IntelPipStatus[]): string => {
+  const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
+  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
+    .filter((status) => countOf(status) > 0)
+    .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
+  const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
+  return breakdown.length > 0 ? `${summary}: ${breakdown.join(", ")}` : summary;
 };
 
 const getEmotionIcon = (emotionStr: string): string => {
@@ -102,6 +208,8 @@ export default function StakeholderDossier({
   emotionColors: propEmotionColors,
   convincerArchetypes: propConvincerArchetypes,
   buyInInfoMap,
+  showPhaseChangeBadges = false,
+  onOpenPhaseBriefing,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -112,7 +220,10 @@ export default function StakeholderDossier({
   const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
   const activeConvincerArchetypes = propConvincerArchetypes || contextConvincerArchetypes || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
-  const { currentPhase: contextPhase } = useContext(PhasesContext) || { currentPhase: 0 };
+  const { currentPhase: contextPhase, phases } = useContext(PhasesContext) || {
+    currentPhase: 0,
+    phases: [],
+  };
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
 
@@ -151,6 +262,11 @@ export default function StakeholderDossier({
   const dragStartRef = useRef({ x: 0, y: 0 });
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
+
+  // Dossier entries that arrived but have not yet played their "appear" animation.
+  // Keys are `intel-<stakeholder>-<intel id>` and `convincer-<stakeholder>-<archetype>`.
+  const [pendingAppearKeys, setPendingAppearKeys] = useState<Set<string>>(new Set());
+  const seenAppearKeysRef = useRef<Set<string> | null>(null);
   const prevIsOpenRef = useRef<boolean>(isOpen);
   const prevActiveStIdRef = useRef<string | undefined>(activeStakeholderId);
 
@@ -212,6 +328,104 @@ export default function StakeholderDossier({
       }));
     }
   }, [stakeholders, metrics, currentPhase, dossierData]);
+
+  // The same comparison the phase briefing's radar makes, so the markers here
+  // agree with what the player was just shown. Derived rather than handed over,
+  // and stable for the whole phase.
+  const phaseChanges = React.useMemo(() => {
+    const changes = new Map<string, { isNew: boolean; shiftText: string }>();
+    if (!showPhaseChangeBadges || !phases || phases.length === 0) return changes;
+
+    const current = phases[currentPhase]?.stakeholder_power_interest || [];
+    const previous = isFirstPlayablePhase(phases, currentPhase)
+      ? []
+      : phases[currentPhase - 1]?.stakeholder_power_interest || [];
+    const previousById = new Map(previous.map((ps) => [ps.stakeholder_id, ps]));
+
+    current.forEach((cs) => {
+      const prev = previousById.get(cs.stakeholder_id);
+      const power = (cs.power || "low").toLowerCase();
+      const interest = (cs.interest || "low").toLowerCase();
+
+      if (!prev) {
+        changes.set(cs.stakeholder_id, { isNew: true, shiftText: "" });
+        return;
+      }
+
+      const parts: string[] = [];
+      if (prev.power.toLowerCase() !== power) {
+        parts.push(`Power: ${prev.power.toUpperCase()} ➔ ${cs.power.toUpperCase()}`);
+      }
+      if (prev.interest.toLowerCase() !== interest) {
+        parts.push(`Interest: ${prev.interest.toUpperCase()} ➔ ${cs.interest.toUpperCase()}`);
+      }
+      if (parts.length > 0) {
+        changes.set(cs.stakeholder_id, { isNew: false, shiftText: parts.join(", ") });
+      }
+    });
+
+    return changes;
+  }, [showPhaseChangeBadges, phases, currentPhase]);
+
+  const phaseChangeKey = Array.from(phaseChanges.keys()).join("|");
+
+  // Markers pulse only until the player has had a fair chance to notice them:
+  // either they open that stakeholder's tab, or the timeout runs out. After
+  // that the marker stays put, quietly, for the rest of the phase.
+  const [pulsingChangeIds, setPulsingChangeIds] = useState<Set<string>>(new Set());
+  // Markers the player has read and then navigated away from: those are done
+  // with, and the tab goes back to being uncluttered.
+  const [dismissedChangeIds, setDismissedChangeIds] = useState<Set<string>>(new Set());
+  const previousChangePageRef = useRef<number>(currentPageIndex);
+
+  useEffect(() => {
+    setPulsingChangeIds(new Set(phaseChanges.keys()));
+    setDismissedChangeIds(new Set());
+  }, [phaseChangeKey]);
+
+  // Drop a marker when the player leaves that tab, but only once it has stopped
+  // pulsing: a tab flicked past on the way elsewhere was never actually read.
+  useEffect(() => {
+    const leftIndex = previousChangePageRef.current;
+    previousChangePageRef.current = currentPageIndex;
+    if (leftIndex === currentPageIndex) return;
+
+    const left = effectiveDossierData[leftIndex];
+    if (!left || !phaseChanges.has(left.stakeholder_id)) return;
+    if (pulsingChangeIds.has(left.stakeholder_id)) return;
+
+    setDismissedChangeIds((prev) => {
+      if (prev.has(left.stakeholder_id)) return prev;
+      const next = new Set(prev);
+      next.add(left.stakeholder_id);
+      return next;
+    });
+  }, [currentPageIndex, effectiveDossierData, phaseChanges, pulsingChangeIds]);
+
+  useEffect(() => {
+    if (phaseChanges.size === 0) return;
+    const timer = setTimeout(() => setPulsingChangeIds(new Set()), CHANGE_BADGE_PULSE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [phaseChangeKey]);
+
+  // Leaving the tab before the dwell elapses cancels it, so a tab flicked past
+  // on the way somewhere else does not count as read.
+  useEffect(() => {
+    if (pulsingChangeIds.size === 0) return;
+    const visible = effectiveDossierData[currentPageIndex];
+    if (!visible || !pulsingChangeIds.has(visible.stakeholder_id)) return;
+
+    const timer = setTimeout(() => {
+      setPulsingChangeIds((prev) => {
+        if (!prev.has(visible.stakeholder_id)) return prev;
+        const next = new Set(prev);
+        next.delete(visible.stakeholder_id);
+        return next;
+      });
+    }, CHANGE_BADGE_SEEN_MS);
+
+    return () => clearTimeout(timer);
+  }, [pulsingChangeIds, currentPageIndex, effectiveDossierData]);
 
   const totalPages = effectiveDossierData.length;
 
@@ -326,6 +540,80 @@ export default function StakeholderDossier({
     prevDossierRef.current = dossierData;
   }, [dossierData, effectiveDossierData]);
 
+  // All animatable keys a stakeholder page currently holds. The convincer key carries the
+  // archetype itself so re-tagging to a different archetype counts as a new appearance.
+  // On-record notes are left out: the game deals them at the start of a challenge, so they
+  // are never something the player added.
+  const appearKeysForStakeholder = (st: StakeholderDossierEntry): string[] => {
+    const keys = (st.intel_items || [])
+      .filter((item) => item.id && (item.source || "").toLowerCase() !== "public_record")
+      .map((item) => `intel-${st.stakeholder_id}-${item.id}`);
+    const archetype = st.convincer_archetype || stakeholders[st.stakeholder_id]?.convincer_archetype;
+    if (archetype) keys.push(`convincer-${st.stakeholder_id}-${archetype}`);
+    return keys;
+  };
+
+  // Flag intel items and convincer archetypes that the previous dossier payload did not have
+  useEffect(() => {
+    // The placeholder pages built from context are not a payload. Taking the baseline from
+    // them would make everything in the first real payload look freshly added.
+    if (!dossierData || dossierData.length === 0) return;
+
+    const currentKeys = new Set<string>();
+    for (const st of effectiveDossierData) {
+      for (const key of appearKeysForStakeholder(st)) {
+        currentKeys.add(key);
+      }
+    }
+
+    const seen = seenAppearKeysRef.current;
+    seenAppearKeysRef.current = currentKeys;
+
+    // Finding something only ever adds notes. A payload that drops some is a reload (a new
+    // challenge, a restored game, Reset all), so it becomes the new baseline and nothing in
+    // it is "new". The first payload is a baseline too.
+    const isReload =
+      seen === null || [...seen].some((key) => key.startsWith("intel-") && !currentKeys.has(key));
+    if (isReload) {
+      setPendingAppearKeys((prev) => (prev.size === 0 ? prev : new Set()));
+      return;
+    }
+
+    const added = [...currentKeys].filter((key) => !seen.has(key));
+    if (added.length === 0) return;
+
+    setPendingAppearKeys((prev) => new Set([...prev, ...added]));
+  }, [dossierData, effectiveDossierData, stakeholders]);
+
+  // Consume a flag only while its own page is on screen. Tagging an artifact during offline
+  // intel gathering flips the dossier to the next artifact's stakeholder almost immediately,
+  // so a flag consumed on a timer alone would be spent while the card is off-screen. Pending
+  // flags survive until that tab is visited.
+  const visibleAppearSt = effectiveDossierData[currentPageIndex];
+  const playingAppearKeys = visibleAppearSt
+    ? appearKeysForStakeholder(visibleAppearSt).filter((key) => pendingAppearKeys.has(key))
+    : [];
+  // Keyed on the keys themselves, not the data objects: a dossier or emotion update landing
+  // mid-animation would otherwise restart the timer, and if those keep coming the flag is
+  // never spent and replays on every return to the tab.
+  const playingAppearSignature = playingAppearKeys.join("|");
+
+  useEffect(() => {
+    if (!playingAppearSignature) return;
+    const playingKeys = playingAppearSignature.split("|");
+
+    // Leaving the page before this fires cancels it, so the animation replays on return
+    const timer = setTimeout(() => {
+      setPendingAppearKeys((prev) => {
+        const next = new Set(prev);
+        playingKeys.forEach((key) => next.delete(key));
+        return next;
+      });
+    }, 1000); // slightly longer than the appear animations
+
+    return () => clearTimeout(timer);
+  }, [currentPageIndex, playingAppearSignature]);
+
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
     dragStartRef.current = {
@@ -354,15 +642,30 @@ export default function StakeholderDossier({
 
   if (!isOpen) return null;
 
-  const renderRubberStamp = (conf: string) => {
+  /**
+   * Verified intel comes from two different places and players could not tell them apart:
+   * items the game hands them already true because the stakeholder said it in public, and
+   * items they earned by confirming a guess. Same confidence, different story, two stamps.
+   */
+  const renderRubberStamp = (conf: string, isPublicRecord = false) => {
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
     if (lower === "verified") {
+      if (isPublicRecord) {
+        return (
+          <div
+            className={`${styles.rubberStamp} ${styles.stampOnRecord}`}
+            title="On Record: they said this openly, in a channel the whole team reads, before you started digging. Nothing left to confirm."
+          >
+            ★ ON RECORD
+          </div>
+        );
+      }
       return (
         <div
           className={`${styles.rubberStamp} ${styles.stampVerified}`}
-          title="Verified Intelligence: This stance or archetype has been confirmed through stakeholder interaction."
+          title="Confirmed: you verified this yourself by talking to them."
         >
-          ✓ VERIFIED
+          ✓ CONFIRMED
         </div>
       );
     }
@@ -413,6 +716,8 @@ export default function StakeholderDossier({
     if (!st) return null;
 
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
+    const intelPips = getIntelPips(st);
+    const hiddenIntelCount = intelPips.filter((status) => status === "hidden").length;
     const stObj = stakeholders[st.stakeholder_id];
     const avatar = stObj?.avatar;
     const stakeholderColor = getStakeholderColor(st);
@@ -424,6 +729,10 @@ export default function StakeholderDossier({
 
     const convincerArchetypeName = st.convincer_archetype || stObj?.convincer_archetype;
     const convincerProfileConfig = convincerArchetypeName ? activeConvincerArchetypes[convincerArchetypeName] : null;
+    const isNewConvincer = Boolean(
+      convincerArchetypeName &&
+      pendingAppearKeys.has(`convincer-${st.stakeholder_id}-${convincerArchetypeName}`)
+    );
 
     return (
       <>
@@ -460,7 +769,11 @@ export default function StakeholderDossier({
 
           <div className={styles.stakeholderMainInfo}>
             <div className={styles.stakeholderRole}>
-              <strong className={styles.fieldLabel}>Role:</strong> {st.role_description || "Project Stakeholder"}
+              <strong className={styles.fieldLabel}>Role:</strong>{" "}
+              <GlossaryText
+                text={st.role_description || "Project Stakeholder"}
+                surface="dossier_profile"
+              />
             </div>
             <div className={styles.stakeholderMetaRow}>
               <div
@@ -478,7 +791,11 @@ export default function StakeholderDossier({
               </div>
               <div
                 className={styles.powerInterestBadge}
-                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (Organizational authority & influence)`}
+                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (${
+                  (st.power || stObj?.power || "").toLowerCase() === "high"
+                    ? "strong authority"
+                    : "limited authority"
+                })`}
               >
                 <Icon
                   icon="ph:lightning-bold"
@@ -498,7 +815,11 @@ export default function StakeholderDossier({
               </div>
               <div
                 className={styles.powerInterestBadge}
-                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (Stakeholder engagement & active interest)`}
+                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (${
+                  (st.interest || stObj?.interest || "").toLowerCase() === "high"
+                    ? "closely engaged"
+                    : "loosely engaged"
+                })`}
               >
                 <Icon
                   icon="ph:eye-bold"
@@ -516,13 +837,32 @@ export default function StakeholderDossier({
                   {(st.interest || stObj?.interest || "low").toUpperCase()}
                 </span>
               </div>
+              {intelPips.length > 0 && (
+                <div className={styles.powerInterestBadge} title={describeIntelPips(intelPips)}>
+                  <Icon icon="ph:push-pin-bold" className={`${styles.metricIcon} ${styles.intelBadgeInk}`} />
+                  <span className={styles.intelPips}>
+                    {intelPips.map((status, idx) => (
+                      <span
+                        key={idx}
+                        className={`${styles.intelPip} ${INTEL_PIP_META[status].styleClass}`}
+                        title={INTEL_PIP_META[status].label}
+                      />
+                    ))}
+                  </span>
+                  <span className={styles.intelBadgeInk} style={{ fontWeight: 700 }}>
+                    {intelPips.length - hiddenIntelCount}/{intelPips.length}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Convincer Profile & Persuasion Strategy Card */}
         {convincerArchetypeName ? (
-          <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`}>
+          <div
+            className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""} ${isNewConvincer ? styles.newConvincerCard : ""}`}
+          >
             <div className={styles.convincerVerticalSpine}>
               <span className={styles.convincerVerticalText}>Convincer</span>
             </div>
@@ -595,7 +935,8 @@ export default function StakeholderDossier({
                 <div className={styles.convincerStrategyText}>
                   <span className={styles.strategyBulb}>💡</span>
                   <span>
-                    <strong>Strategy:</strong> {convincerProfileConfig.strategy}
+                    <strong>Strategy:</strong>{" "}
+                    <GlossaryText text={convincerProfileConfig.strategy} surface="dossier_profile" />
                   </span>
                 </div>
               )}
@@ -760,6 +1101,21 @@ export default function StakeholderDossier({
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
               const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
+              // Re-tagging swaps the whole sentence, and the only span that reliably survives the
+              // swap is the stakeholder's name. Hold that steady in bold and italicise the rest,
+              // so the part that moves when you change your mind looks like the part that moves.
+              const noteDescription = item.description || "";
+              const hasSubjectLead = Boolean(st.name) && noteDescription.startsWith(st.name);
+              const noteSubject = hasSubjectLead ? st.name : "";
+              const noteReading = hasSubjectLead ? noteDescription.slice(st.name.length) : noteDescription;
+              const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
+              const sourceCaption = getSourceCaption(item);
+              // Paper colour matches the stamp: orange still open, blue public, green earned.
+              const noteStatusClass = isUnconfirmed
+                ? ""
+                : isPublicRecord
+                  ? styles.noteOnRecord
+                  : styles.noteConfirmed;
               const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
@@ -767,6 +1123,7 @@ export default function StakeholderDossier({
                   item.id === highlightedIntelId ||
                   (item.description && item.description === highlightedIntelId))
               );
+              const isNewIntel = pendingAppearKeys.has(`intel-${st.stakeholder_id}-${item.id}`);
               const isFadingOut = Boolean(
                 !isHighlighted &&
                 fadingOutIntelId &&
@@ -781,10 +1138,8 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
-                  className={`${styles.stickyNote} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""}`}
+                  className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
-                  <div className={styles.paperclip} />
-
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
                     {isUnconfirmed ? (
@@ -812,7 +1167,7 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
-                      {renderRubberStamp(item.intel_type)}
+                      {renderRubberStamp(item.intel_type, isPublicRecord)}
                     </div>
                   </div>
 
@@ -838,11 +1193,41 @@ export default function StakeholderDossier({
                   )}
 
                   <div className={styles.intelBody}>
-                    <div className={styles.intelText}>"{item.description}"</div>
+                    <div className={styles.intelText}>
+                      "
+                      {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
+                      {isUnconfirmed ? (
+                        <em className={styles.intelReading}>
+                          <GlossaryText text={noteReading} surface="intel_notes" />
+                        </em>
+                      ) : (
+                        <GlossaryText text={noteReading} surface="intel_notes" />
+                      )}
+                      "
+                    </div>
+                    {sourceCaption && (
+                      <div className={styles.intelSourceCaption} title={sourceCaption.title}>
+                        <Icon icon={sourceCaption.icon} className={styles.intelSourceIcon} />
+                        <span>{sourceCaption.text}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
+            {hiddenIntelCount > 0 && (
+              <div
+                className={`${styles.ghostNote} ${hiddenIntelCount > 1 ? styles.ghostNoteStacked : ""}`}
+                title="Notes you have not found yet. Their pips stay hollow until you do."
+              >
+                <Icon icon="ph:magnifying-glass-bold" className={styles.ghostNoteIcon} />
+                <span>
+                  {hiddenIntelCount === 1
+                    ? `1 more note about ${st.name} is still out there`
+                    : `${hiddenIntelCount} more notes about ${st.name} are still out there`}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.emptyStateContainer}>
@@ -894,6 +1279,16 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {onOpenPhaseBriefing && (
+            <button
+              className={styles.briefingButton}
+              onClick={onOpenPhaseBriefing}
+              title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
+            >
+              <Icon icon="ph:projector-screen-chart-bold" />
+              <span>Briefing</span>
+            </button>
+          )}
           <button
             className={styles.topNavArrow}
             disabled={currentPageIndex <= 0}
@@ -930,6 +1325,25 @@ export default function StakeholderDossier({
               activeEmotionColors[emotion.toLowerCase()] ||
               "#64748b";
             const isActive = idx === currentPageIndex;
+            const isHighPower = (st.power || stObj?.power || "").toLowerCase() === "high";
+            const isHighInterest = (st.interest || stObj?.interest || "").toLowerCase() === "high";
+            const keyPlayerHint = [
+              isHighPower ? "High power" : null,
+              isHighInterest ? "High interest" : null,
+            ].filter(Boolean).join(", ");
+
+            // New and shifted are mutually exclusive: shifted needs a previous
+            // reading to compare against, new means there wasn't one.
+            const change = dismissedChangeIds.has(st.stakeholder_id)
+              ? undefined
+              : phaseChanges.get(st.stakeholder_id);
+            const isPulsingChange = Boolean(change && pulsingChangeIds.has(st.stakeholder_id));
+            const changeHint = change
+              ? change.isNew
+                ? "New this phase"
+                : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
+              : "";
+            const tabPips = getIntelPips(st);
 
             return (
               <button
@@ -937,7 +1351,11 @@ export default function StakeholderDossier({
                 ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                title={`${st.name} (Emotional State: ${emotion})`}
+                title={`${st.name} (Emotional State: ${emotion})${
+                  keyPlayerHint ? ` - ${keyPlayerHint}` : ""
+                }${changeHint ? ` - ${changeHint}` : ""}${
+                  tabPips.length > 0 ? ` - Intel: ${describeIntelPips(tabPips)}` : ""
+                }`}
                 style={
                   {
                     "--tab-color": stColor,
@@ -945,53 +1363,69 @@ export default function StakeholderDossier({
                   } as React.CSSProperties
                 }
               >
+                {change && (
+                  <span
+                    className={`${styles.tabChangeBadge} ${
+                      change.isNew ? styles.tabChangeBadgeNew : styles.tabChangeBadgeShifted
+                    } ${isPulsingChange ? styles.tabChangeBadgePulsing : ""}`}
+                  >
+                    {change.isNew ? "NEW" : "SHIFTED"}
+                  </span>
+                )}
                 <span className={styles.tabName}>{st.name}</span>
-                <div
-                  className={styles.tabEmotionRow}
-                  title={`Emotional State: ${emotion}`}
-                >
+                <div className={styles.tabEmotionRow}>
                   <Icon
                     icon={getEmotionIcon(emotion)}
                     className={styles.tabEmotionIcon}
                   />
-                  <span className={styles.tabEmotionLabel}>
+                  <span className={styles.tabEmotionLabel} title={`Emotional State: ${emotion}`}>
                     {emotion}
                   </span>
+                  {isHighPower && (
+                    <span
+                      className={styles.tabKeyFlag}
+                      title="High power: strong authority"
+                    >
+                      <Icon icon="ph:lightning-fill" className={styles.tabKeyFlagIcon} />
+                    </span>
+                  )}
+                  {isHighInterest && (
+                    <span
+                      className={styles.tabKeyFlag}
+                      title="High interest: closely engaged"
+                    >
+                      <Icon icon="ph:eye-fill" className={styles.tabKeyFlagIcon} />
+                    </span>
+                  )}
                 </div>
+                {tabPips.length > 0 && (
+                  <span className={styles.tabIntelBar} aria-hidden="true">
+                    {/* Every segment renders, even at zero width, so a stamp change animates */}
+                    {INTEL_PIP_ORDER.filter((status) => status !== "hidden").map((status) => (
+                      <span
+                        key={status}
+                        className={`${styles.tabIntelBarFill} ${INTEL_PIP_META[status].styleClass}`}
+                        style={{
+                          width: `${(tabPips.filter((p) => p === status).length / tabPips.length) * 100}%`,
+                        }}
+                      />
+                    ))}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Main Notebook Binding Container with Left Spiral Rings */}
+      {/* Main Notebook Binding Container */}
       <div className={styles.notebookBindingContainer}>
-        {/* Left Wire Spiral Rings (12 rings) */}
-        <div className={styles.spiralRings}>
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className={styles.ringLoop} />
-          ))}
-        </div>
-
         {/* Paper Canvas */}
         <div className={styles.flipBookWrapper}>
           <div className={styles.pageBase} key={currentPageIndex}>
             {renderPageContent(activeStakeholder)}
           </div>
         </div>
-      </div>
-
-      {/* Page Turning Footer Controls & Intel Counter */}
-      <div className={styles.pageFooter}>
-        <span className={styles.pageIndicator}>
-          📖 Page {totalPages > 0 ? currentPageIndex + 1 : 0} of {totalPages}
-        </span>
-        <span className={styles.intelCounter}>
-          📌 Intel Collected: {activeStakeholder?.intel_items?.length || 0}
-          {activeStakeholder?.intel_items && activeStakeholder.intel_items.length > 0
-            ? ` (${activeStakeholder.intel_items.filter((item: IntelEntry) => item.intel_type?.toLowerCase() === "verified").length} verified)`
-            : ""}
-        </span>
       </div>
     </div>
   );

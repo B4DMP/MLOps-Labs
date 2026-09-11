@@ -3,6 +3,7 @@ import HoverTooltip from "./HoverToolTip";
 import { StakeholderContext } from "./StakeholderProvider";
 import { PhasesContext } from "./PhaseProvider";
 import styles from "./ChallengeDescriptionCard.module.css";
+import GlossaryText from "./glossary/GlossaryText";
 
 export function parseChallengeDescription(description?: string) {
   if (!description) return [];
@@ -86,14 +87,16 @@ export default function ChallengeDescriptionCard({
                 : `text-secondary mb-1 ${styles.introExpanded}`
             }`}
           >
-            {challengeIntro}
+            <GlossaryText text={challengeIntro} surface="challenge_briefing" />
           </p>
         )}
         {!is_minimized && (
           <p className={`card-text text-center text-dark mb-0 ${styles.descriptionText}`}>
             {challenge_desc_cutted.map((item, index) => {
               if (item.type === "text") {
-                return <span key={index}>{item.value}</span>;
+                return (
+                  <GlossaryText key={index} as="span" text={item.value} surface="challenge_briefing" />
+                );
               } else if (item.type === "id") {
                 const st = Object.values(stakeholders || {}).find(
                   (s: any) => s.id === item.value || s.name === item.value

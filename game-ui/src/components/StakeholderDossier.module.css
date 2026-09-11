@@ -145,38 +145,17 @@
   /* Prevent 3D page flip clipping */
   background: #1c140e;
   z-index: 40;
-  /* Higher than header, tabs, and footer so flipping page stays on top */
-}
-
-.spiralRings {
-  position: absolute;
-  left: 12px;
-  top: 0;
-  bottom: 0;
-  width: 32px;
-  z-index: 25;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  pointer-events: none;
-}
-
-.ringLoop {
-  width: 34px;
-  height: 12px;
-  background: linear-gradient(180deg, #d1d5db 0%, #6b7280 50%, #374151 100%);
-  border-radius: 6px;
-  box-shadow:
-    0 3px 5px rgba(0, 0, 0, 0.6),
-    inset 0 1px 2px rgba(255, 255, 255, 0.8);
-  transform: rotate(-5deg);
+  /* Higher than header and tabs so flipping page stays on top */
+  /* A strip of binding under the page, so it still ends on a bound edge */
+  padding-bottom: 8px;
+  border-radius: 0 0 10px 10px;
 }
 
 /* Bookmark Sticky Tabs (Top Bar) */
 .tabsContainer {
   display: flex;
   background: #251c15;
-  padding: 4px 8px 0 44px;
+  padding: 4px 8px 0 16px;
   gap: 3px;
   width: 100%;
   box-sizing: border-box;
@@ -220,6 +199,20 @@
 .tabButton:hover:not(.activeTab) {
   opacity: 0.9;
   filter: brightness(1.08);
+}
+
+/* Key-player markers, inline at the end of the tab's emotion row */
+.tabKeyFlag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tabKeyFlagIcon {
+  font-size: 0.68rem;
+  color: #dc2626;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
 }
 
 .tabName {
@@ -294,7 +287,6 @@
   overflow: visible;
   /* Crucial: allow 3D page rotation without clipping! */
   margin-left: 10px;
-  /* Leave space for left spiral rings */
   border-left: 4px solid #3d2d23;
   z-index: 40;
 }
@@ -451,7 +443,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 5px;
   margin-top: 2px;
 }
 
@@ -470,12 +462,12 @@
 .powerInterestBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 1px 7px;
+  gap: 3px;
+  padding: 0 6px;
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid #cbd5e1;
   border-radius: 12px;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   cursor: help;
   user-select: none;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -489,7 +481,7 @@
 }
 
 .metricIcon {
-  font-size: 0.92rem;
+  font-size: 0.85rem;
 }
 
 .highlightRed {
@@ -543,6 +535,46 @@
   display: flex;
   flex-direction: row;
   overflow: hidden;
+}
+
+/* Freshly tagged convincer archetype: the card presses in like a stamp landing */
+@keyframes newConvincerStamp {
+  0% {
+    transform: scale(1.14);
+    border-color: #d97706;
+    box-shadow: 0 0 0 8px rgba(217, 119, 6, 0);
+  }
+
+  35% {
+    transform: scale(0.985);
+    border-color: #d97706;
+    box-shadow: 0 0 0 5px rgba(217, 119, 6, 0.32);
+  }
+
+  65% {
+    transform: scale(1.012);
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18);
+  }
+
+  100% {
+    transform: scale(1);
+    border-color: #94a3b8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.newConvincerCard {
+  animation: newConvincerStamp 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  /* keep the glow ring from being clipped by the card's own overflow */
+  overflow: visible;
+  z-index: 22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newConvincerCard {
+    animation: fadeInRetag 0.2s ease-out forwards;
+  }
 }
 
 .convincerVerticalSpine {
@@ -870,13 +902,21 @@
 }
 
 .stickyNote {
-  background: #fef08a;
-  /* Post-it Yellow */
+  /* Status sets the pair, the zebra picks which of the two a given note gets. Defaults are
+     the unconfirmed pair, so a note needs a status class only once it is settled. */
+  --note-bg: #fed7aa;
+  /* Light Orange: your call, not settled yet */
+  --note-bg-alt: #fdba74;
+  background: var(--note-bg);
   padding: 6px 10px;
-  border-radius: 2px;
+  /* Sticky notes hold themselves on, so none gets a fastener drawn on it. The bottom right
+     corner lifts off the page instead: a long shallow sweep along the bottom edge, a short
+     one up the side, and a shadow pooling under the tip. */
+  border-radius: 2px 2px 30px 2px / 2px 2px 6px 2px;
   box-shadow:
     0 3px 8px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    6px 5px 6px -4px rgba(0, 0, 0, 0.28);
   position: relative;
   transition: box-shadow 0.2s ease;
   border: 1px solid rgba(0, 0, 0, 0.06);
@@ -942,18 +982,71 @@
   z-index: 20 !important;
 }
 
+/* Freshly added intel: drops onto the page and settles with a short glow */
+@keyframes newIntelDrop {
+  0% {
+    opacity: 0;
+    transform: var(--note-rotate, rotate(-1deg)) scale(0.7) translateY(-34px);
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+  }
+
+  45% {
+    opacity: 1;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1.06) translateY(4px);
+    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.35);
+  }
+
+  70% {
+    transform: var(--note-rotate, rotate(-1deg)) scale(0.98) translateY(-2px);
+    box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.22);
+  }
+
+  100% {
+    opacity: 1;
+    transform: var(--note-rotate, rotate(-1deg)) scale(1) translateY(0);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.newStickyNote {
+  animation: newIntelDrop 0.9s cubic-bezier(0.34, 1.42, 0.5, 1) forwards;
+  z-index: 22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newStickyNote {
+    animation: fadeInStickyNote 0.2s ease-out forwards;
+  }
+}
+
+/* The zebra used to alternate hue, which made the loudest property of a note mean nothing.
+   Hue now carries status; the zebra alternates tilt and one shade of the status colour, so
+   the pile still reads as loose paper rather than a table. */
 .stickyNote:nth-child(odd) {
   --note-rotate: rotate(-1.2deg);
   transform: var(--note-rotate);
-  background: #fef08a;
-  /* Yellow */
 }
 
 .stickyNote:nth-child(even) {
   --note-rotate: rotate(1deg);
   transform: var(--note-rotate);
-  background: #bae6fd;
-  /* Pastel Blue */
+  background: var(--note-bg-alt);
+}
+
+/* Status hues. These set the pair only: the zebra above decides which one lands.
+   Specificity matters here, so never set `background` in these rules. */
+.noteOnRecord {
+  --note-bg: #bae6fd;
+  /* Pastel Blue: said in public, true from the start */
+  --note-bg-alt: #7dd3fc;
+}
+
+.noteConfirmed {
+  --note-bg: #bbf7d0;
+  /* Pastel Green: you verified this yourself */
+  --note-bg-alt: #86efac;
 }
 
 
@@ -972,12 +1065,27 @@
   right: 24px;
   width: 14px;
   height: 28px;
-  border: 3px solid #94a3b8;
+  border: 2.5px solid #94a3b8;
   border-radius: 8px;
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.25);
   pointer-events: none;
   background: transparent;
   z-index: 25;
+}
+
+/* The inner loop of the wire. A real clip's inner loop is open: it hangs from the top as an
+   upside-down U whose legs stop partway down, nearly as wide as the outer loop. */
+.paperclip::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 0;
+  width: 11px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2.5px solid #94a3b8;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
 }
 
 .intelBody {
@@ -998,6 +1106,40 @@
   line-height: 1.25;
   letter-spacing: 0.1px;
   margin-bottom: 0;
+}
+
+/* The fixed half of the sentence: who this is about. Survives every re-tag. */
+.intelSubject {
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* The half that swaps when the player changes the tag: their reading, not a fact yet. */
+.intelReading {
+  font-style: italic;
+}
+
+/* Where the note came from, pencilled under the quote: quieter than the text it explains,
+   separated by a hairline so it never reads as part of what the stakeholder said. */
+.intelSourceCaption {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  padding-top: 3px;
+  border-top: 1px dashed rgba(28, 25, 23, 0.18);
+  font-size: 0.58rem;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.1px;
+  color: rgba(28, 25, 23, 0.55);
+  line-height: 1.2;
+}
+
+.intelSourceIcon {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  opacity: 0.75;
 }
 
 /* Distressed Ink Rubber Stamps for Confidence Levels */
@@ -1028,6 +1170,15 @@
   border: 1.5px dashed #15803d;
   background: rgba(220, 252, 231, 0.65);
   transform: rotate(-3deg);
+}
+
+/* Verified because it was public from the start, not because the player earned it.
+   Tilted the other way from .stampVerified so the two read apart at a glance. */
+.stampOnRecord {
+  color: #1d4ed8;
+  border: 1.5px solid #1d4ed8;
+  background: rgba(219, 234, 254, 0.65);
+  transform: rotate(2deg);
 }
 
 .stampUnconfirmed {
@@ -1082,6 +1233,47 @@
   line-height: 1.25;
 }
 
+/* Stand-in for the notes still out there: a real note's outline, curled corner and all, with
+   no paper in it yet. One card however many are missing, with a second sheet peeking out
+   behind it when there is more than one. */
+.ghostNote {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 5px 5px 0;
+  padding: 6px 10px;
+  background: #faf7ef;
+  border: 1.5px dashed #b5a48b;
+  border-radius: 2px 2px 30px 2px / 2px 2px 6px 2px;
+  color: #8a7862;
+  font-size: 0.7rem;
+  font-style: italic;
+  line-height: 1.25;
+  cursor: help;
+}
+
+/* Carries on the tilt zebra of the real notes above it */
+.ghostNote:nth-child(odd) {
+  transform: rotate(-1.2deg);
+}
+
+.ghostNote:nth-child(even) {
+  transform: rotate(1deg);
+}
+
+.ghostNoteStacked {
+  box-shadow:
+    4px 4px 0 -1.5px #faf7ef,
+    4px 4px 0 0 #cbbca6;
+}
+
+.ghostNoteIcon {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
 /* Margins Annotation Doodle */
 .marginDoodleNote {
   margin-top: 16px;
@@ -1095,34 +1287,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-/* Notebook Footer (Page Controls) */
-.pageFooter {
-  background: #251c15;
-  border-top: 2px solid #140d09;
-  padding: 6px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: 0 0 10px 10px;
-  z-index: 30;
-}
-
-.pageIndicator {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #d8c8b4;
-  white-space: nowrap;
-  letter-spacing: 0.2px;
-}
-
-.intelCounter {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #fbbf24;
-  white-space: nowrap;
-  letter-spacing: 0.1px;
 }
 
 /* Buy-In / Persuasion Breakdown Card */
@@ -1186,4 +1350,156 @@
   color: #64748b;
   margin-top: 2px;
   padding: 0 2px;
-}
+}
+
+/* ==========================================================================
+   PHASE CHANGE MARKERS ON THE TABS
+   Carries the phase briefing's NEW / SHIFTED flags onto the stakeholder tabs.
+   Absolutely positioned so a badged tab keeps the same height as its
+   neighbours; the tab already clips its own overflow.
+   ========================================================================== */
+
+.tabChangeBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  transform-origin: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.tabChangeBadgeNew {
+  background: #16a34a;
+  color: #f0fdf4;
+}
+
+.tabChangeBadgeShifted {
+  background: #d97706;
+  color: #fffbeb;
+}
+
+/* Dropped once the player opens the tab, or after the pulse timeout */
+.tabChangeBadgePulsing {
+  animation: tabChangeBadgePulse 2s ease-in-out infinite;
+}
+
+@keyframes tabChangeBadgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+/* ==========================================================================
+   INTEL PIPS
+   One pip per note in a stakeholder's pool. On the page each pip is a tiny
+   sticky note in the same paper as the real one below: orange unconfirmed,
+   blue on record, green confirmed, a dashed pencil outline for the ones not
+   found yet. The status classes only set colours.
+   ========================================================================== */
+
+.pipOnRecord {
+  --pip-paper: #7dd3fc;
+  --pip-edge: #0284c7;
+}
+
+.pipConfirmed {
+  --pip-paper: #86efac;
+  --pip-edge: #16a34a;
+}
+
+.pipUnconfirmed {
+  --pip-paper: #fdba74;
+  --pip-edge: #ea580c;
+}
+
+.pipHidden {
+  --pip-paper: transparent;
+  --pip-edge: #a8977f;
+}
+
+/* Lives in the badge row, so it borrows .powerInterestBadge for the pill itself */
+.intelBadgeInk {
+  color: #7c5a3a;
+}
+
+.intelPips {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.intelPip {
+  width: 9px;
+  height: 11px;
+  box-sizing: border-box;
+  border-radius: 1px;
+  background: var(--pip-paper);
+  border: 1px solid var(--pip-edge);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.14);
+  transform: rotate(-4deg);
+}
+
+.intelPip:nth-child(even) {
+  transform: rotate(3deg);
+}
+
+.intelPip.pipHidden {
+  border-style: dashed;
+  box-shadow: none;
+}
+
+/* The page pips as a thin stacked bar across the bottom of the tab: one segment per stamp,
+   in pip order and colour, over a faint track for the notes still out there. Sits 2px up
+   because the tab tucks its bottom 2px under the page. */
+.tabIntelBar {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 1px;
+  display: flex;
+  background: rgba(26, 18, 11, 0.12);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tabIntelBarFill {
+  flex-shrink: 0;
+  height: 100%;
+  background: var(--pip-edge);
+  transition: width 0.4s ease;
+}
+
+/* Reopens the phase briefing from the binder header */
+.briefingButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.35rem;
+  padding: 2px 7px;
+  border: 1px solid rgba(245, 235, 217, 0.35);
+  border-radius: 4px;
+  background: rgba(245, 235, 217, 0.1);
+  color: #f5ebd9;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.briefingButton:hover {
+  background: rgba(245, 235, 217, 0.22);
+  border-color: rgba(245, 235, 217, 0.6);
+}

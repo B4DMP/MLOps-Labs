@@ -1,0 +1,246 @@
+/*
+ * Glossary highlighting.
+ *
+ * Two rules govern everything here. The mark must sit inside running text without moving a
+ * single line of it, so it only ever paints an underline and a tint, never padding, borders or
+ * a different font. And the card must never intercept a pointer, so it is portalled to the body
+ * above every modal in the app and left `pointer-events: none`.
+ */
+
+.termMark {
+  /* Inherit the surrounding text completely: the word should read as part of the sentence. */
+  font: inherit;
+  color: inherit;
+  display: inline;
+  cursor: help;
+  border-radius: 2px;
+  /* Underline rather than a border, so no line box changes height. */
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--glossary-accent, #6366f1);
+  background-color: transparent;
+  transition: background-color 0.15s ease-in-out, text-decoration-color 0.15s ease-in-out;
+  outline: none;
+}
+
+.termMark:hover,
+.termMark:focus-visible {
+  background-color: color-mix(in srgb, var(--glossary-accent, #6366f1) 16%, transparent);
+  text-decoration-style: solid;
+}
+
+.termMark:focus-visible {
+  outline: 2px solid var(--glossary-accent, #6366f1);
+  outline-offset: 1px;
+}
+
+.termCard {
+  position: fixed;
+  transform: translateX(-50%);
+  /* Above the highest z-index in the app (999999) so it works inside every modal. */
+  z-index: 1000001;
+  pointer-events: none;
+
+  width: max-content;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid var(--glossary-accent, #6366f1);
+  background: rgba(15, 23, 42, 0.97);
+  color: #e2e8f0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  text-align: left;
+  /* Reset anything the anchor's surroundings might have imposed on inline content. */
+  font-style: normal;
+  font-weight: 400;
+  white-space: normal;
+  animation: glossaryCardIn 0.12s ease-out;
+}
+
+@keyframes glossaryCardIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .termCard {
+    animation: none;
+  }
+
+  .termMark {
+    transition: none;
+  }
+}
+
+.termCardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.termCardTitle {
+  font-weight: 700;
+  font-size: 0.84rem;
+  color: #ffffff;
+}
+
+.termCardCategory {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--glossary-accent, #6366f1);
+  background: color-mix(in srgb, var(--glossary-accent, #6366f1) 22%, transparent);
+}
+
+.termCardCategoryIcon {
+  font-size: 0.72rem;
+}
+
+.termCardDefinition {
+  color: #e2e8f0;
+}
+
+.termCardWhy {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.termCardWhyIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #fbbf24;
+}
+
+.termCardReadMore {
+  margin-top: 6px;
+  font-size: 0.66rem;
+  color: #94a3b8;
+  word-break: break-all;
+}
+
+/* ------------------------------------------------------------------ */
+/* Admin config editor preview                                         */
+/* ------------------------------------------------------------------ */
+
+.previewPanel {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.previewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.previewTitle {
+  font-weight: 700;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.previewStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.previewStat {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  color: #7dd3fc;
+}
+
+.previewStatWarn {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fca5a5;
+}
+
+.previewSampleLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.previewSample {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
+.previewRendered {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.previewHint {
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.previewIssues {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #fca5a5;
+  font-size: 0.74rem;
+}
+
+.previewIssues ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}

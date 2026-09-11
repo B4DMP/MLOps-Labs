@@ -14,6 +14,19 @@ export type PhaseData = {
   stakeholder_power_interest?: PhaseStakeholderEntry[];
 };
 
+/**
+ * Phase 0 ("Introduction") is a skipped tutorial challenge, so the first phase a
+ * player actually plays is 1 when it exists and 0 otherwise. Shared so the phase
+ * briefing and the dossier cannot disagree about who counts as new.
+ */
+export function isFirstPlayablePhase(phases: PhaseData[], currentPhase: number): boolean {
+  const hasIntroPhase =
+    phases.length > 0 &&
+    phases[0]?.id === 0 &&
+    phases[0]?.phase_name?.toLowerCase() === "introduction";
+  return hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
+}
+
 type PhaseContextType = {
   currentPhase: number;
   setCurrentPhase: React.Dispatch<React.SetStateAction<number>>;

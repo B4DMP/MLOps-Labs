@@ -1,13 +1,7 @@
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  DialogBackdrop,
-} from "@headlessui/react";
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
-import { PhasesContext } from "./PhaseProvider";
-import { useContext } from "react";
+import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { useContext, useState } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
@@ -23,13 +17,19 @@ interface PrePhaseDialogProps {
   challengeAmount?: number;
   /**
    * See `ChallengeDescriptionCard.isNew` — surfaces a "NEW" tag on the
-   * embedded challenge card. Not wired up to any game logic yet: no caller
-   * currently reopens PrePhaseDialog for a new challenge within the same
-   * phase, so this always defaults to false today. Once that flow exists,
-   * pass `true` when the challenge shown differs from the last one the
-   * player has already seen this phase.
+   * embedded challenge card. No caller sets this yet: nothing reopens
+   * PrePhaseDialog for a new challenge within the same phase, so it defaults
+   * to false. Once that flow exists, pass `true` when the challenge shown
+   * differs from the last one the player has already seen this phase. The
+   * card is tagged NEW on the first phase regardless, since every challenge
+   * is new at that point.
    */
   isNewChallenge?: boolean;
+  /**
+   * Reopened from the dossier during a phase rather than shown on entering it.
+   * The briefing then just closes again instead of starting the round.
+   */
+  isReview?: boolean;
 }
 
 export default function PrePhaseDialog({
@@ -42,16 +42,23 @@ export default function PrePhaseDialog({
   currentChallenge,
   challengeAmount,
   isNewChallenge = false,
+  isReview = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
+  // Overlay layer the radar portals its bubbles and tooltips into. The page
+  // clips its own overflow and the matrix column keeps a transform from its
+  // entrance animation, so neither can host a fixed-position bubble.
+  const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
 
   if (!isOpen) return null;
 
   const currentPhaseData = phases[currentPhase];
   
-  // Phase 0 ("Introduction") is a skipped/hidden tutorial challenge; treat Phase 1 as the first playable game phase
-  const hasIntroPhase = phases.length > 0 && phases[0]?.id === 0 && phases[0]?.phase_name?.toLowerCase() === "introduction";
-  const isFirstPhase = hasIntroPhase ? currentPhase <= 1 : currentPhase === 0;
+  const hasIntroPhase =
+    phases.length > 0 &&
+    phases[0]?.id === 0 &&
+    phases[0]?.phase_name?.toLowerCase() === "introduction";
+  const isFirstPhase = isFirstPlayablePhase(phases, currentPhase);
   const previousPhaseData = isFirstPhase ? null : (currentPhase > 0 ? phases[currentPhase - 1] : null);
 
   const currentStakeholders = currentPhaseData?.stakeholder_power_interest || [];
@@ -62,29 +69,29 @@ export default function PrePhaseDialog({
 
   const handleClose = () => {
     setIsOpen(false);
-    if (setIsRoundOpen) {
+    // Reviewing mid-phase just returns the player to where they were; only the
+    // briefing shown on entering a phase starts the round.
+    if (!isReview && setIsRoundOpen) {
       setIsRoundOpen(true);
     }
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} className="position-relative z-50">
-      <DialogBackdrop className={styles.backdrop} />
-      <div
-        className={`${styles.dialogWrapper} intro2`}
-        data-intro-group="intro2"
-        data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
-        data-step="1"
-        data-position="middle-aligned"
-      >
-        <DialogPanel className={styles.panel}>
+    <div
+      className={`${styles.pageWrapper} intro2`}
+      data-intro-group="intro2"
+      data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
+      data-step="1"
+      data-position="middle-aligned"
+    >
+      <div className={styles.panel}>
           {/* Header */}
           <div className={styles.header}>
             <div>
-              <DialogTitle className={styles.headerTitle}>
+              <h1 className={styles.headerTitle}>
                 <Icon icon="ph:projector-screen-chart-bold" className={styles.headerIcon} />
                 <span>Phase Briefing</span>
-              </DialogTitle>
+              </h1>
               <p className={styles.headerSubtitle}>
                 Project Milestone Overview • Align technical decisions with stakeholder priorities
               </p>
@@ -162,7 +169,8 @@ export default function PrePhaseDialog({
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
                     is_minimized={true}
-                    isNew={isNewChallenge}
+                    // The opening phase's challenge is new by definition
+                    isNew={isNewChallenge || isFirstPhase}
                   />
                 )}
               </div>
@@ -175,6 +183,7 @@ export default function PrePhaseDialog({
                     <span>Stakeholder Power & Interest Radar</span>
                   </h6>
                   <HoverTooltip
+                    portalTarget={bubbleLayer}
                     description="Radar Gameplay Guide: Power reflects authority to approve or veto your ML systems. Interest reflects how directly daily work is impacted. Focus your attention on 'Manage Closely' stakeholders, but don't disregard the others."
                   >
                     <span className={styles.radarHelpBtn}>
@@ -187,6 +196,8 @@ export default function PrePhaseDialog({
                   currentStakeholders={currentStakeholders}
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
+                  bubblePortalTarget={bubbleLayer}
+                  autoPlayIntroductions={!isReview}
                 />
               </div>
             </div>
@@ -195,18 +206,20 @@ export default function PrePhaseDialog({
             <div className={styles.footer}>
               <div className={styles.footerHint}>
                 <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-                <span>You can review this stakeholder matrix anytime during the phase.</span>
+                <span>You can review this stakeholder matrix anytime.</span>
               </div>
               <div className={styles.actions}>
                 <button className={styles.actionButton} onClick={handleClose}>
-                  <span>Enter Phase & Begin Round</span>
+                  <span>{isReview ? "Back to the Phase" : "Enter Phase & Begin Round"}</span>
                   <Icon icon="ph:arrow-right-bold" />
                 </button>
               </div>
             </div>
           </div>
-        </DialogPanel>
+
+          {/* Fixed, click-through overlay the radar portals its bubbles into */}
+          <div ref={setBubbleLayer} className={styles.bubbleLayer} />
       </div>
-    </Dialog>
+    </div>
   );
 }

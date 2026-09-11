@@ -10,6 +10,7 @@ import { ReadyState } from "./services/websocket/types";
 import { loginUser, registerUser } from "./services/api/auth";
 import { fetchAdminDashboard, addAdminCampaign, removeAdminCampaign } from "./services/api/admin";
 import { WebSocketProvider } from "./services/websocket/WebSocketContext";
+import GlossaryProvider from "./components/glossary/GlossaryProvider";
 
 interface Campaign {
   name: string;
@@ -133,7 +134,9 @@ function App() {
         } else if (isInGame) {
           return (
             <WebSocketProvider username={username}>
-              <Game username={username} />
+              <GlossaryProvider>
+                <Game username={username} />
+              </GlossaryProvider>
             </WebSocketProvider>
           );
         } else if (isInAdminUi) {

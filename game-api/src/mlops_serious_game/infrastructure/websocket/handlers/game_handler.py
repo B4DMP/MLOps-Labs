@@ -8,13 +8,14 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.emotion_factory import EmotionConfig, EmotionFactory
 from mlops_serious_game.domain.briefing_factory import BriefingFactory
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.question_factory import QuestionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.requirement import StakeholderIntelItem
+from mlops_serious_game.domain.requirement import IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
@@ -77,8 +78,11 @@ def get_metrics() -> dict[str, Any]:
 
 
 def get_stakeholders() -> dict[str, Any]:
-    stakeholder_list = [StakeholderFactory.get_stakeholder(s) for s in StakeholderFactory.get_available_stakeholders()]
-    return {s.id: (s.model_dump() if hasattr(s, 'model_dump') else s) for s in stakeholder_list}
+    """The cast as the current player sees it: their persona names and looks."""
+    return {
+        s.id: s.model_dump(exclude={"personas"})
+        for s in StakeholderFactory.get_all_stakeholders()
+    }
 
 
 def get_intro_questions() -> list[Any]:
@@ -120,12 +124,18 @@ def get_engagement_cards() -> list[Any]:
 
 def get_or_create_game_session(player: str, db_session=None) -> GameSession:
     """Retrieves or creates a GameSession record for a given player."""
+    from mlops_serious_game.application.persona_service import sync_personas
+
     def _init_in_session(s):
         stmt = select(GameSession).where(GameSession.player == player)
         session_rec = s.scalars(stmt).first()
         if not session_rec:
             st_archs = get_default_stakeholder_archetypes()
-            session_rec = GameSession(player=player, stakeholder_archetypes=st_archs)
+            session_rec = GameSession(
+                player=player,
+                stakeholder_archetypes=st_archs,
+                stakeholder_personas=StakeholderFactory.choose_personas(player),
+            )
             s.add(session_rec)
             s.commit()
         else:
@@ -135,6 +145,8 @@ def get_or_create_game_session(player: str, db_session=None) -> GameSession:
                 session_rec.stakeholder_archetypes = updated_archs
                 flag_modified(session_rec, "stakeholder_archetypes")
                 s.commit()
+            sync_personas(player, session_rec)
+            s.commit()
         return session_rec
 
     if db_session is not None:
@@ -166,7 +178,17 @@ def get_discovered_intel_items(
                         intel_type=data.get("intel_type", "unconfirmed"),
                         categorized_type=data.get("categorized_type", req.type),
                         categorized_description=data.get("categorized_description", ""),
-                        description=data.get("description", req.description),
+                        # The requirement text is config-owned and looked up by id, so
+                        # take it from the config rather than the stored copy. That copy
+                        # holds whichever names were rendered when the row was written.
+                        description=req.description,
+                        # Provenance is the player's, not the config's: it says how they came
+                        # by the item, so it has to survive this rebuild.
+                        source=data.get("source") or (
+                            IntelSource.PUBLIC_RECORD
+                            if data.get("is_public_record")
+                            else IntelSource.OFFLINE_ARTIFACT
+                        ),
                     )
                     intel_items.append(item)
 
@@ -654,7 +676,10 @@ async def handle_state_update_request(
 
             chat_payload = {
                 "session_id": f"MLOps_Convo_{username}",
-                "challenge": challenge.name + ": " + challenge.roundIntroduction + challenge.description,
+                "challenge": challenge.name
+                + ": "
+                + challenge.roundIntroduction
+                + personalize(challenge.description, resolve_markers=True),
                 "phase_id": challenge.phase_id,
                 "challenge_id": challenge.id,
                 "initial_start": True,

@@ -26,7 +26,7 @@ from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
-from mlops_serious_game.domain.requirement import ConfidenceType, RequirementType
+from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, RequirementType
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
@@ -670,11 +670,14 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                 if getattr(item, "id", None) == rev_id:
                     req = RequirementFactory.get_requirement(rev_id)
                     if req:
+                        # A correction is news the player learned in the debate; a confirmation
+                        # only re-stamps what they already had, so it keeps its original source.
                         updated_intel_items[i] = StakeholderIntelItem.from_requirement(
                             req,
                             intel_type=ConfidenceType.VERIFIED,
                             categorized_type=req.type,
                             description=req.description,
+                            source=IntelSource.DEBATE if rev_item.get("is_corrected") else item.source,
                         )
                     break
 

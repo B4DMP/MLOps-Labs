@@ -11,6 +11,17 @@ class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
     VERIFIED = "verified"
 
+class IntelSource(str, Enum):
+    """How an intel item found its way into the player's dossier.
+
+    The stamp says how sure the player can be; this says where it came from. Two items can
+    both be verified and still have arrived by very different routes.
+    """
+    PUBLIC_RECORD = "public_record"
+    OFFLINE_ARTIFACT = "offline_artifact"
+    INTERVIEW = "interview"
+    DEBATE = "debate"
+
 class ArtifactType(str, Enum):
     EMAIL = "email"
     SLACK_MESSAGE="slack_message"
@@ -30,6 +41,14 @@ class StakeholderIntelItem(StakeholderRequirement):
     intel_type: ConfidenceType = Field(default=ConfidenceType.UNCONFIRMED, description="The type of the intel")
     categorized_type: RequirementType = Field(default=RequirementType.REQUIREMENT, description="The categorized requirement type")
     categorized_description: str = Field(default="", description="Description of the categorized requirement")
+    source: IntelSource = Field(
+        default=IntelSource.OFFLINE_ARTIFACT,
+        description=(
+            "Where the item came from: already on the public record at the start of the "
+            "challenge, the player's read of an offline artifact, an interview during online "
+            "intel gathering, or something that came out during the pitch."
+        ),
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -43,6 +62,16 @@ class StakeholderIntelItem(StakeholderRequirement):
         """
         if not isinstance(data, dict):
             return data
+
+        # `is_public_record` was the narrow, boolean ancestor of `source`. Rows written while it
+        # was the only provenance we kept still say "this one was public"; nothing else about
+        # them says where the rest came from, so they fall back to the field default.
+        if "is_public_record" in data:
+            data = dict(data)
+            was_public = data.pop("is_public_record", False)
+            if was_public and not data.get("source"):
+                data["source"] = IntelSource.PUBLIC_RECORD.value
+
         if "requirement_id" not in data and all(k in data for k in ("challenge_id", "stakeholder_id", "type")):
             return data
 
@@ -80,6 +109,7 @@ class StakeholderIntelItem(StakeholderRequirement):
         categorized_type: Optional[RequirementType] = None,
         categorized_description: str = "",
         description: Optional[str] = None,
+        source: IntelSource = IntelSource.OFFLINE_ARTIFACT,
     ) -> "StakeholderIntelItem":
         resolved_desc = description if description is not None else req.description
         resolved_cat_desc = categorized_description
@@ -94,6 +124,7 @@ class StakeholderIntelItem(StakeholderRequirement):
             intel_type=intel_type,
             categorized_type=categorized_type or req.type,
             categorized_description=resolved_cat_desc,
+            source=source,
         )
 
     @property

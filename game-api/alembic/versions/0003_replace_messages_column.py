@@ -19,24 +19,43 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Add new columns
-    op.add_column('game_data', sa.Column('pitch_debate_messages', sa.JSON(), server_default='[]', nullable=False))
-    op.add_column('game_data', sa.Column('online_intel_gathering_messages', sa.JSON(), server_default='[]', nullable=False))
-    
-    # Copy existing messages to pitch_debate_messages
-    op.execute("UPDATE game_data SET pitch_debate_messages = messages WHERE messages IS NOT NULL")
-    
-    # Drop old messages column
-    op.drop_column('game_data', 'messages')
+    # Guarded so the chain can be replayed against a database that is already
+    # past this point: `game_data` was renamed to `game_challenge_data` in
+    # b2c3d4e5f6a7, and a database built from the models never had it.
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'game_data') THEN
+                ALTER TABLE game_data
+                    ADD COLUMN IF NOT EXISTS pitch_debate_messages JSON NOT NULL DEFAULT '[]',
+                    ADD COLUMN IF NOT EXISTS online_intel_gathering_messages JSON NOT NULL DEFAULT '[]';
+
+                IF EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = 'game_data' AND column_name = 'messages'
+                ) THEN
+                    UPDATE game_data SET pitch_debate_messages = messages WHERE messages IS NOT NULL;
+                    ALTER TABLE game_data DROP COLUMN messages;
+                END IF;
+            END IF;
+        END $$;
+        """
+    )
 
 
 def downgrade() -> None:
-    # Restore messages column
-    op.add_column('game_data', sa.Column('messages', sa.JSON(), server_default='[]', nullable=False))
-    
-    # Copy pitch_debate_messages back
-    op.execute("UPDATE game_data SET messages = pitch_debate_messages WHERE pitch_debate_messages IS NOT NULL")
-    
-    # Drop new columns
-    op.drop_column('game_data', 'pitch_debate_messages')
-    op.drop_column('game_data', 'online_intel_gathering_messages')
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'game_data') THEN
+                ALTER TABLE game_data ADD COLUMN IF NOT EXISTS messages JSON NOT NULL DEFAULT '[]';
+                UPDATE game_data SET messages = pitch_debate_messages WHERE pitch_debate_messages IS NOT NULL;
+                ALTER TABLE game_data
+                    DROP COLUMN IF EXISTS pitch_debate_messages,
+                    DROP COLUMN IF EXISTS online_intel_gathering_messages;
+            END IF;
+        END $$;
+        """
+    )

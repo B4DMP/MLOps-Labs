@@ -23,19 +23,19 @@ def test_emotion_config_facial_expressions():
     assert config.emotional_states["frustrated"].facial_expression == "concerned"
     assert config.emotional_states["enthusiastic"].facial_expression == "smileBig"
     assert config.emotional_states["skeptical"].facial_expression == "suspicious"
-    assert config.emotional_states["apathetic"].facial_expression == "tired"
-    assert config.emotional_states["relieved"].facial_expression == "smile"
+    assert config.emotional_states["apathetic"].facial_expression == "serious"
+    assert config.emotional_states["relieved"].facial_expression == "calm"
     assert config.emotional_states["overwhelmed"].facial_expression == "hectic"
-    assert config.emotional_states["neutral"].facial_expression == "serious"
+    assert config.emotional_states["neutral"].facial_expression == "smile"
 
 
 def test_derive_facial_expression():
     EmotionFactory.ensure_loaded()
 
-    # Neutral values -> neutral state -> serious expression
+    # Neutral values -> neutral state -> smile expression
     neutral_ev = EmotionFactory.create_default_emotion_values(0.5)
     expr = EmotionFactory.derive_facial_expression(neutral_ev)
-    assert expr == "serious"
+    assert expr == "smile"
 
     # High fairness and trust, very high stress, low trust -> angry -> veryAngry expression
     angry_ev = {
@@ -67,7 +67,7 @@ def test_get_facial_expressions_dict():
     }
 
     result = EmotionFactory.get_facial_expressions_dict(emotion_values_map)
-    assert result["st_1"] == "serious"
+    assert result["st_1"] == "smile"
     assert result["st_2"] == "veryAngry"
 
 

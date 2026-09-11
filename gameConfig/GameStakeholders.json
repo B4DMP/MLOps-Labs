@@ -4,136 +4,414 @@
       "metric_id": "data",
       "id": "data_dave",
       "name": "Data Dave",
+      "introduction": "Hi, I'm {data_dave}. I hunt down data sources, scrub them clean, and pipe them wherever they need to go. If a column is mislabeled, I will find it, and I will tell you about it at length.",
       "convincer_archetype": "Technical Excellence",
       "role_description": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
-      "responsibilities": "You are primarily responsible for fundamental data activities, enabling data operations in a high-quality, secure, and scalable way, and you specifically focus on data quality management. Your typical set of tasks include identifying suitable data sources, verifying data legality, collecting data from various sources, cleaning them, and preparing labeled data. This data engineering process is characterized as extract-transfer-load which involves transferring data into consumable formats for your own role and other developers. Secondarily, you collaborate on exploring and analyzing the data, training, tuning, and evaluating models to derive insights. In these steps, you work with Model Monica to understand the business problem and its domain, evaluate the feasibility of an ML-enabled solution, and align objectives with data assets.",
+      "responsibilities": "You are primarily responsible for fundamental data activities, enabling data operations in a high-quality, secure, and scalable way, and you specifically focus on data quality management. Your typical set of tasks include identifying suitable data sources, verifying data legality, collecting data from various sources, cleaning them, and preparing labeled data. This data engineering process is characterized as extract-transfer-load which involves transferring data into consumable formats for your own role and other developers. Secondarily, you collaborate on exploring and analyzing the data, training, tuning, and evaluating models to derive insights. In these steps, you work with {model_monica} to understand the business problem and its domain, evaluate the feasibility of an ML-enabled solution, and align objectives with data assets.",
       "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
       "requirements": "Calls for diverse data sources and data legality. Requires building robust storage infrastructures and pipelines. Data management that ensures data quality, consistency and documentation and includes clear ownership and versioning of data assets. Calls for reproducibility and methodological soundness during Model and Data related tasks.",
       "avatar": {
-        "head": "short1",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "glasses",
-        "accessoriesProbability": 100,
-        "facialHair": "goatee1",
-        "facialHairProbability": 100,
-        "skinColor": "ffdbb4",
         "clothingColor": "0d6efd",
-        "headContrastColor": "2c1b18",
         "backgroundColor": "d1d4f9"
-      }
+      },
+      "personas": [
+        {
+          "key": "dave",
+          "name": "Data Dave",
+          "avatar": {
+            "head": "short1",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHair": "goatee1",
+            "facialHairProbability": 100,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "dominic",
+          "name": "Data Dominic",
+          "avatar": {
+            "head": "shaved2",
+            "accessories": "glasses3",
+            "accessoriesProbability": 100,
+            "facialHair": "moustache2",
+            "facialHairProbability": 100,
+            "skinColor": "d08b5b",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "dean",
+          "name": "Data Dean",
+          "avatar": {
+            "head": "flatTop",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHair": "full2",
+            "facialHairProbability": 100,
+            "skinColor": "edb98a",
+            "headContrastColor": "a55728"
+          }
+        },
+        {
+          "key": "derek",
+          "name": "Data Derek",
+          "avatar": {
+            "head": "short2",
+            "accessories": "glasses5",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "694d3d",
+            "headContrastColor": "2c1b18"
+          }
+        }
+      ]
     },
     {
       "metric_id": "model",
       "id": "model_monica",
       "name": "Model Monica",
+      "introduction": "Hey, I'm {model_monica}. I train and tune models until the numbers stop embarrassing me, then I deploy them and keep watching the numbers anyway.",
       "convincer_archetype": "Technical Excellence",
       "role_description": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
-      "responsibilities": "You are mainly responsible for exploring and analyzing the data, training, tuning, and evaluating models to derive insights. Your primary tasks are model optimization, deployment, and monitoring, as well as experimenting with datasets and models and optimizing the model and its parameters. Your role's responsibilities partly overlap with those of Data Dave. Your task is to understand the business problem and its domain, evaluate the feasibility of an ML-enabled solution, and work with domain experts and business analysts to discuss objectives and key results.",
+      "responsibilities": "You are mainly responsible for exploring and analyzing the data, training, tuning, and evaluating models to derive insights. Your primary tasks are model optimization, deployment, and monitoring, as well as experimenting with datasets and models and optimizing the model and its parameters. Your role's responsibilities partly overlap with those of {data_dave}. Your task is to understand the business problem and its domain, evaluate the feasibility of an ML-enabled solution, and work with domain experts and business analysts to discuss objectives and key results.",
       "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
       "requirements": "Infrastructure and services that supports efficient model training, experimentation, and deployment including model versioning tools, and performance monitoring systems. Calls for reproducibility and methodological soundness during Model and Data related tasks.",
       "avatar": {
-        "head": "bun",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "glasses2",
-        "accessoriesProbability": 100,
-        "facialHairProbability": 0,
-        "skinColor": "edb98a",
         "clothingColor": "198754",
-        "headContrastColor": "4a312c",
         "backgroundColor": "ffd5dc"
-      }
+      },
+      "personas": [
+        {
+          "key": "monica",
+          "name": "Model Monica",
+          "avatar": {
+            "head": "bun",
+            "accessories": "glasses2",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "edb98a",
+            "headContrastColor": "4a312c"
+          }
+        },
+        {
+          "key": "maya",
+          "name": "Model Maya",
+          "avatar": {
+            "head": "longBangs",
+            "accessories": "glasses4",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "d08b5b",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "mira",
+          "name": "Model Mira",
+          "avatar": {
+            "head": "medium2",
+            "accessories": "glasses2",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "ae5d29",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "margot",
+          "name": "Model Margot",
+          "avatar": {
+            "head": "mediumStraight",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "d6b370"
+          }
+        }
+      ]
     },
     {
       "metric_id": "requirements",
       "id": "requirements_reuben",
       "name": "Requirements Reuben",
+      "introduction": "Hi, I'm {requirements_reuben}. I write down what 'secure', 'compliant' and 'actually tested' mean around here, and then I'm the one who checks. Nothing personal, I promise.",
       "convincer_archetype": "Control & Governance",
       "role_description": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
       "responsibilities": "You are primarily responsible for testing the software application and services to ensure product quality, and ensuring the integrity, confidentiality, and availability of ML assets by defining security objectives and requirements. Your role includes secure design, selecting appropriate technologies and design paradigms, tracking and monitoring models in production, and integrating cloud-based applications and web services. You act as a dedicated security reviewer, securing the data, the overall ML system, addressing potential attacks during data ingestion and feature engineering, and enforcing secure coding practices. You focus on data governance, privacy, legal standards, and auditing compliance. You coordinate with other developers to ensure the system backbone is robust and secure.",
       "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
       "requirements": "Development workflow must allow for testing and validation, enabling automated tests for ML pipelines, models, and services. Secure development environments with strict access control, auditing, vulnerability scanning, threat detection, encryption management, and secure data handling. Systems and regulatory frameworks that support compliance with data protection regulations and enforce governance policies. Flexible and scalable infrastructure that supports modular system architecture and integration with cloud services.",
       "avatar": {
-        "head": "flatTop",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "glasses3",
-        "accessoriesProbability": 100,
-        "facialHair": "full",
-        "facialHairProbability": 100,
-        "skinColor": "694d3d",
         "clothingColor": "ffc107",
-        "headContrastColor": "2c1b18",
         "backgroundColor": "b6e3f4"
-      }
+      },
+      "personas": [
+        {
+          "key": "reuben",
+          "name": "Requirements Reuben",
+          "avatar": {
+            "head": "flatTop",
+            "accessories": "glasses3",
+            "accessoriesProbability": 100,
+            "facialHair": "full",
+            "facialHairProbability": 100,
+            "skinColor": "694d3d",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "robert",
+          "name": "Requirements Robert",
+          "avatar": {
+            "head": "short5",
+            "accessories": "glasses3",
+            "accessoriesProbability": 100,
+            "facialHair": "full3",
+            "facialHairProbability": 100,
+            "skinColor": "ae5d29",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "russell",
+          "name": "Requirements Russell",
+          "avatar": {
+            "head": "grayShort",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHair": "moustache7",
+            "facialHairProbability": 100,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "e8e1e1"
+          }
+        },
+        {
+          "key": "ryan",
+          "name": "Requirements Ryan",
+          "avatar": {
+            "head": "short3",
+            "accessories": "glasses2",
+            "accessoriesProbability": 100,
+            "facialHair": "goatee2",
+            "facialHairProbability": 100,
+            "skinColor": "d08b5b",
+            "headContrastColor": "2c1b18"
+          }
+        }
+      ]
     },
     {
       "metric_id": "efficiency",
       "id": "efficiency_emilia",
       "name": "Efficiency Emilia",
+      "introduction": "Hi, I'm {efficiency_emilia}. I turn 'wouldn't it be cool if' into goals, KPIs and a budget, and I'll also ask whether a spreadsheet would have done the job. Someone has to.",
       "convincer_archetype": "Business Value",
       "role_description": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
       "responsibilities": "You possess deep knowledge of the problem domain (e.g. clinical neurology or urban planning), playing a crucial role in domain discovery, engineering domain-specific requirements, and fulfilling business goals. You define the problem, set clear objectives, define business requirements, key performance indicators (KPIs), and model quality metrics, and assess whether an ML-enabled system aligns with business goals. You are associated with organization-level decision making, supervising development and operations, and evaluating the production of ML systems from an operational and regulatory perspective. You define and optimize product features to enhance performance and usability, identifying feature set candidates based on performance issues and applying feature engineering techniques alongside to improve model outcomes. You make data-driven decisions by reviewing relevant collected and visualized information, and contribute to data collection, cleaning, labeling, hypothesis development, model evaluation, and result interpretation. Your main responsibilities include shadowing developers, looking at architecture diagrams, and occasionally asking 'Are we sure we shouldn't just use a massive spreadsheet?', while also helping the team with basic administrative tasks and password resets.",
       "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
       "requirements": "The environment should make it easy to incorporate domain knowledge into the ML development process. Clear documentation, KPIs and reporting capabilities to evaluate whether ML solutions meet business objectives. Monitoring tools that provide clear insights into system performance, costs, and business impact. Transparent documentation and progress tracking to support oversight of development and operational activities. Development monitoring and progress tracking using product roadmaps and issue management systems.",
       "avatar": {
-        "head": "mediumBangs",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "glasses4",
-        "accessoriesProbability": 100,
-        "facialHairProbability": 0,
-        "skinColor": "ffdbb4",
         "clothingColor": "0dcaf0",
-        "headContrastColor": "a55728",
         "backgroundColor": "ffdfbf"
-      }
+      },
+      "personas": [
+        {
+          "key": "emilia",
+          "name": "Efficiency Emilia",
+          "avatar": {
+            "head": "mediumBangs",
+            "accessories": "glasses4",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "a55728"
+          }
+        },
+        {
+          "key": "ellen",
+          "name": "Efficiency Ellen",
+          "avatar": {
+            "head": "long",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "edb98a",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "erica",
+          "name": "Efficiency Erica",
+          "avatar": {
+            "head": "bun2",
+            "accessories": "glasses5",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "694d3d",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "evelyn",
+          "name": "Efficiency Evelyn",
+          "avatar": {
+            "head": "grayMedium",
+            "accessories": "glasses3",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "e8e1e1"
+          }
+        }
+      ]
     },
     {
       "metric_id": "automation",
       "id": "automation_alex",
       "name": "Automation Alex",
+      "introduction": "Hey, I'm {automation_alex}. I build the pipelines so nobody deploys anything by hand at 2am ever again. If I have to do it twice, I'm scripting it.",
       "convincer_archetype": "Autonomy",
       "role_description": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
       "responsibilities": "You are responsible for building automated pipelines, maintaining operational stability of the entire ML system, and facilitating collaboration across roles. You play a key role in ensuring the seamless deployment, integration, and stability of ML models within production systems. While other roles design and implement the pipelines for data collection, analysis, model development, and deployment, you focus on building, optimizing, and integrating these pipelines, including services like cloud, containers, dependencies, versioning, tracking mechanisms, and platform governance.",
       "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
       "requirements": "Automated pipelines, version control, and continuous integration and deployment. Orchestration of services across cloud and container platforms. Calls for stability while handling frequent deployments. Needs to construct and test reliable applications.",
       "avatar": {
-        "head": "pomp",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "sunglasses",
-        "accessoriesProbability": 0,
-        "facialHair": "moustache3",
-        "facialHairProbability": 100,
-        "skinColor": "ae5d29",
         "clothingColor": "d63384",
-        "headContrastColor": "724133",
         "backgroundColor": "c0aede"
-      }
+      },
+      "personas": [
+        {
+          "key": "alex",
+          "name": "Automation Alex",
+          "avatar": {
+            "head": "pomp",
+            "accessories": "sunglasses",
+            "accessoriesProbability": 0,
+            "facialHair": "moustache3",
+            "facialHairProbability": 100,
+            "skinColor": "ae5d29",
+            "headContrastColor": "724133"
+          }
+        },
+        {
+          "key": "adam",
+          "name": "Automation Adam",
+          "avatar": {
+            "head": "short4",
+            "accessories": "glasses2",
+            "accessoriesProbability": 100,
+            "facialHair": "full4",
+            "facialHairProbability": 100,
+            "skinColor": "ae5d29",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "andre",
+          "name": "Automation Andre",
+          "avatar": {
+            "head": "mohawk",
+            "accessories": "sunglasses2",
+            "accessoriesProbability": 0,
+            "facialHair": "goatee1",
+            "facialHairProbability": 100,
+            "skinColor": "694d3d",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "aaron",
+          "name": "Automation Aaron",
+          "avatar": {
+            "head": "noHair2",
+            "accessories": "glasses4",
+            "accessoriesProbability": 100,
+            "facialHair": "moustache5",
+            "facialHairProbability": 100,
+            "skinColor": "ffdbb4",
+            "headContrastColor": "b58143"
+          }
+        }
+      ]
     },
     {
       "metric_id": "reliability",
       "id": "reliability_ruth",
       "name": "Reliability Ruth",
+      "introduction": "Hi, I'm {reliability_ruth}. I ship the apps your models live inside and then babysit them in production, so I'm the one who notices when 'it works on staging' stops being true.",
       "convincer_archetype": "Safety & Reliability",
       "role_description": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
-      "responsibilities": "You develop the final applications and services that support ML production and integrate ML models for users. You are responsible for deployment operations including packaging, releasing, configuring ML systems, and continuous monitoring of the model's performance. You facilitate iterative improvements by reporting issues, providing feedback, and ensuring the model remains efficient and reliable in real-world applications. You collaborate with Data Dave and Model Monica on data processing, analysis, and model integration to ensure stable delivery of ML-powered features.",
+      "responsibilities": "You develop the final applications and services that support ML production and integrate ML models for users. You are responsible for deployment operations including packaging, releasing, configuring ML systems, and continuous monitoring of the model's performance. You facilitate iterative improvements by reporting issues, providing feedback, and ensuring the model remains efficient and reliable in real-world applications. You collaborate with {data_dave} and {model_monica} on data processing, analysis, and model integration to ensure stable delivery of ML-powered features.",
       "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
       "requirements": "Requires stable and accurate ML systems and infrastructure. Automated feedback loops and monitoring infrastructure. Iterative development using agile software practices.",
       "avatar": {
-        "head": "longCurly",
         "face": "smile",
         "emotion": "smile",
-        "accessories": "glasses5",
-        "accessoriesProbability": 100,
-        "facialHairProbability": 0,
-        "skinColor": "d08b5b",
         "clothingColor": "fd7e14",
-        "headContrastColor": "2c1b18",
         "backgroundColor": "d1d4f9"
-      }
+      },
+      "personas": [
+        {
+          "key": "ruth",
+          "name": "Reliability Ruth",
+          "avatar": {
+            "head": "longCurly",
+            "accessories": "glasses5",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "d08b5b",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "rosa",
+          "name": "Reliability Rosa",
+          "avatar": {
+            "head": "buns",
+            "accessories": "glasses",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "edb98a",
+            "headContrastColor": "4a312c"
+          }
+        },
+        {
+          "key": "rhea",
+          "name": "Reliability Rhea",
+          "avatar": {
+            "head": "medium3",
+            "accessories": "glasses4",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "694d3d",
+            "headContrastColor": "2c1b18"
+          }
+        },
+        {
+          "key": "rachel",
+          "name": "Reliability Rachel",
+          "avatar": {
+            "head": "mediumBangs2",
+            "accessories": "glasses3",
+            "accessoriesProbability": 100,
+            "facialHairProbability": 0,
+            "skinColor": "ae5d29",
+            "headContrastColor": "2c1b18"
+          }
+        }
+      ]
     }
   ]
 }

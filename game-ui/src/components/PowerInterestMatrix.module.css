@@ -235,6 +235,9 @@
 }
 
 .sectorAxisBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 0.65rem;
   font-weight: 600;
   color: #94a3b8;
@@ -280,9 +283,11 @@
 /* Stakeholder Telemetry Chip */
 .stakeholderItem {
   background: rgba(22, 34, 52, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 0.45rem;
-  padding: 0.35rem 0.55rem;
+  /* Always present so the speaking state changes only its color, never the box */
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px 0.5rem 0.5rem 22px;
+  padding: 0 0.55rem 0 0;
+  min-height: 44px;
   display: flex !important;
   align-items: center;
   justify-content: space-between;
@@ -296,24 +301,25 @@
 }
 
 .stakeholderItem:hover {
-  background: rgba(30, 46, 70, 0.95) !important;
-  border-color: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1px);
+  background: rgba(41, 60, 89, 0.98) !important;
 }
 
 .stakeholderLeft {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
   min-width: 0;
   flex: 1;
   overflow: hidden;
 }
 
-/* Colored Avatar Ring */
+/* Colored Avatar Ring, sized to fill the chip from top to bottom */
 .avatarWrapper {
-  width: 30px;
-  height: 30px;
+  width: 42px;
+  height: 42px;
+  /* Width here rather than inline so the speaking state can thicken it. With
+     border-box sizing the ring grows inward and the 42px circle is unchanged. */
+  border: 2px solid transparent;
   border-radius: 50%;
   overflow: hidden;
   background: #1e293b;
@@ -330,6 +336,23 @@
   min-width: 0;
   flex: 1;
   overflow: hidden;
+}
+
+.stakeholderNameRow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* High power / high interest markers, mirroring the dossier tab flags */
+.keyFlag {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: #ef4444;
+  line-height: 1;
 }
 
 .stakeholderName {
@@ -370,6 +393,8 @@
   align-items: center;
   gap: 2px;
   white-space: nowrap;
+  transform-origin: center;
+  animation: badgePulse 2s ease-in-out infinite;
 }
 
 .badgeShifted {
@@ -384,6 +409,18 @@
   align-items: center;
   gap: 2px;
   white-space: nowrap;
+  transform-origin: center;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+/* Matches the NEW tag on ChallengeDescriptionCard so both read as the same signal */
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
 }
 
 /* Horizontal Interest Axis */
@@ -427,4 +464,253 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ==========================================================================
+   STAKEHOLDER SELF-INTRODUCTIONS
+   Sequential speech bubbles played when the phase briefing opens. Positioned
+   fixed against the viewport so the radar's own overflow clipping cannot cut
+   the bubble off in any of the four quadrants.
+   ========================================================================== */
+
+.introReplayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.introReplayBtn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.introReplayBtn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Chips with an introduction can be clicked to replay that stakeholder's bubble */
+.stakeholderItemReplayable {
+  cursor: pointer;
+}
+
+/* Speaking stakeholder chip gets a subtle pulse so the bubble's owner is obvious */
+/*
+ * The chip border and the avatar ring are separate rings that only meet at the
+ * top and bottom tangent points, so colouring both reads as one broken ring.
+ * The speaking colour goes on the avatar and the chip's fill instead, leaving
+ * the chip border at its resting grey.
+ */
+.stakeholderItemSpeaking {
+  background: color-mix(
+    in srgb,
+    var(--stakeholder-color, #38bdf8) 20%,
+    rgba(24, 37, 57, 0.98)
+  ) !important;
+  animation: introChipPulse 1.4s ease-in-out infinite;
+}
+
+.avatarWrapperSpeaking {
+  border-width: 3px;
+}
+
+/*
+ * Brightness rather than an outer box-shadow: a spread shadow is painted outside
+ * the chip and was showing up as a square corner against the quadrant behind it.
+ * A filter is clipped to the element's own rounded shape, so it cannot bleed.
+ */
+@keyframes introChipPulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.28);
+  }
+}
+
+.introBubble {
+  position: fixed;
+  z-index: 10050;
+  pointer-events: auto;
+  box-sizing: border-box;
+  background: #f8fafc;
+  color: #0f172a;
+  border: 2px solid var(--intro-color, #38bdf8);
+  border-radius: 0.6rem;
+  padding: 0.5rem 0.65rem 0.55rem;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  animation: introBubbleIn 0.22s ease-out both;
+}
+
+.introBubbleClosing {
+  animation: introBubbleOut 0.4s ease-in both;
+}
+
+/* Tail: an outer border triangle with an inner fill triangle stacked on top */
+.introBubble::before,
+.introBubble::after {
+  content: "";
+  position: absolute;
+  left: var(--intro-arrow-x, 50%);
+  transform: translateX(-50%);
+  border: 9px solid transparent;
+}
+
+.introBubble::before {
+  top: 100%;
+  border-top-color: var(--intro-color, #38bdf8);
+}
+
+.introBubble::after {
+  top: calc(100% - 3px);
+  border-top-color: #f8fafc;
+}
+
+.introBubbleBelow::before {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--intro-color, #38bdf8);
+}
+
+.introBubbleBelow::after {
+  top: auto;
+  bottom: calc(100% - 3px);
+  border-top-color: transparent;
+  border-bottom-color: #f8fafc;
+}
+
+.introBubbleHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.introBubbleName {
+  min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  /* Darkened so light stakeholder colors stay readable on the light bubble */
+  color: color-mix(in srgb, var(--intro-color, #38bdf8) 65%, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.introBubbleCounter {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Without the counter beside it the skip button has to claim the free space */
+.introSkipBtnAlone {
+  margin-left: auto;
+}
+
+.introSkipBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 4px;
+  color: #334155;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.introSkipBtn:hover {
+  background: rgba(15, 23, 42, 0.14);
+}
+
+/* Dismisses the whole round, not just the current bubble */
+.introCloseBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  border-radius: 4px;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.introCloseBtn:hover {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: #b91c1c;
+}
+
+.introBubbleText {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #1e293b;
+}
+
+@keyframes introBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes introBubbleOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+/* Icons in the quadrant's "High Power - Low Interest" caption */
+.axisBadgeIcon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* Sets the interest half apart from the power half, in place of a separator */
+.axisBadgeIconSecond {
+  margin-left: 6px;
+}
+
+/*
+ * HoverTooltip scales whatever it wraps by 1.05 on hover, which smears the
+ * chip's 1px border and shifts it out of alignment against its neighbours.
+ * These chips opt out of the transform entirely and signal hover with color.
+ */
+.stakeholderList > span > .stakeholderItem,
+.stakeholderList > span:hover > .stakeholderItem {
+  transform: none;
+  box-shadow: none;
 }

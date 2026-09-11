@@ -5,6 +5,7 @@ from mlops_serious_game.domain.requirement import (
     StakeholderIntelItemArtifact,
     ArtifactType,
     ConfidenceType,
+    IntelSource,
     RequirementType,
     StakeholderIntelItem,
     StakeholderRequirement,
@@ -16,6 +17,7 @@ from fastapi import WebSocket
 from sqlalchemy import select
 
 from mlops_serious_game.domain.Challenge import Challenge
+from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -45,7 +47,7 @@ async def generate_intel_item_artifact_content(
 
     chain = get_intel_artifact_chain()
     res = await chain.ainvoke({
-        "challenge": curr_challenge.description,
+        "challenge": personalize(curr_challenge.description, resolve_markers=True),
         "stakeholder_name": stakeholder_name,
         "stakeholder_profile": stakeholder_profile,
         "requirement_description": req.description,
@@ -180,9 +182,16 @@ def correct_and_verify_convincer_archetype(
 
 
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
-    """Loads unconfirmed offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders."""
+    """Loads offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders.
+
+    Known artifacts are dealt into the deck too, already tagged and locked. They used to be seeded
+    straight into the dossier without ever being shown, which left players staring at verified intel
+    with no idea where it came from. Reading them costs a couple of clicks and gives the player a
+    worked example of a correct tag before their first real call.
+    """
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
     unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known][:3]
+    known_artifacts = [art for art in challenge_artifacts if art.is_known]
 
     results = []
     for art in unconfirmed_artifacts:
@@ -244,7 +253,8 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
                 else str(art_def.artifact_type)
             )
         else:
-            template = f"#team-chat Slack\n{{stakeholder_name}}: Let's make sure our approach is aligned with our priorities."
+            # The viewer draws the channel header and the speaker's name, so the body is body only.
+            template = "Let's make sure our approach is aligned with our priorities."
             artifact_type_val = "slack_message"
 
         content = template.replace("{stakeholder_name}", st.name)
@@ -266,7 +276,28 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
     # Shuffle the combined list so convincer and intel artifacts are mixed
     random.shuffle(results)
-    return results
+
+    # Known artifacts go in front, unshuffled: they are the briefing the player reads before
+    # making any call of their own, so they must not land in the middle of the deck.
+    known_results = []
+    for art in known_artifacts:
+        req = RequirementFactory.get_requirement(art.requirement_id)
+        if not req:
+            continue
+        stakeholder = StakeholderFactory.get_stakeholder(art.stakeholder_id)
+        known_results.append({
+            "id": art.id,
+            "requirement_id": art.requirement_id,
+            "stakeholder_id": art.stakeholder_id,
+            "stakeholder_name": stakeholder.name if stakeholder else art.stakeholder_name,
+            "stakeholder_role": stakeholder.role_description if stakeholder else art.stakeholder_role,
+            "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
+            "content": art.content,
+            "is_known": True,
+            "categorized_type": req.type.value if hasattr(req.type, "value") else str(req.type),
+        })
+
+    return known_results + results
 
 
 from sqlalchemy.orm.attributes import flag_modified
@@ -302,6 +333,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     intel_type=ConfidenceType.VERIFIED,
                     categorized_type=req.type,
                     description=req.description,
+                    source=IntelSource.PUBLIC_RECORD,
                 )
                 new_record = IntelItem(
                     user_name=username,
@@ -315,11 +347,16 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
                         data = dict(r.intel_item_data)
                         cat_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
-                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description:
+                        if data.get("intel_type") != ConfidenceType.VERIFIED.value or data.get("categorized_type") != cat_type_str or data.get("description") != req.description or data.get("categorized_description") != req.description or data.get("source") != IntelSource.PUBLIC_RECORD.value:
                             data["intel_type"] = ConfidenceType.VERIFIED.value
                             data["categorized_type"] = cat_type_str
                             data["description"] = req.description
                             data["categorized_description"] = req.description
+                            # Items persisted before provenance was tracked say nothing about
+                            # where they came from; anything the known-intel loader touches was
+                            # said openly before the player started digging.
+                            data.pop("is_public_record", None)
+                            data["source"] = IntelSource.PUBLIC_RECORD.value
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -416,7 +453,7 @@ async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_i
 
     chain = get_wrong_intel_chain()
     res = await chain.ainvoke({
-        "challenge": curr_challenge.description,
+        "challenge": personalize(curr_challenge.description, resolve_markers=True),
         "stakeholder_name": stakeholder_name,
         "stakeholder_profile": stakeholder_profile,
         "correct_description": intel_item.description,
@@ -581,6 +618,7 @@ async def handle_intel_verification(
             intel_type=ConfidenceType.VERIFIED,
             categorized_type=req.type,
             description=req.description,
+            source=IntelSource.INTERVIEW,
         )
     else:
         req = RequirementFactory.get_requirement(target_item.id)
@@ -599,6 +637,9 @@ async def handle_intel_verification(
 
     # Perform verification & correction
     target_item.intel_type = ConfidenceType.VERIFIED
+    # Public-record items never reach this phase unverified, so nothing to overwrite there.
+    if target_item.source != IntelSource.PUBLIC_RECORD:
+        target_item.source = IntelSource.INTERVIEW
     if req:
         target_item.categorized_type = req.type
         target_item.description = req.description
@@ -646,6 +687,9 @@ def correct_and_verify_intel_item(
             data["categorized_type"] = cat_type_str
             data["description"] = req.description
             data["categorized_description"] = req.description
+            if data.get("source") != IntelSource.PUBLIC_RECORD.value:
+                data.pop("is_public_record", None)
+                data["source"] = IntelSource.DEBATE.value
             target_record.intel_item_data = data
             flag_modified(target_record, "intel_item_data")
             session.commit()
@@ -656,6 +700,7 @@ def correct_and_verify_intel_item(
                 intel_type=ConfidenceType.VERIFIED,
                 categorized_type=req.type,
                 description=req.description,
+                source=IntelSource.DEBATE,
             )
             new_record = IntelItem(
                 user_name=username,
@@ -667,6 +712,37 @@ def correct_and_verify_intel_item(
 
 
 correct_and_infer_intel_item = correct_and_verify_intel_item
+
+
+def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
+    """Where the item came from, repaired for saves written before provenance was tracked.
+
+    The persisted value only exists on items written since, and the known-intel loader repairs
+    items for the *current* challenge only, so saves in progress would keep showing the wrong
+    story on earlier challenges. Fall back to the artifact config, which is the source of truth:
+    an `is_known` artifact never reaches the player's tagging deck, so it can only be public
+    record.
+    """
+    source = getattr(item, "source", None)
+    if source == IntelSource.PUBLIC_RECORD:
+        return source
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+    if artifact and artifact.is_known:
+        return IntelSource.PUBLIC_RECORD
+    return source or IntelSource.OFFLINE_ARTIFACT
+
+
+def _artifact_type_for(item: StakeholderIntelItem) -> str:
+    """The kind of document the player read this off, for the note's caption.
+
+    Empty when the requirement has no artifact in the config: the caption falls back to a
+    generic line rather than naming a document that does not exist.
+    """
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+    if not artifact:
+        return ""
+    art_type = artifact.artifact_type
+    return art_type.value if hasattr(art_type, "value") else str(art_type)
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
@@ -690,6 +766,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 "categorized_type": cat_type_val,
                 "description": display_desc,
                 "is_correct": item.is_correct_intel(),
+                "source": _resolve_source(item).value,
+                "artifact_type": _artifact_type_for(item),
             })
 
 
@@ -733,6 +811,11 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
+            # The whole pool for this challenge, found or not, so the dossier can show how much
+            # is still out there. A count only: nothing about what the missing items say.
+            "intel_total": len(
+                RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+            ),
         })
 
     return dossier_list

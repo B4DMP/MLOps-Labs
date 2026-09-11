@@ -259,6 +259,44 @@
     background: rgba(194, 65, 12, 0.1);
 }
 
+/* Names the other half of the disagreement, on its own line under the banner body. */
+.conflictNote {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.25rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.conflictNoteIcon {
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+/* On-record variant: same banner shape, blue ink, to match the dossier's ON RECORD stamp
+   and to read as "this is context" rather than the orange "here is your task". */
+.onRecordBanner {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.onRecordBanner .introBannerBody {
+    color: #1e3a8a;
+}
+
+.onRecordBanner .introBannerBody strong {
+    color: #172554;
+}
+
+.onRecordBanner .introBannerDismiss {
+    color: #1d4ed8;
+}
+
+.onRecordBanner .introBannerDismiss:hover {
+    background: rgba(29, 78, 216, 0.1);
+}
+
 .headerArtifactMeta {
     display: flex;
     align-items: center;
@@ -325,10 +363,43 @@
     opacity: 0.85;
 }
 
+/* Amber, not the theme navy: navy sat too close to the on-record blue at pill size.
+   Amber also keeps green free for intel that is genuinely verified. */
 .navPillTagged {
-    background-color: var(--primary-bg);
-    border: 1px solid var(--primary-bg);
+    background-color: #d97706;
+    border: 1px solid #d97706;
     opacity: 0.85;
+}
+
+/* Pre-tagged, locked items: distinct from both tagged and untagged, since the player
+   neither did anything to them nor has anything left to do. */
+.navPillOnRecord {
+    background-color: #1d4ed8;
+    border: 1px solid #1d4ed8;
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The seam between the two on-record cards: they disagree, and that disagreement is the
+   challenge. Sits inline in the pill row without becoming a pill itself. */
+.conflictSeam {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex-shrink: 0;
+}
+
+.conflictSeamBolt {
+    display: inline-flex;
+    align-items: center;
+    color: #f59e0b;
+    font-size: 0.85rem;
+    line-height: 1;
+    padding: 0 0.1rem;
+    cursor: help;
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.55));
 }
 
 .navPillCurrent {
@@ -434,6 +505,10 @@
     background: #7c3aed;
 }
 
+.taggingTypeBadgeOnRecord {
+    background: #1d4ed8;
+}
+
 .taggingTitle {
     font-weight: 700;
     color: #0f172a;
@@ -496,6 +571,26 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
+/* Locked cards still show every category so the player can see the taxonomy, but the
+   unpicked ones fade back and nothing responds to the pointer. */
+.tagButtonLocked {
+    cursor: default;
+}
+
+.tagButtonLocked:hover {
+    transform: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+}
+
+.tagButtonLocked:not(.tagButtonSelected) {
+    opacity: 0.45;
+}
+
+/* Beat Bootstrap's .btn:disabled dimming so the correct answer stays fully legible. */
+.tagButtonLocked.tagButtonSelected {
+    opacity: 1 !important;
+}
+
 .tagButtonConvincer {
     min-height: 62px;
 }
@@ -532,6 +627,15 @@
     border-radius: 9999px;
     padding: 0.1rem 0.4rem;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+/* Subtle hint that the choice can still be changed */
+.tagButtonBadgeIcon {
+    font-size: 0.66rem;
+    opacity: 0.85;
 }
 
 .tagButtonDescription {
@@ -627,4 +731,45 @@
 .loadingSpinner {
     width: 2.5rem;
     height: 2.5rem;
+}
+
+/* Clears every category the player has picked, next to the artifact numbering */
+.resetTagsButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    flex-shrink: 0;
+    margin-right: 0.15rem;
+    padding: 0.12rem 0.4rem;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 0.3rem;
+    background: rgba(15, 23, 42, 0.45);
+    color: #e2e8f0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.resetTagsButton:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.2);
+    border-color: rgba(220, 38, 38, 0.6);
+    color: #fecaca;
+}
+
+.resetTagsButton:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.resetTagsButtonConfirming {
+    background: rgba(220, 38, 38, 0.32);
+    border-color: #dc2626;
+    color: #fff1f2;
+}
+
+.resetTagsButtonIcon {
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }

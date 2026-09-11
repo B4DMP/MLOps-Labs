@@ -19,8 +19,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('game_data', sa.Column('attention_tokens', sa.Integer(), server_default='5', nullable=True))
+    # Guarded so the chain can be replayed against a database that is already
+    # past this point: `game_data` was renamed to `game_challenge_data` in
+    # b2c3d4e5f6a7, and a database built from the models never had it.
+    op.execute(
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'game_data') THEN
+                ALTER TABLE game_data ADD COLUMN IF NOT EXISTS attention_tokens INTEGER DEFAULT 5;
+            END IF;
+        END $$;
+        """
+    )
 
 
 def downgrade() -> None:
-    op.drop_column('game_data', 'attention_tokens')
+    op.execute("ALTER TABLE IF EXISTS game_data DROP COLUMN IF EXISTS attention_tokens;")
