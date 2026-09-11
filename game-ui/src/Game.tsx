@@ -922,10 +922,26 @@ function App({ username: _username }: AppProps) {
           <motion.div {...FADE_TRANSITION} key="game-loading" style={{ width: "100%", height: "100%" }}>
             <LoadingScreen />
           </motion.div>
-        ) : (
-          <motion.div {...FADE_TRANSITION} key="game-content" style={{ width: "100%", height: "100%" }}>
-            <>
-          {progressionIndex == 2 && (
+        ) : progressionIndex === 0 ? (
+          <motion.div {...FADE_TRANSITION} key="intro-questionnaire" style={{ width: "100%", height: "100%" }}>
+            <Questionaire
+              questions={questions}
+              onQuestionaireCompleted={() => {
+                onQuestionaireCompleted(1);
+              }}
+              setAnswers={setAnswers}
+              answers={answers}
+            />
+          </motion.div>
+        ) : progressionIndex === 1 ? (
+          <motion.div {...FADE_TRANSITION} key="prebriefing" style={{ width: "100%", height: "100%" }}>
+            <BriefingPage
+              onBriefingCompleted={onBriefingCompleted}
+              briefing={briefing}
+            />
+          </motion.div>
+        ) : progressionIndex === 2 ? (
+          <motion.div {...FADE_TRANSITION} key="gameplay" style={{ width: "100%", height: "100%" }}>
             <PhasesContext.Provider
               value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
@@ -1084,24 +1100,9 @@ function App({ username: _username }: AppProps) {
                 </StakeholderContext.Provider>
               </MetricsContext.Provider>
             </PhasesContext.Provider>
-          )}
-          {progressionIndex == 0 && (
-            <Questionaire
-              questions={questions}
-              onQuestionaireCompleted={() => {
-                onQuestionaireCompleted(1);
-              }}
-              setAnswers={setAnswers}
-              answers={answers}
-            />
-          )}
-          {progressionIndex == 1 && (
-            <BriefingPage
-              onBriefingCompleted={onBriefingCompleted}
-              briefing={briefing}
-            />
-          )}
-          {progressionIndex == 3 && (
+          </motion.div>
+        ) : progressionIndex === 3 ? (
+          <motion.div {...FADE_TRANSITION} key="outro-questionnaire" style={{ width: "100%", height: "100%" }}>
             <Questionaire
               questions={questions}
               onQuestionaireCompleted={() => {
@@ -1110,13 +1111,12 @@ function App({ username: _username }: AppProps) {
               setAnswers={setAnswers}
               answers={answers}
             />
-          )}
-          {progressionIndex == 4 && (
-            <EndPage />
-          )}
-            </>
           </motion.div>
-        )}
+        ) : progressionIndex === 4 ? (
+          <motion.div {...FADE_TRANSITION} key="endpage" style={{ width: "100%", height: "100%" }}>
+            <EndPage />
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </div>
   );
