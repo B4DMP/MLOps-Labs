@@ -156,6 +156,13 @@
           "reading": {
             "type": "string",
             "title": "Reading: how much they care. The part the tag is about."
+          },
+          "refines_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Refinement chain: the earlier item this one sharpens, same target and stakeholder"
           }
         }
       }

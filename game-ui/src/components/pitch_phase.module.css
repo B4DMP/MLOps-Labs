@@ -490,3 +490,31 @@
     --text: #e2e8f0;
   }
 }
+
+/* A refinement chain is one row: the newest reading in full, the ones it grew out of tucked
+   underneath so the player can see how far a note has come without it costing a slot. */
+.chainOlder {
+  display: block;
+  margin-top: 2px;
+  padding-left: 8px;
+  border-left: 2px solid #e2e8f0;
+}
+
+.chainLayer {
+  display: block;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.25;
+}
+
+.chainDepth {
+  flex-shrink: 0;
+  align-self: flex-start;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: help;
+}

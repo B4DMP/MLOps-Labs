@@ -26,7 +26,31 @@ interface PitchItem {
   stakeholder_id?: string;
   type: IntelTag;
   description: string;
+  /** Refinement chain (plan 05): every link of a chain carries the same id. */
+  chain_id?: string;
+  chain_position?: number;
+  chain_length?: number;
 }
+
+/** A chain is one selectable item in the builder, pitched as its newest link. */
+interface PitchChain {
+  id: string;
+  newest: PitchItem;
+  /** The links the newest one grew out of, oldest first. */
+  older: PitchItem[];
+}
+
+const toChains = (items: PitchItem[]): PitchChain[] => {
+  const byChain = new Map<string, PitchItem[]>();
+  items.forEach((item) => {
+    const key = item.chain_id || item.id;
+    byChain.set(key, [...(byChain.get(key) || []), item]);
+  });
+  return [...byChain.entries()].map(([id, links]) => {
+    const ordered = [...links].sort((a, b) => (a.chain_position ?? 0) - (b.chain_position ?? 0));
+    return { id, newest: ordered[ordered.length - 1], older: ordered.slice(0, -1) };
+  });
+};
 
 interface OptionSpec {
   option: OptionName;
@@ -212,9 +236,10 @@ export default function PitchPhase({
   const violatedFor = (stId: string) =>
     state.boundary_warnings.filter((w) => w.violated && w.stakeholder_id === stId);
 
-  const grouped: Record<string, PitchItem[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
-  state.available_items.forEach((item) => {
-    (grouped[item.type] ||= []).push(item);
+  // One row per refinement chain, not one per note: what the card carries is the newest link.
+  const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
+  toChains(state.available_items).forEach((chain) => {
+    (grouped[chain.newest.type] ||= []).push(chain);
   });
 
   return (
@@ -268,12 +293,12 @@ export default function PitchPhase({
                             ? "Concessions: what they would give up"
                             : "Facts about the system"}
                     </div>
-                    {grouped[tag].map((item) => {
+                    {grouped[tag].map(({ id: chainId, newest: item, older }) => {
                       const pick = selected.includes(item.id);
                       const pred = predictionFor(item.id);
                       return (
                         <div
-                          key={item.id}
+                          key={chainId}
                           className={styles.intelRow}
                           onClick={() => toggleItem(item.id)}
                           style={{ outline: pick ? "1px solid #0d6efd" : undefined }}
@@ -282,7 +307,26 @@ export default function PitchPhase({
                             {intelTagMeta(item.type).shortLabel}
                           </span>
                           <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
-                          <span className={styles.intelDesc}>{item.description}</span>
+                          <span className={styles.intelDesc}>
+                            {item.description}
+                            {older.length > 0 && (
+                              <span className={styles.chainOlder}>
+                                {older.map((link) => (
+                                  <span key={link.id} className={styles.chainLayer}>
+                                    {link.description}
+                                  </span>
+                                ))}
+                              </span>
+                            )}
+                          </span>
+                          {older.length > 0 && (
+                            <span
+                              className={styles.chainDepth}
+                              title="One slot: this is the sharpest reading of a note you kept working on."
+                            >
+                              +{older.length}
+                            </span>
+                          )}
                           {pick && pred && (
                             <span className={styles.optReason}>
                               {pred.predicted === null || pred.predicted === undefined
@@ -373,11 +417,11 @@ export default function PitchPhase({
               {amendFor === current.id && (
                 <div className={styles.intelGroup}>
                   <div className={styles.groupLabel}>Add an item that answers this</div>
-                  {state.available_items
-                    .filter((i) => !state.card_item_ids.includes(i.id))
-                    .map((item) => (
+                  {toChains(state.available_items)
+                    .filter((chain) => !state.card_item_ids.includes(chain.newest.id))
+                    .map(({ id: chainId, newest: item, older }) => (
                       <div
-                        key={item.id}
+                        key={chainId}
                         className={styles.intelRow}
                         onClick={() => answer(current, "amend", item.id)}
                       >
@@ -385,6 +429,7 @@ export default function PitchPhase({
                           {intelTagMeta(item.type).shortLabel}
                         </span>
                         <span className={styles.intelDesc}>{item.description}</span>
+                        {older.length > 0 && <span className={styles.chainDepth}>+{older.length}</span>}
                       </div>
                     ))}
                 </div>

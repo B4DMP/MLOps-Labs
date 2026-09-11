@@ -434,12 +434,9 @@ def assemble_chains(
             cur_id = refined_by.get(cur_id)
         return chain
 
-    # Roots: items not refined by anyone in the set.
-    roots = [i.id for i in items if i.id not in refined_by]
-    # Also include items whose predecessor is not in the set (chain continuation from older phases).
-    for item in items:
-        if item.refines_id and item.refines_id not in by_id and item.id not in refined_by:
-            roots.append(item.id)
+    # Roots are the oldest links: an item that refines nothing the player holds. `_follow` then
+    # walks forward through the successors, so a chain comes out oldest first.
+    roots = [i.id for i in items if not i.refines_id or i.refines_id not in by_id]
 
     for root_id in roots:
         if root_id in visited:
@@ -475,6 +472,151 @@ def assemble_chains(
             })
 
     return chains
+
+
+# The dossier's environment section rides in the same list as the stakeholder pages, because the
+# payload is a list of pages and every screen that shows the dossier just forwards it.
+ENVIRONMENT_ENTRY_ID = "__environment__"
+
+
+def chain_index(items: List[StakeholderIntelItem]) -> Dict[str, Dict[str, Any]]:
+    """Per item id: which chain it belongs to and where in it.
+
+    The chain is named after its oldest link, so a chain keeps its identity when a newer
+    refinement arrives and the card the player built does not change under them.
+    """
+    index: Dict[str, Dict[str, Any]] = {}
+    for chain in assemble_chains(items):
+        links = chain["links"]
+        for position, link in enumerate(links):
+            index[link.id] = {
+                "chain_id": links[0].id,
+                "chain_position": position,
+                "chain_length": len(links),
+                "chain_newest": position == len(links) - 1,
+            }
+    return index
+
+
+def authored_successors() -> Dict[str, List[str]]:
+    """Which authored items refine which, read straight off the content set."""
+    successors: Dict[str, List[str]] = {}
+    for req in RequirementFactory.requirements:
+        if req.refines_id:
+            successors.setdefault(req.refines_id, []).append(req.id)
+    return successors
+
+
+def locked_links_ahead(newest_id: str, held_ids: set, successors: Dict[str, List[str]]) -> int:
+    """How many authored refinements sit past the newest link the player holds.
+
+    A count only: the locked row says there is more to learn, never what it says.
+    """
+    locked = 0
+    frontier = [newest_id]
+    seen = {newest_id}
+    while frontier:
+        for nxt in successors.get(frontier.pop(), []):
+            if nxt in seen:
+                continue
+            seen.add(nxt)
+            frontier.append(nxt)
+            if nxt not in held_ids:
+                locked += 1
+    return locked
+
+
+def item_target(item) -> Optional[str]:
+    """The graph target an item is about, whichever payload carries it."""
+    if getattr(item, "asserts", None):
+        return item.asserts.target
+    if getattr(item, "suggested", None):
+        return item.suggested.target
+    for raw in getattr(item, "ops", None) or []:
+        if raw.get("target"):
+            return raw["target"]
+    return None
+
+
+def _graph_snapshot(username: str):
+    """(graph, state, evaluation) as the player's graph stands, or None when it cannot be read.
+
+    The dossier is a reading surface. If the graph store is unavailable the notes still have to
+    render; they just cannot say yet whether anyone acted on them.
+    """
+    try:
+        from mlops_serious_game.application.graph_service import store as graph_store
+        from mlops_serious_game.application.graph_service.view import evaluate_graph
+        from mlops_serious_game.domain.graph_factory import GraphFactory
+
+        graph = GraphFactory.get_graph()
+        state = graph_store.load_state(username).state
+        return graph, state, evaluate_graph(graph, state)
+    except Exception:
+        return None
+
+
+def _effective_level(snapshot, target: str) -> Optional[int]:
+    graph, _state, evaluation = snapshot
+    resolved = graph.resolve(target)
+    if graph.is_edge(resolved):
+        return evaluation.effective.edges.get(resolved)
+    return evaluation.effective.components.get(resolved)
+
+
+def stage_of_target(snapshot, target: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """(stage id, stage name) the target sits in, so Facts can be grouped by stage."""
+    if not target or snapshot is None:
+        return None, None
+    graph = snapshot[0]
+    try:
+        stage = graph.stage(graph.stage_of(graph.resolve(target)))
+        return stage.id, stage.name
+    except Exception:
+        return None, None
+
+
+def item_status(item, snapshot) -> str:
+    """open, addressed, violated or stale: read off the graph every time, never stored."""
+    if snapshot is None:
+        return "open"
+    graph, state, evaluation = snapshot
+    try:
+        if item.type == IntelTag.BOUNDARY and item.holds is not None:
+            from mlops_serious_game.domain.graph_predicates import evaluate
+
+            holds = evaluate(item.holds, evaluation.context(graph, state)).value
+            return "open" if holds else "violated"
+        if item.type == IntelTag.FACT and item.asserts is not None and item.asserts.level is not None:
+            level = _effective_level(snapshot, item.asserts.target)
+            return "stale" if level is not None and level != item.asserts.level else "open"
+        if item.type == IntelTag.DRIVER and item.suggested is not None:
+            level = _effective_level(snapshot, item.suggested.target)
+            return "addressed" if level is not None and level >= item.suggested.level else "open"
+    except Exception:
+        return "open"
+    return "open"
+
+
+def is_contested(item, conflict) -> bool:
+    """True when this challenge's conflict puts somebody on the other side of this very target."""
+    if conflict is None or not item.stakeholder_id:
+        return False
+    sides = {p.stakeholder_id for p in conflict.positions}
+    return item.stakeholder_id in sides and item_target(item) == conflict.target
+
+
+def _archived_items(username: str, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
+    """Everything the player found in earlier phases (plan 05).
+
+    A failed read must never take the dossier down with it: this challenge's own notes are
+    enough to render a page.
+    """
+    try:
+        return load_known_intel_items(username, up_to_phase=up_to_phase)
+    except Exception as e:
+        print(f"[Dossier] could not read the intel archive: {e}")
+        return []
 
 
 # ── End Plan 05 ───────────────────────────────────────────────────────────────
@@ -864,32 +1006,73 @@ def _artifact_type_for(item: StakeholderIntelItem) -> str:
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
-    """Retrieves full dossier summary data for all stakeholders in the current challenge."""
+    """Retrieves full dossier summary data for all stakeholders in the current challenge.
+
+    The dossier is persistent (plan 05): notes found in earlier phases stay, notes on the same
+    target chain into one growing card, and anything the player filed as a Fact goes to its own
+    environment page grouped by stage. Placement follows the player's own tag, never the true
+    one, so the page a note sits on can never give the answer away.
+    """
     username = ws.query_params["username"]
     collected_items = await retrieve_intel_items(curr_challenge, ws)
-    
+    # This challenge's notes win where the archive holds the same id: they are the fresher read.
+    items_by_id: Dict[str, StakeholderIntelItem] = {
+        i.id: i for i in _archived_items(username, getattr(curr_challenge, "phase_id", None))
+    }
+    items_by_id.update({i.id: i for i in collected_items})
+    all_items = list(items_by_id.values())
+
+    snapshot = _graph_snapshot(username)
+    chains = chain_index(all_items)
+    successors = authored_successors()
+    held_ids = set(items_by_id)
+    conflict = getattr(curr_challenge, "conflict", None)
+    focus_stage_ids = list(getattr(curr_challenge, "focus_stage_ids", None) or [])
+
+    def _entry(item: StakeholderIntelItem) -> Dict[str, Any]:
+        intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
+        cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
+        is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
+        display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
+        shown_fact, shown_reading = item.shown_parts()
+        chain = chains.get(item.id, {})
+        target = item_target(item)
+        stage_id, stage_name = stage_of_target(snapshot, target)
+        return {
+            "id": item.id,
+            "intel_type": intel_type_val,
+            "categorized_type": cat_type_val,
+            "description": display_desc,
+            "fact": shown_fact,
+            "reading": shown_reading,
+            "is_correct": item.is_correct_intel(),
+            "source": _resolve_source(item).value,
+            "artifact_type": _artifact_type_for(item),
+            "refines_id": item.refines_id,
+            "chain_id": chain.get("chain_id", item.id),
+            "chain_position": chain.get("chain_position", 0),
+            "chain_length": chain.get("chain_length", 1),
+            # Only the newest link carries the locked count, because that is the row it draws.
+            "locked_links": (
+                locked_links_ahead(item.id, held_ids, successors)
+                if chain.get("chain_newest", True) else 0
+            ),
+            "discovered_phase_id": item.discovered_phase_id,
+            "target": target,
+            "stage_id": stage_id,
+            "stage_name": stage_name,
+            "status": item_status(item, snapshot),
+            "contested": is_contested(item, conflict),
+        }
+
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
-    for item in collected_items:
-        st_id = item.stakeholder_id
-        if st_id:
-            if st_id not in stakeholder_intel_map:
-                stakeholder_intel_map[st_id] = []
-            intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
-            cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
-            is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
-            display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
-            shown_fact, shown_reading = item.shown_parts()
-            stakeholder_intel_map[st_id].append({
-                "id": item.id,
-                "intel_type": intel_type_val,
-                "categorized_type": cat_type_val,
-                "description": display_desc,
-                "fact": shown_fact,
-                "reading": shown_reading,
-                "is_correct": item.is_correct_intel(),
-                "source": _resolve_source(item).value,
-                "artifact_type": _artifact_type_for(item),
-            })
+    environment_entries: List[Dict[str, Any]] = []
+    for item in all_items:
+        filed_as_fact = item.categorized_type == IntelTag.FACT
+        if item.stakeholder_id and not filed_as_fact:
+            stakeholder_intel_map.setdefault(item.stakeholder_id, []).append(_entry(item))
+        else:
+            environment_entries.append(_entry(item))
 
 
 
@@ -933,10 +1116,32 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
             # The whole pool for this challenge, found or not, so the dossier can show how much
-            # is still out there. A count only: nothing about what the missing items say.
-            "intel_total": len(
-                RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+            # is still out there. A count only: nothing about what the missing items say. Notes
+            # carried over from earlier phases are already found, so they can only raise it.
+            "intel_total": max(
+                len(RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)),
+                len(intel_entries),
             ),
+            "focus_stage_ids": focus_stage_ids,
+        })
+
+    if environment_entries:
+        fact_pool = [
+            r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
+            if r.type == IntelTag.FACT
+        ]
+        dossier_list.append({
+            "stakeholder_id": ENVIRONMENT_ENTRY_ID,
+            "is_environment": True,
+            "name": "The System",
+            "role_description": "What you have found out about the pipeline itself",
+            "responsibilities": "",
+            "priorities": "",
+            "constraints": "",
+            "metric_id": "",
+            "intel_items": environment_entries,
+            "intel_total": max(len(fact_pool), len(environment_entries)),
+            "focus_stage_ids": focus_stage_ids,
         })
 
     return dossier_list

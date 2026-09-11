@@ -123,17 +123,26 @@ def _load_or_start(ctx: PitchContext) -> "pitch.PitchState":
     return state or pitch.start_pitch(ctx.room_ids)
 
 
-def _item_payload(item) -> dict:
+def _item_payload(item, chains: Optional[dict] = None) -> dict:
+    chain = (chains or {}).get(item.id, {})
     return {
         "id": item.id,
         "stakeholder_id": item.stakeholder_id,
         "type": item.type.value if hasattr(item.type, "value") else str(item.type),
         "description": personalize(item.description),
+        # A refinement chain is one selectable item in the builder, offered as its newest link
+        # (plan 05). The builder needs the chain to group the rows it is handed.
+        "chain_id": chain.get("chain_id", item.id),
+        "chain_position": chain.get("chain_position", 0),
+        "chain_length": chain.get("chain_length", 1),
     }
 
 
 def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView, **extra) -> dict:
+    from mlops_serious_game.application.intel_handler import chain_index
+
     held = ctx.held_items()
+    chains = chain_index(held)
     card_ids = set(state.card_item_ids)
     options = {}
     for objection in state.open_objections():
@@ -145,11 +154,11 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "phase_id": ctx.phase_id,
         "challenge_id": ctx.challenge_id,
         "stage": state.stage,
-        "card": [_item_payload(i) for i in pitch.card_items(held + list(ctx.all_intel), card_ids)][:pitch.MAX_CARD_ITEMS],
+        "card": [_item_payload(i, chains) for i in pitch.card_items(held + list(ctx.all_intel), card_ids)][:pitch.MAX_CARD_ITEMS],
         "card_item_ids": state.card_item_ids,
         "main_archetype": state.main_archetype,
         "secondary_archetype": state.secondary_archetype,
-        "available_items": [_item_payload(i) for i in held],
+        "available_items": [_item_payload(i, chains) for i in held],
         "predictions": [p.model_dump() for p in view.predictions],
         "boundary_warnings": [w.model_dump() for w in view.boundary_warnings],
         "uncompensated_losses": view.uncompensated_losses,
