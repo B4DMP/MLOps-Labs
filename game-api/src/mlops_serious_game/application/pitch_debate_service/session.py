@@ -361,6 +361,8 @@ EMOTION_REFRAME = 0.02
 EMOTION_ADDENDUM = -0.15
 EMOTION_CONCEDE = -0.05
 EMOTION_VETO_BREAKER = -0.40
+EMOTION_CONCEDE_WIN = 0.30   # D41: the side that gets its way
+EMOTION_CONCEDE_LOSE = -0.20  # D41: the side whose card was dropped
 
 
 class PitchState(BaseModel):
@@ -519,6 +521,17 @@ def veto_breaker(state: PitchState, escalation_points: int, vetoing_st_ids: list
         "stage": "DONE", "outcome": "PASS", "emotion_deltas": deltas, "patience": patience,
     })
     return AnswerResult(state=updated, spent_escalation_point=True)
+
+
+def concede_pitch(state: PitchState, winning_st_id: str, losing_st_ids: list[str]) -> PitchState:
+    """Player drops their card; the conflict's opposing position applies (D41)."""
+    deltas = state.emotion_deltas
+    deltas = _bump(deltas, winning_st_id, EMOTION_CONCEDE_WIN)
+    for st_id in losing_st_ids:
+        deltas = _bump(deltas, st_id, EMOTION_CONCEDE_LOSE)
+    return state.model_copy(update={
+        "stage": "DONE", "outcome": "CONCEDED", "emotion_deltas": deltas,
+    })
 
 
 def rebuild(state: PitchState, room_st_ids: list[str]) -> tuple[PitchState, Optional[str]]:

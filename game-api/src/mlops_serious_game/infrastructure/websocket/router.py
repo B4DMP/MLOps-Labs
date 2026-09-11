@@ -29,6 +29,7 @@ from .handlers.graph_handler import handle_graph_state
 from .handlers.pitch_handler import (
     handle_pitch_answer,
     handle_pitch_commit,
+    handle_pitch_concede,
     handle_pitch_object,
     handle_pitch_rebuild,
     handle_pitch_set_card,
@@ -65,6 +66,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:commit": handle_pitch_commit,
     "pitch:rebuild": handle_pitch_rebuild,
     "pitch:veto_breaker": handle_pitch_veto_breaker,
+    "pitch:concede": handle_pitch_concede,
     "simulation:run": handle_simulation_run,
 }
 

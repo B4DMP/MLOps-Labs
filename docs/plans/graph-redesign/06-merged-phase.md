@@ -118,7 +118,7 @@ Their owned components with story fragments, the targets in their objection set,
 
 ## Steps
 
-- [x] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` still exists pending step 11 (delete).
+- [x] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` deleted in step 11.
 - [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
 - [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
 - [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
@@ -128,9 +128,9 @@ Their owned components with story fragments, the targets in their objection set,
 - [x] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card`, `objection_state`. Deviation: the pitch state is not a LangGraph channel at all. It lives on the challenge row as `action_card.pitch` and is driven by the `pitch:*` websocket events, so nothing about the pitch depends on the conversation graph. The LangGraph state and its checkpointer stay as they are for the stakeholder chat.
 - [ ] 9. Trim stakeholder prompt context.
 - [ ] 10. Grudges persisted, Escalation Points in game state and navbar. Both persist on the session row (migration `a7b8c9d0e1f2`) and the pitch screen shows the points; the navbar does not yet.
-- [ ] 11. Delete old screens and dead handlers.
+- [x] 11. Delete old screens and dead handlers. (`online_intel_gathering.tsx`, `pitch_debate.tsx`, `PitchActionCardModal.tsx`, `ActionCardCreatedModal.tsx` and their CSS modules removed; `Game.tsx` routes loop indices 1 and 2 to the merged `<PitchPhase>`.)
 - [ ] 12. Playtest a full challenge. Fixes the numbers afterwards (D38), and settles how a player walks away from a veto (Q25).
-- [ ] 13. Let them have it (D41): a third answer to a standing veto. The conflict's opposing position becomes the card, `pitch:concede` commits it, the dropped side takes the emotion hit and the grudge, and the screen says plainly whose plan is being built.
+- [x] 13. Let them have it (D41): `pitch:concede` event + `concede_pitch()` in `session.py` + `handle_pitch_concede()` in `pitch_handler.py`. Frontend: "Let them have it" button beside Veto Breaker and Rebuild; CONCEDED outcome card with description. Emotion constants `EMOTION_CONCEDE_WIN=0.30`, `EMOTION_CONCEDE_LOSE=-0.20`.
 - [ ] 14. Move every tuned number out of code into config (D38): emotion effect per dialogue option, patience, amendment budget, the Veto Breaker cost in emotion and levels, grudge lifetime. Code keeps the defaults it has now.
 
 ## Done when

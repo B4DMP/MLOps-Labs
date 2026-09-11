@@ -649,7 +649,9 @@ export default function PitchPhase({
                     ? "The room is behind the card. It goes in as pitched."
                     : state.outcome === "SOFT_PASS"
                       ? "It goes in, but the people you skipped will remember it."
-                      : "Blocked. Push it through with an Escalation Point, or rebuild the card."}
+                      : state.outcome === "CONCEDED"
+                        ? "You dropped your card. The opposing side's position applies instead, and the people you gave up on will remember it."
+                        : "Blocked. Push it through with an Escalation Point, or rebuild the card."}
               </div>
               {state.outcome === "VETO" && !state.stalemate && (
                 <div className={styles.objNav}>
@@ -662,6 +664,9 @@ export default function PitchPhase({
                   </button>
                   <button className={styles.btnSecondary} onClick={() => emit("pitch:rebuild", base)}>
                     Rebuild the card
+                  </button>
+                  <button className={styles.btnSecondary} onClick={() => emit("pitch:concede", base)}>
+                    Let them have it
                   </button>
                 </div>
               )}
@@ -770,7 +775,7 @@ export default function PitchPhase({
           </button>
         )}
         {(state.stage === "DONE" || state.stalemate) && (
-          <button className={styles.btnPrimary} onClick={() => onEndPitch?.(state.outcome !== "VETO")}>
+          <button className={styles.btnPrimary} onClick={() => onEndPitch?.(state.outcome === "PASS" || state.outcome === "SOFT_PASS")}>
             Continue
           </button>
         )}

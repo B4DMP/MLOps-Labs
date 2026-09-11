@@ -10,7 +10,7 @@ import introJs from "intro.js";
 import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
-import { type IntelItem } from "./components/online_intel_gathering";
+import { type IntelItem } from "./components/ActionCardCardComponent";
 import PitchPhase from "./components/pitch_phase";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
@@ -749,30 +749,6 @@ function App({ username: _username }: AppProps) {
       metric_values: _metric_values,
       action_card_id: null,
       messages: [],
-    });
-  };
-
-  const handleOnlineIntelGatheringContinue = (pitchedCard?: any) => {
-    setIsExistingDebateSave(false);
-    let _metric_values: any = [];
-    Object.values(metrics).forEach((x) => {
-      _metric_values.push(x.value ?? 0);
-    });
-
-    const cardToSave = pitchedCard || pitchedActionCard || {};
-    if (pitchedCard) {
-      setPitchedActionCard(pitchedCard);
-    }
-
-    sendJsonMessage({
-      type: "game:state_update_request",
-      challenge_id: currentChallenge,
-      phase_id: currentPhase,
-      challenge_loop_index: 1,
-      metric_values: _metric_values,
-      action_card: cardToSave,
-      messages: [],
-      attention_tokens: attentionTokens,
     });
   };
 

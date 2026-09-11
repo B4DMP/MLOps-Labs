@@ -13,6 +13,7 @@ from fastapi import WebSocket
 
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.apply import apply_ops
+from mlops_serious_game.domain.graph import GraphOp
 from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
 from mlops_serious_game.application.pitch_debate_service.authored import load_authored_index
@@ -302,6 +303,45 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload
     ctx.emotions = pitch_store.apply_emotion_deltas(username, result.state.emotion_deltas)
     pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, result.state)
     await _send(websocket, ctx, result.state, view, applied=applied)
+
+
+async def handle_pitch_concede(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Player drops their card; the conflict's opposing position applies (D41)."""
+    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    state = _load_or_start(ctx)
+    conflict = getattr(ctx.challenge, "conflict", None)
+    if not conflict:
+        await _send(websocket, ctx, state, ctx.view(state), error="this challenge has no conflict to concede to")
+        return
+
+    view = ctx.view(state)
+    vetoing = {r.stakeholder_id for r in view.reads if r.power == "high" and (r.boundary_violated or r.band == "red")}
+    winning_pos = next((p for p in conflict.positions if p.stakeholder_id in vetoing), conflict.positions[1])
+    losing_pos = next((p for p in conflict.positions if p is not winning_pos), conflict.positions[0])
+
+    source_id = f"concede:{ctx.challenge.template_id if ctx.challenge else ctx.challenge_id}"
+    op = GraphOp(
+        kind="set_to",
+        target=conflict.target,
+        value=winning_pos.wants,
+        source_kind="world_event",
+        source_id=source_id,
+    )
+    result = apply_ops(ctx.graph, ctx.state, [op])
+    graph_store.append_ops(
+        ctx.username,
+        result.resolved_ops,
+        phase_index=ctx.phase_id,
+        challenge_template=ctx.challenge.template_id if ctx.challenge else "",
+        challenge_loop_index=2,
+        source_kind="world_event",
+        source_id=source_id,
+    )
+
+    state = pitch.concede_pitch(state, winning_pos.stakeholder_id, [losing_pos.stakeholder_id])
+    ctx.emotions = pitch_store.apply_emotion_deltas(username, state.emotion_deltas)
+    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, state)
+    await _send(websocket, ctx, state, view, applied={"ops": len(result.resolved_ops), "outcome": "CONCEDED"})
 
 
 def _apply_card(ctx: PitchContext, state, view: pitch.CardView, override: bool = False) -> dict[str, Any]:
