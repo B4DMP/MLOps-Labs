@@ -34,7 +34,7 @@ GUIDE = {
 
 class ObjectionsStage:
     name = "objections"
-    prompt_version = "o2"
+    prompt_version = "o3"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:

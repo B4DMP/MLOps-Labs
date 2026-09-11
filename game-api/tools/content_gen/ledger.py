@@ -51,7 +51,10 @@ class Row:
 class Ledger:
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(str(path))
+        self.conn = sqlite3.connect(str(path), timeout=30)
+        # The work dir is often a Windows bind mount into the container, where SQLite's journal
+        # file fails intermittently ("disk I/O error"). Keep the journal in memory instead.
+        self.conn.execute("PRAGMA journal_mode=MEMORY")
         self.conn.execute(
             """CREATE TABLE IF NOT EXISTS items (
                 item_id TEXT PRIMARY KEY, stage TEXT NOT NULL, input_hash TEXT NOT NULL,
@@ -95,8 +98,15 @@ class Ledger:
     def _set(self, item_id: str, **fields: Any) -> None:
         fields["updated_at"] = time.time()
         cols = ", ".join(f"{k} = ?" for k in fields)
-        self.conn.execute(f"UPDATE items SET {cols} WHERE item_id = ?", (*fields.values(), item_id))
-        self.conn.commit()
+        for attempt in range(5):
+            try:
+                self.conn.execute(f"UPDATE items SET {cols} WHERE item_id = ?", (*fields.values(), item_id))
+                self.conn.commit()
+                return
+            except sqlite3.OperationalError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.2 * (attempt + 1))
 
     def sync(self, items: Iterable[WorkItem], prompt_version: str, model: str) -> None:
         """Registers planned items; marks changed ones stale and self-heals abandoned runs."""

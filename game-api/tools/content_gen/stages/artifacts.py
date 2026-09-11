@@ -37,7 +37,18 @@ intel item, and a careful reader must be able to tell which kind it is:
 - fact: a neutral technical record of how the system is. Nobody's wish, refusal or acceptance.
 Stance artifacts are written by the stakeholder in their own voice. Fact artifacts read like
 system output or engineering notes. No title, subject line, greeting header or signature block.
-"""
+
+A second reader will classify your text blind, with this test, in this order:
+1. Is anyone's wish, refusal or acceptance in it? If no: fact.
+2. Does it state something the author would give up or accept losing? If yes: trade_off.
+3. It states a need. Would doing more than asked make them happier? yes: driver.
+   no, it is a line whose crossing means refusal: boundary.
+So write each kind to pass that test:
+- driver: say what they want and that more of it is better; never mention giving anything up and
+  never draw a line they would refuse to cross.
+- boundary: state the line and that crossing it means they refuse; offer no compromise.
+- trade_off: say plainly what they would give up or accept losing, and what they get for it.
+- fact: only observations and measurements; no needs, suggestions, improvements, costs or opinions."""
 
 CLASSIFY = """You read one workplace artifact from an MLOps project. Decide what it tells you,
 using this test in order:
@@ -55,7 +66,7 @@ def artifact_type(item_id: str, tag: str) -> str:
 
 class ArtifactsStage:
     name = "artifacts"
-    prompt_version = "a3"
+    prompt_version = "a5"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:

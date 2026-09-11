@@ -193,7 +193,7 @@ def test_reachable_templates_samples_graph_states(real):
 
 # ---------- real progression ----------
 
-def test_real_progression_validates_and_keeps_sequential_order(real):
+def test_real_progression_deals_every_phase_in_order(real):
     import mlops_serious_game.domain.gameConfigLoader  # noqa: F401  loads every factory
     from mlops_serious_game.domain.phase_factory import PhaseFactory
     from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
@@ -202,15 +202,22 @@ def test_real_progression_validates_and_keeps_sequential_order(real):
     PhaseFactory.validate_templates(graph, PatternFactory.ids(), set(StakeholderFactory.get_available_stakeholders()))
     ctx = _ctx(graph)
     phases = PhaseFactory.get_phases()
-    challenges = [c for p in phases for c in p.challenges]
     played: set[str] = set()
-    order = []
-    current_phase = challenges[0].phase_id
+    dealt: list = []
+    current_phase = phases[0].id
     while (pick := next_challenge(phases, current_phase, played, ctx, "player")) is not None:
-        order.append(pick.id)
+        dealt.append(pick)
         played.add(pick.template_id)
         current_phase = pick.phase_id
-    assert order == [c.id for c in challenges]
+    assert [c.phase_id for c in dealt] == sorted(c.phase_id for c in dealt)
+    for phase in phases:
+        in_phase = [c for c in dealt if c.phase_id == phase.id]
+        assert len(in_phase) == min(phase.challenge_quota, len(phase.challenges))
+        generated = [c for c in phase.challenges if not c.fallback]
+        if generated and len(generated) >= phase.challenge_quota:
+            # With enough eligible generated challenges, the fallback is not needed.
+            assert all(not c.fallback for c in in_phase)
+
 
 
 # ---------- intel payloads ----------

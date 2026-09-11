@@ -497,6 +497,7 @@ def test_story_prefers_the_most_specific_fragment():
         state=state,
     ).state
     assert story_for(graph, state, "data.validation").startswith("Great Expectations validates")
-    assert story_for(graph, state, "data.feature_store") == "There is no Feature Store yet."
-    assert "by hand" in story_for(graph, state, "e.ingest_validate")
+    # Targets outside generated content fall back to the generic line.
+    assert story_for(graph, state, "deploy.shadow") == "There is no Shadow Deployment yet."
+    assert story_for(graph, state, "e.cicd_shadow").startswith("Nothing moves from CI/CD Pipeline")
     assert ("data.validation", 3) not in missing_specific_fragments(graph)

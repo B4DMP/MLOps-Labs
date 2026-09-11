@@ -86,8 +86,11 @@ def render(obj: Any) -> str:
 def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
     """Rewrites plain stakeholder names into the tokens the game renders per player, so persona
     names stay consistent: {data_dave} in intel text, #data_dave# in challenge descriptions.
-    Full names first, then bare first and last names. Deterministic, so the model does not spend
-    attempts on it."""
+
+    Full names first, then the bare given name (the last word, which is what {id.first} renders).
+    Never the first word: "Data", "Model", "Requirements" are role words that also appear as plain
+    nouns ("the data labeling process"). Given names match case-sensitively, and never inside an
+    existing token. Deterministic, so the model does not spend attempts on it."""
     if not text:
         return text
     for sid, st in sorted(stakeholders.items(), key=lambda kv: -len(kv[1].name or "")):
@@ -96,8 +99,7 @@ def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
         token = f"{{{sid}}}" if style == "brace" else f"#{sid}#"
         first_token = f"{{{sid}.first}}" if style == "brace" else token
         text = re.sub(rf"\b{re.escape(st.name)}\b", token, text, flags=re.I)
-        for part in st.name.split():
-            if len(part) > 2:
-                # Only outside an existing token, so "{data_dave}" is not rewritten again.
-                text = re.sub(rf"(?<![{{#\w.]){re.escape(part)}\b(?![}}#\w])", first_token, text, flags=re.I)
+        given = st.name.split()[-1]
+        if len(given) > 2 and given[0].isupper():
+            text = re.sub(rf"(?<![{{#\w.]){re.escape(given)}\b(?![}}#\w.])", first_token, text)
     return text

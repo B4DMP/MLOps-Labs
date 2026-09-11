@@ -290,3 +290,14 @@ def test_items_check_rejects_a_reason_in_the_fact(env):
     bad = json.loads(json.dumps(ITEMS))
     bad["items"][0]["fact"] = "{data_dave} wants batches validated because training broke."
     assert any("never why" in e for e in STAGES["items"].check(bad, item, ctx))
+
+
+def test_name_tokens_never_eat_role_words(env):
+    from content_gen.stages.common import tokenize_names
+
+    ctx, _ = env
+    text = "Data Dave said the data labeling is slow. Ruth agreed with Dave about the model registry."
+    out = tokenize_names(text, ctx.stakeholders)
+    assert out == ("{data_dave} said the data labeling is slow. {reliability_ruth.first} agreed with "
+                   "{data_dave.first} about the model registry.")
+    assert tokenize_names(out, ctx.stakeholders) == out  # idempotent
