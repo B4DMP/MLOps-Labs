@@ -29,21 +29,6 @@
     text-align: center;
 }
 
-.titleBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.9rem;
-    border-radius: 9999px;
-    background: rgba(38, 102, 130, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 1.75rem;
-}
 
 .cardTitle {
     display: flex;

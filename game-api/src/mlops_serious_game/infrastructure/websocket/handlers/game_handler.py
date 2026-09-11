@@ -29,6 +29,8 @@ from mlops_serious_game.application.pitch_debate_service import (
     save_checkpoint_dialogue_options,
 )
 from mlops_serious_game.infrastructure.database import (
+    Campaign,
+    User,
     GameProgression,
     GameChallenge,
     GameSession,
@@ -233,6 +235,15 @@ async def handle_game_init(
     username: str,
     payload: dict
 ) -> tuple[int, int]| dict[str, str]:
+    # Check campaign questionnaire preference
+    use_questionnaire = True
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user:
+            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            if camp is not None:
+                use_questionnaire = camp.use_questionnaire
+
     # Send init static configurations
     await manager.send_event(
         websocket=websocket,
@@ -244,6 +255,7 @@ async def handle_game_init(
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
             "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
+            "use_questionnaire": use_questionnaire,
         }
     )
 
@@ -272,6 +284,29 @@ async def handle_game_init(
         for r in results:
             if r.game_progress_index > game_progress_index:
                 game_progress_index = r.game_progress_index
+
+        # If campaign disables questionnaire, skip intro or outro questionnaires
+        if not use_questionnaire:
+            if game_progress_index == 0:
+                game_progress_index = 1
+                session.add(
+                    GameProgression(
+                        user_name=username,
+                        game_progress_index=1,
+                        time_stamp=datetime.datetime.utcnow(),
+                        additional_data=[]
+                    )
+                )
+            elif game_progress_index == 3:
+                game_progress_index = 4
+                session.add(
+                    GameProgression(
+                        user_name=username,
+                        game_progress_index=4,
+                        time_stamp=datetime.datetime.utcnow(),
+                        additional_data=[]
+                    )
+                )
 
         # Fetch latest game challenge state
         stmt = (
@@ -423,6 +458,20 @@ async def handle_progress_update(
     game_progress_index = payload.get("value", payload.get("index", 0))
     additional_data = payload.get("additional_data", [])
 
+    use_q = True
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user:
+            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            if camp is not None:
+                use_q = camp.use_questionnaire
+
+    if not use_q:
+        if game_progress_index == 0:
+            game_progress_index = 1
+        elif game_progress_index == 3:
+            game_progress_index = 4
+
     # Store in PostgreSQL via SQLAlchemy
     with get_session() as session:
         session.add(
@@ -573,6 +622,38 @@ async def handle_state_update_request(
                 if challenge_loop_index == 2:
                     messages = []
             case _:
+                # Update the completed challenge record with its ending metric_values
+                with get_session() as db_session:
+                    stmt = (
+                        select(GameChallenge)
+                        .where(
+                            GameChallenge.user_name == username,
+                            GameChallenge.phase_index == phase_id,
+                            GameChallenge.challenge_index == challenge_id,
+                        )
+                        .order_by(GameChallenge.id.desc())
+                    )
+                    completed_rec = db_session.scalars(stmt).first()
+                    if completed_rec and metric_values:
+                        completed_rec.metric_values = metric_values
+                        completed_rec.challenge_loop_index = 3
+                    elif not completed_rec and metric_values:
+                        db_session.add(
+                            GameChallenge(
+                                user_name=username,
+                                phase_index=phase_id,
+                                challenge_index=challenge_id,
+                                challenge_loop_index=3,
+                                metric_values=metric_values,
+                                time_stamp=datetime.datetime.utcnow(),
+                                action_card=action_card,
+                                pitch_debate_messages=[],
+                                online_intel_gathering_messages=[],
+                                attention_tokens=attention_tokens,
+                            )
+                        )
+                    db_session.commit()
+
                 # next challenge / round completion (after simulation phase)
                 await clear_intel_items_for_user(websocket)
                 challenge: Challenge = PhaseFactory.translate_challenge_index(
@@ -581,12 +662,41 @@ async def handle_state_update_request(
                 )
 
                 if challenge is None:
-                    await manager.send_event(
-                        websocket=websocket,
-                        event="game:progress_change",
-                        payload={"progressionIndex": 4}
-                    )
-                    return (phase_id,challenge_id+1,0)
+                    use_q = True
+                    with get_session() as db_session:
+                        user = db_session.scalar(select(User).where(User.user_name == username))
+                        if user:
+                            camp = db_session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+                            if camp is not None:
+                                use_q = camp.use_questionnaire
+
+                    if use_q:
+                        with get_session() as db_session:
+                            db_session.add(
+                                GameProgression(
+                                    user_name=username,
+                                    game_progress_index=3,
+                                    time_stamp=datetime.datetime.utcnow(),
+                                    additional_data=[]
+                                )
+                            )
+                        await send_progress_index_payload(websocket, 3)
+                    else:
+                        with get_session() as db_session:
+                            db_session.add(
+                                GameProgression(
+                                    user_name=username,
+                                    game_progress_index=4,
+                                    time_stamp=datetime.datetime.utcnow(),
+                                    additional_data=[]
+                                )
+                            )
+                        await manager.send_event(
+                            websocket=websocket,
+                            event="game:progress_change",
+                            payload={"progressionIndex": 4}
+                        )
+                    return (phase_id, challenge_id + 1, 0)
 
                 load_known_intel_items_for_challenge(challenge, username)
                 

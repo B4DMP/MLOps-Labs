@@ -28,22 +28,6 @@
     flex-direction: column;
 }
 
-.titleBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0.9rem;
-    border-radius: 9999px;
-    background: rgba(38, 102, 130, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 1rem;
-    align-self: flex-start;
-}
 
 .cardTitle {
     font-size: 2.2rem;
@@ -60,6 +44,21 @@
     color: rgba(255, 255, 255, 0.8);
     margin-bottom: 1.25rem;
     line-height: 1.45;
+}
+
+.errorAlert {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(220, 38, 38, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    font-size: 0.9rem;
+    font-weight: 500;
+    line-height: 1.45;
+    margin-bottom: 1.25rem;
 }
 
 .calloutsRow {

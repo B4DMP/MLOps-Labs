@@ -8,8 +8,9 @@ const PROTOCOL = window.location.protocol === "https:" ? "https:" : "http:";
 const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 
 export interface LoginResponse {
-  type: "login_success";
-  username: string;
+  type: "login_success" | "admin_login_success";
+  username?: string;
+  token?: string;
 }
 
 export interface RegisterResponse {

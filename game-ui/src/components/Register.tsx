@@ -8,6 +8,8 @@ interface RegisterProps {
   readyState: ReadyState;
   onBack: () => void;
   isLoading?: boolean;
+  errorMessage?: string;
+  onClearError?: () => void;
 }
 
 export function Register({
@@ -15,6 +17,8 @@ export function Register({
   readyState,
   onBack,
   isLoading = false,
+  errorMessage,
+  onClearError,
 }: RegisterProps) {
   const [username, setUsername] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
@@ -26,6 +30,13 @@ export function Register({
     }
   };
 
+  const handleInputChange = (setter: (val: string) => void, val: string) => {
+    setter(val);
+    if (errorMessage && onClearError) {
+      onClearError();
+    }
+  };
+
   return (
     <div className={styles.registerWrapper}>
       <div className={styles.registerCard}>
@@ -34,6 +45,18 @@ export function Register({
         <p className={styles.cardSubtitle}>
           Join a study campaign and begin your MLOps Labs session. <br /> Your game will be saved automatically.
         </p>
+
+        {/* Inline Error Alert */}
+        {errorMessage && (
+          <div className={styles.errorAlert} role="alert">
+            <Icon
+              icon="ph:warning-circle-bold"
+              className="flex-shrink-0"
+              style={{ fontSize: "1.25rem", color: "#f87171" }}
+            />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         {/* Callouts (Stacked by default, 2-column on small screens) */}
         <div className={styles.calloutsRow}>
@@ -76,7 +99,7 @@ export function Register({
                 value={username}
                 autoFocus
                 disabled={isLoading}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => handleInputChange(setUsername, e.target.value)}
               />
             </div>
 
@@ -92,7 +115,7 @@ export function Register({
                 placeholder="Enter invitation campaign key"
                 value={campaignKey}
                 disabled={isLoading}
-                onChange={(e) => setCampaignKey(e.target.value)}
+                onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
               />
             </div>
           </div>

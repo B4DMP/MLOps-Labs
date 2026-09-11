@@ -1,6 +1,6 @@
 import datetime
 from typing import Any
-from sqlalchemy import DateTime, Integer, String, JSON
+from sqlalchemy import DateTime, Integer, String, JSON, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from mlops_serious_game.config import settings
@@ -24,6 +24,8 @@ class Campaign(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     campaign_name: Mapped[str] = mapped_column(String(255), nullable=False)
     campaign_key: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    use_questionnaire: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class GameProgression(Base):
