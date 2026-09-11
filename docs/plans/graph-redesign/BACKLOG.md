@@ -7,7 +7,7 @@ Things deliberately cut from the graph redesign, plus ideas that surfaced during
 | item | why cut | what it needs |
 |---|---|---|
 | Player created instances | D12. Instance lifecycle in the card would double the card surface and pull instances into coverage math. | `instance_create` and `instance_retire` as card ops, instance targets on Driver items, UI for picking an instance |
-| Instance lifecycle rules | Instances only change through challenges and world events in v1. | state machine per instance kind, decay rules such as a dataset going stale after N challenges |
+| Instance lifecycle rules | Instances only change through challenges and world events in v1. Typed properties exist since v3.2, but nothing decays on its own. | decay rules such as a dataset going stale after N challenges, a model's performance slipping under drift |
 | Instances in coverage | Keeps buy-in math on components and edges only. | a second coverage term |
 | Attribute level fog of war | Fog covers levels and triggers. Attributes are shown once the target is observed. | per attribute knowledge entries |
 | Multi target intel items | One suggested target per Driver keeps coverage readable. Metric credit already gives some flexibility. | partial coverage rules for composite items |

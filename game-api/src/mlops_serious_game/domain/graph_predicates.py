@@ -5,8 +5,10 @@ Clauses:
     {"edge": id, "op": "lte", "level": 1, "on": ...}
     {"edge": id, "trigger": "eq" | "ne", "value": "on_alert"}
     {"attr": "stage.component.attr", "op": "eq" | "ne", "value": "public_cloud"}
-    {"instance": {"kind": "model", "state": "stale", "component": id, "op": "exists"}}
+    {"instance": {"kind": "model", "state": "active", "component": id, "op": "exists",
+                  "where": {"performance": {"op": "lte", "value": "fair"}}}}
     {"instance": {"kind": "model", "op": "count", "cmp": "gte", "n": 2}}
+Instance property comparisons use the order of the property's values in the config.
     {"pattern": id}
 Combinators: {"all": [...]}, {"any": [...]}, {"not": {...}}. Literal true / false allowed.
 """
@@ -107,12 +109,25 @@ def evaluate(pred: Any, ctx: PredicateContext) -> PredicateResult:
 
     if "instance" in pred:
         spec = pred["instance"]
+        where = spec.get("where", {})
+
+        def props_match(inst) -> bool:
+            for prop, cond in where.items():
+                actual = inst.props.get(prop)
+                if actual is None:
+                    return False
+                rank = ctx.graph.prop_rank(inst.kind, prop, actual)
+                if not _cmp(cond.get("op", "eq"), rank, ctx.graph.prop_rank(inst.kind, prop, cond["value"])):
+                    return False
+            return True
+
         matches = [
             i
             for i in ctx.state.instances.values()
             if ("kind" not in spec or i.kind == spec["kind"])
             and ("state" not in spec or i.state == spec["state"])
             and ("component" not in spec or i.component_id == spec["component"])
+            and props_match(i)
         ]
         mode = spec.get("op", "exists")
         if mode == "exists":
@@ -175,8 +190,20 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
             spec = p["instance"]
             if "kind" in spec and spec["kind"] not in graph.instance_kinds:
                 errors.append(f"unknown instance kind '{spec['kind']}'")
+                return
             if "state" in spec and spec["state"] not in graph.instance_states:
                 errors.append(f"unknown instance state '{spec['state']}'")
+            if spec.get("where") and "kind" not in spec:
+                errors.append("instance 'where' needs a 'kind'")
+                return
+            props = graph.instance_kinds[spec["kind"]].properties if "kind" in spec else {}
+            for prop, cond in spec.get("where", {}).items():
+                if prop not in props:
+                    errors.append(f"unknown property '{prop}' on '{spec['kind']}'")
+                elif cond.get("value") not in props[prop].values:
+                    errors.append(f"unknown value '{cond.get('value')}' for '{spec['kind']}.{prop}'")
+                if cond.get("op", "eq") not in _OPS:
+                    errors.append(f"unknown op '{cond.get('op')}'")
             return
         errors.append(f"unknown clause {p!r}")
 

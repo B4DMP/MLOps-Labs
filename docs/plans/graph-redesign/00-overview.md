@@ -18,13 +18,17 @@ The stage graph stores nothing of its own. It is derived from the technical grap
 ## Core decision: levels, not free text
 
 ```
-levels:  0 broken | 1 absent | 2 manual | 3 scripted | 4 automated | 5 governed
+levels:  0 broken | 1 absent | 2 manual | 3 automated | 4 governed
 applies to components and to edges
 op:      raise_to(target, level)   player actions, max semantics
          set_to(target, level)     world events, forced, can go down
 ```
 
 `broken` sits below `absent` on purpose. A failing check nobody trusts is worse than no check.
+
+No `scripted` level (D30). Who starts the work is the edge trigger, so edge level and trigger are kept consistent automatically: `absent`/`broken` carry trigger `none`, `manual` carries `manual_request`, `automated`/`governed` carry an automatic trigger (`scheduled`, `on_data_arrival`, `on_alert`, ...). Reproducibility, the one thing a scripted rung added, is expressed by the versioning and tracking components and their patterns.
+
+**Instances** are the concrete things in the graph: datasets, features, models, endpoints, pipelines. Each kind has ordered properties in config (D31), for example model `performance` poor < fair < good < excellent, dataset `quality` and `freshness`, endpoint `availability`, pipeline `reliability`. Predicates compare them, so patterns and challenge preconditions react to "the live model slipped" or "training data went stale", and world events such as drift change them. A handful exist at game start. They never enter buy-in coverage.
 
 **Nominal versus effective.** A component has the level it was built to (nominal) and the level it actually delivers (effective). Effective is capped by its upstream components and by the maturity of the incoming edges. Broken upstream propagates downstream. Health, patterns and scoring run on effective levels.
 
@@ -97,7 +101,7 @@ Every stance item is an action on the graph plus how much its stakeholder cares:
 
 ```
 stage_health = clamp( 20
-                      + 40 * mean(effective_level / 5 over stage components and internal edges)
+                      + 40 * mean(effective_level / 4 over stage components and internal edges)
                       + sum(design pattern bonuses)
                       - sum(antipattern penalties)
                       - 6 * debt_entries_in_stage , 0, 100)

@@ -32,8 +32,12 @@ def real():
 
 
 def _maxed(graph) -> GraphState:
+    """Everything at its highest level, every instance property at its best value."""
     ops = [GraphOp(kind="set_to", target=c.id, value=max(c.allowed_levels)) for c in graph.components]
     ops += [GraphOp(kind="set_to", target=e.id, value=max(e.allowed_levels)) for e in graph.edges]
+    for inst in graph.initial_instances:
+        for prop, spec in graph.instance_kinds[inst.kind].properties.items():
+            ops.append(GraphOp(kind="set_instance_prop", target=inst.id, attr=prop, value=spec.values[-1]))
     return apply_ops(graph, GraphState.from_config(graph), ops).state
 
 
@@ -62,8 +66,22 @@ def test_silent_failure_fires_and_drags_ops_health(real):
     ]).state
     ev = evaluate_graph(real, state)
     assert "ap_silent_failure" in ev.active_patterns
-    ops = next(s for s in ev.stage_graph.stages if s.id == "ops")
-    assert ops.pattern_effect < 0
+    before = next(s for s in evaluate_graph(real, _maxed(real)).stage_graph.stages if s.id == "ops")
+    after = next(s for s in ev.stage_graph.stages if s.id == "ops")
+    # The antipattern's -15 comes on top of the design bonuses the missing monitoring loses.
+    assert after.pattern_effect <= before.pattern_effect - 15
+
+
+def test_instance_properties_drive_patterns(real):
+    state = apply_ops(real, _maxed(real), [
+        GraphOp(kind="set_instance_prop", target="model:prediction_v1.performance", value="fair"),
+    ]).state
+    active = evaluate_graph(real, state).active_patterns
+    assert "ap_underperforming_model_live" in active
+    state = apply_ops(real, _maxed(real), [
+        GraphOp(kind="set_instance_prop", target="dataset:customer_records.quality", value="poor"),
+    ]).state
+    assert "dp_trusted_data" not in evaluate_graph(real, state).active_patterns
 
 
 def test_glue_code_reads_attributes(real):

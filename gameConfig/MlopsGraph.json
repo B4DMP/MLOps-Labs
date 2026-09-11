@@ -3,7 +3,6 @@
     "broken",
     "absent",
     "manual",
-    "scripted",
     "automated",
     "governed"
   ],
@@ -18,17 +17,137 @@
     "on_alert",
     "on_approval"
   ],
-  "instance_kinds": [
-    "dataset",
-    "feature",
-    "model",
-    "endpoint",
-    "pipeline"
-  ],
+  "instance_kinds": {
+    "dataset": {
+      "properties": {
+        "quality": {
+          "values": [
+            "poor",
+            "fair",
+            "good",
+            "excellent"
+          ],
+          "initial": "fair"
+        },
+        "freshness": {
+          "values": [
+            "stale",
+            "aging",
+            "fresh"
+          ],
+          "initial": "aging"
+        },
+        "documentation": {
+          "values": [
+            "none",
+            "partial",
+            "complete"
+          ],
+          "initial": "none"
+        }
+      }
+    },
+    "feature": {
+      "properties": {
+        "freshness": {
+          "values": [
+            "stale",
+            "aging",
+            "fresh"
+          ],
+          "initial": "aging"
+        },
+        "coverage": {
+          "values": [
+            "sparse",
+            "partial",
+            "full"
+          ],
+          "initial": "partial"
+        }
+      }
+    },
+    "model": {
+      "properties": {
+        "performance": {
+          "values": [
+            "poor",
+            "fair",
+            "good",
+            "excellent"
+          ],
+          "initial": "fair"
+        },
+        "latency": {
+          "values": [
+            "slow",
+            "acceptable",
+            "fast"
+          ],
+          "initial": "acceptable"
+        },
+        "fairness": {
+          "values": [
+            "biased",
+            "unchecked",
+            "balanced"
+          ],
+          "initial": "unchecked"
+        }
+      }
+    },
+    "endpoint": {
+      "properties": {
+        "availability": {
+          "values": [
+            "unstable",
+            "stable",
+            "high"
+          ],
+          "initial": "stable"
+        },
+        "latency": {
+          "values": [
+            "slow",
+            "acceptable",
+            "fast"
+          ],
+          "initial": "acceptable"
+        },
+        "traffic": {
+          "values": [
+            "none",
+            "low",
+            "high"
+          ],
+          "initial": "low"
+        }
+      }
+    },
+    "pipeline": {
+      "properties": {
+        "reliability": {
+          "values": [
+            "failing",
+            "flaky",
+            "reliable"
+          ],
+          "initial": "flaky"
+        },
+        "runtime": {
+          "values": [
+            "slow",
+            "acceptable",
+            "fast"
+          ],
+          "initial": "slow"
+        }
+      }
+    }
+  },
   "instance_states": [
     "proposed",
     "active",
-    "stale",
     "deprecated",
     "failed"
   ],
@@ -109,8 +228,7 @@
         0,
         1,
         2,
-        3,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -125,8 +243,7 @@
         0,
         1,
         2,
-        3,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -142,8 +259,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -158,8 +274,7 @@
         0,
         1,
         2,
-        3,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -175,8 +290,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -210,8 +324,8 @@
         0,
         1,
         2,
-        4,
-        5
+        3,
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -246,8 +360,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -282,8 +395,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -309,8 +421,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -335,8 +446,8 @@
         0,
         1,
         2,
-        4,
-        5
+        3,
+        4
       ],
       "attributes": {}
     },
@@ -352,8 +463,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -379,8 +489,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -415,8 +524,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -441,8 +549,8 @@
         0,
         1,
         2,
-        4,
-        5
+        3,
+        4
       ],
       "attributes": {
         "tool": {
@@ -468,8 +576,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -485,8 +592,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -512,8 +618,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "hosting": {
@@ -547,9 +652,9 @@
       "allowed_levels": [
         0,
         1,
+        2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -563,9 +668,9 @@
       "allowed_levels": [
         0,
         1,
+        2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -581,8 +686,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -607,8 +711,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -634,8 +737,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "sourcing": {
@@ -661,8 +763,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -677,8 +778,8 @@
         0,
         1,
         2,
-        4,
-        5
+        3,
+        4
       ],
       "attributes": {
         "tool": {
@@ -704,8 +805,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -731,8 +831,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -757,8 +856,8 @@
         0,
         1,
         2,
-        4,
-        5
+        3,
+        4
       ],
       "attributes": {}
     },
@@ -774,8 +873,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -791,8 +889,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -818,8 +915,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -834,8 +930,7 @@
         0,
         1,
         2,
-        3,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -851,8 +946,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {}
     },
@@ -868,8 +962,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -895,8 +988,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "attributes": {
         "tool": {
@@ -925,8 +1017,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -947,8 +1038,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -969,8 +1059,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -991,8 +1080,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1014,8 +1102,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1037,8 +1124,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1060,8 +1146,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1085,8 +1170,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1108,8 +1192,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1131,8 +1214,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1156,8 +1238,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1181,8 +1262,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1206,8 +1286,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1231,8 +1310,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1256,8 +1334,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1280,8 +1357,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1304,8 +1380,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1328,8 +1403,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1352,8 +1426,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1376,8 +1449,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1400,8 +1472,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1424,8 +1495,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1448,8 +1518,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1472,8 +1541,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1496,8 +1564,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1520,8 +1587,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1544,8 +1610,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1568,8 +1633,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1592,8 +1656,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1616,8 +1679,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1640,8 +1702,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1664,8 +1725,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1687,8 +1747,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1710,8 +1769,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1733,8 +1791,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1756,8 +1813,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1779,8 +1835,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1802,8 +1857,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1825,8 +1879,7 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
@@ -1848,14 +1901,83 @@
         1,
         2,
         3,
-        4,
-        5
+        4
       ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_approval"
+      ]
+    }
+  ],
+  "initial_instances": [
+    {
+      "id": "dataset:customer_records",
+      "kind": "dataset",
+      "component_id": "data.ingestion",
+      "name": "Customer records",
+      "state": "active",
+      "props": {
+        "quality": "fair",
+        "freshness": "aging",
+        "documentation": "partial"
+      }
+    },
+    {
+      "id": "dataset:training_snapshot",
+      "kind": "dataset",
+      "component_id": "data.labeling",
+      "name": "Labelled training snapshot",
+      "state": "active",
+      "props": {
+        "quality": "fair",
+        "freshness": "stale",
+        "documentation": "none"
+      },
+      "links": [
+        "dataset:customer_records"
+      ]
+    },
+    {
+      "id": "pipeline:nightly_export",
+      "kind": "pipeline",
+      "component_id": "data.ingestion",
+      "name": "Nightly export job",
+      "state": "active",
+      "props": {
+        "reliability": "flaky",
+        "runtime": "slow"
+      }
+    },
+    {
+      "id": "model:prediction_v1",
+      "kind": "model",
+      "component_id": "model.training_pipeline",
+      "name": "Prediction model v1",
+      "state": "active",
+      "props": {
+        "performance": "fair",
+        "latency": "acceptable",
+        "fairness": "unchecked"
+      },
+      "links": [
+        "dataset:training_snapshot"
+      ]
+    },
+    {
+      "id": "endpoint:prediction_api",
+      "kind": "endpoint",
+      "component_id": "deploy.serving",
+      "name": "Prediction API",
+      "state": "active",
+      "props": {
+        "availability": "stable",
+        "latency": "acceptable",
+        "traffic": "low"
+      },
+      "links": [
+        "model:prediction_v1"
       ]
     }
   ]

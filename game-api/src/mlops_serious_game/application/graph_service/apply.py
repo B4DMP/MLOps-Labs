@@ -18,8 +18,10 @@ from mlops_serious_game.domain.graph import (
     Knowledge,
     Level,
     LoggedOp,
+    NON_AUTOMATIC_TRIGGERS,
     SeenEntry,
     TechnicalGraph,
+    trigger_for_level,
 )
 
 
@@ -79,6 +81,15 @@ def _mark(state: GraphState, target: str, seq: Optional[int]) -> None:
         state.changed_at[target] = seq
 
 
+def _sync_trigger(graph: TechnicalGraph, state: GraphState, edge_id: str, seq: Optional[int]) -> None:
+    edge = graph.edge(edge_id)
+    current = state.edge_triggers.get(edge_id)
+    expected = trigger_for_level(edge, state.edge_levels[edge_id], current)
+    if expected is not None and expected != current:
+        state.edge_triggers[edge_id] = expected
+        _mark(state, edge_id, seq)
+
+
 def _resolve_target(graph: TechnicalGraph, op: GraphOp) -> Optional[GraphOp]:
     """Maps renamed ids to their current id. Returns None for ops on retired ids."""
     target = graph.resolve(op.target)
@@ -93,7 +104,7 @@ def _apply_one(
     kind = op.kind
     if kind == "observe":
         return
-    if kind != "instance_upsert":
+    if kind not in ("instance_upsert", "set_instance_prop"):
         op = _resolve_target(graph, op)
         if op is None:
             return
@@ -110,6 +121,8 @@ def _apply_one(
         if new != current:
             levels[op.target] = new
             _mark(state, op.target, seq)
+        if graph.is_edge(op.target):
+            _sync_trigger(graph, state, op.target, seq)
 
         intended = op.intended
         if intended is not None and intended > new:
@@ -137,10 +150,26 @@ def _apply_one(
         if not graph.is_edge(op.target):
             result.rejected.append(RejectedOp(op=op, reason="unknown edge"))
             return
-        if op.value not in graph.edge(op.target).allowed_triggers:
+        edge = graph.edge(op.target)
+        if op.value not in edge.allowed_triggers:
             result.rejected.append(RejectedOp(op=op, reason=f"trigger '{op.value}' not allowed"))
             return
-        if state.edge_triggers.get(op.target) != op.value:
+        level = state.edge_levels[op.target]
+        if op.value in NON_AUTOMATIC_TRIGGERS:
+            # Level and trigger must agree; demoting an edge is a level change, not a trigger change.
+            if trigger_for_level(edge, level, None) != op.value:
+                result.rejected.append(
+                    RejectedOp(op=op, reason=f"trigger '{op.value}' does not fit level {level}, change the level")
+                )
+            return
+        if level < Level.AUTOMATED:
+            # Naming an automatic trigger automates the edge.
+            automated = [lv for lv in edge.allowed_levels if lv >= Level.AUTOMATED]
+            if not automated:
+                result.rejected.append(RejectedOp(op=op, reason="edge cannot be automated"))
+                return
+            state.edge_levels[op.target] = min(automated)
+        if state.edge_triggers.get(op.target) != op.value or level < Level.AUTOMATED:
             state.edge_triggers[op.target] = op.value
             _mark(state, op.target, seq)
         return
@@ -168,13 +197,28 @@ def _apply_one(
         except Exception as e:
             result.rejected.append(RejectedOp(op=op, reason=f"invalid instance: {e}"))
             return
-        if inst.kind not in graph.instance_kinds or inst.state not in graph.instance_states:
-            result.rejected.append(RejectedOp(op=op, reason="unknown instance kind or state"))
+        errors = graph.instance_errors(inst)
+        if errors:
+            result.rejected.append(RejectedOp(op=op, reason="; ".join(errors)))
             return
-        if not graph.is_component(inst.component_id):
-            result.rejected.append(RejectedOp(op=op, reason="instance on unknown component"))
+        previous = state.instances.get(inst.id)
+        merged_props = {**(previous.props if previous else {}), **inst.props}
+        state.instances[inst.id] = graph.with_default_props(inst.model_copy(update={"props": merged_props}))
+        _mark(state, inst.id, seq)
+        return
+
+    if kind == "set_instance_prop":
+        inst = state.instances.get(op.target)
+        if inst is None:
+            result.rejected.append(RejectedOp(op=op, reason="unknown instance"))
             return
-        state.instances[inst.id] = inst
+        prop = graph.instance_kinds[inst.kind].properties.get(op.attr or "")
+        if prop is None or op.value not in prop.values:
+            result.rejected.append(RejectedOp(op=op, reason=f"invalid property '{op.attr}' = '{op.value}'"))
+            return
+        if inst.props.get(op.attr) != op.value:
+            inst.props[op.attr] = op.value
+            _mark(state, inst.id, seq)
         return
 
 
@@ -188,7 +232,7 @@ def apply_ops(
     result = ApplyResult(state=state.model_copy(deep=True))
     for item in ops:
         seq, op = (item.seq, item.op) if isinstance(item, LoggedOp) else (None, item)
-        if op.kind != "instance_upsert":
+        if op.kind not in ("instance_upsert", "set_instance_prop"):
             op = _resolve_target(graph, op)
             if op is None:
                 continue
@@ -259,6 +303,15 @@ def seed_ops(graph: TechnicalGraph) -> list[GraphOp]:
     for e in graph.edges:
         ops.append(GraphOp(kind="set_to", target=e.id, value=e.initial_level, source_kind="challenge_seed"))
         ops.append(GraphOp(kind="set_trigger", target=e.id, value=e.initial_trigger, source_kind="challenge_seed"))
+    for inst in graph.initial_instances:
+        ops.append(
+            GraphOp(
+                kind="instance_upsert",
+                target=inst.id,
+                value=graph.with_default_props(inst).model_dump(),
+                source_kind="challenge_seed",
+            )
+        )
     for target in graph.briefing_observed:
         ops.append(GraphOp(kind="observe", target=target, source_kind="challenge_seed"))
     return ops

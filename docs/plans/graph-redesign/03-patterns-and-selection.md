@@ -14,8 +14,8 @@ Patterns are named graph shapes, good or bad, matched on the technical graph. Th
   "kind": "anti",
   "name": "Silent Model Failure",
   "when": {"all": [
-    {"component": "deploy.serving", "op": "gte", "level": 4},
-    {"component": "ops.drift_monitoring", "op": "lte", "level": 1}
+    {"component": "deploy.serving", "op": "gte", "level": 3},
+    {"component": "ops.production_drift_monitoring", "op": "lte", "level": 1}
   ]},
   "stage_effects": {"ops": -15, "deploy": -10},
   "story": "Predictions keep flowing. Nobody can tell whether they are still right.",
@@ -29,10 +29,10 @@ Patterns are named graph shapes, good or bad, matched on the technical graph. Th
   "kind": "design",
   "name": "Continuous Training",
   "when": {"all": [
-    {"edge": "e.alert_retrain", "op": "gte", "level": 4},
+    {"edge": "e.alert_retrain", "op": "gte", "level": 3},
     {"edge": "e.alert_retrain", "trigger": "eq", "value": "on_alert"},
-    {"component": "model.training_pipeline", "op": "gte", "level": 4},
-    {"component": "model.evaluation", "op": "gte", "level": 4}
+    {"component": "model.training_pipeline", "op": "gte", "level": 3},
+    {"component": "model.evaluation", "op": "gte", "level": 3}
   ]},
   "stage_effects": {"model": 12, "ops": 8},
   "story": "Drift raises an alert, the alert starts a retrain, the evaluation gate decides.",
@@ -40,7 +40,7 @@ Patterns are named graph shapes, good or bad, matched on the technical graph. Th
 }
 ```
 
-Shipped: 12 anti, 15 design. Starter list below. Anti: silent failure, training serving skew, glue code, pipeline jungle, manual deployment, undocumented handover, orphaned model, unversioned data, alert fatigue, no rollback, cost blindness, shadow IT access. Design: continuous training, reproducible training, gated promotion, canary release, feature reuse, data contracts enforced, observability first, IaC everywhere, least privilege, model cards on promotion, automated rollback, versioned lineage.
+Shipped: 14 anti, 17 design (v3.2 added underperforming model live, stale training data, trusted data, which read instance properties). Starter list below. Anti: silent failure, training serving skew, glue code, pipeline jungle, manual deployment, undocumented handover, orphaned model, unversioned data, alert fatigue, no rollback, cost blindness, shadow IT access. Design: continuous training, reproducible training, gated promotion, canary release, feature reuse, data contracts enforced, observability first, IaC everywhere, least privilege, model cards on promotion, automated rollback, versioned lineage.
 
 Edges make patterns expressive: "continuous training" is a statement about a trigger on a feedback edge, not about any single component.
 
@@ -79,7 +79,7 @@ Gate: every component and every pipeline edge appears in at least one pattern. O
   "conflict": {
     "type": "soft",
     "target": "data.feature_store",
-    "positions": [{"stakeholder_id": "data_dave", "wants": 5},
+    "positions": [{"stakeholder_id": "data_dave", "wants": 4},
                   {"stakeholder_id": "efficiency_emilia", "wants": 2}]
   },
   "focus_stage_ids": ["data"],

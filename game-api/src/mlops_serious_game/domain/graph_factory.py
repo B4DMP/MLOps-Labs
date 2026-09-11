@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from mlops_serious_game.domain.graph import TechnicalGraph
+from mlops_serious_game.domain.graph import Level, TechnicalGraph, trigger_for_level
 
 
 class GraphConfigError(ValueError):
@@ -28,6 +28,23 @@ def _toposort(nodes: list[str], edges: list[tuple[str, str]]) -> list[str]:
         cyclic = sorted(n for n in nodes if incoming[n] > 0)
         raise GraphConfigError(f"pipeline edges form a cycle through: {cyclic}")
     return order
+
+
+def _trigger_errors(e) -> list[str]:
+    """Level and trigger must agree: who starts the work is part of what `automated` means."""
+    errors = []
+    expected = trigger_for_level(e, e.initial_level, e.initial_trigger)
+    if e.initial_trigger != expected:
+        errors.append(
+            f"edge '{e.id}' starts at level {e.initial_level} with trigger '{e.initial_trigger}', expected '{expected}'"
+        )
+    if any(lv >= Level.AUTOMATED for lv in e.allowed_levels) and e.default_automatic_trigger is None:
+        errors.append(f"edge '{e.id}' can be automated but allows no automatic trigger")
+    if Level.MANUAL in e.allowed_levels and "manual_request" not in e.allowed_triggers:
+        errors.append(f"edge '{e.id}' can be manual but does not allow 'manual_request'")
+    if any(lv <= Level.ABSENT for lv in e.allowed_levels) and "none" not in e.allowed_triggers:
+        errors.append(f"edge '{e.id}' can be absent but does not allow trigger 'none'")
+    return errors
 
 
 def validate_graph(graph: TechnicalGraph) -> list[str]:
@@ -74,6 +91,15 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
             errors.append(f"edge '{e.id}' allows unknown triggers {sorted(unknown_triggers)}")
         if e.initial_trigger not in e.allowed_triggers:
             errors.append(f"edge '{e.id}' initial_trigger '{e.initial_trigger}' not allowed")
+
+        errors += _trigger_errors(e)
+
+    ids = [i.id for i in graph.initial_instances]
+    if len(ids) != len(set(ids)):
+        errors.append("duplicate initial instance ids")
+    for inst in graph.initial_instances:
+        errors += graph.instance_errors(inst)
+        errors += [f"instance '{inst.id}' links to unknown instance '{x}'" for x in inst.links if x not in ids]
 
     for target in graph.briefing_observed:
         if not graph.is_target(target):

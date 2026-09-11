@@ -2,45 +2,152 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "MLOps Technical Graph",
-  "description": "Stages, components and the workflow edges between them. Validated again on load: unique ids, known references, allowed levels and triggers, pipeline edges must form a DAG.",
-  "required": ["levels", "triggers", "instance_kinds", "instance_states", "stages", "components", "edges"],
+  "description": "Stages, components and the workflow edges between them. Validated again on load: unique ids, known references, allowed levels and triggers, pipeline edges must form a DAG. Edge level and trigger must agree: absent/broken = none, manual = manual_request, automated/governed = an automatic trigger.",
+  "required": [
+    "levels",
+    "triggers",
+    "instance_kinds",
+    "instance_states",
+    "stages",
+    "components",
+    "edges"
+  ],
   "definitions": {
-    "level": {"type": "integer", "minimum": 0, "maximum": 5},
-    "levelList": {"type": "array", "items": {"$ref": "#/definitions/level"}, "minItems": 1, "uniqueItems": true}
+    "level": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "levelList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/level"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
   },
   "properties": {
-    "levels": {"type": "array", "title": "Level names, index = level", "items": {"type": "string"}},
-    "triggers": {"type": "array", "title": "Edge trigger vocabulary", "items": {"type": "string"}},
-    "instance_kinds": {"type": "array", "items": {"type": "string"}},
-    "instance_states": {"type": "array", "items": {"type": "string"}},
+    "levels": {
+      "type": "array",
+      "title": "Level names, index = level",
+      "items": {
+        "type": "string"
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "title": "Edge trigger vocabulary",
+      "items": {
+        "type": "string"
+      }
+    },
+    "instance_kinds": {
+      "type": "object",
+      "title": "Instance kinds and their ordered properties",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": [
+                "values",
+                "initial"
+              ],
+              "properties": {
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "title": "Ordered values, worst to best for quality-like properties"
+                },
+                "initial": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "instance_states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "thresholds": {
       "type": "object",
       "properties": {
-        "healthy": {"type": "number"},
-        "degraded": {"type": "number"},
-        "health_base": {"type": "number"},
-        "maturity_weight": {"type": "number"},
-        "debt_penalty_per_entry": {"type": "number"},
-        "debt_buyin_threshold": {"type": "number", "minimum": 0, "maximum": 1}
+        "healthy": {
+          "type": "number"
+        },
+        "degraded": {
+          "type": "number"
+        },
+        "health_base": {
+          "type": "number"
+        },
+        "maturity_weight": {
+          "type": "number"
+        },
+        "debt_penalty_per_entry": {
+          "type": "number"
+        },
+        "debt_buyin_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     },
     "briefing_observed": {
       "type": "array",
       "title": "Targets the player knows from the start",
-      "items": {"type": "string"}
+      "items": {
+        "type": "string"
+      }
     },
     "stages": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name"],
+        "required": [
+          "id",
+          "name"
+        ],
         "properties": {
-          "id": {"type": "string"},
-          "name": {"type": "string"},
-          "phase_id": {"type": ["integer", "null"]},
-          "weight": {"type": "number", "minimum": 0},
-          "owner_role": {"type": ["string", "null"], "title": "Default owner stakeholder id"},
-          "band": {"type": "boolean", "title": "Cross-cutting band, not a pipeline step"}
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phase_id": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0
+          },
+          "owner_role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Default owner stakeholder id"
+          },
+          "band": {
+            "type": "boolean",
+            "title": "Cross-cutting band, not a pipeline step"
+          }
         }
       }
     },
@@ -48,24 +155,61 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "stage_id", "name", "initial_level", "allowed_levels"],
+        "required": [
+          "id",
+          "stage_id",
+          "name",
+          "initial_level",
+          "allowed_levels"
+        ],
         "properties": {
-          "id": {"type": "string", "pattern": "^[a-z]+\\.[a-z_]+$"},
-          "stage_id": {"type": "string"},
-          "name": {"type": "string"},
-          "owner_role": {"type": ["string", "null"], "title": "Owner stakeholder id, null means stage owner"},
-          "weight": {"type": "number", "minimum": 0},
-          "initial_level": {"$ref": "#/definitions/level"},
-          "allowed_levels": {"$ref": "#/definitions/levelList"},
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+\\.[a-z_]+$"
+          },
+          "stage_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Owner stakeholder id, null means stage owner"
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0
+          },
+          "initial_level": {
+            "$ref": "#/definitions/level"
+          },
+          "allowed_levels": {
+            "$ref": "#/definitions/levelList"
+          },
           "attributes": {
             "type": "object",
             "title": "Story-only attributes",
             "additionalProperties": {
               "type": "object",
-              "required": ["values", "initial"],
+              "required": [
+                "values",
+                "initial"
+              ],
               "properties": {
-                "values": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-                "initial": {"type": "string"}
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1
+                },
+                "initial": {
+                  "type": "string"
+                }
               }
             }
           }
@@ -76,18 +220,117 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "from", "to", "kind", "initial_level", "allowed_levels", "allowed_triggers"],
+        "required": [
+          "id",
+          "from",
+          "to",
+          "kind",
+          "initial_level",
+          "allowed_levels",
+          "allowed_triggers"
+        ],
         "properties": {
-          "id": {"type": "string", "pattern": "^e\\.[a-z_]+$"},
-          "from": {"type": "string"},
-          "to": {"type": "string"},
-          "kind": {"type": "string", "enum": ["pipeline", "feedback", "governs"]},
-          "slack": {"type": "integer", "enum": [0, 1], "title": "0 hard dependency, 1 soft"},
-          "initial_level": {"$ref": "#/definitions/level"},
-          "initial_trigger": {"type": "string"},
-          "allowed_levels": {"$ref": "#/definitions/levelList"},
-          "allowed_triggers": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+          "id": {
+            "type": "string",
+            "pattern": "^e\\.[a-z_]+$"
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "pipeline",
+              "feedback",
+              "governs"
+            ]
+          },
+          "slack": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "title": "0 hard dependency, 1 soft"
+          },
+          "initial_level": {
+            "$ref": "#/definitions/level"
+          },
+          "initial_trigger": {
+            "type": "string"
+          },
+          "allowed_levels": {
+            "$ref": "#/definitions/levelList"
+          },
+          "allowed_triggers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
         }
+      }
+    },
+    "initial_instances": {
+      "type": "array",
+      "title": "Instances that exist at game start",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "component_id",
+          "name",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+:[a-z0-9_]+$"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "component_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "aliases": {
+      "type": "object",
+      "title": "Renamed ids (old -> new), written by tools/graph_refactor.py",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "retired": {
+      "type": "array",
+      "title": "Removed ids, written by tools/graph_refactor.py",
+      "items": {
+        "type": "string"
       }
     }
   }

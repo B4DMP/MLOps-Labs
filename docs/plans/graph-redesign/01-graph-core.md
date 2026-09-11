@@ -26,7 +26,7 @@ game-api/tests/test_graph_core.py
 
 ```json
 {
-  "levels": ["broken", "absent", "manual", "scripted", "automated", "governed"],
+  "levels": ["broken", "absent", "manual", "automated", "governed"],
   "triggers": ["none", "manual_request", "scheduled", "on_commit", "on_data_arrival",
                "on_new_version", "on_metric_threshold", "on_alert", "on_approval"],
   "stages": [
@@ -111,6 +111,35 @@ Governs: `gov.*` to the components they control, for example `gov.iam -> deploy.
 
 Slack defaults (D28): `0` on the core flow from data through model to serving, so a break there propagates in full. `1` on side edges such as experiment tracking and requirement feeds. Per edge in config, tunable in playtest.
 
+## Edge level and trigger
+
+Kept consistent by config validation and by `apply` (D30):
+
+| edge level | trigger |
+|---|---|
+| broken, absent | `none` |
+| manual | `manual_request` |
+| automated, governed | an automatic trigger from `allowed_triggers` |
+
+- raising or lowering an edge resets its trigger to fit, keeping the current automatic trigger when there is one, otherwise the first automatic trigger in `allowed_triggers`
+- `set_trigger` with an automatic trigger on a non-automated edge automates it
+- `set_trigger` with `manual_request` or `none` that does not fit the level is rejected: demoting is a level change
+
+## Instances
+
+Config `instance_kinds` maps each kind to ordered properties, `initial_instances` seeds the ones that exist at game start (D31):
+
+```json
+"instance_kinds": {"model": {"properties": {
+  "performance": {"values": ["poor", "fair", "good", "excellent"], "initial": "fair"},
+  "latency":     {"values": ["slow", "acceptable", "fast"], "initial": "acceptable"}}}},
+"initial_instances": [{"id": "model:prediction_v1", "kind": "model", "component_id": "model.training_pipeline",
+                       "name": "Prediction model v1", "state": "active",
+                       "props": {"performance": "fair"}, "links": ["dataset:training_snapshot"]}]
+```
+
+Ops `instance_upsert` (missing properties filled with initials) and `set_instance_prop`. Values are validated against the kind. Comparisons in predicates use the order of `values`, worst to best for quality-like properties.
+
 ## Effective level
 
 Computed in topological order over pipeline edges. Pure.
@@ -147,8 +176,9 @@ Stage flow level is the weakest pipeline edge crossing that stage boundary. Stag
 class Stage:      id, name, phase_id, weight, owner_role, band
 class Component:  id, stage_id, name, owner_role, weight, initial_level, allowed_levels, attributes
 class Edge:       id, from_id, to_id, kind, slack, initial_level, initial_trigger, allowed_levels, allowed_triggers
-class Instance:   id, kind, component_id, name, state, attrs, links
-class GraphOp:    kind: Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "observe"]
+class Instance:   id, kind, component_id, name, state, props, links
+class GraphOp:    kind: Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert",
+                                "set_instance_prop", "observe"]
                   target, value, source_kind, source_id, phase_id, challenge_template
 class DebtEntry:  target_id, intended_level, applied_level, owner_id, challenge_template
 class GraphState: component_levels, edge_levels, edge_triggers, attrs, instances, debt
@@ -180,7 +210,9 @@ One boolean tree evaluator, used by patterns, Boundaries, challenge precondition
 
 ```json
 {"all": [
-  {"component": "deploy.serving", "op": "gte", "level": 4, "on": "effective"},
+  {"component": "deploy.serving", "op": "gte", "level": 3, "on": "effective"},
+  {"instance": {"kind": "model", "state": "active", "op": "exists",
+                "where": {"performance": {"op": "lte", "value": "fair"}}}},
   {"edge": "e.alert_retrain", "op": "lte", "level": 1},
   {"edge": "e.ingest_validate", "trigger": "eq", "value": "manual_request"},
   {"attr": "deploy.serving.hosting", "op": "ne", "value": "public_cloud"},
@@ -210,7 +242,7 @@ class GraphOpLog(Base):
 
 - [x] 1. Author `MlopsGraph.json` plus schema: stages, 34 components, edge skeleton with slack defaults, triggers, allowed levels. Content owner review pending, see Q20 in STATE.
 - [x] 2. Domain models, factory mirroring `phase_factory.py`.
-- [x] 3. `apply.py`: six op kinds, degradation, snapping.
+- [x] 3. `apply.py`: seven op kinds, degradation, snapping, edge trigger sync.
 - [x] 4. `effective.py`: topological effective levels, `capped_by` trace, DAG gate.
 - [x] 5. `predicates.py` with trace, including edge, trigger, attr clauses.
 - [x] 6. `stage_graph.py`: stage flows, maturity term. Pattern terms plug in from 03.
@@ -224,3 +256,4 @@ class GraphOpLog(Base):
 ## Done when
 
 `pytest tests/test_graph_core.py` green, a fresh player seeds a full technical graph, breaking ingestion visibly caps downstream components in a test.
+- [x] 13. v3.2: five-level scale without `scripted`, edge level and trigger invariant, typed instance properties with seeded starting instances.

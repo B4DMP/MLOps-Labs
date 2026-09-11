@@ -19,7 +19,7 @@ Single source of truth for progress. Update after every completed step.
 | 00 | [Overview and decisions](00-overview.md) | - | DONE | Read first. Two graphs, fog of war, taxonomy, loop. |
 | 01 | [Graph core](01-graph-core.md) | 00 | DONE | Migration applied, seeding on game init, refactor tool. Ships dark. Review findings pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | TODO | Driver, Boundary, Trade-off, Fact, plus Language profile. |
-| 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 12 anti + 15 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
+| 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
 | 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | TODO | Tier 0 first, then full set. Resumable harness, 9 gates. |
 | 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | TODO | Cross phase intel, chains shown as one growing card. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | TODO | Any-mix card, five objection kinds, escalation, veto, stalemate. |
@@ -62,13 +62,15 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | D27 | Card composition? | 1 to 5 stance items in any mix of Driver, Boundary, Trade-off. No quota. Every stance item is an action plus its importance to the stakeholder. Boundaries are slottable and also checked automatically when unslotted. |
 | D28 | Edge slack? | 0 on the core data to model to serving flow, 1 on side edges. Per edge, tunable. |
 | D29 | Content scope for v1? | Tier 0 first: 2 phases, 2 templates each plus fallback, every mechanic exercised once, verified end to end. Full set after. |
+| D30 | Scripted vs automated? | No `scripted` level. Five levels: broken, absent, manual, automated, governed. Edge level and trigger are kept consistent automatically. |
+| D31 | Instance properties? | Ordered enum properties per instance kind in config, read by predicates, changed by world events, seeded starting instances. Not in coverage. |
 
 ## Open questions
 
 | ID | Question | Needed by |
 |---|---|---|
 | Q21 | Starting graph puts every stage in the red band (health 18 to 31). Intended "you inherit a mess", or too grim? Knobs: `health_base`, `degraded` threshold, initial levels. | playtest |
-| Q20 | Review `gameConfig/MlopsGraph.json`: component names, initial levels, allowed levels per component, attribute enums (tools, hosting, sourcing), edge skeleton and slack, `briefing_observed`. Cheap to change now, expensive once content is generated against it. | 04 |
+| Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
 
 ## Deferred scope
 
@@ -81,7 +83,8 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **v2.1** fog of war decided, instances deferred, BACKLOG added.
 - **v2.2** Q9 to Q11 answered.
 - **v3** Driver / Boundary / Trade-off / Fact taxonomy with Language as profile. Reviewer notes ([REVISION_NOTES.md](REVISION_NOTES.md)) folded in: two-graph architecture with edges as mechanics, 34 component set, health and scheduling from anti and design patterns, facts as intel with defined pitch effects, fog of war sharpened, chains shown as one card, card of intel only, fit against all stakeholders, Defer, Cite Evidence and Trade removed. Plan 03 renamed.
+- **v3.2** graph review: scripted level dropped with edge trigger invariant (D30), typed instance properties (D31).
 - **v3.1** Q16 to Q19 answered: risk assessment added, registry absorbs versioning, drift pair renamed, any-mix card with slottable Boundaries, slack defaults, tier 0 content first.
 - **impl** plan 01 implemented: `domain/graph.py`, `domain/graph_factory.py`, `domain/story_factory.py`, `application/graph_service/` (apply, effective, predicates, stage_graph, story, store), migration `e5f6a7b8c9d0`, `tests/test_graph_core.py`.
 - **impl** graph refactor tool with aliases and retirements; absent steps pass through in effective levels.
-- **impl** plan 03 implemented: `domain/pattern.py`, `domain/graph_predicates.py` (moved from application so config load can validate), `application/graph_service/view.py`, `scheduler.py`, challenge template fields, `MlopsPatterns.json`, `tests/test_graph_patterns.py`. 91 tests green.
+- **impl** plan 03 implemented: `domain/pattern.py`, `domain/graph_predicates.py` (moved from application so config load can validate), `application/graph_service/view.py`, `scheduler.py`, challenge template fields, `MlopsPatterns.json`, `tests/test_graph_patterns.py`.

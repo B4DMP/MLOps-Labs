@@ -13,14 +13,13 @@ from pydantic import BaseModel, Field, model_validator
 
 class Level(IntEnum):
     """Maturity of a component or edge. `broken` sits below `absent` on purpose: a failing
-    check nobody trusts is worse than no check."""
+    check nobody trusts is worse than no check. Who starts an automated edge is its trigger."""
 
     BROKEN = 0
     ABSENT = 1
     MANUAL = 2
-    SCRIPTED = 3
-    AUTOMATED = 4
-    GOVERNED = 5
+    AUTOMATED = 3
+    GOVERNED = 4
 
 
 MAX_LEVEL = int(Level.GOVERNED)
@@ -42,8 +41,13 @@ def parse_level(value: Any) -> int:
     return level
 
 
+# Triggers that mean nobody or a person starts the work. Every other trigger is automatic.
+NON_AUTOMATIC_TRIGGERS = frozenset({"none", "manual_request"})
+
 EdgeKind = Literal["pipeline", "feedback", "governs"]
-OpKind = Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "observe"]
+OpKind = Literal[
+    "raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop", "observe"
+]
 SourceKind = Literal["intel", "action_card", "world_event", "challenge_seed", "admin"]
 KnowledgeState = Literal["unknown", "current", "stale"]
 
@@ -96,6 +100,41 @@ class Edge(BaseModel):
 
     model_config = {"populate_by_name": True}
 
+    @property
+    def default_automatic_trigger(self) -> Optional[str]:
+        """Trigger an edge gets when it is raised to automated without naming one."""
+        return next((t for t in self.allowed_triggers if t not in NON_AUTOMATIC_TRIGGERS), None)
+
+
+def trigger_for_level(edge: Edge, level: int, current: Optional[str]) -> Optional[str]:
+    """The trigger an edge must carry at `level`: none when absent or broken, manual_request when
+    manual, an automatic one when automated or governed (keeping the current one if it fits)."""
+    if level <= Level.ABSENT:
+        return "none"
+    if level == Level.MANUAL:
+        return "manual_request"
+    if current is not None and current not in NON_AUTOMATIC_TRIGGERS:
+        return current
+    return edge.default_automatic_trigger
+
+
+class InstanceProperty(BaseModel):
+    """An ordered property of an instance kind. Comparisons use the order of `values`;
+    for quality-like properties it runs from worst to best."""
+
+    values: list[str]
+    initial: str
+
+    @model_validator(mode="after")
+    def _initial_in_values(self):
+        if self.initial not in self.values:
+            raise ValueError(f"initial '{self.initial}' not in {self.values}")
+        return self
+
+
+class InstanceKind(BaseModel):
+    properties: dict[str, InstanceProperty] = Field(default_factory=dict)
+
 
 class GraphThresholds(BaseModel):
     healthy: int = 75
@@ -109,7 +148,7 @@ class GraphThresholds(BaseModel):
 class TechnicalGraph(BaseModel):
     levels: list[str]
     triggers: list[str]
-    instance_kinds: list[str]
+    instance_kinds: dict[str, InstanceKind]
     instance_states: list[str]
     thresholds: GraphThresholds = Field(default_factory=GraphThresholds)
     briefing_observed: list[str] = Field(default_factory=list)
@@ -120,6 +159,7 @@ class TechnicalGraph(BaseModel):
     stages: list[Stage]
     components: list[Component]
     edges: list[Edge]
+    initial_instances: list["Instance"] = Field(default_factory=list)
 
     # Lookup maps, filled after validation.
     _stages: dict[str, Stage] = {}
@@ -181,6 +221,30 @@ class TechnicalGraph(BaseModel):
     def pipeline_edges(self) -> list[Edge]:
         return [e for e in self.edges if e.kind == "pipeline"]
 
+    def prop_rank(self, kind: str, prop: str, value: str) -> int:
+        return self.instance_kinds[kind].properties[prop].values.index(value)
+
+    def with_default_props(self, inst: "Instance") -> "Instance":
+        """Fills unset properties with the kind's initial values."""
+        defaults = {name: p.initial for name, p in self.instance_kinds[inst.kind].properties.items()}
+        return inst.model_copy(update={"props": {**defaults, **inst.props}})
+
+    def instance_errors(self, inst: "Instance") -> list[str]:
+        if inst.kind not in self.instance_kinds:
+            return [f"instance '{inst.id}' has unknown kind '{inst.kind}'"]
+        errors = []
+        if inst.state not in self.instance_states:
+            errors.append(f"instance '{inst.id}' has unknown state '{inst.state}'")
+        if not self.is_component(inst.component_id):
+            errors.append(f"instance '{inst.id}' sits on unknown component '{inst.component_id}'")
+        props = self.instance_kinds[inst.kind].properties
+        for name, value in inst.props.items():
+            if name not in props:
+                errors.append(f"instance '{inst.id}' has unknown property '{name}'")
+            elif value not in props[name].values:
+                errors.append(f"instance '{inst.id}' property '{name}' has unknown value '{value}'")
+        return errors
+
 
 class EffectiveView(BaseModel):
     components: dict[str, int] = Field(default_factory=dict)
@@ -196,14 +260,15 @@ class EffectiveView(BaseModel):
 
 
 class Instance(BaseModel):
-    """A concrete named thing in the graph (dataset, model, endpoint...). Story and patterns only."""
+    """A concrete named thing in the graph (dataset, model, endpoint...). Its properties are
+    read by patterns and challenge preconditions, never directly by coverage."""
 
     id: str
     kind: str
     component_id: str
     name: str
     state: str
-    attrs: dict[str, str] = Field(default_factory=dict)
+    props: dict[str, str] = Field(default_factory=dict)
     links: list[str] = Field(default_factory=list)
 
 
@@ -223,6 +288,8 @@ class GraphOp(BaseModel):
     def _normalise(self):
         # Content writes set_attr targets as "stage.component.attr"; normalise to target + attr.
         if self.kind == "set_attr" and self.attr is None and self.target.count(".") >= 2:
+            self.target, self.attr = self.target.rsplit(".", 1)
+        if self.kind == "set_instance_prop" and self.attr is None and "." in self.target:
             self.target, self.attr = self.target.rsplit(".", 1)
         if self.kind in ("raise_to", "set_to"):
             self.value = parse_level(self.value)
@@ -264,6 +331,7 @@ class GraphState(BaseModel):
             edge_levels={e.id: e.initial_level for e in graph.edges},
             edge_triggers={e.id: e.initial_trigger for e in graph.edges},
             attrs={c.id: {name: a.initial for name, a in c.attributes.items()} for c in graph.components},
+            instances={i.id: graph.with_default_props(i) for i in graph.initial_instances},
         )
 
     def level(self, target_id: str) -> int:
@@ -290,3 +358,6 @@ class Knowledge(BaseModel):
         if entry is None:
             return "unknown"
         return "current" if entry.seq >= truth.changed_at.get(target_id, -1) else "stale"
+
+
+TechnicalGraph.model_rebuild()

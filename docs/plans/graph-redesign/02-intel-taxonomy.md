@@ -52,7 +52,7 @@ Phrasing rule for generation: Drivers as direction ("every point of accuracy mat
 **Driver**
 
 ```json
-{"metric_id": "model", "suggested": {"target": "model.evaluation", "level": 4}}
+{"metric_id": "model", "suggested": {"target": "model.evaluation", "level": 3}}
 ```
 
 Coverage credit: full for the suggested target at level, partial for any other component or edge with positive `component_weights` on the same metric ([07](07-simulation-phase.md)). Several cards can satisfy one Driver, and Drivers from different stakeholders can be satisfied by the same change.

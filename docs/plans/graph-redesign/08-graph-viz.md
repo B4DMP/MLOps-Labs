@@ -23,13 +23,13 @@ Player sees the stage graph always and the technical graph through fog. Referenc
 Click a stage to open its technical slice.
 
 - components as boxes, internal pipeline edges as arrows, incoming and outgoing edges to neighbouring stages stubbed at the border
-- component: nominal and effective level pips, shown separately only when they differ, with the cap named on hover
+- component: nominal and effective level pips (0 to 4), shown separately only when they differ, with the cap named on hover
 - edge: maturity level on the arrow, trigger as an icon (manual hand, clock, commit, data arrival, alert, approval)
 - `broken` red and distinct from `absent`
 - story fragment line per component and edge
 - owner avatar per component via `StakeholderAvatarComponent`
 - debt marked amber with the blocking stakeholder
-- instances listed with their state
+- instances listed with their state and properties (for example model performance, dataset freshness)
 - patterns touching this stage with their story line
 - before and after toggle, fed by the delta report from [07](07-simulation-phase.md)
 

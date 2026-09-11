@@ -168,7 +168,8 @@
                     "set_to",
                     "set_trigger",
                     "set_attr",
-                    "instance_upsert"
+                    "instance_upsert",
+                    "set_instance_prop"
                   ]
                 },
                 "target": {
@@ -201,7 +202,8 @@
                     "set_to",
                     "set_trigger",
                     "set_attr",
-                    "instance_upsert"
+                    "instance_upsert",
+                    "set_instance_prop"
                   ]
                 },
                 "target": {
@@ -253,7 +255,7 @@
                     "wants": {
                       "type": "integer",
                       "minimum": 0,
-                      "maximum": 5
+                      "maximum": 4
                     }
                   }
                 }
