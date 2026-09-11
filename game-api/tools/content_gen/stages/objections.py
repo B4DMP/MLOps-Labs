@@ -6,7 +6,7 @@ stage component (the owner's technical objection when a change there would be ca
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, render, text_errors
+from content_gen.stages.common import GAME_RULES, render, text_errors, tokenize_names
 
 KIND_FOR_TAG = {"driver": "stance", "boundary": "boundary", "trade_off": "price"}
 
@@ -34,7 +34,7 @@ GUIDE = {
 
 class ObjectionsStage:
     name = "objections"
-    prompt_version = "o1"
+    prompt_version = "o2"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -98,7 +98,8 @@ class ObjectionsStage:
                 *feedback,
             ])
             out, usage = await llm.structured(StanceObjection, SYSTEM, user, tags={"item_id": item.item_id})
-        return out.model_dump(), usage
+        data = out.model_dump()
+        return {k: tokenize_names(v, ctx.stakeholders) if k != "line" else v for k, v in data.items()}, usage
 
     def check(self, output: dict, item, ctx) -> list[str]:
         if item.inputs["kind"] == "technical":

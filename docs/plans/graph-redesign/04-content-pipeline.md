@@ -135,6 +135,26 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 
 `make validate-content` passes on a fully regenerated set, a killed run resumes without duplicate work, a prompt edit invalidates only its own items, and a fresh player can be walked through two phases on generated content alone.
 
+## What a small model needs (learned in the tier 0 run)
+
+The model is a 24B Mistral on the institute endpoint. What made generation converge:
+
+- **JSON mode with the schema in the prompt, not function calling.** Function calling with the
+  nested template schema hung: the server's guided decoding ran to the length limit. Same result,
+  10 seconds instead of never. Output tokens and request timeout are capped.
+- **Menus instead of predictions.** The model cannot guess what a world event does to stage health,
+  so the harness computes every single event's real effect and hands it over as a menu.
+- **Deterministic normalisation instead of instructions.** Plain stakeholder names are rewritten
+  into `{data_dave}` / `#data_dave#` tokens by the harness. Asking for it wasted attempts.
+- **Correct the previous answer, do not rewrite.** Feedback carries the previous answer plus every
+  problem seen so far, otherwise a fix for one check reintroduces another.
+- **One fact plus four readings per item.** Writing all four readings at once makes the fact neutral
+  by construction, and gives the wrong-tag variants for free.
+- **Ban the internal vocabulary in prose.** Levels and level numbers leak otherwise ("level 2.5").
+- **`try` before `run`.** One item, printed, nothing written; a full stage run is minutes.
+
+Attempt budget is 5, and typical items pass on attempt 1 to 3.
+
 ## Implementation notes
 
 - Every stage checks its output with the game's own logic before writing it: predicates and ops against the graph, the payload gate, the challenge's world event must visibly damage the focus stage, Facts must be true right after it, the conflict must be answerable (soft) or blocked (hard), the fact of an item never says why.

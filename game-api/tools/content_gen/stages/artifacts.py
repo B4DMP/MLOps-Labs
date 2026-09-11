@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.llm import Usage
-from content_gen.stages.common import GAME_RULES, WISH_WORDS, render, text_errors
+from content_gen.stages.common import GAME_RULES, WISH_WORDS, render, text_errors, tokenize_names
 
 STANCE_TYPES = ["email", "slack_message", "meeting_notes", "document"]
 FACT_TYPES = ["runbook", "dashboard_snapshot", "incident_ticket", "ci_log", "architecture_note"]
@@ -55,7 +55,7 @@ def artifact_type(item_id: str, tag: str) -> str:
 
 class ArtifactsStage:
     name = "artifacts"
-    prompt_version = "a2"
+    prompt_version = "a3"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -92,6 +92,7 @@ class ArtifactsStage:
             *feedback,
         ])
         art, u1 = await llm.structured(ArtifactOut, SYSTEM, user, tags={"item_id": item.item_id})
+        art.content = tokenize_names(art.content, ctx.stakeholders)
         verdict, u2 = await llm.structured(Classification, CLASSIFY, art.content, tags={"item_id": item.item_id, "gate": "reclassify"})
         out = art.model_dump()
         out["reclassified_as"] = verdict.tag

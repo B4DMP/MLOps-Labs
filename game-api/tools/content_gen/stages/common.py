@@ -86,12 +86,18 @@ def render(obj: Any) -> str:
 def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
     """Rewrites plain stakeholder names into the tokens the game renders per player, so persona
     names stay consistent: {data_dave} in intel text, #data_dave# in challenge descriptions.
-    Deterministic, so the model does not spend attempts on it."""
+    Full names first, then bare first and last names. Deterministic, so the model does not spend
+    attempts on it."""
     if not text:
         return text
     for sid, st in sorted(stakeholders.items(), key=lambda kv: -len(kv[1].name or "")):
         if not st.name:
             continue
         token = f"{{{sid}}}" if style == "brace" else f"#{sid}#"
-        text = re.sub(re.escape(st.name), token, text, flags=re.I)
+        first_token = f"{{{sid}.first}}" if style == "brace" else token
+        text = re.sub(rf"\b{re.escape(st.name)}\b", token, text, flags=re.I)
+        for part in st.name.split():
+            if len(part) > 2:
+                # Only outside an existing token, so "{data_dave}" is not rewritten again.
+                text = re.sub(rf"(?<![{{#\w.]){re.escape(part)}\b(?![}}#\w])", first_token, text, flags=re.I)
     return text
