@@ -185,7 +185,9 @@ def _correction_objections(
     result = []
     for item in all_intel:
         if item.id in card_item_ids:
-            if getattr(item, "categorized_type", None) != getattr(item, "type", None):
+            filed_as = getattr(item, "categorized_type", None)
+            # Ground truth carries no player tag: only the player's own copy can be mis-filed.
+            if filed_as is not None and filed_as != getattr(item, "type", None):
                 st_id = getattr(item, "stakeholder_id", None) or ""
                 target = _target_id_for(item)
                 result.append(Objection(

@@ -36,6 +36,7 @@ class Challenge(BaseModel):
     fallback: bool = Field(default=False, description="Picked when nothing else in the phase is eligible")
     repeatable: bool = False
     on_enter_ops: list[dict] = Field(default_factory=list, description="World event ops fired when the challenge starts")
+    on_exit_ops: list[dict] = Field(default_factory=list, description="World event ops fired in the simulation that closes the challenge")
     stalemate_ops: list[dict] = Field(default_factory=list, description="World event ops fired when the pitch ends in stalemate")
     conflict: Optional["ChallengeConflict"] = None
     focus_stage_ids: list[str] = Field(default_factory=list)

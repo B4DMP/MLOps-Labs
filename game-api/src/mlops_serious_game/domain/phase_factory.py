@@ -101,7 +101,7 @@ class PhaseFactory:
                 seen.add(c.template_id)
                 for name in ("preconditions", "excluded_if"):
                     errors += [f"{where} {name}: {e}" for e in validate_predicate(getattr(c, name), graph, pattern_ids)]
-                for name in ("on_enter_ops", "stalemate_ops"):
+                for name in ("on_enter_ops", "on_exit_ops", "stalemate_ops"):
                     for raw in getattr(c, name):
                         try:
                             op = GraphOp.model_validate(raw)

@@ -59,6 +59,7 @@ class GameConfigLoader:
             PatternFactory.load(patterns_path, graph)
             stakeholder_ids = set(StakeholderFactory.get_available_stakeholders())
             PhaseFactory.validate_templates(graph, PatternFactory.ids(), stakeholder_ids)
+            MetricFactory.validate_component_weights(graph)
             RequirementFactory.validate_payloads(graph, set(MetricFactory.get_available_metrics()), stakeholder_ids)
             print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges, {len(PatternFactory.patterns)} patterns.")
 

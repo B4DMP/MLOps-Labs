@@ -210,6 +210,114 @@ def test_an_unslotted_trade_off_costs_buy_in(real):
     assert with_it.reads[0].buy_in > without.reads[0].buy_in
 
 
+def test_correction_fires_on_the_players_tag_not_on_ground_truth(real):
+    state = GraphState.from_config(real)
+    truth = _item("d1", "data_dave", "driver", suggested=_target("data.labeling", 3))
+    mis_filed = _item("d1", "data_dave", "driver", categorized_type="boundary",
+                      suggested=_target("data.labeling", 3))
+
+    # Ground truth alone carries no player tag, so nothing is mis-tagged.
+    truth.categorized_type = None
+    plain = session.objections_for(real, state, [truth], {"d1"}, ["data_dave"], authored={})
+    assert [o.kind for o in plain if o.kind == "correction"] == []
+    truth.categorized_type = IntelTag.DRIVER
+
+    # The player's own copy says boundary where the item is a driver.
+    filed = session.objections_for(
+        real, state, [truth], {"d1"}, ["data_dave"], authored={}, held_items=[mis_filed]
+    )
+    assert [o.kind for o in filed if o.kind == "correction"] == ["correction"]
+
+
+# ---------- the pitch as a state machine ----------
+
+def _objection(kind="stance", st_id="data_dave", item_id="d1"):
+    from mlops_serious_game.application.pitch_debate_service.objections import Objection
+    return Objection(kind=kind, stakeholder_id=st_id, item_id=item_id, text="no")
+
+
+def test_card_size_and_locking_are_enforced():
+    state = session.start_pitch(["data_dave"])
+    assert session.set_card(state, [])[1] == "a card holds 1 to 5 items"
+    assert session.set_card(state, [f"i{i}" for i in range(6)])[1]
+
+    ok, err = session.set_card(state, ["i1", "i2", "i2"], main_archetype="analyst")
+    assert err is None and ok.card_item_ids == ["i1", "i2"] and ok.main_archetype == "analyst"
+
+    objecting = session.open_objection_round(ok, [_objection()])
+    assert session.set_card(objecting, ["i3"])[1] == "the card is locked once the room starts objecting"
+
+
+def test_amend_puts_the_item_on_the_card_and_spends_budget():
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection()])
+    obj_id = state.objections[0].id
+
+    res = session.answer_objection(state, obj_id, "amend", 3, {"amend"}, item_id="d1")
+
+    assert res.rejected is None and res.cleared
+    assert res.state.card_item_ids == ["d1"]
+    assert res.state.amendments_left == session.DEFAULT_MAX_AMENDMENTS - 1
+    assert res.state.open_objections() == []
+
+
+def test_an_option_the_menu_did_not_offer_is_refused():
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection()])
+    res = session.answer_objection(state, state.objections[0].id, "amend", 3, {"stonewall"}, item_id="d1")
+    assert res.rejected and res.state.card_item_ids == []
+
+
+def test_stonewall_costs_emotion_with_one_side_and_gains_with_the_other():
+    state = session.open_objection_round(session.start_pitch(["data_dave", "reliability_ruth"]), [_objection()])
+    res = session.answer_objection(
+        state, state.objections[0].id, "stonewall", 3, {"stonewall"}, opposing_st_id="reliability_ruth"
+    )
+    assert res.state.emotion_deltas["data_dave"] < 0 < res.state.emotion_deltas["reliability_ruth"]
+
+
+def test_reframe_only_clears_a_stance_objection():
+    state = session.open_objection_round(
+        session.start_pitch(["data_dave"]), [_objection("stance"), _objection("boundary")]
+    )
+    soft = session.answer_objection(state, state.objections[0].id, "reframe", 3, {"reframe"})
+    hard = session.answer_objection(state, state.objections[1].id, "reframe", 3, {"reframe"})
+    assert soft.cleared is True
+    assert hard.cleared is False
+
+
+def test_the_addendum_needs_an_escalation_point():
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection()])
+    broke = session.answer_objection(state, state.objections[0].id, "emergency_addendum", 0, {"emergency_addendum"})
+    rich = session.answer_objection(state, state.objections[0].id, "emergency_addendum", 1, {"emergency_addendum"})
+    assert broke.rejected == "no Escalation Points left"
+    assert rich.spent_escalation_point and rich.state.emotion_deltas["data_dave"] < 0
+
+
+def test_rebuild_costs_the_room_patience_and_reopens_the_card():
+    room = ["data_dave", "reliability_ruth"]
+    state = session.open_objection_round(session.start_pitch(room), [_objection()])
+    rebuilt, _ = session.rebuild(state, room)
+
+    assert rebuilt.stage == "PREPARE" and rebuilt.objections == []
+    assert set(rebuilt.patience.values()) == {session.DEFAULT_PATIENCE - 1}
+    assert session.set_card(rebuilt, ["a", "b"])[1] is None
+
+
+def test_stalemate_only_when_patience_and_points_are_both_gone():
+    room = [("data_dave", "high")]
+    state = session.start_pitch(["data_dave"]).model_copy(update={"outcome": "VETO"})
+    assert session.is_stalemate(state, room, escalation_points=1) is False
+    out_of_patience = state.model_copy(update={"patience": {"data_dave": 0}})
+    assert session.is_stalemate(out_of_patience, room, escalation_points=0) is True
+
+
+def test_veto_breaker_pushes_the_card_through_at_a_price():
+    state = session.start_pitch(["data_dave"]).model_copy(update={"outcome": "VETO"})
+    res = session.veto_breaker(state, 1, ["data_dave"])
+    assert res.state.outcome == "PASS" and res.state.stage == "DONE"
+    assert res.state.patience["data_dave"] == 0
+    assert res.state.emotion_deltas["data_dave"] <= session.EMOTION_VETO_BREAKER
+
+
 def test_a_rebuild_has_to_change_two_items(real):
     assert session.rebuild_is_material({"a", "b", "c"}, {"a", "b", "d"}) is False
     assert session.rebuild_is_material({"a", "b", "c"}, {"a", "d", "e"}) is True

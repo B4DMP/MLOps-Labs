@@ -219,8 +219,16 @@ def objections_for(
     room_st_ids: list[str],
     authored: dict,
     max_per_stakeholder: int = 2,
+    held_items: Optional[list] = None,
 ) -> list[Objection]:
-    """Fires the deterministic objections against ground truth (stakeholders are never fogged)."""
+    """Fires the deterministic objections against ground truth (stakeholders are never fogged).
+
+    Correction objections are the exception: only the player's own copy of an item carries the tag
+    they filed it under, so slotted items are read from `held_items` where they exist. Without it
+    every ground truth item would look mis-tagged.
+    """
+    held_by_id = {i.id: i for i in (held_items or []) if i.id in card_item_ids}
+    all_intel = [held_by_id.get(i.id, i) for i in all_intel]
     items = card_items(all_intel, card_item_ids)
     violated = {
         w.item_id for w in boundary_checks(graph, state, all_intel, items, room_st_ids) if w.violated
@@ -343,6 +351,199 @@ def card_view(
         reads=reads,
         outcome=outcome([(r.stakeholder_id, r.power, r.buy_in, r.boundary_violated) for r in reads]),
     )
+
+
+# How much one answer moves the room. Tunable, deliberately small: the pitch is decided by
+# coverage and Boundaries, emotions only tip the close calls.
+EMOTION_STONEWALL = -0.10
+EMOTION_STONEWALL_ALLY = 0.05
+EMOTION_REFRAME = 0.02
+EMOTION_ADDENDUM = -0.15
+EMOTION_CONCEDE = -0.05
+EMOTION_VETO_BREAKER = -0.40
+
+
+class PitchState(BaseModel):
+    """The whole pitch, as it is carried between messages and stored per challenge.
+
+    Everything needed to redo the screen is in here, so a refresh or a reconnect resumes exactly
+    where the player was. The graph is not touched before COMMIT (plan 06).
+    """
+
+    stage: str = "PREPARE"  # PREPARE, OBJECT, COMMIT, DONE
+    card_item_ids: list[str] = Field(default_factory=list)
+    main_archetype: Optional[str] = None
+    secondary_archetype: Optional[str] = None
+    objections: list[Objection] = Field(default_factory=list)
+    resolved: dict[str, str] = Field(default_factory=dict, description="objection id to the option used")
+    amendments_used: int = 0
+    max_amendments: int = DEFAULT_MAX_AMENDMENTS
+    patience: dict[str, int] = Field(default_factory=dict)
+    rebuilds: int = 0
+    conceded_item_ids: list[str] = Field(default_factory=list)
+    emotion_deltas: dict[str, float] = Field(default_factory=dict)
+    outcome: Optional[str] = None
+
+    @property
+    def amendments_left(self) -> int:
+        return max(0, self.max_amendments - self.amendments_used)
+
+    def open_objections(self) -> list[Objection]:
+        return [o for o in self.objections if o.id not in self.resolved]
+
+
+class AnswerResult(BaseModel):
+    state: PitchState
+    cleared: bool = False
+    spent_escalation_point: bool = False
+    rejected: Optional[str] = Field(default=None, description="Why the answer did not apply")
+
+
+def start_pitch(room_st_ids: list[str], patience: int = DEFAULT_PATIENCE) -> PitchState:
+    return PitchState(patience={st_id: patience for st_id in room_st_ids})
+
+
+def set_card(
+    state: PitchState,
+    item_ids: list[str],
+    main_archetype: Optional[str] = None,
+    secondary_archetype: Optional[str] = None,
+) -> tuple[PitchState, Optional[str]]:
+    """PREPARE only. A card is 1 to 5 intel items in any mix (D27)."""
+    if state.stage != "PREPARE":
+        return state, "the card is locked once the room starts objecting"
+    unique = list(dict.fromkeys(item_ids))
+    if not 1 <= len(unique) <= MAX_CARD_ITEMS:
+        return state, f"a card holds 1 to {MAX_CARD_ITEMS} items"
+    if state.rebuilds and not rebuild_is_material(set(state.card_item_ids), set(unique)):
+        return state, f"a rebuilt card has to change at least {MIN_REBUILD_DELTA} items"
+    updated = state.model_copy(update={
+        "card_item_ids": unique,
+        "main_archetype": main_archetype if main_archetype is not None else state.main_archetype,
+        "secondary_archetype": secondary_archetype if secondary_archetype is not None else state.secondary_archetype,
+    })
+    return updated, None
+
+
+def open_objection_round(state: PitchState, objections: list[Objection]) -> PitchState:
+    return state.model_copy(update={"stage": "OBJECT", "objections": objections})
+
+
+def _bump(deltas: dict[str, float], st_id: Optional[str], amount: float) -> dict[str, float]:
+    if not st_id:
+        return deltas
+    out = dict(deltas)
+    out[st_id] = round(out.get(st_id, 0.0) + amount, 3)
+    return out
+
+
+def answer_objection(
+    state: PitchState,
+    objection_id: str,
+    option: str,
+    escalation_points: int,
+    available: set[str],
+    item_id: Optional[str] = None,
+    opposing_st_id: Optional[str] = None,
+) -> AnswerResult:
+    """Applies one dialogue option. `available` is what `options_for` allowed for this objection."""
+    objection = next((o for o in state.objections if o.id == objection_id), None)
+    if objection is None or objection_id in state.resolved:
+        return AnswerResult(state=state, rejected="that objection is not open")
+    if option not in available:
+        return AnswerResult(state=state, rejected="that option is not available here")
+
+    deltas = state.emotion_deltas
+    card = list(state.card_item_ids)
+    amendments = state.amendments_used
+    conceded = list(state.conceded_item_ids)
+    cleared = False
+    spent_point = False
+
+    if option == "amend":
+        if not item_id or item_id in card:
+            return AnswerResult(state=state, rejected="pick an intel item that is not on the card yet")
+        card.append(item_id)
+        amendments += 1
+        cleared = True
+    elif option == "reframe":
+        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_REFRAME)
+        cleared = objection.kind == "stance"
+    elif option == "stonewall":
+        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_STONEWALL)
+        deltas = _bump(deltas, opposing_st_id, EMOTION_STONEWALL_ALLY)
+        cleared = True  # the objection stands, but the room moves on
+    elif option == "emergency_addendum":
+        if escalation_points <= 0:
+            return AnswerResult(state=state, rejected="no Escalation Points left")
+        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_ADDENDUM)
+        spent_point = True
+        amendments += 1
+        cleared = True
+    elif option == "concede_correction":
+        if objection.item_id:
+            conceded.append(objection.item_id)
+        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_CONCEDE)
+        cleared = True
+
+    resolved = dict(state.resolved)
+    resolved[objection_id] = option
+    updated = state.model_copy(update={
+        "card_item_ids": card,
+        "amendments_used": amendments,
+        "conceded_item_ids": conceded,
+        "emotion_deltas": deltas,
+        "resolved": resolved,
+    })
+    return AnswerResult(state=updated, cleared=cleared, spent_escalation_point=spent_point)
+
+
+def commit_pitch(state: PitchState, view: CardView) -> PitchState:
+    """Locks in the outcome. The caller applies the ops and writes the grudges."""
+    return state.model_copy(update={
+        "stage": "DONE" if view.outcome != "VETO" else "COMMIT",
+        "outcome": view.outcome,
+    })
+
+
+def veto_breaker(state: PitchState, escalation_points: int, vetoing_st_ids: list[str]) -> AnswerResult:
+    """One Escalation Point pushes the card through. The overridden stakeholder remembers it (D7)."""
+    if escalation_points <= 0:
+        return AnswerResult(state=state, rejected="no Escalation Points left")
+    deltas = state.emotion_deltas
+    patience = dict(state.patience)
+    for st_id in vetoing_st_ids:
+        deltas = _bump(deltas, st_id, EMOTION_VETO_BREAKER)
+        patience[st_id] = 0
+    updated = state.model_copy(update={
+        "stage": "DONE", "outcome": "PASS", "emotion_deltas": deltas, "patience": patience,
+    })
+    return AnswerResult(state=updated, spent_escalation_point=True)
+
+
+def rebuild(state: PitchState, room_st_ids: list[str]) -> tuple[PitchState, Optional[str]]:
+    """Back to PREPARE at the cost of one patience from everyone in the room.
+
+    A high power stakeholder out of patience with no way left to push the card through is what
+    ends the challenge in stalemate; the caller checks that with `is_stalemate`.
+    """
+    patience = {st_id: state.patience.get(st_id, DEFAULT_PATIENCE) - 1 for st_id in room_st_ids}
+    updated = state.model_copy(update={
+        "stage": "PREPARE",
+        "patience": patience,
+        "objections": [],
+        "resolved": {},
+        "rebuilds": state.rebuilds + 1,
+        "outcome": None,
+    })
+    return updated, None
+
+
+def is_stalemate(state: PitchState, room: list[tuple[str, str]], escalation_points: int) -> bool:
+    """No patience left with a high power stakeholder vetoing, and no Escalation Point to spend."""
+    if state.outcome != "VETO" or escalation_points > 0:
+        return False
+    return any(power == "high" and state.patience.get(st_id, DEFAULT_PATIENCE) <= 0 for st_id, power in room)
 
 
 def rebuild_is_material(previous_ids: set[str], new_ids: set[str], min_delta: int = MIN_REBUILD_DELTA) -> bool:

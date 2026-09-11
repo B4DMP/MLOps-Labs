@@ -65,6 +65,10 @@ class GameSession(Base):
     stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
     stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    # 3 per game, never regenerated (D15): spent on a Veto Breaker or an Emergency Addendum
+    escalation_points: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    # What neglected stakeholders remember, fired in the simulation phase (plan 07)
+    grudges: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )

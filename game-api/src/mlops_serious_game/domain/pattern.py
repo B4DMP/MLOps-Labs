@@ -59,6 +59,22 @@ def predicate_targets(pred: Any) -> set[str]:
     return set()
 
 
+def _op_errors(raw_ops: list[dict], graph: TechnicalGraph) -> list[str]:
+    """Consequence ops fire without the player in the room, so a typo there has to fail on load."""
+    from mlops_serious_game.domain.graph import GraphOp
+
+    errors: list[str] = []
+    for raw in raw_ops:
+        try:
+            op = GraphOp.model_validate(raw)
+        except Exception as e:
+            errors.append(str(e))
+            continue
+        if op.kind not in ("instance_upsert", "set_instance_prop") and not graph.is_target(graph.resolve(op.target)):
+            errors.append(f"unknown target '{op.target}'")
+    return errors
+
+
 def validate_patterns(patterns: list[Pattern], graph: TechnicalGraph) -> list[str]:
     """Returns patterns in evaluation order (dependencies first). Raises on any config error."""
     errors: list[str] = []
@@ -76,6 +92,7 @@ def validate_patterns(patterns: list[Pattern], graph: TechnicalGraph) -> list[st
             if (p.kind == "anti") != (effect < 0):
                 errors.append(f"pattern '{p.id}': anti patterns subtract health, design patterns add it")
         errors += [f"pattern '{p.id}': {e}" for e in validate_predicate(p.when, graph, set(ids))]
+        errors += [f"pattern '{p.id}' consequence_ops: {e}" for e in _op_errors(p.consequence_ops, graph)]
     if errors:
         raise GraphConfigError("; ".join(errors))
     try:
