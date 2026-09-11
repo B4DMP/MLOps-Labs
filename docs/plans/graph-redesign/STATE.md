@@ -20,7 +20,7 @@ Single source of truth for progress. Update after every completed step.
 | 01 | [Graph core](01-graph-core.md) | 00 | DONE | Migration applied, seeding on game init, refactor tool. Ships dark. Review findings pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
-| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | TODO | Tier 0 first, then full set. Resumable harness, 9 gates. |
+| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Harness, gates, assembly done and tested with a fake model. Next: real tier 0 run, human review. |
 | 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | TODO | Cross phase intel, chains shown as one growing card. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | TODO | Any-mix card, five objection kinds, escalation, veto, stalemate. |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | TODO | Apply, capping, propagation, patterns, grudges, delta report. |
@@ -92,3 +92,4 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **impl** plan 03 implemented: `domain/pattern.py`, `domain/graph_predicates.py` (moved from application so config load can validate), `application/graph_service/view.py`, `scheduler.py`, challenge template fields, `MlopsPatterns.json`, `tests/test_graph_patterns.py`.
 - **impl** plan 02 implemented: `IntelTag` with payloads and gate, legacy content and stored rows re-tagged (migration `f6a7b8c9d0e1`), prompts and UI on shared tag wording, Facts lift fog on leaving offline gathering. 107 tests green, UI typechecks.
 - **v3.3** health measures problems (D32), start green with stage-level fog (D33), gameplay data wiped (D34).
+- **impl** content harness (plan 04 steps 0, 1, 1b); intel description split folded in (fact holds still, reading changes with the tag).

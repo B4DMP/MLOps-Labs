@@ -16,6 +16,10 @@ export interface IntelEntry {
   intel_type: string; // e.g. "unconfirmed", "verified"
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
+  /** Split wording: the part that holds still whatever the player tags it (bold). */
+  fact?: string | null;
+  /** Split wording: the part the tag is about; italic while the call is unconfirmed. */
+  reading?: string | null;
   is_correct?: boolean;
   /** Where the item came from: "public_record", "offline_artifact", "interview" or "debate". */
   source?: string;
@@ -1107,13 +1111,18 @@ export default function StakeholderDossier({
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.driver;
               const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
-              // Re-tagging swaps the whole sentence, and the only span that reliably survives the
-              // swap is the stakeholder's name. Hold that steady in bold and italicise the rest,
-              // so the part that moves when you change your mind looks like the part that moves.
+              // Split items carry a fact that holds still and a reading that changes with the tag:
+              // bold the fact, italicise the reading while it is unconfirmed. Legacy items only have
+              // one sentence, and the only span that reliably survives a re-tag is the name.
               const noteDescription = item.description || "";
+              const hasSplit = Boolean(item.fact);
               const hasSubjectLead = Boolean(st.name) && noteDescription.startsWith(st.name);
-              const noteSubject = hasSubjectLead ? st.name : "";
-              const noteReading = hasSubjectLead ? noteDescription.slice(st.name.length) : noteDescription;
+              const noteSubject = hasSplit ? item.fact || "" : hasSubjectLead ? st.name : "";
+              const noteReading = hasSplit
+                ? ` ${item.reading || ""}`
+                : hasSubjectLead
+                ? noteDescription.slice(st.name.length)
+                : noteDescription;
               const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
               const sourceCaption = getSourceCaption(item);
               // Paper colour matches the stamp: orange still open, blue public, green earned.

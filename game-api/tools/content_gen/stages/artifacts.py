@@ -20,7 +20,7 @@ TAGS = ["driver", "boundary", "trade_off", "fact"]
 
 class ArtifactOut(BaseModel):
     content: str = Field(description="the artifact body, 60 to 150 words, no title or subject line")
-    wrong_as_driver: Optional[str] = Field(default=None, description="one sentence: how a player who tags this as a driver misreads it")
+    wrong_as_driver: Optional[str] = Field(default=None, description="one sentence: the READING a player who tags this as a driver takes away")
     wrong_as_boundary: Optional[str] = None
     wrong_as_trade_off: Optional[str] = None
     wrong_as_fact: Optional[str] = None
@@ -41,8 +41,9 @@ intel item, and a careful reader must be able to tell which kind it is:
 - fact: a neutral technical record of how the system is. Nobody's wish, refusal or acceptance.
 Stance artifacts are written by the stakeholder in their own voice. Fact artifacts read like
 system output or engineering notes. No title, subject line, greeting header or signature block.
-Also write, for each OTHER tag, one sentence describing how a player who picked that wrong tag
-would misread the item (in third person, using the stakeholder's name if there is one)."""
+Also write, for each OTHER tag, the reading a player who picked that wrong tag would take away:
+one short sentence in the same style as the item's reading, about how much the stakeholder cares.
+Never restate the fact; the game shows the fact in front of it unchanged."""
 
 CLASSIFY = """You read one workplace artifact from an MLOps project. Decide what it tells you,
 using this test in order:
@@ -91,7 +92,7 @@ class ArtifactsStage:
             f"Challenge: {i['challenge']['name']}. {i['challenge']['description']}",
             f"Artifact type: {i['artifact_type']}",
             f"Author: {render(i['author'])}" if i["author"] else "Author: a system or an engineer writing neutrally",
-            f"Intel item ({req['type']}): {req['description']}",
+            f"Intel item ({req['type']}). Fact: {req.get('fact') or req['description']} Reading: {req.get('reading') or ''}",
             "Write the stakeholder's name in full wherever it appears; the braces are placeholders "
             "the game fills in, so keep them exactly as given, e.g. {data_dave}.",
             *feedback,
@@ -120,9 +121,13 @@ class ArtifactsStage:
                 f"a blind reader classified this as {output.get('reclassified_as')} ({output.get('reclassify_reason')}); "
                 f"rewrite it so it clearly reads as a {tag}"
             )
+        fact = (req.get("fact") or "").strip().rstrip(".").lower()
         for t in TAGS:
             if t != tag:
-                errors += text_errors(f"wrong_as_{t}", output.get(f"wrong_as_{t}"), 5, 45)
+                wrong = output.get(f"wrong_as_{t}")
+                errors += text_errors(f"wrong_as_{t}", wrong, 3, 22)
+                if fact and wrong and fact in wrong.lower():
+                    errors.append(f"wrong_as_{t} repeats the fact; write only the reading")
         return errors
 
     def summary(self, output: dict) -> str:

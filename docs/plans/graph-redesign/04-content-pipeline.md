@@ -118,15 +118,15 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 
 ## Steps
 
-- [ ] 0. Define the tier 0 scope in config, scoped gates.
-- [ ] 1. Harness: work item model, input hashing, sqlite ledger, CLI with run, status, validate, diff.
-- [ ] 1b. Concurrency, retry, budget cap, clean SIGINT, Opik tagging, dry run.
+- [x] 0. Define the tier 0 scope in config, scoped gates (`tools/content_gen/scopes.json`).
+- [x] 1. Harness: work item model, input hashing, sqlite ledger, CLI with run, status, review, approve, reject, validate, diff, assemble.
+- [x] 1b. Concurrency, retry with the gate errors as feedback, budget cap, clean SIGINT, Opik tagging, dry run.
 - [ ] 2. Stage templates, human review. BLOCK until reviewed.
 - [ ] 3. Stage items, human review. BLOCK until reviewed.
 - [ ] 4. Stage artifacts.
 - [ ] 5. Stage objections.
 - [ ] 5b. Stage fragments.
-- [ ] 6. Validation, all nine gates, wired into `make` and CI.
+- [ ] 6. Validation gates implemented (`content_gen validate`); wiring into `make` and CI still open.
 - [ ] 7. Author the `conflict` block on every challenge template, derived from the existing framing conflicts.
 - [ ] 8. Tier 0 run, commit, verify end to end. Playtests of 05 to 07 run on it.
 - [ ] 9. Full regeneration after the tier 0 playtest, commit content.
@@ -134,3 +134,11 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 ## Done when
 
 `make validate-content` passes on a fully regenerated set, a killed run resumes without duplicate work, a prompt edit invalidates only its own items, and a fresh player can be walked through two phases on generated content alone.
+
+## Implementation notes
+
+- Every stage checks its output with the game's own logic before writing it: predicates and ops against the graph, the payload gate, the challenge's world event must visibly damage the focus stage, Facts must be true right after it, the conflict must be answerable (soft) or blocked (hard), the fact of an item never says why.
+- Items are written with split wording (fact plus reading, see [../intel-description-split.md](../intel-description-split.md)); wrong-tag variants are readings only.
+- Ledger paths are relative to the work dir, so a run inside the container can be reviewed and assembled on the host.
+- Assembly marks generated challenges and `gen_` items so re-assembly replaces exactly them, and keeps challenge ids stable in `work/assembly_ids.json`.
+- The orphan gate is a warning in tier 0 (`orphans_block: false`) and blocking in the full scope.

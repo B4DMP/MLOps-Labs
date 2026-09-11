@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class IntelTag(str, Enum):
@@ -16,6 +16,10 @@ class IntelTag(str, Enum):
 
 
 STANCE_TAGS = frozenset({IntelTag.DRIVER, IntelTag.BOUNDARY, IntelTag.TRADE_OFF})
+
+
+def join_wording(fact: Optional[str], reading: Optional[str]) -> str:
+    return " ".join(part.strip() for part in (fact, reading) if part and part.strip())
 
 # How stakeholder prompts describe each tag. One place, so every flow speaks the same language.
 TAG_PROMPT_DESCRIPTION: dict[IntelTag, str] = {
@@ -98,7 +102,11 @@ class StakeholderRequirement(BaseModel):
     challenge_id: int = Field(description="The ID of the challenge this requirement belongs to")
     stakeholder_id: Optional[str] = Field(default=None, description="The stakeholder, or None for a Fact")
     type: IntelTag = Field(description="The true tag of this intel item")
-    description: str = Field(description="Description of the requirement stance")
+    description: str = Field(default="", description="The whole sentence: fact and reading joined, or legacy free text")
+    # Split wording (intel-description-split): the fact holds still whatever the player tags it,
+    # only the reading changes with the tag. Legacy content has neither and uses description.
+    fact: Optional[str] = Field(default=None, description="What the stakeholder wants or did, never why")
+    reading: Optional[str] = Field(default=None, description="How much they care: the part the tag is about")
 
     # Driver: a metric the stakeholder wants moved, and the change that would do it.
     metric_id: Optional[str] = None
@@ -110,6 +118,12 @@ class StakeholderRequirement(BaseModel):
     concedes: Optional[Concession] = None
     # Fact: what is true about the graph.
     asserts: Optional[FactAssertion] = None
+
+    @model_validator(mode="after")
+    def _join_split_wording(self):
+        if self.fact and not self.description:
+            self.description = join_wording(self.fact, self.reading)
+        return self
 
 class StakeholderIntelItem(StakeholderRequirement):
     """A class representing a categorized stakeholder requirement (player's dossier intel item)"""
@@ -158,6 +172,15 @@ class StakeholderIntelItem(StakeholderRequirement):
 
     def is_correct(self) -> bool:
         return self.categorized_type == self.type
+
+    def shown_parts(self) -> tuple[Optional[str], str]:
+        """(fact, reading) as the player currently sees them. The fact is None for legacy items,
+        whose whole sentence then comes back as the reading."""
+        verified = str(getattr(self.intel_type, "value", self.intel_type)).lower() == "verified"
+        shown = self.description if verified else (self.categorized_description or self.description)
+        if self.fact and shown.startswith(self.fact):
+            return self.fact, shown[len(self.fact):].strip()
+        return None, shown
 
     def is_correct_intel(self) -> bool:
         return self.is_correct()

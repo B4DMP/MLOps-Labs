@@ -11,7 +11,11 @@ class RequirementFactory:
     @staticmethod
     def _personalized(req: StakeholderRequirement) -> StakeholderRequirement:
         """Renders the stored name tokens for the player currently being served."""
-        return req.model_copy(update={"description": personalize(req.description)})
+        update = {"description": personalize(req.description)}
+        if req.fact:
+            update["fact"] = personalize(req.fact)
+            update["reading"] = personalize(req.reading) if req.reading else req.reading
+        return req.model_copy(update=update)
 
     @classmethod
     def get_requirements(cls) -> List[StakeholderRequirement]:

@@ -90,6 +90,8 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
         if getattr(intel_item, "categorized_description", None):
             item_dict["description"] = intel_item.categorized_description
+        # Only what the player sees for their own call, never the true reading.
+        item_dict["fact"], item_dict["reading"] = intel_item.shown_parts()
         await manager.send_event(
             websocket=websocket,
             event="intel:tagged_ack",

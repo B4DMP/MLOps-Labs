@@ -10,6 +10,7 @@ from content_gen.ledger import WorkItem
 from content_gen.stages.common import GAME_RULES, WISH_WORDS, op_dict, parse_json_field, render, text_errors
 
 KEY = re.compile(r"^[a-z][a-z0-9_]{1,30}$")
+BECAUSE = re.compile(r"\b(because|so that|in order to)\b", re.I)  # not "since": usually about time
 
 
 class StanceOp(BaseModel):
@@ -23,7 +24,8 @@ class ItemOut(BaseModel):
     key: str = Field(description="short snake_case key, unique in this challenge")
     tag: Literal["driver", "boundary", "trade_off", "fact"]
     stakeholder_id: Optional[str] = Field(default=None, description="null for a fact")
-    description: str = Field(description="one sentence; stances start with {stakeholder_id} in braces")
+    fact: str = Field(description="first sentence: what they want or did, never why; stances start with {stakeholder_id}")
+    reading: str = Field(description="second sentence: how much they care, the part the tag is about")
     metric_id: Optional[str] = None
     suggested_target: Optional[str] = None
     suggested_level: Optional[int] = None
@@ -46,20 +48,28 @@ SYSTEM = GAME_RULES + """
 
 Write the intel items for one challenge. Each item is one thing the player can find out.
 
+Every item is two short sentences. The fact says what the stakeholder wants or did, observably,
+and never why. The reading says how much they care, and is the only part that differs between
+the tags. The fact must read the same whatever the tag, so the player can see what changes.
+  driver    fact "{data_dave} wants every batch validated." reading "He would take any improvement he can get."
+  boundary  fact "{data_dave} wants every batch validated." reading "He will not train on anything unchecked."
+  trade_off fact "{data_dave} wants every batch validated." reading "He could live without it to save the budget."
+A fact item (tag fact) states how the system is in the fact sentence, and its reading says plainly
+that this is simply the current state of things.
+
 Tags and payloads:
 - driver: something a stakeholder wants improved, more is better. Needs metric_id (one of the
   metrics given), suggested_target (a component or edge in the focus stage) and suggested_level
-  (higher than its current level). Description phrased as a direction: "{data_dave} wants ...".
+  (higher than its current level). The reading is a direction: more is better."
 - boundary: a line a stakeholder will not cross. Needs holds_json, a JSON predicate that must be
   true after the player's proposal (e.g. {"component": "data.validation", "op": "gte", "level": 3}),
-  and ops that make it true (e.g. raise_to data.validation 3). Description phrased as a refusal:
-  "{reliability_ruth} will not ...".
+  and ops that make it true (e.g. raise_to data.validation 3). The reading is a refusal.
 - trade_off: something a stakeholder would give up or accept losing. Needs concedes_metric with
   concedes_loss (1 to 10), or concedes_target with concedes_max_level. May carry ops such as
-  set_attr sourcing bought. Description phrased as acceptance: "{efficiency_emilia} can live with ...".
+  set_attr sourcing bought. The reading is acceptance of a cost.
 - fact: how the system is right now, nobody's wish. stakeholder_id null. Needs asserts_target (a
   focus stage component or edge) and asserts_level equal to its CURRENT level given below (and
-  asserts_trigger for edges if you state it). Neutral description with no wishes or opinions.
+  asserts_trigger for edges if you state it). Neutral wording with no wishes or opinions.
 
 Predicate language: {"component": id, "op": "gte"|"lte"|..., "level": 0..4}, {"edge": id, ...},
 {"all": [...]}, {"any": [...]}, {"not": {...}}. Ops: raise_to (value = level), set_trigger (value
@@ -136,7 +146,8 @@ class ItemsStage:
                 "challenge_id": challenge_id,
                 "stakeholder_id": it.get("stakeholder_id") if it["tag"] != "fact" else None,
                 "type": it["tag"],
-                "description": it["description"],
+                "fact": it["fact"],
+                "reading": it["reading"],
                 "metric_id": it.get("metric_id"),
                 "holds": holds,
                 "ops": [op_dict(o) for o in it.get("ops") or []],
@@ -207,7 +218,11 @@ class ItemsStage:
         stage_targets = {t for t in current}
         for r in reqs:
             where = r.id.removeprefix(f"gen_{c['template_id'].removeprefix('ch_')}_")
-            errors += text_errors(f"{where} description", r.description, 6, 45)
+            errors += text_errors(f"{where} fact", r.fact, 4, 25) + text_errors(f"{where} reading", r.reading, 3, 22)
+            if r.fact and BECAUSE.search(r.fact):
+                errors.append(f"{where}: the fact says what, never why; move the reason into the reading")
+            if r.fact and r.reading and r.fact.strip().rstrip(".").lower() in r.reading.lower():
+                errors.append(f"{where}: the reading must not repeat the fact")
             if r.type == "fact":
                 if WISH_WORDS.search(r.description):
                     errors.append(f"{where}: a fact states no wishes or refusals, rewrite it neutrally")
@@ -222,8 +237,8 @@ class ItemsStage:
                 continue
             if r.stakeholder_id not in roster:
                 errors.append(f"{where}: {r.stakeholder_id} is not in the room")
-            if f"{{{r.stakeholder_id}}}" not in r.description:
-                errors.append(f"{where}: description must name the stakeholder as {{{r.stakeholder_id}}}")
+            if f"{{{r.stakeholder_id}}}" not in (r.fact or ""):
+                errors.append(f"{where}: the fact must name the stakeholder as {{{r.stakeholder_id}}}")
             if r.type == "driver":
                 if not (r.metric_id and r.suggested):
                     errors.append(f"{where}: a driver needs metric_id and a suggested target and level")

@@ -7,6 +7,7 @@ from mlops_serious_game.domain.requirement import (
     ConfidenceType,
     IntelSource,
     IntelTag,
+    join_wording,
     StakeholderIntelItem,
     StakeholderRequirement,
 )
@@ -436,7 +437,10 @@ async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSoc
             intel_item.id,
             cat_type,
         )
-        if wrong_desc:
+        if wrong_desc and intel_item.fact:
+            # Split wording: only the reading changes with the tag, the fact holds still.
+            intel_item.categorized_description = join_wording(intel_item.fact, wrong_desc)
+        elif wrong_desc:
             intel_item.categorized_description = wrong_desc
         else:
             intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
@@ -760,11 +764,14 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
             is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
             display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
+            shown_fact, shown_reading = item.shown_parts()
             stakeholder_intel_map[st_id].append({
                 "id": item.id,
                 "intel_type": intel_type_val,
                 "categorized_type": cat_type_val,
                 "description": display_desc,
+                "fact": shown_fact,
+                "reading": shown_reading,
                 "is_correct": item.is_correct_intel(),
                 "source": _resolve_source(item).value,
                 "artifact_type": _artifact_type_for(item),

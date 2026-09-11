@@ -46,32 +46,41 @@ TEMPLATE = {
 
 ITEMS = {"items": [
     {"key": "dave_validation", "tag": "driver", "stakeholder_id": "data_dave",
-     "description": "{data_dave} wants every incoming batch validated automatically before anyone trains on it.",
+     "fact": "{data_dave} wants every incoming batch validated automatically.",
+     "reading": "He would take any improvement he can get.",
      "metric_id": "data", "suggested_target": "data.validation", "suggested_level": 3},
     {"key": "dave_versioning", "tag": "driver", "stakeholder_id": "data_dave",
-     "description": "{data_dave} wants each dataset versioned so a bad batch can be rolled back.",
+     "fact": "{data_dave} wants each dataset versioned.",
+     "reading": "More versioning is always better in his book.",
      "metric_id": "data", "suggested_target": "data.versioning", "suggested_level": 3},
     {"key": "ruth_ingestion", "tag": "boundary", "stakeholder_id": "reliability_ruth",
-     "description": "{reliability_ruth} will not sign off on anything while the ingestion job is still broken.",
+     "fact": "{reliability_ruth} wants the ingestion job running again.",
+     "reading": "She will not sign off on anything until it is.",
      "holds_json": json.dumps({"component": "data.ingestion", "op": "gte", "level": 2}),
      "ops": [{"kind": "raise_to", "target": "data.ingestion", "value": "2"}]},
     {"key": "ruth_handover", "tag": "driver", "stakeholder_id": "reliability_ruth",
-     "description": "{reliability_ruth} wants the hand over from ingestion to validation to run on its own.",
+     "fact": "{reliability_ruth} wants the hand over into validation to run on its own.",
+     "reading": "Every step closer to that helps her.",
      "metric_id": "reliability", "suggested_target": "e.ingest_validate", "suggested_level": 3},
     {"key": "emilia_cost", "tag": "trade_off", "stakeholder_id": "efficiency_emilia",
-     "description": "{efficiency_emilia} can live with paying for automated validation if it ends the outages.",
+     "fact": "{efficiency_emilia} agreed to discuss automated validation.",
+     "reading": "She can live with paying for it if the outages end.",
      "concedes_target": "data.validation", "concedes_max_level": 3},
     {"key": "reuben_contract", "tag": "driver", "stakeholder_id": "requirements_reuben",
-     "description": "{requirements_reuben} wants the agreed data contract applied to every ingestion run.",
+     "fact": "{requirements_reuben} wants the data contract applied to every ingestion run.",
+     "reading": "The closer the better, as far as he is concerned.",
      "metric_id": "requirements", "suggested_target": "e.contracts_ingest", "suggested_level": 2},
     {"key": "fact_ingestion", "tag": "fact",
-     "description": "The ingestion job is broken and has produced no new records since last night.",
+     "fact": "The ingestion job has produced no new records since last night.",
+     "reading": "That is simply the current state of the pipeline.",
      "asserts_target": "data.ingestion", "asserts_level": 0},
     {"key": "fact_handover", "tag": "fact",
-     "description": "New data is moved into validation by hand, on request.",
+     "fact": "New data is moved into validation by hand, on request.",
+     "reading": "That is how it works today.",
      "asserts_target": "e.ingest_validate", "asserts_level": 2, "asserts_trigger": "manual_request"},
     {"key": "fact_versioning", "tag": "fact",
-     "description": "Datasets are not versioned at all.",
+     "fact": "Datasets are not versioned at all.",
+     "reading": "Nothing more to it than that.",
      "asserts_target": "data.versioning", "asserts_level": 1},
 ]}
 
@@ -88,7 +97,7 @@ def respond(schema, system, user):
     if name == "ArtifactOut":
         tag = re.search(r"Intel item \((\w+)\)", user).group(1)
         return {"content": f"[{tag}] {FILLER}",
-                **{f"wrong_as_{t}": f"The player reads this as a {t} about the pipeline."
+                **{f"wrong_as_{t}": f"A player reading it as a {t} sees it differently."
                    for t in ("driver", "boundary", "trade_off", "fact") if t != tag}}
     if name == "Classification":
         return {"tag": re.match(r"\[(\w+)\]", user).group(1), "reason": "it says so"}
@@ -249,3 +258,37 @@ def test_pipeline_assembles_into_a_config_the_game_loads_and_the_gates_pass(env)
     state = ctx2.start_state()
     pick = select_in_phase(ctx2.phase(2), ctx2.evaluate(state).context(ctx2.graph, state), set(), "player")
     assert pick.template_id == "ch_ingest_outage"
+
+
+# ---------- split wording ----------
+
+def test_split_wording_keeps_the_fact_still_across_retags():
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem, join_wording
+
+    item = StakeholderIntelItem(id="x", challenge_id=0, stakeholder_id="data_dave", type="driver",
+                                fact="Dave wants every batch validated.", reading="He would take any improvement.")
+    assert item.description == "Dave wants every batch validated. He would take any improvement."
+    for wrong in ("He will not train on anything unchecked.", "He could live without it."):
+        item.categorized_type = "boundary"
+        item.categorized_description = join_wording(item.fact, wrong)
+        assert item.shown_parts() == ("Dave wants every batch validated.", wrong)
+    item.intel_type = "verified"
+    assert item.shown_parts() == ("Dave wants every batch validated.", "He would take any improvement.")
+
+
+def test_legacy_items_without_a_split_keep_one_sentence():
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem
+
+    item = StakeholderIntelItem(id="x", challenge_id=0, stakeholder_id="data_dave", type="driver",
+                                description="Dave wants validation.", categorized_description="Dave hates Emilia.")
+    assert item.shown_parts() == (None, "Dave hates Emilia.")
+
+
+def test_items_check_rejects_a_reason_in_the_fact(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+    bad = json.loads(json.dumps(ITEMS))
+    bad["items"][0]["fact"] = "{data_dave} wants batches validated because training broke."
+    assert any("never why" in e for e in STAGES["items"].check(bad, item, ctx))

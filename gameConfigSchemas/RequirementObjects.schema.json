@@ -148,6 +148,14 @@
                 "type": "string"
               }
             }
+          },
+          "fact": {
+            "type": "string",
+            "title": "Fact: what they want or did, never why. Stays put whatever the player tags."
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading: how much they care. The part the tag is about."
           }
         }
       }
