@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     WESTAI_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_CONTENT_GEN: str = "Qwen/Qwen3.8-27B"
 
     # -- MistralAI Proxy Configuration --
     MISTRAL_API_KEY: str | None = None

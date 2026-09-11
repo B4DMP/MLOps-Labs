@@ -39,6 +39,7 @@ class FlowView(BaseModel):
 class StageGraphView(BaseModel):
     stages: list[StageView]
     flows: list[FlowView]
+    feedback_flows: list[FlowView] = []
     system_health: float
 
 
@@ -97,8 +98,21 @@ def stage_graph(
             weakest[(a, b)] = (level, e.id)
     flows = [FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in weakest.items()]
 
+    # Cross-stage non-pipeline edges (feedback, monitoring) — weakest per stage pair.
+    fb_weakest: dict[tuple[str, str], tuple[int, str]] = {}
+    for e in graph.edges:
+        if e.kind == "pipeline":
+            continue
+        a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
+        if a == b:
+            continue
+        level = effective.edges[e.id]
+        if (a, b) not in fb_weakest or level < fb_weakest[(a, b)][0]:
+            fb_weakest[(a, b)] = (level, e.id)
+    feedback_flows = [FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in fb_weakest.items()]
+
     total_weight = sum(s.weight for s in graph.stages)
     by_id = {v.id: v for v in stages}
     system = sum(by_id[s.id].health * s.weight for s in graph.stages) / total_weight if total_weight else 0.0
 
-    return StageGraphView(stages=stages, flows=flows, system_health=round(system, 1))
+    return StageGraphView(stages=stages, flows=flows, feedback_flows=feedback_flows, system_health=round(system, 1))

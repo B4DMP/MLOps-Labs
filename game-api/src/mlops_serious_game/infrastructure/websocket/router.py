@@ -25,6 +25,7 @@ from .handlers.intel_handler import (
     handle_play_engagement_card,
     handle_generate_action_card,
 )
+from .handlers.graph_handler import handle_graph_state
 from .handlers.system_handler import handle_ping
 from .manager import manager
 
@@ -46,6 +47,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:verify_item": handle_verify_item,
     "intel:play_engagement_card": handle_play_engagement_card,
     "intel:generate_action_card": handle_generate_action_card,
+    "graph:state_request": handle_graph_state,
 }
 
 

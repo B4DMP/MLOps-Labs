@@ -14,7 +14,7 @@ LEVEL_TALK = re.compile(r"\blevels?\b|\b[0-4]\b")
 LEVEL_NUMBERS = re.compile(r"\b[0-4]\b")  # readings may say "governed", never "level 4"
 BECAUSE = re.compile(r"\b(because|so that|in order to)\b", re.I)  # not "since": usually about time
 # A stance fact must read the same whatever the tag: how much they care belongs in the reading.
-STANCE_WORDS = re.compile(r"\b(refuses?|will not|won't|never|could accept|can accept|accepts?|can live|willing|insists?|demands?)\b", re.I)
+STANCE_WORDS = re.compile(r"\b(refuses?|will not|won't|never|could accept|can accept|accepts?|can live|willing|insists?|demands?|must not|cannot)\b", re.I)
 EXAMPLE_READINGS = {
     "the more detail it shows, the better his forecasts get.",
     "he will not present to the board without it.",
@@ -68,21 +68,34 @@ SYSTEM = GAME_RULES + """
 Write the intel items for one challenge. Each item is one thing the player can find out.
 
 Every item is one fact sentence plus four reading sentences, one per tag. The fact says what the
-stakeholder wants or did, observably, never why and never how much they care: it has to fit all
-four readings. Each reading is the second sentence the player would see under that tag. The item's
-tag says which reading is true; the other three are what a player who picked that tag would think.
-Neutral fact verbs: asked for, proposed, brought up, suggested, wants, mentioned. Never in a fact:
-insists, refuses, will not, willing, accepts, can live with, demands, never. Those belong in readings.
-A fact item's fact sentence names no person and uses no wish words (wants, prefers, hopes).
+stakeholder proposed or observed, never why and never how much they care: it has to fit all four
+readings. Each reading is the second sentence the player would see under that tag. The item's tag
+says which reading is true; the other three are what a player who picked the wrong tag would think.
+Neutral fact verbs: asked for, proposed, brought up, suggested, mentioned, noted. Never in a fact:
+insists, refuses, will not, willing, accepts, can live with, demands, never, must not, cannot. Those
+belong in readings. A fact item's fact sentence names no person and uses no wish words.
 Never mention levels or numbers in any text: say broken, missing, done by hand, automated, governed.
-Example from an unrelated project, to show the shape only (write readings about your own item):
+
+The fact must say WHAT happened or what the system state is, never WHY. Wrong: "{data_dave} asked
+for cost savings in experiment tracking." Right: "{data_dave} proposed keeping experiment tracking
+done by hand."
+
+Example from an unrelated project — stance item, to show the shape only:
   fact      "{sales_sam} asked for a weekly dashboard of lost deals."
   driver    "The more detail it shows, the better his forecasts get."
   boundary  "He will not present to the board without it."
   trade_off "He would give it up if the reporting budget is needed elsewhere."
   fact      "That is simply what the reporting setup produces today."
-For a fact item the fact sentence states how the system is, with no person in it, and the stance
-readings describe someone mistaking it for a wish (e.g. "Someone on the team wants it this way.").
+
+For a fact item, the fact sentence describes a current system state with no person in it. All four
+readings must be SPECIFIC to this item — they must name the component, pipeline, or behaviour this
+fact is about. Generic phrases like "someone on the team wants it this way" or "they will not
+accept changes" are wrong: they could apply to any item and tell the player nothing useful. Example:
+  fact      "Data validation runs against a static schema written two years ago."
+  driver    "Updating the schema would catch the class of errors that reached production last month."
+  boundary  "Any schema change requires a compliance sign-off that blocks an immediate fix."
+  trade_off "Migrating to automated validation would mean rewriting those rules, which costs a sprint."
+  fact      "That is simply how the validation setup works today."
 
 Tags and payloads:
 - driver: something a stakeholder wants improved, more is better. Needs metric_id (one of the
@@ -105,7 +118,7 @@ Predicate language: {"component": id, "op": "gte"|"lte"|..., "level": 0..4}, {"e
 
 class ItemsStage:
     name = "items"
-    prompt_version = "i7"
+    prompt_version = "i8"
     upstream = "templates"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -252,6 +265,10 @@ class ItemsStage:
         dupes = sorted({x for x in true_readings if true_readings.count(x) > 1})
         if dupes:
             errors.append(f"true readings must be specific to their item; repeated: {dupes}")
+        fact_texts = [it["fact"].strip().rstrip(".").lower() for it in output["items"]]
+        dupe_facts = sorted({f for f in fact_texts if fact_texts.count(f) > 1})
+        if dupe_facts:
+            errors.append(f"fact sentences must be distinct across items; repeated: {dupe_facts[:3]}")
         facts = [r for r in reqs if r.type == "fact"]
         lo, hi = i["counts"]["stances"]
         if not lo <= len(stances) <= hi:

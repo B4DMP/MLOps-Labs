@@ -639,7 +639,7 @@
       "positions": [
         {
           "stakeholder_id": "model_monica",
-          "wants": 2
+          "wants": 3
         },
         {
           "stakeholder_id": "requirements_reuben",

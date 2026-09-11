@@ -19,6 +19,7 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
+import PipelineView from "./components/PipelineView";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
@@ -234,6 +235,7 @@ function App({ username: _username }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [convincerVerificationInfo, setConvincerVerificationInfo] = useState<ConvincerVerificationInfo | null>(null);
+  const [isPipelineOpen, setIsPipelineOpen] = useState(false);
 
   useEffect(() => {
     // Request initial game configurations ONCE on mount
@@ -919,6 +921,11 @@ function App({ username: _username }: AppProps) {
                 setConvincerArchetypes,
               }}
             >
+              <PipelineView
+                currentPhase={currentPhase}
+                isVisible={isPipelineOpen}
+                onToggle={() => setIsPipelineOpen((v) => !v)}
+              />
               <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
               <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}

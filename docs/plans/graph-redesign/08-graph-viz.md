@@ -64,14 +64,14 @@ Stages of phases not reached yet are not drawn beyond a locked placeholder: no h
 
 ## Steps
 
-- [ ] 1. `graph:state` handler from store, effective levels, stage graph, knowledge, story.
-- [ ] 2. Per stage layout coordinates in `MlopsGraph.json`.
-- [ ] 3. Strip: stages, band, flows, feedback arcs, pattern badges.
-- [ ] 4. Modal: technical slice, nominal and effective pips, edge levels and trigger icons.
-- [ ] 5. Fog rendering per the table.
-- [ ] 6. Navbar slot in `Game.tsx`.
-- [ ] 7. Before and after toggle.
-- [ ] 8. Responsive check at minimum width.
+- [x] 1. `graph:state` handler from store, effective levels, stage graph, knowledge, story. (`graph_state_view.py`, `handlers/graph_handler.py`, registered as `graph:state_request`)
+- [x] 2. Per stage layout coordinates in `MlopsGraph.json`. (`tools/scripts/add_layout_coords.py`; `Component.layout` field added to domain model; exposed in `graph_state_view.py`; SVG topology in `StageModal` with click-to-detail)
+- [x] 3. Strip: stages, band, flows, feedback arcs (Q21: curved SVG arcs above strip, height scales with stage distance), pattern badges. (`PipelineView.tsx`)
+- [x] 4. Modal: technical slice, nominal and effective pips, edge levels and trigger icons. (`PipelineView.tsx` — `StageModal` + `StageSvg` + `ComponentDetail`)
+- [x] 5. Fog rendering per the table. (unknown/current/stale rendered in PipelineView)
+- [x] 6. Navbar slot in `Game.tsx`. (floating toggle button, renders at progressionIndex === 2)
+- [ ] 7. Before and after toggle. (depends on 07 — delta report)
+- [x] 8. Responsive check at minimum width. (strip now scrolls horizontally, paddingRight=100 clears toggle button; modal has maxWidth=860 with scroll)
 
 ## Done when
 

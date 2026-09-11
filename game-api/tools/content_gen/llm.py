@@ -29,22 +29,39 @@ def _usage_from(raw: Any) -> Usage:
 
 
 class LangchainLLM:
-    """Uses the provider the game is configured for: Mistral, WestAI, else Groq."""
+    """Content-gen LLM client. Both Qwen and Mistral are served from the WestAI endpoint;
+    the split is which model ID to request. Pass provider='westai' to force WestAI regardless
+    of MISTRAL_API_KEY (used by Makefile generation targets so Qwen is picked up via
+    WESTAI_LLM_MODEL_CONTENT_GEN). Live gameplay uses WESTAI_LLM_MODEL (Mistral) via the
+    game's own chain factories, not this client."""
 
     def __init__(self, temperature: float = 0.6, model_name: Optional[str] = None,
-                 max_tokens: int = 4096, timeout_s: float = 180):
+                 max_tokens: int = 12000, timeout_s: float = 300,
+                 provider: Optional[str] = None):
         from langchain_groq import ChatGroq
         from langchain_openai import ChatOpenAI
 
         from mlops_serious_game.config import settings
 
-        if settings.MISTRAL_API_KEY:
+        use_westai = provider == "westai" or (
+            provider is None and not settings.MISTRAL_API_KEY and settings.WESTAI_API_KEY
+        )
+        use_mistral = provider == "mistral" or (
+            provider is None and bool(settings.MISTRAL_API_KEY) and not use_westai
+        )
+
+        if use_westai and settings.WESTAI_API_KEY:
+            self.model_id = model_name or settings.WESTAI_LLM_MODEL_CONTENT_GEN
+            self.chat = ChatOpenAI(api_key=settings.WESTAI_API_KEY, base_url=settings.WESTAI_API_BASE,
+                                   model_name=self.model_id, temperature=temperature,
+                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=1)
+        elif use_mistral and settings.MISTRAL_API_KEY:
             self.model_id = model_name or settings.MISTRAL_LLM_MODEL
             self.chat = ChatOpenAI(api_key=settings.MISTRAL_API_KEY, base_url=settings.MISTRAL_API_BASE,
                                    model_name=self.model_id, temperature=temperature,
                                    max_tokens=max_tokens, timeout=timeout_s, max_retries=1)
         elif settings.WESTAI_API_KEY:
-            self.model_id = model_name or settings.WESTAI_LLM_MODEL
+            self.model_id = model_name or settings.WESTAI_LLM_MODEL_CONTENT_GEN
             self.chat = ChatOpenAI(api_key=settings.WESTAI_API_KEY, base_url=settings.WESTAI_API_BASE,
                                    model_name=self.model_id, temperature=temperature,
                                    max_tokens=max_tokens, timeout=timeout_s, max_retries=1)

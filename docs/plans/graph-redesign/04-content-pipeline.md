@@ -121,13 +121,13 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 - [x] 0. Define the tier 0 scope in config, scoped gates (`tools/content_gen/scopes.json`).
 - [x] 1. Harness: work item model, input hashing, sqlite ledger, CLI with run, status, review, approve, reject, validate, diff, assemble.
 - [x] 1b. Concurrency, retry with the gate errors as feedback, budget cap, clean SIGINT, Opik tagging, dry run.
-- [ ] 2. Stage templates, human review. BLOCK until reviewed. Generated (4) and provisionally approved; human review pending.
-- [ ] 3. Stage items, human review. BLOCK until reviewed. Generated (46) and provisionally approved; human review pending.
+- [x] 2. Stage templates, human review. Fixed p3/s0 (Dave's want: 1→2 manual) and p3/s1 (Monica's want: 2→3 automated). All 4 templates approved.
+- [ ] 3. Stage items, human review. REGENERATING with i8 prompt + Qwen on WestAI. After completion: human review pending.
 - [x] 4. Stage artifacts. Fact artifacts get no conflict text; facts about absent components get a "describe today's workaround" hint.
 - [x] 5. Stage objections.
 - [x] 5b. Stage fragments.
-- [ ] 6. Validation gates implemented (`content_gen validate`); wiring into `make` and CI still open.
-- [ ] 7. Author the `conflict` block on every challenge template, derived from the existing framing conflicts.
+- [x] 6. Validation gates implemented (`content_gen validate`); wired into `make validate-content[-tier0]`; CI job `validate-game-content` added to `.gitlab-ci.yml` (stage: test).
+- [x] 7. Conflict blocks authored by generator; p3/s0 and p3/s1 inconsistencies fixed manually in work output files.
 - [ ] 8. Tier 0 run, commit, verify end to end. Playtests of 05 to 07 run on it. Run, assembled, gates pass, scripted walk through all phases works; open: Q22.
 - [ ] 9. Full regeneration after the tier 0 playtest, commit content.
 

@@ -20,11 +20,11 @@ Single source of truth for progress. Update after every completed step.
 | 01 | [Graph core](01-graph-core.md) | 00 | DONE | Migration applied, seeding on game init, refactor tool. Ships dark. Review findings pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
-| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Tier 0 generated, assembled, gates pass, committed. Next: human review of templates and items, Q22, CI wiring. |
+| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Templates fixed (p3/s0 Dave want 1→2, p3/s1 Monica want 2→3). Items regenerating with i8+Qwen. Gates+CI wired (step 6 ✓). Conflict blocks fixed (step 7 ✓). Blocked on step 3 regen + human review, then steps 8-9. |
 | 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | TODO | Cross phase intel, chains shown as one growing card. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | TODO | Any-mix card, five objection kinds, escalation, veto, stalemate. |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | TODO | Apply, capping, propagation, patterns, grudges, delta report. |
-| 08 | [Player graph view](08-graph-viz.md) | 01 | TODO | Stage strip, technical modal per stage, fog rendering. |
+| 08 | [Player graph view](08-graph-viz.md) | 01 | WIP | Steps 1–6, 8 done (Q21 closed: curved feedback arcs added to strip). Only step 7 (before/after toggle, blocked on 07). |
 | 09 | [Admin debug view](09-debug-view.md) | 04 | TODO | Full dump, health breakdown, orphans, selection trace. |
 
 Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alongside, then 05, 06, 07.
@@ -67,13 +67,14 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | D32 | What does health measure? | Problems, not maturity: 100 plus design bonuses minus antipattern penalties, 15 per broken target (effective 0), 6 per debt entry. Maturity is shown separately. |
 | D33 | Starting state and stage fog? | The game starts green. Challenges turn the current phase's areas red, the player saves them. Stages of phases not reached yet are hidden entirely; the governance band is always visible. |
 | D34 | Old gameplay data? | Wiped (everything except the `internal` campaign and its accounts, configs and the vector store). No backwards compatibility needed from here on. |
+| D35 | Health under upstream break (Q22)? | Count only root-cause (nominally broken) components in health. Downstream components that have an effective level of 0 due to propagation are shown as **starved** in health readout and in the admin view, but do not each add a 15-point penalty. Challenge preconditions continue to read effective levels so a broken upstream still makes downstream challenges ineligible while the break persists. **Alternatives on record**: (a) read preconditions on nominal level too — removes the ineligibility but lets players trigger challenges on a technically broken stack; (b) keep effective level everywhere — harshest, defensible if fog fully hides it until the phase is reached. Revisit after tier 0 playtest. |
 
 ## Open questions
 
 | ID | Question | Needed by |
 |---|---|---|
 | Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
-| Q22 | A world event that breaks an upstream component (e.g. #100 sets `data.validation` to broken) starves everything downstream: model drops to 55 and deploy to 43 (red) while the player is still in the data phase, because health counts every target with effective level 0 as broken. It also makes later challenges ineligible when their preconditions read effective levels (#101 is never dealt after #100). Options: count only root causes (nominal broken) in health and show downstream as starved; read challenge preconditions on nominal; or keep as is (fog hides it until the phase is reached). | 04 |
+| Q21 | Feedback arcs in pipeline strip: curved SVG arcs above stage row, colour-coded by level, height proportional to stage distance. **Closed: implemented.** | 08 |
 
 ## Deferred scope
 

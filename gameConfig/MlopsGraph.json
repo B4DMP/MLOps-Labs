@@ -227,7 +227,11 @@
         2,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 100,
+        "y": 100
+      }
     },
     {
       "id": "req.acceptance_criteria",
@@ -242,7 +246,11 @@
         2,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 300,
+        "y": 100
+      }
     },
     {
       "id": "req.data_contracts",
@@ -258,7 +266,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 300,
+        "y": 220
+      }
     },
     {
       "id": "req.risk_assessment",
@@ -273,7 +285,11 @@
         2,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 100,
+        "y": 220
+      }
     },
     {
       "id": "data.ingestion",
@@ -308,6 +324,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 100
       }
     },
     {
@@ -343,6 +363,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 240,
+        "y": 100
       }
     },
     {
@@ -378,6 +402,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 560,
+        "y": 100
       }
     },
     {
@@ -404,6 +432,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 400,
+        "y": 100
       }
     },
     {
@@ -430,6 +462,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 220
       }
     },
     {
@@ -446,7 +482,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 400,
+        "y": 220
+      }
     },
     {
       "id": "model.experiment_tracking",
@@ -472,6 +512,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 420,
+        "y": 220
       }
     },
     {
@@ -507,6 +551,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 580,
+        "y": 140
       }
     },
     {
@@ -533,6 +581,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 240,
+        "y": 140
       }
     },
     {
@@ -559,6 +611,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 220
       }
     },
     {
@@ -575,7 +631,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 420,
+        "y": 80
+      }
     },
     {
       "id": "deploy.cicd",
@@ -601,6 +661,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 240,
+        "y": 90
       }
     },
     {
@@ -637,6 +701,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 400,
+        "y": 90
       }
     },
     {
@@ -653,7 +721,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 400,
+        "y": 210
+      }
     },
     {
       "id": "deploy.shadow",
@@ -669,7 +741,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 560,
+        "y": 210
+      }
     },
     {
       "id": "deploy.containerization",
@@ -694,6 +770,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 90
       }
     },
     {
@@ -720,6 +800,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 210
       }
     },
     {
@@ -746,6 +830,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 560,
+        "y": 90
       }
     },
     {
@@ -762,7 +850,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 80,
+        "y": 100
+      }
     },
     {
       "id": "ops.production_drift_monitoring",
@@ -788,6 +880,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 260,
+        "y": 100
       }
     },
     {
@@ -814,6 +910,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 440,
+        "y": 100
       }
     },
     {
@@ -840,6 +940,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 220
       }
     },
     {
@@ -856,7 +960,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 440,
+        "y": 220
+      }
     },
     {
       "id": "ops.rollback",
@@ -872,7 +980,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 260,
+        "y": 220
+      }
     },
     {
       "id": "gov.iam",
@@ -898,6 +1010,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 100
       }
     },
     {
@@ -914,7 +1030,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 240,
+        "y": 100
+      }
     },
     {
       "id": "gov.model_cards",
@@ -929,7 +1049,11 @@
         2,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 400,
+        "y": 100
+      }
     },
     {
       "id": "gov.cost_monitoring",
@@ -945,7 +1069,11 @@
         3,
         4
       ],
-      "attributes": {}
+      "attributes": {},
+      "layout": {
+        "x": 400,
+        "y": 220
+      }
     },
     {
       "id": "gov.iac",
@@ -971,6 +1099,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 80,
+        "y": 220
       }
     },
     {
@@ -997,6 +1129,10 @@
           ],
           "initial": "none"
         }
+      },
+      "layout": {
+        "x": 240,
+        "y": 220
       }
     }
   ],
