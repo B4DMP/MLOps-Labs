@@ -115,16 +115,16 @@ Their owned components with story fragments, the targets in their objection set,
 
 ## Steps
 
-- [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`.
-- [ ] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars.
-- [ ] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
+- [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages; the engagement cards and the stakeholder chat still live in the old online intel screen at loop index 1 and are not folded in yet.
+- [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
+- [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
 - [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
 - [x] 5. `pitch_debate_service/objections.py`, pure: five objection kinds, ordering, option availability with reasons. Tested. (Objection + DialogueOptionSpec models, fire_objections, dialogue_options_for; boundary/technical are hard, correction separated)
-- [ ] 6. Objection UI, one stakeholder at a time, amendment budget shown.
-- [ ] 7. Commit: outcomes, Veto Breaker, Rebuild with delta check, patience, stalemate, risk read.
-- [ ] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card`, `objection_state`. Update the checkpointer allowlist in `service.py`.
+- [x] 6. Objection UI, one stakeholder at a time, amendment budget shown.
+- [x] 7. Commit: outcomes, Veto Breaker, Rebuild with delta check, patience, stalemate, risk read.
+- [x] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card`, `objection_state`. Deviation: the pitch state is not a LangGraph channel at all. It lives on the challenge row as `action_card.pitch` and is driven by the `pitch:*` websocket events, so nothing about the pitch depends on the conversation graph. The LangGraph state and its checkpointer stay as they are for the stakeholder chat.
 - [ ] 9. Trim stakeholder prompt context.
-- [ ] 10. Grudges persisted, Escalation Points in game state and navbar.
+- [ ] 10. Grudges persisted, Escalation Points in game state and navbar. Both persist on the session row (migration `a7b8c9d0e1f2`) and the pitch screen shows the points; the navbar does not yet.
 - [ ] 11. Delete old screens and dead handlers.
 - [ ] 12. Playtest a full challenge.
 

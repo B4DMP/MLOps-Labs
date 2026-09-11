@@ -11,7 +11,7 @@ import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
 import OnlineIntelGathering, { type IntelItem } from "./components/online_intel_gathering";
-import PitchDebate from "./components/pitch_debate";
+import PitchPhase from "./components/pitch_phase";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
@@ -813,59 +813,6 @@ function App({ username: _username }: AppProps) {
     });
   };
 
-  const playActionCard = async (ac: ActionCard) => {
-    if (!isChatEnabled) return;
-
-    SetRoundOverAnimActive(true);
-    setLastAc(ac);
-
-    const updatedMetrics: Record<string, Metric> = {};
-    const metricsList = Object.values(metrics);
-    metricsList.forEach((m) => {
-      const nextVal = (m.value ?? m.start_value) + (ac.metric_changes?.[m.id] ?? 0);
-      updatedMetrics[m.id] = {
-        ...m,
-        value: nextVal,
-      };
-    });
-
-    setMetrics(updatedMetrics);
-
-    if (currentChallenge === 0 && currentPhase === 0) {
-      setTimeout(() => {
-        introJs()
-          .setOptions({
-            group: "intro6",
-            exitOnEsc: false,
-            exitOnOverlayClick: false,
-          })
-          .start();
-      }, 1500);
-    }
-
-    const { CountUp } = await import("countup.js");
-    setTimeout(() => {
-      setRevealAc(true);
-      setShowMetricValueChanges(true);
-      metricsList.forEach((m) => {
-        const el = document.getElementById(`metric-value-${m.id}`);
-        if (el) {
-          const countUp = new CountUp(
-            el,
-            updatedMetrics[m.id]?.value ?? m.start_value,
-            {
-              startVal: m.value ?? m.start_value,
-              duration: 5,
-            },
-          );
-          if (!countUp.error) {
-            countUp.start();
-          }
-        }
-      });
-    }, 200);
-  };
-
   const requestNextChallenge = (ac: ActionCard) => {
     let _metric_values: any = [];
 
@@ -885,20 +832,6 @@ function App({ username: _username }: AppProps) {
     setChatMsgs([]);
     setActionCards([]);
     setIsExistingDebateSave(false);
-  };
-
-  const handleSelectDialogueOption = (optionId: string, addressedStakeholderId?: string, option?: DialogueOption) => {
-    if (!isChatEnabled) return;
-    setIsChatEnabled(false);
-    const chosenOpt = option || dialogueOptions.find((o) => o.id === optionId);
-    sendJsonMessage({
-      type: "chat:send_message",
-      option_id: optionId,
-      dialogue_option: chosenOpt,
-      addressed_stakeholder_id: addressedStakeholderId,
-      phase_id: currentPhaseRef.current,
-      challenge_id: currentChallengeRef.current,
-    });
   };
 
   let [last_ac, setLastAc] = useState(actionCards[0]);
@@ -1025,46 +958,17 @@ function App({ username: _username }: AppProps) {
                   last_ac={last_ac}
                 />
               )}
+              {/* The merged pitch phase (plan 06). The old debate screen stays in the tree until
+                  its chat and engagement cards are folded in (plan 06 steps 1 and 11). */}
               {challengeLoopId === 2 && (
-                <PitchDebate
-                  onOpenPhaseBriefing={openBriefingForReview}
+                <PitchPhase
                   currentPhase={currentPhase}
-                  setCurrentPhase={setCurrentPhase}
-                  phases={phases}
-                  setPhases={setPhases}
-                  metrics={metrics}
-                  setMetrics={setMetrics}
-                  stakeholders={stakeholders}
-                  setStakeholders={setStakeholders}
-                  lastError={lastError}
-                  isInErrorUi={isInErrorUi}
-                  setIsInErrorUi={setIsInErrorUi}
-                  isPhaseDialogueOpen={isPhaseDialogueOpen}
-                  setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
+                  currentChallenge={currentChallenge}
                   challengeTitle={challengeTitle}
                   challengeDescription={challengeDescription}
                   challengeIntro={challengeIntro}
-                  currentChallenge={currentChallenge}
-                  challengeNumber={challengeAmount}
-                  revealAc={revealAc}
-                  last_ac={last_ac}
-                  roundOverAnimActive={roundOverAnimActive}
-                  showMetricValueChanges={showMetricValueChanges}
-                  isChatEnabled={isChatEnabled}
-                  actionCards={actionCards}
-                  hoveredCardId={hoveredCardId}
-                  setHoveredCardId={setHoveredCardId}
-                  dialogueOptions={dialogueOptions}
-                  chat_msgs={chat_msgs}
-                  setChatMsgs={setChatMsgs}
-                  isExistingSave={isExistingDebateSave}
-                  onClearExistingSave={() => setIsExistingDebateSave(false)}
-                  playActionCard={playActionCard}
-                  getNextChallenge={getNextChallenge}
-                  onSelectDialogueOption={handleSelectDialogueOption}
-                  pitchedActionCard={pitchedActionCard}
-                  dossierData={dossierData}
-                  intelItems={intelItems}
+                  challengeAmount={challengeAmount}
+                  convincerArchetypes={convincerArchetypes}
                   onEndPitch={handlePitchDebateEnd}
                 />
               )}
