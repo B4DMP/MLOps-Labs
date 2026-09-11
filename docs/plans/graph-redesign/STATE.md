@@ -21,7 +21,7 @@ Single source of truth for progress. Update after every completed step.
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
 | 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Tier 0 assembled (4 templates, 46 items, 46 artifacts, 41 objections, 24 fragments). 4 items re-gen pending (template fixes invalidated hashes; regen in background). Golden path ready for plans 05–09. Steps 8-9 after playtest. |
-| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | WIP | Steps 1–3 done (new StakeholderIntelItem fields, cross-phase loader, chain assembler). Steps 4–8 depend on plan 06 to integrate into live gameplay and UI. |
+| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | WIP | Steps 1 to 7 done: chain cards, environment page, stage filter and search, chains as one item in the card builder, and the per challenge wipe removed so the dossier really persists. Open: refinements to author (Q31), step 8 playtest, Q32 to Q35. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | WIP | Steps 2 to 8 done: session.py orchestration, seven `pitch:*` websocket events, `pitch_phase.tsx` live at loop index 2, Escalation Points and grudges persisted. Open: fold in engagement cards and the stakeholder chat (step 1), navbar points (10), delete the old screens (11), playtest (12). Q23 to Q25. |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | WIP | All ten steps implemented: `graph_service/pipeline.py`, `simulation:run` to `graph:delta_report`, `ac_simulation.tsx` as the four beat report. Open: the numbers behind the branches (Q26 to Q30) and a playtest. |
 | 08 | [Player graph view](08-graph-viz.md) | 01 | WIP | Steps 1–6, 8 done (Q21 closed: curved feedback arcs added to strip). Only step 7 (before/after toggle, blocked on 07). |
@@ -85,6 +85,12 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | Q28 | "A world event brought forward" as a grudge effect: who supplies those ops, the next challenge's `on_enter_ops` fired early or a separate authored pool? | 07 |
 | Q29 | Antipattern consequences read the graph after the card, so a player who fixes the antipattern in their card escapes its consequence that round (implemented). Or should they pay for the round they entered with? | 07 |
 | Q30 | The stalemate metric hit from `challenge.metric_changes` is applied in `game_handler.py`, while the simulation reports only graph-derived deltas. Which one owns the metric numbers once the simulation phase is wired up? | 07 |
+
+| Q31 | Nothing in the frozen tier 0 content carries `refines_id`, so every dossier chain is one link and every locked row reads zero. Who authors the refinements, and does that wait for plan 04 step 9? | 05 |
+| Q32 | Chain links are not gated: the plan's rule (same target, same stakeholder, earlier phase, same tag or Driver into Boundary) is not enforced in `payload_errors`. Add it? | 05 |
+| Q33 | `contested` fires only when the item's stakeholder is a side of the challenge conflict and the item's target is the conflict target. Keep it strict, or mark anything from a stakeholder on the other side? | 05 |
+| Q34 | Notes carried over from earlier phases can outnumber the current challenge's pool, so the "intel still out there" ratio takes the max and never passes 1. Keep, or count carried-over notes separately? | 05 |
+| Q35 | The environment page rides in the dossier payload as a fake stakeholder id (`__environment__`) because `Game.tsx` was off limits to the agent. Reshape the payload into named sections? | 05 |
 
 ## Deferred scope
 

@@ -23,7 +23,6 @@ from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
     observe_tagged_facts,
-    clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
     get_default_stakeholder_archetypes,
     determine_dialogue_options,
@@ -619,7 +618,6 @@ async def handle_state_update_request(
                     messages = []
             case _:
                 # next challenge / round completion (after simulation phase)
-                await clear_intel_items_for_user(websocket)
                 challenge: Challenge = select_next_challenge(username, phase_id, challenge_id)
 
                 if challenge is None:

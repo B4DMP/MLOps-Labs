@@ -651,17 +651,6 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
 
 
 
-async def clear_intel_items_for_user(ws: WebSocket) -> None:
-    """Deletes all collected intel items for the user when a new challenge starts."""
-    with get_session() as session:
-        records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
-        ).all()
-        for r in records:
-            session.delete(r)
-        session.commit()
-
-
 async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List[StakeholderIntelItem]:
     """Retrieves intel items for the current challenge."""
     intel_items: List[StakeholderIntelItem] = []
