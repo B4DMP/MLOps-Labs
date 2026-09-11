@@ -55,6 +55,5 @@ export function Login({ onSubmit, readyState, onBack }: LoginProps) {
         </form>
       </div>
     </div>
-
   );
 }

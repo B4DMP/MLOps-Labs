@@ -1,0 +1,35 @@
+.loadingContainer {
+    margin: 0 auto;
+    background: var(--card-bg-dark);
+    border: 1px solid var(--card-border-default);
+    border-radius: 1.25rem;
+    padding: 2.5rem 3rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 480px;
+    width: 90vw;
+}
+
+.spinner {
+    color: var(--primary-bg) !important;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-width: 0.3rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.subtitle {
+    color: rgb(182, 182, 182);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}

@@ -63,7 +63,6 @@ export function Register({ onSubmit, readyState, onBack }: RegisterProps) {
           </button>
         </form>
       </div>
-    </div >
-
+    </div>
   );
 }

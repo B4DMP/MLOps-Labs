@@ -19,6 +19,7 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
+import LoadingScreen from "./components/LoadingScreen";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
@@ -100,7 +101,8 @@ function App({ username: _username }: AppProps) {
   const [challengeTitle, setChallengeTitle] = useState("");
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeIntro, setChallengeIntro] = useState("");
-  const [progressionIndex, setProgressionIndex] = useState(0);
+  const [progressionIndex, setProgressionIndex] = useState<number | null>(null);
+  const [isLoadingSave, setIsLoadingSave] = useState<boolean>(true);
   const [isPhaseDialogueOpen, setIsPhaseDialogueOpen] = useState(false);
   // True when the briefing was reopened from the dossier mid-phase, so closing
   // it returns to the phase instead of starting the round.
@@ -272,11 +274,18 @@ function App({ username: _username }: AppProps) {
 
         if (data.progressionIndex === 0 && data.questions) {
           setQuestions(data.questions);
+          setIsLoadingSave(false);
         } else if (data.progressionIndex === 1 && data.content) {
           setBriefing(data.content);
+          setIsLoadingSave(false);
         } else if (data.progressionIndex === 3 && data.questions) {
           setAnswers([]);
           setQuestions(data.questions);
+          setIsLoadingSave(false);
+        } else if (data.progressionIndex === 4) {
+          setIsLoadingSave(false);
+        } else {
+          setIsLoadingSave(false);
         }
       }
     });
@@ -285,6 +294,7 @@ function App({ username: _username }: AppProps) {
       if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
       }
+      setIsLoadingSave(false);
 
       setMetrics((prevMetrics) => {
         const updated = { ...prevMetrics };
@@ -904,23 +914,27 @@ function App({ username: _username }: AppProps) {
 
   return (
     <>
-      {progressionIndex == 2 && (
-        <PhasesContext.Provider
-          value={{ currentPhase, setCurrentPhase, phases, setPhases }}
-        >
-          <MetricsContext.Provider value={{ metrics, setMetrics }}>
-            <StakeholderContext.Provider
-              value={{
-                stakeholders,
-                setStakeholders,
-                emotionColors,
-                setEmotionColors,
-                convincerArchetypes,
-                setConvincerArchetypes,
-              }}
+      <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
+      {isLoadingSave || progressionIndex === null ? (
+        <LoadingScreen isConnected={isConnected} />
+      ) : (
+        <>
+          {progressionIndex == 2 && (
+            <PhasesContext.Provider
+              value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
-              <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-              <PrePhaseDialog
+              <MetricsContext.Provider value={{ metrics, setMetrics }}>
+                <StakeholderContext.Provider
+                  value={{
+                    stakeholders,
+                    setStakeholders,
+                    emotionColors,
+                    setEmotionColors,
+                    convincerArchetypes,
+                    setConvincerArchetypes,
+                  }}
+                >
+                  <PrePhaseDialog
                 isOpen={isPhaseDialogueOpen}
                 setIsOpen={(open) => {
                   setIsPhaseDialogueOpen(open);
@@ -1093,6 +1107,8 @@ function App({ username: _username }: AppProps) {
       )}
       {progressionIndex == 4 && (
         <EndPage />
+      )}
+        </>
       )}
     </>
   );

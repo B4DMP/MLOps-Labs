@@ -21,6 +21,24 @@ export default function Questionaire({
     }));
   }, [questions]);
 
+  if (questions.length === 0) {
+    return (
+      <div className="container mt-5 d-flex justify-content-center">
+        <div className="card shadow-sm p-4 text-center" style={{ maxWidth: "450px", width: "90vw" }}>
+          <div
+            className="spinner-border mx-auto mb-3"
+            style={{ color: "var(--primary-bg)", width: "3rem", height: "3rem" }}
+            role="status"
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <h4 className="mb-2">Loading Questionnaire...</h4>
+          <p className="text-muted mb-0">Retrieving questions from server...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mt-5" style={{
       overflowY: 'auto',
