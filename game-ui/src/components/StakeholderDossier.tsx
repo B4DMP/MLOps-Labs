@@ -542,9 +542,11 @@ export default function StakeholderDossier({
 
   // All animatable keys a stakeholder page currently holds. The convincer key carries the
   // archetype itself so re-tagging to a different archetype counts as a new appearance.
+  // On-record notes are left out: the game deals them at the start of a challenge, so they
+  // are never something the player added.
   const appearKeysForStakeholder = (st: StakeholderDossierEntry): string[] => {
     const keys = (st.intel_items || [])
-      .filter((item) => item.id)
+      .filter((item) => item.id && (item.source || "").toLowerCase() !== "public_record")
       .map((item) => `intel-${st.stakeholder_id}-${item.id}`);
     const archetype = st.convincer_archetype || stakeholders[st.stakeholder_id]?.convincer_archetype;
     if (archetype) keys.push(`convincer-${st.stakeholder_id}-${archetype}`);
@@ -553,6 +555,10 @@ export default function StakeholderDossier({
 
   // Flag intel items and convincer archetypes that the previous dossier payload did not have
   useEffect(() => {
+    // The placeholder pages built from context are not a payload. Taking the baseline from
+    // them would make everything in the first real payload look freshly added.
+    if (!dossierData || dossierData.length === 0) return;
+
     const currentKeys = new Set<string>();
     for (const st of effectiveDossierData) {
       for (const key of appearKeysForStakeholder(st)) {
@@ -560,33 +566,41 @@ export default function StakeholderDossier({
       }
     }
 
-    // First payload establishes the baseline - nothing is "new" on initial load
-    if (seenAppearKeysRef.current === null) {
-      seenAppearKeysRef.current = currentKeys;
+    const seen = seenAppearKeysRef.current;
+    seenAppearKeysRef.current = currentKeys;
+
+    // Finding something only ever adds notes. A payload that drops some is a reload (a new
+    // challenge, a restored game, Reset all), so it becomes the new baseline and nothing in
+    // it is "new". The first payload is a baseline too.
+    const isReload =
+      seen === null || [...seen].some((key) => key.startsWith("intel-") && !currentKeys.has(key));
+    if (isReload) {
+      setPendingAppearKeys((prev) => (prev.size === 0 ? prev : new Set()));
       return;
     }
 
-    const seen = seenAppearKeysRef.current;
-    const added = new Set([...currentKeys].filter((key) => !seen.has(key)));
-    seenAppearKeysRef.current = new Set([...seen, ...currentKeys]);
-
-    if (added.size === 0) return;
+    const added = [...currentKeys].filter((key) => !seen.has(key));
+    if (added.length === 0) return;
 
     setPendingAppearKeys((prev) => new Set([...prev, ...added]));
-  }, [effectiveDossierData, stakeholders]);
+  }, [dossierData, effectiveDossierData, stakeholders]);
 
   // Consume a flag only while its own page is on screen. Tagging an artifact during offline
   // intel gathering flips the dossier to the next artifact's stakeholder almost immediately,
   // so a flag consumed on a timer alone would be spent while the card is off-screen. Pending
   // flags survive until that tab is visited.
+  const visibleAppearSt = effectiveDossierData[currentPageIndex];
+  const playingAppearKeys = visibleAppearSt
+    ? appearKeysForStakeholder(visibleAppearSt).filter((key) => pendingAppearKeys.has(key))
+    : [];
+  // Keyed on the keys themselves, not the data objects: a dossier or emotion update landing
+  // mid-animation would otherwise restart the timer, and if those keep coming the flag is
+  // never spent and replays on every return to the tab.
+  const playingAppearSignature = playingAppearKeys.join("|");
+
   useEffect(() => {
-    if (pendingAppearKeys.size === 0) return;
-
-    const visibleSt = effectiveDossierData[currentPageIndex];
-    if (!visibleSt) return;
-
-    const playingKeys = appearKeysForStakeholder(visibleSt).filter((key) => pendingAppearKeys.has(key));
-    if (playingKeys.length === 0) return;
+    if (!playingAppearSignature) return;
+    const playingKeys = playingAppearSignature.split("|");
 
     // Leaving the page before this fires cancels it, so the animation replays on return
     const timer = setTimeout(() => {
@@ -598,7 +612,7 @@ export default function StakeholderDossier({
     }, 1000); // slightly longer than the appear animations
 
     return () => clearTimeout(timer);
-  }, [pendingAppearKeys, currentPageIndex, effectiveDossierData, stakeholders]);
+  }, [currentPageIndex, playingAppearSignature]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
