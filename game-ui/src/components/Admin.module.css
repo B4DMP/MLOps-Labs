@@ -58,11 +58,6 @@
   color: white;
 }
 
-.headerSubtitle {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-}
 
 .headerActions {
   display: flex;
@@ -261,12 +256,6 @@
   color: var(--primary-bg);
   line-height: 1.1;
   margin: 0;
-}
-
-.kpiSubtext {
-  font-size: 0.78rem;
-  color: var(--text-secondary, #475569);
-  margin-top: 0.35rem;
 }
 
 /* Default Action Button from rule */

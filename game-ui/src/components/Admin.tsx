@@ -258,10 +258,9 @@ export function Admin({
   const analysisFinishedPlayers = analysisCampaignFilter === "all"
     ? finished_players_amount
     : analysisFilteredPlayers.filter((p) => {
-        const prog = p.gameProgression.toLowerCase();
-        return prog.includes("finish") || prog === "100%" || prog.includes("done");
-      }).length;
-  const analysisCompletionRate = analysisTotalPlayers > 0 ? Math.round((analysisFinishedPlayers / analysisTotalPlayers) * 100) : 0;
+      const prog = p.gameProgression.toLowerCase();
+      return prog.includes("finish") || prog === "100%" || prog.includes("done");
+    }).length;
 
   // Questionaire averages
   const localFinishedWithIntro = analysisFilteredPlayers.filter((p) => p.introPercentage > 0 || p.gameProgression.toLowerCase().includes("finish"));
@@ -421,9 +420,6 @@ export function Admin({
             </div>
             <div>
               <h1 className={styles.headerTitle}>Admin & Research Dashboard</h1>
-              <p className={styles.headerSubtitle}>
-                Stakeholder Engagement in MLOps • Scenario Configuration & Empirical Analysis
-              </p>
             </div>
           </div>
 
@@ -741,7 +737,7 @@ export function Admin({
                           style={{ cursor: "pointer" }}
                         />
                         <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignUseQuestionnaireSwitch" style={{ cursor: "pointer" }}>
-                          Use Questionnaire <span className="text-muted fw-normal">(Include intro & outro research surveys)</span>
+                          Include intro & outro questionnaire
                         </label>
                       </div>
                     </div>
@@ -959,9 +955,8 @@ export function Admin({
                               </td>
                               <td>
                                 <span
-                                  className={`${styles.pillBadge} ${
-                                    isDone ? styles.badgeSuccess : styles.badgeNeutral
-                                  }`}
+                                  className={`${styles.pillBadge} ${isDone ? styles.badgeSuccess : styles.badgeNeutral
+                                    }`}
                                 >
                                   {isDone && <Icon icon="ph:check-circle-bold" />}
                                   {p.gameProgression}
@@ -975,13 +970,12 @@ export function Admin({
                               </td>
                               <td>
                                 <span
-                                  className={`${styles.pillBadge} ${
-                                    delta > 0
-                                      ? styles.badgeSuccess
-                                      : delta < 0
+                                  className={`${styles.pillBadge} ${delta > 0
+                                    ? styles.badgeSuccess
+                                    : delta < 0
                                       ? styles.badgeWarning
                                       : styles.badgeNeutral
-                                  }`}
+                                    }`}
                                 >
                                   {delta > 0 ? `+${delta}%` : `${delta}%`}
                                 </span>
@@ -1101,11 +1095,6 @@ export function Admin({
                     <Icon icon="ph:users-three-bold" className={styles.kpiIcon} />
                   </div>
                   <div className={styles.kpiValue}>{analysisTotalPlayers}</div>
-                  <div className={styles.kpiSubtext}>
-                    {analysisCampaignFilter === "all"
-                      ? "Registered across all cohorts"
-                      : `Enrolled in ${selectedAnalysisCampaign?.name || analysisCampaignFilter}`}
-                  </div>
                 </div>
 
                 <div className={styles.kpiCard}>
@@ -1114,7 +1103,6 @@ export function Admin({
                     <Icon icon="ph:check-circle-bold" className={styles.kpiIcon} />
                   </div>
                   <div className={styles.kpiValue}>{analysisFinishedPlayers}</div>
-                  <div className={styles.kpiSubtext}>{analysisCompletionRate}% overall completion rate</div>
                 </div>
 
                 {isQuestionnaireActiveForAnalysis && (
@@ -1125,7 +1113,6 @@ export function Admin({
                         <Icon icon="ph:clipboard-text-bold" className={styles.kpiIcon} />
                       </div>
                       <div className={styles.kpiValue}>{effectiveIntroAvg}%</div>
-                      <div className={styles.kpiSubtext}>Pre-game baseline evaluation</div>
                     </div>
 
                     <div className={styles.kpiCard}>
@@ -1134,7 +1121,6 @@ export function Admin({
                         <Icon icon="ph:graduation-cap-bold" className={styles.kpiIcon} />
                       </div>
                       <div className={styles.kpiValue}>{effectiveOutroAvg}%</div>
-                      <div className={styles.kpiSubtext}>Post-game retention evaluation</div>
                     </div>
 
                     <div className={styles.kpiCard}>
@@ -1150,7 +1136,6 @@ export function Admin({
                       >
                         {effectiveDeltaAverage >= 0 ? `+${effectiveDeltaAverage}%` : `${effectiveDeltaAverage}%`}
                       </div>
-                      <div className={styles.kpiSubtext}>Average post vs pre improvement</div>
                     </div>
                   </>
                 )}
@@ -1200,228 +1185,228 @@ export function Admin({
               {/* Detailed Questionnaire Evaluation */}
               {isQuestionnaireActiveForAnalysis ? (
                 <div className={styles.cardSurface}>
-                <div className={styles.sectionHeader}>
-                  <div>
-                    <h2 className={styles.sectionTitle}>
-                      <Icon icon="ph:clipboard-text-bold" />
-                      <span>Questionnaire Evaluations & Cohort Distribution</span>
-                    </h2>
-                    <p className={styles.sectionSubtitle}>
-                      Answer breakdown comparing general cohorts vs experts, including qualitative participant notes.
-                    </p>
-                  </div>
-                  <div className="d-flex align-items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      className={styles.outlineButton}
-                      onClick={() => setDisplayPercentages((prev) => !prev)}
-                    >
-                      <Icon icon={displayPercentages ? "ph:number-circle-seven-bold" : "ph:percent-bold"} />
-                      <span>{displayPercentages ? "Show Raw Counts" : "Show Percentages"}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.outlineButton}
-                      onClick={() => handleToggleAllQuestions(true)}
-                    >
-                      <Icon icon="ph:arrows-out-bold" />
-                      <span>Expand All</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.outlineButton}
-                      onClick={() => handleToggleAllQuestions(false)}
-                    >
-                      <Icon icon="ph:arrows-in-bold" />
-                      <span>Collapse All</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Filter and search toolbar */}
-                <div className={styles.filterBar}>
-                  <div className={styles.searchInputGroup}>
-                    <Icon icon="ph:magnifying-glass-bold" className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      value={questionSearchQuery}
-                      onChange={(e) => setQuestionSearchQuery(e.target.value)}
-                      placeholder="Search question text or keywords..."
-                      className={`form-control ${styles.searchInput}`}
-                    />
+                  <div className={styles.sectionHeader}>
+                    <div>
+                      <h2 className={styles.sectionTitle}>
+                        <Icon icon="ph:clipboard-text-bold" />
+                        <span>Questionnaire Evaluations & Cohort Distribution</span>
+                      </h2>
+                      <p className={styles.sectionSubtitle}>
+                        Answer breakdown comparing general cohorts vs experts, including qualitative participant notes.
+                      </p>
+                    </div>
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        className={styles.outlineButton}
+                        onClick={() => setDisplayPercentages((prev) => !prev)}
+                      >
+                        <Icon icon={displayPercentages ? "ph:number-circle-seven-bold" : "ph:percent-bold"} />
+                        <span>{displayPercentages ? "Show Raw Counts" : "Show Percentages"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.outlineButton}
+                        onClick={() => handleToggleAllQuestions(true)}
+                      >
+                        <Icon icon="ph:arrows-out-bold" />
+                        <span>Expand All</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.outlineButton}
+                        onClick={() => handleToggleAllQuestions(false)}
+                      >
+                        <Icon icon="ph:arrows-in-bold" />
+                        <span>Collapse All</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="btn-group btn-group-sm" role="group">
-                    <button
-                      type="button"
-                      className={`btn ${questionFilterType === "all" ? "btn-secondary active" : "btn-outline-secondary"}`}
-                      onClick={() => setQuestionFilterType("all")}
-                    >
-                      All ({introQuestions.length + outroQuestions.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn ${questionFilterType === "intro" ? "btn-secondary active" : "btn-outline-secondary"}`}
-                      onClick={() => setQuestionFilterType("intro")}
-                    >
-                      Intro ({introQuestions.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn ${questionFilterType === "outro" ? "btn-secondary active" : "btn-outline-secondary"}`}
-                      onClick={() => setQuestionFilterType("outro")}
-                    >
-                      Outro ({outroQuestions.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`btn ${questionFilterType === "notes" ? "btn-secondary active" : "btn-outline-secondary"}`}
-                      onClick={() => setQuestionFilterType("notes")}
-                    >
-                      With Notes
-                    </button>
+                  {/* Filter and search toolbar */}
+                  <div className={styles.filterBar}>
+                    <div className={styles.searchInputGroup}>
+                      <Icon icon="ph:magnifying-glass-bold" className={styles.searchIcon} />
+                      <input
+                        type="text"
+                        value={questionSearchQuery}
+                        onChange={(e) => setQuestionSearchQuery(e.target.value)}
+                        placeholder="Search question text or keywords..."
+                        className={`form-control ${styles.searchInput}`}
+                      />
+                    </div>
+
+                    <div className="btn-group btn-group-sm" role="group">
+                      <button
+                        type="button"
+                        className={`btn ${questionFilterType === "all" ? "btn-secondary active" : "btn-outline-secondary"}`}
+                        onClick={() => setQuestionFilterType("all")}
+                      >
+                        All ({introQuestions.length + outroQuestions.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn ${questionFilterType === "intro" ? "btn-secondary active" : "btn-outline-secondary"}`}
+                        onClick={() => setQuestionFilterType("intro")}
+                      >
+                        Intro ({introQuestions.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn ${questionFilterType === "outro" ? "btn-secondary active" : "btn-outline-secondary"}`}
+                        onClick={() => setQuestionFilterType("outro")}
+                      >
+                        Outro ({outroQuestions.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn ${questionFilterType === "notes" ? "btn-secondary active" : "btn-outline-secondary"}`}
+                        onClick={() => setQuestionFilterType("notes")}
+                      >
+                        With Notes
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {/* Question Cards List */}
-                {filteredQuestions.length > 0 ? (
-                  filteredQuestions.map((q, idx) => {
-                    const questionId = `${q.source}-${q.originalIndex ?? idx}`;
-                    const isExpanded = expandedQuestions[questionId] ?? true;
+                  {/* Question Cards List */}
+                  {filteredQuestions.length > 0 ? (
+                    filteredQuestions.map((q, idx) => {
+                      const questionId = `${q.source}-${q.originalIndex ?? idx}`;
+                      const isExpanded = expandedQuestions[questionId] ?? true;
 
-                    // Calculate totals for percentages
-                    const totalGeneral = q.answers.reduce((acc: number, a: any) => acc + (a.amount || 0), 0);
-                    const totalExperts = q.answers.reduce((acc: number, a: any) => acc + (a.amount_experts || 0), 0);
-                    const notesList = q.answers.flatMap((a: any) => (a.notes || []).map((n: string) => ({ answer: a.answer_name, note: n })));
+                      // Calculate totals for percentages
+                      const totalGeneral = q.answers.reduce((acc: number, a: any) => acc + (a.amount || 0), 0);
+                      const totalExperts = q.answers.reduce((acc: number, a: any) => acc + (a.amount_experts || 0), 0);
+                      const notesList = q.answers.flatMap((a: any) => (a.notes || []).map((n: string) => ({ answer: a.answer_name, note: n })));
 
-                    return (
-                      <div key={questionId} className={styles.questionCard}>
-                        <div
-                          className={styles.questionHeader}
-                          onClick={() => toggleQuestionExpanded(questionId)}
-                        >
-                          <div className={styles.questionTitle}>
-                            <span className={`${styles.pillBadge} ${q.source === "intro" ? styles.badgePrimary : styles.badgeNeutral}`}>
-                              {q.source.toUpperCase()} Q{(q.originalIndex ?? idx) + 1}
-                            </span>
-                            <span>{q.question}</span>
-                          </div>
-
-                          <div className="d-flex align-items-center gap-2">
-                            {notesList.length > 0 && (
-                              <span className={`${styles.pillBadge} ${styles.badgeWarning}`}>
-                                <Icon icon="ph:chat-circle-text-bold" />
-                                <span>{notesList.length} Notes</span>
+                      return (
+                        <div key={questionId} className={styles.questionCard}>
+                          <div
+                            className={styles.questionHeader}
+                            onClick={() => toggleQuestionExpanded(questionId)}
+                          >
+                            <div className={styles.questionTitle}>
+                              <span className={`${styles.pillBadge} ${q.source === "intro" ? styles.badgePrimary : styles.badgeNeutral}`}>
+                                {q.source.toUpperCase()} Q{(q.originalIndex ?? idx) + 1}
                               </span>
-                            )}
-                            <Icon
-                              icon={isExpanded ? "ph:caret-up-bold" : "ph:caret-down-bold"}
-                              className="text-muted"
-                            />
-                          </div>
-                        </div>
-
-                        {isExpanded && (
-                          <div className={styles.questionBody}>
-                            <div className={`table-responsive ${styles.tableContainer} mb-3`}>
-                              <table className={`table table-sm align-middle ${styles.customTable} mb-0`}>
-                                <thead>
-                                  <tr>
-                                    <th style={{ width: "18%" }}>Cohort</th>
-                                    {q.answers.map((a: any, aIdx: number) => (
-                                      <th key={aIdx} className="text-center">
-                                        {a.answer_name}
-                                      </th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td className="fw-semibold">
-                                      <div className="d-flex align-items-center gap-1">
-                                        <Icon icon="ph:users-bold" style={{ color: "var(--primary-bg)" }} />
-                                        <span>General</span>
-                                        <small className="text-muted">({totalGeneral})</small>
-                                      </div>
-                                    </td>
-                                    {q.answers.map((a: any, aIdx: number) => {
-                                      const count = a.amount || 0;
-                                      const pct = totalGeneral > 0 ? Math.round((count / totalGeneral) * 100) : 0;
-                                      return (
-                                        <td key={aIdx} className="text-center py-2">
-                                          <span className="fw-bold" style={{ color: "var(--primary-bg)", fontSize: "1.1rem" }}>
-                                            {displayPercentages ? `${pct}%` : count}
-                                          </span>
-                                          {displayPercentages && (
-                                            <div className="text-muted" style={{ fontSize: "0.75rem" }}>
-                                              {count} responses
-                                            </div>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                  <tr>
-                                    <td className="fw-semibold">
-                                      <div className="d-flex align-items-center gap-1">
-                                        <Icon icon="ph:certificate-bold" style={{ color: "var(--secondary-bg)" }} />
-                                        <span>Experts</span>
-                                        <small className="text-muted">({totalExperts})</small>
-                                      </div>
-                                    </td>
-                                    {q.answers.map((a: any, aIdx: number) => {
-                                      const count = a.amount_experts || 0;
-                                      const pct = totalExperts > 0 ? Math.round((count / totalExperts) * 100) : 0;
-                                      return (
-                                        <td key={aIdx} className="text-center py-2">
-                                          <span className="fw-bold text-info" style={{ fontSize: "1.1rem" }}>
-                                            {displayPercentages ? `${pct}%` : count}
-                                          </span>
-                                          {displayPercentages && (
-                                            <div className="text-muted" style={{ fontSize: "0.75rem" }}>
-                                              {count} responses
-                                            </div>
-                                          )}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                </tbody>
-                              </table>
+                              <span>{q.question}</span>
                             </div>
 
-                            {/* Qualitative Participant Notes */}
-                            {notesList.length > 0 && (
-                              <div className="mt-2">
-                                <h6 className="fw-bold text-secondary mb-2 small d-flex align-items-center gap-1">
-                                  <Icon icon="ph:chat-centered-text-bold" />
-                                  <span>Participant Feedback & Notes ({notesList.length})</span>
-                                </h6>
-                                <div className="d-flex flex-column gap-1">
-                                  {notesList.map((item: any, nIdx: number) => (
-                                    <div key={nIdx} className={styles.noteBubble}>
-                                      <span className="fw-bold me-2 text-primary" style={{ fontSize: "0.78rem" }}>
-                                        [{item.answer}]:
-                                      </span>
-                                      <span>{item.note}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                            <div className="d-flex align-items-center gap-2">
+                              {notesList.length > 0 && (
+                                <span className={`${styles.pillBadge} ${styles.badgeWarning}`}>
+                                  <Icon icon="ph:chat-circle-text-bold" />
+                                  <span>{notesList.length} Notes</span>
+                                </span>
+                              )}
+                              <Icon
+                                icon={isExpanded ? "ph:caret-up-bold" : "ph:caret-down-bold"}
+                                className="text-muted"
+                              />
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-center py-5 text-muted">
-                    <Icon icon="ph:question-bold" className="fs-1 mb-2 text-secondary" />
-                    <p className="mb-0">No questionnaire questions found matching the selected filter.</p>
-                  </div>
-                )}
-              </div>
-            ) : (
+
+                          {isExpanded && (
+                            <div className={styles.questionBody}>
+                              <div className={`table-responsive ${styles.tableContainer} mb-3`}>
+                                <table className={`table table-sm align-middle ${styles.customTable} mb-0`}>
+                                  <thead>
+                                    <tr>
+                                      <th style={{ width: "18%" }}>Cohort</th>
+                                      {q.answers.map((a: any, aIdx: number) => (
+                                        <th key={aIdx} className="text-center">
+                                          {a.answer_name}
+                                        </th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr>
+                                      <td className="fw-semibold">
+                                        <div className="d-flex align-items-center gap-1">
+                                          <Icon icon="ph:users-bold" style={{ color: "var(--primary-bg)" }} />
+                                          <span>General</span>
+                                          <small className="text-muted">({totalGeneral})</small>
+                                        </div>
+                                      </td>
+                                      {q.answers.map((a: any, aIdx: number) => {
+                                        const count = a.amount || 0;
+                                        const pct = totalGeneral > 0 ? Math.round((count / totalGeneral) * 100) : 0;
+                                        return (
+                                          <td key={aIdx} className="text-center py-2">
+                                            <span className="fw-bold" style={{ color: "var(--primary-bg)", fontSize: "1.1rem" }}>
+                                              {displayPercentages ? `${pct}%` : count}
+                                            </span>
+                                            {displayPercentages && (
+                                              <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                                                {count} responses
+                                              </div>
+                                            )}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                    <tr>
+                                      <td className="fw-semibold">
+                                        <div className="d-flex align-items-center gap-1">
+                                          <Icon icon="ph:certificate-bold" style={{ color: "var(--secondary-bg)" }} />
+                                          <span>Experts</span>
+                                          <small className="text-muted">({totalExperts})</small>
+                                        </div>
+                                      </td>
+                                      {q.answers.map((a: any, aIdx: number) => {
+                                        const count = a.amount_experts || 0;
+                                        const pct = totalExperts > 0 ? Math.round((count / totalExperts) * 100) : 0;
+                                        return (
+                                          <td key={aIdx} className="text-center py-2">
+                                            <span className="fw-bold text-info" style={{ fontSize: "1.1rem" }}>
+                                              {displayPercentages ? `${pct}%` : count}
+                                            </span>
+                                            {displayPercentages && (
+                                              <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                                                {count} responses
+                                              </div>
+                                            )}
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {/* Qualitative Participant Notes */}
+                              {notesList.length > 0 && (
+                                <div className="mt-2">
+                                  <h6 className="fw-bold text-secondary mb-2 small d-flex align-items-center gap-1">
+                                    <Icon icon="ph:chat-centered-text-bold" />
+                                    <span>Participant Feedback & Notes ({notesList.length})</span>
+                                  </h6>
+                                  <div className="d-flex flex-column gap-1">
+                                    {notesList.map((item: any, nIdx: number) => (
+                                      <div key={nIdx} className={styles.noteBubble}>
+                                        <span className="fw-bold me-2 text-primary" style={{ fontSize: "0.78rem" }}>
+                                          [{item.answer}]:
+                                        </span>
+                                        <span>{item.note}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-5 text-muted">
+                      <Icon icon="ph:question-bold" className="fs-1 mb-2 text-secondary" />
+                      <p className="mb-0">No questionnaire questions found matching the selected filter.</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <div className={styles.cardSurface}>
                   <div className="text-center py-5 text-muted">
                     <Icon icon="ph:prohibit-bold" className="fs-1 mb-2 text-secondary" />
