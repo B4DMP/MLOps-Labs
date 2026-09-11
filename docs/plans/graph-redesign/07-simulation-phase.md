@@ -29,6 +29,7 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 - **PASS**: pipeline as above.
 - **SOFT_PASS**: plus a grudge per neglected low power stakeholder. A grudge is persisted state that schedules friction. At step 9 each grudge picks one effect, deterministically by age and owner: a target landing one level lower, a world event brought forward, or an extra objection at patience minus one next time.
 - **VETO_BROKEN**: card applies, overridden stakeholder degrades everything they own by one allowed level, drops one step in emotion as well, and keeps a double weight grudge (D38).
+- **CONCEDED** (D41): the player let the other side have it. The ops of the opposing position apply instead of the card, so the graph moves without the player's plan. Grudge for the side that was dropped, none for the side that won. The report leads with whose plan was built.
 - **STALEMATE**: steps 3 to 5 skipped. `stalemate_ops` fire as a world event, metrics take the authored hit, grudges for everyone in the room. Report leads with what went wrong.
 
 ## Delta report payload
@@ -81,8 +82,9 @@ The pipeline owns every metric number (D39). The authored `challenge.metric_chan
 - [x] 7. `graph:delta_report` event. `simulation:run` reads the committed pitch, runs the pipeline and sends the report; `handlers/simulation_handler.py`.
 - [x] 8. Rewrite `ac_simulation.tsx` as the four beat report. Beat 4 shows stage and system health with the numbers, the before and after stage graph is plan 08 step 7.
 - [x] 9. Next challenge selection at the end of the report. The report names what comes next; Continue advances the loop as before. A grudge that pulls a world event forward takes it from that same next challenge.
-- [ ] 11. Metric ownership per D39: `challenge.metric_changes` moves into the pipeline, `game_handler.py` stops applying it.
-- [ ] 12. Tuned numbers into config (D38), together with plan 06 step 13.
+- [ ] 11. The `CONCEDED` branch (D41): the opposing position's ops as the card, grudge for the dropped side only.
+- [ ] 12. Metric ownership per D39: `challenge.metric_changes` moves into the pipeline, `game_handler.py` stops applying it.
+- [ ] 13. Tuned numbers into config (D38), together with plan 06 step 14.
 - [x] 10. Tests: capped raise reports its cap, propagation after a break, unhappy owner degrades, debt repaid later, design pattern gained lifts health, plus grudge determinism, metric arithmetic and the outcome branches (`tests/test_simulation_pipeline.py`, 12 tests).
 
 ## Done when

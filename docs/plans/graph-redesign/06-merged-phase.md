@@ -93,11 +93,14 @@ VETO if veto else SOFT_PASS if soft else PASS
 |---|---|---|
 | PASS | card applies | none |
 | SOFT_PASS | card applies | each neglected low power stakeholder writes a grudge, fired in [07](07-simulation-phase.md) |
-| VETO | nothing applies | Veto Breaker or Rebuild |
+| VETO | nothing applies | Veto Breaker, Rebuild, or Let them have it |
+| CONCEDED | the opposing position applies instead of the card | the side that was dropped remembers it |
 
 **Veto Breaker.** 1 Escalation Point. Card applies. Overridden stakeholder takes a large emotion hit, patience 0, maximum degradation on everything they own, double weight grudge.
 
 **Rebuild.** Back to PREPARE. 1 patience from everyone in the room. New card must differ by at least `MIN_REBUILD_DELTA` items, default 2.
+
+**Let them have it (D41).** The player drops their own card and accepts the opposing position of the challenge `conflict`, which applies in its place. No Escalation Point, no patience cost. A large emotion gain with the side that gets its way, a loss with the side dropped, and a grudge for the dropped side. Offered whenever a veto stands, next to Veto Breaker and Rebuild, so a challenge never dead ends: refusing to decide is itself a decision, and the room acts without the player. Outcome `CONCEDED`, simulated in [07](07-simulation-phase.md).
 
 **Escalation Points.** 3 per game, never regenerate (D15). Spent on Veto Breaker or Emergency Addendum. Shown in the navbar.
 
@@ -127,7 +130,8 @@ Their owned components with story fragments, the targets in their objection set,
 - [ ] 10. Grudges persisted, Escalation Points in game state and navbar. Both persist on the session row (migration `a7b8c9d0e1f2`) and the pitch screen shows the points; the navbar does not yet.
 - [ ] 11. Delete old screens and dead handlers.
 - [ ] 12. Playtest a full challenge. Fixes the numbers afterwards (D38), and settles how a player walks away from a veto (Q25).
-- [ ] 13. Move every tuned number out of code into config (D38): emotion effect per dialogue option, patience, amendment budget, the Veto Breaker cost in emotion and levels, grudge lifetime. Code keeps the defaults it has now.
+- [ ] 13. Let them have it (D41): a third answer to a standing veto. The conflict's opposing position becomes the card, `pitch:concede` commits it, the dropped side takes the emotion hit and the grudge, and the screen says plainly whose plan is being built.
+- [ ] 14. Move every tuned number out of code into config (D38): emotion effect per dialogue option, patience, amendment budget, the Veto Breaker cost in emotion and levels, grudge lifetime. Code keeps the defaults it has now.
 
 ## Done when
 
