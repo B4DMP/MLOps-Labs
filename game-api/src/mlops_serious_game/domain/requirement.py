@@ -118,6 +118,12 @@ class StakeholderRequirement(BaseModel):
     concedes: Optional[Concession] = None
     # Fact: what is true about the graph.
     asserts: Optional[FactAssertion] = None
+    # Refinement chains (plan 05) are authored: a later item on the same target and stakeholder
+    # points back at the earlier one, and the dossier shows the whole chain as one growing card.
+    refines_id: Optional[str] = Field(
+        default=None,
+        description="Id of the earlier item this one refines (same target and stakeholder, earlier phase)",
+    )
 
     @model_validator(mode="after")
     def _join_split_wording(self):
@@ -138,11 +144,8 @@ class StakeholderIntelItem(StakeholderRequirement):
             "intel gathering, or something that came out during the pitch."
         ),
     )
-    # Plan 05: persistent dossier fields.
-    refines_id: Optional[str] = Field(
-        default=None,
-        description="Id of the earlier StakeholderIntelItem this one refines (same target + stakeholder, later phase).",
-    )
+    # Plan 05: persistent dossier fields. `refines_id` is inherited: an item keeps the chain link
+    # the authored requirement carried.
     discovered_phase_id: Optional[int] = Field(
         default=None,
         description="Phase index when this item entered the player's dossier.",

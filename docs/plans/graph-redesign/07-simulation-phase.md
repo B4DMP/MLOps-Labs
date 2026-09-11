@@ -76,9 +76,9 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 - [x] 4. `component_weights` on all eight metrics, `metric_prompt` deleted from config, schema, model and factory. Targets validated on load.
 - [x] 5. Grudge resolution: `domain/grudge.py`, effect picked by owner and age, spent after `GRUDGE_LIFETIME` firings.
 - [x] 6. Outcome branches: PASS, SOFT_PASS (grudge per neglected low power stakeholder), VETO_BROKEN (card applies, overridden area drops one level, double weight grudge), STALEMATE (card skipped, `stalemate_ops` fire, grudges for the room).
-- [ ] 7. `graph:delta_report` event.
-- [ ] 8. Rewrite `ac_simulation.tsx` as the four beat report.
-- [ ] 9. Next challenge selection at the end of the report.
+- [x] 7. `graph:delta_report` event. `simulation:run` reads the committed pitch, runs the pipeline and sends the report; `handlers/simulation_handler.py`.
+- [x] 8. Rewrite `ac_simulation.tsx` as the four beat report. Beat 4 shows stage and system health with the numbers, the before and after stage graph is plan 08 step 7.
+- [x] 9. Next challenge selection at the end of the report. The report names what comes next; Continue advances the loop as before. A grudge that pulls a world event forward takes it from that same next challenge.
 - [x] 10. Tests: capped raise reports its cap, propagation after a break, unhappy owner degrades, debt repaid later, design pattern gained lifts health, plus grudge determinism, metric arithmetic and the outcome branches (`tests/test_simulation_pipeline.py`, 12 tests).
 
 ## Done when

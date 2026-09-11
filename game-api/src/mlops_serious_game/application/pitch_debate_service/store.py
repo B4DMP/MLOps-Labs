@@ -94,6 +94,16 @@ def add_grudges(username: str, entries: list[dict[str, Any]]) -> None:
         db.commit()
 
 
+def replace_grudges(username: str, entries: list[dict[str, Any]]) -> None:
+    """The simulation rewrites the list: spent grudges drop out, new ones come in."""
+    with get_session() as db:
+        row = _session_row(db, username)
+        if row is None:
+            return
+        row.grudges = list(entries)
+        db.commit()
+
+
 def load_grudges(username: str) -> list[dict[str, Any]]:
     with get_session() as db:
         row = _session_row(db, username)

@@ -312,23 +312,12 @@ def _apply_card(ctx: PitchContext, state, view: pitch.CardView, override: bool =
         source_kind="action_card",
         source_id=f"card:{ctx.challenge.template_id if ctx.challenge else ctx.challenge_id}",
     )
-    grudges = [
-        {
-            "stakeholder_id": r.stakeholder_id,
-            "challenge_template": ctx.challenge.template_id if ctx.challenge else "",
-            "phase_id": ctx.phase_id,
-            "reason": "overridden" if override and r.band == "red" else "neglected",
-            "weight": 2 if override and r.band == "red" else 1,
-        }
-        for r in view.reads
-        if r.band == "red" or (state.outcome == "SOFT_PASS" and r.power == "low" and r.band != "green")
-    ]
-    pitch_store.add_grudges(ctx.username, grudges)
+    # Grudges are not written here: the simulation phase creates them from the same outcome
+    # (plan 07 step 6), so writing them at commit would count everyone twice.
     return {
         "ops": len(result.resolved_ops),
         "outcome": state.outcome,
         "debt_created": [d.model_dump(mode="json") for d in result.debt_created],
-        "grudges": len(grudges),
     }
 
 
@@ -349,9 +338,4 @@ def _apply_stalemate(ctx: PitchContext) -> dict[str, Any]:
         phase_index=ctx.phase_id, challenge_template=template, challenge_loop_index=2,
         source_kind="world_event", source_id=f"stalemate:{template}",
     )
-    pitch_store.add_grudges(ctx.username, [
-        {"stakeholder_id": st_id, "challenge_template": template, "phase_id": ctx.phase_id,
-         "reason": "stalemate", "weight": 1}
-        for st_id in ctx.room_ids
-    ])
     return {"ops": len(ops), "outcome": "STALEMATE"}

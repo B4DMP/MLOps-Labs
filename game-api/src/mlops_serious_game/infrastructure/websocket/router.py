@@ -35,6 +35,7 @@ from .handlers.pitch_handler import (
     handle_pitch_state,
     handle_pitch_veto_breaker,
 )
+from .handlers.simulation_handler import handle_simulation_run
 from .handlers.system_handler import handle_ping
 from .manager import manager
 
@@ -64,6 +65,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:commit": handle_pitch_commit,
     "pitch:rebuild": handle_pitch_rebuild,
     "pitch:veto_breaker": handle_pitch_veto_breaker,
+    "simulation:run": handle_simulation_run,
 }
 
 
