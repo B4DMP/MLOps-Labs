@@ -1,0 +1,68 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 10000;
+    transition: opacity 0.2s ease-out;
+}
+
+.backdrop[data-closed] {
+    opacity: 0;
+}
+
+.dialogWrapper {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 10001;
+    pointer-events: none;
+}
+
+.panel {
+    width: 90%;
+    max-width: 480px;
+    background: #f8f9fa;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+    border: none;
+    pointer-events: auto;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+
+.panel[data-closed] {
+    opacity: 0;
+    transform: scale(0.96);
+}
+
+.header {
+    background-color: var(--primary-bg);
+    color: #ffffff;
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.actionButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--secondary-bg);
+    background: var(--primary-bg);
+    color: white;
+    font-weight: 600;
+    transition: all var(--transition);
+    cursor: pointer;
+    text-align: center;
+    min-width: 110px;
+}
+
+.actionButton:hover {
+    background: var(--secondary-bg);
+}

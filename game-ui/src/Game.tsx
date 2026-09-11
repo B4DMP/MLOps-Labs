@@ -20,6 +20,8 @@ import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import LoadingScreen from "./components/LoadingScreen";
+import { motion, AnimatePresence } from "motion/react";
+import { FADE_TRANSITION } from "./utils/transitions";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
@@ -913,12 +915,16 @@ function App({ username: _username }: AppProps) {
   const [dialogueOptions, setDialogueOptions] = useState<DialogueOption[]>([]);
 
   return (
-    <>
+    <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>
       <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-      {isLoadingSave || progressionIndex === null ? (
-        <LoadingScreen isConnected={isConnected} />
-      ) : (
-        <>
+      <AnimatePresence mode="wait">
+        {isLoadingSave || progressionIndex === null ? (
+          <motion.div {...FADE_TRANSITION} key="game-loading" style={{ width: "100%", height: "100%" }}>
+            <LoadingScreen />
+          </motion.div>
+        ) : (
+          <motion.div {...FADE_TRANSITION} key="game-content" style={{ width: "100%", height: "100%" }}>
+            <>
           {progressionIndex == 2 && (
             <PhasesContext.Provider
               value={{ currentPhase, setCurrentPhase, phases, setPhases }}
@@ -935,182 +941,184 @@ function App({ username: _username }: AppProps) {
                   }}
                 >
                   <PrePhaseDialog
-                isOpen={isPhaseDialogueOpen}
-                setIsOpen={(open) => {
-                  setIsPhaseDialogueOpen(open);
-                  if (!open) setIsBriefingReview(false);
-                }}
-                isReview={isBriefingReview}
-                challengeTitle={challengeTitle}
-                challengeDescription={challengeDescription}
-                challengeIntro={challengeIntro}
-                currentChallenge={currentChallenge}
-                challengeAmount={challengeAmount}
-              />
-              <ConvincerVerificationDialog
-                info={convincerVerificationInfo}
-                onClose={() => setConvincerVerificationInfo(null)}
-              />
+                    isOpen={isPhaseDialogueOpen}
+                    setIsOpen={(open) => {
+                      setIsPhaseDialogueOpen(open);
+                      if (!open) setIsBriefingReview(false);
+                    }}
+                    isReview={isBriefingReview}
+                    challengeTitle={challengeTitle}
+                    challengeDescription={challengeDescription}
+                    challengeIntro={challengeIntro}
+                    currentChallenge={currentChallenge}
+                    challengeAmount={challengeAmount}
+                  />
+                  <ConvincerVerificationDialog
+                    info={convincerVerificationInfo}
+                    onClose={() => setConvincerVerificationInfo(null)}
+                  />
 
-              {challengeLoopId === 0 && (
-                <OfflineIntelGathering
-                  onContinue={handleOfflineIntelGatheringContinue}
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
-                  onTagArtifact={(stId) => setActiveStakeholderId(stId)}
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  isDossierOpen={isDossierOpen}
-                  setIsDossierOpen={setIsDossierOpen}
-                  dossierData={dossierData}
-                  activeStakeholderId={activeStakeholderId}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  challengeAmount={challengeAmount}
-                />
-              )}
-              {challengeLoopId === 1 && (
-                <OnlineIntelGathering
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  onContinue={handleOnlineIntelGatheringContinue}
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  challengeAmount={challengeAmount}
-                  dossierData={dossierData}
-                  activeStakeholderId={activeStakeholderId}
-                  intelItems={intelItems}
-                  attentionTokens={attentionTokens}
-                  setAttentionTokens={setAttentionTokens}
-                  playedCardIdsInPhase={playedCardIdsInPhase}
-                  setPlayedCardIdsInPhase={setPlayedCardIdsInPhase}
-                  cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
-                  setCardTargetedStakeholdersMap={setCardTargetedStakeholdersMap}
-                  chatMsgs={onlineIntelChatMsgs}
-                  setChatMsgs={setOnlineIntelChatMsgs}
-                  engagementCards={engagementCards}
-                  pitchedActionCard={pitchedActionCard}
-                  onUpdatePitchedCard={(card) => setPitchedActionCard(card)}
-                  onUpdateIntelItems={(items) => {
-                    setIntelItems(items);
-                    setDossierData((prevDossier) => {
-                      if (!prevDossier || prevDossier.length === 0) return prevDossier;
-                      return prevDossier.map((st) => ({
-                        ...st,
-                        intel_items: (st.intel_items || []).map((item) => {
-                          const matchingUpdated = items.find(
-                            (u) => u.id === item.id
-                          );
-                          if (matchingUpdated) {
-                            return {
-                              ...item,
-                              intel_type: matchingUpdated.intel_type,
-                              categorized_type: matchingUpdated.categorized_type,
-                              description: matchingUpdated.description,
-                              source: (matchingUpdated as any).source || item.source,
-                            };
-                          }
-                          return item;
-                        }),
-                      }));
-                    });
-                  }}
-                />
-              )}
-              {challengeLoopId === 3 && (
-                <AcSimulation
-                  onContinue={handleAcSimulationContinue}
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
-                />
-              )}
-              {challengeLoopId === 2 && (
-                <PitchDebate
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  currentPhase={currentPhase}
-                  setCurrentPhase={setCurrentPhase}
-                  phases={phases}
-                  setPhases={setPhases}
-                  metrics={metrics}
-                  setMetrics={setMetrics}
-                  stakeholders={stakeholders}
-                  setStakeholders={setStakeholders}
-                  lastError={lastError}
-                  isInErrorUi={isInErrorUi}
-                  setIsInErrorUi={setIsInErrorUi}
-                  isPhaseDialogueOpen={isPhaseDialogueOpen}
-                  setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  currentChallenge={currentChallenge}
-                  challengeNumber={challengeAmount}
-                  revealAc={revealAc}
-                  last_ac={last_ac}
-                  roundOverAnimActive={roundOverAnimActive}
-                  showMetricValueChanges={showMetricValueChanges}
-                  isChatEnabled={isChatEnabled}
-                  actionCards={actionCards}
-                  hoveredCardId={hoveredCardId}
-                  setHoveredCardId={setHoveredCardId}
-                  dialogueOptions={dialogueOptions}
-                  chat_msgs={chat_msgs}
-                  setChatMsgs={setChatMsgs}
-                  isExistingSave={isExistingDebateSave}
-                  onClearExistingSave={() => setIsExistingDebateSave(false)}
-                  playActionCard={playActionCard}
-                  getNextChallenge={getNextChallenge}
-                  onSelectDialogueOption={handleSelectDialogueOption}
-                  pitchedActionCard={pitchedActionCard}
-                  dossierData={dossierData}
-                  intelItems={intelItems}
-                  onEndPitch={handlePitchDebateEnd}
-                />
-              )}
-            </StakeholderContext.Provider>
-          </MetricsContext.Provider>
-        </PhasesContext.Provider>
-      )}
-      {progressionIndex == 0 && (
-        <Questionaire
-          questions={questions}
-          onQuestionaireCompleted={() => {
-            onQuestionaireCompleted(1);
-          }}
-          setAnswers={setAnswers}
-          answers={answers}
-        />
-      )}
-      {progressionIndex == 1 && (
-        <BriefingPage
-          onBriefingCompleted={onBriefingCompleted}
-          briefing={briefing}
-        />
-      )}
-      {progressionIndex == 3 && (
-        <Questionaire
-          questions={questions}
-          onQuestionaireCompleted={() => {
-            onQuestionaireCompleted(4);
-          }}
-          setAnswers={setAnswers}
-          answers={answers}
-        />
-      )}
-      {progressionIndex == 4 && (
-        <EndPage />
-      )}
-        </>
-      )}
-    </>
+                  {challengeLoopId === 0 && (
+                    <OfflineIntelGathering
+                      onContinue={handleOfflineIntelGatheringContinue}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      showMetricValueChanges={showMetricValueChanges}
+                      last_ac={last_ac}
+                      onTagArtifact={(stId) => setActiveStakeholderId(stId)}
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      isDossierOpen={isDossierOpen}
+                      setIsDossierOpen={setIsDossierOpen}
+                      dossierData={dossierData}
+                      activeStakeholderId={activeStakeholderId}
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      challengeAmount={challengeAmount}
+                    />
+                  )}
+                  {challengeLoopId === 1 && (
+                    <OnlineIntelGathering
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      onContinue={handleOnlineIntelGatheringContinue}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      showMetricValueChanges={showMetricValueChanges}
+                      last_ac={last_ac}
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      challengeAmount={challengeAmount}
+                      dossierData={dossierData}
+                      activeStakeholderId={activeStakeholderId}
+                      intelItems={intelItems}
+                      attentionTokens={attentionTokens}
+                      setAttentionTokens={setAttentionTokens}
+                      playedCardIdsInPhase={playedCardIdsInPhase}
+                      setPlayedCardIdsInPhase={setPlayedCardIdsInPhase}
+                      cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                      setCardTargetedStakeholdersMap={setCardTargetedStakeholdersMap}
+                      chatMsgs={onlineIntelChatMsgs}
+                      setChatMsgs={setOnlineIntelChatMsgs}
+                      engagementCards={engagementCards}
+                      pitchedActionCard={pitchedActionCard}
+                      onUpdatePitchedCard={(card) => setPitchedActionCard(card)}
+                      onUpdateIntelItems={(items) => {
+                        setIntelItems(items);
+                        setDossierData((prevDossier) => {
+                          if (!prevDossier || prevDossier.length === 0) return prevDossier;
+                          return prevDossier.map((st) => ({
+                            ...st,
+                            intel_items: (st.intel_items || []).map((item) => {
+                              const matchingUpdated = items.find(
+                                (u) => u.id === item.id
+                              );
+                              if (matchingUpdated) {
+                                return {
+                                  ...item,
+                                  intel_type: matchingUpdated.intel_type,
+                                  categorized_type: matchingUpdated.categorized_type,
+                                  description: matchingUpdated.description,
+                                  source: (matchingUpdated as any).source || item.source,
+                                };
+                              }
+                              return item;
+                            }),
+                          }));
+                        });
+                      }}
+                    />
+                  )}
+                  {challengeLoopId === 3 && (
+                    <AcSimulation
+                      onContinue={handleAcSimulationContinue}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      showMetricValueChanges={showMetricValueChanges}
+                      last_ac={last_ac}
+                    />
+                  )}
+                  {challengeLoopId === 2 && (
+                    <PitchDebate
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      currentPhase={currentPhase}
+                      setCurrentPhase={setCurrentPhase}
+                      phases={phases}
+                      setPhases={setPhases}
+                      metrics={metrics}
+                      setMetrics={setMetrics}
+                      stakeholders={stakeholders}
+                      setStakeholders={setStakeholders}
+                      lastError={lastError}
+                      isInErrorUi={isInErrorUi}
+                      setIsInErrorUi={setIsInErrorUi}
+                      isPhaseDialogueOpen={isPhaseDialogueOpen}
+                      setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      currentChallenge={currentChallenge}
+                      challengeNumber={challengeAmount}
+                      revealAc={revealAc}
+                      last_ac={last_ac}
+                      roundOverAnimActive={roundOverAnimActive}
+                      showMetricValueChanges={showMetricValueChanges}
+                      isChatEnabled={isChatEnabled}
+                      actionCards={actionCards}
+                      hoveredCardId={hoveredCardId}
+                      setHoveredCardId={setHoveredCardId}
+                      dialogueOptions={dialogueOptions}
+                      chat_msgs={chat_msgs}
+                      setChatMsgs={setChatMsgs}
+                      isExistingSave={isExistingDebateSave}
+                      onClearExistingSave={() => setIsExistingDebateSave(false)}
+                      playActionCard={playActionCard}
+                      getNextChallenge={getNextChallenge}
+                      onSelectDialogueOption={handleSelectDialogueOption}
+                      pitchedActionCard={pitchedActionCard}
+                      dossierData={dossierData}
+                      intelItems={intelItems}
+                      onEndPitch={handlePitchDebateEnd}
+                    />
+                  )}
+                </StakeholderContext.Provider>
+              </MetricsContext.Provider>
+            </PhasesContext.Provider>
+          )}
+          {progressionIndex == 0 && (
+            <Questionaire
+              questions={questions}
+              onQuestionaireCompleted={() => {
+                onQuestionaireCompleted(1);
+              }}
+              setAnswers={setAnswers}
+              answers={answers}
+            />
+          )}
+          {progressionIndex == 1 && (
+            <BriefingPage
+              onBriefingCompleted={onBriefingCompleted}
+              briefing={briefing}
+            />
+          )}
+          {progressionIndex == 3 && (
+            <Questionaire
+              questions={questions}
+              onQuestionaireCompleted={() => {
+                onQuestionaireCompleted(4);
+              }}
+              setAnswers={setAnswers}
+              answers={answers}
+            />
+          )}
+          {progressionIndex == 4 && (
+            <EndPage />
+          )}
+            </>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

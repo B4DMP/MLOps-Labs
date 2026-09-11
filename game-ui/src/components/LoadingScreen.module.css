@@ -1,35 +1,87 @@
-.loadingContainer {
-    margin: 0 auto;
-    background: var(--card-bg-dark);
-    border: 1px solid var(--card-border-default);
+.loadingWrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 1.5rem;
+    background: transparent;
+}
+
+.loadingCard {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(17, 48, 62, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 1.25rem;
-    padding: 2.5rem 3rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    padding: 2.75rem 2rem;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 480px;
-    width: 90vw;
+    text-align: center;
 }
 
-.spinner {
-    color: var(--primary-bg) !important;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-width: 0.3rem;
-}
-
-.title {
-    font-size: 1.5rem;
-    font-weight: 700;
+.titleBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 9999px;
+    background: rgba(38, 102, 130, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
-    margin-bottom: 0.5rem;
-    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1.75rem;
 }
 
-.subtitle {
-    color: rgb(182, 182, 182);
+.cardTitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.pulseIcon {
+    font-size: 2.25rem;
+    color: #38bdf8;
+    flex-shrink: 0;
+}
+
+.cardSubtitle {
     font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
     margin-bottom: 1.5rem;
-    text-align: center;
+    max-width: 380px;
+    line-height: 1.45;
+}
+
+.statusPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
 }
