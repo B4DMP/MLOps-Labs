@@ -22,6 +22,7 @@ from mlops_serious_game.application.graph_service.scheduler import next_challeng
 from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
+    observe_tagged_facts,
     clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
     get_default_stakeholder_archetypes,
@@ -609,6 +610,11 @@ async def handle_state_update_request(
                 )
                 if attention_tokens is None and challenge:
                     attention_tokens = challenge.attention_tokens
+                if challenge_loop_index == 1 and challenge:
+                    try:
+                        observe_tagged_facts(challenge, username)
+                    except Exception as e:
+                        print(f"[Graph fact observe error] {e}")
                 if challenge_loop_index == 2:
                     messages = []
             case _:

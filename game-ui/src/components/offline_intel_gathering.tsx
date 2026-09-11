@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import styles from "./offline_intel_gathering.module.css";
+import { INTEL_TAGS } from "../types/IntelTag";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -40,29 +41,15 @@ export interface IntelArtifact {
   is_known?: boolean;
 }
 
-const REQUIREMENT_TAGS = [
-  {
-    type: "requirement",
-    label: "Core Requirement",
-    icon: "📋",
-    color: "#2563eb",
-    description: "Core operational or technical project requirement.",
-  },
-  {
-    type: "negotiable_preference",
-    label: "Negotiable Preference",
-    icon: "🤝",
-    color: "#16a34a",
-    description: "Desirable tool or workflow choice open to compromise.",
-  },
-  {
-    type: "personal_friction",
-    label: "Personal Friction",
-    icon: "⚡",
-    color: "#d97706",
-    description: "Interpersonal concern or personal workflow friction.",
-  },
-];
+// Stakeholder tags first, then the one tag that is about the system rather than a person.
+const REQUIREMENT_TAGS = INTEL_TAGS.map((t) => ({
+  type: t.type,
+  label: t.label,
+  icon: t.emoji,
+  color: t.color,
+  description: t.description,
+  about: t.about,
+}));
 
 const CONVINCER_TAGS = [
   {
@@ -774,21 +761,30 @@ export default function OfflineIntelGathering({
                           ? "This one is already sorted, and the category below is the right one. It's here so you can see what a finished call looks like before you make your own."
                           : currentArtifact.is_convincer_profile
                           ? "A Convincer Archetype is what will actually change this stakeholder's mind later on: tag the driver behind what they just said."
-                          : "Is this a must-have, a nice-to-have, or just interpersonal friction? Tag it based on what they're really asking for."}
+                          : "First ask: is this about a person or about the system? If it is about a person, do they want it, refuse to cross it, or accept giving it up?"}
                       </p>
 
                       <div className={`row ${currentArtifact.is_convincer_profile ? "g-1" : "g-2"} ${styles.tagGrid}`}>
                         {(currentArtifact.is_convincer_profile ? CONVINCER_TAGS : REQUIREMENT_TAGS).map((tag) => {
                           const isSelected = currentTaggedType === tag.type;
+                          const isSystemTag = (tag as { about?: string }).about === "system";
                           const colClass = currentArtifact.is_convincer_profile
                             ? "col-12 col-md-6 col-lg-4"
+                            : isSystemTag
+                            ? "col-12"
                             : "col-12 col-md-4";
                           const sizeClass = currentArtifact.is_convincer_profile
                             ? styles.tagButtonConvincer
                             : styles.tagButtonRequirement;
 
                           return (
-                            <div key={tag.type} className={colClass}>
+                            <Fragment key={tag.type}>
+                            {isSystemTag && (
+                              <div className="col-12">
+                                <small className={styles.tagGroupLabel}>Not about anyone: about the system</small>
+                              </div>
+                            )}
+                            <div className={colClass}>
                               <button
                                 onClick={() => handleTagArtifact(tag.type)}
                                 onMouseEnter={() => setHoveredTag(tag.type)}
@@ -827,6 +823,7 @@ export default function OfflineIntelGathering({
                                 </small>
                               </button>
                             </div>
+                            </Fragment>
                           );
                         })}
                       </div>

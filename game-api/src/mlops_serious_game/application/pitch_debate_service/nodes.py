@@ -26,7 +26,7 @@ from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
-from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, RequirementType
+from mlops_serious_game.domain.requirement import PLAUSIBLE_WRONG_TAG, ConfidenceType, IntelSource, describe_tag
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
@@ -66,12 +66,8 @@ def _get_stakeholder_wrong_card_intels(
         if cid not in seen_ids:
             req = RequirementFactory.get_requirement(cid)
             if req and req.stakeholder_id == st_id:
-                other_type = (
-                    RequirementType.NEGOTIABLE_PREFERENCE
-                    if req.type != RequirementType.NEGOTIABLE_PREFERENCE
-                    else RequirementType.PERSONAL_FRICTION
-                )
-                wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(cid, "negotiable_preference") or req.description
+                other_type = PLAUSIBLE_WRONG_TAG[req.type]
+                wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(cid, other_type.value) or req.description
                 item = StakeholderIntelItem.from_requirement(
                     req,
                     intel_type=ConfidenceType.UNCONFIRMED,
@@ -216,13 +212,7 @@ async def player_prompt_node(
 
     utterance_chain = get_player_utterance_chain()
     if last_selected_option.type == "intel":
-        intel_type_str = str(last_selected_option.intel_type or "requirement").lower()
-        if intel_type_str == "negotiable_preference":
-            type_desc = "negotiable preference (flexible preference open to compromise, NOT non-negotiable)"
-        elif intel_type_str == "personal_friction":
-            type_desc = "personal friction (interpersonal tension or team dynamic concern)"
-        else:
-            type_desc = "core requirement (mandatory, essential requirement)"
+        type_desc = describe_tag(str(last_selected_option.intel_type or "driver").lower())
         intel_context = (
             f"Specific claim or stance to voice: '{last_selected_option.intel_description}'\n"
             f"Intel type: {type_desc}"
@@ -361,11 +351,7 @@ async def emotion_node(state: PitchDebateState, config: RunnableConfig):
             wrong_item = st_wrong_intels[0]
             # Ensure wrong_item evaluates as incorrect so misattributed_intel delta rule triggers
             if wrong_item.is_correct_intel():
-                other_type = (
-                    RequirementType.NEGOTIABLE_PREFERENCE
-                    if wrong_item.type != RequirementType.NEGOTIABLE_PREFERENCE
-                    else RequirementType.PERSONAL_FRICTION
-                )
+                other_type = PLAUSIBLE_WRONG_TAG[wrong_item.type]
                 wrong_item = StakeholderIntelItem.from_requirement(
                     RequirementFactory.get_requirement(wrong_item.id) or wrong_item,
                     intel_type=ConfidenceType.UNCONFIRMED,
@@ -452,7 +438,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     st_intel_items = [item for item in all_intel_items if getattr(item, "stakeholder_id", None) == st.id]
     private_intel_lines = []
     for item in st_intel_items:
-        intent_val = getattr(item.correct_intent, "value", str(item.correct_intent)) if getattr(item, "correct_intent", None) else "requirement"
+        intent_val = getattr(item.correct_intent, "value", str(item.correct_intent)) if getattr(item, "correct_intent", None) else "driver"
         private_intel_lines.append(f"- [{intent_val}]: {getattr(item, 'correct_description', getattr(item, 'description', ''))}")
     private_intel_context = "\n".join(private_intel_lines) if private_intel_lines else "None"
 
@@ -483,7 +469,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             intel_intent_val = (
                 getattr(wrong_item.type, "value", str(wrong_item.type))
                 if getattr(wrong_item, "type", None)
-                else "requirement"
+                else "driver"
             )
             req_desc = wrong_item.description
             cat_type = wrong_item.type.value if hasattr(wrong_item.type, "value") else str(wrong_item.type)
@@ -509,7 +495,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             intel_intent_val = (
                 getattr(correct_item.type, "value", str(correct_item.type))
                 if getattr(correct_item, "type", None)
-                else "requirement"
+                else "driver"
             )
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - PROPOSAL EVALUATION & STANCE CONFIRMED]:\n"

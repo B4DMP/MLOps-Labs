@@ -2,7 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "Offline Intel Artifacts Configuration",
-  "required": ["artifacts"],
+  "required": [
+    "artifacts"
+  ],
   "properties": {
     "artifacts": {
       "type": "array",
@@ -13,8 +15,6 @@
           "requirement_id",
           "challenge_id",
           "stakeholder_id",
-          "stakeholder_name",
-          "stakeholder_role",
           "artifact_type",
           "content",
           "wrong_descriptions",
@@ -34,7 +34,10 @@
             "title": "Challenge ID"
           },
           "stakeholder_id": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "title": "Stakeholder ID"
           },
           "stakeholder_name": {
@@ -48,7 +51,17 @@
           "artifact_type": {
             "type": "string",
             "title": "Artifact Type",
-            "enum": ["email", "slack_message", "meeting_notes", "document"]
+            "enum": [
+              "architecture_note",
+              "ci_log",
+              "dashboard_snapshot",
+              "document",
+              "email",
+              "incident_ticket",
+              "meeting_notes",
+              "runbook",
+              "slack_message"
+            ]
           },
           "content": {
             "type": "string",
@@ -56,19 +69,23 @@
           },
           "wrong_descriptions": {
             "type": "object",
-            "title": "Miscategorization Wrong Descriptions",
+            "title": "What a player with each wrong tag reads",
             "properties": {
-              "requirement": {
+              "driver": {
                 "type": "string",
-                "title": "Wrong Description (Requirement)"
+                "title": "Wrong description (Driver)"
               },
-              "negotiable_preference": {
+              "boundary": {
                 "type": "string",
-                "title": "Wrong Description (Negotiable Preference)"
+                "title": "Wrong description (Boundary)"
               },
-              "personal_friction": {
+              "trade_off": {
                 "type": "string",
-                "title": "Wrong Description (Personal Friction)"
+                "title": "Wrong description (Trade Off)"
+              },
+              "fact": {
+                "type": "string",
+                "title": "Wrong description (Fact)"
               }
             },
             "additionalProperties": {

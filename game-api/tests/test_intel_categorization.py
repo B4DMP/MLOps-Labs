@@ -1,47 +1,42 @@
 import pytest
 from mlops_serious_game.application.online_intel_service.nodes import _format_revealed_intel_item
 from mlops_serious_game.domain.prompts import STAKEHOLDER_CHARACTER_CARD, ONLINE_INTEL_STAKEHOLDER_PROMPT
-from mlops_serious_game.domain.requirement import RequirementType
+from mlops_serious_game.domain.requirement import IntelTag, describe_tag
 
 
-def test_format_revealed_intel_item_negotiable_preference():
-    item = {
-        "categorized_type": RequirementType.NEGOTIABLE_PREFERENCE,
-        "description": "Automation Alex prefers containers and Docker for runtime packaging consistency.",
-    }
+@pytest.mark.parametrize(
+    "tag, label",
+    [
+        (IntelTag.DRIVER, "Driver"),
+        ("boundary", "Boundary"),
+        ("trade_off", "Trade-off"),
+        (IntelTag.FACT, "Fact"),
+    ],
+)
+def test_format_revealed_intel_item_names_the_tag(tag, label):
+    item = {"categorized_type": tag, "description": "Automation Alex wants packaging to be consistent."}
     formatted = _format_revealed_intel_item(item)
-    assert "Negotiable Preference" in formatted
-    assert "NOT non-negotiable" in formatted
-    assert "Automation Alex prefers containers and Docker for runtime packaging consistency." in formatted
+    assert f"[{label} (" in formatted
+    assert "Automation Alex wants packaging to be consistent." in formatted
 
 
-def test_format_revealed_intel_item_core_requirement():
-    item = {
-        "categorized_type": "requirement",
-        "description": "Deployment templates must use standard IaC declarations.",
-    }
-    formatted = _format_revealed_intel_item(item)
-    assert "Core Requirement" in formatted
-    assert "mandatory" in formatted
+def test_driver_is_never_described_as_a_hard_line():
+    assert "can be talked into less" in describe_tag("driver")
+    assert "refuse" in describe_tag("boundary")
 
 
-def test_format_revealed_intel_item_personal_friction():
-    item = {
-        "categorized_type": "personal_friction",
-        "description": "Automation Alex is frustrated when custom platform designs ignore operational automation.",
-    }
-    formatted = _format_revealed_intel_item(item)
-    assert "Personal Friction" in formatted
-    assert "interpersonal tension" in formatted
+def test_unknown_tag_reads_as_driver():
+    assert describe_tag("requirement") == describe_tag("driver")
 
 
 def test_prompts_contain_stance_category_consistency():
     card_prompt = STAKEHOLDER_CHARACTER_CARD.prompt
     assert "STANCE CATEGORY CONSISTENCY" in card_prompt
-    assert "NEVER claim, imply, or state that a negotiable preference is non-negotiable" in card_prompt
+    assert "NEVER claim, imply, or state that a Driver is non-negotiable" in card_prompt
 
     online_prompt = ONLINE_INTEL_STAKEHOLDER_PROMPT.prompt
-    assert "NEVER state or imply that a negotiable preference is non-negotiable" in online_prompt
+    assert "NEVER state or imply that a Driver is non-negotiable" in online_prompt
+    assert "negotiable preference" not in card_prompt.lower() + online_prompt.lower()
 
 
 @pytest.mark.anyio
@@ -84,7 +79,7 @@ async def test_retag_challenge_specific_stance_updates_description():
     from unittest.mock import AsyncMock
     from mlops_serious_game.application.intel_handler import handle_intel_tagging, retrieve_dossier_data
     from mlops_serious_game.domain.phase_factory import PhaseFactory
-    from mlops_serious_game.domain.requirement import RequirementType
+    from mlops_serious_game.domain.requirement import IntelTag
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
@@ -98,31 +93,33 @@ async def test_retag_challenge_specific_stance_updates_description():
     mock_ws = AsyncMock()
     mock_ws.query_params = {"username": unique_user}
 
-    # Tag as requirement (miscategorized)
-    item1 = await handle_intel_tagging(challenge, mock_ws, target_req.id, RequirementType.REQUIREMENT.value)
+    wrong_1, wrong_2 = [t for t in (IntelTag.BOUNDARY, IntelTag.TRADE_OFF, IntelTag.DRIVER) if t != target_req.type][:2]
+
+    # Tag it wrong once
+    item1 = await handle_intel_tagging(challenge, mock_ws, target_req.id, wrong_1.value)
     dossier1 = await retrieve_dossier_data(challenge, mock_ws)
     st_entry1 = next((s for s in dossier1 if s["stakeholder_id"] == target_req.stakeholder_id), None)
     intel_entry1 = next((i for i in st_entry1["intel_items"] if i["id"] == target_req.id), None)
     assert intel_entry1 is not None
 
-    wrong_req_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, "requirement")
+    wrong_req_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, wrong_1.value)
     if wrong_req_desc:
         assert intel_entry1["description"] == wrong_req_desc
 
-    # Re-tag as personal_friction (different miscategorization)
-    item2 = await handle_intel_tagging(challenge, mock_ws, target_req.id, RequirementType.PERSONAL_FRICTION.value)
+    # Re-tag wrong a different way
+    item2 = await handle_intel_tagging(challenge, mock_ws, target_req.id, wrong_2.value)
     dossier2 = await retrieve_dossier_data(challenge, mock_ws)
     st_entry2 = next((s for s in dossier2 if s["stakeholder_id"] == target_req.stakeholder_id), None)
     intel_entry2 = next((i for i in st_entry2["intel_items"] if i["id"] == target_req.id), None)
     assert intel_entry2 is not None
 
-    wrong_friction_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, "personal_friction")
+    wrong_friction_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, wrong_2.value)
     if wrong_friction_desc:
         assert intel_entry2["description"] == wrong_friction_desc
         if wrong_req_desc:
             assert intel_entry2["description"] != intel_entry1["description"]
 
-    # Re-tag back to true type (negotiable_preference)
+    # Re-tag back to the true tag
     true_type_val = target_req.type.value if hasattr(target_req.type, "value") else str(target_req.type)
     item3 = await handle_intel_tagging(challenge, mock_ws, target_req.id, true_type_val)
     dossier3 = await retrieve_dossier_data(challenge, mock_ws)

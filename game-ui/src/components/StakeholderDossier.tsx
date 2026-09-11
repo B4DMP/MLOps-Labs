@@ -8,12 +8,13 @@ import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
+import { INTEL_TAGS } from "../types/IntelTag";
 
 export interface IntelEntry {
   id: string;
   requirement_id?: string;
   intel_type: string; // e.g. "unconfirmed", "verified"
-  categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
+  categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
   is_correct?: boolean;
   /** Where the item came from: "public_record", "offline_artifact", "interview" or "debate". */
@@ -78,11 +79,16 @@ const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
 /** Dwell on a tab before its marker counts as seen. */
 const CHANGE_BADGE_SEEN_MS = 1000;
 
-const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
-  requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
-  negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
-  personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
+const TAG_STYLE_CLASS: Record<string, string> = {
+  requirement: styles.tagRequirement,
+  preference: styles.tagNegotiable,
+  friction: styles.tagFriction,
+  default: styles.tagFriction,
 };
+
+const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = Object.fromEntries(
+  INTEL_TAGS.map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
+);
 
 /** Document wording for the "your read of their ..." caption. */
 const ARTIFACT_TYPE_LABEL: Record<string, string> = {
@@ -1097,8 +1103,8 @@ export default function StakeholderDossier({
         {hasIntelEntries ? (
           <div className={styles.stickyNoteGrid}>
             {st.intel_items.map((item, idx) => {
-              const typeKey = item.categorized_type || "requirement";
-              const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
+              const typeKey = item.categorized_type || "driver";
+              const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.driver;
               const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
               // Re-tagging swaps the whole sentence, and the only span that reliably survives the

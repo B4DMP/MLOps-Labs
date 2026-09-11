@@ -6,7 +6,7 @@ from mlops_serious_game.domain.requirement import (
     ArtifactType,
     ConfidenceType,
     IntelSource,
-    RequirementType,
+    IntelTag,
     StakeholderIntelItem,
     StakeholderRequirement,
 )
@@ -503,7 +503,7 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
 
             # 2. Generate wrong descriptions for all 3 miscategorizations
             wrong_descriptions: Dict[str, str] = {}
-            possible_types = [t for t in RequirementType if t != req.type]
+            possible_types = [t for t in IntelTag if t != req.type]
 
             for wrong_type in possible_types:
                 temp_wrong_item = StakeholderIntelItem.from_requirement(req, categorized_type=wrong_type)
@@ -566,7 +566,7 @@ async def handle_intel_tagging(
         item_conf = existing_item.intel_type.value if hasattr(existing_item.intel_type, "value") else str(existing_item.intel_type)
         if item_conf.lower() != "unconfirmed":
             return existing_item
-        existing_item.categorized_type = RequirementType(categorized_type)
+        existing_item.categorized_type = IntelTag(categorized_type)
         req = RequirementFactory.get_requirement(existing_item.id)
         if req:
             existing_item.description = req.description
@@ -582,7 +582,7 @@ async def handle_intel_tagging(
         intel_item = StakeholderIntelItem.from_requirement(
             req,
             intel_type=ConfidenceType.UNCONFIRMED,
-            categorized_type=RequirementType(categorized_type),
+            categorized_type=IntelTag(categorized_type),
         )
 
     await handle_intel_item_categorization(curr_challenge, ws, intel_item)
@@ -905,3 +905,45 @@ def determine_dialogue_options(
 
     random.shuffle(options)
     return options
+
+def fact_targets_to_observe(items: List[StakeholderIntelItem]) -> List[str]:
+    """Graph targets revealed by Facts the player filed as Facts. A Fact filed under a person
+    reveals nothing: the player treated it as someone's opinion, not as the state of the system."""
+    targets: List[str] = []
+    for item in items:
+        if item.type == IntelTag.FACT and item.categorized_type == IntelTag.FACT and item.asserts:
+            if item.asserts.target not in targets:
+                targets.append(item.asserts.target)
+    return targets
+
+
+def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
+    """Lifts the fog on what correctly tagged Facts describe. Runs once when the player leaves
+    offline intel gathering, so the graph does not reveal which tags were right while tagging."""
+    from mlops_serious_game.application.graph_service import store as graph_store
+    from mlops_serious_game.domain.graph import GraphOp
+
+    source_id = f"facts:{curr_challenge.template_id}"
+    if graph_store.has_batch(username, source_id):
+        return 0
+    with get_session() as session:
+        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        items = []
+        for r in records:
+            if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("challenge_id") == curr_challenge.id:
+                try:
+                    items.append(StakeholderIntelItem(**r.intel_item_data))
+                except Exception:
+                    continue
+    targets = fact_targets_to_observe(items)
+    if not targets:
+        return 0
+    graph_store.append_ops(
+        username,
+        [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
+        phase_index=curr_challenge.phase_id,
+        challenge_template=curr_challenge.template_id,
+        source_kind="intel",
+        source_id=source_id,
+    )
+    return len(targets)

@@ -405,11 +405,9 @@ export default function PitchDebate({
   };
 
   const getIntelTypeScore = (type: string): number => {
-    const normalized = (type || "").toLowerCase();
-    if (normalized.includes("requirement")) return 0.25;
-    if (normalized.includes("negotiable_preference")) return 0.20;
-    if (normalized.includes("personal_friction")) return 0.10;
-    return 0.20;
+    // Boundaries weigh most: meeting someone's red line is what wins them over.
+    const weights: Record<string, number> = { boundary: 0.25, driver: 0.20, trade_off: 0.10, fact: 0.05 };
+    return weights[(type || "").toLowerCase()] ?? 0.20;
   };
 
   const getEmotionScore = (emotion?: string): number => {
@@ -436,7 +434,7 @@ export default function PitchDebate({
         (item.stakeholder_id === st.id || (item.stakeholder_name && item.stakeholder_name === st.name))
     );
     const actionCardScore = matchingActionCardIntels.reduce((sum, item) => {
-      const type = item.categorized_type || item.intel_type || "requirement";
+      const type = item.categorized_type || item.intel_type || "driver";
       return sum + getIntelTypeScore(type);
     }, 0);
 
@@ -448,7 +446,7 @@ export default function PitchDebate({
         !item.is_corrected
     );
     const dialogueIntelScore = matchingDialogueIntels.reduce((sum: number, item: any) => {
-      const type = item.categorized_type || item.intel_type || "requirement";
+      const type = item.categorized_type || item.intel_type || "driver";
       return sum + getIntelTypeScore(type);
     }, 0);
 

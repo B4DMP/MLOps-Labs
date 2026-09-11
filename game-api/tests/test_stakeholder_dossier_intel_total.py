@@ -15,7 +15,7 @@ def _requirement(req_id: str, challenge_id: int, stakeholder_id: str = "tess_tes
         id=req_id,
         challenge_id=challenge_id,
         stakeholder_id=stakeholder_id,
-        type="requirement",
+        type="driver",
         description=f"Tess cares about {req_id}",
     )
 

@@ -10,6 +10,7 @@ import type { ActionCard } from "../types/ActionCard";
 import type { Stakeholder } from "./StakeholderProvider";
 import ActionCardCardComponent from "./ActionCardCardComponent";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import { intelTagMeta } from "../types/IntelTag";
 
 export interface IntelItem {
   id: string;
@@ -46,31 +47,14 @@ export default function ActionCardCreatedModal({
     cardIntelIds.includes(i.id)
   );
 
-  const getCategoryClass = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return styles.catReq;
-      case "negotiable_preference":
-        return styles.catPref;
-      case "personal_friction":
-        return styles.catFrict;
-      default:
-        return styles.catDefault;
-    }
+  const CATEGORY_CLASS = {
+    requirement: styles.catReq,
+    preference: styles.catPref,
+    friction: styles.catFrict,
+    default: styles.catDefault,
   };
-
-  const getCategoryLabel = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return "Requirement";
-      case "negotiable_preference":
-        return "Preference";
-      case "personal_friction":
-        return "Friction";
-      default:
-        return "Intel";
-    }
-  };
+  const getCategoryClass = (type: string) => CATEGORY_CLASS[intelTagMeta(type).styleKey];
+  const getCategoryLabel = (type: string) => intelTagMeta(type).label;
 
   return (
     <Dialog open={isOpen} onClose={() => { }} className="position-relative z-50">

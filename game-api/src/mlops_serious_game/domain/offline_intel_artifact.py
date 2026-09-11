@@ -21,6 +21,6 @@ class OfflineIntelArtifact(BaseModel):
     content: str = Field(description="Content text of the intel artifact")
     wrong_descriptions: Dict[str, str] = Field(
         default_factory=dict,
-        description="Map of miscategorized RequirementType values to their wrong description strings"
+        description="Map of wrong IntelTag values to the description a player with that read would see"
     )
     is_known: bool = Field(description="Describes if an intel item is known by the start of the round")

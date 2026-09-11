@@ -18,6 +18,7 @@ import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import PitchActionCardModal from "./PitchActionCardModal";
 import ActionCardDetailModal from "./ActionCardDetailModal";
 import ActionCardCardComponent from "./ActionCardCardComponent";
+import { intelTagMeta } from "../types/IntelTag";
 
 interface OnlineIntelGatheringProps {
   onContinue: (pitchedCard?: any) => void;
@@ -741,18 +742,13 @@ export default function OnlineIntelGathering({
   const bgIndex = (currentChallenge + currentPhase) % 4;
 
 
-  const getTagBadgeColor = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return "bg-primary";
-      case "negotiable_preference":
-        return "bg-success";
-      case "personal_friction":
-        return "bg-warning text-dark";
-      default:
-        return "bg-secondary";
-    }
+  const TAG_BADGE = {
+    requirement: "bg-primary",
+    preference: "bg-success",
+    friction: "bg-warning text-dark",
+    default: "bg-secondary",
   };
+  const getTagBadgeColor = (type: string) => TAG_BADGE[intelTagMeta(type).styleKey];
 
   return (
     <div className={styles.container}>

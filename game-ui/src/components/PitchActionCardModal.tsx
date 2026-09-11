@@ -9,6 +9,7 @@ import { Icon } from "@iconify/react";
 import styles from "./PitchActionCardModal.module.css";
 import type { Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import { intelTagMeta } from "../types/IntelTag";
 
 export interface IntelItem {
   id: string;
@@ -107,38 +108,16 @@ export default function PitchActionCardModal({
     handleRequestClose();
   };
 
-  // Distinct requirement category details helper (Non-conflicting colors & icons)
+  // Tag details come from the shared tag module; the class keeps each tag's colour consistent.
+  const CATEGORY_CLASS = {
+    requirement: styles.categoryTagRequirement,
+    preference: styles.categoryTagPreference,
+    friction: styles.categoryTagFriction,
+    default: "",
+  };
   const getCategoryDetails = (type: string) => {
-    switch (type) {
-      case "requirement":
-        return {
-          label: "Requirement",
-          shortLabel: "REQ",
-          icon: "ph:check-square-bold",
-          className: styles.categoryTagRequirement,
-        };
-      case "negotiable_preference":
-        return {
-          label: "Preference",
-          shortLabel: "PREF",
-          icon: "ph:sliders-horizontal-bold",
-          className: styles.categoryTagPreference,
-        };
-      case "personal_friction":
-        return {
-          label: "Friction",
-          shortLabel: "FRICT",
-          icon: "ph:warning-circle-bold",
-          className: styles.categoryTagFriction,
-        };
-      default:
-        return {
-          label: type.replace(/_/g, " "),
-          shortLabel: "INTEL",
-          icon: "ph:tag-bold",
-          className: styles.categoryTagDefault,
-        };
-    }
+    const meta = intelTagMeta(type);
+    return { label: meta.label, shortLabel: meta.shortLabel, icon: meta.icon, className: CATEGORY_CLASS[meta.styleKey] };
   };
 
   // Distinct stakeholders referenced by the selected intel items
@@ -288,7 +267,7 @@ export default function PitchActionCardModal({
                     {selectedItems.length > 0 && (
                       <div className={styles.mergedItemsList}>
                         {selectedItems.map((item) => {
-                          const catType = item.categorized_type || (item as any).type || "requirement";
+                          const catType = item.categorized_type || (item as any).type || "driver";
                           const catDetails = getCategoryDetails(catType);
                           const isVerified = (item.intel_type || (item as any).certainty || "").toLowerCase().includes("verified");
 
@@ -401,7 +380,7 @@ export default function PitchActionCardModal({
                     <div className={styles.intelGrid}>
                       {filteredIntelItems.map((item) => {
                         const isSelected = selectedIntelIds.includes(item.id);
-                        const catType = item.categorized_type || (item as any).type || "requirement";
+                        const catType = item.categorized_type || (item as any).type || "driver";
                         const catDetails = getCategoryDetails(catType);
                         const certaintyLabel = item.intel_type || (item as any).certainty || "unconfirmed";
                         const isVerified = (certaintyLabel || "").toLowerCase().includes("verified");

@@ -66,9 +66,9 @@ IMPORTANT RULES:
    (b) The Project Manager stated a false assumption about you (in which case you correct them and reveal your true requirement).
    Otherwise, discuss your general concerns, risks, and feelings about the situation without giving away the exact solution.
 4. STANCE CATEGORY CONSISTENCY: Always strictly adhere to the true category of your intel items, priorities, and requirements when discussing them:
-   - For Negotiable Preference: Treat it as a flexible preference, workflow choice, or nice-to-have that is open to discussion and compromise. You must NEVER claim, imply, or state that a negotiable preference is non-negotiable, a core requirement, a must-have, or a hard constraint. Always maintain willingness to be flexible or compromise.
-   - For Core Requirement: Treat it as a mandatory, essential operational or technical requirement.
-   - For Personal Friction: Treat it as interpersonal friction, team relationship tension, or emotional concern rather than a technical requirement.
+   - For a Driver: Treat it as something you want improved, where more is better. You care about it, but you can be talked into less. You must NEVER claim, imply, or state that a Driver is non-negotiable or a hard line.
+   - For a Boundary: Treat it as a line you will not cross. If a proposal violates it, you refuse, and you say so plainly.
+   - For a Trade-off: Treat it as something you are willing to give up or accept losing to get what you want. You can mention the cost, but you accept it.
 5. RESPONSE STYLE: Be conversational, professional, and natural. Write as if you are speaking in a project meeting. Your message should sound like a spoken comment in a meeting, not like a formal academic statement.
 6. NO DASHES: Do NOT use any dashes of any kind (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use standard commas (',') or separate sentences with periods ('.') instead.
 7. BREVITY & SENTENCE LIMIT: Strictly limit your response to at most 2 sentences (maximum 2 sentences).
@@ -96,11 +96,13 @@ Context:
 
 Instructions:
 1. Distort or refactor the correct description to match the falsely assigned categorization ({{categorized_type}}):
-   - If categorized as personal or 'personal_friction': Frame the stance around personal animosity, emotional friction, or personal grudges (e.g., "{{stakeholder_name}} holds a personal grudge against...", or "{{stakeholder_name}} enforces... purely to undermine executive authority").
+   - If categorized as 'boundary': Frame the stance as an absolute red line the stakeholder would refuse to cross, even if it is really something they are flexible about.
+   - If categorized as 'driver': Frame the stance as something the stakeholder simply wants more of, even if it is really a hard line or a concession.
+   - If categorized as 'trade_off': Frame the stance as something the stakeholder is willing to give up, even if they actually care about it.
+   - If categorized as 'fact': Frame the stance as a neutral observation about how the system currently is, stripped of what the stakeholder wants.
    - If categorized as 'technical': Frame the stance around low-level engineering mechanics, code reviews, container security, or node memory allocations.
    - If categorized as 'business': Frame the stance around financial audit gates, budget controls, ROI metrics, executive summaries, or revenue impact.
    - If categorized as 'political': Frame the stance around organizational power dynamics, governance control, or corporate politics.
-   - If categorized as 'preference' or 'negotiable_preference': Frame the stance as an optional tool preference or personal workflow choice.
 2. The wrong description MUST fit into the context of the team challenge, maintain thematic relevance to the correct description, and align naturally with the stakeholder's profile.
 3. The description MUST be exactly one sentence long.
 4. NO DASHES: Do NOT use any em-dashes ('—'), en-dashes ('–'), or double hyphens ('--'). Use standard punctuation (commas, periods, or hyphens) instead.
@@ -122,7 +124,7 @@ Context:
 - Challenge: {{challenge}}
 - Stakeholder: {{stakeholder_name}}
 - Stance to Reveal: {{requirement_description}}
-- Stance Category: {{requirement_type}} (requirement = critical technical/operational need, negotiable_preference = flexible tool/workflow choice, personal_friction = interpersonal friction/emotional grievance)
+- Stance Category: {{requirement_type}} (driver = something they want improved, more is better; boundary = a line they will not cross; trade_off = something they would give up to get what they want; fact = how the system is right now, stated by nobody's wish)
 
 Rules:
 1. NO TITLES, HEADINGS, OR METADATA: Start directly with the body text. Do NOT write any document title, heading, subject line, topic header, or author line (e.g. NEVER write "Incident Post-Mortem", "Meeting Notes", "Subject: ...", or "Author: ..."). The game interface already provides all titles and headers.
@@ -185,9 +187,9 @@ Information to Reveal:
 Instructions:
 1. Respond to the player's message in your natural, spoken workplace persona.
 2. Follow the true category of each revealed intel item strictly:
-   - For Negotiable Preference: Treat it as a flexible preference, personal leaning, or nice-to-have that is open to discussion and compromise. You must NEVER state or imply that a negotiable preference is non-negotiable, a core requirement, a must-have, or a hard constraint.
-   - For Core Requirement: Treat it as an essential, non-negotiable requirement.
-   - For Personal Friction: Treat it as personal friction, relationship tension, or team dynamics concern.
+   - For a Driver: Treat it as something you want improved, where more is better, and that you could be talked down on. NEVER state or imply that a Driver is non-negotiable.
+   - For a Boundary: Treat it as a line you will not cross, and say so plainly.
+   - For a Trade-off: Treat it as something you would give up or accept losing to get what you want.
    Naturally integrate this information into your answer following its true category.
 3. If "Information to Reveal" is empty or indicates no new items, acknowledge the player's message politely in character, stating that you have already shared your main points or have no additional updates right now.
 4. When mentioning or addressing any fellow stakeholders or colleagues, always use their complete full name and never use only part of their name.

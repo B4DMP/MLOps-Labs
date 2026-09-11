@@ -242,10 +242,10 @@ async def get_response(
                             id=selected_opt.intel_item_id,
                             challenge_id=challenge_id,
                             stakeholder_id=selected_opt.intel_stakeholder_id or "",
-                            type=selected_opt.intel_type or "requirement",
+                            type=selected_opt.intel_type or "driver",
                             description=selected_opt.intel_description or "",
                             categorized_description=selected_opt.intel_description or "",
-                            categorized_type=selected_opt.intel_type or "requirement",
+                            categorized_type=selected_opt.intel_type or "driver",
                         )
 
             input_data: dict[str, Any] = {

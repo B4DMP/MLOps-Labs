@@ -210,3 +210,53 @@ def test_real_progression_validates_and_keeps_sequential_order(real):
         played.add(pick.template_id)
         current_phase = pick.phase_id
     assert order == [c.id for c in challenges]
+
+
+# ---------- intel payloads ----------
+
+def test_legacy_content_retagged_and_payload_gate_passes(real):
+    import mlops_serious_game.domain.gameConfigLoader  # noqa: F401
+    from mlops_serious_game.domain.metric_factory import MetricFactory
+    from mlops_serious_game.domain.requirement import IntelTag
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+    from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+
+    tags = {r.type for r in RequirementFactory.requirements}
+    assert tags <= set(IntelTag)
+    RequirementFactory.validate_payloads(
+        GraphFactory.get_graph(), set(MetricFactory.get_available_metrics()),
+        set(StakeholderFactory.get_available_stakeholders()),
+    )
+
+
+def test_payload_gate_rejects_mismatched_payloads(real):
+    from mlops_serious_game.domain.requirement import StakeholderRequirement
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+
+    saved = RequirementFactory.requirements
+    try:
+        RequirementFactory.requirements = [
+            StakeholderRequirement(id="f1", challenge_id=0, type="fact", description="."),  # no asserts
+            StakeholderRequirement(id="d1", challenge_id=0, stakeholder_id="data_dave", type="driver",
+                                   description=".", holds={"component": "data.validation", "level": 3}),
+            StakeholderRequirement(id="b1", challenge_id=0, stakeholder_id="data_dave", type="boundary",
+                                   description=".", suggested={"target": "data.nope", "level": 3}),
+        ]
+        with pytest.raises(GraphConfigError) as e:
+            RequirementFactory.validate_payloads(real, {"data"}, {"data_dave"})
+        msg = str(e.value)
+        assert "needs 'asserts'" in msg and "only Boundaries carry 'holds'" in msg and "unknown target" in msg
+    finally:
+        RequirementFactory.requirements = saved
+
+
+def test_only_facts_filed_as_facts_lift_the_fog():
+    from mlops_serious_game.application.intel_handler import fact_targets_to_observe
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem
+
+    def fact(fid, tagged):
+        return StakeholderIntelItem(id=fid, challenge_id=0, type="fact", description=".",
+                                    asserts={"target": "e.fs_train", "level": 2}, categorized_type=tagged)
+
+    assert fact_targets_to_observe([fact("a", "fact")]) == ["e.fs_train"]
+    assert fact_targets_to_observe([fact("b", "driver")]) == []

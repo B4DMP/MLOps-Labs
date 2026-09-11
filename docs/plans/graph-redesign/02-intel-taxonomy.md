@@ -122,9 +122,9 @@ Stakeholder artifacts: email, slack message, meeting notes, document. New techni
 
 ## Model changes
 
-`domain/requirement.py`: `IntelTag(Driver, Boundary, TradeOff, Fact)`, payload fields as above, `stakeholder_id` nullable for Facts. Delete `RequirementType` and the legacy upgrade shim. Database disposable.
+`domain/requirement.py`: `IntelTag(Driver, Boundary, TradeOff, Fact)`, payload fields as above, `stakeholder_id` nullable for Facts. `RequirementType` and the legacy read-time shim are deleted; migration `f6a7b8c9d0e1` rewrites stored rows instead. `TAG_PROMPT_DESCRIPTION` and `PLAUSIBLE_WRONG_TAG` give every flow the same wording.
 
-`categorized_type` becomes `categorized_tag`. Correctness compares tag.
+`categorized_type` keeps its name (renaming it would touch every frontend payload and stored row for no behaviour change); its values are now `IntelTag`. Correctness compares tag.
 
 ## UI
 
@@ -134,13 +134,13 @@ Stakeholder artifacts: email, slack message, meeting notes, document. New techni
 
 ## Steps
 
-- [ ] 1. `IntelTag` and payloads in `domain/requirement.py`, delete legacy types and shim.
-- [ ] 2. Schema and loader gate: payload matches tag, Boundary predicates parse, Fact targets exist.
-- [ ] 3. Engagement cards filter by tag, add Investigate card (reveals N Facts of a stage for tokens).
-- [ ] 4. Tag control in `offline_intel_gathering.tsx`, technical artifact types in `IntelArtifactViewer.tsx`.
-- [ ] 5. Scoring in `correct_and_verify_intel_item`, Fact tagging emits `observe`.
-- [ ] 6. Dossier split into stakeholder and environment sections.
-- [ ] 7. Content regenerated under the new taxonomy in [04](04-content-pipeline.md).
+- [x] 1. `IntelTag` and payloads in `domain/requirement.py`, delete legacy types and shim.
+- [x] 2. Schema and loader gate (`RequirementFactory.validate_payloads`): payload matches tag, Boundary predicates parse, Fact targets exist.
+- [x] 3. Engagement cards filter by tag. Investigate card deferred to [06](06-merged-phase.md): it needs stage targeting in the engagement UI that plan rebuilds, and there are no Facts to reveal before tier 0 content.
+- [x] 4. Tag control in `offline_intel_gathering.tsx`: three stakeholder tags, then Fact under "not about anyone: about the system". Labels, icons and colours shared via `game-ui/src/types/IntelTag.ts`. Technical artifact types exist in the backend enum and schema; their viewer icons come with tier 0 content in [04](04-content-pipeline.md).
+- [x] 5. Scoring compares tags. Correctly tagged Facts emit `observe` when the player leaves offline intel gathering (`observe_tagged_facts`), not on tagging, so the graph does not reveal which tags were right.
+- [x] 6. Dossier shows the new labels; Facts without a stakeholder are skipped safely. The environment section moves to [05](05-persistent-dossier.md), which rebuilds the dossier views.
+- [x] 7. Stopgap: the 88 legacy items re-tagged mechanically (37 Boundary, 51 Driver, no Trade-offs or Facts). Real content under the new taxonomy comes from tier 0 in [04](04-content-pipeline.md).
 
 ## Done when
 

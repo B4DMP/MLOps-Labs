@@ -56,9 +56,9 @@ class GameConfigLoader:
             StoryFactory.load(story_path, graph)
             patterns_path = (base_dir / "../../../../gameConfig/MlopsPatterns.json").resolve()
             PatternFactory.load(patterns_path, graph)
-            PhaseFactory.validate_templates(
-                graph, PatternFactory.ids(), set(StakeholderFactory.get_available_stakeholders())
-            )
+            stakeholder_ids = set(StakeholderFactory.get_available_stakeholders())
+            PhaseFactory.validate_templates(graph, PatternFactory.ids(), stakeholder_ids)
+            RequirementFactory.validate_payloads(graph, set(MetricFactory.get_available_metrics()), stakeholder_ids)
             print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges, {len(PatternFactory.patterns)} patterns.")
 
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
