@@ -452,6 +452,16 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
         wrong_intel_ids = []
         for i_id in intel_ids:
             item = collected_map.get(i_id)
+            if not item:
+                with get_session() as s:
+                    records = s.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+                    for r in records:
+                        if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == i_id:
+                            try:
+                                item = StakeholderIntelItem(**r.intel_item_data)
+                            except Exception:
+                                pass
+                            break
             if item and not item.is_correct_intel():
                 wrong_intel_ids.append(item.id)
         action_card["wrong_intel_ids"] = wrong_intel_ids
