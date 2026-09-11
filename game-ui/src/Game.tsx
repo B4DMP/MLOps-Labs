@@ -10,7 +10,7 @@ import introJs from "intro.js";
 import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
-import OnlineIntelGathering, { type IntelItem } from "./components/online_intel_gathering";
+import { type IntelItem } from "./components/online_intel_gathering";
 import PitchPhase from "./components/pitch_phase";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
@@ -897,49 +897,42 @@ function App({ username: _username }: AppProps) {
                   challengeAmount={challengeAmount}
                 />
               )}
-              {challengeLoopId === 1 && (
-                <OnlineIntelGathering
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  onContinue={handleOnlineIntelGatheringContinue}
+              {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
+                  now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
+              {(challengeLoopId === 1 || challengeLoopId === 2) && (
+                <PitchPhase
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
                   challengeTitle={challengeTitle}
                   challengeDescription={challengeDescription}
                   challengeIntro={challengeIntro}
                   challengeAmount={challengeAmount}
-                  dossierData={dossierData}
-                  activeStakeholderId={activeStakeholderId}
-                  intelItems={intelItems}
-                  attentionTokens={attentionTokens}
-                  setAttentionTokens={setAttentionTokens}
-                  playedCardIdsInPhase={playedCardIdsInPhase}
-                  setPlayedCardIdsInPhase={setPlayedCardIdsInPhase}
-                  cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
-                  setCardTargetedStakeholdersMap={setCardTargetedStakeholdersMap}
-                  chatMsgs={onlineIntelChatMsgs}
-                  setChatMsgs={setOnlineIntelChatMsgs}
+                  convincerArchetypes={convincerArchetypes}
+                  onEndPitch={handlePitchDebateEnd}
                   engagementCards={engagementCards}
-                  pitchedActionCard={pitchedActionCard}
-                  onUpdatePitchedCard={(card) => setPitchedActionCard(card)}
+                  attentionTokens={attentionTokens}
+                  onAttentionTokensChange={setAttentionTokens}
+                  playedCardIdsInPhase={playedCardIdsInPhase}
+                  onPlayedCardIdsChange={setPlayedCardIdsInPhase}
+                  chatMsgs={onlineIntelChatMsgs}
+                  onChatMsgsChange={setOnlineIntelChatMsgs}
+                  cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                  onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
                   onUpdateIntelItems={(items) => {
-                    setIntelItems(items);
+                    setIntelItems(items as any);
                     setDossierData((prevDossier) => {
                       if (!prevDossier || prevDossier.length === 0) return prevDossier;
                       return prevDossier.map((st) => ({
                         ...st,
                         intel_items: (st.intel_items || []).map((item) => {
-                          const matchingUpdated = items.find(
-                            (u) => u.id === item.id
-                          );
+                          const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
                           if (matchingUpdated) {
                             return {
                               ...item,
                               intel_type: matchingUpdated.intel_type,
                               categorized_type: matchingUpdated.categorized_type,
                               description: matchingUpdated.description,
-                              source: (matchingUpdated as any).source || item.source,
+                              source: matchingUpdated.source || item.source,
                             };
                           }
                           return item;
@@ -956,20 +949,6 @@ function App({ username: _username }: AppProps) {
                   currentChallenge={currentChallenge}
                   showMetricValueChanges={showMetricValueChanges}
                   last_ac={last_ac}
-                />
-              )}
-              {/* The merged pitch phase (plan 06). The old debate screen stays in the tree until
-                  its chat and engagement cards are folded in (plan 06 steps 1 and 11). */}
-              {challengeLoopId === 2 && (
-                <PitchPhase
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  challengeAmount={challengeAmount}
-                  convincerArchetypes={convincerArchetypes}
-                  onEndPitch={handlePitchDebateEnd}
                 />
               )}
             </StakeholderContext.Provider>

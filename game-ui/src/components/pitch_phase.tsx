@@ -1,5 +1,6 @@
 /**
  * The merged pitch phase (plan 06): PREPARE, OBJECT, COMMIT on one screen.
+ * PREPARE includes engagement cards and stakeholder chat (D37).
  *
  * Every rule lives on the server. This screen sends what the player did and renders the
  * `pitch:state` payload that comes back, so the same card always produces the same objections.
@@ -15,6 +16,11 @@ import { intelTagMeta, type IntelTag } from "../types/IntelTag";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import styles from "./pitch_phase.module.css";
+import type { EngagementCard } from "../types/EngagementCard";
+import EngagementCards from "./EngagementCards";
+import EngagementCardTargetModal from "./EngagementCardTargetModal";
+import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
+import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 
 const MAX_CARD_ITEMS = 5;
 
@@ -128,6 +134,17 @@ interface PitchPhaseProps {
   challengeAmount?: number;
   convincerArchetypes?: Record<string, { name?: string; icon?: string; color?: string }>;
   onEndPitch?: (passed: boolean) => void;
+  /** Engagement cards for the PREPARE stage intel-gathering flow (D37). */
+  engagementCards?: EngagementCard[];
+  attentionTokens?: number;
+  onAttentionTokensChange?: (n: number) => void;
+  playedCardIdsInPhase?: string[];
+  onPlayedCardIdsChange?: (ids: string[]) => void;
+  chatMsgs?: ChatMsg[];
+  onChatMsgsChange?: (msgs: ChatMsg[]) => void;
+  cardTargetedStakeholdersMap?: Record<string, string[]>;
+  onCardTargetedStakeholdersMapChange?: (m: Record<string, string[]>) => void;
+  onUpdateIntelItems?: (items: unknown[]) => void;
 }
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
@@ -164,14 +181,25 @@ export default function PitchPhase({
   challengeAmount,
   convincerArchetypes = {},
   onEndPitch,
+  engagementCards: engagementCardsProp,
+  attentionTokens: attentionTokensProp,
+  onAttentionTokensChange,
+  playedCardIdsInPhase: playedCardIdsProp,
+  onPlayedCardIdsChange,
+  chatMsgs: chatMsgsProp,
+  onChatMsgsChange,
+  cardTargetedStakeholdersMap: cardTargetedMapProp,
+  onCardTargetedStakeholdersMapChange,
+  onUpdateIntelItems,
 }: PitchPhaseProps) {
-  const { emit } = useGameWebSocket();
+  const { emit, subscribe } = useGameWebSocket();
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
     { name?: string; avatar?: StakeholderAvatar }
   >;
 
+  // ── pitch state ──────────────────────────────────────────────────────────
   const [state, setState] = useState<PitchStatePayload | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [main, setMain] = useState<string>("");
@@ -179,11 +207,32 @@ export default function PitchPhase({
   const [objectionIndex, setObjectionIndex] = useState(0);
   const [amendFor, setAmendFor] = useState<string | null>(null);
 
+  // ── engagement card state (controlled-or-local pattern) ──────────────────
+  const [localTokens, setLocalTokens] = useState(8);
+  const [localPlayedIds, setLocalPlayedIds] = useState<string[]>([]);
+  const [localChatMsgs, setLocalChatMsgs] = useState<ChatMsg[]>([]);
+  const [localCardTargetedMap, setLocalCardTargetedMap] = useState<Record<string, string[]>>({});
+  const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
+  const [verificationModal, setVerificationModal] = useState<IntelVerificationResultData | null>(null);
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const cards = engagementCardsProp || [];
+  const tokens = attentionTokensProp !== undefined ? attentionTokensProp : localTokens;
+  const setTokens = onAttentionTokensChange ?? setLocalTokens;
+  const playedIds = playedCardIdsProp !== undefined ? playedCardIdsProp : localPlayedIds;
+  const setPlayedIds = onPlayedCardIdsChange ?? setLocalPlayedIds;
+  const chatMsgsState = chatMsgsProp !== undefined ? chatMsgsProp : localChatMsgs;
+  const setChatMsgsState = onChatMsgsChange ?? setLocalChatMsgs;
+  const cardTargetedMap = cardTargetedMapProp !== undefined ? cardTargetedMapProp : localCardTargetedMap;
+  const setCardTargetedMap = onCardTargetedStakeholdersMapChange ?? setLocalCardTargetedMap;
+
   const base = useMemo(
     () => ({ phase_id: currentPhase, challenge_id: currentChallenge }),
     [currentPhase, currentChallenge],
   );
 
+  // ── pitch:state event ────────────────────────────────────────────────────
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setState(payload);
     setSelected(payload.card_item_ids || []);
@@ -197,6 +246,104 @@ export default function PitchPhase({
     emit("pitch:state", base);
   }, [emit, base]);
 
+  // ── intel engagement events ───────────────────────────────────────────────
+  useEffect(() => {
+    if (!subscribe) return;
+
+    const handleEngagementFinished = (payload: any) => {
+      setIsWaiting(false);
+      if (!payload) return;
+      if (payload.played_engagement_card_ids) setPlayedIds(payload.played_engagement_card_ids);
+      if (payload.engagement_card_targets) {
+        setCardTargetedMap((prev) => ({ ...prev, ...payload.engagement_card_targets }));
+      }
+      if (payload.dossier && onUpdateIntelItems) {
+        const items = (payload.dossier as any[]).flatMap((entry) =>
+          (entry.intel_items || []).map((intel: any) => ({
+            ...intel,
+            stakeholder_id: entry.stakeholder_id,
+            stakeholder_name: entry.name,
+          })),
+        );
+        onUpdateIntelItems(items);
+      }
+      // Refresh available items now that more intel has been gathered.
+      emit("pitch:state", base);
+    };
+
+    const unsubs = [
+      subscribe("intel:verified_res", (p: any) => {
+        if (p?.status === "success") {
+          setVerificationModal({
+            wasCorrect: p.old_categorized_type === p.true_categorized_type,
+            oldType: p.old_categorized_type,
+            trueType: p.true_categorized_type,
+            description: p.description,
+            stakeholderName: p.stakeholder_name,
+          });
+        }
+      }),
+      subscribe("intel:message_received", (p: any) => {
+        if (!p) return;
+        if (p.type === "stakeholder_message" && p.message && p.stakeholder_id) {
+          const msg: ChatMsg = {
+            id: p.stakeholder_id,
+            message: p.message,
+            ac_id: -1,
+            revealed_intel: p.revealed_intel_items || [],
+          };
+          setChatMsgsState((prev) => [...prev, msg]);
+        } else if (p.type === "player_message" && p.message) {
+          const msg: ChatMsg = { id: "user", message: p.message, ac_id: -1 };
+          setChatMsgsState((prev) => [...prev, msg]);
+        }
+      }),
+      subscribe("intel:engagement_complete", handleEngagementFinished),
+      subscribe("intel:engagement_response", handleEngagementFinished),
+      subscribe("intel:dossier_data", (p: any) => {
+        if (!p) return;
+        if (p.played_engagement_card_ids) setPlayedIds(p.played_engagement_card_ids);
+        if (p.engagement_card_targets) {
+          setCardTargetedMap((prev) => ({ ...prev, ...p.engagement_card_targets }));
+        }
+      }),
+      subscribe("system:error", () => setIsWaiting(false)),
+    ];
+    return () => unsubs.forEach((u) => u());
+  }, [subscribe, emit, base, onUpdateIntelItems]);
+
+  // ── engagement card handlers ──────────────────────────────────────────────
+  const handleSelectEngagementCard = (card: EngagementCard) => {
+    const exhausted =
+      (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
+      playedIds.includes(card.id);
+    if (tokens < card.token_cost || exhausted) return;
+    setPlayingCard(card);
+  };
+
+  const handleConfirmPlayCardStakeholders = (stakeholderIds: string[]) => {
+    if (!playingCard) return;
+    const nextTokens = tokens - playingCard.token_cost;
+    setTokens(nextTokens);
+    setIsWaiting(true);
+    emit("intel:play_engagement_card", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: playingCard.id,
+      stakeholder_ids: stakeholderIds,
+      attention_tokens: nextTokens,
+    });
+    if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
+      setPlayedIds((prev) => [...prev, playingCard.id]);
+    }
+    setCardTargetedMap((prev) => ({
+      ...prev,
+      [playingCard.id]: [...(prev[playingCard.id] || []), ...stakeholderIds],
+    }));
+    setPlayingCard(null);
+  };
+
+  // ── pitch card handlers ───────────────────────────────────────────────────
   const stakeholderName = (id?: string | null) =>
     (id && stakeholders[id]?.name) || id || "Someone";
 
@@ -236,11 +383,18 @@ export default function PitchPhase({
   const violatedFor = (stId: string) =>
     state.boundary_warnings.filter((w) => w.violated && w.stakeholder_id === stId);
 
-  // One row per refinement chain, not one per note: what the card carries is the newest link.
+  // One row per refinement chain, not one per note.
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
   toChains(state.available_items).forEach((chain) => {
     (grouped[chain.newest.type] ||= []).push(chain);
   });
+
+  // Stakeholder list for the engagement card target modal.
+  const availableStakeholderList = Object.entries(stakeholders).map(([id, st]) => ({
+    id,
+    name: st.name || id,
+    avatar: st.avatar,
+  }));
 
   return (
     <div className={styles.root}>
@@ -374,6 +528,35 @@ export default function PitchPhase({
                   ))}
                 </select>
               </div>
+
+              {/* ── Engagement cards ────────────────────────────────────── */}
+              {cards.length > 0 && (
+                <div
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
+                  onDrop={(e) => {
+                    setIsDragging(false);
+                    const cardId = e.dataTransfer.getData("engagementCardId") || e.dataTransfer.getData("cardId");
+                    if (!cardId) return;
+                    const card = cards.find((c) => c.id === cardId);
+                    if (card) handleSelectEngagementCard(card);
+                  }}
+                >
+                  <div className={styles.groupLabel} style={{ marginTop: 16 }}>
+                    Engagement Cards · {tokens} tokens · {state.available_items.length} intel
+                  </div>
+                  <EngagementCards
+                    attentionTokens={tokens}
+                    cards={cards}
+                    playedCardIds={playedIds}
+                    discoveredIntelCount={state.available_items.length}
+                    onOpenPitchModal={() => {}}
+                    onSelectCard={handleSelectEngagementCard}
+                    onDragCardStart={() => setIsDragging(true)}
+                    onDragCardEnd={() => setIsDragging(false)}
+                    isEnabled={!isWaiting}
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -542,6 +725,23 @@ export default function PitchPhase({
                 ))}
             </div>
           )}
+
+          {/* ── Stakeholder conversation ──────────────────────────────── */}
+          {chatMsgsState.length > 0 && (
+            <div className={styles.intelGroup}>
+              <div className={styles.groupLabel}>Conversation</div>
+              <StakeholderInteractionArea
+                chatMsgs={chatMsgsState}
+                current_phase={currentPhase}
+                current_challenge={currentChallenge}
+                isEnabled={!isWaiting}
+                actionCards={[]}
+                onHoverCard={() => {}}
+                showStakeholderList={false}
+                showDialogueOptions={false}
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -575,6 +775,30 @@ export default function PitchPhase({
           </button>
         )}
       </div>
+
+      {/* ── Modals ──────────────────────────────────────────────────────── */}
+      {playingCard && (
+        <EngagementCardTargetModal
+          isOpen={Boolean(playingCard)}
+          onClose={() => setPlayingCard(null)}
+          card={playingCard}
+          attentionTokens={tokens}
+          stakeholders={stakeholders as any}
+          availableStakeholderList={availableStakeholderList as any}
+          isStakeholderActive={() => true}
+          cardTargetedStakeholdersMap={cardTargetedMap}
+          intelItems={[]}
+          onConfirmStakeholders={handleConfirmPlayCardStakeholders}
+          onConfirmIntel={() => {}}
+          getStakeholderColor={(st: any) => st?.stakeholder_color || "#38bdf8"}
+          getTagBadgeColor={() => "bg-secondary"}
+        />
+      )}
+      <IntelVerificationDialog
+        isOpen={Boolean(verificationModal)}
+        onClose={() => setVerificationModal(null)}
+        resultData={verificationModal}
+      />
     </div>
   );
 }

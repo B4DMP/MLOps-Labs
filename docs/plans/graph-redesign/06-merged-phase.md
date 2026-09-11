@@ -118,7 +118,7 @@ Their owned components with story fragments, the targets in their objection set,
 
 ## Steps
 
-- [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Still to move in (D37): the engagement cards and the stakeholder chat, both of which belong in PREPARE, after which loop index 1 and its screen disappear.
+- [x] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` still exists pending step 11 (delete).
 - [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
 - [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
 - [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
