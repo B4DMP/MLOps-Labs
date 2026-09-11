@@ -28,7 +28,7 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 
 - **PASS**: pipeline as above.
 - **SOFT_PASS**: plus a grudge per neglected low power stakeholder. A grudge is persisted state that schedules friction. At step 9 each grudge picks one effect, deterministically by age and owner: a target landing one level lower, a world event brought forward, or an extra objection at patience minus one next time.
-- **VETO_BROKEN**: card applies, overridden stakeholder degrades everything they own maximally, double weight grudge.
+- **VETO_BROKEN**: card applies, overridden stakeholder degrades everything they own by one allowed level, drops one step in emotion as well, and keeps a double weight grudge (D38).
 - **STALEMATE**: steps 3 to 5 skipped. `stalemate_ops` fire as a world event, metrics take the authored hit, grudges for everyone in the room. Report leads with what went wrong.
 
 ## Delta report payload
@@ -68,6 +68,8 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 
 `GameMetrics.json` entries gain `component_weights` over components and edges. Metric delta is a weighted sum of effective level deltas. Driver credit reuses the same weights ([02](02-intel-taxonomy.md#payloads)). LLM metric estimation deleted.
 
+The pipeline owns every metric number (D39). The authored `challenge.metric_changes` hit becomes one more input to it, and `game_handler.py` stops doing metric arithmetic of its own: one place computes the state transition, the handlers only carry messages.
+
 ## Steps
 
 - [x] 1. `graph_service/pipeline.py`, 13 steps, pure except store calls. `simulate` is pure, `run_simulation` loads and appends the batch (idempotent per challenge). Step 13 stays with the caller, see step 9.
@@ -79,6 +81,8 @@ Every slotted stance item applies its ops, whatever the player tagged it as. The
 - [x] 7. `graph:delta_report` event. `simulation:run` reads the committed pitch, runs the pipeline and sends the report; `handlers/simulation_handler.py`.
 - [x] 8. Rewrite `ac_simulation.tsx` as the four beat report. Beat 4 shows stage and system health with the numbers, the before and after stage graph is plan 08 step 7.
 - [x] 9. Next challenge selection at the end of the report. The report names what comes next; Continue advances the loop as before. A grudge that pulls a world event forward takes it from that same next challenge.
+- [ ] 11. Metric ownership per D39: `challenge.metric_changes` moves into the pipeline, `game_handler.py` stops applying it.
+- [ ] 12. Tuned numbers into config (D38), together with plan 06 step 13.
 - [x] 10. Tests: capped raise reports its cap, propagation after a break, unhappy owner degrades, debt repaid later, design pattern gained lifts health, plus grudge determinism, metric arithmetic and the outcome branches (`tests/test_simulation_pipeline.py`, 12 tests).
 
 ## Done when

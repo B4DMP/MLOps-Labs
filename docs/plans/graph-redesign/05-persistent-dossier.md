@@ -82,7 +82,7 @@ Objections write into the dossier as `source: objection`, `intel_type: verified`
 - [x] 6. Stakeholder and environment views, stage filter, search. (`retrieve_dossier_data` is persistent across phases and ships an environment page of Facts grouped by stage, placed by the player's own tag; filter bar with stage chips defaulting to `focus_stage_ids`, search box and collapse-done toggle)
 - [x] 7. Card builder treats a chain as one item. (`chain_id`, `chain_position` and `chain_length` in `_item_payload`; `pitch_phase.tsx` groups `available_items` into one row per chain, pitched as the newest link, in both the builder and the amend list)
 - [x] 4b. The dossier actually persists: the wipe at the start of every challenge (`clear_intel_items_for_user`) is gone, and storing an item updates the row with the same id, so re-entering a challenge does not duplicate anything.
-- [ ] 8. Playtest two phases: a phase 1 item grows a phase 3 layer and reads as one card.
+- [ ] 8. DEFERRED until the full content run (D40): no tier 0 item carries `refines_id`, so every chain is one link. Playtest two phases: a phase 1 item grows a phase 3 layer and reads as one card.
 
 ## Done when
 

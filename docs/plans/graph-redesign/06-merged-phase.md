@@ -115,7 +115,7 @@ Their owned components with story fragments, the targets in their objection set,
 
 ## Steps
 
-- [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages; the engagement cards and the stakeholder chat still live in the old online intel screen at loop index 1 and are not folded in yet.
+- [ ] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Still to move in (D37): the engagement cards and the stakeholder chat, both of which belong in PREPARE, after which loop index 1 and its screen disappear.
 - [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
 - [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
 - [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
@@ -126,7 +126,8 @@ Their owned components with story fragments, the targets in their objection set,
 - [ ] 9. Trim stakeholder prompt context.
 - [ ] 10. Grudges persisted, Escalation Points in game state and navbar. Both persist on the session row (migration `a7b8c9d0e1f2`) and the pitch screen shows the points; the navbar does not yet.
 - [ ] 11. Delete old screens and dead handlers.
-- [ ] 12. Playtest a full challenge.
+- [ ] 12. Playtest a full challenge. Fixes the numbers afterwards (D38), and settles how a player walks away from a veto (Q25).
+- [ ] 13. Move every tuned number out of code into config (D38): emotion effect per dialogue option, patience, amendment budget, the Veto Breaker cost in emotion and levels, grudge lifetime. Code keeps the defaults it has now.
 
 ## Done when
 
