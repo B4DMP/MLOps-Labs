@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "MLOps Graph Patterns",
+  "description": "Anti and design patterns matched on the technical graph. They add or subtract stage health and are what challenge preconditions refer to. Predicates are validated against MlopsGraph.json on load.",
+  "required": ["patterns"],
+  "properties": {
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "name", "when", "stage_effects", "story"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^(ap|dp)_[a-z0-9_]+$", "title": "ap_ for anti, dp_ for design"},
+          "kind": {"type": "string", "enum": ["anti", "design"]},
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "when": {"title": "Predicate", "description": "all / any / not over component, edge, trigger, attr, instance and pattern clauses"},
+          "stage_effects": {
+            "type": "object",
+            "title": "Health change per stage (negative for anti, positive for design)",
+            "propertyNames": {"enum": ["req", "data", "model", "deploy", "ops", "gov"]},
+            "additionalProperties": {"type": "number"}
+          },
+          "story": {"type": "string"},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "consequence_ops": {"type": "array", "items": {"type": "object"}}
+        }
+      }
+    }
+  }
+}

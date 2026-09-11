@@ -13,6 +13,7 @@ from mlops_serious_game.domain.convincer_archetype_artifact_factory import Convi
 from mlops_serious_game.domain.glossary_factory import GlossaryFactory
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.story_factory import StoryFactory
+from mlops_serious_game.domain.pattern import PatternFactory
 
 
 class GameConfigLoader:
@@ -53,7 +54,12 @@ class GameConfigLoader:
             graph = GraphFactory.load_graph(graph_path)
             story_path = (base_dir / "../../../../gameConfig/MlopsStoryFragments.json").resolve()
             StoryFactory.load(story_path, graph)
-            print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges.")
+            patterns_path = (base_dir / "../../../../gameConfig/MlopsPatterns.json").resolve()
+            PatternFactory.load(patterns_path, graph)
+            PhaseFactory.validate_templates(
+                graph, PatternFactory.ids(), set(StakeholderFactory.get_available_stakeholders())
+            )
+            print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges, {len(PatternFactory.patterns)} patterns.")
 
             questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)

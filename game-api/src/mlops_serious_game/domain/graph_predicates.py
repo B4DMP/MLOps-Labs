@@ -15,8 +15,7 @@ import operator
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from mlops_serious_game.application.graph_service.effective import EffectiveView
-from mlops_serious_game.domain.graph import GraphState, TechnicalGraph, parse_level
+from mlops_serious_game.domain.graph import EffectiveView, GraphState, TechnicalGraph, parse_level
 
 _OPS: dict[str, Callable[[Any, Any], bool]] = {
     "eq": operator.eq,

@@ -4,7 +4,7 @@ import pytest
 
 from mlops_serious_game.application.graph_service.apply import apply_ops, replay, seed_ops
 from mlops_serious_game.application.graph_service.effective import compute_effective
-from mlops_serious_game.application.graph_service.predicates import (
+from mlops_serious_game.domain.graph_predicates import (
     PredicateContext,
     PredicateError,
     evaluate,
@@ -167,6 +167,32 @@ def test_absent_component_is_not_broken_by_its_upstream():
         GraphOp(kind="set_to", target="b.sink", value=1),
     ).state
     assert compute_effective(g, state).components["b.sink"] == 1
+
+
+def test_missing_step_passes_its_input_through():
+    g = _graph()
+    state = _apply(g, GraphOp(kind="set_to", target="a.mid", value="absent")).state
+    eff = compute_effective(g, state)
+    assert eff.components["a.mid"] == 1
+    assert eff.components["b.sink"] == 4  # skipped, not starved
+
+
+def test_missing_source_constrains_nothing():
+    g = _graph()
+    state = _apply(g, GraphOp(kind="set_to", target="a.src", value="absent")).state
+    assert compute_effective(g, state).components["a.mid"] == 4
+
+
+def test_cap_through_a_missing_step_names_the_root_cause():
+    g = _graph()
+    state = _apply(
+        g,
+        GraphOp(kind="set_to", target="a.src", value=2),
+        GraphOp(kind="set_to", target="a.mid", value="absent"),
+    ).state
+    eff = compute_effective(g, state)
+    assert eff.components["b.sink"] == 2
+    assert eff.capped_by["b.sink"] == "a.src"
 
 
 def test_edge_cannot_outrun_its_source():

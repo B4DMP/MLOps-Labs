@@ -79,6 +79,15 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
         if not graph.is_target(target):
             errors.append(f"briefing_observed references unknown target '{target}'")
 
+    for old, new in graph.aliases.items():
+        if graph.is_target(old):
+            errors.append(f"alias '{old}' shadows a live id")
+        if not graph.is_target(graph.resolve(old)) and graph.resolve(old) not in graph.retired:
+            errors.append(f"alias '{old}' resolves to unknown id '{graph.resolve(old)}'")
+    for rid in graph.retired:
+        if graph.is_target(rid):
+            errors.append(f"retired id '{rid}' is still defined")
+
     if errors:
         raise GraphConfigError("; ".join(errors))
 

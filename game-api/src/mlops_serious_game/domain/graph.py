@@ -41,6 +41,7 @@ def parse_level(value: Any) -> int:
         raise ValueError(f"level {level} out of range")
     return level
 
+
 EdgeKind = Literal["pipeline", "feedback", "governs"]
 OpKind = Literal["raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "observe"]
 SourceKind = Literal["intel", "action_card", "world_event", "challenge_seed", "admin"]
@@ -112,6 +113,10 @@ class TechnicalGraph(BaseModel):
     instance_states: list[str]
     thresholds: GraphThresholds = Field(default_factory=GraphThresholds)
     briefing_observed: list[str] = Field(default_factory=list)
+    aliases: dict[str, str] = Field(
+        default_factory=dict, description="Renamed ids, old -> new. Written by tools/graph_refactor.py"
+    )
+    retired: list[str] = Field(default_factory=list, description="Removed ids; logged ops on them are skipped")
     stages: list[Stage]
     components: list[Component]
     edges: list[Edge]
@@ -125,6 +130,17 @@ class TechnicalGraph(BaseModel):
         self._stages = {s.id: s for s in self.stages}
         self._components = {c.id: c for c in self.components}
         self._edges = {e.id: e for e in self.edges}
+
+    def resolve(self, target_id: str) -> str:
+        """Follows renames so ops logged before a graph edit still land on the right target."""
+        seen = set()
+        while target_id in self.aliases and target_id not in seen:
+            seen.add(target_id)
+            target_id = self.aliases[target_id]
+        return target_id
+
+    def is_retired(self, target_id: str) -> bool:
+        return target_id in self.retired
 
     def stage(self, stage_id: str) -> Stage:
         return self._stages[stage_id]
@@ -164,6 +180,19 @@ class TechnicalGraph(BaseModel):
 
     def pipeline_edges(self) -> list[Edge]:
         return [e for e in self.edges if e.kind == "pipeline"]
+
+
+class EffectiveView(BaseModel):
+    components: dict[str, int] = Field(default_factory=dict)
+    edges: dict[str, int] = Field(default_factory=dict)
+    capped_by: dict[str, str] = Field(
+        default_factory=dict, description="Binding constraint per capped target: an edge id or an upstream component id"
+    )
+
+    def level(self, target_id: str) -> int:
+        if target_id in self.components:
+            return self.components[target_id]
+        return self.edges[target_id]
 
 
 class Instance(BaseModel):

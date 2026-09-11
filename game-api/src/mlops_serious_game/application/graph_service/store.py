@@ -105,3 +105,33 @@ def seed_if_empty(username: str, *, phase_index: int, challenge_template: str) -
 def clear_graph(username: str) -> None:
     with get_session() as session:
         session.execute(delete(GraphOpLog).where(GraphOpLog.user_name == username))
+
+
+def has_batch(username: str, source_id: str) -> bool:
+    with get_session() as session:
+        found = session.scalar(
+            select(func.count(GraphOpLog.id)).where(GraphOpLog.user_name == username, GraphOpLog.source_id == source_id)
+        )
+        return found > 0
+
+
+def enter_challenge(username: str, challenge) -> bool:
+    """Seeds the graph if needed and fires the challenge's `on_enter_ops` once.
+    Returns True when world events were logged."""
+    seed_if_empty(username, phase_index=challenge.phase_id, challenge_template=challenge.template_id)
+    source_id = f"enter:{challenge.template_id}"
+    if not challenge.on_enter_ops or has_batch(username, source_id):
+        return False
+    ops = [
+        GraphOp.model_validate({**raw, "source_kind": "world_event", "source_id": source_id})
+        for raw in challenge.on_enter_ops
+    ]
+    append_ops(
+        username,
+        ops,
+        phase_index=challenge.phase_id,
+        challenge_template=challenge.template_id,
+        source_kind="world_event",
+        source_id=source_id,
+    )
+    return True

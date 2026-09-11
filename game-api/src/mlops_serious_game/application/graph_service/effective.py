@@ -4,23 +4,10 @@ Nominal is what was built. Effective is capped by the incoming pipeline edges an
 components feeding them, so a break upstream propagates downstream.
 """
 
-from pydantic import BaseModel, Field
+from typing import Optional
 
-from mlops_serious_game.domain.graph import GraphState, Level, TechnicalGraph
+from mlops_serious_game.domain.graph import EffectiveView, GraphState, Level, TechnicalGraph
 from mlops_serious_game.domain.graph_factory import GraphFactory, validate_graph
-
-
-class EffectiveView(BaseModel):
-    components: dict[str, int] = Field(default_factory=dict)
-    edges: dict[str, int] = Field(default_factory=dict)
-    capped_by: dict[str, str] = Field(
-        default_factory=dict, description="Binding constraint per capped target: an edge id or an upstream component id"
-    )
-
-    def level(self, target_id: str) -> int:
-        if target_id in self.components:
-            return self.components[target_id]
-        return self.edges[target_id]
 
 
 def _topo_order(graph: TechnicalGraph) -> list[str]:
@@ -30,34 +17,62 @@ def _topo_order(graph: TechnicalGraph) -> list[str]:
 
 
 def compute_effective(graph: TechnicalGraph, state: GraphState) -> EffectiveView:
+    """A component delivers at most what reaches it: min(upstream supply, edge level) + slack.
+
+    A missing (absent) step is skipped: whatever reaches it passes straight through, and a
+    missing step with nothing upstream constrains nothing. A broken step blocks: it supplies 0.
+    """
     view = EffectiveView()
     incoming: dict[str, list] = {c.id: [] for c in graph.components}
     for e in graph.pipeline_edges():
         incoming[e.to_id].append(e)
 
+    # What each component passes downstream, and the root cause when that is a limit.
+    supply: dict[str, Optional[int]] = {}
+    cause: dict[str, str] = {}
+
     for cid in _topo_order(graph):
         nominal = state.component_levels[cid]
-        effective = nominal
-        # A component that does not exist cannot be broken by its upstream.
-        if nominal > Level.ABSENT:
-            for e in incoming[cid]:
-                upstream = view.components[e.from_id]
-                edge_level = state.edge_levels[e.id]
-                cap = min(upstream, edge_level) + e.slack
+        caps: list[tuple[int, str]] = []
+        for e in incoming[cid]:
+            upstream = supply[e.from_id]
+            if upstream is None:
+                continue  # nothing exists upstream of this edge
+            edge_level = state.edge_levels[e.id]
+            if upstream < edge_level:
+                caps.append((min(upstream, edge_level) + e.slack, cause.get(e.from_id, e.from_id)))
+            else:
+                caps.append((edge_level + e.slack, e.id))
+
+        if nominal == Level.BROKEN:
+            view.components[cid] = nominal
+            supply[cid], cause[cid] = nominal, cid
+        elif nominal == Level.ABSENT:
+            view.components[cid] = nominal
+            if caps:
+                supply[cid], cause[cid] = min(caps)
+            else:
+                supply[cid] = None
+        else:
+            effective = nominal
+            for cap, why in caps:
                 if cap < effective:
                     effective = cap
-                    # Name the root cause: the upstream component if it is the tighter limit.
-                    view.capped_by[cid] = e.from_id if upstream < edge_level else e.id
-        view.components[cid] = effective
+                    view.capped_by[cid] = why
+            view.components[cid] = effective
+            supply[cid] = effective
+            cause[cid] = view.capped_by.get(cid, cid)
 
     for e in graph.edges:
         nominal = state.edge_levels[e.id]
         effective = nominal
-        if nominal > Level.ABSENT:
-            source_cap = view.components[e.from_id] + 1
-            if source_cap < effective:
-                effective = source_cap
-                view.capped_by[e.id] = e.from_id
+        upstream = supply.get(e.from_id) if e.kind == "pipeline" else view.components[e.from_id]
+        if nominal > Level.ABSENT and upstream is not None and upstream + 1 < effective:
+            effective = upstream + 1
+            view.capped_by[e.id] = cause.get(e.from_id, e.from_id)
         view.edges[e.id] = effective
 
     return view
+
+
+__all__ = ["EffectiveView", "compute_effective"]

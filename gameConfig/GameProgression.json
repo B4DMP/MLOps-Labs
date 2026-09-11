@@ -171,7 +171,10 @@
         "efficiency_intro": 0
       },
       "Source": "-",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_introduction",
+      "priority": 0,
+      "fallback": true
     },
     {
       "id": 1,
@@ -186,7 +189,10 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_platform_choice",
+      "priority": 0,
+      "fallback": true
     },
     {
       "id": 2,
@@ -201,7 +207,10 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_data_instability",
+      "priority": 0,
+      "fallback": true
     },
     {
       "id": 3,
@@ -216,7 +225,10 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_entanglement",
+      "priority": 0,
+      "fallback": true
     },
     {
       "id": 4,
@@ -231,7 +243,10 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_automation_risk",
+      "priority": 0,
+      "fallback": true
     },
     {
       "id": 5,
@@ -246,7 +261,10 @@
         "efficiency": 0
       },
       "Source": "Learning in Nonstationary Environments: A Survey.",
-      "attention_tokens": 8
+      "attention_tokens": 8,
+      "template_id": "ch_accuracy_drop",
+      "priority": 0,
+      "fallback": true
     }
   ],
   "ActionCardImages": [

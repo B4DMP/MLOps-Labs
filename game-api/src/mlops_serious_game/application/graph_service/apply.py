@@ -79,12 +79,24 @@ def _mark(state: GraphState, target: str, seq: Optional[int]) -> None:
         state.changed_at[target] = seq
 
 
+def _resolve_target(graph: TechnicalGraph, op: GraphOp) -> Optional[GraphOp]:
+    """Maps renamed ids to their current id. Returns None for ops on retired ids."""
+    target = graph.resolve(op.target)
+    if graph.is_retired(target):
+        return None
+    return op if target == op.target else op.model_copy(update={"target": target})
+
+
 def _apply_one(
     graph: TechnicalGraph, state: GraphState, op: GraphOp, seq: Optional[int], result: ApplyResult
 ) -> None:
     kind = op.kind
     if kind == "observe":
         return
+    if kind != "instance_upsert":
+        op = _resolve_target(graph, op)
+        if op is None:
+            return
 
     if kind in ("raise_to", "set_to"):
         if not graph.is_target(op.target):
@@ -176,6 +188,10 @@ def apply_ops(
     result = ApplyResult(state=state.model_copy(deep=True))
     for item in ops:
         seq, op = (item.seq, item.op) if isinstance(item, LoggedOp) else (None, item)
+        if op.kind != "instance_upsert":
+            op = _resolve_target(graph, op)
+            if op is None:
+                continue
         op = resolve_degradation(graph, result.state, op, owner_buyin)
         result.resolved_ops.append(op)
         _apply_one(graph, result.state, op, seq, result)
@@ -214,6 +230,9 @@ def replay(graph: TechnicalGraph, log: Iterable[LoggedOp]) -> Replay:
     for entry in log:
         op = entry.op
         if op.kind == "observe":
+            op = _resolve_target(graph, op)
+            if op is None:
+                continue
             if not graph.is_target(op.target):
                 rejected.append(RejectedOp(op=op, reason="unknown target"))
                 continue

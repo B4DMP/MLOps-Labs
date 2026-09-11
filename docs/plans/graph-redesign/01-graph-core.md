@@ -121,6 +121,8 @@ effective(c)    = min(nominal(c), min(cap(e) for e in incoming pipeline edges of
 effective(e)    = min(e.level, effective(e.from) + 1)               # an edge cannot outrun its source
 ```
 
+A missing (`absent`) step is skipped: whatever reaches it passes straight through, and a missing step with nothing upstream constrains nothing. A `broken` step blocks: it supplies 0 downstream. Without this, one absent component mid-chain would starve the whole pipeline, which is exactly what the starting graph looked like before the fix.
+
 Consequences:
 - **Level capping.** A `governed` training pipeline fed by a manual feature store hand-off delivers `manual`.
 - **Propagation.** A world event breaking `data.ingestion` drags everything downstream on hard edges.
@@ -217,6 +219,7 @@ class GraphOpLog(Base):
 - [x] 9. Migration for `GraphOpLog`, `store.py`.
 - [x] 10. Tests: max versus forced, broken below absent, capping on hard and soft edges, propagation after a break, feedback edges ignored by the DAG, knowledge stale after a world event, replay equals live fold.
 - [x] 11. Seed on `handle_game_init`. No client payload yet.
+- [x] 12. Addendum: `aliases` and `retired` in the graph config plus `tools/graph_refactor.py` (`refs`, `usage`, `check`, `rename`, `retire`), so graph edits after content exists stay cheap. Logged ops follow renames on replay.
 
 ## Done when
 

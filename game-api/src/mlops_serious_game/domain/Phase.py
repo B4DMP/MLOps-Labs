@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -22,6 +22,13 @@ class Phase(BaseModel):
     phase_introduction: str = Field(description="introduction text when phase is started")
     challenges: list[Challenge] = Field(description="challenges that are contained in the phase")
     stakeholders: list[PhaseStakeholder] = Field(default_factory=list, description="stakeholder power/interest map for this phase")
+    challenges_per_phase: Optional[int] = Field(
+        default=None, description="How many challenges a player plays in this phase; defaults to all of them"
+    )
+
+    @property
+    def challenge_quota(self) -> int:
+        return self.challenges_per_phase if self.challenges_per_phase is not None else len(self.challenges)
 
     def __str__(self) -> str:
         return self.name

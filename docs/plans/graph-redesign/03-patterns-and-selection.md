@@ -40,7 +40,7 @@ Patterns are named graph shapes, good or bad, matched on the technical graph. Th
 }
 ```
 
-Starter set, roughly 12 anti and 12 design. Anti: silent failure, training serving skew, glue code, pipeline jungle, manual deployment, undocumented handover, orphaned model, unversioned data, alert fatigue, no rollback, cost blindness, shadow IT access. Design: continuous training, reproducible training, gated promotion, canary release, feature reuse, data contracts enforced, observability first, IaC everywhere, least privilege, model cards on promotion, automated rollback, versioned lineage.
+Shipped: 12 anti, 15 design. Starter list below. Anti: silent failure, training serving skew, glue code, pipeline jungle, manual deployment, undocumented handover, orphaned model, unversioned data, alert fatigue, no rollback, cost blindness, shadow IT access. Design: continuous training, reproducible training, gated promotion, canary release, feature reuse, data contracts enforced, observability first, IaC everywhere, least privilege, model cards on promotion, automated rollback, versioned lineage.
 
 Edges make patterns expressive: "continuous training" is a statement about a trigger on a feedback edge, not about any single component.
 
@@ -110,14 +110,14 @@ Coverage test walks a few hundred plausible graph states and asserts each phase 
 
 ## Steps
 
-- [ ] 1. `MlopsPatterns.json` plus schema, about 12 anti and 12 design.
-- [ ] 2. Pattern evaluation plus stage bonus and penalty in `stage_graph.py`.
-- [ ] 3. Template schema: `template_id`, preconditions, `excluded_if`, `on_enter_ops`, `stalemate_ops`, `conflict` with type, priority, fallback.
-- [ ] 4. `select_challenge` plus stable seeding in `phase_factory.py`.
-- [ ] 5. Fire `on_enter_ops` at challenge start as `world_event`.
-- [ ] 6. Store resolved `template_id` on `GameChallenge`.
-- [ ] 7. Gates: fallback per phase, references exist, every component and pipeline edge in a pattern.
-- [ ] 8. Selection coverage test.
+- [x] 1. `MlopsPatterns.json` plus schema, about 12 anti and 12 design.
+- [x] 2. Pattern evaluation plus stage bonus and penalty in `stage_graph.py`.
+- [x] 3. Template schema: `template_id`, preconditions, `excluded_if`, `on_enter_ops`, `stalemate_ops`, `conflict` with type, priority, fallback.
+- [x] 4. Selection plus stable seeding in `application/graph_service/scheduler.py` (not `phase_factory.py`: it needs predicates and graph state). Wired into `handle_state_update_request` as `select_next_challenge`, falls back to sequential order if the graph cannot be read.
+- [x] 5. Fire `on_enter_ops` at challenge start as `world_event`.
+- [x] 6. No new column: challenge int ids are unique and map 1:1 to `template_id`, so `GameChallenge.challenge_index` already identifies the template. The graph log stores `template_id`.
+- [x] 7. Gates: fallback per phase, references exist (on config load). Pattern coverage of every component and pipeline edge is asserted by `tests/test_graph_patterns.py`.
+- [x] 8. `reachable_templates` utility plus fixture test. The real-content assertion (three templates per phase) moves to the tier 0 gates in [04](04-content-pipeline.md): today's content has one challenge per phase.
 
 ## Done when
 

@@ -18,6 +18,9 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.application.graph_service import store as graph_store
+from mlops_serious_game.application.graph_service.scheduler import next_challenge
+from mlops_serious_game.application.graph_service.view import evaluate_graph
+from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
     clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
@@ -337,11 +340,7 @@ async def handle_game_init(
         )
         # The graph ships dark for now: a failure here must never block the game.
         try:
-            graph_store.seed_if_empty(
-                username,
-                phase_index=curr_challenge.phase_id,
-                challenge_template=str(curr_challenge.id),
-            )
+            graph_store.enter_challenge(username, curr_challenge)
         except Exception as e:
             print(f"[Graph seed error] {e}")
         if saved_tokens is None:
@@ -553,6 +552,36 @@ async def store_or_update_challenge(
                     )
                 )
 
+def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Challenge | None:
+    """Picks the next challenge from the player's graph state. None ends the game.
+
+    Falls back to plain sequential order if the graph cannot be read, so a graph problem
+    never blocks progression.
+    """
+    try:
+        graph = GraphFactory.get_graph()
+        current = PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id)
+        with get_session() as session:
+            played_ids = set(
+                session.scalars(
+                    select(GameChallenge.challenge_index).where(GameChallenge.user_name == username)
+                ).all()
+            )
+        played = set()
+        for cid in played_ids | ({current.id} if current else set()):
+            try:
+                played.add(PhaseFactory.get_challenge_by_id(cid).template_id)
+            except ValueError:
+                continue
+        replayed = graph_store.load_state(username)
+        ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
+        current_phase = current.phase_id if current else phase_id
+        return next_challenge(PhaseFactory.get_phases(), current_phase, played, ctx, seed=username)
+    except Exception as e:
+        print(f"[Challenge selection error, falling back to sequential] {e}")
+        return PhaseFactory.translate_challenge_index(challenge_index=challenge_id + 1, phase_index=phase_id)
+
+
 async def handle_state_update_request(
     websocket: WebSocket,
     username: str,
@@ -585,10 +614,7 @@ async def handle_state_update_request(
             case _:
                 # next challenge / round completion (after simulation phase)
                 await clear_intel_items_for_user(websocket)
-                challenge: Challenge = PhaseFactory.translate_challenge_index(
-                    challenge_index=challenge_id+1,
-                    phase_index=phase_id
-                )
+                challenge: Challenge = select_next_challenge(username, phase_id, challenge_id)
 
                 if challenge is None:
                     await manager.send_event(
@@ -597,6 +623,11 @@ async def handle_state_update_request(
                         payload={"progressionIndex": 4}
                     )
                     return (phase_id,challenge_id+1,0)
+
+                try:
+                    graph_store.enter_challenge(username, challenge)
+                except Exception as e:
+                    print(f"[Graph enter challenge error] {e}")
 
                 load_known_intel_items_for_challenge(challenge, username)
                 
