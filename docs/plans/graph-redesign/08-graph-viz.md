@@ -6,7 +6,7 @@ Player sees the stage graph always and the technical graph through fog. Referenc
 
 ## Placement
 
-`PipelineTab` next to `MetricTab` in the top navbar, every loop step. Collapsed strip by default, expands to a modal.
+`PipelineTab` next to `MetricTab` in the top navbar, every loop step. Collapsed strip by default, expands to a modal or links into the dossier's `[ 🏗 System ]` view (D45).
 
 ## Strip: stage graph
 

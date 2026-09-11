@@ -21,7 +21,7 @@ Single source of truth for progress. Update after every completed step.
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
 | 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Tier 0 assembled (4 templates, 46 items, 46 artifacts, 41 objections, 24 fragments). 4 items re-gen pending (template fixes invalidated hashes; regen in background). Golden path ready for plans 05–09. Steps 8-9 after playtest. |
-| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | WIP | Steps 1 to 7 done: chain cards, environment page, stage filter and search, chains as one item in the card builder, and the per challenge wipe removed so the dossier really persists. Open: step 8 deferred with the authored refinements (D40), Q32 to Q35. |
+| 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | WIP | Steps 1 to 7 done: chain cards, environment page, stage filter and search, chains as one item in the card builder, and the per challenge wipe removed so the dossier really persists. Q32 to Q35 resolved (D42–D45): chain gating enforced, strict contested, carried-over count decoupled, and environment folded into `[ 🏗 System ]`. Step 8 deferred with authored refinements (D40). |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | WIP | Steps 2 to 8 done: session.py orchestration, seven `pitch:*` websocket events, `pitch_phase.tsx` live at loop index 2, Escalation Points and grudges persisted. Open: fold the engagement cards and the stakeholder chat into PREPARE (step 1, D37), navbar points (10), delete the old screens (11), playtest (12), numbers into config (13), Let them have it (14, D41). |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | WIP | All ten steps implemented: `graph_service/pipeline.py`, `simulation:run` to `graph:delta_report`, `ac_simulation.tsx` as the four beat report. Open: metric ownership (D39, step 11), the tuned numbers into config (D38, step 12), and a playtest. |
 | 08 | [Player graph view](08-graph-viz.md) | 01 | WIP | Steps 1–6, 8 done (Q21 closed: curved feedback arcs added to strip). Only step 7 (before/after toggle, blocked on 07). |
@@ -74,6 +74,10 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | D39 | Who owns metric numbers (Q30)? | The simulation pipeline, alone. It already turns graph changes into metric deltas from `component_weights`; the authored `challenge.metric_changes` hit moves in there as one more input, and `game_handler.py` stops doing metric arithmetic. One place computes the state transition, the handlers only carry messages. |
 | D41 | How does a player get out of a veto (Q25)? | **Let them have it.** The player drops their own card and accepts the opposing position of the challenge conflict, which applies instead. No Escalation Point, no patience cost: a large emotion gain with the side that gets its way, a loss with the side dropped, and the graph moves under someone else's plan. Available whenever a veto stands. Stalemate stays as what happens when patience runs out instead. |
 | D40 | Refinement chains in tier 0 (Q31)? | Deferred. No content carries `refines_id`, so chains are single links and locked rows read zero. The mechanism ships now, the authored refinements come with the full content run (plan 04 step 9). Plan 05 step 8 cannot be playtested until then. |
+| D42 | Chain link validation gate (Q32)? | **Add it.** Enforce in `payload_errors` that any item carrying `refines_id` matches the parent's target and stakeholder, belongs to a strictly later phase, and maintains valid tag transitions (same tag, or `Driver` into `Boundary`). |
+| D43 | Scope of `contested` status (Q33)? | **Keep it strict.** `contested` is True only when the item's stakeholder is a side of the challenge conflict **and** the item's target is the `conflict.target`. Avoids noise, alarm fatigue, and dossier pollution across persistent phases. |
+| D44 | Carried-over intel ratio (Q34)? | **Count separately.** Decouple carried-over archive notes from current challenge pool notes. Track `intel_to_be_found_this_phase` so the pip indicator accurately reflects remaining undiscovered items in the current phase. |
+| D45 | Environment page and graph integration (Q35)? | **Fold into `[ 🏗 System ]`.** Evict `__environment__` from the stakeholder tab strip. Add a dedicated `[ 🏗 System ]` button in the dossier header (alongside `[ Briefing ]`) to access system facts and technical pipeline architecture. |
 
 ## Open questions
 
@@ -81,12 +85,6 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 |---|---|---|
 | Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
 | Q21 | Feedback arcs in pipeline strip: curved SVG arcs above stage row, colour-coded by level, height proportional to stage distance. **Closed: implemented.** | 08 |
-
-
-| Q32 | Chain links are not gated: the plan's rule (same target, same stakeholder, earlier phase, same tag or Driver into Boundary) is not enforced in `payload_errors`. Add it? | 05 |
-| Q33 | `contested` fires only when the item's stakeholder is a side of the challenge conflict and the item's target is the conflict target. Keep it strict, or mark anything from a stakeholder on the other side? | 05 |
-| Q34 | Notes carried over from earlier phases can outnumber the current challenge's pool, so the "intel still out there" ratio takes the max and never passes 1. Keep, or count carried-over notes separately? | 05 |
-| Q35 | The environment page rides in the dossier payload as a fake stakeholder id (`__environment__`) because `Game.tsx` was off limits to the agent. Reshape the payload into named sections? | 05 |
 
 ## Deferred scope
 

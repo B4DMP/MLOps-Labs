@@ -26,14 +26,14 @@ open        Driver target not reached (effective level)
 addressed   Driver target reached
 violated    Boundary predicate currently false
 stale       Fact whose target changed since it was seen
-contested   the challenge conflict puts another stakeholder on the opposing side
+contested   the challenge conflict puts another stakeholder on the opposing side of this very target (D43)
 ```
 
 Nothing is ever removed.
 
 ## Refinement chains
 
-Authored in content generation. A later item on the same target and same stakeholder points at the earlier one with `refines_id`. Gate: target exists, same target, same stakeholder, earlier phase, same tag or Driver refining into Boundary.
+Authored in content generation. A later item on the same target and same stakeholder points at the earlier one with `refines_id`. Gate: target exists, same target, same stakeholder, earlier phase, same tag or Driver refining into Boundary. Enforced in `payload_errors` (D42).
 
 Facts chain too: a newer Fact on the same target refines the older one.
 
@@ -63,14 +63,17 @@ Objections write into the dossier as `source: objection`, `intel_type: verified`
 - `load_known_intel_items(username, up_to_phase)` replaces the per challenge loader
 - `retrieve_dossier_data` returns chains, not flat items: per chain tag, target, links in order, status, conflict flag, locked link count
 - stakeholder section and environment section, per [02](02-intel-taxonomy.md#ui)
+- carried-over items counted separately from `intel_to_be_found_this_phase` so ratios and pips do not cap at 1 (D44)
+- environment payload decoupled from fake stakeholder id (`__environment__`) into a dedicated system section (D45)
 
 ## UI
 
 `StakeholderDossier.tsx`:
 - stakeholder view: Language header, then Driver, Boundary, Trade-off chain cards
-- environment view: Fact chain cards grouped by stage, stale marker where the fog fold says so
+- `[ 🏗 System ]` button in the dossier header (alongside `[ Briefing ]`): opens the environment view (Fact chain cards grouped by stage, stale markers) and integrates with the stage graph / pipeline view (D45)
 - stage filter row, colors from [08](08-graph-viz.md)
 - default filter to the current challenge focus stages, collapse addressed, search box
+- pips display found notes and remaining `intel_to_be_found_this_phase` without obscuring active-phase goals (D44)
 
 ## Steps
 
@@ -83,6 +86,9 @@ Objections write into the dossier as `source: objection`, `intel_type: verified`
 - [x] 7. Card builder treats a chain as one item. (`chain_id`, `chain_position` and `chain_length` in `_item_payload`; `pitch_phase.tsx` groups `available_items` into one row per chain, pitched as the newest link, in both the builder and the amend list)
 - [x] 4b. The dossier actually persists: the wipe at the start of every challenge (`clear_intel_items_for_user`) is gone, and storing an item updates the row with the same id, so re-entering a challenge does not duplicate anything.
 - [ ] 8. DEFERRED until the full content run (D40): no tier 0 item carries `refines_id`, so every chain is one link. Playtest two phases: a phase 1 item grows a phase 3 layer and reads as one card.
+- [ ] 9. Chain link gating in `payload_errors` (D42): same target, same stakeholder, earlier phase, valid tag transitions.
+- [ ] 10. Separate carried-over counts and expose `intel_to_be_found_this_phase` in `retrieve_dossier_data` and dossier pips (D44).
+- [ ] 11. Move environment page from fake stakeholder tab into header button `[ 🏗 System ]`, integrating the stage graph and facts by stage (D45).
 
 ## Done when
 
