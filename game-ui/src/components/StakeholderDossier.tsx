@@ -152,8 +152,8 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
       const label = ARTIFACT_TYPE_LABEL[(item.artifact_type || "").toLowerCase()];
       return {
         icon: "ph:file-text-bold",
-        text: label ? `Your read of their ${label}` : "Your read of a document",
-        title: "Your own reading of a document you found. Nobody has confirmed it yet.",
+        text: label ? `You read their ${label}` : "You read a document",
+        title: "You read a document you found. Nobody has confirmed it yet.",
       };
     }
   }
