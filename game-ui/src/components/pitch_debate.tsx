@@ -545,8 +545,6 @@ export default function PitchDebate({
       const target = e.target as HTMLElement | null;
       if (
         target?.closest(`.${styles.dialogueBadgeIntelClickable}`) ||
-        target?.closest(`.${styles.intelLinkButton}`) ||
-        target?.closest(`.${styles.intelLinkWrapper}`) ||
         target?.closest(`.${styles.dropdownWrapper}`) ||
         target?.closest(`.${styles.dropdownToggleBtn}`) ||
         target?.closest(`.${styles.dropdownMenuFloating}`)
@@ -1017,7 +1015,7 @@ export default function PitchDebate({
                   </div>
 
                   {/* Dialogue Option Cards Grid */}
-                  <div className="row g-2">
+                  <div className={styles.dialogueGrid}>
                     {dialogueOptions && dialogueOptions.length > 0 ? (
                       dialogueOptions.map((opt, idx) => {
                         const isIntel = opt.type === "intel";
@@ -1055,254 +1053,185 @@ export default function PitchDebate({
                         return (
                           <div
                             key={opt.id || idx}
-                            className="col-12 col-md-6 d-flex position-relative"
-                            style={{ zIndex: isDropdownOpen ? 3000 : 1 }}
-                          >
-                            <div
-                              role="button"
-                              tabIndex={isChatEnabled ? 0 : -1}
-                              className={`${styles.dialogueCardContainer} ${isIntel ? styles.dialogueCardIntel : styles.dialogueCardNoise
-                                } ${!isChatEnabled ? styles.dialogueCardDisabled : ""} ${isDropdownOpen ? styles.dialogueCardDropdownActive : ""
-                                }`}
-                              style={{ zIndex: isDropdownOpen ? 3100 : undefined }}
-                              onClick={(e) => handleSelectDialogue(opt, e)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  handleSelectDialogue(opt);
-                                }
-                              }}
-                              title={
-                                isIntel
-                                  ? `Click to inquire with ${opt.intel_stakeholder_name || "Stakeholder"} using this intel`
-                                  : `Click to pitch corporate noise to ${targetStakeholderObj?.name || "Stakeholder"}`
+                            role="button"
+                            tabIndex={isChatEnabled ? 0 : -1}
+                            className={`${styles.dialogueCardContainer} ${isIntel ? styles.dialogueCardIntel : styles.dialogueCardNoise
+                              } ${!isChatEnabled ? styles.dialogueCardDisabled : ""} ${isDropdownOpen ? styles.dialogueCardDropdownActive : ""
+                              }`}
+                            onClick={(e) => handleSelectDialogue(opt, e)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleSelectDialogue(opt);
                               }
-                            >
-                              {/* Top Line: Badge at left, Target / Direct Toward on the same horizontal line */}
+                            }}
+                            title={
+                              isIntel
+                                ? `Click to inquire with ${opt.intel_stakeholder_name || "Stakeholder"} using this intel`
+                                : `Click to pitch corporate noise to ${targetStakeholderObj?.name || "Stakeholder"}`
+                            }
+                          >
+                            <div className={styles.dialogueCardMain}>
                               <div className={styles.dialogueCardTopLine}>
                                 {isIntel ? (
-                                  <>
-                                    {/* Left: CONFIRMED INTEL or UNCONFIRMED INTEL (Clickable with link icon) */}
-                                    <div className="d-flex align-items-center gap-2">
-                                      <button
-                                        type="button"
-                                        className={`${isVerified
-                                          ? styles.dialogueBadgeConfirmedIntel
-                                          : styles.dialogueBadgeUnconfirmedIntel
-                                          } ${styles.dialogueBadgeIntelClickable}`}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleInspectIntel(opt);
-                                        }}
-                                        onMouseDown={(e) => e.stopPropagation()}
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        title={`Click to highlight this note in ${opt.intel_stakeholder_name || "Stakeholder"}'s Dossier`}
-                                      >
-                                        <Icon
-                                          icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
-                                          style={{ fontSize: "0.85rem" }}
-                                        />
-                                        <span>{isVerified ? "CONFIRMED INTEL" : "UNCONFIRMED INTEL"}</span>
-                                        <Icon
-                                          icon="ph:arrow-square-out-bold"
-                                          className={styles.dialogueBadgeClickableIcon}
-                                        />
-                                      </button>
-                                    </div>
-
-                                    {/* Right: Target Stakeholder on same horizontal line */}
-                                    <div className="d-flex align-items-center gap-1 flex-shrink-0">
-                                      <span className={styles.dialogueTargetLabel}>Target:</span>
-                                      {intelStakeholderObj ? (
-                                        <div className="d-flex align-items-center gap-1">
-                                          <div className={styles.dropdownMiniAvatar}>
-                                            <StakeholderAvatarComponent
-                                              avatar={(intelStakeholderObj as any).avatar || {}}
-                                              size={18}
-                                              isFramed={false}
-                                              play_blink_animation={false}
-                                              stakeholderColor={intelStColor}
-                                              title={intelStakeholderObj.name}
-                                            />
-                                          </div>
-                                          <span
-                                            className={styles.dialogueTargetName}
-                                            style={{ color: intelStColor }}
-                                          >
-                                            {intelStakeholderObj.name}
-                                          </span>
-                                        </div>
-                                      ) : (
-                                        <span className={styles.dialogueTargetName}>
-                                          {opt.intel_stakeholder_name || "Stakeholder"}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </>
+                                  <button
+                                    type="button"
+                                    className={`${isVerified
+                                      ? styles.dialogueBadgeConfirmedIntel
+                                      : styles.dialogueBadgeUnconfirmedIntel
+                                      } ${styles.dialogueBadgeIntelClickable}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleInspectIntel(opt);
+                                    }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onPointerDown={(e) => e.stopPropagation()}
+                                    title={`Click to highlight this note in ${opt.intel_stakeholder_name || "Stakeholder"}'s Dossier`}
+                                  >
+                                    <Icon icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"} />
+                                    <span>{isVerified ? "Confirmed Intel" : "Unconfirmed Intel"}</span>
+                                    <Icon icon="ph:arrow-square-out-bold" className={styles.dialogueBadgeClickableIcon} />
+                                  </button>
                                 ) : (
-                                  <>
-                                    {/* Left: Corporate Noise sign + Archetype Badge */}
-                                    <div className="d-flex align-items-center gap-2 overflow-hidden flex-wrap">
-                                      <span className={styles.dialogueCategoryBadgeNoise}>
-                                        <Icon icon="ph:megaphone-simple-bold" />
-                                        Corporate Noise
-                                      </span>
-                                      {/* Archetype Badge with Symbols & Color loaded dynamically */}
-                                      {archInfo && (
-                                        <span
-                                          className={styles.archetypeBadge}
-                                          style={{
-                                            borderColor: archInfo.color || undefined,
-                                            color: archInfo.color || undefined,
-                                            background: archInfo.color
-                                              ? `color-mix(in srgb, ${archInfo.color} 15%, transparent)`
-                                              : undefined,
-                                          }}
-                                          title={`Convincer Archetype: ${archInfo.name}`}
-                                        >
-                                          {archInfo.icon && (
-                                            <span className={styles.archetypeIcon}>{archInfo.icon}</span>
-                                          )}
-                                          <span className={styles.archetypeName}>
-                                            {archInfo.name}
-                                          </span>
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {/* Right: Direct Toward: + Dropdown Selector on same horizontal line */}
-                                    <div className="d-flex align-items-center gap-1 flex-shrink-0">
-                                      <span className={styles.dialogueTargetLabel}>Direct Toward:</span>
-                                      <div
-                                        className={styles.dropdownWrapper}
-                                        onClick={(e) => e.stopPropagation()}
-                                        onMouseDown={(e) => e.stopPropagation()}
+                                  <span className={styles.dialogueCategoryBadgeNoise}>
+                                    <Icon icon="ph:megaphone-simple-bold" />
+                                    <span>Corporate Noise</span>
+                                    {archInfo && (
+                                      <span
+                                        className={styles.noiseArchetypeSegment}
+                                        style={{ color: archInfo.color || undefined }}
+                                        title={`Convincer Archetype: ${archInfo.name}`}
                                       >
+                                        {archInfo.icon && <span>{archInfo.icon}</span>}
+                                        <span>{archInfo.name}</span>
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className={styles.dialogueCardText}>
+                                <GlossaryText
+                                  text={
+                                    isIntel
+                                      ? opt.intel_description || "Specific stakeholder constraint and requirement."
+                                      : opt.archetype?.strategy || "Foster strategic alignment and consensus across stakeholders."
+                                  }
+                                  surface="dialogue_options"
+                                />
+                              </p>
+                            </div>
+
+                            {/* Portrait of the addressed stakeholder; on noise cards it also opens the target picker */}
+                            {isIntel ? (
+                              <div
+                                className={styles.dialogueTarget}
+                                style={{ "--st-color": intelStakeholderObj ? intelStColor : undefined } as React.CSSProperties}
+                                title={`Target: ${intelStakeholderObj?.name || opt.intel_stakeholder_name || "Stakeholder"}`}
+                              >
+                                {intelStakeholderObj && (
+                                  <div className={styles.dialoguePortrait}>
+                                    <StakeholderAvatarComponent
+                                      avatar={(intelStakeholderObj as any).avatar || {}}
+                                      size={40}
+                                      isFramed={false}
+                                      play_blink_animation={false}
+                                      stakeholderColor={intelStColor}
+                                    />
+                                  </div>
+                                )}
+                                <span className={styles.dialogueTargetName}>
+                                  {intelStakeholderObj?.name || opt.intel_stakeholder_name || "Stakeholder"}
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                className={styles.dropdownWrapper}
+                                onClick={(e) => e.stopPropagation()}
+                                onMouseDown={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  type="button"
+                                  className={`${styles.dialogueTarget} ${styles.dropdownToggleBtn}`}
+                                  style={{
+                                    "--st-color": targetStakeholderObj ? getStakeholderColor(targetStakeholderObj) : undefined,
+                                  } as React.CSSProperties}
+                                  disabled={!isChatEnabled}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenDropdownOptionId(isDropdownOpen ? null : opt.id);
+                                  }}
+                                  title={`Directed toward ${targetStakeholderObj?.name || "no one yet"}. Click to change.`}
+                                >
+                                  {targetStakeholderObj && (
+                                    <div className={styles.dialoguePortrait}>
+                                      <StakeholderAvatarComponent
+                                        avatar={(targetStakeholderObj as any).avatar || {}}
+                                        size={40}
+                                        isFramed={false}
+                                        play_blink_animation={false}
+                                        stakeholderColor={getStakeholderColor(targetStakeholderObj)}
+                                      />
+                                    </div>
+                                  )}
+                                  <span className={styles.dialogueTargetName}>
+                                    {targetStakeholderObj?.name || "Select Stakeholder"}
+                                    <Icon
+                                      icon={isDropdownOpen ? "ph:caret-up-bold" : "ph:caret-down-bold"}
+                                      className={styles.dialogueTargetCaret}
+                                    />
+                                  </span>
+                                </button>
+
+                                {/* Floating Dropdown Menu */}
+                                {isDropdownOpen && (
+                                  <div
+                                    className={styles.dropdownMenuFloating}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                  >
+                                    <div className={styles.dropdownMenuHeader}>Direct Noise Toward:</div>
+                                    {activeStakeholders.map((st) => {
+                                      const isSelected = st.id === currentTargetStId;
+                                      return (
                                         <button
+                                          key={st.id}
                                           type="button"
-                                          className={styles.dropdownToggleBtn}
-                                          disabled={!isChatEnabled}
+                                          className={`${styles.dropdownMenuItem} ${isSelected ? styles.dropdownMenuItemActive : ""
+                                            }`}
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setOpenDropdownOptionId(isDropdownOpen ? null : opt.id);
+                                            handleSelectNoiseTarget(opt.id, st.id);
+                                            setOpenDropdownOptionId(null);
                                           }}
-                                          title={`Currently targeting: ${targetStakeholderObj?.name || "Select Stakeholder"}`}
+                                          title={`${st.name} (${st.role_description || ""})`}
                                         >
-                                          {targetStakeholderObj && (
-                                            <div className={styles.dropdownMiniAvatar}>
-                                              <StakeholderAvatarComponent
-                                                avatar={(targetStakeholderObj as any).avatar || {}}
-                                                size={18}
-                                                isFramed={false}
-                                                play_blink_animation={false}
-                                                stakeholderColor={getStakeholderColor(targetStakeholderObj)}
-                                                title={targetStakeholderObj.name}
-                                              />
-                                            </div>
-                                          )}
-                                          <span className={styles.dropdownSelectedName}>
-                                            {targetStakeholderObj?.name || "Select Stakeholder"}
-                                          </span>
-                                          <Icon
-                                            icon={isDropdownOpen ? "ph:caret-up-bold" : "ph:caret-down-bold"}
-                                            style={{ fontSize: "0.7rem", opacity: 0.8 }}
-                                          />
-                                        </button>
-
-                                        {/* Floating Dropdown Menu */}
-                                        {isDropdownOpen && (
                                           <div
-                                            className={styles.dropdownMenuFloating}
-                                            onClick={(e) => e.stopPropagation()}
-                                            onMouseDown={(e) => e.stopPropagation()}
+                                            className={styles.dropdownMiniAvatar}
+                                            style={{ "--st-color": getStakeholderColor(st) } as React.CSSProperties}
                                           >
-                                            <div className={styles.dropdownMenuHeader}>Direct Noise Toward:</div>
-                                            {activeStakeholders.map((st) => {
-                                              const isSelected = st.id === currentTargetStId;
-                                              return (
-                                                <button
-                                                  key={st.id}
-                                                  type="button"
-                                                  className={`${styles.dropdownMenuItem} ${isSelected ? styles.dropdownMenuItemActive : ""
-                                                    }`}
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleSelectNoiseTarget(opt.id, st.id);
-                                                    setOpenDropdownOptionId(null);
-                                                  }}
-                                                  title={`${st.name} (${st.role_description || ""})`}
-                                                >
-                                                  <div className={styles.dropdownMiniAvatar}>
-                                                    <StakeholderAvatarComponent
-                                                      avatar={(st as any).avatar || {}}
-                                                      size={18}
-                                                      isFramed={false}
-                                                      play_blink_animation={false}
-                                                      stakeholderColor={getStakeholderColor(st)}
-                                                      title={st.name}
-                                                    />
-                                                  </div>
-                                                  <span className={styles.dropdownItemName}>{st.name}</span>
-                                                </button>
-                                              );
-                                            })}
+                                            <StakeholderAvatarComponent
+                                              avatar={(st as any).avatar || {}}
+                                              size={25}
+                                              isFramed={false}
+                                              play_blink_animation={false}
+                                              stakeholderColor={getStakeholderColor(st)}
+                                            />
                                           </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-
-                              {/* Card Body */}
-                              <div className={styles.dialogueCardBody}>
-                                {isIntel ? (
-                                  /* Intel Description Callout */
-                                  <div className={styles.dialogueIntelDescriptionBox}>
-                                    <Icon icon="ph:quotes-fill" className={styles.dialogueQuoteIcon} />
-                                    <p className={styles.dialogueIntelDescriptionText}>
-                                      <GlossaryText
-                                        text={opt.intel_description || "Specific stakeholder constraint and requirement."}
-                                        surface="dialogue_options"
-                                      />
-                                    </p>
-                                  </div>
-                                ) : (
-                                  /* Corporate Noise Strategy Note */
-                                  <div
-                                    className={styles.dialogueNoiseStrategyBox}
-                                    style={{
-                                      borderLeft: `3.5px solid ${archInfo?.color || "#38bdf8"}`,
-                                      borderColor: `color-mix(in srgb, ${archInfo?.color || "#38bdf8"} 35%, transparent)`,
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        color: archInfo?.color || "#38bdf8",
-                                        fontSize: "0.85rem",
-                                        flexShrink: 0,
-                                        marginTop: "2px",
-                                        lineHeight: 1,
-                                      }}
-                                    >
-                                      {archInfo?.icon || ""}
-                                    </span>
-                                    <p className={styles.dialogueNoiseStrategyText}>
-                                      <GlossaryText
-                                        text={opt.archetype?.strategy || "Foster strategic alignment and consensus across stakeholders."}
-                                        surface="dialogue_options"
-                                      />
-                                    </p>
+                                          <span className={styles.dropdownItemName}>{st.name}</span>
+                                        </button>
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
-                            </div>
+                            )}
                           </div>
                         );
                       })
                     ) : (
-                      <div className="col-12 text-center py-2 text-white-50">
-                        <span className="small">Waiting for stakeholder opening statements or reactions...</span>
+                      <div className={styles.dialogueEmpty}>
+                        Waiting for stakeholder opening statements or reactions...
                       </div>
                     )}
                   </div>
