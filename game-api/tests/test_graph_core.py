@@ -440,32 +440,38 @@ def test_unknown_clause_raises_and_validation_reports_bad_references():
 
 # ---------- stage graph ----------
 
-def test_stage_health_from_maturity_and_debt():
+def test_stage_health_counts_problems_not_maturity():
     g = _graph()
     state = GraphState.from_config(g)
     view = stage_graph(g, state, compute_effective(g, state))
     a = next(s for s in view.stages if s.id == "a")
-    # a.src 3, a.mid 3, e.src_mid 3: maturity 9/12 = 0.75, health 20 + 40 * 0.75 = 50
+    # Nothing is wrong, so health is full; maturity is reported separately (9/12).
+    assert (a.health, a.status) == (100, "healthy")
     assert a.maturity == pytest.approx(0.75)
-    assert a.health == pytest.approx(50)
 
+    broken = _apply(g, GraphOp(kind="set_to", target="a.src", value="broken")).state
+    view = stage_graph(g, broken, compute_effective(g, broken))
+    a, b = (next(s for s in view.stages if s.id == x) for x in ("a", "b"))
+    # a.src and a.mid are down (a.mid by propagation), and b.sink downstream of them.
+    assert (a.broken, a.health) == (2, 70)
+    assert (b.broken, b.health) == (1, 85)
+
+
+def test_debt_costs_health():
+    g = _graph()
     degraded = _apply(
         g, GraphOp(kind="raise_to", target="b.sink", value=4, source_kind="action_card"), owner_buyin={"bob": 0.0}
     ).state
-    b_before = next(s for s in view.stages if s.id == "b")
-    b_after = next(s for s in stage_graph(g, degraded, compute_effective(g, degraded)).stages if s.id == "b")
-    # b.sink 3 + b.side 2 -> 5/8, 45. The degraded raise changes nothing and costs 6 of debt.
-    assert b_before.health == pytest.approx(45)
-    assert (b_after.health, b_after.debt) == (pytest.approx(39), 1)
+    b = next(s for s in stage_graph(g, degraded, compute_effective(g, degraded)).stages if s.id == "b")
+    assert (b.debt, b.health) == (1, 94)
 
 
-def test_pattern_effects_move_stage_health():
+def test_pattern_effects_move_stage_health_within_bounds():
     g = _graph()
     state = GraphState.from_config(g)
     eff = compute_effective(g, state)
-    plain = stage_graph(g, state, eff).stages[0].health
-    boosted = stage_graph(g, state, eff, pattern_effects={"a": 12}).stages[0].health
-    assert boosted == pytest.approx(plain + 12)
+    assert stage_graph(g, state, eff, pattern_effects={"a": -12}).stages[0].health == pytest.approx(88)
+    assert stage_graph(g, state, eff, pattern_effects={"a": 12}).stages[0].health == pytest.approx(100)
 
 
 def test_flows_report_weakest_crossing_edge():

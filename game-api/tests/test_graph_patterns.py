@@ -47,9 +47,10 @@ def test_patterns_cover_every_component_and_pipeline_edge(real):
     assert uncovered_targets(PatternFactory.patterns, real) == []
 
 
-def test_starting_graph_has_no_design_patterns(real):
+def test_starting_graph_has_no_design_patterns_and_is_all_green(real):
     ev = evaluate_graph(real, GraphState.from_config(real))
     assert not [p for p in ev.active_patterns if p.startswith("dp_")]
+    assert all(s.status == "healthy" for s in ev.stage_graph.stages)
 
 
 def test_fully_built_graph_has_every_design_pattern_and_no_antipattern(real):

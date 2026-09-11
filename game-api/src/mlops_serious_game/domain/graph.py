@@ -139,8 +139,7 @@ class InstanceKind(BaseModel):
 class GraphThresholds(BaseModel):
     healthy: int = 75
     degraded: int = 45
-    health_base: float = 20
-    maturity_weight: float = 40
+    broken_penalty_per_target: float = 15
     debt_penalty_per_entry: float = 6
     debt_buyin_threshold: float = 0.4
 

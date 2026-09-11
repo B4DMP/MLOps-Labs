@@ -51,7 +51,9 @@ Governance and Infra is a cross-cutting band, drawn under the pipeline, not a st
 
 The player is a PM. PMs do not know every technical property of their environment on day one. Finding out costs time.
 
-**Always visible:** topology. Which components and edges exist. The PM has the architecture diagram.
+**Stage visibility (D33):** stages of phases the player has not reached yet are hidden completely: no health, no components, no edges. In the data phase the player sees Requirements and Data, not Modeling. Governance and Infra, the cross-cutting band, is always visible. Knowledge gathered about a hidden stage is kept and shows once the phase is reached.
+
+**Always visible within a reached stage:** topology. Which components and edges exist. The PM has the architecture diagram.
 
 **Hidden until observed:** nominal and effective level of each component, maturity and trigger of each edge, attributes.
 
@@ -99,16 +101,18 @@ Every stance item is an action on the graph plus how much its stakeholder cares:
 
 ## Health
 
+Health measures problems, not maturity (D32). A stage is at 100 until something goes wrong:
+
 ```
-stage_health = clamp( 20
-                      + 40 * mean(effective_level / 4 over stage components and internal edges)
-                      + sum(design pattern bonuses)
+stage_health = clamp( 100
+                      + sum(design pattern bonuses)       buffer against damage
                       - sum(antipattern penalties)
+                      - 15 * targets in the stage whose effective level is 0
                       - 6 * debt_entries_in_stage , 0, 100)
 system_health = weighted mean of stage health
 ```
 
-Maturity alone tops out at 60. Healthy (>75) needs design patterns. Patterns are the main driver, maturity keeps every raise visible. Details in [03](03-patterns-and-selection.md).
+Something not built yet is not a problem, so the game starts green (D33). Challenges turn the areas of the current phase red through world events and the antipatterns they expose, and the player saves them. A break counts everything it takes down downstream. Maturity (mean effective level) is shown next to health, never mixed into it. Details in [03](03-patterns-and-selection.md).
 
 ## Tech debt
 

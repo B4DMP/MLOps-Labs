@@ -51,7 +51,7 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | D16 | Intel taxonomy? | Driver, Boundary, Trade-off, Fact as item tags. Language as the per stakeholder profile via existing convincer tagging. |
 | D17 | Driver target? | Metric plus suggested target. Full credit on the suggested target, partial on anything weighted into the same metric. |
 | D18 | Do facts forbid actions? | No. Capping comes from edges, vetoes from Boundaries. Facts make both visible in the builder. Mis-tagged facts do not lift fog. |
-| D19 | Health source? | Maturity term capped at 60 plus design pattern bonuses minus antipattern penalties minus debt. Healthy needs design patterns. |
+| D19 | Health source? | Superseded by D32. |
 | D20 | Cadence? | Moved from component attribute to edge trigger. |
 | D21 | Attributes? | Still out of health, but Boundaries and Trade-offs may read them, and Driver items may set them. |
 | D22 | Convincer fit scope? | Every stakeholder in the room, against the better of main and secondary (secondary with a small malus). |
@@ -64,12 +64,14 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | D29 | Content scope for v1? | Tier 0 first: 2 phases, 2 templates each plus fallback, every mechanic exercised once, verified end to end. Full set after. |
 | D30 | Scripted vs automated? | No `scripted` level. Five levels: broken, absent, manual, automated, governed. Edge level and trigger are kept consistent automatically. |
 | D31 | Instance properties? | Ordered enum properties per instance kind in config, read by predicates, changed by world events, seeded starting instances. Not in coverage. |
+| D32 | What does health measure? | Problems, not maturity: 100 plus design bonuses minus antipattern penalties, 15 per broken target (effective 0), 6 per debt entry. Maturity is shown separately. |
+| D33 | Starting state and stage fog? | The game starts green. Challenges turn the current phase's areas red, the player saves them. Stages of phases not reached yet are hidden entirely; the governance band is always visible. |
+| D34 | Old gameplay data? | Wiped (everything except the `internal` campaign and its accounts, configs and the vector store). No backwards compatibility needed from here on. |
 
 ## Open questions
 
 | ID | Question | Needed by |
 |---|---|---|
-| Q21 | Starting graph puts every stage in the red band (health 18 to 31). Intended "you inherit a mess", or too grim? Knobs: `health_base`, `degraded` threshold, initial levels. | playtest |
 | Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
 
 ## Deferred scope
@@ -89,3 +91,4 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **impl** graph refactor tool with aliases and retirements; absent steps pass through in effective levels.
 - **impl** plan 03 implemented: `domain/pattern.py`, `domain/graph_predicates.py` (moved from application so config load can validate), `application/graph_service/view.py`, `scheduler.py`, challenge template fields, `MlopsPatterns.json`, `tests/test_graph_patterns.py`.
 - **impl** plan 02 implemented: `IntelTag` with payloads and gate, legacy content and stored rows re-tagged (migration `f6a7b8c9d0e1`), prompts and UI on shared tag wording, Facts lift fog on leaving offline gathering. 107 tests green, UI typechecks.
+- **v3.3** health measures problems (D32), start green with stage-level fog (D33), gameplay data wiped (D34).

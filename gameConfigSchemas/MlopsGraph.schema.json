@@ -89,12 +89,6 @@
         "degraded": {
           "type": "number"
         },
-        "health_base": {
-          "type": "number"
-        },
-        "maturity_weight": {
-          "type": "number"
-        },
         "debt_penalty_per_entry": {
           "type": "number"
         },
@@ -102,6 +96,10 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "broken_penalty_per_target": {
+          "type": "number",
+          "title": "Health lost per component or edge whose effective level is 0"
         }
       }
     },

@@ -154,17 +154,14 @@
   "thresholds": {
     "healthy": 75,
     "degraded": 45,
-    "health_base": 20,
-    "maturity_weight": 40,
+    "broken_penalty_per_target": 15,
     "debt_penalty_per_entry": 6,
     "debt_buyin_threshold": 0.4
   },
   "briefing_observed": [
+    "req.kpi_definition",
     "data.ingestion",
-    "model.training_pipeline",
-    "deploy.serving",
-    "e.ingest_validate",
-    "e.fs_train"
+    "e.ingest_validate"
   ],
   "stages": [
     {

@@ -1,7 +1,12 @@
 """The stage graph: derived from the technical graph every time, never stored.
 
-Stage health = base + maturity_weight * mean(effective / 5) + pattern effect - debt penalty,
-clamped to 0..100. Pattern effects come from plan 03 and are passed in.
+Health measures problems, not maturity (D32): a stage is at 100 until something goes wrong.
+
+    health = clamp(100 + pattern effect - broken penalty * broken targets - debt penalty * debt, 0, 100)
+
+Pattern effect is design bonuses minus antipattern penalties (plan 03), so design patterns buffer
+damage. Broken targets are components and edges whose effective level is 0, which counts what a
+break takes down downstream. Maturity is reported next to health, never mixed into it.
 """
 
 from typing import Optional
@@ -9,7 +14,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from mlops_serious_game.application.graph_service.effective import EffectiveView
-from mlops_serious_game.domain.graph import MAX_LEVEL, GraphState, TechnicalGraph
+from mlops_serious_game.domain.graph import MAX_LEVEL, GraphState, Level, TechnicalGraph
 
 
 class StageView(BaseModel):
@@ -18,6 +23,7 @@ class StageView(BaseModel):
     band: bool
     maturity: float
     pattern_effect: float
+    broken: int
     debt: int
     health: float
     status: str
@@ -62,9 +68,10 @@ def stage_graph(
             if graph.component(e.from_id).stage_id == s.id and graph.component(e.to_id).stage_id == s.id
         ]
         maturity = sum(levels) / (len(levels) * MAX_LEVEL) if levels else 0.0
+        broken = sum(1 for lv in levels if lv == Level.BROKEN)
         debt = sum(1 for d in state.debt if graph.stage_of(d.target_id) == s.id)
         effect = pattern_effects.get(s.id, 0.0)
-        health = t.health_base + t.maturity_weight * maturity + effect - t.debt_penalty_per_entry * debt
+        health = 100 + effect - t.broken_penalty_per_target * broken - t.debt_penalty_per_entry * debt
         health = round(max(0.0, min(100.0, health)), 1)
         stages.append(
             StageView(
@@ -73,6 +80,7 @@ def stage_graph(
                 band=s.band,
                 maturity=round(maturity, 3),
                 pattern_effect=effect,
+                broken=broken,
                 debt=debt,
                 health=health,
                 status=_status(health, graph),

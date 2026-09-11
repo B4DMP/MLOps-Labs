@@ -45,7 +45,7 @@ Rules in [00](00-overview.md#fog-of-war). Rendering:
 | `current` | pips and story line | solid arrow, level, trigger icon |
 | `stale` | last seen pips, dimmed, "as of challenge N" | last seen, dimmed |
 
-Topology is always drawn. Stage health with unknown or stale parts renders as a band. Investigate engagement card is reachable from the modal: "look into this stage".
+Stages of phases not reached yet are not drawn beyond a locked placeholder: no health, no components (D33). Within a reached stage, topology is always drawn and health with unknown or stale parts renders as a band. Investigate engagement card is reachable from the modal: "look into this stage".
 
 ## Data
 
