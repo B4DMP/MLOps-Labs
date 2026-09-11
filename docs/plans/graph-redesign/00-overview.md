@@ -107,12 +107,12 @@ Health measures problems, not maturity (D32). A stage is at 100 until something 
 stage_health = clamp( 100
                       + sum(design pattern bonuses)       buffer against damage
                       - sum(antipattern penalties)
-                      - 15 * targets in the stage whose effective level is 0
+                      - 15 * targets in the stage that are broken themselves (D35)
                       - 6 * debt_entries_in_stage , 0, 100)
 system_health = weighted mean of stage health
 ```
 
-Something not built yet is not a problem, so the game starts green (D33). Challenges turn the areas of the current phase red through world events and the antipatterns they expose, and the player saves them. A break counts everything it takes down downstream. Maturity (mean effective level) is shown next to health, never mixed into it. Details in [03](03-patterns-and-selection.md).
+Something not built yet is not a problem, so the game starts green (D33). Challenges turn the areas of the current phase red through world events and the antipatterns they expose, and the player saves them. A break is paid for once, where it happened: everything it takes down downstream is reported as **starved** and costs no health of its own (D35). Maturity (mean effective level) is shown next to health, never mixed into it. Details in [03](03-patterns-and-selection.md).
 
 ## Tech debt
 

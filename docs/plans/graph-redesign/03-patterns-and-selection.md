@@ -51,7 +51,7 @@ stage_bonus(stage)   = sum(p.stage_effects[stage] for p in active if p.kind == "
 stage_penalty(stage) = sum(-p.stage_effects[stage] for p in active if p.kind == "anti")
 ```
 
-Plugged into the stage health formula in [00](00-overview.md#health): 100 plus design bonuses minus antipattern penalties, broken targets and debt. Design patterns buffer damage, they cannot lift a stage above 100. Active set recomputed every fold, never stored.
+Plugged into the stage health formula in [00](00-overview.md#health): 100 plus design bonuses minus antipattern penalties, targets broken in themselves (D35) and debt. Design patterns buffer damage, they cannot lift a stage above 100. Active set recomputed every fold, never stored.
 
 Gate: every component and every pipeline edge appears in at least one pattern. Otherwise raising it only moves the maturity term.
 

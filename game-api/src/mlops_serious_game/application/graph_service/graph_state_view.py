@@ -52,12 +52,13 @@ def _stage_band(
     for tid in targets:
         ks = knowledge.state_of(tid, state)
         if ks == "current":
-            eff = effective.components.get(tid) or effective.edges.get(tid, Level.ABSENT)
-            if eff == Level.BROKEN:
+            # Only a target broken in itself costs health (D35); starved ones are free.
+            nominal = state.component_levels.get(tid, state.edge_levels.get(tid, Level.ABSENT))
+            if nominal == Level.BROKEN:
                 known_broken += 1
         elif ks == "stale":
             entry = knowledge.seen[tid]
-            if entry.effective == Level.BROKEN:
+            if entry.nominal == Level.BROKEN:
                 known_broken += 1
             else:
                 unknown_count += 1  # last seen fine, may have changed
@@ -122,6 +123,7 @@ def build_graph_state(
             "status": sv.status,
             "maturity": sv.maturity,
             "broken": sv.broken,
+            "starved": sv.starved,
             "debt": sv.debt,
             "patterns": pat_by_stage.get(s.id, []),
         })

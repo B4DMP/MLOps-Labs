@@ -19,6 +19,7 @@ interface StageData {
   status?: "healthy" | "degraded" | "broken";
   maturity?: number;
   broken?: number;
+  starved?: number;
   debt?: number;
   patterns?: PatternRef[];
 }
@@ -438,6 +439,13 @@ function StageModal({
             {stage.health !== undefined && (
               <span className="ms-2 badge" style={{ background: statusColor(stage.status), fontSize: "0.75rem" }}>
                 {stage.health}
+              </span>
+            )}
+            {/* Starved: running at zero because something upstream is down, not broken here (D35). */}
+            {!!stage.starved && (
+              <span className="ms-1 badge" style={{ background: "#6c757d", fontSize: "0.7rem" }}
+                    title="Running at zero because something upstream is down">
+                {stage.starved} starved
               </span>
             )}
           </h5>

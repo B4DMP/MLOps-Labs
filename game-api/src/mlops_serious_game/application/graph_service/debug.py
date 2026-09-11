@@ -62,6 +62,8 @@ def build_graph_debug(
             "health": sv.health,
             "maturity": sv.maturity,
             "broken": sv.broken,
+            "starved": sv.starved,
+            "starved_ids": sv.starved_ids,
             "debt": sv.debt,
             "pattern_effect": sv.pattern_effect,
         })

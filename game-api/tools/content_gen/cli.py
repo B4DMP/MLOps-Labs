@@ -5,6 +5,7 @@
   review --stage S                    writes work/review/S.csv and prints one line per item
   approve --stage S [--only GLOB]     marks done items approved; the next stage builds on approved ones
   reject ITEM_ID --note "..."         queues an item for regeneration with the note in the prompt
+  freeze --stage S [--only GLOB]      keeps the current output as approved and pins its hash
   try --stage S --item ID [--attempts N] [--show]   one item, printed, nothing written (prompt iteration)
   unstick                             releases items a killed run left running
   diff [--stage S]                    what the current config would make stale
@@ -126,6 +127,24 @@ def cmd_try(ctx, ledger, args) -> int:
     return 1
 
 
+def cmd_freeze(ctx, ledger, args) -> int:
+    """Golden path: keep what was generated. Every item with an output file goes back to approved
+    with its hash pinned to the current inputs, so prompt work does not queue a regeneration."""
+    stage = STAGES[args.stage]
+    model = args.model or _llm(args).model_id
+    frozen = 0
+    for item in stage.plan(ctx):
+        if args.only and not fnmatch.fnmatch(item.item_id, args.only):
+            continue
+        row = ledger.get(item.item_id)
+        if row is None or not row.output_path or not (ctx.work_dir / row.output_path).exists():
+            continue
+        ledger.freeze(item.item_id, item.input_hash(stage.prompt_version, model, row.note))
+        frozen += 1
+    print(f"froze {frozen} {stage.name} item(s) at their current output")
+    return 0
+
+
 def cmd_unstick(ctx, ledger, args) -> int:
     print(f"released {ledger.unstick()} item(s) left running by a killed run")
     return 0
@@ -196,6 +215,9 @@ def main(argv=None) -> int:
     p = sub.add_parser("reject")
     p.add_argument("item_id")
     p.add_argument("--note", required=True)
+    p = sub.add_parser("freeze")
+    p.add_argument("--stage", required=True, choices=ORDER)
+    p.add_argument("--only")
     sub.add_parser("unstick")
     p = sub.add_parser("try")
     p.add_argument("--stage", required=True, choices=ORDER)

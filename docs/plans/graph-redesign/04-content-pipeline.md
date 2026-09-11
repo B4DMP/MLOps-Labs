@@ -122,7 +122,7 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 - [x] 1. Harness: work item model, input hashing, sqlite ledger, CLI with run, status, review, approve, reject, validate, diff, assemble.
 - [x] 1b. Concurrency, retry with the gate errors as feedback, budget cap, clean SIGINT, Opik tagging, dry run.
 - [x] 2. Stage templates, human review. Fixed p3/s0 (Dave's want: 1→2 manual) and p3/s1 (Monica's want: 2→3 automated). All 4 templates approved.
-- [ ] 3. Stage items, human review. REGENERATING with i8 prompt + Qwen on WestAI. After completion: human review pending.
+- [x] 3. Stage items, human review. Frozen as the golden path (D36); the i8 prompt and Qwen wait for step 9. Human review still pending.
 - [x] 4. Stage artifacts. Fact artifacts get no conflict text; facts about absent components get a "describe today's workaround" hint.
 - [x] 5. Stage objections.
 - [x] 5b. Stage fragments.

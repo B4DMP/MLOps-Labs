@@ -189,6 +189,11 @@ class Ledger:
                 n += 1
         return n
 
+    def freeze(self, item_id: str, input_hash: str) -> None:
+        """Keeps the content this item already has: approved, and its hash pinned to the current
+        inputs so a later prompt or template change does not queue a regeneration of it."""
+        self._set(item_id, status="approved", input_hash=input_hash, error="")
+
     def reject(self, item_id: str, note: str) -> None:
         """Queues the item for regeneration with the reviewer note fed back into the prompt."""
         row = self.get(item_id)

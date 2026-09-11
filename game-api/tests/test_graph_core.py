@@ -453,9 +453,11 @@ def test_stage_health_counts_problems_not_maturity():
     broken = _apply(g, GraphOp(kind="set_to", target="a.src", value="broken")).state
     view = stage_graph(g, broken, compute_effective(g, broken))
     a, b = (next(s for s in view.stages if s.id == x) for x in ("a", "b"))
-    # a.src and a.mid are down (a.mid by propagation), and b.sink downstream of them.
-    assert (a.broken, a.health) == (2, 70)
-    assert (b.broken, b.health) == (1, 85)
+    # Only a.src is broken in itself. a.mid and b.sink run at 0 because of it, which is reported
+    # as starved and costs no health of its own (D35), so one break is paid for once.
+    assert (a.broken, a.health) == (1, 85)
+    assert a.starved_ids == ["a.mid"]
+    assert (b.broken, b.starved, b.health) == (0, 1, 100)
 
 
 def test_debt_costs_health():
