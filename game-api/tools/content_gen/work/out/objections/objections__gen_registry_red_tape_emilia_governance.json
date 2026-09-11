@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_registry_red_tape_emilia_governance",
+  "stage": "objections",
+  "input_hash": "e65793f2e10181f16c6f1ac7af29dc854112975929cbab3cfb615b7fa1040492",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_registry_red_tape_emilia_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} suggested governing the model registry. She will not do her work without governance.",
+      "fact": "{efficiency_emilia} suggested governing the model registry.",
+      "reading": "She will not do her work without governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "The proposal crosses {efficiency_emilia}s line. {efficiency_emilia} refuses, clearly and without drama.",
+    "correction": "I didn't say I would refuse. {efficiency_emilia} said that without governance, I cannot do my work to align ML features with business goals."
+  }
+}

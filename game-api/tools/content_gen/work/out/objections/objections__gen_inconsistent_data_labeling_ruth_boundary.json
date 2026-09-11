@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_ruth_boundary",
+  "stage": "objections",
+  "input_hash": "235883c9cd4c5ceae44c785a16b8c8eca7cfd10c2ec9aa53941f8636c06eb8ca",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_ruth_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} mentioned that data labeling should be fully governed. She will not accept any labeling process that is not fully governed.",
+      "fact": "{reliability_ruth} mentioned that data labeling should be fully governed.",
+      "reading": "She will not accept any labeling process that is not fully governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.labeling",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "The proposal crosses my line. I refuse, clearly and without drama.",
+    "correction": "I mentioned that data labeling should be fully governed. I will not accept any labeling process that is not fully governed."
+  }
+}

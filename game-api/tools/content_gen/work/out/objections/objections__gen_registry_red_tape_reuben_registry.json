@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_registry_red_tape_reuben_registry",
+  "stage": "objections",
+  "input_hash": "c10be92b785ae20673648892ae487f4299a3f76578e006051d134177d4580ff9",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_registry_red_tape_reuben_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} wants the model registry to be governed. He will not allow it without governance.",
+      "fact": "{requirements_reuben} wants the model registry to be governed.",
+      "reading": "He will not allow it without governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "requirements_reuben wants the model registry to be governed. He will not allow it without governance.",
+    "correction": "requirements_reuben did not say he would refuse. He said governance is a must."
+  }
+}

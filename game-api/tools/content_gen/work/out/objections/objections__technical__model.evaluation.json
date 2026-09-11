@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.evaluation",
+  "stage": "objections",
+  "input_hash": "aaebf5e313d1073805f700145858d1700fda153054eb77bed1507eb359ce2567",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.evaluation",
+      "name": "Model Evaluation Harness"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I'm not convinced the {target} improvements will work. The {cause} upstream just isn't reliable enough yet."
+  }
+}

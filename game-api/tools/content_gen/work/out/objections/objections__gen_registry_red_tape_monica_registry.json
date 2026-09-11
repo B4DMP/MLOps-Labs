@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_registry_red_tape_monica_registry",
+  "stage": "objections",
+  "input_hash": "2b5304aa7ca0559ac17b28abbd58c6cb8ce3eac21ac5e701ea1cb852f8d98320",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_registry_red_tape_monica_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the model registry. She wants it automated and it will help her work more efficiently.",
+      "fact": "{model_monica} proposed automating the model registry.",
+      "reading": "She wants it automated and it will help her work more efficiently.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I think we could do more than just automate the model registry. It would help if we also had better model versioning in place, {model_monica} wants to see more comprehensive improvements.",
+    "correction": "I didn't say it would help me work more efficiently. I said it would help the team improve model performance and collaboration."
+  }
+}

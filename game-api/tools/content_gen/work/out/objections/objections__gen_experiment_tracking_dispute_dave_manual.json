@@ -1,0 +1,39 @@
+{
+  "item_id": "objections:gen_experiment_tracking_dispute_dave_manual",
+  "stage": "objections",
+  "input_hash": "cf9761c0dc4ded3bd2e266b9537155fa0d274cb837e7b0660adac681aa999f18",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_dave_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested keeping experiment tracking manual. {data_dave} would accept manual tracking if it significantly reduces costs.",
+      "fact": "{data_dave} suggested keeping experiment tracking manual.",
+      "reading": "{data_dave} would accept manual tracking if it significantly reduces costs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "accepts_max_level": 1
+      },
+      "asserts": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I said I would accept manual tracking if it reduced costs, not that I wanted it. I need this recognized in the proposal.",
+    "correction": "{data_dave} didn't say this under cost reduction. I was clarifying a trade-off, not making a demand."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.validation",
+  "stage": "objections",
+  "input_hash": "ad56ba1b518cf997d03693f9736ce4388453a2473295d46827ac08f9ada3cd9a",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.validation",
+      "name": "Data Validation"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I am Data Dave. I think {target} won't deliver as expected, because {cause} upstream is not good enough yet."
+  }
+}

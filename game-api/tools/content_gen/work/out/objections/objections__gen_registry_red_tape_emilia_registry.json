@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_registry_red_tape_emilia_registry",
+  "stage": "objections",
+  "input_hash": "3e94658c93d2261b3b156ea8010718ed16bc22b15f01db6c69a3d008121ef102",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_registry_red_tape_emilia_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} brought up automating the model registry. She wants it automated and it will streamline the process.",
+      "fact": "{efficiency_emilia} brought up automating the model registry.",
+      "reading": "She wants it automated and it will streamline the process.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.registry",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I understand the proposal, but {efficiency_emilia} believes more can be done to automate the model registry. This is crucial for streamlining our workflow.",
+    "correction": "I did not just want more automation. I specifically asked for the model registry to be automated to align with our efficiency goals."
+  }
+}

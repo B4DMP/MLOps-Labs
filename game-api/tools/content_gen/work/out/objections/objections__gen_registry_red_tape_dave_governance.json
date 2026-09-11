@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_registry_red_tape_dave_governance",
+  "stage": "objections",
+  "input_hash": "5539ee2b126746aee70b96ad94413fb0a31a5bb77c54466a296389ee833cfbab",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_registry_red_tape_dave_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} asked for governance of the model registry. He wants it governed and more is better.",
+      "fact": "{data_dave} asked for governance of the model registry.",
+      "reading": "He wants it governed and more is better.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.registry",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I really need to see more governance in the model registry, {data_dave} has been clear about that. The current proposal just isn't cutting it for our needs.",
+    "correction": "It's not that I want more of everything. I specifically asked for governance of the model registry, not just more automation or levels without proper oversight."
+  }
+}

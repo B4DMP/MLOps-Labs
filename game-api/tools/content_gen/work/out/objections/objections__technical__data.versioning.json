@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.versioning",
+  "stage": "objections",
+  "input_hash": "86482e2e61d881b1209631d5d763b104f68e2a6b8e76b4bf956f36c36444c578",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.versioning",
+      "name": "Data Versioning"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I'm not convinced improving {target} will work because {cause} upstream is still unreliable. We need to fix that first before we can see real benefits."
+  }
+}

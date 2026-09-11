@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_data_quality_conflict_missing_feature_store",
+  "stage": "artifacts",
+  "input_hash": "2560c3af08a9a1ea5b92b440f4b8c2d59b8c1dc6debd16596845d2d50e8108d2",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_data_quality_conflict_missing_feature_store",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The feature store is absent. That is simply what the current feature store setup produces today.",
+      "fact": "The feature store is absent.",
+      "reading": "That is simply what the current feature store setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "data.feature_store",
+        "level": 1,
+        "trigger": null
+      }
+    },
+    "artifact_type": "incident_ticket",
+    "author": null,
+    "challenge": {
+      "name": "The Inconsistent Checks",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The current pipeline does not include a feature store. Instead, features are recalculated for each model training run. This causes a full reprocessing of the dataset, taking approximately 3 hours per run. The data is pulled directly from the raw data lake, and the feature registry is not implemented. The pipeline produces 2 failed runs per week due to schema inconsistencies.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "This statement is an objective observation about the current state of the pipeline and its performance issues."
+  }
+}

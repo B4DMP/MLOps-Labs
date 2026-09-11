@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.label_version",
+  "stage": "fragments",
+  "input_hash": "6747bfcb1f1c18cb265798a84933c72dad5c4f8aa6e3c5f68fad8da0d12cab8f",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.label_version",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Data Labeling Pipeline to Data Versioning"
+  },
+  "output": {
+    "level_0": "Data Versioning rejects data from Data Labeling Pipeline without error messages.",
+    "level_1": "There is no connection between Data Labeling Pipeline and Data Versioning.",
+    "level_2": "Team members manually transfer data from Data Labeling Pipeline to Data Versioning.",
+    "level_3": "Data Labeling Pipeline automatically exports labeled data to Data Versioning.",
+    "level_4": "Data Versioning validates and logs all incoming data from Data Labeling Pipeline."
+  }
+}

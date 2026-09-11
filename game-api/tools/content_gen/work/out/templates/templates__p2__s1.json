@@ -1,0 +1,640 @@
+{
+  "item_id": "templates:p2:s1",
+  "stage": "templates",
+  "input_hash": "d9290d90fa5c54b30d7b2972809c98fc17dfd25af2b24180132b951779c24f8b",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 2,
+  "inputs": {
+    "phase_id": 2,
+    "phase_name": "Data Engineering",
+    "phase_description": " Dataset preparation, addressing data quality, accessibility, and privacy.",
+    "focus_stage": "data",
+    "slot": 1,
+    "conflict_type": "hard",
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "data",
+      "components": [
+        {
+          "id": "data.ingestion",
+          "name": "Data Ingestion Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "custom_scripts",
+              "airbyte",
+              "kafka"
+            ]
+          }
+        },
+        {
+          "id": "data.validation",
+          "name": "Data Validation",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "great_expectations",
+              "deequ",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.feature_store",
+          "name": "Feature Store",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "feast",
+              "tecton",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.versioning",
+          "name": "Data Versioning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "tool": [
+              "none",
+              "dvc",
+              "lakefs",
+              "delta_lake"
+            ]
+          }
+        },
+        {
+          "id": "data.labeling",
+          "name": "Data Labeling Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        },
+        {
+          "id": "data.training_drift_check",
+          "name": "Training Data Drift Check",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.ingest_validate",
+          "from": "data.ingestion",
+          "to": "data.validation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.validate_version",
+          "from": "data.validation",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_fs",
+          "from": "data.versioning",
+          "to": "data.feature_store",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.label_version",
+          "from": "data.labeling",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_driftcheck",
+          "from": "data.versioning",
+          "to": "data.training_drift_check",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.iam_fs",
+          "from": "gov.iam",
+          "to": "data.feature_store",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "dataset:customer_records",
+          "kind": "dataset",
+          "on": "data.ingestion",
+          "props": {
+            "quality": "fair",
+            "freshness": "aging",
+            "documentation": "partial"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "dataset:training_snapshot",
+          "kind": "dataset",
+          "on": "data.labeling",
+          "props": {
+            "quality": "fair",
+            "freshness": "stale",
+            "documentation": "none"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "pipeline:nightly_export",
+          "kind": "pipeline",
+          "on": "data.ingestion",
+          "props": {
+            "reliability": "flaky",
+            "runtime": "slow"
+          },
+          "property_values": {
+            "reliability": [
+              "failing",
+              "flaky",
+              "reliable"
+            ],
+            "runtime": [
+              "slow",
+              "acceptable",
+              "fast"
+            ]
+          }
+        }
+      ]
+    },
+    "patterns": [
+      {
+        "id": "ap_training_serving_skew",
+        "kind": "anti",
+        "name": "Training Serving Skew",
+        "description": "Features are computed one way for training and another way in production."
+      },
+      {
+        "id": "ap_unversioned_data",
+        "kind": "anti",
+        "name": "Unversioned Data",
+        "description": "Models are trained on data nobody can reproduce later."
+      },
+      {
+        "id": "ap_pipeline_jungle",
+        "kind": "anti",
+        "name": "Pipeline Jungle",
+        "description": "Data reaches training through a tangle of hand run steps."
+      },
+      {
+        "id": "ap_glue_code",
+        "kind": "anti",
+        "name": "Glue Code",
+        "description": "Custom code holds together pieces that could have been standard components."
+      },
+      {
+        "id": "ap_shadow_it_access",
+        "kind": "anti",
+        "name": "Shadow IT Access",
+        "description": "Data and endpoints are reachable by whoever knows the address."
+      },
+      {
+        "id": "dp_reproducible_training",
+        "kind": "design",
+        "name": "Reproducible Training",
+        "description": "Any model can be rebuilt from versioned data and a tracked experiment."
+      },
+      {
+        "id": "dp_feature_reuse",
+        "kind": "design",
+        "name": "Feature Reuse",
+        "description": "Training and serving read the same features from one store."
+      },
+      {
+        "id": "dp_data_contracts",
+        "kind": "design",
+        "name": "Enforced Data Contracts",
+        "description": "Producers agree a schema, and every batch is checked against it on arrival."
+      },
+      {
+        "id": "dp_drift_watch",
+        "kind": "design",
+        "name": "Drift Watch",
+        "description": "Drift is checked before training and watched after deployment."
+      },
+      {
+        "id": "dp_versioned_lineage",
+        "kind": "design",
+        "name": "Versioned Lineage",
+        "description": "Labels, data and models are versioned together, so every prediction traces back."
+      },
+      {
+        "id": "dp_trusted_data",
+        "kind": "design",
+        "name": "Trusted Data",
+        "description": "Validated, documented data of good quality feeds the models."
+      }
+    ],
+    "world_events": [
+      {
+        "kind": "set_to",
+        "target": "data.feature_store",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "data.ingestion",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "data.labeling",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "data.training_drift_check",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "data.validation",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "data.versioning",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.ingest_validate",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.label_version",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.validate_version",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.version_driftcheck",
+        "value": "0",
+        "health_drop": 15.0
+      }
+    ],
+    "conflict_candidates": [
+      "data.validation",
+      "data.versioning",
+      "data.training_drift_check"
+    ],
+    "existing_challenges": [
+      "The Data Instability"
+    ]
+  },
+  "output": {
+    "slug": "data_quality_conflict",
+    "name": "The Inconsistent Checks",
+    "description": "#data_dave# insists on keeping the quality checks manually done to control costs. #reliability_ruth# argues for full automation to ensure consistent results.",
+    "round_introduction": "The data quality checks have become inconsistent, causing delays in the pipeline. #data_dave# and #reliability_ruth# disagree on how to fix the situation.",
+    "preconditions": {
+      "edge": "e.ingest_validate",
+      "op": "gte",
+      "level": 2
+    },
+    "priority": 50,
+    "on_enter_ops": [
+      {
+        "kind": "set_to",
+        "target": "data.validation",
+        "value": "0",
+        "attr": null,
+        "reason": "quality checks failed unexpectedly"
+      }
+    ],
+    "stalemate_ops": [
+      {
+        "kind": "set_to",
+        "target": "e.ingest_validate",
+        "value": "0",
+        "attr": null,
+        "reason": "data validation steps are not aligned"
+      }
+    ],
+    "conflict": {
+      "target": "data.validation",
+      "positions": [
+        {
+          "stakeholder_id": "data_dave",
+          "wants": 2
+        },
+        {
+          "stakeholder_id": "reliability_ruth",
+          "wants": 4
+        }
+      ]
+    }
+  }
+}

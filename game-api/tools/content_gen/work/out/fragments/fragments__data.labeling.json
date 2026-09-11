@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.labeling",
+  "stage": "fragments",
+  "input_hash": "1e399c1500e8ff950582e3593dc9534a73b162c9c5e36d0d99dda407f2ade3e2",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.labeling",
+    "kind": "component",
+    "name": "Data Labeling Pipeline",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The data labeling pipeline has no labels, no documentation, and no users.",
+    "level_1": "The data labeling pipeline is not implemented yet, no labels exist.",
+    "level_2": "The data labeling pipeline is done manually by a single person.",
+    "level_3": "The data labeling pipeline is automated but lacks consistency checks.",
+    "level_4": "The data labeling pipeline is automated with governance and audit trails."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.training_pipeline",
+  "stage": "objections",
+  "input_hash": "a8ba759245fdac732da6fc23e70241062a64e33e5fdc25c2e43a9b7e559b557e",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.training_pipeline",
+      "name": "Training Pipeline"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I own the Training Pipeline. Improving {target} won't help because {cause} upstream isn't good enough yet."
+  }
+}

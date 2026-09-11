@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.versioning",
+  "stage": "fragments",
+  "input_hash": "d15b0c14af27c1f2e8d7c0269a0f0f83c55a17aa10acff7d268890795cfb505e",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.versioning",
+    "kind": "component",
+    "name": "Data Versioning",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Data versioning lacks any tracking, causing confusion in reproducibility.",
+    "level_1": "No data versioning system exists, making it impossible to track changes.",
+    "level_2": "Team manually tracks data versions in spreadsheets, leading to errors.",
+    "level_3": "Data versioning is automated, but lacks integration with other systems.",
+    "level_4": "Data versioning is governed, integrated, and auditable across the MLOps pipeline."
+  }
+}

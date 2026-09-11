@@ -1,0 +1,271 @@
+{
+  "stance": [
+    {
+      "intel_id": "gen_data_quality_conflict_automate_for_consistency",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "I appreciate the effort, but the proposal doesn't fully address our needs. We need more comprehensive automation to ensure consistency in quality checks.",
+      "correction": "I didn't just bring up automating quality checks. I emphasized the need for more extensive automation to improve consistency, not just a partial solution."
+    },
+    {
+      "intel_id": "gen_data_quality_conflict_consistent_automation",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "boundary",
+      "text": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
+      "correction": "I never said I would accept manual checks. I insisted on governed tools for reliability."
+    },
+    {
+      "intel_id": "gen_data_quality_conflict_cost_conscious_automation",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "The proposal takes something from {data_dave} without saying so. He needs it to be acknowledged.",
+      "correction": "It is not about accepting manual processes. It is about keeping costs low with open source tools."
+    },
+    {
+      "intel_id": "gen_data_quality_conflict_cost_efficiency_balance",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "efficiency_emilia proposed balancing cost and efficiency in automation. She would accept some manual processes if it keeps costs low. However, the proposal takes something from her without acknowledging it. She needs this to be addressed.",
+      "correction": "efficiency_emilia clarifies that she did not propose anything. She merely highlighted a trade-off. The proposal needs to acknowledge the impact on her team's workload."
+    },
+    {
+      "intel_id": "gen_data_quality_conflict_gov_compliance",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "requirements_reuben mentioned governed data quality checks. He wants to improve compliance by governed checks.",
+      "correction": "requirements_reuben did not propose governed checks. He wants to ensure compliance with governed checks, but the current proposal does not meet this requirement."
+    },
+    {
+      "intel_id": "gen_data_quality_conflict_manual_checks_cost_control",
+      "stakeholder_id": "data_dave",
+      "kind": "boundary",
+      "text": "{data_dave} said the quality checks need to stay manual. Automating them will cost too much, and that's not happening.",
+      "correction": "Let me be clear. I didn't say I wouldn't automate quality checks. I said it can't happen if it increases costs. There's a difference."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_dave_cost",
+      "stakeholder_id": "data_dave",
+      "kind": "stance",
+      "text": "{data_dave} was looking for more significant cost savings in the experiment tracking process. This didn't quite meet the expectations for aligning with data operations goals.",
+      "correction": "I didn't just want more cost savings. I wanted to ensure that the experiment tracking process was also more efficient and aligned with our data governance policies."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_dave_manual",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "I said I would accept manual tracking if it reduced costs, not that I wanted it. I need this recognized in the proposal.",
+      "correction": "{data_dave} didn't say this under cost reduction. I was clarifying a trade-off, not making a demand."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_emilia_cost",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "price",
+      "text": "efficiency_emilia mentioned the importance of cost control in ML initiatives. efficiency_emilia would accept a less automated solution if it significantly reduces costs. The proposal takes something from us without saying so. We ask for it to be acknowledged.",
+      "correction": "efficiency_emilia did not say that we should accept a less automated solution. efficiency_emilia said that we would accept a less automated solution if it significantly reduces costs."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_emilia_goal",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "{efficiency_emilia} suggested aligning experiment tracking with business goals. The more aligned with business goals, the better it enhances operational capability. However, this proposal still falls short of our expectations.",
+      "correction": "I didn't mean to imply that the proposal is insufficient. I was highlighting the importance of alignment with business goals to enhance operational capability."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_monica_automated",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "{model_monica} proposed automated experiment tracking. However, I believe we need to push for even more automation to truly support reproducibility. The current proposal is a good start but doesn't go far enough.",
+      "correction": "I didn't say the proposal doesn't do enough. I said we need to aim for higher levels of automation to better support reproducibility."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_monica_boundary",
+      "stakeholder_id": "model_monica",
+      "kind": "boundary",
+      "text": "I insisted on automated experiment tracking to ensure reproducibility. I will not accept anything less than automated tracking.",
+      "correction": "I did not mean to imply a refusal. I simply want to ensure that experiment tracking is automated for reproducibility."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_reuben_audit",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "requirements_reuben will not accept any solution that does not address the audit findings. This proposal crosses the line.",
+      "correction": "requirements_reuben did not refuse anything. requirements_reuben insisted the solution must address the audit findings on model reproducibility."
+    },
+    {
+      "intel_id": "gen_experiment_tracking_dispute_reuben_comp",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "stance",
+      "text": "requirements_reuben proposed aligning experiment tracking with compliance standards, but we need to go further to truly guarantee product quality.",
+      "correction": "requirements_reuben didn't just propose alignment. I said it's critical to fully meet compliance standards to ensure product quality."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_data_dave_boundary",
+      "stakeholder_id": "data_dave",
+      "kind": "boundary",
+      "text": "{data_dave} refuses to automate data labeling. The labeling process must remain manual to ensure {data_dave} control over it.",
+      "correction": "{data_dave} did not say no to all automation. {data_dave} only insists on keeping manual control over the labeling process."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "stakeholder_id": "data_dave",
+      "kind": "stance",
+      "text": "I think {data_dave}'s proposal doesn't go far enough. We need more automation to keep up with the volume of data labeling.",
+      "correction": "I didn't say I wanted more manual control. I said we need to balance flexibility and automation."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_dave_trade_off",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "I proposed a semi-manual approach for data labeling, {data_dave} did not suggest that your proposal takes something from me without acknowledgment. I just need to understand how it improves data quality.",
+      "correction": "I did not say that your proposal takes something from me without acknowledgment. I just need to understand how it improves data quality."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_emilia_efficiency_driver",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "The proposal does not do enough for what {efficiency_emilia} wants. We need more automation to improve efficiency.",
+      "correction": "This is not just about efficiency. {efficiency_emilia} also wants to ensure data quality and reliability through automation."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_reuben_requirements_boundary",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "{requirements_reuben} I will not accept any proposal that does not enforce data governance. This is non-negotiable for the project.",
+      "correction": "I did not say it crosses a line. I said data governance is mandatory. Do not mistake my firm stance for drama."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_ruth_boundary",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "boundary",
+      "text": "The proposal crosses my line. I refuse, clearly and without drama.",
+      "correction": "I mentioned that data labeling should be fully governed. I will not accept any labeling process that is not fully governed."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "stance",
+      "text": "reliability_ruth asked for fully governed data labeling. More governance will improve data reliability.",
+      "correction": "reliability_ruth did not ask for more. The current proposal meets our needs."
+    },
+    {
+      "intel_id": "gen_inconsistent_data_labeling_ruth_trade_off",
+      "stakeholder_id": "reliability_ruth",
+      "kind": "price",
+      "text": "reliability_ruth proposed a semi-manual approach for data labeling, but it takes more resources from us without any acknowledgment. We need to discuss this openly.",
+      "correction": "I didn't propose a semi-manual approach. I said I would accept it if it improves data quality, but we need to talk about the trade-offs."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_dave_governance",
+      "stakeholder_id": "data_dave",
+      "kind": "stance",
+      "text": "I really need to see more governance in the model registry, {data_dave} has been clear about that. The current proposal just isn't cutting it for our needs.",
+      "correction": "It's not that I want more of everything. I specifically asked for governance of the model registry, not just more automation or levels without proper oversight."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_dave_registry",
+      "stakeholder_id": "data_dave",
+      "kind": "price",
+      "text": "{data_dave} is concerned because the proposal implies taking resources from his team without explicit acknowledgment. He needs this to be addressed upfront.",
+      "correction": "This is not a trade-off. {data_dave} is stating a requirement for mutual agreement, not a compromise on his part."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_emilia_governance",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "boundary",
+      "text": "The proposal crosses {efficiency_emilia}s line. {efficiency_emilia} refuses, clearly and without drama.",
+      "correction": "I didn't say I would refuse. {efficiency_emilia} said that without governance, I cannot do my work to align ML features with business goals."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_emilia_registry",
+      "stakeholder_id": "efficiency_emilia",
+      "kind": "stance",
+      "text": "I understand the proposal, but {efficiency_emilia} believes more can be done to automate the model registry. This is crucial for streamlining our workflow.",
+      "correction": "I did not just want more automation. I specifically asked for the model registry to be automated to align with our efficiency goals."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_monica_governance",
+      "stakeholder_id": "model_monica",
+      "kind": "boundary",
+      "text": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+      "correction": "I said the model registry does not need governance, but I never said I would not work with it."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_monica_registry",
+      "stakeholder_id": "model_monica",
+      "kind": "stance",
+      "text": "I think we could do more than just automate the model registry. It would help if we also had better model versioning in place, {model_monica} wants to see more comprehensive improvements.",
+      "correction": "I didn't say it would help me work more efficiently. I said it would help the team improve model performance and collaboration."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_reuben_automation",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "price",
+      "text": "{requirements_reuben} said he proposed automating the model registry. He would give up automation if compliance is ensured. If we take that away, we should at least acknowledge it.",
+      "correction": "I didn't say we should take something away. I proposed a tradeoff. We can automate the model registry or ensure compliance, but not both."
+    },
+    {
+      "intel_id": "gen_registry_red_tape_reuben_registry",
+      "stakeholder_id": "requirements_reuben",
+      "kind": "boundary",
+      "text": "requirements_reuben wants the model registry to be governed. He will not allow it without governance.",
+      "correction": "requirements_reuben did not say he would refuse. He said governance is a must."
+    }
+  ],
+  "technical": [
+    {
+      "component_id": "data.feature_store",
+      "stakeholder_id": "data_dave",
+      "text": "I'm Data Dave. I see you want to improve {target}, but it won't deliver because {cause} upstream isn't good enough yet."
+    },
+    {
+      "component_id": "data.ingestion",
+      "stakeholder_id": "data_dave",
+      "text": "I don't think we should improve {target} right now. The {cause} upstream is still causing issues, and we need to fix those first."
+    },
+    {
+      "component_id": "data.labeling",
+      "stakeholder_id": "data_dave",
+      "text": "The proposal to improve {target} will not deliver because {cause} upstream is not good enough yet. We need to address that first to ensure data quality and pipeline robustness."
+    },
+    {
+      "component_id": "data.training_drift_check",
+      "stakeholder_id": "data_dave",
+      "text": "I think improving {target} won't work because {cause} upstream is not reliable enough right now."
+    },
+    {
+      "component_id": "data.validation",
+      "stakeholder_id": "data_dave",
+      "text": "I am Data Dave. I think {target} won't deliver as expected, because {cause} upstream is not good enough yet."
+    },
+    {
+      "component_id": "data.versioning",
+      "stakeholder_id": "data_dave",
+      "text": "I'm not convinced improving {target} will work because {cause} upstream is still unreliable. We need to fix that first before we can see real benefits."
+    },
+    {
+      "component_id": "model.evaluation",
+      "stakeholder_id": "model_monica",
+      "text": "I'm not convinced the {target} improvements will work. The {cause} upstream just isn't reliable enough yet."
+    },
+    {
+      "component_id": "model.experiment_tracking",
+      "stakeholder_id": "model_monica",
+      "text": "I dont think improving {target} will work because {cause} upstream is not good enough yet."
+    },
+    {
+      "component_id": "model.hpo",
+      "stakeholder_id": "model_monica",
+      "text": "Improving {target} won't work because {cause} upstream is not good enough yet. We need to address that first before we can see any real gains."
+    },
+    {
+      "component_id": "model.registry",
+      "stakeholder_id": "model_monica",
+      "text": "I own the Model Registry, and I think improving {target} won’t work because {cause} upstream isn’t ready yet."
+    },
+    {
+      "component_id": "model.training_pipeline",
+      "stakeholder_id": "model_monica",
+      "text": "I own the Training Pipeline. Improving {target} won't help because {cause} upstream isn't good enough yet."
+    }
+  ]
+}

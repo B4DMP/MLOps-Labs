@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.validate_version",
+  "stage": "fragments",
+  "input_hash": "d6bc4c074579ac75d5714bcd2e259c95c6d14ce5bc092670d912e6b16ca7674f",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.validate_version",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Data Validation to Data Versioning"
+  },
+  "output": {
+    "level_0": "Data Validation fails silently, Data Versioning never receives input.",
+    "level_1": "No process exists to transfer validated data to Data Versioning.",
+    "level_2": "Team members manually copy validated data to Data Versioning.",
+    "level_3": "A script automatically moves validated data to Data Versioning.",
+    "level_4": "Validated data is automatically transferred with audit logs and compliance checks."
+  }
+}

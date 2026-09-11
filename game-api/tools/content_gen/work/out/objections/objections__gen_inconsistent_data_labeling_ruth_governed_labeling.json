@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_ruth_governed_labeling",
+  "stage": "objections",
+  "input_hash": "1ca46e92872aa4e4ab3be5951f47f8ff273a69d8b949e96448d8426ab600b155",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for fully governed data labeling. She believes more governance will improve data reliability.",
+      "fact": "{reliability_ruth} asked for fully governed data labeling.",
+      "reading": "She believes more governance will improve data reliability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "reliability_ruth asked for fully governed data labeling. More governance will improve data reliability.",
+    "correction": "reliability_ruth did not ask for more. The current proposal meets our needs."
+  }
+}

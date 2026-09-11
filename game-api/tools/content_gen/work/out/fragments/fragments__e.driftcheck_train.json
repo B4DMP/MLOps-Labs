@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.driftcheck_train",
+  "stage": "fragments",
+  "input_hash": "c9672df2e3ef2152ab90bd0ab3644119f7d7d86fb52ab3ce49e6a82e04374d84",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.driftcheck_train",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Training Data Drift Check to Training Pipeline"
+  },
+  "output": {
+    "level_0": "The Training Data Drift Check fails randomly due to missing dependencies.",
+    "level_1": "There is no connection between the Training Data Drift Check and the Training Pipeline.",
+    "level_2": "A team member manually triggers the Training Pipeline after the Training Data Drift Check.",
+    "level_3": "The Training Pipeline automatically starts when the Training Data Drift Check completes.",
+    "level_4": "The Training Pipeline only starts if the Training Data Drift Check passes with approved data versions."
+  }
+}

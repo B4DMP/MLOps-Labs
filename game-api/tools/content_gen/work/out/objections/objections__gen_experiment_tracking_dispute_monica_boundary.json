@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_experiment_tracking_dispute_monica_boundary",
+  "stage": "objections",
+  "input_hash": "f34ec3cf800c8e4481287d74045f7d68db6c776b150af753b2e2dcb20dbc2200",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_monica_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} insisted on automated experiment tracking to ensure reproducibility. {model_monica} will not accept anything less than automated tracking.",
+      "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
+      "reading": "{model_monica} will not accept anything less than automated tracking.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.experiment_tracking",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I insisted on automated experiment tracking to ensure reproducibility. I will not accept anything less than automated tracking.",
+    "correction": "I did not mean to imply a refusal. I simply want to ensure that experiment tracking is automated for reproducibility."
+  }
+}

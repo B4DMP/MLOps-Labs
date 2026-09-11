@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_data_quality_conflict_gov_compliance",
+  "stage": "objections",
+  "input_hash": "1c55ff9a6762c84b2f8e6e14c2d9acb85d2fd26858ae52d9f4d3b1a4a6b30bab",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_data_quality_conflict_gov_compliance",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} mentioned governed data quality checks. He wants to improve compliance by governed checks.",
+      "fact": "{requirements_reuben} mentioned governed data quality checks.",
+      "reading": "He wants to improve compliance by governed checks.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "data.validation",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "requirements_reuben mentioned governed data quality checks. He wants to improve compliance by governed checks.",
+    "correction": "requirements_reuben did not propose governed checks. He wants to ensure compliance with governed checks, but the current proposal does not meet this requirement."
+  }
+}

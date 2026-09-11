@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_registry_red_tape_monica_governance",
+  "stage": "objections",
+  "input_hash": "bf8f5eb782e085f8a5f3f4939a05e2e41f5f565bc8077d39faebd74032002dfb",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_registry_red_tape_monica_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+      "fact": "{model_monica} mentioned that the model registry must not be governed.",
+      "reading": "She will not work with governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "lte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+    "correction": "I said the model registry does not need governance, but I never said I would not work with it."
+  }
+}

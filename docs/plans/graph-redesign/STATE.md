@@ -20,7 +20,7 @@ Single source of truth for progress. Update after every completed step.
 | 01 | [Graph core](01-graph-core.md) | 00 | DONE | Migration applied, seeding on game init, refactor tool. Ships dark. Review findings pending (Q20). |
 | 02 | [Intel taxonomy](02-intel-taxonomy.md) | 01 | DONE | New tags end to end on legacy content (re-tagged stopgap). Investigate card to 06, environment dossier view to 05. |
 | 03 | [Patterns and challenge selection](03-patterns-and-selection.md) | 01 | DONE | 14 anti + 17 design patterns cover every component and pipeline edge. Selection live, keeps today's order. |
-| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Harness, gates, assembly done and tested with a fake model. Next: real tier 0 run, human review. |
+| 04 | [Content pipeline](04-content-pipeline.md) | 02, 03 | WIP | Tier 0 generated, assembled, gates pass, committed. Next: human review of templates and items, Q22, CI wiring. |
 | 05 | [Persistent dossier](05-persistent-dossier.md) | 04 | TODO | Cross phase intel, chains shown as one growing card. |
 | 06 | [Merged pitch phase](06-merged-phase.md) | 04, 05 | TODO | Any-mix card, five objection kinds, escalation, veto, stalemate. |
 | 07 | [Simulation phase](07-simulation-phase.md) | 03, 06 | TODO | Apply, capping, propagation, patterns, grudges, delta report. |
@@ -73,6 +73,7 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 | ID | Question | Needed by |
 |---|---|---|
 | Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
+| Q22 | A world event that breaks an upstream component (e.g. #100 sets `data.validation` to broken) starves everything downstream: model drops to 55 and deploy to 43 (red) while the player is still in the data phase, because health counts every target with effective level 0 as broken. It also makes later challenges ineligible when their preconditions read effective levels (#101 is never dealt after #100). Options: count only root causes (nominal broken) in health and show downstream as starved; read challenge preconditions on nominal; or keep as is (fog hides it until the phase is reached). | 04 |
 
 ## Deferred scope
 
@@ -93,3 +94,4 @@ Cut scope goes in [BACKLOG.md](BACKLOG.md), with the reason and what it would ne
 - **impl** plan 02 implemented: `IntelTag` with payloads and gate, legacy content and stored rows re-tagged (migration `f6a7b8c9d0e1`), prompts and UI on shared tag wording, Facts lift fog on leaving offline gathering. 107 tests green, UI typechecks.
 - **v3.3** health measures problems (D32), start green with stage-level fog (D33), gameplay data wiped (D34).
 - **impl** content harness (plan 04 steps 0, 1, 1b); intel description split folded in (fact holds still, reading changes with the tag).
+- **impl** tier 0 generated and assembled: 4 challenge templates, 46 items, 46 artifacts, 41 objections, 24 fragments. Name tokenizer no longer eats role words, repairs dropped apostrophes; dry runs no longer mark items stale.

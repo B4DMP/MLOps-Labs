@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.fs_train",
+  "stage": "fragments",
+  "input_hash": "04fcce331b91659bc3000e705dddea68ec8cae9f7f48ce516da9b7cd8384bac3",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.fs_train",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Feature Store to Training Pipeline"
+  },
+  "output": {
+    "level_0": "Training Pipeline crashes when trying to read from Feature Store.",
+    "level_1": "No connection exists between Feature Store and Training Pipeline.",
+    "level_2": "The team manually exports data from Feature Store and imports it into Training Pipeline.",
+    "level_3": "The Training Pipeline automatically pulls data from Feature Store without user intervention.",
+    "level_4": "The Training Pipeline fetches data from Feature Store following predefined governance policies."
+  }
+}

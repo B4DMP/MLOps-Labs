@@ -72,7 +72,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "challenges_per_phase": 2
     },
     {
       "id": 3,
@@ -100,7 +101,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "challenges_per_phase": 2
     },
     {
       "id": 4,
@@ -265,6 +267,216 @@
       "template_id": "ch_accuracy_drop",
       "priority": 0,
       "fallback": true
+    },
+    {
+      "id": 100,
+      "phase_id": 2,
+      "template_id": "ch_data_quality_conflict",
+      "name": "The Inconsistent Checks",
+      "description": "#data_dave# insists on keeping the quality checks manually done to control costs. #reliability_ruth# argues for full automation to ensure consistent results.",
+      "roundIntroduction": "The data quality checks have become inconsistent, causing delays in the pipeline. #data_dave# and #reliability_ruth# disagree on how to fix the situation.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "edge": "e.ingest_validate",
+        "op": "gte",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.validation",
+          "value": 0,
+          "reason": "quality checks failed unexpectedly"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.ingest_validate",
+          "value": 0,
+          "reason": "data validation steps are not aligned"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "data.validation",
+        "positions": [
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 2
+          },
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
+      ],
+      "generated": true
+    },
+    {
+      "id": 101,
+      "phase_id": 3,
+      "template_id": "ch_experiment_tracking_dispute",
+      "name": "Tracking Reproducibility Lost",
+      "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
+      "roundIntroduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "component": "model.experiment_tracking",
+        "op": "eq",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.experiment_tracking",
+          "value": 1,
+          "reason": "the audit team found gaps in reproducibility"
+        },
+        {
+          "kind": "set_to",
+          "target": "e.train_tracking",
+          "value": 0,
+          "reason": "the audit team found gaps in reproducibility"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.experiment_tracking",
+          "value": 0,
+          "reason": "the audit team found gaps in reproducibility"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "model.experiment_tracking",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 3
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ],
+      "generated": true
+    },
+    {
+      "id": 102,
+      "phase_id": 2,
+      "template_id": "ch_inconsistent_data_labeling",
+      "name": "Inconsistent Data Labeling",
+      "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance.",
+      "roundIntroduction": "The data labeling pipeline has been inconsistent, causing issues in model training. The team needs to decide on the right approach to ensure reliable data quality.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "component": "data.labeling",
+        "op": "eq",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.labeling",
+          "value": 0,
+          "reason": "the labeling pipeline produced inconsistent results"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.label_version",
+          "value": 0,
+          "reason": "the labeling pipeline breaks due to unresolved conflicts"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "data.labeling",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
+      ],
+      "generated": true
+    },
+    {
+      "id": 103,
+      "phase_id": 3,
+      "template_id": "ch_registry_red_tape",
+      "name": "Registry Red Tape",
+      "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter.",
+      "roundIntroduction": "The team is arguing about the model registry. The registry is still just a spreadsheet, but #model_monica# says it's getting too hard to manage. #requirements_reuben# worries about compliance risks.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "component": "model.registry",
+        "op": "eq",
+        "level": 1
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.registry",
+          "value": 0,
+          "reason": "the registry is overloaded"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.eval_registry",
+          "value": 0,
+          "reason": "the registry is no longer trusted"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "model.registry",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 2
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ],
+      "generated": true
     }
   ],
   "ActionCardImages": [

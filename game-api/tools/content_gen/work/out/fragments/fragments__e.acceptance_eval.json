@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.acceptance_eval",
+  "stage": "fragments",
+  "input_hash": "4f0949f21a966accaecf347c52fc0723caeee3c8e6afaff9afc389cd73b73aec",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.acceptance_eval",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Acceptance Criteria to Model Evaluation Harness"
+  },
+  "output": {
+    "level_0": "The model evaluation harness crashes when trying to evaluate the model.",
+    "level_1": "The team does not have a model evaluation harness.",
+    "level_2": "The team manually evaluates the model against the acceptance criteria.",
+    "level_3": "The team runs automated tests for the acceptance criteria in the model evaluation harness.",
+    "level_4": "The model evaluation harness automatically validates the model against governance policies and acceptance criteria."
+  }
+}

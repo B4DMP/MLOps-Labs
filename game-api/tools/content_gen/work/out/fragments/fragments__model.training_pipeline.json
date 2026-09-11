@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:model.training_pipeline",
+  "stage": "fragments",
+  "input_hash": "622350fa297d6da11b66ccc0d1f2699f1064baa01996f13b09260540b8477184",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "model.training_pipeline",
+    "kind": "component",
+    "name": "Training Pipeline",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The training pipeline fails randomly and nobody knows why",
+    "level_1": "There is no training pipeline",
+    "level_2": "Data scientists train models by hand in Jupyter notebooks",
+    "level_3": "The training pipeline runs on a schedule in a CI/CD system",
+    "level_4": "The training pipeline is monitored and audited for compliance"
+  }
+}

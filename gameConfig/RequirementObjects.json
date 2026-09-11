@@ -615,6 +615,736 @@
       "type": "driver",
       "description": "{requirements_reuben} is concerned that hasty retraining to address accuracy drops will introduce compliance issues.",
       "id": "req_5_requirements_reuben_personal_friction_87"
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed keeping data labeling done by hand. He believes more manual control will improve data flexibility.",
+      "fact": "{data_dave} proposed keeping data labeling done by hand.",
+      "reading": "He believes more manual control will improve data flexibility.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for fully governed data labeling. She believes more governance will improve data reliability.",
+      "fact": "{reliability_ruth} asked for fully governed data labeling.",
+      "reading": "She believes more governance will improve data reliability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_data_dave_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} brought up keeping data labeling done by hand. He will not accept any automation that reduces his control over the labeling process.",
+      "fact": "{data_dave} brought up keeping data labeling done by hand.",
+      "reading": "He will not accept any automation that reduces his control over the labeling process.",
+      "holds": {
+        "component": "data.labeling",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_ruth_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} mentioned that data labeling should be fully governed. She will not accept any labeling process that is not fully governed.",
+      "fact": "{reliability_ruth} mentioned that data labeling should be fully governed.",
+      "reading": "She will not accept any labeling process that is not fully governed.",
+      "holds": {
+        "component": "data.labeling",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_dave_trade_off",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested a semi-manual approach for data labeling. He would accept some automation if it significantly improves data quality.",
+      "fact": "{data_dave} suggested a semi-manual approach for data labeling.",
+      "reading": "He would accept some automation if it significantly improves data quality.",
+      "ops": [],
+      "concedes": {
+        "target": "data.labeling",
+        "accepts_max_level": 3
+      }
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_ruth_trade_off",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} proposed a semi-manual approach for data labeling. She would accept a semi-manual approach if it improves data quality.",
+      "fact": "{reliability_ruth} proposed a semi-manual approach for data labeling.",
+      "reading": "She would accept a semi-manual approach if it improves data quality.",
+      "ops": [],
+      "concedes": {
+        "target": "data.labeling",
+        "accepts_max_level": 3
+      }
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_current_labeling_state",
+      "challenge_id": 102,
+      "type": "fact",
+      "description": "Data labeling is currently broken. That is simply how the data labeling process is set up today.",
+      "fact": "Data labeling is currently broken.",
+      "reading": "That is simply how the data labeling process is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.labeling",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_current_validation_state",
+      "challenge_id": 102,
+      "type": "fact",
+      "description": "Data validation is currently missing. That is simply how the data validation process is set up today.",
+      "fact": "Data validation is currently missing.",
+      "reading": "That is simply how the data validation process is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.validation",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_current_ingestion_state",
+      "challenge_id": 102,
+      "type": "fact",
+      "description": "Data ingestion is currently done by hand. That is simply how the data ingestion process is set up today.",
+      "fact": "Data ingestion is currently done by hand.",
+      "reading": "That is simply how the data ingestion process is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.ingestion",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_emilia_efficiency_driver",
+      "challenge_id": 102,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for automated data validation. She believes more automation will improve efficiency.",
+      "fact": "{efficiency_emilia} asked for automated data validation.",
+      "reading": "She believes more automation will improve efficiency.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "data.validation",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_inconsistent_data_labeling_reuben_requirements_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} mentioned that data governance must be enforced. He will not accept any process that does not enforce data governance.",
+      "fact": "{requirements_reuben} mentioned that data governance must be enforced.",
+      "reading": "He will not accept any process that does not enforce data governance.",
+      "holds": {
+        "component": "data.labeling",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_data_quality_conflict_manual_checks_cost_control",
+      "challenge_id": 100,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} proposed keeping the quality checks manually done. He will not agree to automate the checks if it increases costs.",
+      "fact": "{data_dave} proposed keeping the quality checks manually done.",
+      "reading": "He will not agree to automate the checks if it increases costs.",
+      "holds": {
+        "component": "data.validation",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_data_quality_conflict_automate_for_consistency",
+      "challenge_id": 100,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} brought up automating the quality checks. She wants to improve consistency by automating the checks.",
+      "fact": "{reliability_ruth} brought up automating the quality checks.",
+      "reading": "She wants to improve consistency by automating the checks.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.validation",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_data_quality_conflict_cost_conscious_automation",
+      "challenge_id": 100,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested using open source tools for automation. He would accept some manual processes if it keeps costs low.",
+      "fact": "{data_dave} suggested using open source tools for automation.",
+      "reading": "He would accept some manual processes if it keeps costs low.",
+      "ops": [
+        {
+          "kind": "set_attr",
+          "target": "data.validation",
+          "value": "great_expectations",
+          "attr": "tool"
+        }
+      ],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_consistent_automation",
+      "challenge_id": 100,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
+      "fact": "{reliability_ruth} proposed automating the quality checks with governed tools.",
+      "reading": "She will not accept manual checks if it affects reliability.",
+      "holds": {
+        "component": "data.validation",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_data_quality_conflict_data_quality_automation",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The data quality checks are currently done manually. That is simply what the current quality checks setup produces today.",
+      "fact": "The data quality checks are currently done manually.",
+      "reading": "That is simply what the current quality checks setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.validation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_manual_ingestion",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The data ingestion process is done by hand. That is simply what the current ingestion setup produces today.",
+      "fact": "The data ingestion process is done by hand.",
+      "reading": "That is simply what the current ingestion setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.ingestion",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_manual_validation",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The data validation process is done by hand. That is simply what the current validation setup produces today.",
+      "fact": "The data validation process is done by hand.",
+      "reading": "That is simply what the current validation setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.validation",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_missing_feature_store",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The feature store is absent. That is simply what the current feature store setup produces today.",
+      "fact": "The feature store is absent.",
+      "reading": "That is simply what the current feature store setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.feature_store",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_manual_labeling",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The data labeling process is done by hand. That is simply what the current labeling setup produces today.",
+      "fact": "The data labeling process is done by hand.",
+      "reading": "That is simply what the current labeling setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.labeling",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_missing_drift_check",
+      "challenge_id": 100,
+      "type": "fact",
+      "description": "The training data drift check is absent. That is simply what the current drift check setup produces today.",
+      "fact": "The training data drift check is absent.",
+      "reading": "That is simply what the current drift check setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "data.training_drift_check",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_data_quality_conflict_gov_compliance",
+      "challenge_id": 100,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} mentioned governed data quality checks. He wants to improve compliance by governed checks.",
+      "fact": "{requirements_reuben} mentioned governed data quality checks.",
+      "reading": "He wants to improve compliance by governed checks.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "data.validation",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_data_quality_conflict_cost_efficiency_balance",
+      "challenge_id": 100,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed balancing cost and efficiency in automation. She would accept some manual processes if it keeps costs low.",
+      "fact": "{efficiency_emilia} proposed balancing cost and efficiency in automation.",
+      "reading": "She would accept some manual processes if it keeps costs low.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "automation",
+        "loss": 2
+      }
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_monica_automated",
+      "challenge_id": 101,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automated experiment tracking. The more automated it is, the better it supports reproducibility.",
+      "fact": "{model_monica} proposed automated experiment tracking.",
+      "reading": "The more automated it is, the better it supports reproducibility.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.experiment_tracking",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_dave_manual",
+      "challenge_id": 101,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested keeping experiment tracking manual. {data_dave} would accept manual tracking if it significantly reduces costs.",
+      "fact": "{data_dave} suggested keeping experiment tracking manual.",
+      "reading": "{data_dave} would accept manual tracking if it significantly reduces costs.",
+      "ops": [],
+      "concedes": {
+        "target": "model.experiment_tracking",
+        "accepts_max_level": 1
+      }
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_reuben_audit",
+      "challenge_id": 101,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} brought up the recent audit flagging gaps in model reproducibility. {requirements_reuben} will not accept any solution that does not address the audit findings.",
+      "fact": "{requirements_reuben} brought up the recent audit flagging gaps in model reproducibility.",
+      "reading": "{requirements_reuben} will not accept any solution that does not address the audit findings.",
+      "holds": {
+        "component": "model.experiment_tracking",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_emilia_cost",
+      "challenge_id": 101,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned the importance of cost control in ML initiatives. {efficiency_emilia} would accept a less automated solution if it significantly reduces costs.",
+      "fact": "{efficiency_emilia} mentioned the importance of cost control in ML initiatives.",
+      "reading": "{efficiency_emilia} would accept a less automated solution if it significantly reduces costs.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 5
+      }
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_monica_boundary",
+      "challenge_id": 101,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} insisted on automated experiment tracking to ensure reproducibility. {model_monica} will not accept anything less than automated tracking.",
+      "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
+      "reading": "{model_monica} will not accept anything less than automated tracking.",
+      "holds": {
+        "component": "model.experiment_tracking",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_dave_cost",
+      "challenge_id": 101,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} asked for cost savings in the experiment tracking process. The more cost savings achieved, the better it aligns with data operations goals.",
+      "fact": "{data_dave} asked for cost savings in the experiment tracking process.",
+      "reading": "The more cost savings achieved, the better it aligns with data operations goals.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.experiment_tracking",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_reuben_comp",
+      "challenge_id": 101,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} proposed aligning experiment tracking with compliance standards. The more aligned with compliance standards, the better it guarantees product quality.",
+      "fact": "{requirements_reuben} proposed aligning experiment tracking with compliance standards.",
+      "reading": "The more aligned with compliance standards, the better it guarantees product quality.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "model.experiment_tracking",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_emilia_goal",
+      "challenge_id": 101,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} suggested aligning experiment tracking with business goals. The more aligned with business goals, the better it enhances operational capability.",
+      "fact": "{efficiency_emilia} suggested aligning experiment tracking with business goals.",
+      "reading": "The more aligned with business goals, the better it enhances operational capability.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.experiment_tracking",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_tracking_state",
+      "challenge_id": 101,
+      "type": "fact",
+      "description": "Experiment tracking is currently missing. That is simply the current state of experiment tracking.",
+      "fact": "Experiment tracking is currently missing.",
+      "reading": "That is simply the current state of experiment tracking.",
+      "ops": [],
+      "asserts": {
+        "target": "model.experiment_tracking",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_registry_state",
+      "challenge_id": 101,
+      "type": "fact",
+      "description": "The model registry is currently missing. That is simply the current state of the model registry.",
+      "fact": "The model registry is currently missing.",
+      "reading": "That is simply the current state of the model registry.",
+      "ops": [],
+      "asserts": {
+        "target": "model.registry",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_experiment_tracking_dispute_train_state",
+      "challenge_id": 101,
+      "type": "fact",
+      "description": "The training pipeline is currently done by hand. That is simply the current state of the training pipeline.",
+      "fact": "The training pipeline is currently done by hand.",
+      "reading": "That is simply the current state of the training pipeline.",
+      "ops": [],
+      "asserts": {
+        "target": "model.training_pipeline",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_monica_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the model registry. She wants it automated and it will help her work more efficiently.",
+      "fact": "{model_monica} proposed automating the model registry.",
+      "reading": "She wants it automated and it will help her work more efficiently.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_registry_red_tape_reuben_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} wants the model registry to be governed. He will not allow it without governance.",
+      "fact": "{requirements_reuben} wants the model registry to be governed.",
+      "reading": "He will not allow it without governance.",
+      "holds": {
+        "component": "model.registry",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_registry_red_tape_dave_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested sourcing the model registry from a custom tool. He would accept a different sourcing if needed.",
+      "fact": "{data_dave} suggested sourcing the model registry from a custom tool.",
+      "reading": "He would accept a different sourcing if needed.",
+      "ops": [
+        {
+          "kind": "set_attr",
+          "target": "model.registry",
+          "value": "custom",
+          "attr": "sourcing"
+        }
+      ],
+      "concedes": {
+        "target": "model.registry",
+        "accepts_max_level": 2
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_emilia_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} brought up automating the model registry. She wants it automated and it will streamline the process.",
+      "fact": "{efficiency_emilia} brought up automating the model registry.",
+      "reading": "She wants it automated and it will streamline the process.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.registry",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_registry_red_tape_monica_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+      "fact": "{model_monica} mentioned that the model registry must not be governed.",
+      "reading": "She will not work with governance.",
+      "holds": {
+        "component": "model.registry",
+        "op": "lte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_registry_red_tape_reuben_automation",
+      "challenge_id": 103,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed automating the model registry. He would give up automation if compliance is ensured.",
+      "fact": "{requirements_reuben} proposed automating the model registry.",
+      "reading": "He would give up automation if compliance is ensured.",
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ],
+      "concedes": {
+        "target": "model.registry",
+        "accepts_max_level": 3
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_dave_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} asked for governance of the model registry. He wants it governed and more is better.",
+      "fact": "{data_dave} asked for governance of the model registry.",
+      "reading": "He wants it governed and more is better.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.registry",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_registry_red_tape_emilia_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} suggested governing the model registry. She will not do her work without governance.",
+      "fact": "{efficiency_emilia} suggested governing the model registry.",
+      "reading": "She will not do her work without governance.",
+      "holds": {
+        "component": "model.registry",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_registry_red_tape_registry_spreadsheet",
+      "challenge_id": 103,
+      "type": "fact",
+      "description": "The model registry is a spreadsheet. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is a spreadsheet.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "model.registry",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_registry_missing",
+      "challenge_id": 103,
+      "type": "fact",
+      "description": "The model registry is missing. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is missing.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "model.registry",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_registry_tool",
+      "challenge_id": 103,
+      "type": "fact",
+      "description": "The model registry has no tool. That is simply what the model registry setup produces today.",
+      "fact": "The model registry has no tool.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "model.registry",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_registry_red_tape_registry_manual",
+      "challenge_id": 103,
+      "type": "fact",
+      "description": "The model registry is broken. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is broken.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "ops": [],
+      "asserts": {
+        "target": "model.registry",
+        "level": 0
+      }
     }
   ]
 }

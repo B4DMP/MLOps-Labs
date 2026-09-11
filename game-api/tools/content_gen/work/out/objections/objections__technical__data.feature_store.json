@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.feature_store",
+  "stage": "objections",
+  "input_hash": "f85e508cb4a5e1cbdafadac9b160bad9018e5de5ecc7f4ab832a4339aefe0639",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.feature_store",
+      "name": "Feature Store"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I'm Data Dave. I see you want to improve {target}, but it won't deliver because {cause} upstream isn't good enough yet."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_data_dave_manual_labeling",
+  "stage": "objections",
+  "input_hash": "b513024fce01d69c190951f298b3d50abbf8f73acb6709ea6a17c751f32c8483",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed keeping data labeling done by hand. He believes more manual control will improve data flexibility.",
+      "fact": "{data_dave} proposed keeping data labeling done by hand.",
+      "reading": "He believes more manual control will improve data flexibility.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I think {data_dave}'s proposal doesn't go far enough. We need more automation to keep up with the volume of data labeling.",
+    "correction": "I didn't say I wanted more manual control. I said we need to balance flexibility and automation."
+  }
+}

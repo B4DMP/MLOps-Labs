@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.ingestion",
+  "stage": "fragments",
+  "input_hash": "8d983724e3d17a3653c705706333e21ff226ee3f86298c7b52e7e498159f04e9",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.ingestion",
+    "kind": "component",
+    "name": "Data Ingestion Pipeline",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Raw data files pile up unprocessed in the storage system.",
+    "level_1": "The team has not set up any data ingestion mechanism yet.",
+    "level_2": "Data engineers manually write scripts to import data into the system.",
+    "level_3": "A scheduled script automatically ingests data from various sources into the pipeline.",
+    "level_4": "Data ingestion follows predefined policies and gets logged for compliance."
+  }
+}

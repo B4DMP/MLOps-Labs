@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.registry",
+  "stage": "objections",
+  "input_hash": "abf00ac4f488cc9ccd81ad5597c1814ba0827d0912f71135155ef5eb76fbcfbe",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.registry",
+      "name": "Model Registry"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I own the Model Registry, and I think improving {target} won’t work because {cause} upstream isn’t ready yet."
+  }
+}

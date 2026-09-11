@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.training_drift_check",
+  "stage": "objections",
+  "input_hash": "2e4683ed23222956148fcc4e237c0bbbe08f37d7f83ec10bdc05b094e31ff2b5",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.training_drift_check",
+      "name": "Training Data Drift Check"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I think improving {target} won't work because {cause} upstream is not reliable enough right now."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.hpo",
+  "stage": "objections",
+  "input_hash": "3c30c3c87214092bfc57c85f2546c2ae813eb88f7796b861b5647d9d5cd7c97f",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.hpo",
+      "name": "Hyperparameter Tuning"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "Improving {target} won't work because {cause} upstream is not good enough yet. We need to address that first before we can see any real gains."
+  }
+}

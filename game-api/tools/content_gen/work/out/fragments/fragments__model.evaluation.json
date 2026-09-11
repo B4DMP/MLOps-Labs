@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:model.evaluation",
+  "stage": "fragments",
+  "input_hash": "6a5665ee8f275dce631607bcac223bb28da6d1a3cd39a7ae899750175036cf67",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 2,
+  "inputs": {
+    "target": "model.evaluation",
+    "kind": "component",
+    "name": "Model Evaluation Harness",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The model evaluation harness produces incorrect evaluation metrics.",
+    "level_1": "The project lacks a model evaluation harness.",
+    "level_2": "The team manually evaluates models using spreadsheets.",
+    "level_3": "A script automates model evaluation but lacks consistency.",
+    "level_4": "The model evaluation harness integrates with governance policies."
+  }
+}

@@ -121,14 +121,14 @@ Old `RequirementObjects.json` is not migrated. It is regenerated as stance and f
 - [x] 0. Define the tier 0 scope in config, scoped gates (`tools/content_gen/scopes.json`).
 - [x] 1. Harness: work item model, input hashing, sqlite ledger, CLI with run, status, review, approve, reject, validate, diff, assemble.
 - [x] 1b. Concurrency, retry with the gate errors as feedback, budget cap, clean SIGINT, Opik tagging, dry run.
-- [ ] 2. Stage templates, human review. BLOCK until reviewed.
-- [ ] 3. Stage items, human review. BLOCK until reviewed.
-- [ ] 4. Stage artifacts.
-- [ ] 5. Stage objections.
-- [ ] 5b. Stage fragments.
+- [ ] 2. Stage templates, human review. BLOCK until reviewed. Generated (4) and provisionally approved; human review pending.
+- [ ] 3. Stage items, human review. BLOCK until reviewed. Generated (46) and provisionally approved; human review pending.
+- [x] 4. Stage artifacts. Fact artifacts get no conflict text; facts about absent components get a "describe today's workaround" hint.
+- [x] 5. Stage objections.
+- [x] 5b. Stage fragments.
 - [ ] 6. Validation gates implemented (`content_gen validate`); wiring into `make` and CI still open.
 - [ ] 7. Author the `conflict` block on every challenge template, derived from the existing framing conflicts.
-- [ ] 8. Tier 0 run, commit, verify end to end. Playtests of 05 to 07 run on it.
+- [ ] 8. Tier 0 run, commit, verify end to end. Playtests of 05 to 07 run on it. Run, assembled, gates pass, scripted walk through all phases works; open: Q22.
 - [ ] 9. Full regeneration after the tier 0 playtest, commit content.
 
 ## Done when

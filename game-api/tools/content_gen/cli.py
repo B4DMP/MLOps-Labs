@@ -48,7 +48,9 @@ def cmd_run(ctx, ledger, args) -> int:
     stage = STAGES[args.stage]
     opts = RunOptions(only=args.only, limit=args.limit, force=args.force, dry_run=args.dry_run,
                       concurrency=args.concurrency, budget_tokens=args.budget_tokens)
-    llm = _llm(args) if not args.dry_run else type("DryLLM", (), {"model_id": args.model or "dry-run"})()
+    # Dry runs too: the model id is part of every input hash, a placeholder would mark all stale.
+    # Building the client makes no request.
+    llm = _llm(args)
     report = asyncio.run(run_stage(stage, ctx, ledger, llm, opts))
     print(f"{stage.name}: planned {report.planned}, to do {report.todo}, done {len(report.done)}, "
           f"failed {len(report.failed)}, skipped {len(report.skipped)}, tokens in {report.tokens_in} out {report.tokens_out}")

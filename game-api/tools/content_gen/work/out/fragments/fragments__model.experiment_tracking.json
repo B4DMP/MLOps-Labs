@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:model.experiment_tracking",
+  "stage": "fragments",
+  "input_hash": "4d6e6c0ba53ec3fb066846aa1df958b4294141ed18f7b21dc138a5e327791418",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "model.experiment_tracking",
+    "kind": "component",
+    "name": "Experiment Tracking",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The team logs experiments in a shared spreadsheet with no version control.",
+    "level_1": "The team does not track experiments at all.",
+    "level_2": "The team manually logs experiments in a shared document.",
+    "level_3": "The team uses an experiment tracking tool with automatic logging.",
+    "level_4": "The team uses a governed experiment tracking tool with audit logs."
+  }
+}

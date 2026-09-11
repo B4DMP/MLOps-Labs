@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.experiment_tracking",
+  "stage": "objections",
+  "input_hash": "75fcf9dc7bc93fc00a4a9961acf6ec2309fcd6e3275ced93da85df0524dcc65c",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.experiment_tracking",
+      "name": "Experiment Tracking"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I dont think improving {target} will work because {cause} upstream is not good enough yet."
+  }
+}

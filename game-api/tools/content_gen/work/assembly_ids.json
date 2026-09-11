@@ -1,0 +1,6 @@
+{
+  "ch_data_quality_conflict": 100,
+  "ch_experiment_tracking_dispute": 101,
+  "ch_inconsistent_data_labeling": 102,
+  "ch_registry_red_tape": 103
+}

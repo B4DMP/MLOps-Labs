@@ -83,6 +83,25 @@ def render(obj: Any) -> str:
     return json.dumps(obj, indent=1, ensure_ascii=False)
 
 
+# The model sometimes drops apostrophes. Only words that are never correct without one.
+_CONTRACTIONS = {w.replace("'", ""): w for w in (
+    "I've I'm I'd I'll don't doesn't didn't isn't aren't wasn't weren't can't won't shouldn't couldn't "
+    "wouldn't haven't hasn't hadn't that's it's they're you're we've they've we're there's what's"
+).split() if w.replace("'", "").lower() not in {"its", "were", "well", "id", "ill", "wed", "shed", "hell"}}
+
+
+def fix_contractions(text: str) -> str:
+    if not text:
+        return text
+    def repl(m: re.Match) -> str:
+        word = m.group(0)
+        fixed = _CONTRACTIONS.get(word) or _CONTRACTIONS.get(word.lower())
+        if fixed is None:
+            return word
+        return fixed[0].upper() + fixed[1:] if word[0].isupper() else fixed
+    return re.sub(r"\b(" + "|".join(map(re.escape, _CONTRACTIONS)) + r")\b", repl, text, flags=re.I)
+
+
 def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
     """Rewrites plain stakeholder names into the tokens the game renders per player, so persona
     names stay consistent: {data_dave} in intel text, #data_dave# in challenge descriptions.
@@ -90,16 +109,24 @@ def tokenize_names(text: str, stakeholders: dict, style: str = "brace") -> str:
     Full names first, then the bare given name (the last word, which is what {id.first} renders).
     Never the first word: "Data", "Model", "Requirements" are role words that also appear as plain
     nouns ("the data labeling process"). Given names match case-sensitively, and never inside an
-    existing token. Deterministic, so the model does not spend attempts on it."""
+    existing token. Deterministic, so the model does not spend attempts on it.
+
+    Every generated sentence passes through here, so dropped apostrophes are repaired here too."""
     if not text:
         return text
+    text = fix_contractions(text)
     for sid, st in sorted(stakeholders.items(), key=lambda kv: -len(kv[1].name or "")):
         if not st.name:
             continue
         token = f"{{{sid}}}" if style == "brace" else f"#{sid}#"
         first_token = f"{{{sid}.first}}" if style == "brace" else token
-        text = re.sub(rf"\b{re.escape(st.name)}\b", token, text, flags=re.I)
+        # Any whitespace between the words: models emit non-breaking spaces and line breaks too.
+        full = r"\s+".join(re.escape(w) for w in st.name.split())
+        text = re.sub(rf"\b{full}\b", token, text)  # case-sensitive: "the model Monica built" is no name
         given = st.name.split()[-1]
         if len(given) > 2 and given[0].isupper():
             text = re.sub(rf"(?<![{{#\w.]){re.escape(given)}\b(?![}}#\w.])", first_token, text)
+        # A role word left in front of the given-name token is the full name after all.
+        if first_token != token and len(st.name.split()) > 1:
+            text = re.sub(rf"\b{re.escape(st.name.split()[0])}\s+{re.escape(first_token)}", token, text)
     return text

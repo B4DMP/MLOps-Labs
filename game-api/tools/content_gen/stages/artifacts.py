@@ -59,6 +59,15 @@ using this test in order:
 Answer with the tag and one sentence of reasoning."""
 
 
+# A fact about something missing drifts into why it should exist, which a reader takes as a need.
+ABSENT_HINT = ("The fact is that something does not exist. Describe only how the work is done today "
+               "without it, as observed events or numbers. No consequences, risks, costs or benefits.")
+
+
+def _asserts_absent(req) -> bool:
+    return req.type == "fact" and req.asserts is not None and req.asserts.level is not None and req.asserts.level <= 1
+
+
 def artifact_type(item_id: str, tag: str) -> str:
     choices = FACT_TYPES if tag == "fact" else STANCE_TYPES
     return choices[int(hashlib.sha256(item_id.encode()).hexdigest(), 16) % len(choices)]
@@ -85,7 +94,10 @@ class ArtifactsStage:
                         "requirement": req.model_dump(mode="json"),
                         "artifact_type": artifact_type(req.id, req.type),
                         "author": {"name": st.name, "role": st.role_description} if st else None,
-                        "challenge": {"name": challenge["name"], "description": challenge["description"]},
+                        # Fact artifacts get no conflict description: given the dispute, the model
+                        # narrates it and the fact stops reading as a fact.
+                        "challenge": {"name": challenge["name"], "description": "" if req.type == "fact" else challenge["description"]},
+                        **({"hint": ABSENT_HINT} if _asserts_absent(req) else {}),
                     },
                 ))
         return items
@@ -94,12 +106,13 @@ class ArtifactsStage:
         i = item.inputs
         req = i["requirement"]
         user = "\n".join([
-            f"Challenge: {i['challenge']['name']}. {i['challenge']['description']}",
+            f"Challenge: {i['challenge']['name']}. {i['challenge']['description']}".rstrip(". ") + ".",
             f"Artifact type: {i['artifact_type']}",
             f"Author: {render(i['author'])}" if i["author"] else "Author: a system or an engineer writing neutrally",
             f"Intel item ({req['type']}). Fact: {req.get('fact') or req['description']} Reading: {req.get('reading') or ''}",
             "Write the stakeholder's name in full wherever it appears; the braces are placeholders "
             "the game fills in, so keep them exactly as given, e.g. {data_dave}.",
+            *([i["hint"]] if i.get("hint") else []),
             *feedback,
         ])
         art, u1 = await llm.structured(ArtifactOut, SYSTEM, user, tags={"item_id": item.item_id})

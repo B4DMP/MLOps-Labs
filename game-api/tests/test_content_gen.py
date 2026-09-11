@@ -301,3 +301,11 @@ def test_name_tokens_never_eat_role_words(env):
     assert out == ("{data_dave} said the data labeling is slow. {reliability_ruth.first} agreed with "
                    "{data_dave.first} about the model registry.")
     assert tokenize_names(out, ctx.stakeholders) == out  # idempotent
+    # Sign-offs with odd whitespace, and a role word left in front of the given-name token.
+    assert tokenize_names("Thanks,\nData Dave", ctx.stakeholders) == "Thanks,\n{data_dave}"
+    assert tokenize_names("Thanks,\nData {data_dave.first}", ctx.stakeholders) == "Thanks,\n{data_dave}"
+    # Dropped apostrophes are repaired; words valid without one are left alone.
+    assert tokenize_names("Ive checked, dont worry, thats its state. Were done well.", ctx.stakeholders) == (
+        "I've checked, don't worry, that's its state. Were done well.")
+    # Lowercase role word before a given name is prose, not the name.
+    assert tokenize_names("the data Dave cleaned", ctx.stakeholders) == "the data {data_dave.first} cleaned"

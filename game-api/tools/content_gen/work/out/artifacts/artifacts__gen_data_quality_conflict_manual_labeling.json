@@ -1,0 +1,39 @@
+{
+  "item_id": "artifacts:gen_data_quality_conflict_manual_labeling",
+  "stage": "artifacts",
+  "input_hash": "166e8f91f808ef55d1da4496d0dee5372ce01c5eba8ef24657c5fa376598ea8f",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_data_quality_conflict_manual_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data labeling process is done by hand. That is simply what the current labeling setup produces today.",
+      "fact": "The data labeling process is done by hand.",
+      "reading": "That is simply what the current labeling setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "data.labeling",
+        "level": 2,
+        "trigger": null
+      }
+    },
+    "artifact_type": "ci_log",
+    "author": null,
+    "challenge": {
+      "name": "The Inconsistent Checks",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "The current labeling pipeline, as observed by {data_dave}, relies entirely on manual annotation. No automated tools or scripts are integrated into the workflow. Each data point is reviewed and tagged by hand, which is the standard procedure in the existing setup. This manual process has been consistent across all recent batches, with no deviations noted in the system logs.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an observed state without any indication of wishes, refusals, acceptances, trade-offs, or needs."
+  }
+}

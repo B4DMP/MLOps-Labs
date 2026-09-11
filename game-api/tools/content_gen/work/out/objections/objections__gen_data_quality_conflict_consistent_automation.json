@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_data_quality_conflict_consistent_automation",
+  "stage": "objections",
+  "input_hash": "5aceb10718a8bc53bc17da49d7ccd53929b753e4abc59143f3fb45ea97f937ab",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_data_quality_conflict_consistent_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
+      "fact": "{reliability_ruth} proposed automating the quality checks with governed tools.",
+      "reading": "She will not accept manual checks if it affects reliability.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
+    "correction": "I never said I would accept manual checks. I insisted on governed tools for reliability."
+  }
+}

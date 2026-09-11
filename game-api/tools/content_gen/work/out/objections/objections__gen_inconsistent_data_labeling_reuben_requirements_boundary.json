@@ -1,0 +1,44 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_reuben_requirements_boundary",
+  "stage": "objections",
+  "input_hash": "3455d55fe2645a20e2d19daf6fec320373da5775cfd8ffa9b6fa45defcfdd984",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_reuben_requirements_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} mentioned that data governance must be enforced. He will not accept any process that does not enforce data governance.",
+      "fact": "{requirements_reuben} mentioned that data governance must be enforced.",
+      "reading": "He will not accept any process that does not enforce data governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.labeling",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "{requirements_reuben} I will not accept any proposal that does not enforce data governance. This is non-negotiable for the project.",
+    "correction": "I did not say it crosses a line. I said data governance is mandatory. Do not mistake my firm stance for drama."
+  }
+}
