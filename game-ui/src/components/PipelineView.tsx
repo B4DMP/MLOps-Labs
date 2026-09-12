@@ -116,11 +116,11 @@ const BUCKET_WORD: Record<string, string> = {
 
 function healthText(stage: StageData): string {
   if (stage.locked) return "not there yet";
+  // Fog widens the band the player can infer. Show where its middle sits, as one word:
+  // a range reads as a bug, and the exact number is never the player's to see.
   if (stage.health_band) {
     const [lo, hi] = stage.health_band;
-    const a = healthBucket(lo);
-    const b = healthBucket(hi);
-    return a === b ? BUCKET_WORD[a] : `${BUCKET_WORD[a]} to ${BUCKET_WORD[b]}`;
+    return BUCKET_WORD[healthBucket((lo + hi) / 2)];
   }
   return BUCKET_WORD[healthBucket(stage.health)];
 }
@@ -822,16 +822,14 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
                           className={flow ? (flow.level === 0 ? "" : "pipe-bar pipe-bar-run") : ""}
                           title={flow ? `Flow between stages: ${LEVEL_LABELS[flow.level]}` : undefined}
                           style={{
-                            width: 24,
+                            width: 28,
                             height: flow && flow.level === 0 ? 2 : 3,
-                            backgroundImage: flow && flow.level > 0
-                              ? `repeating-linear-gradient(90deg, ${statusColor(flow.level >= 3 ? "healthy" : "degraded")} 0 6px, transparent 6px 12px)`
-                              : undefined,
-                            background: flow && flow.level > 0
-                              ? undefined
-                              : flow
+                            borderRadius: 2,
+                            background: !flow
+                              ? "#444"
+                              : flow.level === 0
                                 ? statusColor("broken")
-                                : "#444",
+                                : `repeating-linear-gradient(90deg, ${statusColor(flow.level >= 3 ? "healthy" : "degraded")} 0 7px, rgba(255,255,255,0.08) 7px 14px)`,
                           }}
                         />
                       )}
