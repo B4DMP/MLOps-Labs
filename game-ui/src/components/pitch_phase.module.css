@@ -1835,3 +1835,185 @@
 .dockActions .btnSecondary {
   height: 34px;
 }
+
+
+/* ─── Work surface with the conversation beside it ────────────────────────── */
+.surface {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.surface > .pitchBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-radius: 14px 0 0 0;
+}
+
+/* The conversation is always visible as a rail, and opens in place. */
+.chatSide {
+  flex: 0 0 auto;
+  width: 38px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(9, 11, 20, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  border-radius: 0 14px 0 0;
+  transition: width 0.18s ease;
+  overflow: hidden;
+}
+
+.chatSideOpen {
+  width: min(320px, 38%);
+}
+
+.chatTab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  padding: 8px 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chatTab:hover {
+  color: #fff;
+}
+
+.chatSide:not(.chatSideOpen) .chatTab {
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.chatSide:not(.chatSideOpen) .chatTabLabel {
+  writing-mode: vertical-rl;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.chatSideOpen .chatTab {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.chatCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #38bdf8;
+  color: #0b0e18;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.chatBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px;
+}
+
+/* ─── Gathering: cards and what they turn up ──────────────────────────────── */
+.artifactRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.artifactCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: #e8edf7;
+  cursor: pointer;
+}
+
+.artifactCard:hover {
+  border-color: #38bdf8;
+}
+
+.artifactType {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.artifactFrom {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.artifactBody {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #e8edf7;
+  white-space: pre-wrap;
+}
+
+/* ─── Framing, folded ─────────────────────────────────────────────────────── */
+.convincerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #e8edf7;
+  cursor: pointer;
+  padding: 2px 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.framingPick {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.framingNone {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.framingBackup {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* The stepper must never clip its own text. */
+.stepper {
+  overflow: visible !important;
+  flex-wrap: wrap;
+  row-gap: 2px;
+}

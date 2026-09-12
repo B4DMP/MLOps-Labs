@@ -132,6 +132,14 @@ interface PitchStatePayload {
   stalemate?: boolean;
 }
 
+/** One readable artifact from this challenge. */
+interface ArtifactRef {
+  id: string;
+  stakeholder_name?: string;
+  artifact_type?: string;
+  content: string;
+}
+
 interface StakeholderBuyInInfo {
   threshold: number;
   actionCardScore: number;
@@ -180,6 +188,7 @@ const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
 
 /** The player's words for the three stages. PREPARE, OBJECT and COMMIT are ours. */
 const STAGE_STEPS = [
+  { id: "GATHER", label: "Gather", hint: "Play engagement cards and read what comes back." },
   { id: "PREPARE", label: "Build your case", hint: "Pick up to five pieces of intel, and how you will frame them." },
   { id: "OBJECT", label: "Face the room", hint: "Answer each objection: add intel, reframe it, or hold your ground." },
   { id: "COMMIT", label: "Decide", hint: "See who is behind you, and what pushing it through would cost." },
@@ -272,10 +281,14 @@ export default function PitchPhase({
   const [objectionIndex, setObjectionIndex] = useState(0);
   const [amendFor, setAmendFor] = useState<string | null>(null);
   const [activeSt, setActiveSt] = useState<string | undefined>(undefined);
-  // Cards and conversation live in the dock, opened as a sheet over the work surface,
-  // so the card the player is building never moves.
-  const [openSheet, setOpenSheet] = useState<"cards" | "chat" | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // Gathering is its own step: engagement cards and artifacts are the mechanic there,
+  // not a button in a bar. Server side it is still PREPARE.
+  const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
+  const [chatOpen, setChatOpen] = useState(false);
+  const [framingOpen, setFramingOpen] = useState(false);
+  const [artifacts, setArtifacts] = useState<ArtifactRef[]>([]);
+  const [readArtifact, setReadArtifact] = useState<string | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
   const [pickerTag, setPickerTag] = useState<IntelTag | "all">("all");
 
@@ -401,6 +414,8 @@ export default function PitchPhase({
   // ── pitch:state event ────────────────────────────────────────────────────
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setState(payload);
+    // A saved card means gathering is behind them, so a reconnect does not reopen it.
+    if ((payload.card_item_ids || []).length > 0) setLocalStage("BUILD");
     setSelected(payload.card_item_ids || []);
     if (payload.main_archetype) setMain(payload.main_archetype);
     if (payload.secondary_archetype) setSecondary(payload.secondary_archetype);
@@ -410,6 +425,7 @@ export default function PitchPhase({
 
   useEffect(() => {
     emit("pitch:state", base);
+    emit("intel:get_offline_artifacts", base);
   }, [emit, base]);
 
   // ── intel engagement events ───────────────────────────────────────────────
@@ -471,6 +487,9 @@ export default function PitchPhase({
         if (p.engagement_card_targets) {
           setCardTargetedMap((prev) => ({ ...prev, ...p.engagement_card_targets }));
         }
+      }),
+      subscribe("intel:offline_artifacts", (p: { artifacts?: ArtifactRef[] }) => {
+        if (p?.artifacts) setArtifacts(p.artifacts);
       }),
       subscribe("system:error", () => setIsWaiting(false)),
     ];
@@ -712,14 +731,17 @@ export default function PitchPhase({
               </div>
 
               {/* Stage content */}
+              <div className={styles.surface}>
               <div className={styles.pitchBody}>
 
                 {/* Stage stepper: the title of the work surface, not a bare chip row. */}
                 <div className={styles.stepper}>
                   {STAGE_STEPS.map((step, i) => {
-                    const activeIdx = STAGE_STEPS.findIndex(
-                      (x) => x.id === (state.stage === "DONE" ? "COMMIT" : state.stage),
-                    );
+                    const activeId =
+                      state.stage === "DONE" ? "COMMIT"
+                        : state.stage === "PREPARE" && localStage === "GATHER" ? "GATHER"
+                        : state.stage;
+                    const activeIdx = STAGE_STEPS.findIndex((x) => x.id === activeId);
                     const done = i < activeIdx;
                     const active = i === activeIdx;
                     return (
@@ -735,8 +757,60 @@ export default function PitchPhase({
                   })}
                 </div>
 
+                {/* ── GATHER ──────────────────────────────────────────── */}
+                {state.stage === "PREPARE" && localStage === "GATHER" && (
+                  <>
+                    <div className={styles.trayHeader}>
+                      <span className={styles.trayTitle}>Engagement cards</span>
+                      <span className={styles.builderHint}>
+                        {tokens} attention tokens left · each card costs tokens and buys you intel
+                      </span>
+                    </div>
+
+                    <EngagementCards
+                      attentionTokens={tokens}
+                      cards={cards}
+                      playedCardIds={playedIds}
+                      discoveredIntelCount={state.available_items.length}
+                      onOpenPitchModal={() => {}}
+                      onSelectCard={handleSelectEngagementCard}
+                      isEnabled={!isWaiting}
+                    />
+
+                    <div className={styles.trayHeader} style={{ marginTop: 6 }}>
+                      <span className={styles.trayTitle}>What you can read</span>
+                      <span className={styles.builderHint}>
+                        {artifacts.length} artifact{artifacts.length === 1 ? "" : "s"} from this challenge
+                      </span>
+                    </div>
+                    <div className={styles.artifactRow}>
+                      {artifacts.map((art) => (
+                        <button
+                          key={art.id}
+                          className={styles.artifactCard}
+                          onClick={() => setReadArtifact(readArtifact === art.id ? null : art.id)}
+                        >
+                          <span className={styles.artifactType}>
+                            <Icon icon="ph:file-text-bold" className="me-1" />
+                            {(art.artifact_type || "note").replace(/_/g, " ")}
+                          </span>
+                          <span className={styles.artifactFrom}>{art.stakeholder_name || "the system"}</span>
+                        </button>
+                      ))}
+                      {artifacts.length === 0 && (
+                        <span className={styles.builderHint}>Nothing to read yet. Play a card.</span>
+                      )}
+                    </div>
+                    {readArtifact && (
+                      <div className={styles.artifactBody}>
+                        {artifacts.find((a) => a.id === readArtifact)?.content}
+                      </div>
+                    )}
+                  </>
+                )}
+
                 {/* ── PREPARE ─────────────────────────────────────────── */}
-                {state.stage === "PREPARE" && (
+                {state.stage === "PREPARE" && localStage === "BUILD" && (
                   <>
                     {/* The card: five slots, always in the same place. Browsing happens in the
                         picker, so the thing being built never scrolls away. */}
@@ -805,14 +879,29 @@ export default function PitchPhase({
                       })}
                     </div>
 
-                    {/* Convincer framing: how the case is told, not what is in it. */}
+                    {/* Framing folds away once it is picked: it is one decision, not a wall. */}
                     <div className={styles.convincerSection}>
-                      <div className={styles.convincerTitle}>
-                        <Icon icon="ph:broadcast-bold" className="me-1" />Framing
-                        <span className={styles.builderHint}>
-                          the same card lands better when it is told the way someone thinks
-                        </span>
-                      </div>
+                      <button
+                        className={styles.convincerTitle}
+                        onClick={() => setFramingOpen((v) => !v)}
+                      >
+                        <Icon icon="ph:broadcast-bold" className="me-1" />
+                        Framing
+                        {main
+                          ? <span className={styles.framingPick}>{convincerArchetypes[main]?.label || convincerArchetypes[main]?.name || main}</span>
+                          : <span className={styles.framingNone}>not chosen</span>}
+                        {secondary && (
+                          <span className={styles.framingBackup}>
+                            backup: {convincerArchetypes[secondary]?.label || convincerArchetypes[secondary]?.name || secondary}
+                          </span>
+                        )}
+                        <Icon icon={framingOpen ? "ph:caret-up-bold" : "ph:caret-down-bold"} className="ms-auto" />
+                      </button>
+                      {(framingOpen || !main) && (
+                        <>
+                          <span className={styles.builderHint}>
+                            the same card lands better when it is told the way someone thinks
+                          </span>
                       <div className={styles.profileRow}>
                         {Object.entries(convincerArchetypes).map(([key, prof]) => {
                           const isMain = main === key;
@@ -825,7 +914,7 @@ export default function PitchPhase({
                             >
                               <button
                                 className={styles.profilePick}
-                                onClick={() => setMain(isMain ? "" : key)}
+                                onClick={() => { setMain(isMain ? "" : key); setFramingOpen(false); }}
                                 title={prof.strategy || "Use this as your main framing"}
                               >
                                 <span className={styles.profileName}>
@@ -851,6 +940,9 @@ export default function PitchPhase({
                           );
                         })}
                       </div>
+
+                        </>
+                      )}
                     </div>
 
                     {/* What the card would break, and who pays for it. */}
@@ -1092,49 +1184,14 @@ export default function PitchPhase({
                   </div>
                 )}
               </div>
-              {/* Dock: cards and conversation, pinned under the work surface */}
-              <div className={styles.dockZone}>
-              {openSheet === "cards" && cards.length > 0 && (
-                <div className={styles.dockSheet}>
-                  <div className={styles.dockSheetHeader}>
-                    <span className={styles.groupLabel}>Engagement cards · {tokens} tokens</span>
-                    <button className="btn-close btn-close-white" onClick={() => setOpenSheet(null)} aria-label="Close" />
-                  </div>
-                {cards.length > 0 && (
-                  <div
-                    onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
-                    onDrop={(e) => {
-                                            const cardId = e.dataTransfer.getData("engagementCardId") || e.dataTransfer.getData("cardId");
-                      if (!cardId) return;
-                      const card = cards.find((c) => c.id === cardId);
-                      if (card) handleSelectEngagementCard(card);
-                    }}
-                  >
-                    <div className={styles.groupLabel} style={{ marginTop: 16 }}>
-                      Engagement Cards · {tokens} tokens · {state.available_items.length} intel found
-                    </div>
-                    <EngagementCards
-                      attentionTokens={tokens}
-                      cards={cards}
-                      playedCardIds={playedIds}
-                      discoveredIntelCount={state.available_items.length}
-                      onOpenPitchModal={() => {}}
-                      onSelectCard={handleSelectEngagementCard}
-                                                                  isEnabled={!isWaiting}
-                    />
-                  </div>
-                )}
-                </div>
-              )}
-              {openSheet === "chat" && (
-                <div className={styles.dockSheet}>
-                  <div className={styles.dockSheetHeader}>
-                    <span className={styles.groupLabel}>Conversation</span>
-                    <button className="btn-close btn-close-white" onClick={() => setOpenSheet(null)} aria-label="Close" />
-                  </div>
-                {chatMsgsState.length > 0 && (
-                  <div className={styles.intelGroup} style={{ marginTop: 16 }}>
-                    <div className={styles.groupLabel}>Conversation</div>
+              <aside className={`${styles.chatSide} ${chatOpen ? styles.chatSideOpen : ""}`}>
+                <button className={styles.chatTab} onClick={() => setChatOpen((v) => !v)} title="The room's conversation">
+                  <Icon icon={chatOpen ? "ph:caret-right-bold" : "ph:chat-circle-text-bold"} />
+                  <span className={styles.chatTabLabel}>Conversation</span>
+                  {chatMsgsState.length > 0 && <span className={styles.chatCount}>{chatMsgsState.length}</span>}
+                </button>
+                {chatOpen && (
+                  <div className={styles.chatBody}>
                     <StakeholderInteractionArea
                       chatMsgs={chatMsgsState}
                       current_phase={currentPhase}
@@ -1147,65 +1204,22 @@ export default function PitchPhase({
                     />
                   </div>
                 )}
-                </div>
-              )}
+              </aside>
+              </div>
 
-              {/* Dock: the hand and the conversation are visible, not hidden behind a word. */}
+              {/* Bar: where you stand and what you do next. */}
               <div className={styles.dock}>
-                <div className={styles.dockRow}>
-                  {cards.length > 0 && (
-                    <div className={styles.hand}>
-                      {cards.slice(0, 5).map((card) => {
-                        const exhausted =
-                          (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
-                          playedIds.includes(card.id);
-                        const tooExpensive = tokens < card.token_cost;
-                        const off = exhausted || tooExpensive || state.stage !== "PREPARE" || isWaiting;
-                        return (
-                          <button
-                            key={card.id}
-                            className={`${styles.miniCard} ${off ? styles.miniCardOff : ""}`}
-                            onClick={() => !off && handleSelectEngagementCard(card)}
-                            title={
-                              exhausted ? `${card.title}: already played this phase`
-                                : tooExpensive ? `${card.title}: costs ${card.token_cost} tokens, you have ${tokens}`
-                                : `${card.title} · ${card.description}`
-                            }
-                          >
-                            <Icon icon={card.icon} className={styles.miniCardIcon} />
-                            <span className={styles.miniCardTitle}>{card.title}</span>
-                            <span className={styles.miniCardCost}>{card.token_cost}</span>
-                          </button>
-                        );
-                      })}
-                      <button className={styles.dockMore} onClick={() => setOpenSheet(openSheet === "cards" ? null : "cards")}>
-                        {cards.length > 5 ? `+${cards.length - 5} more` : "All cards"}
-                      </button>
-                      <span className={styles.dockMeta}>{tokens} tokens</span>
-                    </div>
-                  )}
-
-                  <button
-                    className={`${styles.chatPeek} ${openSheet === "chat" ? styles.dockBtnActive : ""}`}
-                    onClick={() => setOpenSheet((prev) => (prev === "chat" ? null : "chat"))}
-                    title="Open the conversation"
-                  >
-                    <Icon icon="ph:chat-circle-text-bold" />
-                    <span className={styles.chatPeekText}>
-                      {chatMsgsState.length === 0
-                        ? "Nobody has said anything yet"
-                        : chatMsgsState[chatMsgsState.length - 1].message}
-                    </span>
-                    <span className={styles.dockMeta}>{chatMsgsState.length}</span>
-                  </button>
-                </div>
-
                 <div className={styles.dockRow}>
                   <span className={`${styles.readiness} ${styles[`ready${readiness}`]}`} title={readinessText}>
                     <span className={styles.readyDot} />
                     {intelVerified}/{intelTotal} verified
                   </span>
-                  <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
+                  {state.stage === "PREPARE" && localStage === "GATHER" && (
+                    <span className={styles.dockMeta}>{tokens} tokens</span>
+                  )}
+                  {state.stage === "PREPARE" && localStage === "BUILD" && (
+                    <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
+                  )}
                   <span className={styles.dockMeta}>{state.escalation_points} EP</span>
                   {state.stage === "OBJECT" && (
                     <span className={styles.dockMeta}>{state.amendments_left} amendments left</span>
@@ -1213,7 +1227,16 @@ export default function PitchPhase({
                   <span className={styles.readyHint}>{readinessText}</span>
 
                   <span className={styles.dockActions}>
-                    {state.stage === "PREPARE" && (
+                    {state.stage === "PREPARE" && localStage === "GATHER" && (
+                      <button
+                        className={styles.btnPrimary}
+                        onClick={() => setLocalStage("BUILD")}
+                        title="Once you start building, the cards and the artifacts are behind you"
+                      >
+                        Done gathering <Icon icon="ph:arrow-right-bold" />
+                      </button>
+                    )}
+                    {state.stage === "PREPARE" && localStage === "BUILD" && (
                       <>
                         <button className={styles.btnSecondary} onClick={saveCard} disabled={selected.length === 0}>
                           Save card
@@ -1245,8 +1268,6 @@ export default function PitchPhase({
                   </span>
                 </div>
               </div>
-              </div>
-
             </div>
           </div>
         </div>
