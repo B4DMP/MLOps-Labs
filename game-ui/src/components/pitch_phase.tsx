@@ -213,7 +213,7 @@ export default function PitchPhase({
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
-    { name?: string; avatar?: StakeholderAvatar }
+    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string }
   >;
 
   // ── pitch state ──────────────────────────────────────────────────────────
@@ -546,7 +546,7 @@ export default function PitchPhase({
 
           {/* ── RIGHT: pitch interface ─────────────────────────────────── */}
           <div className={`col-12 d-flex flex-column h-100 ${styles.rightColumn}`}>
-            <div className={`transparent-div shadow-lg w-100 ${styles.pitchWrapper}`}>
+            <div className={`shadow-lg w-100 ${styles.pitchWrapper}`}>
 
               {/* Header: challenge card + stage bar */}
               <div className={styles.headerRow}>
@@ -584,42 +584,54 @@ export default function PitchPhase({
 
               {/* Discussion table — who is in the room */}
               <div className={`${styles.discussionTable} ${styles.roomBand}`}>
+                <div className={styles.tableEdge} aria-hidden />
                 {state.reads.map((read, seatIndex) => {
                   const st = stakeholders[read.stakeholder_id];
                   const bandColor =
                     read.band === "green" ? "#22c55e" : read.band === "amber" ? "#f59e0b" : "#ef4444";
+                  const stColor = st?.stakeholder_color || "#38bdf8";
                   const isSpeaking = speaking?.stakeholderId === read.stakeholder_id;
+                  const isActive = activeSt === read.stakeholder_id;
                   // Seats at either end bias their bubble inward so it stays inside the panel.
                   const side =
                     seatIndex === 0 ? styles.speechBubbleLeft
                       : seatIndex === state.reads.length - 1 ? styles.speechBubbleRight
                       : "";
+                  // The outer seats sit slightly lower, which reads as a table edge curving away.
+                  const outer = seatIndex === 0 || seatIndex === state.reads.length - 1;
                   return (
                     <div
                       key={read.stakeholder_id}
-                      className={`${styles.seat} ${isSpeaking ? styles.seatSpeaking : ""}`}
-                      style={{ ["--st-color" as string]: bandColor } as React.CSSProperties}
+                      className={`${styles.seat} ${outer ? styles.seatOuter : ""} ${isSpeaking ? styles.seatSpeaking : ""}`}
+                      style={{ ["--st-color" as string]: stColor } as React.CSSProperties}
                     >
                       <button
-                        className={`${styles.discussionSt} ${activeSt === read.stakeholder_id ? styles.discussionStActive : ""}`}
+                        className={`${styles.discussionSt} ${isActive ? styles.discussionStActive : ""}`}
                         onClick={() => setActiveSt((prev) => prev === read.stakeholder_id ? undefined : read.stakeholder_id)}
-                        title={`${st?.name || read.stakeholder_id} · ${read.power === "high" ? "High Power ★" : "Low Power"} · buy-in: ${read.band}`}
+                        title={`${st?.name || read.stakeholder_id} · ${read.power === "high" ? "High Power" : "Low Power"} · buy-in: ${read.band}`}
                       >
-                        <div className={styles.discussionAvatarRing} style={{ boxShadow: `0 0 0 3px ${bandColor}` }}>
+                        <div className={styles.seatAvatar}>
                           <StakeholderAvatarComponent
                             avatar={st?.avatar}
-                            size={36}
+                            size={72}
+                            isFramed={false}
                             isSpeaking={isSpeaking}
                             play_blink_animation
+                            stakeholderColor={stColor}
+                            flip={seatIndex >= state.reads.length / 2}
                           />
+                          <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
+                          {read.boundary_violated && (
+                            <Icon icon="ph:prohibit-bold" className={styles.discussionViolation} title="a line of theirs is crossed" />
+                          )}
                         </div>
-                        <span className={styles.discussionStName}>
-                          {(st?.name || read.stakeholder_id).split(" ")[0]}
+                        <span
+                          className={`${styles.namePlate} ${isActive ? styles.namePlateActive : ""}`}
+                          style={{ color: stColor, borderColor: stColor }}
+                        >
+                          {st?.name || read.stakeholder_id}
                           {read.power === "high" && <span className={styles.discussionStar}> ★</span>}
                         </span>
-                        {read.boundary_violated && (
-                          <Icon icon="ph:prohibit-bold" className={styles.discussionViolation} />
-                        )}
                       </button>
 
                       {isSpeaking && speaking && (

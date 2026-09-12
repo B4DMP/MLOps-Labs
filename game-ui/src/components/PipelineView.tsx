@@ -270,9 +270,10 @@ function StageSvg({
 
   return (
     <svg
-      width="100%"
+      width={svgW}
+      height={svgH}
       viewBox={`0 0 ${svgW} ${svgH}`}
-      style={{ display: "block", minHeight: 160 }}
+      style={{ display: "block", maxWidth: "100%", margin: "0 auto" }}
     >
       {/* Edges first (underneath boxes) */}
       {technical.edges.map((e) => {
@@ -435,14 +436,16 @@ function StageModal({
     >
       <div
         style={{
-          background: "#1a1a2e",
-          border: "1px solid #444",
-          borderRadius: 10,
-          padding: "1.5rem",
-          maxWidth: 860,
-          width: "100%",
-          maxHeight: "90vh",
+          background: "rgba(9, 11, 20, 0.97)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          borderRadius: 14,
+          padding: "1.25rem 1.5rem",
+          width: "auto",
+          minWidth: 380,
+          maxWidth: "min(860px, 92vw)",
+          maxHeight: "88vh",
           overflowY: "auto",
+          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -617,13 +620,16 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
+            top: 12,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "min(1040px, 94vw)",
             zIndex: 1040,
-            background: "#0d1117",
-            borderBottom: "1px solid #333",
-            padding: "8px 16px",
+            background: "rgba(9, 11, 20, 0.96)",
+            border: "1px solid rgba(255, 255, 255, 0.12)",
+            borderRadius: 14,
+            boxShadow: "0 18px 45px rgba(0, 0, 0, 0.55)",
+            padding: "10px 18px 12px",
           }}
         >
           <button
