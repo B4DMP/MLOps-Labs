@@ -25,24 +25,26 @@ lint-check:
 
 # --- Content ---
 # Generation uses Qwen on WestAI (quality); validation uses whatever provider is configured.
+# content_gen lives under tools/, not the installed package, so it needs PYTHONPATH set
+# (matches the Dockerfile CMD and the .gitlab-ci.yml validate-game-content job).
 
 generate-items:
-	uv run python -m content_gen --scope tier0 --provider westai run --stage items
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 --provider westai run --stage items
 
 generate-artifacts:
-	uv run python -m content_gen --scope tier0 --provider westai run --stage artifacts
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 --provider westai run --stage artifacts
 
 generate-objections:
-	uv run python -m content_gen --scope tier0 --provider westai run --stage objections
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 --provider westai run --stage objections
 
 assemble-content:
-	uv run python -m content_gen --scope tier0 assemble
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 assemble
 
 assemble-content-dry:
-	uv run python -m content_gen --scope tier0 assemble --dry-run
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 assemble --dry-run
 
 validate-content:
-	uv run python -m content_gen validate
+	PYTHONPATH=tools uv run python -m content_gen validate
 
 validate-content-tier0:
-	uv run python -m content_gen --scope tier0 validate
+	PYTHONPATH=tools uv run python -m content_gen --scope tier0 validate
