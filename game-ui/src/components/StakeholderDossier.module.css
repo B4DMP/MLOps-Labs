@@ -320,7 +320,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 10px 16px 10px 20px;
+  /* No padding here: the wall and the dock each carry the page inset, so both reach
+     the frame's edges and the wall's scrollbar sits on the right border. */
+  padding: 0;
   background-color: #f7f4ea;
   background-image:
     linear-gradient(90deg, transparent 16px, #ef4444 16px, #ef4444 17.5px, transparent 17.5px),
@@ -343,6 +345,7 @@
      earns a horizontal scrollbar for a few pixels nobody wants to scroll to. The
      overhang falls inside the page padding, so clipping it costs nothing. */
   overflow-x: hidden;
+  padding: 10px 16px 0 20px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
@@ -1961,12 +1964,11 @@
    controls. */
 .filterDock {
   flex: 0 0 auto;
-  margin: 8px 0 0;
-  padding: 7px 8px 8px;
-  border-radius: 8px 8px 0 0;
+  margin: 0;
+  padding: 7px 16px 8px 20px;
   background: #f7f4ea;
   border-top: 1px solid rgba(15, 23, 42, 0.12);
-  box-shadow: 0 -6px 12px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 -6px 12px 6px rgba(15, 23, 42, 0.15);
   z-index: 200;
 }
 
