@@ -75,6 +75,7 @@ class PitchDebateState(MessagesState):
     stakeholder_ids: list[str]
     phase_id: int
     challenge_id: int
+    username: str
     cheating_detected: bool
     emotion_values: dict[str, EmotionValues]
     emotion_deltas: dict[str, EmotionDelta]

@@ -40,7 +40,16 @@ Context & Expertise:
 - Team challenge: {{challenge}}
 - Responsibilities: {{stakeholder_responsibilities}}
 - Priorities: {{stakeholder_priorities}}
-- Requirements: {{stakeholder_requirements}}
+{% if owned_components %}
+- System components you own (current state):
+{{owned_components}}
+{% endif %}
+- Your requirements for this challenge:
+{{private_requirements}}
+{% if card_targets %}
+- Components targeted by the proposed card (current levels):
+{{card_targets}}
+{% endif %}
 {% if proposed_action_card_title %}
 - Proposed Action Plan Presented by Project Manager:
   * Title: {{proposed_action_card_title}}

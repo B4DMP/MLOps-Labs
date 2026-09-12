@@ -252,6 +252,7 @@ async def get_response(
                 "challenge": challenge,
                 "phase_id": phase_id,
                 "challenge_id": challenge_id,
+                "username": username,
                 "last_selected_intel": last_selected_intel,
                 "last_selected_option": last_selected_option,
                 "addressed_stakeholder_id": addressed_stakeholder_id,

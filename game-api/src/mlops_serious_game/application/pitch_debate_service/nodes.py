@@ -22,7 +22,10 @@ from mlops_serious_game.application.pitch_debate_service.state import (
     PitchDebateState,
     StakeholderIntelItem,
 )
+from mlops_serious_game.application.graph_service import store as graph_store
+from mlops_serious_game.application.graph_service.story import story_for
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
@@ -588,8 +591,61 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     _split = state["challenge"].split("#")
     challenge_text = "".join(_split)
 
-    # Combine static requirements with dynamic private_intel_context
-    combined_requirements = f"{st.requirements}\n\nPrivate Intel Requirements:\n{private_intel_context}"
+    # Build graph-targeted context (plan 06 step 9): owned components + card targets.
+    # Never the whole graph — only the handful of components this stakeholder owns.
+    owned_components = ""
+    card_targets = ""
+    username = state.get("username", "")
+    if username:
+        try:
+            from mlops_serious_game.application.pitch_debate_service.store import load_pitch
+            tech_graph = GraphFactory.get_graph()
+            graph_state = graph_store.load_state(username).state
+
+            # Owned components with story at current level
+            owned = [c for c in tech_graph.components if tech_graph.owner_of(c.id) == st.id]
+            if owned:
+                lines = []
+                for c in owned:
+                    lv = graph_state.level(c.id)
+                    level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                    fragment = story_for(tech_graph, graph_state, c.id)
+                    lines.append(f"- {c.name} ({level_name}): {fragment}")
+                owned_components = "\n".join(lines)
+
+            # Card targets with current level (if a card is being built)
+            pitch_state = load_pitch(username, state.get("phase_id", 0), state.get("challenge_id", 0))
+            if pitch_state and pitch_state.card_item_ids:
+                all_items = RequirementFactory.get_requirements_for_challenge(state.get("challenge_id", 0))
+                items_by_id = {r.id: r for r in all_items}
+                seen: set[str] = set()
+                lines = []
+                for item_id in pitch_state.card_item_ids:
+                    item = items_by_id.get(item_id)
+                    if item is None:
+                        continue
+                    raw_ops = getattr(item, "ops", None) or []
+                    targets_for_item = [op["target"] for op in raw_ops if isinstance(op, dict) and op.get("target")]
+                    if not targets_for_item:
+                        suggested = getattr(item, "suggested", None)
+                        t = getattr(suggested, "target", None) if suggested else None
+                        if t:
+                            targets_for_item = [t]
+                    for t in targets_for_item:
+                        if t in seen:
+                            continue
+                        seen.add(t)
+                        try:
+                            lv = graph_state.level(t)
+                            level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                            comp_name = tech_graph.component(t).name if tech_graph.is_component(t) else t
+                            lines.append(f"- {comp_name} ({t}): currently {level_name}")
+                        except Exception:
+                            lines.append(f"- {t}")
+                if lines:
+                    card_targets = "\n".join(lines)
+        except Exception:
+            pass
 
     proposed_ac_title = ""
     proposed_ac_desc = ""
@@ -605,7 +661,9 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             "stakeholder_name": st.name,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
-            "stakeholder_requirements": combined_requirements,
+            "private_requirements": private_intel_context,
+            "owned_components": owned_components,
+            "card_targets": card_targets,
             "proposed_action_card_title": proposed_ac_title,
             "proposed_action_card_description": proposed_ac_desc,
             "current_emotion": current_emotion,
