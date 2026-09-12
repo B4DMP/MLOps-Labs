@@ -11,9 +11,10 @@ stage 2  OBJECT    deterministic objections, player answers, card amended with i
 stage 3  COMMIT    pass, soft pass, veto, conceded or stalemate
 ```
 
-Gathering is a step of its own and it is terminal (D46): once the player leaves it for the builder,
-the hand and the tokens are behind them, exactly as reading artifacts is behind them once offline
-gathering ends. Artifacts are never re-read in this phase.
+Gathering is a step of its own (D46). The stepper is the navigation: the player moves between
+gathering and building at will, and jumps ahead to the room once the readiness meter allows it.
+Making the pitch closes gathering for good, since the pitch is terminal. Artifacts are never re-read
+in this phase, they belong to offline gathering.
 
 A pitch also needs something to pitch with. The screen reports how much of the challenge's intel is
 verified, and holds the pitch back below the lower threshold, warns between the two, and clears it

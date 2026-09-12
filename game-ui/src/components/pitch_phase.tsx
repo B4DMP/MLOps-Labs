@@ -19,7 +19,6 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import styles from "./pitch_phase.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
-import EngagementCards from "./EngagementCards";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
@@ -180,10 +179,10 @@ const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
 
 /** The player's words for the three stages. PREPARE, OBJECT and COMMIT are ours. */
 const STAGE_STEPS = [
-  { id: "GATHER", label: "Gather", hint: "Play engagement cards and read what comes back." },
-  { id: "PREPARE", label: "Build your case", hint: "Pick up to five pieces of intel, and how you will frame them." },
-  { id: "OBJECT", label: "Face the room", hint: "Answer each objection: add intel, reframe it, or hold your ground." },
-  { id: "COMMIT", label: "Decide", hint: "See who is behind you, and what pushing it through would cost." },
+  { id: "GATHER", label: "Gather", hint: "Spend attention tokens on cards. Verified intel is what you can pitch with." },
+  { id: "PREPARE", label: "Build your case", hint: "Drop up to five items into the card. Watch the caps and the lines you would cross." },
+  { id: "OBJECT", label: "Face the room", hint: "Answer every hard objection. Amending costs a slot, stonewalling costs goodwill." },
+  { id: "COMMIT", label: "Decide", hint: "Take the outcome, or spend an escalation point to overrule the room." },
 ] as const;
 
 /** What each objection means, in the player's words. */
@@ -573,10 +572,10 @@ export default function PitchPhase({
     readyRatio >= READY_GREEN ? "green" : readyRatio >= READY_YELLOW ? "yellow" : "red";
   const readinessText =
     readiness === "green"
-      ? "You know enough to make a case."
+      ? "Enough verified intel to make a case."
       : readiness === "yellow"
-        ? "Thin. You can pitch, but expect to be caught out."
-        : "Too little verified intel to pitch. Read artifacts and play engagement cards first.";
+        ? "Thin. You can pitch, but expect objections you cannot answer."
+        : "Not enough verified intel to pitch. Play engagement cards and verify what you find.";
   const canPitch = selected.length > 0 && readiness !== "red";
 
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
@@ -721,26 +720,50 @@ export default function PitchPhase({
               <div className={styles.pitchBody}>
 
                 {/* Stage stepper: the title of the work surface, not a bare chip row. */}
-                <div className={styles.stepper}>
-                  {STAGE_STEPS.map((step, i) => {
-                    const activeId =
-                      state.stage === "DONE" ? "COMMIT"
+                <div className={styles.stepperWrap}>
+                  <div className={styles.stepper}>
+                    {STAGE_STEPS.map((step, i) => {
+                      const activeId =
+                        state.stage === "DONE" ? "COMMIT"
+                          : state.stage === "PREPARE" && localStage === "GATHER" ? "GATHER"
+                          : state.stage;
+                      const activeIdx = STAGE_STEPS.findIndex((x) => x.id === activeId);
+                      const done = i < activeIdx;
+                      const active = i === activeIdx;
+                      // Before the pitch is made the player moves freely between gathering and
+                      // building. Once the room has been faced, the way back is closed.
+                      const goGather = state.stage === "PREPARE" && step.id === "GATHER";
+                      const goBuild = state.stage === "PREPARE" && step.id === "PREPARE";
+                      const goObject = state.stage === "PREPARE" && step.id === "OBJECT" && canPitch;
+                      const clickable = !active && (goGather || goBuild || goObject);
+                      return (
+                        <button
+                          key={step.id}
+                          className={`${styles.step} ${active ? styles.stepActive : done ? styles.stepDone : styles.stepPending} ${clickable ? styles.stepClickable : ""}`}
+                          disabled={!clickable}
+                          onClick={() => {
+                            if (goGather) setLocalStage("GATHER");
+                            else if (goBuild) setLocalStage("BUILD");
+                            else if (goObject) startObjections();
+                          }}
+                          title={
+                            clickable ? `Go to ${step.label}`
+                              : step.id === "OBJECT" && state.stage === "PREPARE" ? readinessText
+                              : undefined
+                          }
+                        >
+                          <span className={styles.stepNum}>{done ? <Icon icon="ph:check-bold" /> : i + 1}</span>
+                          <span className={styles.stepLabel}>{step.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className={styles.stepHint}>
+                    {STAGE_STEPS.find((x) =>
+                      x.id === (state.stage === "DONE" ? "COMMIT"
                         : state.stage === "PREPARE" && localStage === "GATHER" ? "GATHER"
-                        : state.stage;
-                    const activeIdx = STAGE_STEPS.findIndex((x) => x.id === activeId);
-                    const done = i < activeIdx;
-                    const active = i === activeIdx;
-                    return (
-                      <div
-                        key={step.id}
-                        className={`${styles.step} ${active ? styles.stepActive : done ? styles.stepDone : styles.stepPending}`}
-                      >
-                        <span className={styles.stepNum}>{done ? <Icon icon="ph:check-bold" /> : i + 1}</span>
-                        <span className={styles.stepLabel}>{step.label}</span>
-                        {active && <span className={styles.stepHint}>{step.hint}</span>}
-                      </div>
-                    );
-                  })}
+                        : state.stage))?.hint}
+                  </div>
                 </div>
 
                 {/* ── GATHER ──────────────────────────────────────────── */}
@@ -750,7 +773,7 @@ export default function PitchPhase({
                       <div>
                         <div className={styles.trayTitle}>Work the room</div>
                         <div className={styles.builderHint}>
-                          Play a card to get people talking. What they let slip lands in your dossier.
+                          Each card costs tokens and buys a conversation. Verify what it turns up, or it will not count.
                         </div>
                       </div>
                       <div className={styles.tokenMeter} title="Attention tokens: what it costs you to approach people">
@@ -760,16 +783,45 @@ export default function PitchPhase({
                       </div>
                     </div>
 
-                    <EngagementCards
-                      attentionTokens={tokens}
-                      cards={cards}
-                      playedCardIds={playedIds}
-                      discoveredIntelCount={state.available_items.length}
-                      onOpenPitchModal={() => {}}
-                      onSelectCard={handleSelectEngagementCard}
-                      isEnabled={!isWaiting}
-                    />
-
+                    <div className={styles.fan}>
+                      {cards.map((card, i) => {
+                        const exhausted =
+                          (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
+                          playedIds.includes(card.id);
+                        const tooExpensive = tokens < card.token_cost;
+                        const off = exhausted || tooExpensive || isWaiting;
+                        const mid = (cards.length - 1) / 2;
+                        const targets =
+                          card.target_type === "intel" ? "one intel item"
+                            : card.stakeholder_selection_amount === -1 ? "the whole room"
+                            : `${card.stakeholder_selection_amount} to talk to`;
+                        return (
+                          <button
+                            key={card.id}
+                            className={`${styles.fanCard} ${off ? styles.fanCardOff : ""}`}
+                            style={{
+                              transform: `rotate(${(i - mid) * 3.2}deg) translateY(${Math.abs(i - mid) * 7}px)`,
+                              zIndex: i + 1,
+                            }}
+                            onClick={() => !off && handleSelectEngagementCard(card)}
+                            title={
+                              exhausted ? "Already played this phase"
+                                : tooExpensive ? `Costs ${card.token_cost}, you have ${tokens}`
+                                : undefined
+                            }
+                          >
+                            <span className={styles.fanCost}>
+                              <Icon icon="ph:coins-fill" />{card.token_cost}
+                            </span>
+                            <Icon icon={card.icon} className={styles.fanIcon} />
+                            <span className={styles.fanTitle}>{card.title}</span>
+                            <span className={styles.fanDesc}>{card.description}</span>
+                            <span className={styles.fanTarget}>{targets}</span>
+                            {exhausted && <span className={styles.fanStamp}>played</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
 
@@ -781,7 +833,7 @@ export default function PitchPhase({
                     <div className={styles.trayHeader}>
                       <span className={styles.trayTitle}>Your card</span>
                       <span className={styles.builderHint}>
-                        {selected.length}/{MAX_CARD_ITEMS} slots · each item is one thing you promise the room
+                        {selected.length}/{MAX_CARD_ITEMS} slots · empty slots are fine, weak intel is not
                       </span>
                     </div>
 
@@ -843,68 +895,68 @@ export default function PitchPhase({
                       })}
                     </div>
 
-                    {/* Framing folds away once it is picked: it is one decision, not a wall. */}
+                    {/* Framing: one decision, folded away until it is being made. */}
                     <div className={styles.convincerSection}>
-                      <button
-                        className={styles.convincerTitle}
-                        onClick={() => setFramingOpen((v) => !v)}
-                      >
+                      <button className={styles.convincerTitle} onClick={() => setFramingOpen((v) => !v)}>
                         <Icon icon="ph:broadcast-bold" className="me-1" />
                         Framing
                         {main
                           ? <span className={styles.framingPick}>{convincerArchetypes[main]?.label || convincerArchetypes[main]?.name || main}</span>
-                          : <span className={styles.framingNone}>not chosen</span>}
+                          : <span className={styles.framingNone}>none picked, worth a few points of buy-in</span>}
                         {secondary && (
                           <span className={styles.framingBackup}>
-                            backup: {convincerArchetypes[secondary]?.label || convincerArchetypes[secondary]?.name || secondary}
+                            second audience: {convincerArchetypes[secondary]?.label || convincerArchetypes[secondary]?.name || secondary}
                           </span>
                         )}
                         <Icon icon={framingOpen ? "ph:caret-up-bold" : "ph:caret-down-bold"} className="ms-auto" />
                       </button>
-                      {(framingOpen || !main) && (
+
+                      {framingOpen && (
                         <>
                           <span className={styles.builderHint}>
-                            the same card lands better when it is told the way someone thinks
+                            Pick the one that matches how most of this room thinks. It is worth a few points of buy-in.
                           </span>
-                      <div className={styles.profileRow}>
-                        {Object.entries(convincerArchetypes).map(([key, prof]) => {
-                          const isMain = main === key;
-                          const isBackup = secondary === key;
-                          return (
-                            <div
-                              key={key}
-                              className={`${styles.profileCard} ${isMain ? styles.profileMain : ""} ${isBackup ? styles.profileBackup : ""}`}
-                              style={{ ["--st-color" as string]: prof.color || "#38bdf8" } as React.CSSProperties}
-                            >
-                              <button
-                                className={styles.profilePick}
-                                onClick={() => { setMain(isMain ? "" : key); setFramingOpen(false); }}
-                                title={prof.strategy || "Use this as your main framing"}
-                              >
-                                <span className={styles.profileName}>
-                                  {prof.icon && <span className="me-1">{prof.icon}</span>}
-                                  {prof.label || prof.name || key}
-                                </span>
-                                {prof.strategy && (
-                                  <span className={styles.profileStrategy}>{prof.strategy}</span>
-                                )}
-                              </button>
-                              <div className={styles.profileRoles}>
-                                {isMain && <span className={styles.roleMain}>Main</span>}
+                          <div className={styles.profileRow}>
+                            {Object.entries(convincerArchetypes).map(([key, prof]) => {
+                              const isMain = main === key;
+                              return (
                                 <button
-                                  className={`${styles.roleBackupBtn} ${isBackup ? styles.roleBackupOn : ""}`}
-                                  onClick={() => setSecondary(isBackup ? "" : key)}
-                                  disabled={isMain}
-                                  title={isMain ? "Already your main framing" : "Keep this as a backup for a second audience"}
+                                  key={key}
+                                  className={`${styles.profileCard} ${isMain ? styles.profileMain : ""}`}
+                                  style={{ ["--st-color" as string]: prof.color || "#38bdf8" } as React.CSSProperties}
+                                  onClick={() => { setMain(isMain ? "" : key); setFramingOpen(false); }}
                                 >
-                                  {isBackup ? "Backup" : "+ backup"}
+                                  <span className={styles.profileName}>
+                                    {prof.icon && <span className="me-1">{prof.icon}</span>}
+                                    {prof.label || prof.name || key}
+                                    {isMain && <span className={styles.roleMain}>picked</span>}
+                                  </span>
+                                  {prof.strategy && <span className={styles.profileStrategy}>{prof.strategy}</span>}
                                 </button>
+                              );
+                            })}
+                          </div>
+
+                          {main && (
+                            <div className={styles.backupRow}>
+                              <span className={styles.backupLabel}>
+                                Second audience (optional): a hedge for anyone the main framing does not reach
+                              </span>
+                              <div className={styles.backupChips}>
+                                {Object.entries(convincerArchetypes)
+                                  .filter(([key]) => key !== main)
+                                  .map(([key, prof]) => (
+                                    <button
+                                      key={key}
+                                      className={`${styles.backupChip} ${secondary === key ? styles.backupChipOn : ""}`}
+                                      onClick={() => setSecondary(secondary === key ? "" : key)}
+                                    >
+                                      {prof.label || prof.name || key}
+                                    </button>
+                                  ))}
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-
+                          )}
                         </>
                       )}
                     </div>
@@ -1151,7 +1203,7 @@ export default function PitchPhase({
               <aside className={`${styles.chatSide} ${chatOpen ? styles.chatSideOpen : ""}`}>
                 <button className={styles.chatTab} onClick={() => setChatOpen((v) => !v)} title="The room's conversation">
                   <Icon icon={chatOpen ? "ph:caret-right-bold" : "ph:chat-circle-text-bold"} />
-                  <span className={styles.chatTabLabel}>Conversation</span>
+                  <span className={styles.chatTabLabel}>Conversation history</span>
                   {chatMsgsState.length > 0 && <span className={styles.chatCount}>{chatMsgsState.length}</span>}
                 </button>
                 {chatOpen && (
@@ -1165,6 +1217,7 @@ export default function PitchPhase({
                       onHoverCard={() => {}}
                       showStakeholderList={false}
                       showDialogueOptions={false}
+                      showHeader={false}
                     />
                   </div>
                 )}

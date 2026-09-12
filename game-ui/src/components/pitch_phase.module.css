@@ -2077,3 +2077,260 @@
   width: 100%;
   overflow-y: auto;
 }
+
+
+/* ─── The builder reads as paper; the cards stay dark ─────────────────────── */
+.pitchBody {
+  background: #f6f7fb !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #0f172a;
+}
+
+.pitchBody .trayTitle,
+.pitchBody .slotDesc,
+.pitchBody .intelDesc,
+.pitchBody .stName,
+.pitchBody .objStakeholder,
+.pitchBody .objText,
+.pitchBody .outcomeDesc,
+.pitchBody .profileName,
+.pitchBody .convincerTitle,
+.pitchBody .buyInSt,
+.pitchBody .artifactType {
+  color: #0f172a;
+}
+
+.pitchBody .builderHint,
+.pitchBody .groupLabel,
+.pitchBody .stepHint,
+.pitchBody .profileStrategy,
+.pitchBody .objMeaning,
+.pitchBody .optEffect,
+.pitchBody .buyInWhy,
+.pitchBody .backupLabel,
+.pitchBody .predictionLabel,
+.pitchBody .objNavHint,
+.pitchBody .framingNone,
+.pitchBody .framingBackup {
+  color: #52607a;
+}
+
+.pitchBody .intelRow,
+.pitchBody .profileCard,
+.pitchBody .objCard,
+.pitchBody .outcomeBanner,
+.pitchBody .choiceCard,
+.pitchBody .artifactCard,
+.pitchBody .optBtn,
+.pitchBody .convincerSection {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #0f172a;
+}
+
+.pitchBody .slotEmpty {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.22);
+  color: #52607a;
+}
+
+.pitchBody .slotFilled {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(14, 165, 233, 0.55);
+}
+
+.pitchBody .stepper {
+  border-bottom-color: rgba(15, 23, 42, 0.12);
+}
+
+.pitchBody .stepPending {
+  color: rgba(15, 23, 42, 0.38);
+}
+
+.pitchBody .stepActive {
+  color: #0284c7;
+}
+
+.pitchBody .buyInBarWrap {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.pitchBody .backupChip {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.18);
+  color: #334155;
+}
+
+.pitchBody .backupChipOn {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #fff;
+}
+
+.pitchBody .unconfirmedBadge {
+  color: #b45309;
+  border-color: rgba(180, 83, 9, 0.35);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+/* ─── The hand ────────────────────────────────────────────────────────────── */
+.fan {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8px 0 22px;
+  min-height: 210px;
+}
+
+.fanCard {
+  position: relative;
+  width: 168px;
+  min-height: 178px;
+  margin: 0 -18px;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  color: #e8edf7;
+  background: linear-gradient(180deg, #18233b 0%, #0f1626 100%);
+  border: 1px solid rgba(120, 170, 255, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+  transform-origin: bottom center;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  cursor: pointer;
+}
+
+.fanCard:hover {
+  transform: translateY(-14px) rotate(0deg) scale(1.04) !important;
+  z-index: 50 !important;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.6);
+  border-color: #38bdf8;
+}
+
+.fanCardOff {
+  filter: grayscale(0.7);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fanCost {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #facc15;
+}
+
+.fanIcon {
+  font-size: 1.5rem;
+  color: #7dd3fc;
+}
+
+.fanTitle {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  padding-right: 28px;
+}
+
+.fanDesc {
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: rgba(232, 237, 247, 0.75);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fanTarget {
+  margin-top: auto;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7dd3fc;
+}
+
+.fanStamp {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  border: 1px solid #94a3b8;
+  border-radius: 4px;
+  padding: 0 5px;
+  transform: rotate(-8deg);
+}
+
+/* ─── Stepper: clickable, hint on its own row ─────────────────────────────── */
+.stepperWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+  padding-bottom: 6px;
+}
+
+.stepperWrap .stepper {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  flex-wrap: wrap;
+}
+
+.step {
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 8px;
+  color: inherit;
+}
+
+.stepClickable {
+  cursor: pointer;
+}
+
+.stepClickable:hover {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.stepHint {
+  max-width: none;
+  white-space: normal;
+  font-size: 0.74rem;
+  padding-left: 2px;
+}
+
+/* ─── Backup framing ──────────────────────────────────────────────────────── */
+.backupRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.backupLabel {
+  font-size: 0.72rem;
+}
+
+.backupChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.backupChip {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}

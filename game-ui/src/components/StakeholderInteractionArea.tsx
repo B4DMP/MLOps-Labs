@@ -65,6 +65,8 @@ interface StakeholderInteractionAreaProps {
   className?: string;
   showStakeholderList?: boolean;
   showDialogueOptions?: boolean;
+  /** The rail already says what this is, so it can hide the component heading. */
+  showHeader?: boolean;
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
   onInspectIntel?: (intel: RevealedIntel, stakeholderId?: string) => void;
@@ -82,6 +84,7 @@ export default function StakeholderInteractionArea({
   className = "col-5",
   showStakeholderList = true,
   showDialogueOptions = true,
+  showHeader = true,
   isMaximized = false,
   onToggleMaximize,
   onInspectIntel,
@@ -131,9 +134,9 @@ export default function StakeholderInteractionArea({
       data-position="bottom"
     >
       <div className="d-flex justify-content-between align-items-center mb-1 w-100 flex-shrink-0">
-        <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
+        {showHeader && <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
           💬 Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
-        </h6>
+        </h6>}
         {onToggleMaximize && (
           <button
             type="button"
