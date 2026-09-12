@@ -86,6 +86,7 @@ Suggested order: 01, then 02 and 03 in parallel, then 04 while 08 and 09 run alo
 |---|---|---|
 | Q20 | Remaining review of `gameConfig/MlopsGraph.json`: component names, initial levels, attribute enums, `briefing_observed`, starting instances. First pass done (D30, D31); `tools/graph_refactor.py` keeps later renames cheap. | 04 |
 | Q21 | Feedback arcs in pipeline strip: curved SVG arcs above stage row, colour-coded by level, height proportional to stage distance. **Closed: implemented.** | 08 |
+| Q22 | `instance_errors` doesn't validate a runtime `instance_upsert`'s `links` (unlike config-load validation). Deferred - dormant, nothing creates a runtime instance yet. See `open-questions-for-decision.md` #8. | first content using `instance_upsert` |
 
 ## Deferred scope
 
