@@ -1367,8 +1367,6 @@ export default function StakeholderDossier({
           </span>
         </div>
 
-        {renderFilterBar(st, hiddenByFilter)}
-
         {/* One card per refinement chain: the newest link is the headline (D24) */}
         {pageChains.length > 0 ? (
           <div className={styles.stickyNoteGrid}>
@@ -1611,7 +1609,7 @@ export default function StakeholderDossier({
               </div>
               <div className={styles.emptyStateHint}>
                 {hasIntelEntries ? (
-                  <>💡 <em>Clear the stage row or the search box above to see them again.</em></>
+                  <>💡 <em>Clear the stage row or the search box below to see them again.</em></>
                 ) : (
                   <>💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
                 )}
@@ -1619,6 +1617,10 @@ export default function StakeholderDossier({
             </div>
           </div>
         )}
+
+        {/* The filter strip sits at the foot of the page and the wall scrolls behind it.
+            Sticky rather than fixed, so it keeps its own space and never covers a note. */}
+        <div className={styles.filterDock}>{renderFilterBar(st, hiddenByFilter)}</div>
       </>
     );
   };

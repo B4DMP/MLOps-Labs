@@ -1930,3 +1930,22 @@
 .confChip:focus-visible .confTip {
   opacity: 1;
 }
+
+/* The filters live at the foot of the page, above the paper, below the notes. */
+.filterDock {
+  position: sticky;
+  bottom: -10px;
+  margin: 6px -16px -10px -20px;
+  padding: 6px 16px 8px 20px;
+  background: #f7f4ea;
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 -6px 12px rgba(15, 23, 42, 0.08);
+  z-index: 5;
+}
+
+.filterDock .filterBar {
+  margin: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
