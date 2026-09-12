@@ -576,6 +576,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                       >
                         <StakeholderAvatarComponent
                           avatar={av}
+                          stakeholderId={st.id}
                           play_blink_animation={true}
                           size={82}
                           title={stName}

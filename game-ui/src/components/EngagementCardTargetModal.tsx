@@ -505,6 +505,7 @@ export default function EngagementCardTargetModal({
                               <StakeholderAvatarComponent
                                 avatar={stAvatar}
                                 stakeholderColor={stColor}
+                                stakeholderId={st.id}
                                 isFramed={true}
                                 play_blink_animation={false}
                                 size="100%"

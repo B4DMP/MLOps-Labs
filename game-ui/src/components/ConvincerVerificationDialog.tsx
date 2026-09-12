@@ -122,6 +122,7 @@ export default function ConvincerVerificationDialog({
                   <StakeholderAvatarComponent
                     avatar={stakeholder?.avatar}
                     stakeholderColor={stakeholderColor}
+                    stakeholderId={info.stakeholder_id}
                     isFramed={false}
                     size={52}
                     title={info.stakeholder_name}
