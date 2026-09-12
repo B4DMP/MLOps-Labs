@@ -41,6 +41,12 @@ PASS = "PASS"
 SOFT_PASS = "SOFT_PASS"
 VETO_BROKEN = "VETO_BROKEN"
 STALEMATE = "STALEMATE"
+CONCEDED = "CONCEDED"
+
+# Outcomes where the player's own card never goes in: on STALEMATE nothing was agreed, on
+# CONCEDED the card was dropped in favour of the opposing position (D41) — that op is applied
+# directly by the caller (pitch_handler.handle_pitch_concede), not through this pipeline's card_ops.
+NO_CARD_OUTCOMES = (STALEMATE, CONCEDED)
 
 
 class LevelPair(BaseModel):
@@ -154,23 +160,26 @@ def consequence_ops(active: Sequence[str], patterns: Sequence[Pattern]) -> list[
     return ops
 
 
-def veto_degradation_ops(graph: TechnicalGraph, state: GraphState, stakeholder_id: str) -> list[GraphOp]:
-    """A Veto Breaker costs the overridden stakeholder's whole area one level (plan 06).
-
-    Everything they own drops to the next allowed level down. Already-lowest targets are left
-    alone, so the punishment cannot be repeated into rubble by pressing the same button twice.
+def veto_degradation_ops(
+    graph: TechnicalGraph, state: GraphState, stakeholder_id: str, card_targets: Sequence[str]
+) -> list[GraphOp]:
+    """A Veto Breaker costs the overridden stakeholder one level on whatever this card itself
+    touched that they own (D-question 2): components and edges alike ("hybrid" - `owner_of` is
+    edge-aware), but scoped to `card_targets` only, never their whole area and never anything
+    up/downstream the card didn't touch. Already-lowest targets are left alone, so the punishment
+    cannot be repeated into rubble by pressing the same button twice.
     """
     ops: list[GraphOp] = []
-    for component in graph.components:
-        if graph.owner_of(component.id) != stakeholder_id:
+    for target in card_targets:
+        if graph.owner_of(target) != stakeholder_id:
             continue
-        current = state.component_levels[component.id]
-        below = [lv for lv in component.allowed_levels if lv < current]
+        current = state.level(target)
+        below = [lv for lv in graph.allowed_levels(target) if lv < current]
         if not below:
             continue
         ops.append(GraphOp(
             kind="set_to",
-            target=component.id,
+            target=target,
             value=max(below),
             source_kind="world_event",
             source_id=f"veto_broken:{stakeholder_id}",
@@ -447,7 +456,7 @@ def simulate(
     owner_buyin = owner_buyin_from_reads(reads)                                # 2
 
     card: list[GraphOp] = []
-    if outcome != STALEMATE:                                                   # 3
+    if outcome not in NO_CARD_OUTCOMES:                                        # 3
         # Lazily imported: the pure graph modules stay usable without the pitch service.
         from mlops_serious_game.application.pitch_debate_service.session import card_ops
 
@@ -457,13 +466,17 @@ def simulate(
     state = applied.state
     mid = evaluate(state)                                                      # 5
 
+    card_targets = [op.target for op in applied.resolved_ops if graph.is_target(op.target)]
+    seen: set[str] = set()
+    card_targets = [t for t in card_targets if not (t in seen or seen.add(t))]
+
     world: list[GraphOp] = []                                                  # 6
     if challenge is not None:
         raw = getattr(challenge, "stalemate_ops" if outcome == STALEMATE else "on_exit_ops", [])
         world += _ops_from_raw(raw, f"exit:{getattr(challenge, 'template_id', '')}")
     world += consequence_ops(mid.active_patterns, patterns)
     if outcome == VETO_BROKEN and overridden_stakeholder_id:
-        world += veto_degradation_ops(graph, state, overridden_stakeholder_id)
+        world += veto_degradation_ops(graph, state, overridden_stakeholder_id, card_targets)
 
     # Levels are read before each batch so the report says what that event itself changed.
     world_before = {op.target: state.level(op.target) for op in world if graph.is_target(op.target)}
@@ -476,23 +489,20 @@ def simulate(
     state = apply_ops(graph, state, grudge_ops).state
     after = evaluate(state)                                                    # 8, on the settled graph
 
-    card_targets = [op.target for op in applied.resolved_ops if graph.is_target(op.target)]
-    seen: set[str] = set()
-    card_targets = [t for t in card_targets if not (t in seen or seen.add(t))]
     degraded_by = {d.target_id: d.owner_id for d in applied.debt_created}
 
-    levels_before = {**world_before, **grudge_before}
+    # Kept as two passes (not one merged dict) so a target hit by both a world op and a grudge
+    # reports each event's own before-level, not the other batch's.
     events = [
-        WorldEventDelta(
-            target=op.target,
-            before=levels_before[op.target],
-            after=state.level(op.target),
-            reason=op.reason or "",
-        )
-        for op in world + grudge_ops
+        WorldEventDelta(target=op.target, before=world_before[op.target], after=state.level(op.target), reason=op.reason or "")
+        for op in world
+        if graph.is_target(op.target)
+    ] + [
+        WorldEventDelta(target=op.target, before=grudge_before[op.target], after=state.level(op.target), reason=op.reason or "")
+        for op in grudge_ops
         if graph.is_target(op.target)
     ]
-    world_targets = list(levels_before)
+    world_targets = list({**world_before, **grudge_before})
 
     touched = set(card_targets) | set(world_targets)
     stage_health, system_health = _health(before, after)
@@ -539,12 +549,34 @@ def run_simulation(
 ) -> SimulationResult:
     """Step 1 and step 12: load the player's graph, simulate, append the batch.
 
-    Idempotent per challenge: committing twice does not apply the card twice.
+    Idempotent per challenge: committing twice does not apply the card twice - and (D-question 1,
+    code review) a repeat call never recomputes either. `simulate()` reads `before` as it stands
+    *right now*, which already includes the first call's effects, so blindly re-running it on a
+    replay produced a DeltaReport that looked wrong (world events/grudges applied on top of an
+    already-updated graph) even though nothing was double-persisted. The fix: check for an
+    existing batch first, and if there is one, return its stored report and the current live
+    state verbatim - never re-simulate.
     """
     from mlops_serious_game.application.graph_service import store
     from mlops_serious_game.domain.graph_factory import GraphFactory
 
     graph = GraphFactory.get_graph()
+    source_id = f"sim:{challenge.template_id}:{challenge_loop_index}"
+
+    if store.has_batch(username, source_id):
+        stored_report = store.load_report(username, source_id)
+        if stored_report is not None:
+            state = store.load_state(username).state
+            return SimulationResult(
+                report=DeltaReport.model_validate(stored_report),
+                state=state,
+                ops=[],
+                grudges=list(grudges),
+                pending_objections=[],
+            )
+        # A batch persisted before this column existed has no stored report - fall through and
+        # compute one best-effort, but the append below still won't run a second time.
+
     before = store.load_state(username).state
     result = simulate(
         graph,
@@ -558,7 +590,6 @@ def run_simulation(
         upcoming_world_events=upcoming_world_events,
         seed=seed if seed is not None else username,
     )
-    source_id = f"sim:{challenge.template_id}:{challenge_loop_index}"
     if result.ops and not store.has_batch(username, source_id):
         store.append_ops(
             username,
@@ -568,5 +599,6 @@ def run_simulation(
             challenge_loop_index=challenge_loop_index,
             source_kind="world_event" if outcome == STALEMATE else "action_card",
             source_id=source_id,
+            report=result.report.model_dump(mode="json"),
         )
     return result

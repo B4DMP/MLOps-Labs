@@ -97,6 +97,11 @@ class GraphOpLog(Base):
     source_kind: Mapped[str] = mapped_column(String(32), nullable=False)
     source_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     ops: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    # The DeltaReport this batch produced, when it came from a simulation (source_kind
+    # "action_card"/"world_event" via run_simulation) - null for seed/challenge_seed/admin
+    # batches. Read back on a replayed `simulation:run` so the player is shown the exact report
+    # that was actually applied, never a re-simulated one (code review, D-question 1).
+    report: Mapped[Any] = mapped_column(JSON, nullable=True)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )

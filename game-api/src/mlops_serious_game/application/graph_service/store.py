@@ -23,8 +23,10 @@ def append_ops(
     challenge_loop_index: int = 0,
     source_kind: SourceKind,
     source_id: Optional[str] = None,
+    report: Optional[dict] = None,
 ) -> int:
-    """Appends one batch and returns its batch seq."""
+    """Appends one batch and returns its batch seq. `report` is the DeltaReport this batch
+    produced (JSON-able dict), when there is one - see `load_report`."""
     if len(ops) >= SEQ_STRIDE:
         raise ValueError(f"batch of {len(ops)} ops exceeds SEQ_STRIDE")
     with get_session() as session:
@@ -40,6 +42,7 @@ def append_ops(
                 source_kind=source_kind,
                 source_id=source_id,
                 ops=[op.model_dump(mode="json", exclude_none=True) for op in ops],
+                report=report,
             )
         )
     return seq
@@ -113,6 +116,19 @@ def has_batch(username: str, source_id: str) -> bool:
             select(func.count(GraphOpLog.id)).where(GraphOpLog.user_name == username, GraphOpLog.source_id == source_id)
         )
         return found > 0
+
+
+def load_report(username: str, source_id: str) -> Optional[dict]:
+    """The DeltaReport a past batch produced, if any - the idempotent-replay counterpart to
+    `has_batch`: when a batch was already persisted, its stored report is the correct answer for
+    a repeat call, never a freshly recomputed one (D-question 1, code review)."""
+    with get_session() as session:
+        row = session.scalar(
+            select(GraphOpLog)
+            .where(GraphOpLog.user_name == username, GraphOpLog.source_id == source_id)
+            .order_by(GraphOpLog.seq.desc())
+        )
+        return row.report if row else None
 
 
 def enter_challenge(username: str, challenge) -> bool:

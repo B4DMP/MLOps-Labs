@@ -1,9 +1,6 @@
 """Simulation phase on the real graph (plan 07): apply, capping, world events, grudges, metrics."""
 
-from pathlib import Path
 from types import SimpleNamespace
-
-import pytest
 
 from mlops_serious_game.application.graph_service.apply import apply_ops
 from mlops_serious_game.application.graph_service.pipeline import (
@@ -12,27 +9,11 @@ from mlops_serious_game.application.graph_service.pipeline import (
     STALEMATE,
     VETO_BROKEN,
     owner_buyin_from_reads,
+    run_simulation,
     simulate,
 )
 from mlops_serious_game.domain.graph import GraphOp, GraphState
-from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.grudge import Grudge
-from mlops_serious_game.domain.pattern import PatternFactory
-
-
-def _config_dir() -> Path:
-    for candidate in (Path(__file__).resolve().parents[2] / "gameConfig", Path("/gameConfig")):
-        if (candidate / "MlopsPatterns.json").exists():
-            return candidate
-    pytest.skip("gameConfig not found")
-
-
-@pytest.fixture(scope="module")
-def real():
-    config = _config_dir()
-    graph = GraphFactory.load_graph(config / "MlopsGraph.json")
-    PatternFactory.load(config / "MlopsPatterns.json", graph)
-    return graph
 
 
 def _item(item_id: str, *ops):
@@ -257,19 +238,28 @@ def test_stalemate_skips_the_card_and_fires_the_authored_hit(real):
     assert {g.stakeholder_id for g in result.report.grudges.created} == {"data_dave", "reliability_ruth"}
 
 
-def test_veto_broken_applies_the_card_and_degrades_the_overridden_area(real):
-    built = _with(real, _start(real), _raise("model.evaluation", 3), _raise("model.registry", 3))
+def test_veto_broken_degrades_only_what_this_card_touched_that_they_own(real):
+    """D-question 2: a Veto Breaker is scoped to this card's own simulation - components and
+    edges the overridden stakeholder owns AND this card touched ("hybrid") - never their whole
+    area, and never anything up/downstream of what the card actually did."""
+    # model.registry is owned by model_monica (stage fallback) and pre-raised, but this card
+    # never touches it - it must survive the veto untouched.
+    built = _with(real, _start(real), _raise("model.registry", 3))
     result = simulate(
         real,
         built,
         outcome=VETO_BROKEN,
-        card_items=[_item("i1", _raise("data.versioning", 3))],
+        card_items=[_item("i1", _raise("model.evaluation", 3), _raise("data.versioning", 3))],
         reads=[_read("model_monica", buy_in=0.1), _read("data_dave")],
         overridden_stakeholder_id="model_monica",
         challenge=_challenge(),
     )
+    # data.versioning: owned by data_dave, not model_monica - the card still applies in full.
     assert result.state.component_levels["data.versioning"] == 3, "the card still applies"
+    # model.evaluation: this card touched it and model_monica owns it - degraded.
     assert result.state.component_levels["model.evaluation"] < 3
+    # model.registry: model_monica owns it too, but this card never touched it - untouched.
+    assert result.state.component_levels["model.registry"] == 3
     grudge = result.report.grudges.created[0]
     assert grudge.stakeholder_id == "model_monica" and grudge.weight == 2
 
@@ -293,3 +283,73 @@ def test_the_card_observes_what_it_touched(real):
     )
     observed = [op.target for op in result.ops if op.kind == "observe"]
     assert observed == ["data.validation"]
+
+
+# ---------- run_simulation idempotency (D-question 1) ----------
+
+class _FakeStore:
+    """An in-memory stand-in for graph_service.store, just enough for run_simulation: one
+    player's op-log rows, keyed by source_id, each optionally carrying a report."""
+
+    def __init__(self, state: GraphState):
+        self._state = state
+        self.rows: list[dict] = []
+        self.append_calls = 0
+
+    def load_state(self, username):
+        return SimpleNamespace(state=self._state)
+
+    def has_batch(self, username, source_id):
+        return any(r["source_id"] == source_id for r in self.rows)
+
+    def load_report(self, username, source_id):
+        matching = [r for r in self.rows if r["source_id"] == source_id]
+        return matching[-1]["report"] if matching else None
+
+    def append_ops(self, username, ops, *, phase_index, challenge_template, challenge_loop_index,
+                    source_kind, source_id=None, report=None):
+        self.append_calls += 1
+        self.rows.append({"source_id": source_id, "report": report})
+        return len(self.rows)
+
+
+def test_run_simulation_replay_returns_the_stored_report_without_recomputing(real, monkeypatch):
+    """A repeat `simulation:run` for the same challenge/loop-index must return the exact report
+    that was actually persisted, not a freshly recomputed one - and must not touch the store's
+    append path a second time (code review finding: the old version recomputed on every call,
+    which could disagree with what was actually applied)."""
+    import mlops_serious_game.application.graph_service.store as store_module
+
+    fake = _FakeStore(_start(real))
+    for name in ("load_state", "has_batch", "load_report", "append_ops"):
+        monkeypatch.setattr(store_module, name, getattr(fake, name))
+
+    challenge = _challenge()
+    card_items = [_item("i1", _raise("data.validation", 3))]
+    reads = [_read("data_dave")]
+
+    first = run_simulation(
+        "alice", challenge=challenge, outcome=PASS, card_items=card_items, reads=reads,
+        challenge_loop_index=3,
+    )
+    assert fake.append_calls == 1
+    assert first.report.targets, "the first call actually simulated something"
+
+    # Simulate the graph having moved on between the two calls (exactly what a real replay sees:
+    # the first call's own ops are already folded into `before` by the time a retry arrives). If
+    # run_simulation still called `simulate()` on a replay, this would produce a *different*
+    # report than the first call's - the bug this test guards against.
+    fake._state = _with(real, fake._state, _raise("model.evaluation", 3))
+
+    second = run_simulation(
+        "alice", challenge=challenge, outcome=PASS, card_items=card_items, reads=reads,
+        challenge_loop_index=3,
+    )
+    # No second append - the batch already exists.
+    assert fake.append_calls == 1
+    # The replay's report is byte-for-byte the one that was actually persisted, unaffected by the
+    # graph having moved on in the meantime - proof `run_simulation` never re-simulates once a
+    # batch for this source_id already exists.
+    assert second.report.model_dump(mode="json") == first.report.model_dump(mode="json")
+    assert second.ops == []
+    assert second.pending_objections == []
