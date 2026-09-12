@@ -94,9 +94,14 @@ def _load_requirements() -> dict[str, dict[str, Any]]:
         req_id = entry.get("id")
         if req_id is None:
             continue
+        stakeholder_id = entry.get("stakeholder_id")
         requirements[str(req_id)] = {
             "challenge_id": int(entry["challenge_id"]),
-            "stakeholder_id": str(entry["stakeholder_id"]),
+            # Absent/null for a Fact (plan 02: a Fact is about the environment, not a person),
+            # never authored as a literal "None" string - str() would silently do that if this
+            # ran unconditionally, so only stringify a real value (code-review finding: this
+            # crashed with KeyError on the very first Fact entry against current content).
+            "stakeholder_id": str(stakeholder_id) if stakeholder_id is not None else None,
             "type": str(entry["type"]),
             "description": str(entry["description"]),
         }
