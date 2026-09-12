@@ -268,9 +268,12 @@ const chainText = (chain: IntelChain): string =>
     .join(" ")
     .toLowerCase();
 
-/** Phases are stored from zero and spoken from one. */
-const phaseLabel = (phase?: number | null): string =>
-  phase === null || phase === undefined ? "earlier" : `phase ${phase + 1}`;
+/** Phases are stored from zero and spoken from one, and they have names worth using. */
+const phaseLabel = (phase?: number | null, phases?: Array<{ name?: string }>): string => {
+  if (phase === null || phase === undefined) return "earlier";
+  const named = phases?.[phase]?.name;
+  return named || `phase ${phase + 1}`;
+};
 
 const getEmotionIcon = (emotionStr: string): string => {
   const lower = (emotionStr || "neutral").toLowerCase();
@@ -933,6 +936,7 @@ export default function StakeholderDossier({
                 aria-label={label}
               >
                 <Icon icon={icon} />
+                <span className={styles.confTip}>{label}</span>
               </button>
             ))}
           </div>
@@ -1453,9 +1457,9 @@ export default function StakeholderDossier({
                 >
                   <span
                     className={styles.notePhaseSpine}
-                    title={`You picked this up in ${phaseLabel(item.discovered_phase_id)}`}
+                    title={`You picked this up in ${phaseLabel(item.discovered_phase_id, phases)}`}
                   >
-                    {phaseLabel(item.discovered_phase_id)}
+                    {phaseLabel(item.discovered_phase_id, phases)}
                   </span>
 
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
@@ -1552,7 +1556,7 @@ export default function StakeholderDossier({
                         {[...chain.older].reverse().map((link) => (
                           <div key={link.id} className={styles.chainLayer}>
                             <span className={styles.chainLayerPhase}>
-                              {phaseLabel(link.discovered_phase_id)}
+                              {phaseLabel(link.discovered_phase_id, phases)}
                             </span>
                             <span>"{link.description}"</span>
                           </div>
