@@ -1949,3 +1949,19 @@
   border: none;
   padding: 0;
 }
+
+/* The page is a column so the filter dock can fall to its bottom when the wall
+   is short, and stick there once the wall is long enough to scroll. */
+.pageBase {
+  display: flex;
+  flex-direction: column;
+}
+
+.pageBase > * {
+  flex: 0 0 auto;
+}
+
+.filterDock {
+  margin-top: auto;
+  bottom: 0;
+}
