@@ -1524,10 +1524,12 @@
 
 .filterBar {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 0 0 8px 0;
-  padding: 6px 8px;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 0 0 6px 0;
+  padding: 4px 6px;
   background: rgba(241, 245, 249, 0.55);
   border: 1px dashed #cbd5e1;
   border-radius: 5px;
@@ -1835,4 +1837,49 @@
   border-right: 1px dashed rgba(15, 23, 42, 0.18);
   white-space: nowrap;
   pointer-events: none;
+}
+
+
+/* The filters are a strip, not a panel: they sit on one line and give the wall its space back. */
+.filterControls {
+  flex: 1 1 240px;
+  min-width: 0;
+  gap: 4px;
+}
+
+.searchBox {
+  flex: 1 1 110px;
+  padding: 1px 6px;
+}
+
+.searchBox input {
+  font-size: 0.68rem;
+}
+
+.stageRow {
+  flex: 0 1 auto;
+  gap: 3px;
+}
+
+.stageChip {
+  padding: 1px 7px;
+  font-size: 0.64rem;
+}
+
+.confFilters {
+  gap: 2px;
+}
+
+.confChip {
+  padding: 1px 7px;
+  font-size: 0.64rem;
+}
+
+.collapseToggle {
+  padding: 1px 7px;
+  font-size: 0.64rem;
+}
+
+.notePhaseSpine {
+  font-size: 0.52rem;
 }

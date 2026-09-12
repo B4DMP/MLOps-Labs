@@ -95,6 +95,7 @@ async def get_response(
     _thread_id: str,
     phase_id: int,
     challenge_id: int = 0,
+    username: Optional[str] = None,
     option_id: Optional[str] = None,
     dialogue_option: Optional[DialogueOption | dict[str, Any]] = None,
     addressed_stakeholder_id: Optional[str] = None,

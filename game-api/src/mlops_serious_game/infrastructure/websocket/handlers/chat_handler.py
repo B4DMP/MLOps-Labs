@@ -222,6 +222,7 @@ async def handle_chat_message(
 
         # Run pitch debate graph
         emotion_deltas, output_state = await get_response(
+            username=username,
             challenge=challenge_context,
             _thread_id=session_id,
             phase_id=phase_id,

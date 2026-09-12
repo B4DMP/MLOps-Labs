@@ -303,6 +303,16 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
 from sqlalchemy.orm.attributes import flag_modified
 
+def _phase_of_challenge(challenge_id: Optional[int]) -> Optional[int]:
+    """The phase a challenge belongs to, for notes written before the phase was stamped."""
+    if challenge_id is None:
+        return None
+    try:
+        return PhaseFactory.get_challenge_by_id(challenge_id).phase_id
+    except Exception:
+        return None
+
+
 def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: str) -> List[StakeholderIntelItem]:
     """Loads all is_known==True intel items for the current challenge into the DB as verified and returns them."""
     known_artifacts = [
@@ -336,6 +346,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     description=req.description,
                     source=IntelSource.PUBLIC_RECORD,
                 )
+                # Where the player picked it up, so the dossier can say so later (plan 05).
+                new_item.discovered_phase_id = curr_challenge.phase_id
+                new_item.discovered_challenge_template = curr_challenge.template_id
                 new_record = IntelItem(
                     user_name=username,
                     intel_item_data=new_item.model_dump(mode="json"),
@@ -358,6 +371,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                             # said openly before the player started digging.
                             data.pop("is_public_record", None)
                             data["source"] = IntelSource.PUBLIC_RECORD.value
+                        if data.get("discovered_phase_id") is None:
+                            data["discovered_phase_id"] = curr_challenge.phase_id
+                            data["discovered_challenge_template"] = curr_challenge.template_id
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -623,7 +639,14 @@ def _archived_items(username: str, up_to_phase: Optional[int]) -> List[Stakehold
 
 
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
-    """Stores or updates an intel item in the database."""
+    """Stores or updates an intel item in the database.
+
+    A note is stamped with the phase it was picked up in the first time it is written, and keeps
+    that stamp afterwards: it is where the player found it, not where they last looked at it.
+    """
+    if intel_item.discovered_phase_id is None:
+        intel_item.discovered_phase_id = curr_challenge.phase_id
+        intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
         records = session.scalars(
             select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
@@ -1046,7 +1069,12 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 locked_links_ahead(item.id, held_ids, successors)
                 if chain.get("chain_newest", True) else 0
             ),
-            "discovered_phase_id": item.discovered_phase_id,
+            # Notes stored before the stamp existed still know which challenge they belong to.
+            "discovered_phase_id": (
+                item.discovered_phase_id
+                if item.discovered_phase_id is not None
+                else _phase_of_challenge(item.challenge_id)
+            ),
             "target": target,
             "stage_id": stage_id,
             "stage_name": stage_name,
