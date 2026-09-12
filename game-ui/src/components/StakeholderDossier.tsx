@@ -4,7 +4,7 @@ import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 export type { ConvincerProfileConfig } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
-import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
@@ -269,10 +269,26 @@ const chainText = (chain: IntelChain): string =>
     .toLowerCase();
 
 /** Phases are stored from zero and spoken from one, and they have names worth using. */
-const phaseLabel = (phase?: number | null, phases?: Array<{ name?: string }>): string => {
+export const phaseLabel = (phase?: number | null, phases?: PhaseData[]): string => {
   if (phase === null || phase === undefined) return "earlier";
-  const named = phases?.[phase]?.name;
+  const named = phases?.[phase]?.phase_name;
   return named || `phase ${phase + 1}`;
+};
+
+/** Dock-sized phase names. Deployment is checked before model: "Model Deployment" deploys. */
+const PHASE_SHORT_LABELS: Array<[RegExp, string]> = [
+  [/requirement/i, "REQ"],
+  [/deploy/i, "DEPLOY"],
+  [/monitor|usage|operation/i, "OPS"],
+  [/data/i, "DATA"],
+  [/model/i, "MODEL"],
+  [/intro/i, "INTRO"],
+];
+
+export const phaseShortLabel = (phase?: number | null, phases?: PhaseData[]): string => {
+  if (phase === null || phase === undefined) return "EARLIER";
+  const named = phases?.[phase]?.phase_name || "";
+  return PHASE_SHORT_LABELS.find(([pattern]) => pattern.test(named))?.[1] || `P${phase + 1}`;
 };
 
 const getEmotionIcon = (emotionStr: string): string => {
@@ -341,7 +357,7 @@ export default function StakeholderDossier({
 
   // Dossier filters (plan 05). `null` means the player has not touched the stage row yet, so it
   // keeps following the challenge's focus stages as those change.
-  const [stageFilter, setStageFilter] = useState<Set<string> | null>(null);
+  const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
   const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
@@ -544,31 +560,30 @@ export default function StakeholderDossier({
     return () => clearTimeout(timer);
   }, [pulsingChangeIds, currentPageIndex, effectiveDossierData]);
 
-  // Stage filter, search and collapse (plan 05). An empty stage selection means no filtering at
-  // all, so clearing the row is how the player gets everything back.
-  const focusStageIds = React.useMemo(
-    () => effectiveDossierData.find((d) => (d.focus_stage_ids || []).length > 0)?.focus_stage_ids || [],
-    [effectiveDossierData]
-  );
-  const selectedStages = stageFilter ?? new Set(focusStageIds);
-  const stageFilterActive = selectedStages.size > 0;
+  // Phase filter, search and collapse (plan 05). The row filters by the phase a note was found in,
+  // the name its spine shows. An empty selection means no filtering at all, so clearing the row
+  // is how the player gets everything back.
+  const phaseFilterActive = phaseFilter.size > 0;
+  const nowOnly = phaseFilter.size === 1 && phaseFilter.has(currentPhase);
 
-  const stagesOnPage = (st?: StakeholderDossierEntry): string[] => {
-    const ids = new Set<string>(focusStageIds);
+  const phasesOnPage = (st?: StakeholderDossierEntry): number[] => {
+    const ids = new Set<number>();
     (st?.intel_items || []).forEach((item) => {
-      if (item.stage_id) ids.add(item.stage_id);
+      if (item.discovered_phase_id !== null && item.discovered_phase_id !== undefined) {
+        ids.add(item.discovered_phase_id);
+      }
     });
-    return [...ids];
+    return [...ids].sort((a, b) => a - b);
   };
 
-  const toggleStage = (stageId: string) => {
-    const next = new Set(selectedStages);
-    if (next.has(stageId)) next.delete(stageId);
-    else next.add(stageId);
-    setStageFilter(next);
+  const togglePhase = (phase: number) => {
+    const next = new Set(phaseFilter);
+    if (next.has(phase)) next.delete(phase);
+    else next.add(phase);
+    setPhaseFilter(next);
   };
 
-  // A note with no target is never filtered out by stage: it is not on the map, and filtering it
+  // A note with no phase is never filtered out by phase: it predates the stamp, and filtering it
   // away would lose it entirely.
   /** on record, verified or still unconfirmed: the three states a note can be in. */
   const confidenceOf = (item: { intel_type?: string; source?: string }): "on_record" | "verified" | "unconfirmed" => {
@@ -582,8 +597,8 @@ export default function StakeholderDossier({
     const needle = search.trim().toLowerCase();
     return toChains(st.intel_items || [])
       .filter((chain) => {
-        const stage = chain.newest.stage_id;
-        if (stageFilterActive && stage && !selectedStages.has(stage)) return false;
+        const phase = chain.newest.discovered_phase_id;
+        if (phaseFilterActive && phase !== null && phase !== undefined && !phaseFilter.has(phase)) return false;
         if (confFilter !== "all" && confidenceOf(chain.newest) !== confFilter) return false;
         return !needle || chainText(chain).includes(needle);
       })
@@ -878,35 +893,56 @@ export default function StakeholderDossier({
     return stObj.stakeholder_color || (stObj.metric_id && metrics[stObj.metric_id]?.metric_color) || "#38bdf8";
   };
 
-  /** The stage row, the search box and the collapse toggle, shared by both dossier views. */
+  /** The phase row, the search box and the collapse toggle, shared by both dossier views. */
   const renderFilterBar = (st: StakeholderDossierEntry, hiddenByFilter: number) => {
-    const stages = stagesOnPage(st);
+    const pagePhases = phasesOnPage(st);
+    const nowLabel = phaseLabel(currentPhase, phases);
+    const hasNowNotes = pagePhases.includes(currentPhase);
     return (
       <div className={styles.filterBar}>
-        {stages.length > 0 && (
-          <div className={styles.stageRow}>
-            {stages.map((stageId) => {
-              const meta = stageMeta(stageId);
-              const on = selectedStages.has(stageId);
-              return (
-                <button
-                  key={stageId}
-                  className={`${styles.stageChip} ${on ? styles.stageChipOn : ""}`}
-                  style={{ "--stage-color": meta.color } as React.CSSProperties}
-                  onClick={() => toggleStage(stageId)}
-                  title={on ? `Stop filtering on ${meta.label}` : `Show only ${meta.label}`}
-                >
-                  {meta.label}
-                </button>
-              );
-            })}
-            {stageFilterActive && (
+        {pagePhases.length > 0 && (
+          <div className={styles.phaseRow}>
+            <button
+              className={`${styles.phaseChip} ${styles.phaseChipNow} ${nowOnly ? styles.phaseChipOn : ""}`}
+              onClick={() => setPhaseFilter(nowOnly ? new Set() : new Set([currentPhase]))}
+              disabled={!hasNowNotes && !nowOnly}
+              aria-pressed={nowOnly}
+              title={
+                nowOnly
+                  ? "Show notes from every phase again"
+                  : hasNowNotes
+                    ? `Show only what you found in ${nowLabel}, the phase you are in`
+                    : `Nothing found in ${nowLabel} yet`
+              }
+            >
+              Now
+            </button>
+            {/* The dock has room for a word per phase; the full name is on the spine and in the tooltip. */}
+            <div className={styles.phaseGroup}>
+              {pagePhases.map((phase) => {
+                const label = phaseLabel(phase, phases);
+                const on = phaseFilter.has(phase);
+                return (
+                  <button
+                    key={phase}
+                    className={`${styles.phaseChip} ${on ? styles.phaseChipOn : ""}`}
+                    onClick={() => togglePhase(phase)}
+                    aria-pressed={on}
+                    title={on ? `Stop filtering on ${label}` : `Show only what you found in ${label}`}
+                  >
+                    {phaseShortLabel(phase, phases)}
+                  </button>
+                );
+              })}
+            </div>
+            {phaseFilterActive && (
               <button
-                className={styles.stageChipClear}
-                onClick={() => setStageFilter(new Set())}
-                title="Show every stage again"
+                className={styles.phaseChipClear}
+                onClick={() => setPhaseFilter(new Set())}
+                title="Show notes from every phase again"
+                aria-label="Show every phase"
               >
-                All stages
+                <Icon icon="ph:x-bold" />
               </button>
             )}
           </div>
@@ -943,7 +979,7 @@ export default function StakeholderDossier({
         </div>
         {hiddenByFilter > 0 && (
           <div className={styles.filterHint}>
-            {hiddenByFilter} {hiddenByFilter === 1 ? "note is" : "notes are"} hidden by the stage row
+            {hiddenByFilter} {hiddenByFilter === 1 ? "note is" : "notes are"} hidden by the phase row
             or the search box.
           </div>
         )}

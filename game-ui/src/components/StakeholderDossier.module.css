@@ -1561,38 +1561,86 @@
   border-radius: 5px;
 }
 
-.stageRow {
+.phaseRow {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 4px;
 }
 
-.stageChip {
-  padding: 2px 8px;
-  border: 1.5px solid var(--stage-color, #94a3b8);
-  border-radius: 10px;
+/* One strip with dividers, not a pill per phase: six phases cost one border instead of six. */
+.phaseGroup {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.phaseChip {
+  padding: 2px 6px;
+  border: none;
   background: transparent;
-  color: var(--stage-color, #94a3b8);
-  font-size: 0.65rem;
+  color: #475569;
+  font-size: 0.56rem;
   font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  text-transform: uppercase;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.stageChipOn {
-  background: var(--stage-color, #94a3b8);
+.phaseGroup .phaseChip + .phaseChip {
+  border-left: 1px solid #cbd5e1;
+}
+
+.phaseChip:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.phaseChipOn,
+.phaseChipOn:hover {
+  background: #0f172a;
   color: #fff;
 }
 
-.stageChipClear {
-  padding: 2px 8px;
-  border: 1.5px dashed #94a3b8;
-  border-radius: 10px;
+/* NOW sits apart in the dock's accent, so the view of the phase in play is one click away. */
+.phaseChipNow {
+  border: 1px solid #0284c7;
+  border-radius: 6px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0369a1;
+}
+
+.phaseChipNow.phaseChipOn,
+.phaseChipNow.phaseChipOn:hover {
+  background: #0284c7;
+  color: #fff;
+}
+
+.phaseChip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.phaseChipClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   background: transparent;
   color: #64748b;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.7rem;
   cursor: pointer;
+}
+
+.phaseChipClear:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
 }
 
 .filterControls {
@@ -1897,14 +1945,9 @@
   font-size: 0.68rem;
 }
 
-.stageRow {
+.phaseRow {
   flex: 0 1 auto;
   gap: 3px;
-}
-
-.stageChip {
-  padding: 1px 7px;
-  font-size: 0.64rem;
 }
 
 .confFilters {
