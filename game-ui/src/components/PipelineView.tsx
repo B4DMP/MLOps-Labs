@@ -768,6 +768,13 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
       {/* Strip */}
       {isVisible && (
         <div
+          onClick={onToggle}
+          style={{ position: "fixed", inset: 0, zIndex: 1039, background: "rgba(0, 0, 0, 0.35)" }}
+          aria-hidden
+        />
+      )}
+      {isVisible && (
+        <div
           style={{
             position: "fixed",
             top: 12,
@@ -783,6 +790,7 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
             maxHeight: "88vh",
             overflowY: "auto",
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           <button
             type="button"

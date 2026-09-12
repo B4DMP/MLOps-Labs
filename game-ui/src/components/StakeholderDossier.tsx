@@ -1444,6 +1444,13 @@ export default function StakeholderDossier({
                   }}
                   className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
+                  <span
+                    className={styles.notePhaseSpine}
+                    title={`You picked this up in ${phaseLabel(item.discovered_phase_id)}`}
+                  >
+                    {phaseLabel(item.discovered_phase_id)}
+                  </span>
+
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
                     {isUnconfirmed ? (
