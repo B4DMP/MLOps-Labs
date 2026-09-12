@@ -1935,8 +1935,9 @@
 .filterDock {
   position: sticky;
   bottom: -10px;
-  margin: 6px -16px -10px -20px;
-  padding: 6px 16px 8px 20px;
+  margin: 8px 0 0;
+  padding: 7px 8px 8px;
+  border-radius: 8px 8px 0 0;
   background: #f7f4ea;
   border-top: 1px solid rgba(15, 23, 42, 0.12);
   box-shadow: 0 -6px 12px rgba(15, 23, 42, 0.08);
@@ -1964,4 +1965,15 @@
 .filterDock {
   margin-top: auto;
   bottom: 0;
+}
+
+
+/* Nothing hides behind the dock: the wall ends above it. */
+.stickyNoteGrid {
+  padding-bottom: 6px;
+}
+
+.filterDock {
+  bottom: 0;
+  margin-top: auto;
 }
