@@ -5,13 +5,13 @@ Depends: [04](04-content-pipeline.md), [05](05-persistent-dossier.md). Tracked i
 `challenge_loop_index` 1 and 2 collapse into one screen. Old online intel and pitch debate screens are deleted, no flag.
 
 ```
-stage 0  GATHER    engagement cards and the attention tokens they cost (D42)
+stage 0  GATHER    engagement cards and the attention tokens they cost (D46)
 stage 1  PREPARE   build the card from what gathering turned up
 stage 2  OBJECT    deterministic objections, player answers, card amended with intel items only
 stage 3  COMMIT    pass, soft pass, veto, conceded or stalemate
 ```
 
-Gathering is a step of its own and it is terminal (D42): once the player leaves it for the builder,
+Gathering is a step of its own and it is terminal (D46): once the player leaves it for the builder,
 the hand and the tokens are behind them, exactly as reading artifacts is behind them once offline
 gathering ends. Artifacts are never re-read in this phase.
 
@@ -127,7 +127,7 @@ Their owned components with story fragments, the targets in their objection set,
 
 ## Steps
 
-- [x] 1. `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` deleted in step 11.
+- [x] 1. `game-ui/src/components/pitch_phase.tsx`, four stages (D46), built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` deleted in step 11.
 - [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
 - [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
 - [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
