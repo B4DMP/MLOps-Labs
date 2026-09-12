@@ -5,10 +5,19 @@ Depends: [04](04-content-pipeline.md), [05](05-persistent-dossier.md). Tracked i
 `challenge_loop_index` 1 and 2 collapse into one screen. Old online intel and pitch debate screens are deleted, no flag.
 
 ```
-stage 1  PREPARE   engagement cards, build the card
+stage 0  GATHER    engagement cards and the attention tokens they cost (D42)
+stage 1  PREPARE   build the card from what gathering turned up
 stage 2  OBJECT    deterministic objections, player answers, card amended with intel items only
-stage 3  COMMIT    pass, soft pass, or veto
+stage 3  COMMIT    pass, soft pass, veto, conceded or stalemate
 ```
+
+Gathering is a step of its own and it is terminal (D42): once the player leaves it for the builder,
+the hand and the tokens are behind them, exactly as reading artifacts is behind them once offline
+gathering ends. Artifacts are never re-read in this phase.
+
+A pitch also needs something to pitch with. The screen reports how much of the challenge's intel is
+verified, and holds the pitch back below the lower threshold, warns between the two, and clears it
+above the upper one. The thresholds are content, not code.
 
 Pitch is terminal for the challenge. Nothing touches the graph until COMMIT.
 

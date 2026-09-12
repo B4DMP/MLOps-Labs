@@ -152,7 +152,7 @@
   align-items: flex-end;
   justify-content: center;
   gap: 18px;
-  padding: 4px 16px 18px;
+  padding: 4px 16px 0;
   flex-shrink: 0;
   min-height: 118px;
 }
@@ -986,8 +986,8 @@
   position: absolute;
   left: 4%;
   right: 4%;
-  bottom: 16px;
-  height: 40px;
+  bottom: 0;
+  height: 38px;
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   background: linear-gradient(180deg, #1b2436 0%, #141a28 100%);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
@@ -2016,4 +2016,64 @@
   overflow: visible !important;
   flex-wrap: wrap;
   row-gap: 2px;
+}
+
+
+/* ─── Gathering ───────────────────────────────────────────────────────────── */
+.gatherHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Attention is a currency, so it should look like one. */
+.tokenMeter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  background: linear-gradient(180deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.06));
+}
+
+.tokenIcon {
+  font-size: 1.5rem;
+  color: #facc15;
+}
+
+.tokenCount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fde68a;
+}
+
+.tokenLabel {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  color: rgba(253, 230, 138, 0.75);
+}
+
+/* ─── Conversation rail: room to actually read it ─────────────────────────── */
+.chatSideOpen {
+  width: min(420px, 46%);
+}
+
+.chatBody {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.chatBody > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
 }

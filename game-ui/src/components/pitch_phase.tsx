@@ -132,14 +132,6 @@ interface PitchStatePayload {
   stalemate?: boolean;
 }
 
-/** One readable artifact from this challenge. */
-interface ArtifactRef {
-  id: string;
-  stakeholder_name?: string;
-  artifact_type?: string;
-  content: string;
-}
-
 interface StakeholderBuyInInfo {
   threshold: number;
   actionCardScore: number;
@@ -287,8 +279,6 @@ export default function PitchPhase({
   const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
   const [chatOpen, setChatOpen] = useState(false);
   const [framingOpen, setFramingOpen] = useState(false);
-  const [artifacts, setArtifacts] = useState<ArtifactRef[]>([]);
-  const [readArtifact, setReadArtifact] = useState<string | null>(null);
   const [pickerQuery, setPickerQuery] = useState("");
   const [pickerTag, setPickerTag] = useState<IntelTag | "all">("all");
 
@@ -425,7 +415,6 @@ export default function PitchPhase({
 
   useEffect(() => {
     emit("pitch:state", base);
-    emit("intel:get_offline_artifacts", base);
   }, [emit, base]);
 
   // ── intel engagement events ───────────────────────────────────────────────
@@ -487,9 +476,6 @@ export default function PitchPhase({
         if (p.engagement_card_targets) {
           setCardTargetedMap((prev) => ({ ...prev, ...p.engagement_card_targets }));
         }
-      }),
-      subscribe("intel:offline_artifacts", (p: { artifacts?: ArtifactRef[] }) => {
-        if (p?.artifacts) setArtifacts(p.artifacts);
       }),
       subscribe("system:error", () => setIsWaiting(false)),
     ];
@@ -760,11 +746,18 @@ export default function PitchPhase({
                 {/* ── GATHER ──────────────────────────────────────────── */}
                 {state.stage === "PREPARE" && localStage === "GATHER" && (
                   <>
-                    <div className={styles.trayHeader}>
-                      <span className={styles.trayTitle}>Engagement cards</span>
-                      <span className={styles.builderHint}>
-                        {tokens} attention tokens left · each card costs tokens and buys you intel
-                      </span>
+                    <div className={styles.gatherHead}>
+                      <div>
+                        <div className={styles.trayTitle}>Work the room</div>
+                        <div className={styles.builderHint}>
+                          Play a card to get people talking. What they let slip lands in your dossier.
+                        </div>
+                      </div>
+                      <div className={styles.tokenMeter} title="Attention tokens: what it costs you to approach people">
+                        <Icon icon="ph:coins-fill" className={styles.tokenIcon} />
+                        <span className={styles.tokenCount}>{tokens}</span>
+                        <span className={styles.tokenLabel}>attention<br />tokens left</span>
+                      </div>
                     </div>
 
                     <EngagementCards
@@ -777,35 +770,6 @@ export default function PitchPhase({
                       isEnabled={!isWaiting}
                     />
 
-                    <div className={styles.trayHeader} style={{ marginTop: 6 }}>
-                      <span className={styles.trayTitle}>What you can read</span>
-                      <span className={styles.builderHint}>
-                        {artifacts.length} artifact{artifacts.length === 1 ? "" : "s"} from this challenge
-                      </span>
-                    </div>
-                    <div className={styles.artifactRow}>
-                      {artifacts.map((art) => (
-                        <button
-                          key={art.id}
-                          className={styles.artifactCard}
-                          onClick={() => setReadArtifact(readArtifact === art.id ? null : art.id)}
-                        >
-                          <span className={styles.artifactType}>
-                            <Icon icon="ph:file-text-bold" className="me-1" />
-                            {(art.artifact_type || "note").replace(/_/g, " ")}
-                          </span>
-                          <span className={styles.artifactFrom}>{art.stakeholder_name || "the system"}</span>
-                        </button>
-                      ))}
-                      {artifacts.length === 0 && (
-                        <span className={styles.builderHint}>Nothing to read yet. Play a card.</span>
-                      )}
-                    </div>
-                    {readArtifact && (
-                      <div className={styles.artifactBody}>
-                        {artifacts.find((a) => a.id === readArtifact)?.content}
-                      </div>
-                    )}
                   </>
                 )}
 
@@ -1214,13 +1178,15 @@ export default function PitchPhase({
                     <span className={styles.readyDot} />
                     {intelVerified}/{intelTotal} verified
                   </span>
-                  {state.stage === "PREPARE" && localStage === "GATHER" && (
-                    <span className={styles.dockMeta}>{tokens} tokens</span>
-                  )}
                   {state.stage === "PREPARE" && localStage === "BUILD" && (
                     <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
                   )}
-                  <span className={styles.dockMeta}>{state.escalation_points} EP</span>
+                  <span
+                    className={styles.dockMeta}
+                    title="Escalation points: three for the whole game. One pushes a card through a veto, or buys a promise you have no intel for."
+                  >
+                    {state.escalation_points} escalation left
+                  </span>
                   {state.stage === "OBJECT" && (
                     <span className={styles.dockMeta}>{state.amendments_left} amendments left</span>
                   )}
