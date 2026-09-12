@@ -1977,3 +1977,11 @@
   bottom: 0;
   margin-top: auto;
 }
+
+
+/* The page pads its own bottom, so the dock has to reach past it to sit flush,
+   and it outranks a hovered note: nothing should float over the controls. */
+.filterDock {
+  margin-bottom: -10px;
+  z-index: 200;
+}
