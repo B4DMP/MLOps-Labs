@@ -14,22 +14,7 @@ from mlops_serious_game.domain.graph import (
     TechnicalGraph,
 )
 from mlops_serious_game.domain.graph_predicates import PredicateContext, evaluate
-from mlops_serious_game.domain.pattern import Pattern
-
-
-def _collect_predicate_targets(pred, out: set[str]) -> None:
-    """Walk a predicate tree and collect all component / edge ids referenced."""
-    if not isinstance(pred, dict):
-        return
-    if "component" in pred:
-        out.add(str(pred["component"]))
-    if "edge" in pred:
-        out.add(str(pred["edge"]))
-    for k in ("all", "any"):
-        for sub in pred.get(k, []):
-            _collect_predicate_targets(sub, out)
-    if "not" in pred:
-        _collect_predicate_targets(pred["not"], out)
+from mlops_serious_game.domain.pattern import Pattern, predicate_targets
 
 
 def build_graph_debug(
@@ -191,10 +176,11 @@ def build_graph_debug(
                         "failed_clause": failed_trace,
                     })
 
-    # 8. Orphans — targets referenced by no pattern predicate.
+    # 8. Orphans — targets referenced by no pattern predicate (component/edge, or via an
+    # attribute clause, which counts for the component it reads — see domain.pattern.predicate_targets).
     pattern_targets: set[str] = set()
     for p in patterns:
-        _collect_predicate_targets(p.when, pattern_targets)
+        pattern_targets |= predicate_targets(p.when)
 
     all_targets = {c.id for c in graph.components} | {e.id for e in graph.edges}
     targets_in_no_pattern = sorted(all_targets - pattern_targets)

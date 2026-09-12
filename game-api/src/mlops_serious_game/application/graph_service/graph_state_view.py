@@ -16,6 +16,7 @@ from mlops_serious_game.domain.graph import (
     GraphState,
     Knowledge,
     Level,
+    Stage,
     TechnicalGraph,
 )
 from mlops_serious_game.application.graph_service.effective import EffectiveView
@@ -71,6 +72,13 @@ def _stage_band(
     return (worst, best)
 
 
+def _stage_reached(stage: Stage, current_phase_id: Optional[int]) -> bool:
+    """Governance band is always visible; everything else waits until its phase is current (D33)."""
+    return stage.band or (
+        current_phase_id is not None and (stage.phase_id is None or stage.phase_id <= current_phase_id)
+    )
+
+
 def _patterns_by_stage(
     patterns: list[Pattern], active: set[str]
 ) -> dict[str, list[dict]]:
@@ -100,10 +108,7 @@ def build_graph_state(
 
     stages = []
     for s in graph.stages:
-        reached = s.band or (
-            current_phase_id is not None
-            and (s.phase_id is None or s.phase_id <= current_phase_id)
-        )
+        reached = _stage_reached(s, current_phase_id)
         if not reached:
             stages.append({"id": s.id, "name": s.name, "band": s.band, "locked": True})
             continue
@@ -136,15 +141,15 @@ def build_graph_state(
         {"from": f.from_stage, "to": f.to_stage, "level": f.level, "weakest_edge_id": f.weakest_edge_id}
         for f in stage_view.feedback_flows
     ]
+    governance_flows = [
+        {"from": f.from_stage, "to": f.to_stage, "level": f.level, "weakest_edge_id": f.weakest_edge_id}
+        for f in stage_view.governance_flows
+    ]
 
     # Technical: one entry per reached stage, components and edges filtered by knowledge.
     technical: dict[str, dict] = {}
     for s in graph.stages:
-        reached = s.band or (
-            current_phase_id is not None
-            and (s.phase_id is None or s.phase_id <= current_phase_id)
-        )
-        if not reached:
+        if not _stage_reached(s, current_phase_id):
             continue
 
         components = []
@@ -241,6 +246,7 @@ def build_graph_state(
         "stages": stages,
         "flows": flows,
         "feedback_flows": feedback_flows,
+        "governance_flows": governance_flows,
         "technical": technical,
         "system_health": stage_view.system_health,
     }

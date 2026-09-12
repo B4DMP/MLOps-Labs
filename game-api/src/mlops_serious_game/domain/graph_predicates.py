@@ -169,12 +169,16 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
                 errors.append(f"'attr' must be a 'component.attribute' string, got {p['attr']!r}")
                 return
             component, _, attr = p["attr"].rpartition(".")
+            if p.get("op", "eq") not in _EQUALITY:
+                errors.append(f"attr clauses only support eq / ne, got '{p.get('op')}'")
             if not graph.is_component(component) or attr not in graph.component(component).attributes:
                 errors.append(f"unknown attribute '{p['attr']}'")
             elif p.get("value") not in graph.component(component).attributes[attr].values:
                 errors.append(f"value '{p.get('value')}' not allowed for '{p['attr']}'")
             return
         if "edge" in p and "trigger" in p:
+            if p["trigger"] not in _EQUALITY:
+                errors.append(f"trigger clauses only support eq / ne, got '{p['trigger']!r}'")
             if not isinstance(p["edge"], str) or not graph.is_edge(p["edge"]):
                 errors.append(f"unknown edge '{p['edge']}'")
             elif p.get("value") not in graph.triggers:
@@ -215,6 +219,11 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
                     errors.append(f"unknown value '{cond.get('value')}' for '{spec['kind']}.{prop}'")
                 if cond.get("op", "eq") not in _OPS:
                     errors.append(f"unknown op '{cond.get('op')}'")
+            mode = spec.get("op", "exists")
+            if mode not in ("exists", "count"):
+                errors.append(f"unknown instance op '{mode}'")
+            elif mode == "count" and spec.get("cmp", "gte") not in _OPS:
+                errors.append(f"unknown op '{spec.get('cmp')}'")
             return
         errors.append(f"unknown clause {p!r}")
 

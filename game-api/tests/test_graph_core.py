@@ -1,4 +1,5 @@
-from pathlib import Path
+"""Graph core (plan 01) on synthetic fixtures plus the real config: op application, effective
+levels and capping, degradation and debt, fog of war, predicates, stage health, and story."""
 
 import pytest
 
@@ -15,14 +16,6 @@ from mlops_serious_game.domain.graph_predicates import (
     validate_predicate,
 )
 from mlops_serious_game.domain.story_factory import StoryFactory
-
-
-def _config_dir() -> Path:
-    for candidate in (Path(__file__).resolve().parents[2] / "gameConfig", Path("/gameConfig")):
-        if (candidate / "MlopsGraph.json").exists():
-            return candidate
-    pytest.skip("gameConfig not found")
-
 
 ALL = [0, 1, 2, 3, 4]
 TRIGGERS = ["none", "manual_request", "on_alert", "scheduled"]
@@ -80,19 +73,18 @@ def _ctx(graph, state, patterns=()):
 
 # ---------- config ----------
 
-def test_real_config_loads_and_is_a_dag():
-    config = _config_dir()
-    graph = GraphFactory.load_graph(config / "MlopsGraph.json")
+def test_real_config_loads_and_is_a_dag(config_dir):
+    graph = GraphFactory.load_graph(config_dir / "MlopsGraph.json")
     assert len(graph.components) == 34
     assert len(graph.edges) == 40
     assert sorted(GraphFactory.topo_order) == sorted(c.id for c in graph.components)
     assert {s.id for s in graph.stages} == {"req", "data", "model", "deploy", "ops", "gov"}
     assert graph.levels == ["broken", "absent", "manual", "automated", "governed"]
-    StoryFactory.load(config / "MlopsStoryFragments.json", graph)
+    StoryFactory.load(config_dir / "MlopsStoryFragments.json", graph)
 
 
-def test_real_config_every_component_has_an_owner_and_instances_are_seeded():
-    graph = GraphFactory.load_graph(_config_dir() / "MlopsGraph.json")
+def test_real_config_every_component_has_an_owner_and_instances_are_seeded(config_dir):
+    graph = GraphFactory.load_graph(config_dir / "MlopsGraph.json")
     assert all(graph.owner_of(c.id) for c in graph.components)
     state = GraphState.from_config(graph)
     assert state.instances["model:prediction_v1"].props["performance"] == "fair"
@@ -439,6 +431,23 @@ def test_unknown_clause_raises_and_validation_reports_bad_references():
     assert validate_predicate({"any": [{"edge": {"id": "e.src_mid"}}, {"instance": "model"}, {"pattern": 3}]}, g)
 
 
+def test_validate_predicate_rejects_non_equality_ops_on_attr_and_trigger_clauses():
+    """evaluate() raises PredicateError at runtime for anything but eq/ne on attr and edge+trigger
+    clauses; validate_predicate is the static gate that is supposed to catch this at config-load
+    time instead of letting it blow up mid-game. Both clause kinds otherwise reference real,
+    valid ids/values so the only thing under test is the op restriction itself."""
+    g = _graph()
+    errors = validate_predicate(
+        {"all": [
+            {"attr": "a.mid.hosting", "op": "gte", "value": "cloud"},
+            {"edge": "e.src_mid", "trigger": "gte", "value": "on_alert"},
+        ]},
+        g,
+    )
+    assert len(errors) == 2
+    assert all("only support eq / ne" in e for e in errors)
+
+
 # ---------- stage graph ----------
 
 def test_stage_health_counts_problems_not_maturity():
@@ -485,12 +494,27 @@ def test_flows_report_weakest_crossing_edge():
     assert (flow.level, flow.weakest_edge_id) == (1, "e.mid_side")
 
 
+def test_feedback_and_governance_flows_are_kept_apart():
+    """A `feedback` edge is a real backward loop; a `governs` edge is oversight, not a loop -
+    bundling them under one field drew governance as if it were a feedback arc (code review)."""
+    fb = _graph(feedback_kind="feedback")
+    fb_state = GraphState.from_config(fb)
+    feedback = stage_graph(fb, fb_state, compute_effective(fb, fb_state))
+    assert [f.weakest_edge_id for f in feedback.feedback_flows] == ["e.sink_src"]
+    assert feedback.governance_flows == []
+
+    g = _graph(feedback_kind="governs")
+    state = GraphState.from_config(g)
+    governs = stage_graph(g, state, compute_effective(g, state))
+    assert governs.feedback_flows == []
+    assert [f.weakest_edge_id for f in governs.governance_flows] == ["e.sink_src"]
+
+
 # ---------- story ----------
 
-def test_story_prefers_the_most_specific_fragment():
-    config = _config_dir()
-    graph = GraphFactory.load_graph(config / "MlopsGraph.json")
-    StoryFactory.load(config / "MlopsStoryFragments.json", graph)
+def test_story_prefers_the_most_specific_fragment(config_dir):
+    graph = GraphFactory.load_graph(config_dir / "MlopsGraph.json")
+    StoryFactory.load(config_dir / "MlopsStoryFragments.json", graph)
     state = GraphState.from_config(graph)
     state = _apply(
         graph,

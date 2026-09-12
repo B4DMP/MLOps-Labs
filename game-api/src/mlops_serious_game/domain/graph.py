@@ -52,8 +52,14 @@ SourceKind = Literal["intel", "action_card", "world_event", "challenge_seed", "a
 KnowledgeState = Literal["unknown", "current", "stale"]
 
 
-class AttributeDef(BaseModel):
-    """Story-only property of a component. Never read by health."""
+class EnumProperty(BaseModel):
+    """Shared shape for a named property with an ordered/allowed set of string values and an
+    initial value that must be one of them (code-review finding, A/A2 passes). `AttributeDef`
+    and `InstanceProperty` are semantically distinct - which one applies is about *where* the
+    property lives (component story attribute, never read by health, vs. instance kind
+    property, read by patterns and preconditions per D21/D31) - not about field shape, so they
+    stay separate subclasses rather than being collapsed into one name.
+    """
 
     values: list[str]
     initial: str
@@ -63,6 +69,10 @@ class AttributeDef(BaseModel):
         if self.initial not in self.values:
             raise ValueError(f"initial '{self.initial}' not in {self.values}")
         return self
+
+
+class AttributeDef(EnumProperty):
+    """Story-only property of a component. Never read by health."""
 
 
 class Stage(BaseModel):
@@ -119,18 +129,9 @@ def trigger_for_level(edge: Edge, level: int, current: Optional[str]) -> Optiona
     return edge.default_automatic_trigger
 
 
-class InstanceProperty(BaseModel):
+class InstanceProperty(EnumProperty):
     """An ordered property of an instance kind. Comparisons use the order of `values`;
     for quality-like properties it runs from worst to best."""
-
-    values: list[str]
-    initial: str
-
-    @model_validator(mode="after")
-    def _initial_in_values(self):
-        if self.initial not in self.values:
-            raise ValueError(f"initial '{self.initial}' not in {self.values}")
-        return self
 
 
 class InstanceKind(BaseModel):
@@ -230,6 +231,9 @@ class TechnicalGraph(BaseModel):
         return inst.model_copy(update={"props": {**defaults, **inst.props}})
 
     def instance_errors(self, inst: "Instance") -> list[str]:
+        # Deliberately doesn't check inst.links resolve to real instances, unlike validate_graph's
+        # check on authored initial_instances - deferred, see docs/plans/graph-redesign/
+        # open-questions-for-decision.md #8. Dormant today: nothing creates a runtime instance yet.
         if inst.kind not in self.instance_kinds:
             return [f"instance '{inst.id}' has unknown kind '{inst.kind}'"]
         errors = []
