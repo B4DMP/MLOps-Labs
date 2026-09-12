@@ -817,11 +817,6 @@ export default function PitchPhase({
                         {Object.entries(convincerArchetypes).map(([key, prof]) => {
                           const isMain = main === key;
                           const isBackup = secondary === key;
-                          const axes: Array<[string, number]> = [
-                            ["Evidence", prof.evidence_basis ?? 0],
-                            ["Risk and control", prof.risk_and_control ?? 0],
-                            ["Time horizon", prof.value_horizon ?? 0],
-                          ];
                           return (
                             <div
                               key={key}
@@ -837,16 +832,9 @@ export default function PitchPhase({
                                   {prof.icon && <span className="me-1">{prof.icon}</span>}
                                   {prof.label || prof.name || key}
                                 </span>
-                                <span className={styles.axisList}>
-                                  {axes.map(([label, value]) => (
-                                    <span key={label} className={styles.axisRow} title={`${label}: ${value} of 5`}>
-                                      <span className={styles.axisLabel}>{label}</span>
-                                      <span className={styles.axisTrack}>
-                                        <span className={styles.axisFill} style={{ width: `${(value / 5) * 100}%` }} />
-                                      </span>
-                                    </span>
-                                  ))}
-                                </span>
+                                {prof.strategy && (
+                                  <span className={styles.profileStrategy}>{prof.strategy}</span>
+                                )}
                               </button>
                               <div className={styles.profileRoles}>
                                 {isMain && <span className={styles.roleMain}>Main</span>}
@@ -1184,7 +1172,7 @@ export default function PitchPhase({
                                 : `${card.title} · ${card.description}`
                             }
                           >
-                            <span className={styles.miniCardIcon}>{card.icon}</span>
+                            <Icon icon={card.icon} className={styles.miniCardIcon} />
                             <span className={styles.miniCardTitle}>{card.title}</span>
                             <span className={styles.miniCardCost}>{card.token_cost}</span>
                           </button>
