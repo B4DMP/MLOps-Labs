@@ -1838,31 +1838,46 @@
   color: #fff;
 }
 
-/* The phase a note came from, down its left edge, like the section labels. */
+/* The phase a note came from, down its left edge, like the section labels. The spine is a
+   grid column of its own and a phase name takes one line per word, so the column is as wide
+   as the name needs and the note is never shorter than its longest word. */
 .stickyNote {
   position: relative;
-  padding-left: 22px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 6px;
+  padding-left: 2px;
 }
 
+.stickyNote > * {
+  grid-column: 2;
+}
+
+/* The spine stays upright so the grid can size it; only the name inside turns. A turned grid
+   cell gets a different width from one note to the next. */
 .notePhaseSpine {
-  position: absolute;
-  left: 2px;
-  top: 6px;
-  bottom: 6px;
-  width: 14px;
+  /* Top bar, retag picker, body: the spine runs the full height of all three. */
+  grid-column: 1;
+  grid-row: 1 / span 3;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 2px;
+  border-right: 1px dashed rgba(15, 23, 42, 0.18);
+}
+
+.notePhaseName {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
+  /* min-content is the longest word, so every space in the name starts a new line. */
+  height: min-content;
+  text-align: center;
+  line-height: 1.15;
   font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   color: rgba(15, 23, 42, 0.45);
-  border-right: 1px dashed rgba(15, 23, 42, 0.18);
-  white-space: nowrap;
-  pointer-events: none;
 }
 
 
@@ -1906,7 +1921,7 @@
   font-size: 0.64rem;
 }
 
-.notePhaseSpine {
+.notePhaseName {
   font-size: 0.52rem;
 }
 

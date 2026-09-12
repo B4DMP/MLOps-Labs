@@ -1460,7 +1460,9 @@ export default function StakeholderDossier({
                     className={styles.notePhaseSpine}
                     title={`You picked this up in ${phaseLabel(item.discovered_phase_id, phases)}`}
                   >
-                    {phaseLabel(item.discovered_phase_id, phases)}
+                    <span className={styles.notePhaseName}>
+                      {phaseLabel(item.discovered_phase_id, phases)}
+                    </span>
                   </span>
 
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
