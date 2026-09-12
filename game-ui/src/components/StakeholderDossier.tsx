@@ -96,6 +96,8 @@ export interface StakeholderDossierProps {
   /** Reopens the phase briefing. The button only appears when this is given. */
   onOpenPhaseBriefing?: () => void;
   /** Opens/closes the pipeline view. Button appears in the dossier header. */
+  /** When set, notes can be dragged onto the card builder (plan 06). */
+  draggableIntel?: boolean;
   onPipelineToggle?: () => void;
   isPipelineOpen?: boolean;
 }
@@ -310,6 +312,7 @@ export default function StakeholderDossier({
   buyInInfoMap,
   showPhaseChangeBadges = false,
   onOpenPhaseBriefing,
+  draggableIntel = false,
   onPipelineToggle,
   isPipelineOpen = false,
 }: StakeholderDossierProps) {
@@ -1402,6 +1405,13 @@ export default function StakeholderDossier({
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
+                  draggable={draggableIntel}
+                  onDragStart={(e) => {
+                    if (!draggableIntel) return;
+                    // Same channel the engagement cards use, so the builder needs no library.
+                    e.dataTransfer.setData("intelItemId", item.id);
+                    e.dataTransfer.effectAllowed = "copy";
+                  }}
                   className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}

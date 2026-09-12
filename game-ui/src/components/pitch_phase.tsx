@@ -273,6 +273,7 @@ export default function PitchPhase({
   const [amendFor, setAmendFor] = useState<string | null>(null);
   const [activeSt, setActiveSt] = useState<string | undefined>(undefined);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   // Gathering is its own step: engagement cards and artifacts are the mechanic there,
   // not a button in a bar. Server side it is still PREPARE.
   const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
@@ -540,6 +541,21 @@ export default function PitchPhase({
     );
   };
 
+  /** A note dropped on the card: add it, or move it if it is already slotted. */
+  const dropIntel = (id: string, slot?: number) => {
+    setDragOverSlot(null);
+    if (!id) return;
+    setSelected((prev) => {
+      const without = prev.filter((x) => x !== id);
+      if (without.length >= MAX_CARD_ITEMS) return prev;
+      if (slot === undefined || slot >= without.length) return [...without, id];
+      return [...without.slice(0, slot), id, ...without.slice(slot)];
+    });
+  };
+
+  const dragPayload = (e: React.DragEvent) =>
+    e.dataTransfer.getData("intelItemId") || e.dataTransfer.getData("text/plain");
+
   const saveCard = () =>
     emit("pitch:set_card", {
       ...base,
@@ -639,6 +655,7 @@ export default function PitchPhase({
                 buyInInfoMap={buyInInfoMap as any}
                 convincerArchetypes={convincerArchetypes}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
+                draggableIntel={state.stage === "PREPARE" && localStage === "BUILD"}
                 onPipelineToggle={onPipelineToggle}
                 isPipelineOpen={isPipelineOpen}
               />
@@ -853,7 +870,11 @@ export default function PitchPhase({
                       </span>
                     </div>
 
-                    <div className={styles.tray}>
+                    <div
+                      className={`${styles.tray} ${dragOverSlot !== null ? styles.trayDragging : ""}`}
+                      onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; }}
+                      onDrop={(e) => { e.preventDefault(); dropIntel(dragPayload(e)); }}
+                    >
                       {Array.from({ length: MAX_CARD_ITEMS }, (_, slot) => {
                         const id = selected[slot];
                         const chain = id ? chainById[id] : undefined;
@@ -862,9 +883,12 @@ export default function PitchPhase({
                           return (
                             <button
                               key={`empty-${slot}`}
-                              className={`${styles.slot} ${styles.slotEmpty}`}
+                              className={`${styles.slot} ${styles.slotEmpty} ${dragOverSlot === slot ? styles.slotDragOver : ""}`}
                               onClick={() => setPickerOpen(true)}
-                              title="Add an intel item"
+                              onDragOver={(e) => { e.preventDefault(); setDragOverSlot(slot); }}
+                              onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
+                              onDrop={(e) => { e.preventDefault(); e.stopPropagation(); dropIntel(dragPayload(e), slot); }}
+                              title="Drop a note here, or click to pick one"
                             >
                               <Icon icon="ph:plus-bold" />
                               {isNext && <span>Add intel</span>}
@@ -874,7 +898,15 @@ export default function PitchPhase({
                         const item = chain.newest;
                         const pred = predictionFor(item.id);
                         return (
-                          <div key={item.id} className={`${styles.slot} ${styles.slotFilled}`}>
+                          <div
+                            key={item.id}
+                            className={`${styles.slot} ${styles.slotFilled} ${dragOverSlot === slot ? styles.slotDragOver : ""}`}
+                            draggable
+                            onDragStart={(e) => { e.dataTransfer.setData("intelItemId", item.id); e.dataTransfer.effectAllowed = "copy"; }}
+                            onDragOver={(e) => { e.preventDefault(); setDragOverSlot(slot); }}
+                            onDragLeave={() => setDragOverSlot((cur) => (cur === slot ? null : cur))}
+                            onDrop={(e) => { e.preventDefault(); e.stopPropagation(); dropIntel(dragPayload(e), slot); }}
+                          >
                             <div className={styles.slotTop}>
                               <span className={`${styles.tagPill} ${TAG_CLASS[item.type]}`}>
                                 {intelTagMeta(item.type).shortLabel}
@@ -1425,6 +1457,8 @@ export default function PitchPhase({
                     <div
                       key={chain.id}
                       className={`${styles.intelRow} ${pick ? styles.intelRowSlotted : ""} ${full ? styles.intelRowFull : ""}`}
+                      draggable={!full}
+                      onDragStart={(e) => { e.dataTransfer.setData("intelItemId", item.id); e.dataTransfer.effectAllowed = "copy"; }}
                       onClick={() => { if (!full) toggleItem(item.id); }}
                       title={full ? "The card is full: take something out first" : undefined}
                     >

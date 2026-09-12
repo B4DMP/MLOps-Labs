@@ -2613,3 +2613,23 @@
 .discussionTable {
   padding-top: 16px;
 }
+
+/* ─── Dropping notes onto the card ────────────────────────────────────────── */
+.trayDragging .slotEmpty {
+  border-color: #0284c7;
+  background: rgba(2, 132, 199, 0.06);
+}
+
+.slotDragOver {
+  border-color: #0284c7 !important;
+  background: rgba(2, 132, 199, 0.18) !important;
+  transform: translateY(-2px);
+}
+
+.slotFilled {
+  cursor: grab;
+}
+
+.slotFilled:active {
+  cursor: grabbing;
+}
