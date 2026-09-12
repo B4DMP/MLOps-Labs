@@ -313,8 +313,6 @@ function StageSvg({
         const from = compById[e.from_id];
         const to = compById[e.to_id];
         if (!from?.layout || !to?.layout) return null;
-        const x1 = from.layout.x;
-        const y1 = from.layout.y;
         const [ax, ay, bx, by] = edgeEnds(from.layout.x, from.layout.y, to.layout.x, to.layout.y);
         const x1b = ax, y1b = ay, x2b = bx, y2b = by;
         const known = e.knowledge !== "unknown";
