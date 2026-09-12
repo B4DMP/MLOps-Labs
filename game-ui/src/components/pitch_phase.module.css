@@ -880,11 +880,13 @@
 
 /* One skip control for the whole room, so the player never chases a moving button. */
 .skipBar {
-  margin-left: auto;
+  position: absolute;
+  right: 12px;
+  top: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-  align-self: center;
+  z-index: 65;
 }
 
 .skipBtn {
@@ -2533,7 +2535,7 @@
 /* A crossed line is said in words, not left to an icon. */
 .crossedPill {
   position: absolute;
-  bottom: -16px;
+  top: -6px;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
@@ -2605,3 +2607,9 @@
 .pitchBody .warnRed { color: #dc2626; }
 .pitchBody .warnAmber { color: #b45309; }
 .pitchBody .warnMuted { color: #64748b; }
+
+
+/* Room keeps space for the warning banner above the seats. */
+.discussionTable {
+  padding-top: 16px;
+}

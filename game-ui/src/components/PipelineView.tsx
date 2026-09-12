@@ -99,14 +99,30 @@ function statusColor(status?: string): string {
   return "#6c757d";
 }
 
+/** The player never sees the number, only where it sits. */
+function healthBucket(value?: number): "healthy" | "strained" | "failing" | "unknown" {
+  if (value === undefined) return "unknown";
+  if (value > 75) return "healthy";
+  if (value > 45) return "strained";
+  return "failing";
+}
+
+const BUCKET_WORD: Record<string, string> = {
+  healthy: "holding up",
+  strained: "strained",
+  failing: "failing",
+  unknown: "unclear",
+};
+
 function healthText(stage: StageData): string {
-  if (stage.locked) return "—";
+  if (stage.locked) return "not there yet";
   if (stage.health_band) {
     const [lo, hi] = stage.health_band;
-    if (lo === hi) return `${lo}`;
-    return `${lo}–${hi}`;
+    const a = healthBucket(lo);
+    const b = healthBucket(hi);
+    return a === b ? BUCKET_WORD[a] : `${BUCKET_WORD[a]} to ${BUCKET_WORD[b]}`;
   }
-  return stage.health !== undefined ? `${stage.health}` : "—";
+  return BUCKET_WORD[healthBucket(stage.health)];
 }
 
 // Level pips: 5 circles (0 = broken/red, 1 = absent/grey, 2-4 = filled)
@@ -327,7 +343,13 @@ function StageSvg({
             <line
               x1={x1b} y1={y1b} x2={x2b} y2={y2b}
               stroke={color}
-              strokeWidth={1.5}
+              strokeWidth={known && e.level && e.level >= 3 ? 2 : 1.5}
+              className={
+                !known ? undefined
+                  : e.level === 0 ? "pipe-dead"
+                  : e.level >= 3 ? "pipe-flow"
+                  : "pipe-flow-slow"
+              }
               strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
               markerEnd={`url(#arr-${e.id})`}
             />
@@ -410,42 +432,116 @@ function StageSvg({
 // ── Component detail card (shown below SVG when a box is clicked) ─────────────
 
 function ComponentDetail({ c, onClose }: { c: ComponentData; onClose: () => void }) {
+  const name = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || "Unknown";
+  const known = c.knowledge !== "unknown";
+  const running = c.effective ?? c.nominal;
+  const held = c.capped_by && c.effective !== undefined && c.nominal !== undefined && c.effective < c.nominal;
+
   return (
     <div
       style={{
-        background: "#0d1117",
+        background: "linear-gradient(180deg, #131a2b 0%, #0d1117 100%)",
         border: `1px solid ${nodeBorder(c)}`,
-        borderRadius: 6,
-        padding: "0.6rem 0.8rem",
-        marginTop: "0.5rem",
+        borderRadius: 12,
+        padding: "0.9rem 1rem",
+        marginTop: "0.6rem",
         position: "relative",
       }}
     >
       <button
         onClick={onClose}
-        style={{ position: "absolute", top: 4, right: 8, background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}
+        aria-label="Close"
+        style={{ position: "absolute", top: 8, right: 10, background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: 16 }}
       >✕</button>
-      <div className="fw-semibold text-white mb-1" style={{ fontSize: "0.85rem" }}>
-        {c.name || c.id.split(".").pop()?.replace(/_/g, " ") || "Unknown"}{c.knowledge === "unknown" && <span style={{ marginLeft: 6, fontSize: "0.7rem", color: "#888" }}>(not yet explored)</span>}
-        {c.knowledge !== "unknown" && c.nominal !== undefined && (
-          <span className="ms-2"><LevelPips nominal={c.nominal} effective={c.effective} /></span>
+
+      <div className="d-flex align-items-center gap-2 mb-1">
+        <span style={{ fontSize: "1.1rem" }}>{known ? "🧩" : "🌫"}</span>
+        <span className="fw-bold text-white" style={{ fontSize: "0.95rem" }}>{name}</span>
+        {c.owner_id && (
+          <span className="badge" style={{ background: "rgba(148,163,184,0.2)", color: "#cbd5e1", fontSize: "0.66rem" }}>
+            looked after by {c.owner_id.replace(/_/g, " ")}
+          </span>
         )}
-        {c.knowledge === "stale" && c.seen_at !== undefined && (
-          <span className="ms-2 text-warning" style={{ fontSize: "0.7rem" }}>as of #{c.seen_at}</span>
+        {c.knowledge === "stale" && (
+          <span className="badge" style={{ background: "rgba(255,193,7,0.18)", color: "#ffc107", fontSize: "0.66rem" }}>
+            what you saw last time
+          </span>
+        )}
+        {!known && (
+          <span className="badge" style={{ background: "rgba(148,163,184,0.15)", color: "#94a3b8", fontSize: "0.66rem" }}>
+            never looked at
+          </span>
         )}
       </div>
-      {c.story && <p className="mb-1 text-secondary" style={{ fontSize: "0.75rem" }}>{c.story}</p>}
-      {c.capped_by && <p className="mb-1" style={{ fontSize: "0.7rem", color: "#fd7e14" }}>Capped by: {c.capped_by}</p>}
-      {c.debt && c.debt.length > 0 && (
-        <p className="mb-1" style={{ fontSize: "0.7rem", color: "#ffc107" }}>
-          Debt: intended {LEVEL_LABELS[c.debt[0].intended]}, landed {LEVEL_LABELS[c.debt[0].applied]}
+
+      {known && c.nominal !== undefined ? (
+        <>
+          <div className="d-flex align-items-center gap-2 mb-2" style={{ fontSize: "0.78rem", color: "#e2e8f0" }}>
+            <LevelPips nominal={c.nominal} effective={c.effective} />
+            <span>
+              runs <strong>{LEVEL_LABELS[running ?? 0]}</strong>
+              {held && <> though it is set up to run <strong>{LEVEL_LABELS[c.nominal]}</strong></>}
+            </span>
+          </div>
+
+          {held && (
+            <div className="d-flex align-items-start gap-2 mb-2" style={{ fontSize: "0.75rem", color: "#fd7e14" }}>
+              <span>⛓</span>
+              <span>
+                Held back by <strong>{c.capped_by}</strong>. Raising this one alone changes nothing until that is fixed.
+              </span>
+            </div>
+          )}
+
+          {c.debt && c.debt.length > 0 && (
+            <div className="d-flex align-items-start gap-2 mb-2" style={{ fontSize: "0.75rem", color: "#ffc107" }}>
+              <span>🧾</span>
+              <span>
+                Built in a hurry: meant to be <strong>{LEVEL_LABELS[c.debt[0].intended]}</strong>, landed{" "}
+                <strong>{LEVEL_LABELS[c.debt[0].applied]}</strong>
+                {c.debt[0].owner_id && <> because {c.debt[0].owner_id.replace(/_/g, " ")} was not behind it</>}.
+              </span>
+            </div>
+          )}
+
+          {c.story && (
+            <p className="mb-2" style={{ fontSize: "0.78rem", color: "#cbd5e1", lineHeight: 1.45, fontStyle: "italic" }}>
+              {c.story}
+            </p>
+          )}
+
+          {c.instances && c.instances.length > 0 && (
+            <div className="mt-2">
+              <div style={{ fontSize: "0.66rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>
+                what is running here
+              </div>
+              {c.instances.map((inst) => (
+                <div key={inst.id} className="d-flex align-items-center gap-2 flex-wrap mt-1">
+                  <span style={{ fontSize: "0.78rem", color: "#e2e8f0" }}>{inst.name}</span>
+                  <span className="badge" style={{ background: "rgba(56,189,248,0.18)", color: "#7dd3fc", fontSize: "0.62rem" }}>
+                    {inst.state}
+                  </span>
+                  {Object.entries(inst.props).map(([k, v]) => (
+                    <span
+                      key={k}
+                      className="badge"
+                      style={{ background: "rgba(148,163,184,0.15)", color: "#cbd5e1", fontSize: "0.62rem" }}
+                      title={k.replace(/_/g, " ")}
+                    >
+                      {k.replace(/_/g, " ")}: {v}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="mb-0" style={{ fontSize: "0.78rem", color: "#94a3b8" }}>
+          You have never looked at this part of the system. Facts you file correctly, and objections
+          from whoever looks after it, are what open it up.
         </p>
       )}
-      {c.instances && c.instances.map((inst) => (
-        <div key={inst.id} style={{ fontSize: "0.7rem", color: "#aaa" }}>
-          {inst.name} ({inst.state}) {Object.entries(inst.props).map(([k, v]) => `· ${k}: ${v}`).join(" ")}
-        </div>
-      ))}
     </div>
   );
 }
@@ -499,7 +595,7 @@ function StageModal({
             {stage.name}
             {stage.health !== undefined && (
               <span className="ms-2 badge" style={{ background: statusColor(stage.status), fontSize: "0.75rem" }}>
-                {stage.health}
+                {healthText(stage)}
               </span>
             )}
             {/* Starved: running at zero because something upstream is down, not broken here (D35). */}
@@ -591,6 +687,22 @@ function StageModal({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+const PIPELINE_ANIM = `
+@keyframes pipeFlow { to { stroke-dashoffset: -24; } }
+@keyframes pipePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes pipeGlow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,53,69,0); }
+  50% { box-shadow: 0 0 14px 2px rgba(220,53,69,0.45); }
+}
+.pipe-flow { stroke-dasharray: 6 6; animation: pipeFlow 1.1s linear infinite; }
+.pipe-flow-slow { stroke-dasharray: 4 8; animation: pipeFlow 2.6s linear infinite; }
+.pipe-dead { stroke-dasharray: 3 5; animation: pipePulse 1.4s ease-in-out infinite; }
+.pipe-stage-failing { animation: pipeGlow 1.8s ease-in-out infinite; }
+.pipe-bar { background-size: 200% 100%; animation: pipeFlow 0s; }
+@keyframes pipeBar { to { background-position: -200% 0; } }
+.pipe-bar-run { animation: pipeBar 1.4s linear infinite; }
+`;
+
 function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
@@ -659,6 +771,7 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
 
   return (
     <>
+      <style>{PIPELINE_ANIM}</style>
       {/* Strip */}
       {isVisible && (
         <div
@@ -706,17 +819,25 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
                     >
                       {i > 0 && (
                         <div
+                          className={flow ? (flow.level === 0 ? "" : "pipe-bar pipe-bar-run") : ""}
+                          title={flow ? `Flow between stages: ${LEVEL_LABELS[flow.level]}` : undefined}
                           style={{
                             width: 24,
-                            height: 2,
-                            background: flow
-                              ? statusColor(flow.level >= 3 ? "healthy" : flow.level >= 2 ? "degraded" : "broken")
-                              : "#444",
+                            height: flow && flow.level === 0 ? 2 : 3,
+                            backgroundImage: flow && flow.level > 0
+                              ? `repeating-linear-gradient(90deg, ${statusColor(flow.level >= 3 ? "healthy" : "degraded")} 0 6px, transparent 6px 12px)`
+                              : undefined,
+                            background: flow && flow.level > 0
+                              ? undefined
+                              : flow
+                                ? statusColor("broken")
+                                : "#444",
                           }}
                         />
                       )}
                       <button
                         onClick={() => setSelectedStage(stage.id)}
+                        className={!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : undefined}
                         style={{
                           background: stage.locked ? "#111" : "#16213e",
                           border: `1px solid ${stage.locked ? "#333" : statusColor(stage.status)}`,
@@ -771,15 +892,15 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
                     style={{
                       fontSize: "0.75rem",
                       color: statusColor(
-                        graphState.system_health > 75 ? "healthy"
-                          : graphState.system_health > 45 ? "degraded"
+                        healthBucket(graphState.system_health) === "healthy" ? "healthy"
+                          : healthBucket(graphState.system_health) === "strained" ? "degraded"
                           : "broken"
                       ),
                       whiteSpace: "nowrap",
                       marginTop: 2,
                     }}
                   >
-                    System health: {Math.round(graphState.system_health)}
+                    The system as a whole: {BUCKET_WORD[healthBucket(graphState.system_health)]}
                   </div>
                 )}
 
