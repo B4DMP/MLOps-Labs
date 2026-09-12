@@ -1,4 +1,6 @@
-from pathlib import Path
+"""Patterns and challenge selection (plan 03) on the real graph: pattern coverage and
+validation, the scheduler, and the content payload gates (plan 02/04) that keep intel content
+honest, including the D42 refinement-chain checks."""
 
 import pytest
 
@@ -14,21 +16,6 @@ from mlops_serious_game.domain.graph import GraphOp, GraphState
 from mlops_serious_game.domain.graph_factory import GraphConfigError, GraphFactory
 from mlops_serious_game.domain.Phase import Phase
 from mlops_serious_game.domain.pattern import Pattern, PatternFactory, uncovered_targets, validate_patterns
-
-
-def _config_dir() -> Path:
-    for candidate in (Path(__file__).resolve().parents[2] / "gameConfig", Path("/gameConfig")):
-        if (candidate / "MlopsPatterns.json").exists():
-            return candidate
-    pytest.skip("gameConfig not found")
-
-
-@pytest.fixture(scope="module")
-def real():
-    config = _config_dir()
-    graph = GraphFactory.load_graph(config / "MlopsGraph.json")
-    PatternFactory.load(config / "MlopsPatterns.json", graph)
-    return graph
 
 
 def _maxed(graph) -> GraphState:
@@ -256,6 +243,58 @@ def test_payload_gate_rejects_mismatched_payloads(real):
         assert "needs 'asserts'" in msg and "only Boundaries carry 'holds'" in msg and "unknown target" in msg
     finally:
         RequirementFactory.requirements = saved
+
+
+def test_chain_gate_enforces_d42_parent_stakeholder_phase_and_tag_narrowing(real):
+    """D42: a `refines_id` item must match its parent's target and stakeholder, sit in a
+    strictly later phase, and only narrow tag (same tag, or Driver into Boundary). Added by
+    RequirementFactory.payload_errors (batch E); no test exercised the branch itself before this."""
+    from mlops_serious_game.domain.phase_factory import PhaseFactory
+    from mlops_serious_game.domain.requirement import StakeholderRequirement
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+
+    saved_phases, saved_reqs = PhaseFactory.phases, RequirementFactory.requirements
+    try:
+        PhaseFactory.phases = [
+            Phase(id=1, name="p1", description="", phase_introduction="", challenges=[
+                _challenge(1, 1, "ch_parent"), _challenge(2, 1, "ch_sibling"),
+            ]),
+            Phase(id=2, name="p2", description="", phase_introduction="", challenges=[
+                _challenge(3, 2, "ch_child"),
+            ]),
+        ]
+        RequirementFactory.requirements = [
+            StakeholderRequirement(id="p1", challenge_id=1, stakeholder_id="data_dave", type="driver",
+                                   description=".", suggested={"target": "data.validation", "level": 3}),
+            StakeholderRequirement(id="p2", challenge_id=1, stakeholder_id="data_dave", type="boundary",
+                                   description=".", suggested={"target": "data.validation", "level": 3},
+                                   holds={"component": "data.validation", "op": "gte", "level": 3}),
+            # unknown parent
+            StakeholderRequirement(id="c_unknown", challenge_id=3, stakeholder_id="data_dave", type="driver",
+                                   description=".", refines_id="nope",
+                                   suggested={"target": "data.validation", "level": 3}),
+            # different stakeholder than its parent
+            StakeholderRequirement(id="c_wrong_st", challenge_id=3, stakeholder_id="model_monica", type="driver",
+                                   description=".", refines_id="p1",
+                                   suggested={"target": "data.validation", "level": 3}),
+            # not strictly later: same phase as its parent
+            StakeholderRequirement(id="c_same_phase", challenge_id=2, stakeholder_id="data_dave", type="driver",
+                                   description=".", refines_id="p1",
+                                   suggested={"target": "data.validation", "level": 3}),
+            # widening instead of narrowing: Boundary into Driver is not a valid transition
+            StakeholderRequirement(id="c_bad_tag", challenge_id=3, stakeholder_id="data_dave", type="driver",
+                                   description=".", refines_id="p2",
+                                   suggested={"target": "data.validation", "level": 3}),
+        ]
+        with pytest.raises(GraphConfigError) as e:
+            RequirementFactory.validate_payloads(real, {"data"}, {"data_dave", "model_monica"})
+        msg = str(e.value)
+        assert "refines unknown item 'nope'" in msg
+        assert "different stakeholder" in msg
+        assert "not in a strictly later phase" in msg
+        assert "invalid tag transition from 'boundary' to 'driver'" in msg
+    finally:
+        PhaseFactory.phases, RequirementFactory.requirements = saved_phases, saved_reqs
 
 
 def test_only_facts_filed_as_facts_lift_the_fog():

@@ -1,62 +1,15 @@
 """Pitch phase orchestration on the real graph (plan 06): builder previews, objections, outcome."""
 
-from pathlib import Path
-from types import SimpleNamespace
-
-import pytest
-
+from conftest import (
+    make_archetype as _arch,
+    make_concession as _concedes,
+    make_intel_item as _item,
+    make_target as _target,
+)
 from mlops_serious_game.application.graph_service.apply import apply_ops
 from mlops_serious_game.application.pitch_debate_service import session
-from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry
-from mlops_serious_game.domain.graph_factory import GraphFactory
-from mlops_serious_game.domain.pattern import PatternFactory
 from mlops_serious_game.domain.requirement import IntelTag
-
-
-def _config_dir() -> Path:
-    for candidate in (Path(__file__).resolve().parents[2] / "gameConfig", Path("/gameConfig")):
-        if (candidate / "MlopsPatterns.json").exists():
-            return candidate
-    pytest.skip("gameConfig not found")
-
-
-@pytest.fixture(scope="module")
-def real():
-    config = _config_dir()
-    graph = GraphFactory.load_graph(config / "MlopsGraph.json")
-    PatternFactory.load(config / "MlopsPatterns.json", graph)
-    return graph
-
-
-def _item(id, stakeholder_id, tag, **kw):
-    """Minimal intel item: the orchestration only reads ids, tags and payloads."""
-    ns = SimpleNamespace(
-        id=id,
-        stakeholder_id=stakeholder_id,
-        type=IntelTag(tag),
-        categorized_type=IntelTag(kw.pop("categorized_type", tag)),
-        metric_id=kw.pop("metric_id", None),
-        suggested=kw.pop("suggested", None),
-        holds=kw.pop("holds", None),
-        ops=kw.pop("ops", []),
-        concedes=kw.pop("concedes", None),
-        asserts=kw.pop("asserts", None),
-        description=f"desc:{id}",
-    )
-    ns.is_correct_intel = lambda: ns.type == ns.categorized_type
-    return ns
-
-
-def _target(target, level):
-    return SimpleNamespace(target=target, level=level)
-
-
-def _arch(evidence_basis=2, risk_and_control=2, value_horizon=2):
-    return ConvincerArchetype(
-        name="test", evidence_basis=evidence_basis,
-        risk_and_control=risk_and_control, value_horizon=value_horizon,
-    )
 
 
 # ---------- builder previews ----------
@@ -114,6 +67,20 @@ def test_boundary_on_an_unknown_target_is_reported_as_uncheckable(real):
     )
     w = session.boundary_checks(real, state, [boundary], [], ["reliability_ruth"], knowledge=Knowledge())[0]
     assert (w.checkable, w.violated) == (False, False)
+
+
+def test_a_pure_boundary_with_no_suggested_still_gets_a_fog_target_from_holds(real):
+    """A Boundary authored with only `holds` (no `suggested`/`ops` duplicating its component) must
+    still resolve a fog target via session._boundary_target's fallback to `holds.component` —
+    otherwise its target is None, the unknown-target branch above never triggers, and a true
+    violation on a component the player has never observed leaks straight through (D11)."""
+    state = GraphState.from_config(real)
+    boundary = _item(
+        "b1", "reliability_ruth", "boundary",
+        holds={"component": "data.validation", "op": "gte", "level": 3},
+    )
+    w = session.boundary_checks(real, state, [boundary], [], ["reliability_ruth"], knowledge=Knowledge())[0]
+    assert (w.target, w.checkable, w.violated) == ("data.validation", False, False)
 
 
 # ---------- objections ----------
@@ -198,7 +165,7 @@ def test_a_violated_boundary_of_a_high_power_stakeholder_vetoes(real):
 def test_an_unslotted_trade_off_costs_buy_in(real):
     state = GraphState.from_config(real)
     trade = _item("t1", "efficiency_emilia", "trade_off",
-                  concedes=SimpleNamespace(loss=4, target="data.labeling"))
+                  concedes=_concedes(loss=4, target="data.labeling"))
     room = [("efficiency_emilia", "low")]
     archetypes = {"efficiency_emilia": _arch()}
 
@@ -284,6 +251,16 @@ def test_reframe_only_clears_a_stance_objection():
     assert hard.cleared is False
 
 
+def test_concede_correction_marks_the_item_conceded_and_costs_a_little_emotion():
+    state = session.open_objection_round(
+        session.start_pitch(["data_dave"]), [_objection("correction", item_id="d1")]
+    )
+    res = session.answer_objection(state, state.objections[0].id, "concede_correction", 3, {"concede_correction"})
+    assert res.cleared is True
+    assert res.state.conceded_item_ids == ["d1"]
+    assert res.state.emotion_deltas["data_dave"] < 0
+
+
 def test_the_addendum_needs_an_escalation_point():
     state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection()])
     broke = session.answer_objection(state, state.objections[0].id, "emergency_addendum", 0, {"emergency_addendum"})
@@ -310,12 +287,30 @@ def test_stalemate_only_when_patience_and_points_are_both_gone():
     assert session.is_stalemate(out_of_patience, room, escalation_points=0) is True
 
 
+def test_stalemate_needs_a_high_power_stakeholder_out_of_patience():
+    """A low power holdout run out of patience does not end the challenge (docstring on is_stalemate)."""
+    room = [("data_dave", "low")]
+    state = session.start_pitch(["data_dave"]).model_copy(
+        update={"outcome": "VETO", "patience": {"data_dave": 0}}
+    )
+    assert session.is_stalemate(state, room, escalation_points=0) is False
+
+
 def test_veto_breaker_pushes_the_card_through_at_a_price():
     state = session.start_pitch(["data_dave"]).model_copy(update={"outcome": "VETO"})
     res = session.veto_breaker(state, 1, ["data_dave"])
     assert res.state.outcome == "PASS" and res.state.stage == "DONE"
     assert res.state.patience["data_dave"] == 0
     assert res.state.emotion_deltas["data_dave"] <= session.EMOTION_VETO_BREAKER
+
+
+def test_concede_lets_the_opposing_position_win_at_a_price():
+    """D41 'Let them have it': the winning side gains, whoever's card was dropped loses, no cost paid."""
+    state = session.start_pitch(["data_dave", "reliability_ruth"]).model_copy(update={"outcome": "VETO"})
+    updated = session.concede_pitch(state, winning_st_id="reliability_ruth", losing_st_ids=["data_dave"])
+    assert updated.stage == "DONE" and updated.outcome == "CONCEDED"
+    assert updated.emotion_deltas["reliability_ruth"] == session.EMOTION_CONCEDE_WIN
+    assert updated.emotion_deltas["data_dave"] == session.EMOTION_CONCEDE_LOSE
 
 
 def test_a_rebuild_has_to_change_two_items(real):

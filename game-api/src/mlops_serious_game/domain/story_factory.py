@@ -20,12 +20,6 @@ class StoryConfigError(ValueError):
     pass
 
 
-def _parse_key(key: str) -> tuple[int, dict[str, str]]:
-    level, *pairs = key.split("|")
-    conditions = dict(p.split("=", 1) for p in pairs)
-    return int(level), conditions
-
-
 class StoryFactory:
     generic: dict[str, dict[int, str]] = {}
     targets: dict[str, list[tuple[int, dict[str, str], str]]] = {}

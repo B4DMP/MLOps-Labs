@@ -31,9 +31,10 @@ from mlops_serious_game.application.pitch_debate_service.scoring import (
     loss,
     outcome,
 )
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
-from mlops_serious_game.domain.requirement import IntelTag
+from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
 
 MAX_CARD_ITEMS = 5
 DEFAULT_MAX_AMENDMENTS = 3
@@ -41,6 +42,11 @@ DEFAULT_PATIENCE = 2
 MIN_REBUILD_DELTA = 2
 RISK_GREEN = 0.6
 RISK_AMBER = 0.4
+
+# D38: the tuned numbers behind fit/buy_in/outcome live in config (EmotionValueConfig.json's
+# pitch_tuning), not code - scoring.py itself stays factory-free (its own "no factory calls"
+# contract), so this module reads the config once and passes the values in explicitly below.
+_TUNING = EmotionFactory.get_pitch_tuning()
 
 
 class ItemPrediction(BaseModel):
@@ -118,21 +124,24 @@ def predicted_state(graph: TechnicalGraph, state: GraphState, items: list) -> Gr
     return apply_ops(graph, state, ops).state if ops else state
 
 
-def _item_target_and_level(item) -> tuple[Optional[str], Optional[int]]:
-    suggested = getattr(item, "suggested", None)
-    if suggested and getattr(suggested, "target", None):
-        return suggested.target, getattr(suggested, "level", None)
-    for raw in getattr(item, "ops", None) or []:
-        if raw.get("target"):
-            op = GraphOp.model_validate({**raw, "source_kind": "action_card"})
-            return op.target, op.value if isinstance(op.value, int) else None
-    return None, None
-
-
 def _effective_of(effective, target: str) -> Optional[int]:
     if target in effective.components:
         return effective.components[target]
     return effective.edges.get(target)
+
+
+def _boundary_target(item) -> Optional[str]:
+    """The component a Boundary's predicate actually reads, for the fog check.
+
+    A pure Boundary usually carries no `suggested`/`ops` of its own; without this fallback its
+    fog state can never be "unknown" and `boundary_checks` would reveal a ground-truth violation
+    on a target the player has never observed (D11).
+    """
+    target, _ = item_target_and_level(item)
+    if target:
+        return target
+    holds = getattr(item, "holds", None)
+    return holds.get("component") if isinstance(holds, dict) else None
 
 
 def predictions_for(
@@ -150,7 +159,7 @@ def predictions_for(
     effective = evaluate_graph(graph, after).effective
     out: list[ItemPrediction] = []
     for item in items:
-        target, asked = _item_target_and_level(item)
+        target, asked = item_target_and_level(item)
         if not target:
             continue
         known = knowledge is None or knowledge.state_of(target, after) != "unknown"
@@ -184,7 +193,7 @@ def boundary_checks(
         holds = getattr(item, "holds", None)
         if holds is None:
             continue
-        target, _ = _item_target_and_level(item)
+        target = _boundary_target(item)
         if knowledge is not None and target and knowledge.state_of(target, after) == "unknown":
             warnings.append(BoundaryWarning(
                 item_id=item.id, stakeholder_id=item.stakeholder_id, target=target, checkable=False
@@ -254,7 +263,11 @@ def answering_item_ids(objection: Objection, held_items: list, card_item_ids: se
         "technical": IntelTag.FACT,
     }.get(objection.kind)
     if objection.kind == "correction":
-        return {objection.item_id} if objection.item_id else set()
+        # Amend never answers a mis-filed tag: only Concede Correction does. Returning the item
+        # itself here would make `no_answer` false and wrongly light up Amend, which would then
+        # let any unrelated held item clear the objection (session.answer_objection only checks
+        # that the item is not already on the card).
+        return set()
     if wanted is None:
         return set()
     out = set()
@@ -307,9 +320,12 @@ def stakeholder_reads(
     for st_id, power in room:
         cov = coverage(st_id, all_intel, card_item_ids)
         lo = loss(st_id, all_intel, card_item_ids)
-        ft = fit(archetypes[st_id], main_archetype, secondary_archetype) if st_id in archetypes else 0.5
+        ft = (
+            fit(archetypes[st_id], main_archetype, secondary_archetype, secondary_malus=_TUNING.secondary_malus)
+            if st_id in archetypes else 0.5
+        )
         em = emotions_norm(emotion_values.get(st_id, {}))
-        bi = buy_in(cov, em, ft, lo)
+        bi = buy_in(cov, em, ft, lo, loss_w=_TUNING.loss_w)
         reads.append(StakeholderRead(
             stakeholder_id=st_id,
             power=power,
@@ -350,20 +366,26 @@ def card_view(
             st_id: round(loss(st_id, all_intel, card_item_ids), 3) for st_id in room_ids
         },
         reads=reads,
-        outcome=outcome([(r.stakeholder_id, r.power, r.buy_in, r.boundary_violated) for r in reads]),
+        outcome=outcome(
+            [(r.stakeholder_id, r.power, r.buy_in, r.boundary_violated) for r in reads],
+            veto_threshold=_TUNING.veto_threshold,
+            objection_threshold=_TUNING.objection_threshold,
+        ),
     )
 
 
 # How much one answer moves the room. Tunable, deliberately small: the pitch is decided by
-# coverage and Boundaries, emotions only tip the close calls.
-EMOTION_STONEWALL = -0.10
-EMOTION_STONEWALL_ALLY = 0.05
-EMOTION_REFRAME = 0.02
-EMOTION_ADDENDUM = -0.15
-EMOTION_CONCEDE = -0.05
-EMOTION_VETO_BREAKER = -0.40
-EMOTION_CONCEDE_WIN = 0.30   # D41: the side that gets its way
-EMOTION_CONCEDE_LOSE = -0.20  # D41: the side whose card was dropped
+# coverage and Boundaries, emotions only tip the close calls. D38: sourced from config
+# (EmotionValueConfig.json's pitch_tuning) via _TUNING above, falling back to the pre-D38 values
+# baked into domain.emotion.PitchTuning if config omits pitch_tuning.
+EMOTION_STONEWALL = _TUNING.emotion_stonewall
+EMOTION_STONEWALL_ALLY = _TUNING.emotion_stonewall_ally
+EMOTION_REFRAME = _TUNING.emotion_reframe
+EMOTION_ADDENDUM = _TUNING.emotion_addendum
+EMOTION_CONCEDE = _TUNING.emotion_concede
+EMOTION_VETO_BREAKER = _TUNING.emotion_veto_breaker
+EMOTION_CONCEDE_WIN = _TUNING.emotion_concede_win  # D41: the side that gets its way
+EMOTION_CONCEDE_LOSE = _TUNING.emotion_concede_lose  # D41: the side whose card was dropped
 
 
 class PitchState(BaseModel):

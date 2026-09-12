@@ -131,6 +131,46 @@ class StakeholderRequirement(BaseModel):
             self.description = join_wording(self.fact, self.reading)
         return self
 
+
+def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str], Optional[int]]:
+    """The graph target a payload is about, and the level it asks for, whichever field carries it.
+
+    The single source of truth for this lookup: `session.py`, `objections.py`, `intel_handler.py`
+    and `requirement_factory.py` each grew their own version of this with a different priority
+    order and field coverage (a code-review finding, C/G passes). Checked in this order - asserts
+    (Fact), suggested (Driver), concedes (Trade-off), ops (raw GraphOps, chiefly Boundary/Trade-off)
+    - matching the order the D42 chain-matching gate already relied on. In practice an authored
+    item carries exactly one of these per its `type` tag, so the order only matters for the rare
+    item that carries more than one; `concedes` has no level of its own (`Concession` only tracks
+    `loss`/`accepts_max_level`), so it returns `None` for level.
+    """
+    asserts = getattr(item, "asserts", None)
+    if asserts is not None and getattr(asserts, "target", None):
+        return asserts.target, getattr(asserts, "level", None)
+
+    suggested = getattr(item, "suggested", None)
+    if suggested is not None and getattr(suggested, "target", None):
+        return suggested.target, getattr(suggested, "level", None)
+
+    concedes = getattr(item, "concedes", None)
+    if concedes is not None and getattr(concedes, "target", None):
+        return concedes.target, None
+
+    for raw in getattr(item, "ops", None) or []:
+        if isinstance(raw, dict) and raw.get("target"):
+            from mlops_serious_game.domain.graph import GraphOp
+            op = GraphOp.model_validate({**raw, "source_kind": "action_card"})
+            return op.target, op.value if isinstance(op.value, int) else None
+
+    return None, None
+
+
+def item_target(item: "StakeholderRequirement") -> Optional[str]:
+    """`item_target_and_level(item)[0]` - the target only, for callers that don't need the level."""
+    target, _ = item_target_and_level(item)
+    return target
+
+
 class StakeholderIntelItem(StakeholderRequirement):
     """A class representing a categorized stakeholder requirement (player's dossier intel item)"""
     intel_type: ConfidenceType = Field(default=ConfidenceType.UNCONFIRMED, description="The type of the intel")

@@ -10,6 +10,7 @@ from mlops_serious_game.domain.requirement import (
     join_wording,
     StakeholderIntelItem,
     StakeholderRequirement,
+    item_target as _shared_item_target,
 )
 from typing import List, Dict, Any, Optional
 import random
@@ -543,15 +544,13 @@ def locked_links_ahead(newest_id: str, held_ids: set, successors: Dict[str, List
 
 
 def item_target(item) -> Optional[str]:
-    """The graph target an item is about, whichever payload carries it."""
-    if getattr(item, "asserts", None):
-        return item.asserts.target
-    if getattr(item, "suggested", None):
-        return item.suggested.target
-    for raw in getattr(item, "ops", None) or []:
-        if raw.get("target"):
-            return raw["target"]
-    return None
+    """The graph target an item is about, whichever payload carries it.
+
+    Delegates to `domain.requirement.item_target_and_level` (the single shared implementation -
+    a code-review finding, C/G passes) so this, `session.py`, `objections.py` and
+    `requirement_factory.py` can never again silently diverge on priority order or field coverage.
+    """
+    return _shared_item_target(item)
 
 
 def _graph_snapshot(username: str):

@@ -1,8 +1,8 @@
 from pathlib import Path
 import json
-from typing import List
+from typing import List, Optional
 from mlops_serious_game.domain.persona_resolver import personalize
-from mlops_serious_game.domain.requirement import StakeholderRequirement
+from mlops_serious_game.domain.requirement import StakeholderRequirement, item_target as _payload_target
 from mlops_serious_game.domain.Challenge import Challenge
 
 class RequirementFactory:
@@ -84,7 +84,14 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
     """
     from mlops_serious_game.domain.graph import GraphOp
     from mlops_serious_game.domain.graph_predicates import validate_predicate
+    from mlops_serious_game.domain.phase_factory import PhaseFactory
     from mlops_serious_game.domain.requirement import IntelTag
+
+    by_id = {r.id: r for r in requirements}
+    # challenge_id -> phase index, to check a chain link is authored strictly forward (D42).
+    challenge_phase: dict[int, int] = {
+        c.id: c.phase_id for phase in PhaseFactory.phases for c in phase.challenges
+    }
 
     errors: list[str] = []
     ids: set[str] = set()
@@ -93,6 +100,29 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
         if r.id in ids:
             errors.append(f"duplicate intel id '{r.id}'")
         ids.add(r.id)
+
+        if r.refines_id is not None:
+            # D42: a chain link must match its parent's target and stakeholder, sit strictly
+            # later, and only narrow (same tag, or Driver into Boundary).
+            parent = by_id.get(r.refines_id)
+            if parent is None:
+                errors.append(f"{where}: refines unknown item '{r.refines_id}'")
+            else:
+                if parent.stakeholder_id != r.stakeholder_id:
+                    errors.append(f"{where}: refines '{r.refines_id}' but has a different stakeholder")
+                if _payload_target(parent) != _payload_target(r):
+                    errors.append(f"{where}: refines '{r.refines_id}' but targets a different part of the graph")
+                parent_phase = challenge_phase.get(parent.challenge_id)
+                child_phase = challenge_phase.get(r.challenge_id)
+                if parent_phase is not None and child_phase is not None and child_phase <= parent_phase:
+                    errors.append(f"{where}: refines '{r.refines_id}' but is not in a strictly later phase")
+                valid_transition = r.type == parent.type or (
+                    parent.type == IntelTag.DRIVER and r.type == IntelTag.BOUNDARY
+                )
+                if not valid_transition:
+                    errors.append(
+                        f"{where}: invalid tag transition from '{parent.type.value}' to '{r.type.value}'"
+                    )
 
         if r.type == IntelTag.FACT:
             if r.stakeholder_id is not None and r.stakeholder_id not in stakeholder_ids:

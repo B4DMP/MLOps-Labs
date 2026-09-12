@@ -10,13 +10,16 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
+
 GrudgeEffect = Literal["degrade", "world_event", "extra_objection"]
 
 # The order is part of the deterministic pick, do not reorder without invalidating saved games.
 GRUDGE_EFFECTS: tuple[GrudgeEffect, ...] = ("degrade", "world_event", "extra_objection")
 
-# How many simulations a grudge keeps firing before it is spent.
-GRUDGE_LIFETIME = 2
+# How many simulations a grudge keeps firing before it is spent. D38: lives in config
+# (EmotionValueConfig.json's pitch_tuning.grudge_lifetime), not code; falls back to 2 if unset.
+GRUDGE_LIFETIME = EmotionFactory.get_pitch_tuning().grudge_lifetime
 
 
 class Grudge(BaseModel):

@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+from mlops_serious_game.domain.requirement import item_target as _target_id_for
+
 if TYPE_CHECKING:
     from mlops_serious_game.domain.requirement import StakeholderIntelItem
 
@@ -47,20 +49,6 @@ class DialogueOptionSpec(BaseModel):
 # ---------------------------------------------------------------------------
 # Internal helpers — one kind each
 # ---------------------------------------------------------------------------
-
-def _target_id_for(item: "StakeholderIntelItem") -> Optional[str]:
-    """Best-effort target id from an intel item's payload."""
-    suggested = getattr(item, "suggested", None)
-    if suggested and getattr(suggested, "target", None):
-        return suggested.target
-    asserts = getattr(item, "asserts", None)
-    if asserts and getattr(asserts, "target", None):
-        return asserts.target
-    concedes = getattr(item, "concedes", None)
-    if concedes and getattr(concedes, "target", None):
-        return concedes.target
-    return None
-
 
 def _text(authored: dict, st_id: str, kind: str, target: Optional[str], fallback: str) -> str:
     return authored.get((st_id, kind, target), authored.get((st_id, kind, None), fallback))

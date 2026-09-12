@@ -238,6 +238,12 @@ async def handle_pitch_object(websocket: WebSocket, username: str, payload: dict
     """Locks the card and lets the room object. Same card, same objections (standing rule)."""
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
+    if state.stage != "PREPARE":
+        # Re-running this after commit would reopen a finished pitch: `handle_pitch_commit` would
+        # then see stage OBJECT again and write the card's ops to the graph a second time (the
+        # module docstring's "exactly once per pitch").
+        await _send(websocket, ctx, state, ctx.view(state), error="the room has already heard this card")
+        return
     if not state.card_item_ids:
         await _send(websocket, ctx, state, ctx.view(state), error="build a card first")
         return
@@ -283,6 +289,11 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
     """Scores the card and, on anything but a veto, writes it to the graph."""
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
+    if state.stage != "OBJECT":
+        # The graph is written exactly once per pitch (module docstring): committing only makes
+        # sense once the room has actually objected, never straight from PREPARE or twice in a row.
+        await _send(websocket, ctx, state, ctx.view(state), error="face the room before you commit")
+        return
     view = ctx.view(state)
     state = pitch.commit_pitch(state, view)
 
@@ -301,7 +312,13 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
 
 async def handle_pitch_rebuild(websocket: WebSocket, username: str, payload: dict) -> None:
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
-    state, error = pitch.rebuild(_load_or_start(ctx), ctx.room_ids)
+    state = _load_or_start(ctx)
+    if state.stage != "COMMIT":
+        # Rebuild is one of the ways out of a stood veto (D7); it is not a way to abandon a card
+        # that has not been faced yet (that is just building a different card in PREPARE).
+        await _send(websocket, ctx, state, ctx.view(state), error="nothing to rebuild yet")
+        return
+    state, error = pitch.rebuild(state, ctx.room_ids)
     if error is None:
         pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, state)
     await _send(websocket, ctx, state, ctx.view(state), error=error)
@@ -310,6 +327,10 @@ async def handle_pitch_rebuild(websocket: WebSocket, username: str, payload: dic
 async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload: dict) -> None:
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
+    if state.stage != "COMMIT":
+        # Only a stood veto (stage COMMIT, D1/D7) can be pushed through with an Escalation Point.
+        await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to push through")
+        return
     view = ctx.view(state)
     vetoing = [r.stakeholder_id for r in view.reads if r.power == "high" and (r.boundary_violated or r.band == "red")]
     result = pitch.veto_breaker(state, ctx.points, vetoing)
@@ -328,6 +349,11 @@ async def handle_pitch_concede(websocket: WebSocket, username: str, payload: dic
     """Player drops their card; the conflict's opposing position applies (D41)."""
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = _load_or_start(ctx)
+    if state.stage != "COMMIT":
+        # "Let them have it" is only on offer while a veto stands (D41), same as the other two
+        # ways out of one.
+        await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to concede to")
+        return
     conflict = getattr(ctx.challenge, "conflict", None)
     if not conflict:
         await _send(websocket, ctx, state, ctx.view(state), error="this challenge has no conflict to concede to")

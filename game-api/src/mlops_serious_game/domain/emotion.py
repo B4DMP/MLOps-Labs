@@ -138,6 +138,27 @@ class EmotionDeltaRules(BaseModel):
     corporate_noise_rules: CorporateNoiseEmotionRules = Field(default_factory=CorporateNoiseEmotionRules, description="Corporate noise delta rules")
 
 
+class PitchTuning(BaseModel):
+    """Tuning numbers for the merged pitch phase (D38): dialogue-option emotion effects, veto/objection
+    thresholds, and grudge lifetime. Defaults match the pre-D38 hardcoded values, so omitting
+    `pitch_tuning` from EmotionValueConfig.json changes nothing - authors override only what they tune.
+    """
+
+    emotion_stonewall: float = Field(default=-0.10, description="Stonewall: emotion hit to the objecting stakeholder")
+    emotion_stonewall_ally: float = Field(default=0.05, description="Stonewall: emotion gain to the opposing side")
+    emotion_reframe: float = Field(default=0.02, description="Reframe: small emotion gain to the objecting stakeholder")
+    emotion_addendum: float = Field(default=-0.15, description="Emergency Addendum: emotion hit to the objecting stakeholder")
+    emotion_concede: float = Field(default=-0.05, description="Concede Correction: small emotion hit to the objecting stakeholder")
+    emotion_veto_breaker: float = Field(default=-0.40, description="Veto Breaker: emotion hit to the overridden stakeholder")
+    emotion_concede_win: float = Field(default=0.30, description="Let Them Have It (D41): emotion gain to the side that gets its way")
+    emotion_concede_lose: float = Field(default=-0.20, description="Let Them Have It (D41): emotion hit to the side whose card was dropped")
+    secondary_malus: float = Field(default=0.15, description="Fit penalty when scoring against a stakeholder's secondary archetype")
+    veto_threshold: float = Field(default=0.4, description="Buy-in floor below which a high-power stakeholder vetoes")
+    objection_threshold: float = Field(default=0.3, description="Buy-in floor below which a low-power stakeholder objects")
+    loss_w: float = Field(default=0.3, description="Weight of accumulated loss in the buy-in formula")
+    grudge_lifetime: int = Field(default=2, description="How many simulations a grudge keeps firing before it is spent")
+
+
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 
 
@@ -150,4 +171,5 @@ class EmotionConfig(BaseModel):
     emotion_colors: dict[str, str] = Field(default_factory=dict, description="Hex color codes for emotional states")
     convincer_archetypes: dict[str, ConvincerArchetype] = Field(default_factory=dict, description="Configured convincer archetypes")
     emotion_delta_rules: Optional[EmotionDeltaRules] = Field(default=None, description="Algorithmic emotion delta rules")
+    pitch_tuning: PitchTuning = Field(default_factory=PitchTuning, description="Pitch phase tuning numbers (D38)")
 

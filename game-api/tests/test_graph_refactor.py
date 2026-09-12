@@ -1,3 +1,6 @@
+"""The graph_refactor CLI tool (plan 01): finding references, renaming and retiring ids with
+aliases kept, dry runs, and that old op logs still replay against a renamed/retired graph."""
+
 import json
 import shutil
 import sys

@@ -71,9 +71,32 @@
     },
     "emotion_delta_rules": {
       "$ref": "#/definitions/emotionDeltaRules"
+    },
+    "pitch_tuning": {
+      "$ref": "#/definitions/pitchTuning"
     }
   },
   "definitions": {
+    "pitchTuning": {
+      "type": "object",
+      "title": "Pitch Tuning (D38)",
+      "description": "Tuning numbers for the merged pitch phase: dialogue-option emotion effects, veto/objection thresholds, and grudge lifetime. All optional - omitted fields fall back to the pre-D38 hardcoded values.",
+      "properties": {
+        "emotion_stonewall": { "type": "number", "title": "Stonewall: hit to the objecting stakeholder", "default": -0.10 },
+        "emotion_stonewall_ally": { "type": "number", "title": "Stonewall: gain to the opposing side", "default": 0.05 },
+        "emotion_reframe": { "type": "number", "title": "Reframe: gain to the objecting stakeholder", "default": 0.02 },
+        "emotion_addendum": { "type": "number", "title": "Emergency Addendum: hit to the objecting stakeholder", "default": -0.15 },
+        "emotion_concede": { "type": "number", "title": "Concede Correction: hit to the objecting stakeholder", "default": -0.05 },
+        "emotion_veto_breaker": { "type": "number", "title": "Veto Breaker: hit to the overridden stakeholder", "default": -0.40 },
+        "emotion_concede_win": { "type": "number", "title": "Let Them Have It (D41): gain to the side that gets its way", "default": 0.30 },
+        "emotion_concede_lose": { "type": "number", "title": "Let Them Have It (D41): hit to the side whose card was dropped", "default": -0.20 },
+        "secondary_malus": { "type": "number", "title": "Fit penalty vs. a stakeholder's secondary archetype", "default": 0.15 },
+        "veto_threshold": { "type": "number", "title": "Buy-in floor below which a high-power stakeholder vetoes", "default": 0.4 },
+        "objection_threshold": { "type": "number", "title": "Buy-in floor below which a low-power stakeholder objects", "default": 0.3 },
+        "loss_w": { "type": "number", "title": "Weight of accumulated loss in the buy-in formula", "default": 0.3 },
+        "grudge_lifetime": { "type": "integer", "title": "Simulations a grudge keeps firing before it is spent", "default": 2 }
+      }
+    },
     "emotionDeltaRules": {
       "type": "object",
       "title": "Emotion Delta Rules",

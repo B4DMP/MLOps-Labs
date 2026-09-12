@@ -367,5 +367,20 @@
             }
          ]
       }
+   },
+   "pitch_tuning": {
+      "emotion_stonewall": -0.10,
+      "emotion_stonewall_ally": 0.05,
+      "emotion_reframe": 0.02,
+      "emotion_addendum": -0.15,
+      "emotion_concede": -0.05,
+      "emotion_veto_breaker": -0.40,
+      "emotion_concede_win": 0.30,
+      "emotion_concede_lose": -0.20,
+      "secondary_malus": 0.15,
+      "veto_threshold": 0.4,
+      "objection_threshold": 0.3,
+      "loss_w": 0.3,
+      "grudge_lifetime": 2
    }
 }

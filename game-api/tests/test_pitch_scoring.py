@@ -4,44 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-
-# ---------------------------------------------------------------------------
-# Helpers / fixtures
-# ---------------------------------------------------------------------------
-
-def _arch(evidence_basis=0, risk_and_control=0, value_horizon=0):
-    from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
-    return ConvincerArchetype(
-        name="test",
-        evidence_basis=evidence_basis,
-        risk_and_control=risk_and_control,
-        value_horizon=value_horizon,
-    )
-
-
-def _item(id, stakeholder_id, tag, metric_id=None, concedes=None, categorized_type=None):
-    """Minimal StakeholderIntelItem substitute using a SimpleNamespace."""
-    from types import SimpleNamespace
-    from mlops_serious_game.domain.requirement import IntelTag, ConfidenceType
-    ns = SimpleNamespace(
-        id=id,
-        stakeholder_id=stakeholder_id,
-        type=IntelTag(tag),
-        categorized_type=IntelTag(categorized_type or tag),
-        metric_id=metric_id,
-        concedes=concedes,
-        suggested=None,
-        asserts=None,
-        description=f"desc:{id}",
-        intel_type=ConfidenceType.VERIFIED,
-    )
-    ns.is_correct_intel = lambda: ns.type == ns.categorized_type
-    return ns
-
-
-def _concedes(loss=None, target=None):
-    from types import SimpleNamespace
-    return SimpleNamespace(loss=loss, target=target)
+from conftest import make_archetype as _arch, make_concession as _concedes, make_intel_item as _item
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +187,20 @@ class TestFireObjections:
         items = [_item("d1", "st1", "driver")]
         result = fire_objections(["st1"], items, set(), set(), set(), self._authored())
         assert any(o.kind == "stance" for o in result)
+
+    def test_technical_objection_fires_on_a_capped_card_item(self):
+        """fire_objections's own docstring names five kinds (boundary, technical, stance, price,
+        correction); before this, only three had any test in the whole suite."""
+        from mlops_serious_game.application.pitch_debate_service.objections import fire_objections
+        items = [_item("d1", "st1", "driver")]
+        result = fire_objections(["st1"], items, {"d1"}, set(), {"d1"}, self._authored())
+        assert [o.kind for o in result] == ["technical"]
+
+    def test_price_objection_fires_on_an_uncompensated_trade_off(self):
+        from mlops_serious_game.application.pitch_debate_service.objections import fire_objections
+        items = [_item("t1", "st1", "trade_off", concedes=_concedes(loss=5))]
+        result = fire_objections(["st1"], items, set(), set(), set(), self._authored())
+        assert [o.kind for o in result] == ["price"]
 
     def test_max_per_stakeholder_respected(self):
         from mlops_serious_game.application.pitch_debate_service.objections import fire_objections
