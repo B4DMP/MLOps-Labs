@@ -142,7 +142,16 @@ interface PitchPhaseProps {
   challengeDescription?: string;
   challengeIntro?: string;
   challengeAmount?: number;
-  convincerArchetypes?: Record<string, { name?: string; icon?: string; color?: string }>;
+  convincerArchetypes?: Record<string, {
+    name?: string;
+    label?: string;
+    icon?: string;
+    color?: string;
+    strategy?: string;
+    evidence_basis?: number;
+    risk_and_control?: number;
+    value_horizon?: number;
+  }>;
   onEndPitch?: (passed: boolean) => void;
   engagementCards?: EngagementCard[];
   attentionTokens?: number;
@@ -162,12 +171,44 @@ interface PitchPhaseProps {
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
 
+/** The player's words for the three stages. PREPARE, OBJECT and COMMIT are ours. */
+const STAGE_STEPS = [
+  { id: "PREPARE", label: "Build your case", hint: "Pick up to five pieces of intel, and how you will frame them." },
+  { id: "OBJECT", label: "Face the room", hint: "Answer each objection: add intel, reframe it, or hold your ground." },
+  { id: "COMMIT", label: "Decide", hint: "See who is behind you, and what pushing it through would cost." },
+] as const;
+
+/** What each objection means, in the player's words. */
+const OBJECTION_MEANING: Record<ObjectionKind, string> = {
+  boundary: "Your card crosses a line they will not cross. This one blocks the pitch.",
+  technical: "The change cannot land as asked: something upstream holds it back.",
+  stance: "Something they want is missing from your card, or barely covered.",
+  price: "They lose something here and get nothing back for it.",
+  correction: "You filed this intel under the wrong kind, and they noticed.",
+};
+
 const OPTION_LABELS: Record<OptionName, string> = {
   amend: "Amend",
   reframe: "Reframe",
   stonewall: "Stonewall",
   emergency_addendum: "Emergency Addendum",
   concede_correction: "Concede Correction",
+};
+
+const OPTION_ICONS: Record<OptionName, string> = {
+  amend: "ph:plus-circle-bold",
+  reframe: "ph:broadcast-bold",
+  stonewall: "ph:shield-bold",
+  emergency_addendum: "ph:lightning-bold",
+  concede_correction: "ph:arrows-counter-clockwise-bold",
+};
+
+const OPTION_EFFECT: Record<OptionName, string> = {
+  amend: "Add an intel item that answers them.",
+  reframe: "Say it their way. Only shifts soft objections.",
+  stonewall: "Hold your ground. They mind, the other side likes it.",
+  emergency_addendum: "Promise something you have no intel for. Costs an escalation point.",
+  concede_correction: "Admit you filed it wrong. Fixes it in your dossier.",
 };
 
 const KIND_CLASS: Record<ObjectionKind, string> = {
@@ -566,25 +607,14 @@ export default function PitchPhase({
                   challengeAmount={challengeAmount}
                   is_minimized
                 />
-                <div className={styles.stageBar}>
-                  {(["PREPARE", "OBJECT", "COMMIT"] as const).map((stage, i) => {
-                    const isDone =
-                      (stage === "PREPARE" && (state.stage === "OBJECT" || state.stage === "COMMIT" || state.stage === "DONE")) ||
-                      (stage === "OBJECT" && (state.stage === "COMMIT" || state.stage === "DONE"));
-                    const isActive = state.stage === stage || (stage === "COMMIT" && state.stage === "DONE");
-                    return (
-                      <span key={stage} className={styles.stageEntry}>
-                        {i > 0 && <span className={styles.stageSep} />}
-                        <span className={`${styles.stageChip} ${isDone ? styles.done : isActive ? styles.active : styles.pending}`}>
-                          {stage}
-                        </span>
-                      </span>
-                    );
-                  })}
+                <div className={styles.headerMeta}>
                   <span className={`${styles.slotCount} ${selected.length >= MAX_CARD_ITEMS ? styles.atMax : ""}`}>
-                    {selected.length}/{MAX_CARD_ITEMS} slots · {state.escalation_points} EP
-                    {state.stage === "OBJECT" && ` · ${state.amendments_left} left`}
+                    {selected.length}/{MAX_CARD_ITEMS} slots
                   </span>
+                  <span className={styles.slotCount}>{state.escalation_points} escalation points</span>
+                  {state.stage === "OBJECT" && (
+                    <span className={styles.slotCount}>{state.amendments_left} amendments left</span>
+                  )}
                 </div>
               </div>
 
@@ -670,6 +700,29 @@ export default function PitchPhase({
               {/* Stage content */}
               <div className={styles.pitchBody}>
 
+                {/* Stage stepper: the title of the work surface, not a bare chip row. */}
+                <div className={styles.stepper}>
+                  {STAGE_STEPS.map((step, i) => {
+                    const activeIdx = STAGE_STEPS.findIndex(
+                      (x) => x.id === (state.stage === "DONE" ? "COMMIT" : state.stage),
+                    );
+                    const done = i < activeIdx;
+                    const active = i === activeIdx;
+                    return (
+                      <div
+                        key={step.id}
+                        className={`${styles.step} ${active ? styles.stepActive : done ? styles.stepDone : styles.stepPending}`}
+                      >
+                        <span className={styles.stepNum}>{done ? <Icon icon="ph:check-bold" /> : i + 1}</span>
+                        <span className={styles.stepText}>
+                          <span className={styles.stepLabel}>{step.label}</span>
+                          {active && <span className={styles.stepHint}>{step.hint}</span>}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {/* ── PREPARE ─────────────────────────────────────────── */}
                 {state.stage === "PREPARE" && (
                   <>
@@ -740,26 +793,67 @@ export default function PitchPhase({
                       })}
                     </div>
 
-                    {/* Convincer framing */}
+                    {/* Convincer framing: how the case is told, not what is in it. */}
                     <div className={styles.convincerSection}>
                       <div className={styles.convincerTitle}>
                         <Icon icon="ph:broadcast-bold" className="me-1" />Framing
+                        <span className={styles.builderHint}>
+                          the same card lands better when it is told the way someone thinks
+                        </span>
                       </div>
-                      <select className={styles.convincerSelect} value={main} onChange={(e) => setMain(e.target.value)}>
-                        <option value="">Pick a main convincer profile</option>
-                        {Object.keys(convincerArchetypes).map((name) => (
-                          <option key={name} value={name}>{name}</option>
-                        ))}
-                      </select>
-                      <select className={styles.convincerSelect} value={secondary} onChange={(e) => setSecondary(e.target.value)}>
-                        <option value="">No secondary profile</option>
-                        {Object.keys(convincerArchetypes).map((name) => (
-                          <option key={name} value={name}>{name}</option>
-                        ))}
-                      </select>
+                      <div className={styles.profileRow}>
+                        {Object.entries(convincerArchetypes).map(([key, prof]) => {
+                          const isMain = main === key;
+                          const isBackup = secondary === key;
+                          const axes: Array<[string, number]> = [
+                            ["Evidence", prof.evidence_basis ?? 0],
+                            ["Risk and control", prof.risk_and_control ?? 0],
+                            ["Time horizon", prof.value_horizon ?? 0],
+                          ];
+                          return (
+                            <div
+                              key={key}
+                              className={`${styles.profileCard} ${isMain ? styles.profileMain : ""} ${isBackup ? styles.profileBackup : ""}`}
+                              style={{ ["--st-color" as string]: prof.color || "#38bdf8" } as React.CSSProperties}
+                            >
+                              <button
+                                className={styles.profilePick}
+                                onClick={() => setMain(isMain ? "" : key)}
+                                title={prof.strategy || "Use this as your main framing"}
+                              >
+                                <span className={styles.profileName}>
+                                  {prof.icon && <span className="me-1">{prof.icon}</span>}
+                                  {prof.label || prof.name || key}
+                                </span>
+                                <span className={styles.axisList}>
+                                  {axes.map(([label, value]) => (
+                                    <span key={label} className={styles.axisRow} title={`${label}: ${value} of 5`}>
+                                      <span className={styles.axisLabel}>{label}</span>
+                                      <span className={styles.axisTrack}>
+                                        <span className={styles.axisFill} style={{ width: `${(value / 5) * 100}%` }} />
+                                      </span>
+                                    </span>
+                                  ))}
+                                </span>
+                              </button>
+                              <div className={styles.profileRoles}>
+                                {isMain && <span className={styles.roleMain}>Main</span>}
+                                <button
+                                  className={`${styles.roleBackupBtn} ${isBackup ? styles.roleBackupOn : ""}`}
+                                  onClick={() => setSecondary(isBackup ? "" : key)}
+                                  disabled={isMain}
+                                  title={isMain ? "Already your main framing" : "Keep this as a backup for a second audience"}
+                                >
+                                  {isBackup ? "Backup" : "+ backup"}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Boundary warnings */}
+                    {/* What the card would break, and who pays for it. */}
                     {state.boundary_warnings.some((w) => w.violated || !w.checkable) && (
                       <div className={styles.intelGroup}>
                         <div className={styles.groupLabel}>Lines</div>
@@ -769,14 +863,13 @@ export default function PitchPhase({
                             <span>
                               {w.checkable
                                 ? `${stakeholderName(w.stakeholder_id)}: this card crosses their line on ${w.target}`
-                                : `${stakeholderName(w.stakeholder_id)}: cannot check — you haven't looked at ${w.target}`}
+                                : `${stakeholderName(w.stakeholder_id)}: cannot check, you have not looked at ${w.target}`}
                             </span>
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* Uncompensated losses */}
                     {Object.entries(state.uncompensated_losses).some(([, v]) => v > 0) && (
                       <div className={styles.intelGroup}>
                         <div className={styles.groupLabel}>Uncompensated losses</div>
@@ -795,41 +888,64 @@ export default function PitchPhase({
                 {state.stage === "OBJECT" && current && (
                   <div className={styles.objCard}>
                     <div className={styles.objHeader}>
-                      <StakeholderAvatarComponent avatar={stakeholders[current.stakeholder_id]?.avatar} size={52} />
+                      <div className={styles.objAvatar}>
+                        <StakeholderAvatarComponent
+                          avatar={stakeholders[current.stakeholder_id]?.avatar}
+                          size={64}
+                          isFramed={false}
+                          stakeholderColor={stakeholders[current.stakeholder_id]?.stakeholder_color || "#38bdf8"}
+                        />
+                      </div>
                       <div className={styles.objHeaderText}>
                         <span className={styles.objStakeholder}>{stakeholderName(current.stakeholder_id)}</span>
                         <span className={`${styles.objKindBadge} ${KIND_CLASS[current.kind]}`}>
-                          {current.kind}{current.hard ? " (hard)" : ""}
+                          {current.kind}{current.hard ? " · blocks the pitch" : ""}
+                        </span>
+                        <span className={styles.objMeaning}>{OBJECTION_MEANING[current.kind]}</span>
+                      </div>
+                      <div className={styles.objProgressWrap}>
+                        <span className={styles.objProgress}>{objectionIndex + 1} of {state.objections.length}</span>
+                        <span className={styles.objDots}>
+                          {state.objections.map((o, i) => (
+                            <button
+                              key={o.id}
+                              className={`${styles.objDot} ${i === objectionIndex ? styles.objDotActive : ""} ${o.hard ? styles.objDotHard : ""}`}
+                              onClick={() => setObjectionIndex(i)}
+                              title={`${stakeholderName(o.stakeholder_id)}: ${o.kind}`}
+                            />
+                          ))}
                         </span>
                       </div>
-                      <span className={styles.objProgress}>{objectionIndex + 1} of {state.objections.length}</span>
                     </div>
 
-                    <div className={styles.objText}>"{current.text}"</div>
+                    <blockquote className={styles.objText}>{current.text}</blockquote>
 
                     <div className={styles.optionsGrid}>
                       {current.options.map((opt) => (
                         <button
                           key={opt.option}
-                          className={styles.optBtn}
+                          className={`${styles.optBtn} ${opt.available ? "" : styles.optBtnOff}`}
                           disabled={!opt.available}
-                          title={opt.reason || undefined}
                           onClick={() =>
                             opt.option === "amend"
                               ? setAmendFor(amendFor === current.id ? null : current.id)
                               : answer(current, opt.option)
                           }
                         >
-                          <span className={styles.optLabel}>{OPTION_LABELS[opt.option]}</span>
+                          <span className={styles.optLabel}>
+                            <Icon icon={OPTION_ICONS[opt.option]} className="me-1" />
+                            {OPTION_LABELS[opt.option]}
+                          </span>
+                          <span className={styles.optEffect}>{OPTION_EFFECT[opt.option]}</span>
                           {opt.reason && <span className={styles.optReason}>{opt.reason}</span>}
                         </button>
                       ))}
                     </div>
 
                     {amendFor === current.id && (
-                      <div className={styles.intelGroup} style={{ marginTop: 12 }}>
-                        <div className={styles.groupLabel}>Add an item that answers this</div>
-                        {toChains(state.available_items)
+                      <div className={styles.amendList}>
+                        <div className={styles.groupLabel}>Answer it with intel you hold</div>
+                        {chains
                           .filter((chain) => !state.card_item_ids.includes(chain.newest.id))
                           .map(({ id: chainId, newest: item, older }) => (
                             <div key={chainId} className={styles.intelRow} onClick={() => answer(current, "amend", item.id)}>
@@ -837,17 +953,29 @@ export default function PitchPhase({
                                 {intelTagMeta(item.type).shortLabel}
                               </span>
                               <div className={styles.intelMain}>
+                                <div className={styles.intelMeta}>
+                                  <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
+                                  {older.length > 0 && <span className={styles.chainDepth}>+{older.length} earlier</span>}
+                                </div>
                                 <span className={styles.intelDesc}>{item.description}</span>
                               </div>
-                              {older.length > 0 && <span className={styles.chainDepth}>+{older.length}</span>}
                             </div>
                           ))}
                       </div>
                     )}
 
                     <div className={styles.objNav}>
-                      <button className={styles.btnSecondary} disabled={objectionIndex === 0} onClick={() => setObjectionIndex((i) => Math.max(0, i - 1))}>Previous</button>
-                      <button className={styles.btnSecondary} disabled={objectionIndex >= state.objections.length - 1} onClick={() => setObjectionIndex((i) => i + 1)}>Next</button>
+                      <button className={styles.btnSecondary} disabled={objectionIndex === 0} onClick={() => setObjectionIndex((i) => Math.max(0, i - 1))}>
+                        <Icon icon="ph:arrow-left-bold" /> Previous
+                      </button>
+                      <span className={styles.objNavHint}>
+                        {state.objections.length === 0
+                          ? "Nobody objected. Commit when you are ready."
+                          : "Answer what you can, then commit."}
+                      </span>
+                      <button className={styles.btnSecondary} disabled={objectionIndex >= state.objections.length - 1} onClick={() => setObjectionIndex((i) => i + 1)}>
+                        Next <Icon icon="ph:arrow-right-bold" />
+                      </button>
                     </div>
                   </div>
                 )}
