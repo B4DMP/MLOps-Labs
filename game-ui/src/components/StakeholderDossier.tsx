@@ -341,6 +341,7 @@ export default function StakeholderDossier({
   const [stageFilter, setStageFilter] = useState<Set<string> | null>(null);
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
+  const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
@@ -564,13 +565,25 @@ export default function StakeholderDossier({
 
   // A note with no target is never filtered out by stage: it is not on the map, and filtering it
   // away would lose it entirely.
+  /** on record, verified or still unconfirmed: the three states a note can be in. */
+  const confidenceOf = (item: { intel_type?: string; source?: string }): "on_record" | "verified" | "unconfirmed" => {
+    if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
+    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+  };
+
+  const CONF_ORDER: Record<string, number> = { unconfirmed: 0, verified: 1, on_record: 2 };
+
   const visibleChains = (st: StakeholderDossierEntry): IntelChain[] => {
     const needle = search.trim().toLowerCase();
-    return toChains(st.intel_items || []).filter((chain) => {
-      const stage = chain.newest.stage_id;
-      if (stageFilterActive && stage && !selectedStages.has(stage)) return false;
-      return !needle || chainText(chain).includes(needle);
-    });
+    return toChains(st.intel_items || [])
+      .filter((chain) => {
+        const stage = chain.newest.stage_id;
+        if (stageFilterActive && stage && !selectedStages.has(stage)) return false;
+        if (confFilter !== "all" && confidenceOf(chain.newest) !== confFilter) return false;
+        return !needle || chainText(chain).includes(needle);
+      })
+      // Unconfirmed first: those are the ones still worth doing something about.
+      .sort((a, b) => CONF_ORDER[confidenceOf(a.newest)] - CONF_ORDER[confidenceOf(b.newest)]);
   };
 
   const totalPages = effectiveDossierData.length;
@@ -901,6 +914,23 @@ export default function StakeholderDossier({
               onChange={(e) => setSearch(e.target.value)}
             />
           </label>
+          <div className={styles.confFilters}>
+            {([
+              ["all", "All", "Everything you have written down"],
+              ["unconfirmed", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
+              ["verified", "Verified", "You checked these yourself."],
+              ["on_record", "On record", "Said openly to the whole team. Nothing left to confirm."],
+            ] as const).map(([key, label, hint]) => (
+              <button
+                key={key}
+                className={`${styles.confChip} ${confFilter === key ? styles.confChipOn : ""}`}
+                onClick={() => setConfFilter(key)}
+                title={hint}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <button
             className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
             onClick={() => setCollapseAddressed(!collapseAddressed)}

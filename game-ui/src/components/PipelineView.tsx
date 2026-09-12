@@ -548,7 +548,7 @@ function ComponentDetail({ c, onClose }: { c: ComponentData; onClose: () => void
 
 // ── Technical modal for one stage ────────────────────────────────────────────
 
-function StageModal({
+function StageDetail({
   stage,
   technical,
   onClose,
@@ -563,32 +563,12 @@ function StageModal({
   return (
     <div
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.65)",
-        zIndex: 1060,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
+        marginTop: 10,
+        paddingTop: 10,
+        borderTop: "1px solid rgba(255, 255, 255, 0.12)",
       }}
-      onClick={onClose}
     >
-      <div
-        style={{
-          background: "rgba(9, 11, 20, 0.97)",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          borderRadius: 14,
-          padding: "1.25rem 1.5rem",
-          width: "auto",
-          minWidth: 380,
-          maxWidth: "min(860px, 92vw)",
-          maxHeight: "88vh",
-          overflowY: "auto",
-          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.6)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div>
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-2">
           <h5 className="mb-0 text-white">
@@ -606,7 +586,20 @@ function StageModal({
               </span>
             )}
           </h5>
-          <button className="btn-close btn-close-white" onClick={onClose} />
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.2)",
+              borderRadius: 8,
+              color: "#cbd5e1",
+              fontSize: "0.74rem",
+              padding: "3px 10px",
+              cursor: "pointer",
+            }}
+          >
+            ← back to the pipeline
+          </button>
         </div>
 
         {/* Active patterns */}
@@ -787,6 +780,8 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
             borderRadius: 14,
             boxShadow: "0 18px 45px rgba(0, 0, 0, 0.55)",
             padding: "10px 18px 12px",
+            maxHeight: "88vh",
+            overflowY: "auto",
           }}
         >
           <button
@@ -837,8 +832,8 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
                         onClick={() => setSelectedStage(stage.id)}
                         className={!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : undefined}
                         style={{
-                          background: stage.locked ? "#111" : "#16213e",
-                          border: `1px solid ${stage.locked ? "#333" : statusColor(stage.status)}`,
+                          background: selectedStage === stage.id ? "#1e3a5f" : stage.locked ? "#111" : "#16213e",
+                          border: `${selectedStage === stage.id ? 2 : 1}px solid ${stage.locked ? "#333" : statusColor(stage.status)}`,
                           borderRadius: 6,
                           padding: "4px 10px",
                           cursor: stage.locked ? "default" : "pointer",
@@ -929,17 +924,18 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
           ) : (
             <span className="text-secondary" style={{ fontSize: "0.8rem" }}>Loading pipeline…</span>
           )}
+
+          {/* The stage opens inside this panel: one window, not two. */}
+          {openModal && graphState?.technical[openModal.id] && (
+            <StageDetail
+              stage={openModal}
+              technical={graphState.technical[openModal.id]}
+              onClose={() => setSelectedStage(null)}
+            />
+          )}
         </div>
       )}
 
-      {/* Stage modal */}
-      {openModal && graphState?.technical[openModal.id] && (
-        <StageModal
-          stage={openModal}
-          technical={graphState.technical[openModal.id]}
-          onClose={() => setSelectedStage(null)}
-        />
-      )}
     </>
   );
 }

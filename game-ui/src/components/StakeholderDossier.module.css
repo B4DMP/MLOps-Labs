@@ -1780,3 +1780,32 @@
 .environmentTab {
   font-style: italic;
 }
+
+/* Filter the wall by how sure the player is of a note. */
+.confFilters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.confChip {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.confChip:hover {
+  border-color: #0284c7;
+  color: #0f172a;
+}
+
+.confChipOn {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
