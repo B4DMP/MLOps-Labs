@@ -1883,3 +1883,22 @@
 .notePhaseSpine {
   font-size: 0.52rem;
 }
+
+/* The section heading carries the fold control, so the filter strip stays short. */
+.sectionTitleActions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* States are icons: four words of chrome bought two lines of wall. */
+.confChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  font-size: 0.85rem;
+}

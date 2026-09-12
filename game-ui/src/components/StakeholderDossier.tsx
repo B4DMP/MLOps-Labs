@@ -342,6 +342,8 @@ export default function StakeholderDossier({
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
   const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
+  /** The page the player was on before opening the system, so the button toggles back. */
+  const lastPersonPage = useRef(0);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
@@ -587,9 +589,11 @@ export default function StakeholderDossier({
   };
 
   const totalPages = effectiveDossierData.length;
+  const environmentIndex = effectiveDossierData.findIndex((st) => st.is_environment);
 
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
+    if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
     setIsRetaggingConvincer(false);
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
@@ -916,31 +920,22 @@ export default function StakeholderDossier({
           </label>
           <div className={styles.confFilters}>
             {([
-              ["all", "All", "Everything you have written down"],
-              ["unconfirmed", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
-              ["verified", "Verified", "You checked these yourself."],
-              ["on_record", "On record", "Said openly to the whole team. Nothing left to confirm."],
-            ] as const).map(([key, label, hint]) => (
+              ["all", "ph:stack-bold", "All", "Everything you have written down"],
+              ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
+              ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
+              ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
+            ] as const).map(([key, icon, label, hint]) => (
               <button
                 key={key}
                 className={`${styles.confChip} ${confFilter === key ? styles.confChipOn : ""}`}
                 onClick={() => setConfFilter(key)}
-                title={hint}
+                title={`${label}: ${hint}`}
+                aria-label={label}
               >
-                {label}
+                <Icon icon={icon} />
               </button>
             ))}
           </div>
-          <button
-            className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
-            onClick={() => setCollapseAddressed(!collapseAddressed)}
-            title="Fold the notes somebody has already acted on down to one line each"
-          >
-            <Icon
-              icon={collapseAddressed ? "ph:arrows-out-line-vertical-bold" : "ph:arrows-in-line-vertical-bold"}
-            />
-            <span>Collapse done</span>
-          </button>
         </div>
         {hiddenByFilter > 0 && (
           <div className={styles.filterHint}>
@@ -1354,6 +1349,18 @@ export default function StakeholderDossier({
         <div className={styles.sectionTitle}>
           <span className={styles.doodleIcon}></span>{" "}
           {st.is_environment ? "Facts by stage" : "Challenge-Specific Stance"}
+          <span className={styles.sectionTitleActions}>
+          <button
+            className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
+            onClick={() => setCollapseAddressed(!collapseAddressed)}
+            title="Fold the notes somebody has already acted on down to one line each"
+          >
+            <Icon
+              icon={collapseAddressed ? "ph:arrows-out-line-vertical-bold" : "ph:arrows-in-line-vertical-bold"}
+            />
+            <span>Collapse done</span>
+          </button>
+          </span>
         </div>
 
         {renderFilterBar(st, hiddenByFilter)}
@@ -1642,6 +1649,16 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {environmentIndex >= 0 && (
+            <button
+              className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+              onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+              title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+            >
+              <Icon icon="ph:buildings-bold" />
+              <span>System</span>
+            </button>
+          )}
           {onPipelineToggle && (
             <button
               className={`${styles.briefingButton} ${isPipelineOpen ? styles.briefingButtonActive : ""}`}
@@ -1690,24 +1707,8 @@ export default function StakeholderDossier({
       {effectiveDossierData.length > 0 && (
         <div className={styles.tabsContainer}>
           {effectiveDossierData.map((st, idx) => {
-            // The environment is not a person: no face, no mood, no power and interest.
-            if (st.is_environment) {
-              return (
-                <button
-                  key="environment-tab"
-                  ref={idx === currentPageIndex ? activeTabRef : null}
-                  className={`${styles.tabButton} ${idx === currentPageIndex ? styles.activeTab : ""} ${styles.environmentTab}`}
-                  onClick={() => requestPageChange(idx)}
-                  title="What you have worked out about the pipeline itself"
-                  style={{ "--tab-color": "#64748b", "--emotion-color": "#64748b" } as React.CSSProperties}
-                >
-                  <span className={styles.tabName}>🔎 The System</span>
-                  <div className={styles.tabEmotionRow}>
-                    <span className={styles.tabEmotionLabel}>facts</span>
-                  </div>
-                </button>
-              );
-            }
+            // The environment is not a person, so it is not in the tab strip (D45).
+            if (st.is_environment) return null;
             const stColor = getStakeholderColor(st);
             const stObj = stakeholders[st.stakeholder_id];
             const emotion = stObj?.emotional_state || "neutral";
