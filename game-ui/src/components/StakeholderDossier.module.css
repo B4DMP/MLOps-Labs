@@ -315,8 +315,11 @@
     /* Spine shadow fold */
     inset -5px 0 15px rgba(0, 0, 0, 0.05),
     4px 0 10px rgba(0, 0, 0, 0.15);
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
+  /* The frame itself does not scroll: it is a column holding the scrolling wall and, under
+     it, the filter dock, which is how the dock lands on the page edge without sticky. */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   padding: 10px 16px 10px 20px;
   background-color: #f7f4ea;
   background-image:
@@ -326,20 +329,40 @@
       #cbd5e1 21px);
   line-height: 21px;
   color: #26211e;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
   animation: pageTurn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pageBase::-webkit-scrollbar {
+/* The wall of notes scrolls; the page frame and the dock do not. */
+.pageScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* `auto` rather than `scroll`: the gutter is reserved either way, so nothing shifts as
+     the wall grows, but an empty track no longer sits there looking like a control. */
+  overflow-y: auto;
+  /* Notes are rotated a degree or two, which pushes their corners past the column and
+     earns a horizontal scrollbar for a few pixels nobody wants to scroll to. The
+     overhang falls inside the page padding, so clipping it costs nothing. */
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.pageScroll > * {
+  flex: 0 0 auto;
+}
+
+.pageScroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.pageBase::-webkit-scrollbar-track {
+.pageScroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.pageBase::-webkit-scrollbar-thumb {
+.pageScroll::-webkit-scrollbar-thumb {
   background: rgba(60, 45, 35, 0.3);
   border-radius: 4px;
 }
@@ -1931,17 +1954,20 @@
   opacity: 1;
 }
 
-/* The filters live at the foot of the page, above the paper, below the notes. */
+/* The filters live at the foot of the page, above the paper, below the notes.
+   The dock is the page's last column item, outside the scrolling wall, so it lands on
+   the page's bottom edge by itself: no sticky offsets and no negative margins pulling it
+   past padding. z-index outranks a hovered note, because nothing should float over the
+   controls. */
 .filterDock {
-  position: sticky;
-  bottom: -10px;
+  flex: 0 0 auto;
   margin: 8px 0 0;
   padding: 7px 8px 8px;
   border-radius: 8px 8px 0 0;
   background: #f7f4ea;
   border-top: 1px solid rgba(15, 23, 42, 0.12);
   box-shadow: 0 -6px 12px rgba(15, 23, 42, 0.08);
-  z-index: 5;
+  z-index: 200;
 }
 
 .filterDock .filterBar {
@@ -1951,37 +1977,7 @@
   padding: 0;
 }
 
-/* The page is a column so the filter dock can fall to its bottom when the wall
-   is short, and stick there once the wall is long enough to scroll. */
-.pageBase {
-  display: flex;
-  flex-direction: column;
-}
-
-.pageBase > * {
-  flex: 0 0 auto;
-}
-
-.filterDock {
-  margin-top: auto;
-  bottom: 0;
-}
-
-
-/* Nothing hides behind the dock: the wall ends above it. */
+/* The wall ends a little above the dock rather than right against it. */
 .stickyNoteGrid {
   padding-bottom: 6px;
-}
-
-.filterDock {
-  bottom: 0;
-  margin-top: auto;
-}
-
-
-/* The page pads its own bottom, so the dock has to reach past it to sit flush,
-   and it outranks a hovered note: nothing should float over the controls. */
-.filterDock {
-  margin-bottom: -10px;
-  z-index: 200;
 }

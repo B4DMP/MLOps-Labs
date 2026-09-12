@@ -981,6 +981,9 @@ export default function StakeholderDossier({
 
     return (
       <>
+        {/* Only the wall of notes scrolls. The dock below it is a sibling of this
+            box, not an item inside it, so it always ends up on the page's edge. */}
+        <div className={styles.pageScroll}>
         {st.is_environment ? (
           <div className={styles.environmentHeader}>
             <Icon icon="ph:magnifying-glass-bold" className={styles.environmentIcon} />
@@ -1618,8 +1621,10 @@ export default function StakeholderDossier({
           </div>
         )}
 
-        {/* The filter strip sits at the foot of the page and the wall scrolls behind it.
-            Sticky rather than fixed, so it keeps its own space and never covers a note. */}
+        </div>
+
+        {/* The filter strip is the foot of the page: last item in the page column,
+            below the scrolling wall, so it never covers a note. */}
         <div className={styles.filterDock}>{renderFilterBar(st, hiddenByFilter)}</div>
       </>
     );
