@@ -227,6 +227,9 @@ export default function PitchPhase({
   // Cards and conversation live in the dock, opened as a sheet over the work surface,
   // so the card the player is building never moves.
   const [openSheet, setOpenSheet] = useState<"cards" | "chat" | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerQuery, setPickerQuery] = useState("");
+  const [pickerTag, setPickerTag] = useState<IntelTag | "all">("all");
 
   // ── engagement card state (controlled-or-local pattern) ──────────────────
   const [localTokens, setLocalTokens] = useState(8);
@@ -504,6 +507,11 @@ export default function PitchPhase({
   const violatedFor = (stId: string) =>
     state.boundary_warnings.filter((w) => w.violated && w.stakeholder_id === stId);
 
+  const chains = toChains(state.available_items);
+  const chainById: Record<string, PitchChain> = Object.fromEntries(chains.map((c) => [c.newest.id, c]));
+  // What the room has already heard the player say: the same mark the dossier uses.
+  const onRecordIds = new Set(state.card_item_ids);
+
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
   toChains(state.available_items).forEach((chain) => {
     (grouped[chain.newest.type] ||= []).push(chain);
@@ -665,82 +673,72 @@ export default function PitchPhase({
                 {/* ── PREPARE ─────────────────────────────────────────── */}
                 {state.stage === "PREPARE" && (
                   <>
-                    <div className={styles.builderHeader}>
-                      <span className="transparent-div-label mb-0" style={{ fontSize: "0.85rem" }}>
-                        🃏 Build the card
-                      </span>
+                    {/* The card: five slots, always in the same place. Browsing happens in the
+                        picker, so the thing being built never scrolls away. */}
+                    <div className={styles.trayHeader}>
+                      <span className={styles.trayTitle}>Your card</span>
                       <span className={styles.builderHint}>
-                        1–{MAX_CARD_ITEMS} items · click to add, click again (or ×) to remove
+                        {selected.length}/{MAX_CARD_ITEMS} slots · each item is one thing you promise the room
                       </span>
                     </div>
 
-                    {(["boundary", "driver", "trade_off", "fact"] as IntelTag[]).map((tag) =>
-                      (grouped[tag] || []).length === 0 ? null : (
-                        <div key={tag} className={styles.intelGroup}>
-                          <div className={styles.groupLabel}>
-                            {tag === "boundary" ? "Must — lines that must hold"
-                              : tag === "driver" ? "Wants — what they are asking for"
-                              : tag === "trade_off" ? "Concessions — what they would give up"
-                              : "Facts about the system"}
-                          </div>
-                          {grouped[tag].map(({ id: chainId, newest: item, older }) => {
-                            const pick = selected.includes(item.id);
-                            const pred = predictionFor(item.id);
-                            const isVerified = verifiedIds.has(item.id);
-                            return (
-                              <div
-                                key={chainId}
-                                className={`${styles.intelRow} ${pick ? styles.intelRowSlotted : ""}`}
+                    <div className={styles.tray}>
+                      {Array.from({ length: MAX_CARD_ITEMS }, (_, slot) => {
+                        const id = selected[slot];
+                        const chain = id ? chainById[id] : undefined;
+                        if (!chain) {
+                          const isNext = slot === selected.length;
+                          return (
+                            <button
+                              key={`empty-${slot}`}
+                              className={`${styles.slot} ${styles.slotEmpty}`}
+                              onClick={() => setPickerOpen(true)}
+                              title="Add an intel item"
+                            >
+                              <Icon icon="ph:plus-bold" />
+                              {isNext && <span>Add intel</span>}
+                            </button>
+                          );
+                        }
+                        const item = chain.newest;
+                        const pred = predictionFor(item.id);
+                        return (
+                          <div key={item.id} className={`${styles.slot} ${styles.slotFilled}`}>
+                            <div className={styles.slotTop}>
+                              <span className={`${styles.tagPill} ${TAG_CLASS[item.type]}`}>
+                                {intelTagMeta(item.type).shortLabel}
+                              </span>
+                              <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
+                              {onRecordIds.has(item.id)
+                                ? <span className={styles.onRecordBadge}>★ on record</span>
+                                : verifiedIds.has(item.id)
+                                  ? <span className={styles.verifiedBadge}>✓ verified</span>
+                                  : <span className={styles.unconfirmedBadge}>? unconfirmed</span>}
+                              <button
+                                className={styles.removeBtn}
                                 onClick={() => toggleItem(item.id)}
+                                title="Take this out of the card"
                               >
-                                <span className={`${styles.tagPill} ${TAG_CLASS[item.type]}`}>
-                                  {intelTagMeta(item.type).shortLabel}
-                                </span>
-                                <div className={styles.intelMain}>
-                                  <div className={styles.intelMeta}>
-                                    <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
-                                    {isVerified
-                                      ? <span className={styles.verifiedBadge}>✓ verified</span>
-                                      : <span className={styles.unconfirmedBadge}>? unconfirmed</span>}
-                                  </div>
-                                  <span className={styles.intelDesc}>
-                                    {item.description}
-                                    {older.length > 0 && (
-                                      <span className={styles.chainOlder}>
-                                        {older.map((link) => (
-                                          <span key={link.id} className={styles.chainLayer}>{link.description}</span>
-                                        ))}
-                                      </span>
-                                    )}
-                                  </span>
-                                  {pick && pred && (
-                                    <span className={styles.predictionLabel}>
-                                      {pred.predicted === null || pred.predicted === undefined
-                                        ? "effect unknown — you haven't looked at this yet"
-                                        : `lands at ${LEVEL_LABELS[pred.predicted]}${pred.asked !== null && pred.asked !== undefined && pred.predicted < pred.asked ? ` (capped by ${pred.capped_by})` : ""}`}
-                                    </span>
-                                  )}
-                                </div>
-                                {older.length > 0 && (
-                                  <span className={styles.chainDepth} title="Sharpened intel — takes one slot.">
-                                    +{older.length}
-                                  </span>
-                                )}
-                                {pick && (
-                                  <button
-                                    className={styles.removeBtn}
-                                    onClick={(e) => { e.stopPropagation(); toggleItem(item.id); }}
-                                    title="Remove from card"
-                                  >
-                                    <Icon icon="ph:x-bold" />
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ),
-                    )}
+                                <Icon icon="ph:x-bold" />
+                              </button>
+                            </div>
+                            <span className={styles.slotDesc}>{item.description}</span>
+                            {chain.older.length > 0 && (
+                              <span className={styles.chainDepth} title="Sharpened intel: still one slot.">
+                                +{chain.older.length} earlier
+                              </span>
+                            )}
+                            {pred && (
+                              <span className={styles.predictionLabel}>
+                                {pred.predicted === null || pred.predicted === undefined
+                                  ? "effect unknown, you have not looked at this yet"
+                                  : `lands at ${LEVEL_LABELS[pred.predicted]}${pred.asked !== null && pred.asked !== undefined && pred.predicted < pred.asked ? ` (capped by ${pred.capped_by})` : ""}`}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
 
                     {/* Convincer framing */}
                     <div className={styles.convincerSection}>
@@ -988,11 +986,7 @@ export default function PitchPhase({
                   <span className={styles.dockMeta}>{chatMsgsState.length}</span>
                 </button>
                 <span className={styles.dockMeta}>{state.available_items.length} intel found</span>
-              </div>
-              </div>
-
-              {/* Footer */}
-              <div className={styles.footer}>
+                <span className={styles.dockActions}>
                 {state.stage === "PREPARE" && (
                   <>
                     <button className={styles.btnSecondary} onClick={saveCard} disabled={selected.length === 0}>
@@ -1017,11 +1011,107 @@ export default function PitchPhase({
                     Continue <Icon icon="ph:arrow-right-bold" />
                   </button>
                 )}
+                </span>
               </div>
+              </div>
+
             </div>
           </div>
         </div>
       </div>
+
+      {pickerOpen && (
+        <div className={styles.pickerBackdrop} onClick={() => setPickerOpen(false)}>
+          <div className={styles.picker} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.pickerHeader}>
+              <span className={styles.trayTitle}>Pick intel</span>
+              <span className={styles.builderHint}>
+                {MAX_CARD_ITEMS - selected.length} slot{MAX_CARD_ITEMS - selected.length === 1 ? "" : "s"} left
+              </span>
+              <button className="btn-close btn-close-white ms-auto" onClick={() => setPickerOpen(false)} aria-label="Close" />
+            </div>
+
+            <div className={styles.pickerFilters}>
+              <input
+                className={styles.pickerSearch}
+                placeholder="Search your intel"
+                value={pickerQuery}
+                onChange={(e) => setPickerQuery(e.target.value)}
+                autoFocus
+              />
+              {(["all", "boundary", "driver", "trade_off", "fact"] as const).map((tag) => (
+                <button
+                  key={tag}
+                  className={`${styles.filterChip} ${pickerTag === tag ? styles.filterChipActive : ""}`}
+                  onClick={() => setPickerTag(tag)}
+                >
+                  {tag === "all" ? "All" : intelTagMeta(tag).label}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.pickerList}>
+              {chains
+                .filter((chain) => pickerTag === "all" || chain.newest.type === pickerTag)
+                .filter((chain) => {
+                  const q = pickerQuery.trim().toLowerCase();
+                  if (!q) return true;
+                  return (
+                    chain.newest.description.toLowerCase().includes(q) ||
+                    stakeholderName(chain.newest.stakeholder_id).toLowerCase().includes(q)
+                  );
+                })
+                .map((chain) => {
+                  const item = chain.newest;
+                  const pick = selected.includes(item.id);
+                  const full = selected.length >= MAX_CARD_ITEMS && !pick;
+                  const pred = predictionFor(item.id);
+                  return (
+                    <div
+                      key={chain.id}
+                      className={`${styles.intelRow} ${pick ? styles.intelRowSlotted : ""} ${full ? styles.intelRowFull : ""}`}
+                      onClick={() => { if (!full) toggleItem(item.id); }}
+                      title={full ? "The card is full: take something out first" : undefined}
+                    >
+                      <span className={`${styles.tagPill} ${TAG_CLASS[item.type]}`}>
+                        {intelTagMeta(item.type).shortLabel}
+                      </span>
+                      <div className={styles.intelMain}>
+                        <div className={styles.intelMeta}>
+                          <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
+                          {onRecordIds.has(item.id)
+                            ? <span className={styles.onRecordBadge}>★ on record</span>
+                            : verifiedIds.has(item.id)
+                              ? <span className={styles.verifiedBadge}>✓ verified</span>
+                              : <span className={styles.unconfirmedBadge}>? unconfirmed</span>}
+                          {chain.older.length > 0 && (
+                            <span className={styles.chainDepth}>+{chain.older.length} earlier</span>
+                          )}
+                        </div>
+                        <span className={styles.intelDesc}>{item.description}</span>
+                        {pred && pred.predicted !== null && pred.predicted !== undefined && (
+                          <span className={styles.predictionLabel}>
+                            lands at {LEVEL_LABELS[pred.predicted]}
+                            {pred.asked !== null && pred.asked !== undefined && pred.predicted < pred.asked
+                              ? ` (capped by ${pred.capped_by})`
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                      {pick && <Icon icon="ph:check-circle-fill" className={styles.pickedIcon} />}
+                    </div>
+                  );
+                })}
+            </div>
+
+            <div className={styles.pickerFooter}>
+              <button className={styles.btnPrimary} onClick={() => setPickerOpen(false)}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {playingCard && (
