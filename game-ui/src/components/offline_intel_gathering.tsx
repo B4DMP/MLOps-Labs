@@ -633,7 +633,7 @@ export default function OfflineIntelGathering({
                               <span className={styles.conflictNote}>
                                 <Icon icon="ph:lightning-fill" className={styles.conflictNoteIcon} />
                                 {hasSeenConflictPartner
-                                  ? `That's the opposite of what ${conflictPartner.stakeholder_name} just said. Working out that clash is the job.`
+                                  ? `That's different than what ${conflictPartner.stakeholder_name} just said. Working out that clash is the job.`
                                   : `${conflictPartner.stakeholder_name} sees it differently, and you'll read their side next.`}
                               </span>
                             )}
