@@ -38,6 +38,7 @@ services:
       - ./gameConfigUISchemas:/gameConfigUISchemas
       - ./game-api/src/mlops_serious_game:/app/mlops_serious_game
       - ./game-api/tools:/app/tools
+      - ./game-api/tests:/app/tests
       - ./game-api/data:/app/data
       - ./game-api/alembic:/app/alembic
       - ./game-api/alembic.ini:/app/alembic.ini
