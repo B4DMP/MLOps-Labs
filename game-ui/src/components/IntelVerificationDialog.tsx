@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
-import styles from "./online_intel_gathering.module.css";
+import styles from "./IntelVerificationDialog.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
 import { intelTagLabel } from "../types/IntelTag";
