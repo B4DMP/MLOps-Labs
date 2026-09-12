@@ -174,6 +174,14 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
             {**o.model_dump(), "text": personalize(o.text), "options": options.get(o.id, [])}
             for o in state.open_objections()
         ],
+        # Readiness: how much of this challenge's intel the player has actually pinned down.
+        # Pitching on almost nothing is how players learn nothing, so the screen gates it.
+        "intel_total": len([r for r in ctx.all_intel if r.stakeholder_id]),
+        "intel_verified": len([
+            i for i in held
+            if getattr(i, "challenge_id", None) == ctx.challenge_id
+            and str(getattr(getattr(i, "intel_type", None), "value", getattr(i, "intel_type", ""))) == "verified"
+        ]),
         "amendments_left": state.amendments_left,
         "escalation_points": ctx.points,
         "patience": state.patience,

@@ -27,6 +27,11 @@ import GlossaryText from "./glossary/GlossaryText";
 
 const MAX_CARD_ITEMS = 5;
 
+/** How much of this challenge's intel has to be pinned down before a pitch is worth making.
+ *  Below the first threshold the room would only hear guesses, so the pitch is held back. */
+const READY_YELLOW = 0.35;
+const READY_GREEN = 0.6;
+
 type ObjectionKind = "boundary" | "technical" | "stance" | "price" | "correction";
 type OptionName = "amend" | "reframe" | "stonewall" | "emergency_addendum" | "concede_correction";
 
@@ -116,6 +121,8 @@ interface PitchStatePayload {
   reads: StakeholderRead[];
   predicted_outcome: "PASS" | "SOFT_PASS" | "VETO";
   objections: PitchObjection[];
+  intel_total?: number;
+  intel_verified?: number;
   amendments_left: number;
   escalation_points: number;
   patience: Record<string, number>;
@@ -553,6 +560,20 @@ export default function PitchPhase({
   // What the room has already heard the player say: the same mark the dossier uses.
   const onRecordIds = new Set(state.card_item_ids);
 
+  // Readiness: verified intel for this challenge against what there is to find.
+  const intelTotal = state.intel_total ?? 0;
+  const intelVerified = state.intel_verified ?? 0;
+  const readyRatio = intelTotal > 0 ? intelVerified / intelTotal : 1;
+  const readiness: "red" | "yellow" | "green" =
+    readyRatio >= READY_GREEN ? "green" : readyRatio >= READY_YELLOW ? "yellow" : "red";
+  const readinessText =
+    readiness === "green"
+      ? "You know enough to make a case."
+      : readiness === "yellow"
+        ? "Thin. You can pitch, but expect to be caught out."
+        : "Too little verified intel to pitch. Read artifacts and play engagement cards first.";
+  const canPitch = selected.length > 0 && readiness !== "red";
+
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
   toChains(state.available_items).forEach((chain) => {
     (grouped[chain.newest.type] ||= []).push(chain);
@@ -607,15 +628,6 @@ export default function PitchPhase({
                   challengeAmount={challengeAmount}
                   is_minimized
                 />
-                <div className={styles.headerMeta}>
-                  <span className={`${styles.slotCount} ${selected.length >= MAX_CARD_ITEMS ? styles.atMax : ""}`}>
-                    {selected.length}/{MAX_CARD_ITEMS} slots
-                  </span>
-                  <span className={styles.slotCount}>{state.escalation_points} escalation points</span>
-                  {state.stage === "OBJECT" && (
-                    <span className={styles.slotCount}>{state.amendments_left} amendments left</span>
-                  )}
-                </div>
               </div>
 
               {state.error && <div className={styles.errorBanner}>{state.error}</div>}
@@ -668,7 +680,9 @@ export default function PitchPhase({
                           style={{ color: stColor, borderColor: stColor }}
                         >
                           {st?.name || read.stakeholder_id}
-                          {read.power === "high" && <span className={styles.discussionStar}> ★</span>}
+                          {read.power === "high" && (
+                            <Icon icon="ph:lightning-fill" className={styles.powerBolt} title="High power" />
+                          )}
                         </span>
                       </button>
 
@@ -714,10 +728,8 @@ export default function PitchPhase({
                         className={`${styles.step} ${active ? styles.stepActive : done ? styles.stepDone : styles.stepPending}`}
                       >
                         <span className={styles.stepNum}>{done ? <Icon icon="ph:check-bold" /> : i + 1}</span>
-                        <span className={styles.stepText}>
-                          <span className={styles.stepLabel}>{step.label}</span>
-                          {active && <span className={styles.stepHint}>{step.hint}</span>}
-                        </span>
+                        <span className={styles.stepLabel}>{step.label}</span>
+                        {active && <span className={styles.stepHint}>{step.hint}</span>}
                       </div>
                     );
                   })}
@@ -982,57 +994,116 @@ export default function PitchPhase({
 
                 {/* ── COMMIT / DONE ────────────────────────────────────── */}
                 {(state.stage === "COMMIT" || state.stage === "DONE") && (
-                  <div className={`${styles.outcomeCard} ${styles[`out${state.outcome}`] || ""}`}>
-                    <div className={styles.outcomeLabel}>
-                      {state.stalemate ? "STALEMATE" : state.outcome}
-                    </div>
-                    <div className={styles.outcomeDesc}>
-                      {state.stalemate
-                        ? "Nobody moved. The change does not happen and the world moves on without you."
-                        : state.outcome === "PASS"
-                          ? "The room is behind the card. It goes in as pitched."
-                          : state.outcome === "SOFT_PASS"
-                            ? "It goes in, but the people you skipped will remember it."
-                            : state.outcome === "CONCEDED"
-                              ? "You dropped your card. The opposing side's position applies instead, and the people you gave up on will remember it."
-                              : "Blocked. Push it through with an Escalation Point, or rebuild the card."}
+                  <div className={styles.outcomeWrap}>
+                    <div className={`${styles.outcomeBanner} ${styles[`out${state.stalemate ? "STALEMATE" : state.outcome}`] || ""}`}>
+                      <Icon
+                        icon={
+                          state.stalemate ? "ph:hand-palm-bold"
+                            : state.outcome === "PASS" ? "ph:check-circle-fill"
+                            : state.outcome === "SOFT_PASS" ? "ph:warning-circle-fill"
+                            : state.outcome === "CONCEDED" ? "ph:handshake-bold"
+                            : "ph:prohibit-bold"
+                        }
+                        className={styles.outcomeIcon}
+                      />
+                      <div>
+                        <div className={styles.outcomeLabel}>
+                          {state.stalemate ? "Stalemate"
+                            : state.outcome === "PASS" ? "Agreed"
+                            : state.outcome === "SOFT_PASS" ? "Agreed, with a cost"
+                            : state.outcome === "CONCEDED" ? "You let them have it"
+                            : "Blocked"}
+                        </div>
+                        <div className={styles.outcomeDesc}>
+                          {state.stalemate
+                            ? "Nobody moved. Your change does not happen and the world carries on without you."
+                            : state.outcome === "PASS"
+                              ? "The room is behind the card. It goes in as pitched."
+                              : state.outcome === "SOFT_PASS"
+                                ? "It goes in, but the people you passed over will remember it."
+                                : state.outcome === "CONCEDED"
+                                  ? "Your card is off the table. The other side's position is what gets built."
+                                  : "Someone with the power to stop this used it. Push it through, rebuild the card, or let them have it."}
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Buy-in breakdown */}
+                    <div className={styles.groupLabel}>Where the room stands</div>
                     <div className={styles.buyInList}>
-                      {state.reads.map((read) => (
-                        <div key={read.stakeholder_id} className={styles.buyInRow}>
-                          <span className={styles.buyInSt}>{stakeholderName(read.stakeholder_id)}{read.power === "high" && " ★"}</span>
-                          <span className={styles.buyInBarWrap}>
-                            <span
-                              className={styles.buyInBar}
-                              style={{
-                                width: `${Math.round((read.buy_in ?? (read.band === "green" ? 0.75 : read.band === "amber" ? 0.5 : 0.2)) * 100)}%`,
-                                background: read.band === "green" ? "#22c55e" : read.band === "amber" ? "#f59e0b" : "#ef4444",
-                                opacity: read.buy_in === null ? 0.45 : 1,
-                              }}
+                      {state.reads.map((read) => {
+                        const st = stakeholders[read.stakeholder_id];
+                        const pct = Math.round((read.buy_in ?? (read.band === "green" ? 0.75 : read.band === "amber" ? 0.5 : 0.2)) * 100);
+                        const why = read.boundary_violated
+                          ? "a line of theirs is crossed"
+                          : read.coverage >= 0.99
+                            ? "everything they asked for is in the card"
+                            : read.loss > 0
+                              ? "they lose something and get nothing back"
+                              : read.coverage <= 0.01
+                                ? "nothing they asked for is in the card"
+                                : "only part of what they asked for is in the card";
+                        return (
+                          <div key={read.stakeholder_id} className={styles.buyInRow}>
+                            <StakeholderAvatarComponent
+                              avatar={st?.avatar}
+                              size={34}
+                              isFramed={false}
+                              stakeholderColor={st?.stakeholder_color || "#38bdf8"}
                             />
-                          </span>
-                          <span className={styles.buyInVal}>{read.buy_in === null ? read.band : Math.round(read.buy_in * 100)}</span>
-                          {read.boundary_violated && <Icon icon="ph:prohibit-bold" color="#ef4444" />}
-                        </div>
-                      ))}
+                            <span className={styles.buyInSt}>
+                              {stakeholderName(read.stakeholder_id)}
+                              {read.power === "high" && <Icon icon="ph:lightning-fill" className={styles.powerBolt} title="High power" />}
+                            </span>
+                            <span className={styles.buyInBarWrap}>
+                              <span
+                                className={styles.buyInBar}
+                                style={{
+                                  width: `${pct}%`,
+                                  background: read.band === "green" ? "#22c55e" : read.band === "amber" ? "#f59e0b" : "#ef4444",
+                                  opacity: read.buy_in === null ? 0.45 : 1,
+                                }}
+                              />
+                            </span>
+                            <span className={styles.buyInVal}>
+                              {read.buy_in === null ? read.band : `${pct}%`}
+                            </span>
+                            <span className={styles.buyInWhy}>{why}</span>
+                          </div>
+                        );
+                      })}
                     </div>
+                    {state.reads.some((r) => r.buy_in === null) && (
+                      <div className={styles.builderHint}>
+                        A band instead of a number means you have not worked out how to talk to them yet.
+                      </div>
+                    )}
 
                     {state.outcome === "VETO" && !state.stalemate && (
-                      <div className={styles.objNav} style={{ justifyContent: "center" }}>
-                        <button className={styles.btnDanger} disabled={state.escalation_points <= 0} onClick={() => emit("pitch:veto_breaker", base)}
-                          title={state.escalation_points <= 0 ? "No Escalation Points left" : undefined}>
-                          Veto Breaker (1 EP)
+                      <div className={styles.outcomeChoices}>
+                        <button
+                          className={styles.choiceCard}
+                          disabled={state.escalation_points <= 0}
+                          onClick={() => emit("pitch:veto_breaker", base)}
+                        >
+                          <span className={styles.choiceTitle}><Icon icon="ph:lightning-bold" className="me-1" />Push it through</span>
+                          <span className={styles.choiceCost}>1 escalation point, {state.escalation_points} left</span>
+                          <span className={styles.choiceEffect}>It gets built. They will not forget being overruled.</span>
                         </button>
-                        <button className={styles.btnSecondary} onClick={() => emit("pitch:rebuild", base)}>Rebuild the card</button>
-                        <button className={styles.btnSecondary} onClick={() => emit("pitch:concede", base)}>Let them have it</button>
+                        <button className={styles.choiceCard} onClick={() => emit("pitch:rebuild", base)}>
+                          <span className={styles.choiceTitle}><Icon icon="ph:arrows-clockwise-bold" className="me-1" />Rebuild the card</span>
+                          <span className={styles.choiceCost}>costs the room one patience</span>
+                          <span className={styles.choiceEffect}>Back to building. The new card has to be properly different.</span>
+                        </button>
+                        <button className={styles.choiceCard} onClick={() => emit("pitch:concede", base)}>
+                          <span className={styles.choiceTitle}><Icon icon="ph:handshake-bold" className="me-1" />Let them have it</span>
+                          <span className={styles.choiceCost}>free</span>
+                          <span className={styles.choiceEffect}>Their position gets built instead of yours.</span>
+                        </button>
                       </div>
                     )}
                   </div>
                 )}
               </div>
-
               {/* Dock: cards and conversation, pinned under the work surface */}
               <div className={styles.dockZone}>
               {openSheet === "cards" && cards.length > 0 && (
@@ -1091,55 +1162,100 @@ export default function PitchPhase({
                 </div>
               )}
 
-              {/* Dock */}
+              {/* Dock: the hand and the conversation are visible, not hidden behind a word. */}
               <div className={styles.dock}>
-                {cards.length > 0 && (
+                <div className={styles.dockRow}>
+                  {cards.length > 0 && (
+                    <div className={styles.hand}>
+                      {cards.slice(0, 5).map((card) => {
+                        const exhausted =
+                          (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
+                          playedIds.includes(card.id);
+                        const tooExpensive = tokens < card.token_cost;
+                        const off = exhausted || tooExpensive || state.stage !== "PREPARE" || isWaiting;
+                        return (
+                          <button
+                            key={card.id}
+                            className={`${styles.miniCard} ${off ? styles.miniCardOff : ""}`}
+                            onClick={() => !off && handleSelectEngagementCard(card)}
+                            title={
+                              exhausted ? `${card.title}: already played this phase`
+                                : tooExpensive ? `${card.title}: costs ${card.token_cost} tokens, you have ${tokens}`
+                                : `${card.title} · ${card.description}`
+                            }
+                          >
+                            <span className={styles.miniCardIcon}>{card.icon}</span>
+                            <span className={styles.miniCardTitle}>{card.title}</span>
+                            <span className={styles.miniCardCost}>{card.token_cost}</span>
+                          </button>
+                        );
+                      })}
+                      <button className={styles.dockMore} onClick={() => setOpenSheet(openSheet === "cards" ? null : "cards")}>
+                        {cards.length > 5 ? `+${cards.length - 5} more` : "All cards"}
+                      </button>
+                      <span className={styles.dockMeta}>{tokens} tokens</span>
+                    </div>
+                  )}
+
                   <button
-                    className={`${styles.dockBtn} ${openSheet === "cards" ? styles.dockBtnActive : ""}`}
-                    onClick={() => setOpenSheet((prev) => (prev === "cards" ? null : "cards"))}
-                    disabled={state.stage !== "PREPARE"}
-                    title={state.stage === "PREPARE" ? "Play an engagement card" : "Only while preparing"}
+                    className={`${styles.chatPeek} ${openSheet === "chat" ? styles.dockBtnActive : ""}`}
+                    onClick={() => setOpenSheet((prev) => (prev === "chat" ? null : "chat"))}
+                    title="Open the conversation"
                   >
-                    <Icon icon="ph:cards-bold" />
-                    Cards
-                    <span className={styles.dockMeta}>{tokens} tokens</span>
+                    <Icon icon="ph:chat-circle-text-bold" />
+                    <span className={styles.chatPeekText}>
+                      {chatMsgsState.length === 0
+                        ? "Nobody has said anything yet"
+                        : chatMsgsState[chatMsgsState.length - 1].message}
+                    </span>
+                    <span className={styles.dockMeta}>{chatMsgsState.length}</span>
                   </button>
-                )}
-                <button
-                  className={`${styles.dockBtn} ${openSheet === "chat" ? styles.dockBtnActive : ""}`}
-                  onClick={() => setOpenSheet((prev) => (prev === "chat" ? null : "chat"))}
-                >
-                  <Icon icon="ph:chat-circle-text-bold" />
-                  Conversation
-                  <span className={styles.dockMeta}>{chatMsgsState.length}</span>
-                </button>
-                <span className={styles.dockMeta}>{state.available_items.length} intel found</span>
-                <span className={styles.dockActions}>
-                {state.stage === "PREPARE" && (
-                  <>
-                    <button className={styles.btnSecondary} onClick={saveCard} disabled={selected.length === 0}>
-                      Save card
-                    </button>
-                    <button className={styles.btnPrimary} onClick={startObjections} disabled={selected.length === 0}>
-                      <Icon icon="ph:paper-plane-tilt-bold" />Pitch it
-                    </button>
-                  </>
-                )}
-                {state.stage === "OBJECT" && (
-                  <button
-                    className={styles.btnPrimary}
-                    onClick={() => emit("pitch:commit", base)}
-                    disabled={state.objections.length > 0 && current !== undefined && violatedFor(current.stakeholder_id).length > 0}
-                  >
-                    <Icon icon="ph:check-bold" />Commit the card
-                  </button>
-                )}
-                {(state.stage === "DONE" || state.stalemate) && (
-                  <button className={styles.btnPrimary} onClick={() => onEndPitch?.(state.outcome === "PASS" || state.outcome === "SOFT_PASS")}>
-                    Continue <Icon icon="ph:arrow-right-bold" />
-                  </button>
-                )}
-                </span>
+                </div>
+
+                <div className={styles.dockRow}>
+                  <span className={`${styles.readiness} ${styles[`ready${readiness}`]}`} title={readinessText}>
+                    <span className={styles.readyDot} />
+                    {intelVerified}/{intelTotal} verified
+                  </span>
+                  <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
+                  <span className={styles.dockMeta}>{state.escalation_points} EP</span>
+                  {state.stage === "OBJECT" && (
+                    <span className={styles.dockMeta}>{state.amendments_left} amendments left</span>
+                  )}
+                  <span className={styles.readyHint}>{readinessText}</span>
+
+                  <span className={styles.dockActions}>
+                    {state.stage === "PREPARE" && (
+                      <>
+                        <button className={styles.btnSecondary} onClick={saveCard} disabled={selected.length === 0}>
+                          Save card
+                        </button>
+                        <button
+                          className={styles.btnPrimary}
+                          onClick={startObjections}
+                          disabled={!canPitch}
+                          title={readiness === "red" ? readinessText : undefined}
+                        >
+                          <Icon icon="ph:paper-plane-tilt-bold" />Pitch it
+                        </button>
+                      </>
+                    )}
+                    {state.stage === "OBJECT" && (
+                      <button
+                        className={styles.btnPrimary}
+                        onClick={() => emit("pitch:commit", base)}
+                        disabled={state.objections.length > 0 && current !== undefined && violatedFor(current.stakeholder_id).length > 0}
+                      >
+                        <Icon icon="ph:check-bold" />Commit the card
+                      </button>
+                    )}
+                    {(state.stage === "DONE" || state.stalemate) && (
+                      <button className={styles.btnPrimary} onClick={() => onEndPitch?.(state.outcome === "PASS" || state.outcome === "SOFT_PASS")}>
+                        Continue <Icon icon="ph:arrow-right-bold" />
+                      </button>
+                    )}
+                  </span>
+                </div>
               </div>
               </div>
 
