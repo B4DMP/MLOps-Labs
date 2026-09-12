@@ -230,11 +230,44 @@ function FeedbackArcs({
 
 // ── SVG topology for one stage ────────────────────────────────────────────────
 
-const BOX_W = 110;
-const BOX_H = 40;
+const BOX_W = 132;
+const BOX_H = 52;
+
+/** Where a line between two boxes should start and stop, so arrows touch borders. */
+function edgeEnds(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const halfW = BOX_W / 2 + 4;
+  const halfH = BOX_H / 2 + 4;
+  const scale = (w: number, h: number) => {
+    const sx = dx === 0 ? Infinity : Math.abs(w / dx);
+    const sy = dy === 0 ? Infinity : Math.abs(h / dy);
+    return Math.min(sx, sy);
+  };
+  const s1 = scale(halfW, halfH);
+  const s2 = scale(halfW, halfH);
+  return [x1 + dx * s1, y1 + dy * s1, x2 - dx * s2, y2 - dy * s2];
+}
+
+/** Two lines of label beat an ellipsis: the player needs the name. */
+function wrapLabel(name: string, max: number): string[] {
+  const words = name.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  words.forEach((w) => {
+    if ((current + " " + w).trim().length <= max) {
+      current = (current + " " + w).trim();
+    } else {
+      if (current) lines.push(current);
+      current = w;
+    }
+  });
+  if (current) lines.push(current);
+  return lines.slice(0, 2);
+}
 
 function nodeColor(c: ComponentData): string {
-  if (c.knowledge === "unknown") return "#1a1a1a";
+  if (c.knowledge === "unknown") return "#12161f";
   const eff = c.effective ?? c.nominal ?? 1;
   if (eff === 0) return "#3a0a0a";
   if (c.knowledge === "stale") return "#1a1830";
@@ -282,8 +315,8 @@ function StageSvg({
         if (!from?.layout || !to?.layout) return null;
         const x1 = from.layout.x;
         const y1 = from.layout.y;
-        const x2 = to.layout.x;
-        const y2 = to.layout.y;
+        const [ax, ay, bx, by] = edgeEnds(from.layout.x, from.layout.y, to.layout.x, to.layout.y);
+        const x1b = ax, y1b = ay, x2b = bx, y2b = by;
         const known = e.knowledge !== "unknown";
         const color = known ? (e.level === 0 ? "#dc3545" : e.level && e.level >= 3 ? "#198754" : "#fd7e14") : "#444";
         return (
@@ -294,14 +327,14 @@ function StageSvg({
               </marker>
             </defs>
             <line
-              x1={x1} y1={y1} x2={x2} y2={y2}
+              x1={x1b} y1={y1b} x2={x2b} y2={y2b}
               stroke={color}
               strokeWidth={1.5}
               strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
               markerEnd={`url(#arr-${e.id})`}
             />
             {known && e.trigger && e.trigger !== "none" && (
-              <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 4} fill={color} fontSize={10} textAnchor="middle">
+              <text x={(x1b + x2b) / 2} y={(y1b + y2b) / 2 - 4} fill={color} fontSize={10} textAnchor="middle">
                 {TRIGGER_ICONS[e.trigger] ?? ""}
               </text>
             )}
@@ -316,24 +349,37 @@ function StageSvg({
         const bg = nodeColor(c);
         const border = nodeBorder(c);
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
-        const label = c.knowledge === "unknown"
-          ? (rawName.length > 14 ? rawName.slice(0, 13) + "…" : rawName)
-          : c.name.length > 14 ? c.name.slice(0, 13) + "…" : c.name;
+        const lines = wrapLabel(rawName, 16);
         return (
           <g
             key={c.id}
             transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
             style={{ cursor: "pointer" }}
             onClick={() => onSelectComponent(c.id)}
-            opacity={c.knowledge === "stale" ? 0.65 : c.knowledge === "unknown" ? 0.45 : 1}
+            opacity={c.knowledge === "stale" ? 0.8 : 1}
           >
             <rect width={BOX_W} height={BOX_H} rx={5} fill={bg} stroke={border} strokeWidth={1.5}
               strokeDasharray={c.knowledge === "unknown" ? "4 3" : undefined} />
-            <text x={BOX_W / 2} y={14} fill={c.knowledge === "unknown" ? "#666" : "#ddd"} fontSize={9} textAnchor="middle" fontWeight="600">
-              {label}
-            </text>
+            {lines.map((line, i) => (
+              <text
+                key={i}
+                x={BOX_W / 2}
+                y={14 + i * 11}
+                fill={c.knowledge === "unknown" ? "#8b93a7" : "#e8edf7"}
+                fontSize={9.5}
+                textAnchor="middle"
+                fontWeight="600"
+              >
+                {line}
+              </text>
+            ))}
+            {c.knowledge === "unknown" && (
+              <text x={BOX_W / 2} y={BOX_H - 8} fill="#6b7280" fontSize={8} textAnchor="middle">
+                not looked at yet
+              </text>
+            )}
             {c.knowledge !== "unknown" && c.nominal !== undefined && (
-              <g transform={`translate(${BOX_W / 2 - 22}, 22)`}>
+              <g transform={`translate(${BOX_W / 2 - 22}, ${BOX_H - 14})`}>
                 {Array.from({ length: 5 }, (_, i) => {
                   const filled = i <= c.nominal!;
                   const capped = c.effective !== undefined && i > c.effective && filled;

@@ -7,7 +7,7 @@
  * stage content, and footer actions.
  */
 
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 
 import { StakeholderContext } from "./StakeholderProvider";
@@ -277,6 +277,8 @@ export default function PitchPhase({
   // not a button in a bar. Server side it is still PREPARE.
   const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
   const [chatOpen, setChatOpen] = useState(false);
+  const seatRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [bubbleAt, setBubbleAt] = useState<{ x: number; y: number } | null>(null);
   const [framingOpen, setFramingOpen] = useState(false);
   const [pickerQuery, setPickerQuery] = useState("");
   const [pickerTag, setPickerTag] = useState<IntelTag | "all">("all");
@@ -352,6 +354,18 @@ export default function PitchPhase({
   };
 
   const pendingSpeech = speechQueue.current.length;
+
+  // The bubble is drawn in a fixed layer, so a long line can never widen a seat,
+  // shift the room, or slide under the dossier.
+  useLayoutEffect(() => {
+    const seat = speaking?.stakeholderId ? seatRefs.current[speaking.stakeholderId] : null;
+    if (!seat) {
+      setBubbleAt(null);
+      return;
+    }
+    const r = seat.getBoundingClientRect();
+    setBubbleAt({ x: r.left + r.width / 2, y: r.bottom + 8 });
+  }, [speaking]);
 
   useEffect(() => () => clearSpeechTimers(), []);
 
@@ -580,6 +594,17 @@ export default function PitchPhase({
       : "Play engagement cards, then verify what they turn up.";
   const canPitch = selected.length > 0 && readiness !== "red";
 
+  // Facing the room is measured in objections, not in intel.
+  const hardLeft = state.objections.filter((o) => o.hard).length;
+  const objectionText =
+    state.objections.length === 0 ? "Nobody is objecting."
+      : hardLeft > 0 ? `${hardLeft} objection${hardLeft === 1 ? "" : "s"} will block this.`
+      : `${state.objections.length} objection${state.objections.length === 1 ? "" : "s"} still standing.`;
+  const objectionHint =
+    state.objections.length === 0 ? "Commit whenever you are ready."
+      : hardLeft > 0 ? "Amend with intel that answers them, or push it through later."
+      : "You can commit with these open, they cost buy-in.";
+
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
   toChains(state.available_items).forEach((chain) => {
     (grouped[chain.newest.type] ||= []).push(chain);
@@ -648,16 +673,12 @@ export default function PitchPhase({
                   const stColor = st?.stakeholder_color || "#38bdf8";
                   const isSpeaking = speaking?.stakeholderId === read.stakeholder_id;
                   const isActive = activeSt === read.stakeholder_id;
-                  // Seats at either end bias their bubble inward so it stays inside the panel.
-                  const side =
-                    seatIndex === 0 ? styles.speechBubbleLeft
-                      : seatIndex === state.reads.length - 1 ? styles.speechBubbleRight
-                      : "";
                   // The outer seats sit slightly lower, which reads as a table edge curving away.
                   const outer = seatIndex === 0 || seatIndex === state.reads.length - 1;
                   return (
                     <div
                       key={read.stakeholder_id}
+                      ref={(el) => { seatRefs.current[read.stakeholder_id] = el; }}
                       className={`${styles.seat} ${outer ? styles.seatOuter : ""} ${isSpeaking ? styles.seatSpeaking : ""}`}
                       style={{ ["--st-color" as string]: stColor } as React.CSSProperties}
                     >
@@ -678,7 +699,10 @@ export default function PitchPhase({
                           />
                           <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
                           {read.boundary_violated && (
-                            <Icon icon="ph:prohibit-bold" className={styles.discussionViolation} title="a line of theirs is crossed" />
+                            <span className={styles.crossedPill} title={`Your card breaks something ${stakeholderName(read.stakeholder_id)} said they will not accept. They will block it.`}>
+                              <Icon icon="ph:hand-palm-bold" />
+                              line crossed
+                            </span>
                           )}
                         </div>
                         <span
@@ -692,16 +716,6 @@ export default function PitchPhase({
                         </span>
                       </button>
 
-                      {isSpeaking && speaking && (
-                        <div
-                          className={`${styles.speechBubble} ${side} ${speaking.closing ? styles.speechBubbleClosing : ""}`}
-                          onClick={skipSpeech}
-                          title="Skip"
-                        >
-                          <span className={styles.speakerName}>{stakeholderName(read.stakeholder_id)}</span>
-                          <GlossaryText text={speaking.message} surface="speech_bubbles" />
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -970,31 +984,51 @@ export default function PitchPhase({
                     </div>
 
                     {/* What the card would break, and who pays for it. */}
-                    {state.boundary_warnings.some((w) => w.violated || !w.checkable) && (
-                      <div className={styles.intelGroup}>
-                        <div className={styles.groupLabel}>Lines</div>
-                        {state.boundary_warnings.filter((w) => w.violated || !w.checkable).map((w) => (
-                          <div key={w.item_id} className={styles.warnRow}>
-                            <Icon icon={w.checkable ? "ph:prohibit-bold" : "ph:question-bold"} className={w.checkable ? styles.warnRed : styles.warnMuted} />
-                            <span>
-                              {w.checkable
-                                ? `${stakeholderName(w.stakeholder_id)}: this card crosses their line on ${w.target}`
-                                : `${stakeholderName(w.stakeholder_id)}: cannot check, you have not looked at ${w.target}`}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {(state.boundary_warnings.some((w) => w.violated || !w.checkable) ||
+                      Object.entries(state.uncompensated_losses).some(([, v]) => v > 0)) && (
+                      <div className={styles.warnGroups}>
+                        {state.boundary_warnings.some((w) => w.violated || !w.checkable) && (
+                          <details className={styles.warnBlock} open>
+                            <summary className={styles.warnSummary}>
+                              <Icon icon="ph:hand-palm-bold" className={styles.warnRed} />
+                              Lines this card crosses
+                              <span className={styles.warnCount}>
+                                {state.boundary_warnings.filter((w) => w.violated).length}
+                              </span>
+                            </summary>
+                            {state.boundary_warnings.filter((w) => w.violated || !w.checkable).map((w) => (
+                              <div key={w.item_id} className={styles.warnRow}>
+                                <Icon icon={w.checkable ? "ph:hand-palm-bold" : "ph:question-bold"} className={w.checkable ? styles.warnRed : styles.warnMuted} />
+                                <span>
+                                  {w.checkable
+                                    ? `${stakeholderName(w.stakeholder_id)} will block this: it crosses their line on ${w.target}`
+                                    : `${stakeholderName(w.stakeholder_id)}: cannot tell, you have never looked at ${w.target}`}
+                                </span>
+                              </div>
+                            ))}
+                          </details>
+                        )}
 
-                    {Object.entries(state.uncompensated_losses).some(([, v]) => v > 0) && (
-                      <div className={styles.intelGroup}>
-                        <div className={styles.groupLabel}>Uncompensated losses</div>
-                        {Object.entries(state.uncompensated_losses).filter(([, v]) => v > 0).map(([stId, v]) => (
-                          <div key={stId} className={styles.warnRow}>
-                            <Icon icon="ph:trend-down-bold" className={styles.warnAmber} />
-                            <span>{stakeholderName(stId)} loses something and gets nothing back ({Math.round(v * 100)}%)</span>
-                          </div>
-                        ))}
+                        {Object.entries(state.uncompensated_losses).some(([, v]) => v > 0) && (
+                          <details className={styles.warnBlock}>
+                            <summary className={styles.warnSummary}>
+                              <Icon icon="ph:trend-down-bold" className={styles.warnAmber} />
+                              Who pays for this
+                              <span className={styles.warnCount}>
+                                {Object.values(state.uncompensated_losses).filter((v) => v > 0).length}
+                              </span>
+                            </summary>
+                            {Object.entries(state.uncompensated_losses).filter(([, v]) => v > 0).map(([stId, v]) => (
+                              <div key={stId} className={styles.warnRow}>
+                                <Icon icon="ph:trend-down-bold" className={styles.warnAmber} />
+                                <span>
+                                  {stakeholderName(stId)} gives up something and gets nothing back.
+                                  Slot their trade-off to make up for it ({Math.round(v * 100)}%).
+                                </span>
+                              </div>
+                            ))}
+                          </details>
+                        )}
                       </div>
                     )}
                   </>
@@ -1236,10 +1270,20 @@ export default function PitchPhase({
               {/* Bar: where you stand and what you do next. */}
               <div className={styles.dock}>
                 <div className={styles.dockRow}>
-                  <span className={`${styles.readiness} ${styles[`ready${readiness}`]}`} title={readinessText}>
-                    <span className={styles.readyDot} />
-                    {intelVerified}/{intelTotal} verified
-                  </span>
+                  {state.stage === "OBJECT" ? (
+                    <span
+                      className={`${styles.readiness} ${hardLeft > 0 ? styles.readyred : state.objections.length > 0 ? styles.readyyellow : styles.readygreen}`}
+                      title="Hard objections block the pitch until they are answered."
+                    >
+                      <span className={styles.readyDot} />
+                      {state.objections.length} open{hardLeft > 0 ? `, ${hardLeft} blocking` : ""}
+                    </span>
+                  ) : (
+                    <span className={`${styles.readiness} ${styles[`ready${readiness}`]}`} title={readinessText}>
+                      <span className={styles.readyDot} />
+                      {intelVerified}/{intelTotal} verified
+                    </span>
+                  )}
                   {state.stage === "PREPARE" && localStage === "BUILD" && (
                     <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
                   )}
@@ -1259,8 +1303,12 @@ export default function PitchPhase({
                     <span className={styles.dockMeta}>{state.amendments_left} amendments left</span>
                   )}
                   <span className={styles.readyLines}>
-                    <span className={styles.readyLine}>{readinessText}</span>
-                    <span className={styles.readySub}>{readinessHint}</span>
+                    <span className={styles.readyLine}>
+                      {state.stage === "OBJECT" ? objectionText : readinessText}
+                    </span>
+                    <span className={styles.readySub}>
+                      {state.stage === "OBJECT" ? objectionHint : readinessHint}
+                    </span>
                   </span>
 
                   <span className={styles.dockActions}>
@@ -1309,6 +1357,23 @@ export default function PitchPhase({
           </div>
         </div>
       </div>
+
+      {speaking && bubbleAt && (
+        <div
+          className={`${styles.speechLayer} ${speaking.closing ? styles.speechBubbleClosing : ""}`}
+          style={{ left: bubbleAt.x, top: bubbleAt.y }}
+          onClick={skipSpeech}
+          title="Skip"
+        >
+          <span
+            className={styles.speechBubble}
+            style={{ ["--st-color" as string]: stakeholders[speaking.stakeholderId || ""]?.stakeholder_color || "#38bdf8" } as React.CSSProperties}
+          >
+            <span className={styles.speakerName}>{stakeholderName(speaking.stakeholderId)}</span>
+            <GlossaryText text={speaking.message} surface="speech_bubbles" />
+          </span>
+        </div>
+      )}
 
       {pickerOpen && (
         <div className={styles.pickerBackdrop} onClick={() => setPickerOpen(false)}>

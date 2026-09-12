@@ -863,6 +863,8 @@ function App({ username: _username }: AppProps) {
                   last_ac={last_ac}
                   onTagArtifact={(stId) => setActiveStakeholderId(stId)}
                   onOpenPhaseBriefing={openBriefingForReview}
+                  onPipelineToggle={() => setIsPipelineOpen((v) => !v)}
+                  isPipelineOpen={isPipelineOpen}
                   isDossierOpen={isDossierOpen}
                   setIsDossierOpen={setIsDossierOpen}
                   dossierData={dossierData}

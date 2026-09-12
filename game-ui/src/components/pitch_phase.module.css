@@ -2505,3 +2505,103 @@
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.45; transform: scale(0.8); }
 }
+
+
+/* ─── Speech in its own layer, above the dossier and the panels ───────────── */
+.speechLayer {
+  position: fixed;
+  transform: translateX(-50%);
+  z-index: 4000;
+  cursor: pointer;
+  animation: bubbleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+}
+
+.speechLayer .speechBubble {
+  position: static;
+  display: block;
+  transform: none;
+  max-width: min(520px, 42vw);
+  animation: none;
+}
+
+.speechLayer .speechBubble::after {
+  top: -9px;
+  left: 50%;
+}
+
+/* A crossed line is said in words, not left to an icon. */
+.crossedPill {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #dc2626;
+  border-radius: 999px;
+  padding: 1px 7px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Warnings as groups you can fold ─────────────────────────────────────── */
+.warnGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.warnBlock {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.warnSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0f172a;
+  list-style: none;
+}
+
+.warnSummary::-webkit-details-marker {
+  display: none;
+}
+
+.warnCount {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #334155;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pitchBody .warnRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #334155;
+  padding: 4px 0 0;
+}
+
+.pitchBody .warnRed { color: #dc2626; }
+.pitchBody .warnAmber { color: #b45309; }
+.pitchBody .warnMuted { color: #64748b; }

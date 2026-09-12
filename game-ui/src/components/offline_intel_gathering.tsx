@@ -24,6 +24,9 @@ interface OfflineIntelGatheringProps {
   challengeAmount?: number;
   /** Lets the embedded dossier reopen the phase briefing. */
   onOpenPhaseBriefing?: () => void;
+  /** Opens the pipeline view from the dossier, as in the pitch phase. */
+  onPipelineToggle?: () => void;
+  isPipelineOpen?: boolean;
 }
 
 export interface IntelArtifact {
@@ -111,6 +114,8 @@ export default function OfflineIntelGathering({
   dossierData = [],
   activeStakeholderId,
   onOpenPhaseBriefing,
+  onPipelineToggle,
+  isPipelineOpen = false,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
@@ -366,6 +371,8 @@ export default function OfflineIntelGathering({
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
                 showPhaseChangeBadges={true}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
+                onPipelineToggle={onPipelineToggle}
+                isPipelineOpen={isPipelineOpen}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
