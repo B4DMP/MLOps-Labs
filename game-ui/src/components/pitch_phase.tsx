@@ -571,11 +571,13 @@ export default function PitchPhase({
   const readiness: "red" | "yellow" | "green" =
     readyRatio >= READY_GREEN ? "green" : readyRatio >= READY_YELLOW ? "yellow" : "red";
   const readinessText =
-    readiness === "green"
-      ? "Enough verified intel to make a case."
-      : readiness === "yellow"
-        ? "Thin. You can pitch, but expect objections you cannot answer."
-        : "Not enough verified intel to pitch. Play engagement cards and verify what you find.";
+    readiness === "green" ? "Enough verified intel to make a case."
+      : readiness === "yellow" ? "Thin, but you can pitch."
+      : "Not enough verified intel to pitch.";
+  const readinessHint =
+    readiness === "green" ? "More still helps: every driver you cover is buy-in."
+      : readiness === "yellow" ? "Expect objections you have nothing to answer with."
+      : "Play engagement cards, then verify what they turn up.";
   const canPitch = selected.length > 0 && readiness !== "red";
 
   const grouped: Record<string, PitchChain[]> = { boundary: [], driver: [], trade_off: [], fact: [] };
@@ -863,6 +865,12 @@ export default function PitchPhase({
                               <span className={`${styles.tagPill} ${TAG_CLASS[item.type]}`}>
                                 {intelTagMeta(item.type).shortLabel}
                               </span>
+                              <StakeholderAvatarComponent
+                                avatar={stakeholders[item.stakeholder_id || ""]?.avatar}
+                                size={22}
+                                isFramed={false}
+                                stakeholderColor={stakeholders[item.stakeholder_id || ""]?.stakeholder_color || "#0284c7"}
+                              />
                               <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
                               {onRecordIds.has(item.id)
                                 ? <span className={styles.onRecordBadge}>★ on record</span>
@@ -1204,6 +1212,7 @@ export default function PitchPhase({
                 <button className={styles.chatTab} onClick={() => setChatOpen((v) => !v)} title="The room's conversation">
                   <Icon icon={chatOpen ? "ph:caret-right-bold" : "ph:chat-circle-text-bold"} />
                   <span className={styles.chatTabLabel}>Conversation history</span>
+                  {speaking && <span className={styles.chatTalking} title="Someone is talking" />}
                   {chatMsgsState.length > 0 && <span className={styles.chatCount}>{chatMsgsState.length}</span>}
                 </button>
                 {chatOpen && (
@@ -1235,15 +1244,24 @@ export default function PitchPhase({
                     <span className={styles.dockMeta}>{selected.length}/{MAX_CARD_ITEMS} slots</span>
                   )}
                   <span
-                    className={styles.dockMeta}
+                    className={styles.epMeter}
                     title="Escalation points: three for the whole game. One pushes a card through a veto, or buys a promise you have no intel for."
                   >
-                    {state.escalation_points} escalation left
+                    <Icon icon="ph:lightning-fill" className={styles.epIcon} />
+                    <span className={styles.epPips}>
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className={`${styles.epPip} ${i < state.escalation_points ? styles.epPipOn : ""}`} />
+                      ))}
+                    </span>
+                    <span className={styles.epLabel}>escalation</span>
                   </span>
                   {state.stage === "OBJECT" && (
                     <span className={styles.dockMeta}>{state.amendments_left} amendments left</span>
                   )}
-                  <span className={styles.readyHint}>{readinessText}</span>
+                  <span className={styles.readyLines}>
+                    <span className={styles.readyLine}>{readinessText}</span>
+                    <span className={styles.readySub}>{readinessHint}</span>
+                  </span>
 
                   <span className={styles.dockActions}>
                     {state.stage === "PREPARE" && localStage === "GATHER" && (
