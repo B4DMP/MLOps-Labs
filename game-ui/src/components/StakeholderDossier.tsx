@@ -95,6 +95,9 @@ export interface StakeholderDossierProps {
   showPhaseChangeBadges?: boolean;
   /** Reopens the phase briefing. The button only appears when this is given. */
   onOpenPhaseBriefing?: () => void;
+  /** Opens/closes the pipeline view. Button appears in the dossier header. */
+  onPipelineToggle?: () => void;
+  isPipelineOpen?: boolean;
 }
 
 /** How long the markers keep pulsing when the player never opens their tab. */
@@ -307,6 +310,8 @@ export default function StakeholderDossier({
   buyInInfoMap,
   showPhaseChangeBadges = false,
   onOpenPhaseBriefing,
+  onPipelineToggle,
+  isPipelineOpen = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -1590,6 +1595,16 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {onPipelineToggle && (
+            <button
+              className={`${styles.briefingButton} ${isPipelineOpen ? styles.briefingButtonActive : ""}`}
+              onClick={onPipelineToggle}
+              title={isPipelineOpen ? "Close the pipeline view" : "Open the pipeline view — see components and how your changes propagate"}
+            >
+              <Icon icon="ph:graph-bold" />
+              <span>Pipeline</span>
+            </button>
+          )}
           {onOpenPhaseBriefing && (
             <button
               className={styles.briefingButton}

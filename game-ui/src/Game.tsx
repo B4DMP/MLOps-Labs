@@ -894,6 +894,10 @@ function App({ username: _username }: AppProps) {
                   onChatMsgsChange={setOnlineIntelChatMsgs}
                   cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
                   onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
+                  dossierData={dossierData}
+                  onOpenPhaseBriefing={openBriefingForReview}
+                  onPipelineToggle={() => setIsPipelineOpen((v) => !v)}
+                  isPipelineOpen={isPipelineOpen}
                   onUpdateIntelItems={(items) => {
                     setIntelItems(items as any);
                     setDossierData((prevDossier) => {

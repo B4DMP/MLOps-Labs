@@ -602,7 +602,7 @@ export default function OfflineIntelGathering({
                               </>
                             ) : (
                               <>
-                                <span>Continue to Online Intel Gathering</span>
+                                <span>Continue to the Pitch</span>
                                 <Icon icon="ph:arrow-right-bold" />
                               </>
                             )}

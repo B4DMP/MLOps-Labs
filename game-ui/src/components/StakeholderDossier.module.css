@@ -1504,6 +1504,17 @@
   border-color: rgba(245, 235, 217, 0.6);
 }
 
+.briefingButtonActive {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+}
+
+.briefingButtonActive:hover {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.75);
+}
+
 /* ==========================================================================
    DOSSIER FILTERS (plan 05)
    The dossier keeps every note the player ever found, so it needs a way to

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useLayoutEffect, useRef } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -151,28 +151,38 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
 function FeedbackArcs({
   pipelineStages,
   feedbackFlows,
+  centres,
+  width,
 }: {
   pipelineStages: StageData[];
   feedbackFlows: FlowData[];
+  /** Measured centre of each stage box, in px inside the row. Arcs without one are not drawn. */
+  centres: Record<string, number>;
+  width: number;
 }) {
   const N = pipelineStages.length;
-  // Only cross-stage arcs between pipeline stages (bands not included).
+  const lockedIds = new Set(pipelineStages.filter((s) => s.locked).map((s) => s.id));
+  // Cross-stage arcs between pipeline stages the player has actually reached: an arc into a
+  // locked stage would give away that Ops feeds back into Modeling before they have been there.
   const arcs = feedbackFlows.filter((f) => {
     const fi = pipelineStages.findIndex((s) => s.id === f.from);
     const ti = pipelineStages.findIndex((s) => s.id === f.to);
-    return fi >= 0 && ti >= 0 && fi !== ti;
+    if (fi < 0 || ti < 0 || fi === ti) return false;
+    if (lockedIds.has(f.from) || lockedIds.has(f.to)) return false;
+    return centres[f.from] !== undefined && centres[f.to] !== undefined;
   });
-  if (N === 0 || arcs.length === 0) return null;
+  if (N === 0 || arcs.length === 0 || width <= 0) return null;
 
-  const W = 1000;
-  const H = 26;
-  const cx = (i: number) => ((i + 0.5) / N) * W;
+  const W = width;
+  const H = 90;
+  const cx = (i: number) => centres[pipelineStages[i].id];
 
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
-      width="100%"
+      width={W}
       height={H}
+      preserveAspectRatio="none"
       style={{ display: "block", marginBottom: 2 }}
       aria-hidden
     >
@@ -304,17 +314,21 @@ function StageSvg({
         const { x, y } = c.layout;
         const bg = nodeColor(c);
         const border = nodeBorder(c);
-        const label = c.knowledge === "unknown" ? "?" : c.name.length > 14 ? c.name.slice(0, 13) + "…" : c.name;
+        const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
+        const label = c.knowledge === "unknown"
+          ? (rawName.length > 14 ? rawName.slice(0, 13) + "…" : rawName)
+          : c.name.length > 14 ? c.name.slice(0, 13) + "…" : c.name;
         return (
           <g
             key={c.id}
             transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
             style={{ cursor: "pointer" }}
             onClick={() => onSelectComponent(c.id)}
-            opacity={c.knowledge === "stale" ? 0.65 : 1}
+            opacity={c.knowledge === "stale" ? 0.65 : c.knowledge === "unknown" ? 0.45 : 1}
           >
-            <rect width={BOX_W} height={BOX_H} rx={5} fill={bg} stroke={border} strokeWidth={1.5} />
-            <text x={BOX_W / 2} y={14} fill="#ddd" fontSize={9} textAnchor="middle" fontWeight="600">
+            <rect width={BOX_W} height={BOX_H} rx={5} fill={bg} stroke={border} strokeWidth={1.5}
+              strokeDasharray={c.knowledge === "unknown" ? "4 3" : undefined} />
+            <text x={BOX_W / 2} y={14} fill={c.knowledge === "unknown" ? "#666" : "#ddd"} fontSize={9} textAnchor="middle" fontWeight="600">
               {label}
             </text>
             {c.knowledge !== "unknown" && c.nominal !== undefined && (
@@ -367,7 +381,7 @@ function ComponentDetail({ c, onClose }: { c: ComponentData; onClose: () => void
         style={{ position: "absolute", top: 4, right: 8, background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 14 }}
       >✕</button>
       <div className="fw-semibold text-white mb-1" style={{ fontSize: "0.85rem" }}>
-        {c.knowledge === "unknown" ? "Unknown component" : c.name}
+        {c.name || c.id.split(".").pop()?.replace(/_/g, " ") || "Unknown"}{c.knowledge === "unknown" && <span style={{ marginLeft: 6, fontSize: "0.7rem", color: "#888" }}>(not yet explored)</span>}
         {c.knowledge !== "unknown" && c.nominal !== undefined && (
           <span className="ms-2"><LevelPips nominal={c.nominal} effective={c.effective} /></span>
         )}
@@ -493,8 +507,8 @@ function StageModal({
                 }}
               >
                 <div className="d-flex align-items-center justify-content-between">
-                  <span className="text-white fw-semibold" style={{ fontSize: "0.85rem" }}>
-                    {c.knowledge === "unknown" ? "?" : c.name}
+                  <span style={{ fontSize: "0.85rem", fontWeight: 600, color: c.knowledge === "unknown" ? "#555" : "#fff" }}>
+                    {c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id}
                   </span>
                   {c.knowledge !== "unknown" && c.nominal !== undefined && (
                     <LevelPips nominal={c.nominal} effective={c.effective} />
@@ -534,6 +548,24 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
   const { emit, subscribe } = useGameWebSocket();
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
+  const stageRefs = useRef<Record<string, HTMLElement | null>>({});
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const [centres, setCentres] = useState<{ centres: Record<string, number>; width: number }>({
+    centres: {},
+    width: 0,
+  });
+
+  // Escape closes the strip. Without it the overlay sits on top of the button that opened it.
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selectedStage) setSelectedStage(null);
+      else onToggle();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isVisible, selectedStage, onToggle]);
 
   const requestState = useCallback(() => {
     emit("graph:state_request", { phase_id: currentPhase });
@@ -555,33 +587,31 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
   const pipelineStages = graphState?.stages.filter((s) => !s.band) ?? [];
   const bandStages = graphState?.stages.filter((s) => s.band) ?? [];
 
+  useLayoutEffect(() => {
+    if (!isVisible || !rowRef.current) return;
+    const rowLeft = rowRef.current.getBoundingClientRect().left;
+    const next: Record<string, number> = {};
+    Object.entries(stageRefs.current).forEach(([id, el]) => {
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      next[id] = r.left - rowLeft + r.width / 2;
+    });
+    const width = rowRef.current.scrollWidth;
+    setCentres((prev) => {
+      const same =
+        prev.width === width &&
+        Object.keys(next).length === Object.keys(prev.centres).length &&
+        Object.entries(next).every(([k, v]) => Math.abs((prev.centres[k] ?? -1) - v) < 0.5);
+      return same ? prev : { centres: next, width };
+    });
+  });
+
   const openModal = selectedStage
     ? graphState?.stages.find((s) => s.id === selectedStage)
     : null;
 
   return (
     <>
-      {/* Floating toggle button */}
-      <button
-        onClick={onToggle}
-        style={{
-          position: "fixed",
-          top: 12,
-          right: 16,
-          zIndex: 1050,
-          background: "#16213e",
-          border: "1px solid #444",
-          color: "#fff",
-          borderRadius: 6,
-          padding: "4px 12px",
-          fontSize: "0.8rem",
-          cursor: "pointer",
-        }}
-        title="Pipeline view"
-      >
-        Pipeline {isVisible ? "▲" : "▼"}
-      </button>
-
       {/* Strip */}
       {isVisible && (
         <div
@@ -593,21 +623,37 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
             zIndex: 1040,
             background: "#0d1117",
             borderBottom: "1px solid #333",
-            padding: "8px 16px 8px 16px",
-            paddingRight: 100,  /* clear the toggle button */
+            padding: "8px 16px",
           }}
         >
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            onClick={onToggle}
+            title="Close the pipeline view (Esc)"
+            aria-label="Close the pipeline view"
+            style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}
+          />
           {graphState ? (
             <div>
               {/* Pipeline row — scrolls horizontally so stages never wrap */}
               <div style={{ overflowX: "auto", overflowY: "hidden", paddingBottom: 2 }}>
-              <div style={{ width: "max-content" }}>
-              <FeedbackArcs pipelineStages={pipelineStages} feedbackFlows={graphState.feedback_flows ?? []} />
+              <div ref={rowRef} style={{ width: "max-content" }}>
+              <FeedbackArcs
+                pipelineStages={pipelineStages}
+                feedbackFlows={graphState.feedback_flows ?? []}
+                centres={centres.centres}
+                width={centres.width}
+              />
               <div className="d-flex align-items-center gap-2">
                 {pipelineStages.map((stage, i) => {
                   const flow = graphState.flows.find((f) => f.from === pipelineStages[i - 1]?.id && f.to === stage.id);
                   return (
-                    <div key={stage.id} className="d-flex align-items-center gap-2">
+                    <div
+                      key={stage.id}
+                      className="d-flex align-items-center gap-2"
+                      ref={(el) => { stageRefs.current[stage.id] = el; }}
+                    >
                       {i > 0 && (
                         <div
                           style={{
