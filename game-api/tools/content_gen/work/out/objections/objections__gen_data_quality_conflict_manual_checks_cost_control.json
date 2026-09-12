@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_data_quality_conflict_manual_checks_cost_control",
   "stage": "objections",
-  "input_hash": "fc6cba7368b2bec814355385d49c4735cac34a0f7ae5e95b2c332d6bcbe95d70",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "b58d3e1febc5fd15a3774f0be3d671dcfe877d6d9e7c5dc0347b91fe342c1658",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "{data_dave} said the quality checks need to stay manual. Automating them will cost too much, and that's not happening.",
-    "correction": "Let me be clear. I didn't say I wouldn't automate quality checks. I said it can't happen if it increases costs. There's a difference."
+    "objection": "I will not approve automated quality checks if they increase costs. We will keep the checks manual.",
+    "correction": "You filed that as a preference, but it is a cost boundary. I meant I will not support automation unless the cost impact stays acceptable."
   }
 }

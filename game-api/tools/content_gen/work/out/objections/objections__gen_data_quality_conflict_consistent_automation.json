@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_data_quality_conflict_consistent_automation",
   "stage": "objections",
-  "input_hash": "5aceb10718a8bc53bc17da49d7ccd53929b753e4abc59143f3fb45ea97f937ab",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "94ab63fc6b9d434b5aedb0b338ac18185a69bd00ad47bef66d740582368d1471",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "reliability_ruth",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
-    "correction": "I never said I would accept manual checks. I insisted on governed tools for reliability."
+    "objection": "I will not accept manual checks if they affect reliability. The proposal crosses my line.",
+    "correction": "I meant {reliability_ruth} proposed governed tools for quality checks, not manual checks. Please file this as a reliability constraint."
   }
 }

@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:data.feature_store",
   "stage": "objections",
-  "input_hash": "f85e508cb4a5e1cbdafadac9b160bad9018e5de5ecc7f4ab832a4339aefe0639",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "bbc0f514e3eb847fa80d43857a05d56ec40fa0929b5b773164edf0a60a9e6555",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I'm Data Dave. I see you want to improve {target}, but it won't deliver because {cause} upstream isn't good enough yet."
+    "line": "I own the Feature Store, and this proposal will not deliver improved {target} because {cause} upstream is not good enough yet."
   }
 }

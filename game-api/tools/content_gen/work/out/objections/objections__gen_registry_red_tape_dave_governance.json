@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_dave_governance",
   "stage": "objections",
-  "input_hash": "5539ee2b126746aee70b96ad94413fb0a31a5bb77c54466a296389ee833cfbab",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "800e39ee1133370b2c0165b7a85d66615a6eb975092973181e372f631c5cf51b",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "stance",
@@ -22,7 +22,8 @@
       "holds": null,
       "ops": [],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -31,7 +32,7 @@
     }
   },
   "output": {
-    "objection": "I really need to see more governance in the model registry, {data_dave} has been clear about that. The current proposal just isn't cutting it for our needs.",
-    "correction": "It's not that I want more of everything. I specifically asked for governance of the model registry, not just more automation or levels without proper oversight."
+    "objection": "The proposal gives the model registry too little governance. I want stronger controls and more oversight, not a lighter setup.",
+    "correction": "You filed this as a general data note, but I meant a governance requirement for the model registry. {data_dave} wants it governed, with more controls and clearer ownership."
   }
 }

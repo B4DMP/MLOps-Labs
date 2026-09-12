@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:data.validation",
   "stage": "objections",
-  "input_hash": "ad56ba1b518cf997d03693f9736ce4388453a2473295d46827ac08f9ada3cd9a",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "38da401e2dde5bd7711542d61df23dcff301f1a829192b58b2bfc1aee15a939e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I am Data Dave. I think {target} won't deliver as expected, because {cause} upstream is not good enough yet."
+    "line": "As the owner of Data Validation, I can't approve improving {target} right now, because {cause} upstream is not good enough yet."
   }
 }

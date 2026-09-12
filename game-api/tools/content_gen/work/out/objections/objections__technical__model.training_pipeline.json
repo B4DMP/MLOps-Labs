@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:model.training_pipeline",
   "stage": "objections",
-  "input_hash": "a8ba759245fdac732da6fc23e70241062a64e33e5fdc25c2e43a9b7e559b557e",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "df34c7258bb0aebff20525338ce8599e9d4b73017131332b22b91183d0ec2fef",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I own the Training Pipeline. Improving {target} won't help because {cause} upstream isn't good enough yet."
+    "line": "I do not think we can improve {target} because {cause} upstream is not good enough yet. We need to improve {cause} first."
   }
 }

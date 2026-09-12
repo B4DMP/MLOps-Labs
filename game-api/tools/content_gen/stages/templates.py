@@ -7,10 +7,9 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, op_dict, ops_errors, parse_json_field, render, text_errors, tokenize_names
+from content_gen.stages.common import GAME_RULES, LEVEL_TALK, op_dict, ops_errors, parse_json_field, render, text_errors, tokenize_names
 
 SLUG = re.compile(r"^[a-z][a-z0-9_]{2,40}$")
-LEVEL_TALK = re.compile(r"\blevels?\b|\b[0-4](\.\d)?\b")
 BLAND_NAME = re.compile(r"\b(conflict|debate|dispute|compromise|discussion|disagreement)\b", re.I)
 MARKER = re.compile(r"#([a-z_]+)#")
 

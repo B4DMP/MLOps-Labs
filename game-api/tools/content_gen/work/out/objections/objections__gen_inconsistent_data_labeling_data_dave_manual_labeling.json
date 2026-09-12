@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_inconsistent_data_labeling_data_dave_manual_labeling",
   "stage": "objections",
-  "input_hash": "b513024fce01d69c190951f298b3d50abbf8f73acb6709ea6a17c751f32c8483",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "2879a13d4314761b4b9d2fd7df6439da126c283d6e6b5ec5f239ad45ae2d3128",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "stance",
@@ -22,7 +22,8 @@
       "holds": null,
       "ops": [],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -31,7 +32,7 @@
     }
   },
   "output": {
-    "objection": "I think {data_dave}'s proposal doesn't go far enough. We need more automation to keep up with the volume of data labeling.",
-    "correction": "I didn't say I wanted more manual control. I said we need to balance flexibility and automation."
+    "objection": "I can work with manual labeling, but it is not enough for our data quality needs. We need stronger validation and clearer ownership of labeling rules.",
+    "correction": "I did not mean {data_dave} should skip automation entirely. I meant manual review should stay where judgment matters, with automated checks around it."
   }
 }

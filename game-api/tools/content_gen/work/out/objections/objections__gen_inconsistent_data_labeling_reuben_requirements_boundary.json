@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_inconsistent_data_labeling_reuben_requirements_boundary",
   "stage": "objections",
-  "input_hash": "3455d55fe2645a20e2d19daf6fec320373da5775cfd8ffa9b6fa45defcfdd984",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "177679b59c454adae5c011aca86dc1041b543edb81b5f515ba21113259002266",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "requirements_reuben",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "{requirements_reuben} I will not accept any proposal that does not enforce data governance. This is non-negotiable for the project.",
-    "correction": "I did not say it crosses a line. I said data governance is mandatory. Do not mistake my firm stance for drama."
+    "objection": "I cannot approve this proposal. It does not enforce data governance, and I will not accept that.",
+    "correction": "I meant a hard requirement, not a preference. Any process without enforced data governance is unacceptable to me."
   }
 }

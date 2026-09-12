@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_dave_registry",
   "stage": "objections",
-  "input_hash": "a7fcabe1336404901161397ea8eb50b54e14b9c3fb8374b16bf235f37af58831",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "1a9fc24b44fda21fa064f1ec386e0052a8719559b0373543dbf0247fb8591900",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "price",
@@ -31,7 +31,8 @@
         "target": "model.registry",
         "accepts_max_level": 2
       },
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -40,7 +41,7 @@
     }
   },
   "output": {
-    "objection": "{data_dave} is concerned because the proposal implies taking resources from his team without explicit acknowledgment. He needs this to be addressed upfront.",
-    "correction": "This is not a trade-off. {data_dave} is stating a requirement for mutual agreement, not a compromise on his part."
+    "objection": "I, {data_dave}, need the proposal to acknowledge this. It takes the model registry decision from my team without saying so.",
+    "correction": "I did not mean we must source the model registry from a custom tool. I meant {data_dave} would accept another source if it meets our data quality and governance needs."
   }
 }

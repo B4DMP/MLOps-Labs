@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -110,12 +111,9 @@ def respond(schema, system, user):
 
 
 @pytest.fixture
-def env(tmp_path):
-    src = Path(__file__).resolve().parents[2] / "gameConfig"
-    if not src.exists():
-        src = Path("/gameConfig")
+def env(tmp_path, config_dir):
     cfg = tmp_path / "gameConfig"
-    shutil.copytree(src, cfg)
+    shutil.copytree(config_dir, cfg)
     ctx = Context.load(cfg, tmp_path / "work", "test", SCOPE)
     ledger = Ledger(ctx.ledger_path)
     yield ctx, ledger
@@ -145,6 +143,54 @@ def test_ledger_marks_changed_inputs_stale_and_heals_abandoned_runs(tmp_path):
     ledger.conn.execute("UPDATE items SET updated_at = 0 WHERE item_id = 's:1'")
     ledger.sync([WorkItem("s", "s:1", {"a": 2})], "v1", "m")
     assert ledger.get("s:1").status == "pending"
+    ledger.close()
+
+
+def test_heartbeat_keeps_a_long_running_item_from_going_stale(tmp_path):
+    """A slow-but-alive item must never be reclaimed by another sync() just because it takes a
+    while - the heartbeat, not the (now short) RUNNING_TIMEOUT_S alone, is what keeps it 'running'."""
+    from content_gen.ledger import RUNNING_TIMEOUT_S
+
+    ledger = Ledger(tmp_path / "l.sqlite")
+    item = WorkItem("s", "s:1", {"a": 1})
+    ledger.sync([item], "v1", "m")
+    ledger.claim("s:1")
+
+    # Simulate time passing well beyond RUNNING_TIMEOUT_S without a heartbeat: sync() reclaims it.
+    ledger.conn.execute(
+        "UPDATE items SET updated_at = ? WHERE item_id = 's:1'", (time.time() - RUNNING_TIMEOUT_S - 1,)
+    )
+    ledger.sync([item], "v1", "m")
+    assert ledger.get("s:1").status == "pending"
+
+    # Now simulate a heartbeat arriving just in time, repeatedly, well past the same window.
+    ledger.claim("s:1")
+    ledger.conn.execute(
+        "UPDATE items SET updated_at = ? WHERE item_id = 's:1'", (time.time() - RUNNING_TIMEOUT_S + 5,)
+    )
+    ledger.heartbeat("s:1")
+    ledger.sync([item], "v1", "m")
+    assert ledger.get("s:1").status == "running"
+    ledger.close()
+
+
+def test_with_heartbeat_ticks_the_ledger_while_a_slow_call_is_in_flight(tmp_path):
+    from content_gen.runner import _with_heartbeat
+
+    ledger = Ledger(tmp_path / "l.sqlite")
+    item = WorkItem("s", "s:1", {"a": 1})
+    ledger.sync([item], "v1", "m")
+    ledger.claim("s:1")
+    first_updated_at = ledger.get("s:1").updated_at
+
+    async def slow_call():
+        await asyncio.sleep(0.05)
+        return "result"
+
+    result = asyncio.run(_with_heartbeat(slow_call(), "s:1", ledger, interval=0.01))
+    assert result == "result"
+    assert ledger.get("s:1").updated_at > first_updated_at  # at least one heartbeat landed
+    assert ledger.get("s:1").status == "running"  # heartbeat never changes status
     ledger.close()
 
 
@@ -292,6 +338,19 @@ def test_items_check_rejects_a_reason_in_the_fact(env):
     assert any("never why" in e for e in STAGES["items"].check(bad, item, ctx))
 
 
+def test_wrong_readings_does_not_confuse_a_key_that_is_a_suffix_of_another():
+    from content_gen.stages.items import wrong_readings
+
+    output = {"items": [
+        {"key": "cost", "tag": "driver", "readings": {"driver": "D-cost", "boundary": "B-cost", "trade_off": "T-cost", "fact": "F-cost"}},
+        {"key": "extra_cost", "tag": "boundary", "readings": {"driver": "D-extra", "boundary": "B-extra", "trade_off": "T-extra", "fact": "F-extra"}},
+    ]}
+    # "gen_slug_extra_cost" ends with "_cost" too, which an endswith match would mistake for the
+    # "cost" item; it must resolve to the "extra_cost" item instead.
+    assert wrong_readings(output, "gen_slug_extra_cost", "slug") == {"driver": "D-extra", "trade_off": "T-extra", "fact": "F-extra"}
+    assert wrong_readings(output, "gen_slug_cost", "slug") == {"boundary": "B-cost", "trade_off": "T-cost", "fact": "F-cost"}
+
+
 def test_name_tokens_never_eat_role_words(env):
     from content_gen.stages.common import tokenize_names
 
@@ -309,3 +368,48 @@ def test_name_tokens_never_eat_role_words(env):
         "I've checked, don't worry, that's its state. Were done well.")
     # Lowercase role word before a given name is prose, not the name.
     assert tokenize_names("the data Dave cleaned", ctx.stakeholders) == "the data {data_dave.first} cleaned"
+
+
+def test_forced_provider_with_no_key_fails_loudly_instead_of_falling_back(monkeypatch):
+    """A forced --provider whose key is missing must error, not silently switch models
+    (code-review finding: this used to fall through to whichever other provider had a key,
+    or Groq, with no warning)."""
+    from mlops_serious_game.config import settings
+
+    monkeypatch.setattr(settings, "WESTAI_API_KEY", None)
+    monkeypatch.setattr(settings, "MISTRAL_API_KEY", "some-mistral-key")
+    from content_gen.llm import LangchainLLM
+
+    with pytest.raises(RuntimeError, match="westai"):
+        LangchainLLM(provider="westai")
+
+    monkeypatch.setattr(settings, "WESTAI_API_KEY", "some-westai-key")
+    monkeypatch.setattr(settings, "MISTRAL_API_KEY", None)
+    with pytest.raises(RuntimeError, match="mistral"):
+        LangchainLLM(provider="mistral")
+
+
+def test_a_bare_stakeholder_id_gets_re_braced_not_left_as_plain_text(env):
+    """Code-review finding: the model sometimes writes the raw internal id ("requirements_reuben")
+    as plain prose instead of the name or the {id} token - this reached 6 assembled objection
+    records before this fix and would have shown up verbatim in the pitch room dialogue."""
+    from content_gen.stages.common import tokenize_names
+
+    ctx, _ = env
+    out = tokenize_names("requirements_reuben mentioned governed data quality checks.", ctx.stakeholders)
+    assert out == "{requirements_reuben} mentioned governed data quality checks."
+    # An id that is already correctly braced must not be double-wrapped.
+    assert tokenize_names("{requirements_reuben} agreed.", ctx.stakeholders) == "{requirements_reuben} agreed."
+
+
+def test_bare_stakeholder_id_errors_flags_a_leak_and_clears_once_fixed():
+    from content_gen.stages.common import bare_stakeholder_id_errors
+
+    stakeholders = {"requirements_reuben": None}
+    assert bare_stakeholder_id_errors(
+        "objection", "requirements_reuben mentioned governed data quality checks.", stakeholders
+    )
+    assert not bare_stakeholder_id_errors(
+        "objection", "{requirements_reuben} mentioned governed data quality checks.", stakeholders
+    )
+    assert not bare_stakeholder_id_errors("objection", "", stakeholders)

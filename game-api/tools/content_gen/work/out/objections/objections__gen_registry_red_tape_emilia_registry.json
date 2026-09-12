@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_emilia_registry",
   "stage": "objections",
-  "input_hash": "3e94658c93d2261b3b156ea8010718ed16bc22b15f01db6c69a3d008121ef102",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "2025eeb5102a4fbaeb8d823970fb5047a862e3d11310de2d00627ea81c07a224",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "stance",
@@ -22,7 +22,8 @@
       "holds": null,
       "ops": [],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "efficiency_emilia",
@@ -31,7 +32,7 @@
     }
   },
   "output": {
-    "objection": "I understand the proposal, but {efficiency_emilia} believes more can be done to automate the model registry. This is crucial for streamlining our workflow.",
-    "correction": "I did not just want more automation. I specifically asked for the model registry to be automated to align with our efficiency goals."
+    "objection": "The proposal does not do enough for my goals. I need more than a basic automation.",
+    "correction": "You filed this under the wrong kind of intel. I meant it as a business objective, not just a technical task."
   }
 }

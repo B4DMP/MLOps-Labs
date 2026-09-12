@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:model.registry",
   "stage": "objections",
-  "input_hash": "abf00ac4f488cc9ccd81ad5597c1814ba0827d0912f71135155ef5eb76fbcfbe",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "0ce51573ee7ba261219f46fe43661a718cafd226f0dbd2e85413b116c84e1c20",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I own the Model Registry, and I think improving {target} won’t work because {cause} upstream isn’t ready yet."
+    "line": "I cannot support improving {target} right now. The {cause} upstream is not good enough for the Model Registry to deliver."
   }
 }

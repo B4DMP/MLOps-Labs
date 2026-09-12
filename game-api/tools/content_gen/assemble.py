@@ -45,7 +45,7 @@ def collect(ctx) -> dict:
             continue
         for req in ItemsStage.to_requirements(irec["output"], ch):
             requirements.append((ch["template_id"], req))
-            readings_by_req[req.id] = wrong_readings(irec["output"], req.id)
+            readings_by_req[req.id] = wrong_readings(irec["output"], req.id, ch["template_id"].removeprefix("ch_"))
             if req.id not in artifacts:
                 missing.append(f"artifact for {req.id}")
             if req.type != "fact" and req.id not in objections:

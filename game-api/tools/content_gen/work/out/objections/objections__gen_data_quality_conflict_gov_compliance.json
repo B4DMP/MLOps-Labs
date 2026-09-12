@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_data_quality_conflict_gov_compliance",
   "stage": "objections",
-  "input_hash": "1c55ff9a6762c84b2f8e6e14c2d9acb85d2fd26858ae52d9f4d3b1a4a6b30bab",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "4624c3a7468f044f35796fd6779f8a399a50217f3bff33afc9da2ea43fa9667a",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "stance",
@@ -22,7 +22,8 @@
       "holds": null,
       "ops": [],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "requirements_reuben",
@@ -31,7 +32,7 @@
     }
   },
   "output": {
-    "objection": "requirements_reuben mentioned governed data quality checks. He wants to improve compliance by governed checks.",
-    "correction": "requirements_reuben did not propose governed checks. He wants to ensure compliance with governed checks, but the current proposal does not meet this requirement."
+    "objection": "I need governed data quality checks before we trust any model output. The current proposal leaves compliance gaps that I cannot accept.",
+    "correction": "I was not talking about optional dashboards or periodic reviews. I meant governed checks that enforce data quality and privacy rules in the production workflow."
   }
 }

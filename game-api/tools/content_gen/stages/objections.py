@@ -6,7 +6,7 @@ stage component (the owner's technical objection when a change there would be ca
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, render, text_errors, tokenize_names
+from content_gen.stages.common import GAME_RULES, bare_stakeholder_id_errors, render, text_errors, tokenize_names
 
 KIND_FOR_TAG = {"driver": "stance", "boundary": "boundary", "trade_off": "price"}
 
@@ -108,7 +108,12 @@ class ObjectionsStage:
                 if ph not in (output["line"] or ""):
                     errors.append(f"line must contain the placeholder {ph} exactly once")
             return errors
-        return text_errors("objection", output["objection"], 6, 55) + text_errors("correction", output["correction"], 6, 55)
+        return (
+            text_errors("objection", output["objection"], 6, 55)
+            + text_errors("correction", output["correction"], 6, 55)
+            + bare_stakeholder_id_errors("objection", output["objection"], ctx.stakeholders)
+            + bare_stakeholder_id_errors("correction", output["correction"], ctx.stakeholders)
+        )
 
     def summary(self, output: dict) -> str:
         return output.get("line") or output.get("objection", "")

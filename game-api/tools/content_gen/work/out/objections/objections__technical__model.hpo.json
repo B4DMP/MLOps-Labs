@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:model.hpo",
   "stage": "objections",
-  "input_hash": "3c30c3c87214092bfc57c85f2546c2ae813eb88f7796b861b5647d9d5cd7c97f",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "a8e0d207d37b27336b2bf1aa9426c7b098589c4c763b93ea2843e367d56433b0",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "Improving {target} won't work because {cause} upstream is not good enough yet. We need to address that first before we can see any real gains."
+    "line": "I cannot support improving {target} because {cause} upstream is not good enough yet. My hyperparameter tuning will not make up for that."
   }
 }

@@ -367,7 +367,7 @@
           },
           {
             "stakeholder_id": "data_dave",
-            "wants": 1
+            "wants": 2
           }
         ]
       },
@@ -465,7 +465,7 @@
         "positions": [
           {
             "stakeholder_id": "model_monica",
-            "wants": 2
+            "wants": 3
           },
           {
             "stakeholder_id": "requirements_reuben",

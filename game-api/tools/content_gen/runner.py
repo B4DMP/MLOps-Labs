@@ -29,6 +29,29 @@ class RunOptions:
     retries_on_error: int = 3
 
 
+# How often a still-in-flight item tells the ledger it is alive. Must stay well under
+# ledger.RUNNING_TIMEOUT_S so a single slow (but not dead) LLM call never goes stale.
+HEARTBEAT_INTERVAL_S = 30
+
+
+async def _with_heartbeat(coro, item_id: str, ledger: Ledger, interval: float = HEARTBEAT_INTERVAL_S):
+    """Awaits `coro`, ticking `ledger.heartbeat(item_id)` every `interval` seconds while it is
+    still running - so a long-but-alive call (up to llm.py's own timeout) never looks abandoned,
+    while a genuinely killed process is still detected within one `RUNNING_TIMEOUT_S` window
+    instead of the old single long timeout (code-review finding: prefer short, frequent liveness
+    ticks over one timeout that has to cover the worst case)."""
+    task = asyncio.ensure_future(coro)
+    try:
+        while True:
+            done, _pending = await asyncio.wait({task}, timeout=interval)
+            if task in done:
+                return task.result()
+            ledger.heartbeat(item_id)
+    except asyncio.CancelledError:
+        task.cancel()
+        raise
+
+
 @dataclass
 class RunReport:
     planned: int = 0
@@ -101,7 +124,9 @@ async def run_stage(stage, ctx, ledger: Ledger, llm: LLM, opts: RunOptions, stop
                 output = None
                 for retry in range(opts.retries_on_error):
                     try:
-                        output, usage = await stage.generate(item, ctx, llm, feedback)
+                        output, usage = await _with_heartbeat(
+                            stage.generate(item, ctx, llm, feedback), item.item_id, ledger
+                        )
                         used_in += usage.tokens_in
                         used_out += usage.tokens_out
                         break

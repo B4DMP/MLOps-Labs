@@ -43,6 +43,19 @@ class LangchainLLM:
 
         from mlops_serious_game.config import settings
 
+        if provider == "westai" and not settings.WESTAI_API_KEY:
+            raise RuntimeError(
+                "content_gen was run with --provider westai but WESTAI_API_KEY is not set. "
+                "Refusing to silently fall back to a different provider - set WESTAI_API_KEY, "
+                "or drop --provider to let it choose automatically."
+            )
+        if provider == "mistral" and not settings.MISTRAL_API_KEY:
+            raise RuntimeError(
+                "content_gen was run with --provider mistral but MISTRAL_API_KEY is not set. "
+                "Refusing to silently fall back to a different provider - set MISTRAL_API_KEY, "
+                "or drop --provider to let it choose automatically."
+            )
+
         use_westai = provider == "westai" or (
             provider is None and not settings.MISTRAL_API_KEY and settings.WESTAI_API_KEY
         )

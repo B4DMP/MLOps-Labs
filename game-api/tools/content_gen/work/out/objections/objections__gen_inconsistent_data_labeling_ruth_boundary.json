@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_inconsistent_data_labeling_ruth_boundary",
   "stage": "objections",
-  "input_hash": "235883c9cd4c5ceae44c785a16b8c8eca7cfd10c2ec9aa53941f8636c06eb8ca",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "3c74a84dd3e6bb84570196e1e4987755196b790311bb203a152352b5fd5bd93e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "reliability_ruth",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "The proposal crosses my line. I refuse, clearly and without drama.",
-    "correction": "I mentioned that data labeling should be fully governed. I will not accept any labeling process that is not fully governed."
+    "objection": "I cannot approve this labeling plan. It must be fully governed before I accept it.",
+    "correction": "I was not talking about general data quality. I meant the labeling workflow itself must be fully governed."
   }
 }

@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:model.evaluation",
   "stage": "objections",
-  "input_hash": "aaebf5e313d1073805f700145858d1700fda153054eb77bed1507eb359ce2567",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "801409004b881385f423b2f2041875d8002c8c9ae545fd88f9fe147052931072",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I'm not convinced the {target} improvements will work. The {cause} upstream just isn't reliable enough yet."
+    "line": "I cannot support improving {target} yet, because {cause} upstream is not good enough. The Model Evaluation Harness will still fail if we build on that."
   }
 }

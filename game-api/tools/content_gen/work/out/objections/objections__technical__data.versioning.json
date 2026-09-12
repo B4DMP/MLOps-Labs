@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:data.versioning",
   "stage": "objections",
-  "input_hash": "86482e2e61d881b1209631d5d763b104f68e2a6b8e76b4bf956f36c36444c578",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "fb8dc413c03b6b10909cebbee10fed0f189fcdd76bbb8e505470094d3003159e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I'm not convinced improving {target} will work because {cause} upstream is still unreliable. We need to fix that first before we can see real benefits."
+    "line": "I cannot sign off on improving {target} because the {cause} upstream is not good enough yet. Data Versioning needs that foundation before we can deliver."
   }
 }

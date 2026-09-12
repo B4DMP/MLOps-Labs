@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_inconsistent_data_labeling_data_dave_boundary",
   "stage": "objections",
-  "input_hash": "9a1bcfe2e5d20b6e931c4bd0a1acc9d37c81d42bcb68837fdcb0cd0e3b77ed5b",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "326477e28388fb7cdba2e9c6ffa172397c1c5e2e98231cbc22d6abe53e04396d",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "{data_dave} refuses to automate data labeling. The labeling process must remain manual to ensure {data_dave} control over it.",
-    "correction": "{data_dave} did not say no to all automation. {data_dave} only insists on keeping manual control over the labeling process."
+    "objection": "I will keep data labeling done by hand. I will not accept automation that reduces my control over the labeling process.",
+    "correction": "I did not object to all data operations. I only meant that hand labeling must stay under my control."
   }
 }

@@ -7,10 +7,9 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, WISH_WORDS, op_dict, parse_json_field, render, text_errors, tokenize_names
+from content_gen.stages.common import GAME_RULES, LEVEL_TALK, WISH_WORDS, op_dict, parse_json_field, render, text_errors, tokenize_names
 
 KEY = re.compile(r"^[a-z][a-z0-9_]{1,30}$")
-LEVEL_TALK = re.compile(r"\blevels?\b|\b[0-4]\b")
 LEVEL_NUMBERS = re.compile(r"\b[0-4]\b")  # readings may say "governed", never "level 4"
 BECAUSE = re.compile(r"\b(because|so that|in order to)\b", re.I)  # not "since": usually about time
 # A stance fact must read the same whatever the tag: how much they care belongs in the reading.
@@ -368,9 +367,13 @@ def current_levels(ctx, challenge: dict) -> dict:
     return out
 
 
-def wrong_readings(output: dict, requirement_id: str) -> dict:
-    """The readings of an item for the tags it is not: what a player with each wrong tag sees."""
+def wrong_readings(output: dict, requirement_id: str, slug: str) -> dict:
+    """The readings of an item for the tags it is not: what a player with each wrong tag sees.
+
+    Matches the item by rebuilding its exact requirement id (`gen_{slug}_{key}`) rather than an
+    `endswith` check, since one item's key can be a suffix of another's (e.g. "cost" and
+    "extra_cost"), which would otherwise pick the wrong item's readings."""
     for it in output["items"]:
-        if requirement_id.endswith("_" + it["key"]):
+        if requirement_id == f"gen_{slug}_{it['key']}":
             return {t: it["readings"][t] for t in TAGS if t != it["tag"]}
     return {}

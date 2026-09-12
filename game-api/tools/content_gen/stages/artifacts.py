@@ -11,11 +11,10 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.llm import Usage
-from content_gen.stages.common import GAME_RULES, WISH_WORDS, render, text_errors, tokenize_names
+from content_gen.stages.common import GAME_RULES, WISH_WORDS, bare_stakeholder_id_errors, render, text_errors, tokenize_names
 
 STANCE_TYPES = ["email", "slack_message", "meeting_notes", "document"]
 FACT_TYPES = ["runbook", "dashboard_snapshot", "incident_ticket", "ci_log", "architecture_note"]
-TAGS = ["driver", "boundary", "trade_off", "fact"]
 
 
 class ArtifactOut(BaseModel):
@@ -137,6 +136,7 @@ class ArtifactsStage:
                 f"a blind reader classified this as {output.get('reclassified_as')} ({output.get('reclassify_reason')}); "
                 f"rewrite it so it clearly reads as a {tag}"
             )
+        errors += bare_stakeholder_id_errors("content", output["content"], ctx.stakeholders)
         return errors
 
     def summary(self, output: dict) -> str:

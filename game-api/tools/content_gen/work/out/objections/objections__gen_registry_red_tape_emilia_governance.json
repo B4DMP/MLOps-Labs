@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_emilia_governance",
   "stage": "objections",
-  "input_hash": "e65793f2e10181f16c6f1ac7af29dc854112975929cbab3cfb615b7fa1040492",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "a82b76fcc3c30e36c81cfb8ebe942093bf5d7eb15a921aa590d463b6da8aa33d",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "efficiency_emilia",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "The proposal crosses {efficiency_emilia}s line. {efficiency_emilia} refuses, clearly and without drama.",
-    "correction": "I didn't say I would refuse. {efficiency_emilia} said that without governance, I cannot do my work to align ML features with business goals."
+    "objection": "As {efficiency_emilia}, I will not support a proposal that leaves the model registry ungoverned. That is a clear no from me.",
+    "correction": "I was not setting a KPI. I meant that I will not do my work without governance on the model registry."
   }
 }

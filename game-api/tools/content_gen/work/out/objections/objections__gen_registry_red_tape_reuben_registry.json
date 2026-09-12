@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_reuben_registry",
   "stage": "objections",
-  "input_hash": "c10be92b785ae20673648892ae487f4299a3f76578e006051d134177d4580ff9",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "b1d56f2ec0b044d3f5f72358918837040fb150fafc74f4d7200a67d14b6eda4c",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "requirements_reuben",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "requirements_reuben wants the model registry to be governed. He will not allow it without governance.",
-    "correction": "requirements_reuben did not say he would refuse. He said governance is a must."
+    "objection": "I will not approve a model registry that is not governed. Governance is the minimum bar for production use.",
+    "correction": "You filed this as a preference, but I meant it as a hard requirement. The registry must be governed before I will support it."
   }
 }

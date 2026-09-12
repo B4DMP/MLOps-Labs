@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_monica_registry",
   "stage": "objections",
-  "input_hash": "2b5304aa7ca0559ac17b28abbd58c6cb8ce3eac21ac5e701ea1cb852f8d98320",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "02a1bc8c5aabbb44ec36084eadcce3aaa13ad346bc1f9b0aaccdec3ffa89c6ae",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "stance",
@@ -22,7 +22,8 @@
       "holds": null,
       "ops": [],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "model_monica",
@@ -31,7 +32,7 @@
     }
   },
   "output": {
-    "objection": "I think we could do more than just automate the model registry. It would help if we also had better model versioning in place, {model_monica} wants to see more comprehensive improvements.",
-    "correction": "I didn't say it would help me work more efficiently. I said it would help the team improve model performance and collaboration."
+    "objection": "I, {model_monica}, need the registry to handle versioning and promotion checks, not just a basic upload step. That proposal leaves too much manual work for me.",
+    "correction": "You logged this as a simple efficiency wish, but I meant a governed automation path for my model lifecycle. I was asking for stronger controls, not just fewer clicks."
   }
 }

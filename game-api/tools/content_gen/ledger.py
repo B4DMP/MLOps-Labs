@@ -13,7 +13,12 @@ from pathlib import Path
 from typing import Any, Iterable, Optional
 
 STATUSES = ("pending", "running", "done", "approved", "failed", "stale", "rejected")
-RUNNING_TIMEOUT_S = 15 * 60
+# A "running" row this old with no heartbeat is presumed abandoned (a killed process). Short and
+# frequent rather than one long timeout (code-review finding: the old 15-minute value had to be
+# longer than the worst-case single-item time, which made "genuinely dead" detection slow) -
+# runner.py's HEARTBEAT_INTERVAL_S ticks every item still being worked on well inside this window,
+# however long the underlying LLM call itself takes, so this can stay short.
+RUNNING_TIMEOUT_S = 90
 
 
 @dataclass
@@ -145,6 +150,12 @@ class Ledger:
 
     def claim(self, item_id: str) -> None:
         self._set(item_id, status="running")
+
+    def heartbeat(self, item_id: str) -> None:
+        """Bumps `updated_at` without touching status - a live worker's periodic "still working
+        on this" signal, so `sync()` (via `RUNNING_TIMEOUT_S`) can tell a genuinely stuck item
+        (a killed process, no more heartbeats) apart from one that is merely slow."""
+        self._set(item_id)
 
     def finish(self, item_id: str, output_path: str, tokens_in: int, tokens_out: int, model: str, attempts: int) -> None:
         row = self.get(item_id)

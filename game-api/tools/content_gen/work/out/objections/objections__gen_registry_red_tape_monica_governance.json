@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_registry_red_tape_monica_governance",
   "stage": "objections",
-  "input_hash": "bf8f5eb782e085f8a5f3f4939a05e2e41f5f565bc8077d39faebd74032002dfb",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "3fe2e21ddc61d302f86306328a300316a73dac6aa7256a3096a69b477f1ad05b",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "boundary",
@@ -29,7 +29,8 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "model_monica",
@@ -38,7 +39,7 @@
     }
   },
   "output": {
-    "objection": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
-    "correction": "I said the model registry does not need governance, but I never said I would not work with it."
+    "objection": "I will not support a governed model registry. My team will not work with governance controls on registry changes.",
+    "correction": "I was not describing a missing registry. I was setting a limit on governance for the registry."
   }
 }

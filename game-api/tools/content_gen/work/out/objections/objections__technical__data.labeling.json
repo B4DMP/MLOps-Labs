@@ -1,8 +1,8 @@
 {
   "item_id": "objections:technical:data.labeling",
   "stage": "objections",
-  "input_hash": "a2b974860cd762b5f25ce08add7d474178be859cb0b232dd23761bef47e3d733",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "d378160659617355362f1e6776347714633f7a9f4512ed85e7d7ccb92b96d1ef",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "technical",
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "The proposal to improve {target} will not deliver because {cause} upstream is not good enough yet. We need to address that first to ensure data quality and pipeline robustness."
+    "line": "I cannot support improving {target} until {cause} is improved, because the upstream data quality is still not good enough."
   }
 }

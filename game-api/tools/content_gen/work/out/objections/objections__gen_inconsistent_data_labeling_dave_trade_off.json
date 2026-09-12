@@ -1,8 +1,8 @@
 {
   "item_id": "objections:gen_inconsistent_data_labeling_dave_trade_off",
   "stage": "objections",
-  "input_hash": "00a580a549a3a0479e7f716df3db3d3bdc3a35970064988782f91d76072d590a",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "a0bcdf3372551992ce2654732a028841e81c9b3931841b9be0b58a59e8211899",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "kind": "price",
@@ -24,7 +24,8 @@
         "target": "data.labeling",
         "accepts_max_level": 3
       },
-      "asserts": null
+      "asserts": null,
+      "refines_id": null
     },
     "speaker": {
       "id": "data_dave",
@@ -33,7 +34,7 @@
     }
   },
   "output": {
-    "objection": "I proposed a semi-manual approach for data labeling, {data_dave} did not suggest that your proposal takes something from me without acknowledgment. I just need to understand how it improves data quality.",
-    "correction": "I did not say that your proposal takes something from me without acknowledgment. I just need to understand how it improves data quality."
+    "objection": "The plan removes my labeling control without naming it. If we keep it partly manual, acknowledge that trade off.",
+    "correction": "You filed that as a hard refusal, but I only meant a partly manual labeling path. I would accept some automation if it clearly improves data quality."
   }
 }
