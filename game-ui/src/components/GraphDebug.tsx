@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, type ReactNode } from "react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
   );
 }
 
-function Tbl({ cols, rows }: { cols: string[]; rows: (string | JSX.Element | null | undefined)[][] }) {
+function Tbl({ cols, rows }: { cols: string[]; rows: (string | ReactNode | null | undefined)[][] }) {
   return (
     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, color: "#cbd5e1" }}>
       <thead>

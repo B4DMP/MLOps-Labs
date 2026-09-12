@@ -1,5 +1,7 @@
-import { useState, useEffect, useCallback, useLayoutEffect, useRef } from "react";
+import { useContext, useState, useEffect, useCallback, useLayoutEffect, useRef } from "react";
+import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { MetricsContext } from "./MetricProvider";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,11 +70,12 @@ interface GraphStatePayload {
   stages: StageData[];
   flows: FlowData[];
   feedback_flows: FlowData[];
+  governance_flows: FlowData[];
   technical: Record<string, TechnicalStage>;
   system_health: number;
 }
 
-interface PipelineViewProps {
+interface PerformanceViewProps {
   currentPhase: number;
   isVisible: boolean;
   onToggle: () => void;
@@ -162,25 +165,36 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
   );
 }
 
-// ── Feedback arcs overlay (strip) ────────────────────────────────────────────
+// ── Cross-stage arcs overlay (strip) ─────────────────────────────────────────
+//
+// Feedback and governance edges are visually distinct (D-question 12, code review): a `feedback`
+// edge is a real backward loop and is colored by what's actually flowing through it (broken /
+// degraded / healthy), same as before; a `governs` edge is oversight, not a loop, so it is drawn
+// as a fixed amber, dash-dot line with a diamond marker instead — present or absent, not "healthy"
+// the way a pipeline flow is. Governance arcs sit in their own, taller row so the two never
+// visually merge into one arc.
 
-function FeedbackArcs({
+const GOVERNANCE_COLOR = "#d4a72c";
+
+function CrossStageArcs({
   pipelineStages,
-  feedbackFlows,
+  flows,
   centres,
   width,
+  variant,
 }: {
   pipelineStages: StageData[];
-  feedbackFlows: FlowData[];
+  flows: FlowData[];
   /** Measured centre of each stage box, in px inside the row. Arcs without one are not drawn. */
   centres: Record<string, number>;
   width: number;
+  variant: "feedback" | "governance";
 }) {
   const N = pipelineStages.length;
   const lockedIds = new Set(pipelineStages.filter((s) => s.locked).map((s) => s.id));
   // Cross-stage arcs between pipeline stages the player has actually reached: an arc into a
   // locked stage would give away that Ops feeds back into Modeling before they have been there.
-  const arcs = feedbackFlows.filter((f) => {
+  const arcs = flows.filter((f) => {
     const fi = pipelineStages.findIndex((s) => s.id === f.from);
     const ti = pipelineStages.findIndex((s) => s.id === f.to);
     if (fi < 0 || ti < 0 || fi === ti) return false;
@@ -189,9 +203,12 @@ function FeedbackArcs({
   });
   if (N === 0 || arcs.length === 0 || width <= 0) return null;
 
+  const prefix = variant === "governance" ? "gv" : "fb";
   const W = width;
-  const H = 90;
+  const H = variant === "governance" ? 46 : 90;
   const cx = (i: number) => centres[pipelineStages[i].id];
+  const colorFor = (level: number) =>
+    variant === "governance" ? GOVERNANCE_COLOR : statusColor(level === 0 ? "broken" : level >= 3 ? "healthy" : "degraded");
 
   return (
     <svg
@@ -204,13 +221,13 @@ function FeedbackArcs({
     >
       <defs>
         {arcs.map((f) => {
-          const key = `fb-${f.from}-${f.to}`.replace(/\./g, "_");
-          const color = statusColor(
-            f.level === 0 ? "broken" : f.level >= 3 ? "healthy" : "degraded"
-          );
+          const key = `${prefix}-${f.from}-${f.to}`.replace(/\./g, "_");
+          const color = colorFor(f.level);
           return (
-            <marker key={key} id={key} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
-              <path d="M0,0 L0,5 L5,2.5 z" fill={color} />
+            <marker key={key} id={key} markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto">
+              {variant === "governance"
+                ? <path d="M0,3 L3,0 L6,3 L3,6 z" fill={color} />
+                : <path d="M0,0 L0,5 L5,2.5 z" fill={color} />}
             </marker>
           );
         })}
@@ -223,10 +240,8 @@ function FeedbackArcs({
         const dist = Math.abs(fi - ti);
         // Arcs curve upward; taller arcs for longer distances to avoid overlap.
         const arcTop = Math.max(2, H - dist * Math.floor((H - 2) / Math.max(N - 1, 1)));
-        const color = statusColor(
-          f.level === 0 ? "broken" : f.level >= 3 ? "healthy" : "degraded"
-        );
-        const key = `fb-${f.from}-${f.to}`.replace(/\./g, "_");
+        const color = colorFor(f.level);
+        const key = `${prefix}-${f.from}-${f.to}`.replace(/\./g, "_");
         return (
           <path
             key={key}
@@ -234,7 +249,7 @@ function FeedbackArcs({
             fill="none"
             stroke={color}
             strokeWidth={1.5}
-            strokeDasharray={f.level === 0 ? "4 2" : undefined}
+            strokeDasharray={variant === "governance" ? "1 3" : f.level === 0 ? "4 2" : undefined}
             markerEnd={`url(#${key})`}
             opacity={0.85}
           />
@@ -347,7 +362,7 @@ function StageSvg({
               className={
                 !known ? undefined
                   : e.level === 0 ? "pipe-dead"
-                  : e.level >= 3 ? "pipe-flow"
+                  : e.level != null && e.level >= 3 ? "pipe-flow"
                   : "pipe-flow-slow"
               }
               strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
@@ -678,6 +693,82 @@ function StageDetail({
   );
 }
 
+// ── Gameplay metrics panel (merged from PerformanceDashboard) ─────────────────
+//
+// The numbers here come from `MetricsContext` (Game.tsx's `metrics` state, kept live by the
+// `game:state_update` websocket event). The mechanic that moves them: `graph_service/pipeline.py`
+// step 10 turns the effective-level deltas a committed card produces into a weighted sum per
+// metric via `component_weights` (config-driven, never an LLM, per D39 / the standing "nothing
+// that affects score, buy-in, health or selection is produced at runtime by an LLM" rule). The
+// same computation also produces the `metric_deltas` shown in `ac_simulation.tsx`'s delta
+// report — these bars are simply "where that arithmetic has landed so far," not a duplicate
+// calculation.
+
+function GameplayMetrics({ currentPhase }: { currentPhase: number }) {
+  const { metrics } = useContext(MetricsContext);
+  // Some metric ids (e.g. `model_intro`/`efficiency_intro`) are intro-phase-only stand-ins for a
+  // regular metric of the same display name (`model`/`efficiency`), active in exactly one phase
+  // each via `phases[phaseIndex]` — without this filter both show at once. Same rule MetricTab
+  // already applies per-phase.
+  const entries = Object.values(metrics).filter((m) => m.phases?.[currentPhase]);
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="d-flex" style={{ gap: 10, overflowX: "auto" }}>
+      {entries.map((m) => {
+        const value = m.value ?? m.start_value;
+        const max = m.max_value || 50;
+        const pct = Math.max(0, Math.min(100, (value / max) * 100));
+        return (
+          <div
+            key={m.id}
+            style={{
+              background: "linear-gradient(180deg, #131a2b 0%, #0d1117 100%)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 10,
+              padding: "8px 12px",
+              flex: "1 1 0",
+              minWidth: 130,
+            }}
+            title={m.description}
+          >
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <Icon icon={m.metric_icon} style={{ color: m.metric_color, fontSize: "1rem", flexShrink: 0 }} />
+              <span
+                style={{
+                  color: "#e8edf7",
+                  fontSize: "0.76rem",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {m.name}
+              </span>
+              <span style={{ marginLeft: "auto", fontSize: "0.82rem", fontWeight: 700, color: m.metric_color, whiteSpace: "nowrap" }}>
+                {Math.round(value)}
+                <span style={{ color: "#6b7280", fontWeight: 400 }}>/{max}</span>
+              </span>
+            </div>
+            <div style={{ height: 5, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${pct}%`,
+                  background: m.metric_color,
+                  borderRadius: 3,
+                  transition: "width 0.4s ease",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 const PIPELINE_ANIM = `
@@ -696,7 +787,7 @@ const PIPELINE_ANIM = `
 .pipe-bar-run { animation: pipeBar 1.4s linear infinite; }
 `;
 
-function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) {
+function PerformanceView({ currentPhase, isVisible, onToggle }: PerformanceViewProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
@@ -796,20 +887,80 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
             type="button"
             className="btn-close btn-close-white"
             onClick={onToggle}
-            title="Close the pipeline view (Esc)"
-            aria-label="Close the pipeline view"
+            title="Close performance (Esc)"
+            aria-label="Close performance"
             style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}
           />
+
+          <div className="d-flex align-items-center gap-2 mb-2" style={{ paddingRight: 28 }}>
+            <Icon icon="ph:gauge-bold" style={{ color: "#7dd3fc", fontSize: "1.15rem" }} />
+            <span style={{ color: "#fff", fontWeight: 700, fontSize: "0.95rem", letterSpacing: "0.02em" }}>
+              Performance
+            </span>
+          </div>
+
+          <div
+            style={{
+              fontSize: "0.66rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "#64748b",
+              marginBottom: 6,
+            }}
+          >
+            Gameplay metrics
+          </div>
+          <GameplayMetrics currentPhase={currentPhase} />
+
+          <div
+            style={{
+              fontSize: "0.66rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "#64748b",
+              margin: "12px 0 6px",
+              paddingTop: 10,
+              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+            }}
+          >
+            MLOps project graph
+          </div>
+
+          {graphState && ((graphState.feedback_flows?.length ?? 0) > 0 || (graphState.governance_flows?.length ?? 0) > 0) && (
+            <div className="d-flex gap-3 mb-1" style={{ fontSize: "0.68rem", color: "#94a3b8" }}>
+              {(graphState.feedback_flows?.length ?? 0) > 0 && (
+                <span className="d-flex align-items-center gap-1">
+                  <svg width="18" height="6" aria-hidden><line x1="0" y1="3" x2="18" y2="3" stroke={statusColor("healthy")} strokeWidth="1.5" /></svg>
+                  feedback loop
+                </span>
+              )}
+              {(graphState.governance_flows?.length ?? 0) > 0 && (
+                <span className="d-flex align-items-center gap-1">
+                  <svg width="18" height="6" aria-hidden><line x1="0" y1="3" x2="18" y2="3" stroke={GOVERNANCE_COLOR} strokeWidth="1.5" strokeDasharray="1 3" /></svg>
+                  governance / oversight
+                </span>
+              )}
+            </div>
+          )}
+
           {graphState ? (
             <div>
               {/* Pipeline row — scrolls horizontally so stages never wrap */}
               <div style={{ overflowX: "auto", overflowY: "hidden", paddingBottom: 2 }}>
               <div ref={rowRef} style={{ width: "max-content" }}>
-              <FeedbackArcs
+              <CrossStageArcs
                 pipelineStages={pipelineStages}
-                feedbackFlows={graphState.feedback_flows ?? []}
+                flows={graphState.governance_flows ?? []}
                 centres={centres.centres}
                 width={centres.width}
+                variant="governance"
+              />
+              <CrossStageArcs
+                pipelineStages={pipelineStages}
+                flows={graphState.feedback_flows ?? []}
+                centres={centres.centres}
+                width={centres.width}
+                variant="feedback"
               />
               <div className="d-flex align-items-center gap-2">
                 {pipelineStages.map((stage, i) => {
@@ -948,4 +1099,4 @@ function PipelineView({ currentPhase, isVisible, onToggle }: PipelineViewProps) 
   );
 }
 
-export default PipelineView;
+export default PerformanceView;

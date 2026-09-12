@@ -7,7 +7,7 @@
  * stage content, and footer actions.
  */
 
-import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { Icon } from "@iconify/react";
 
 import { StakeholderContext } from "./StakeholderProvider";
@@ -174,16 +174,18 @@ interface PitchPhaseProps {
   attentionTokens?: number;
   onAttentionTokensChange?: (n: number) => void;
   playedCardIdsInPhase?: string[];
-  onPlayedCardIdsChange?: (ids: string[]) => void;
+  // Accepts the functional updater form too: Game.tsx passes its raw useState setters here,
+  // and this component relies on `prev => ...` updates (e.g. queued speech, tag toggles).
+  onPlayedCardIdsChange?: Dispatch<SetStateAction<string[]>>;
   chatMsgs?: ChatMsg[];
-  onChatMsgsChange?: (msgs: ChatMsg[]) => void;
+  onChatMsgsChange?: Dispatch<SetStateAction<ChatMsg[]>>;
   cardTargetedStakeholdersMap?: Record<string, string[]>;
-  onCardTargetedStakeholdersMapChange?: (m: Record<string, string[]>) => void;
+  onCardTargetedStakeholdersMapChange?: Dispatch<SetStateAction<Record<string, string[]>>>;
   onUpdateIntelItems?: (items: unknown[]) => void;
   dossierData?: StakeholderDossierEntry[];
   onOpenPhaseBriefing?: () => void;
-  onPipelineToggle?: () => void;
-  isPipelineOpen?: boolean;
+  onPerformanceToggle?: () => void;
+  isPerformanceOpen?: boolean;
 }
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
@@ -265,8 +267,8 @@ export default function PitchPhase({
   onUpdateIntelItems,
   dossierData,
   onOpenPhaseBriefing,
-  onPipelineToggle,
-  isPipelineOpen = false,
+  onPerformanceToggle,
+  isPerformanceOpen = false,
 }: PitchPhaseProps) {
   const { emit, subscribe } = useGameWebSocket();
   const stakeholderCtx = useContext(StakeholderContext);
@@ -667,8 +669,8 @@ export default function PitchPhase({
                 convincerArchetypes={convincerArchetypes}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 draggableIntel={state.stage === "PREPARE" && localStage === "BUILD"}
-                onPipelineToggle={onPipelineToggle}
-                isPipelineOpen={isPipelineOpen}
+                onPerformanceToggle={onPerformanceToggle}
+                isPerformanceOpen={isPerformanceOpen}
               />
             </div>
           </div>
@@ -725,6 +727,7 @@ export default function PitchPhase({
                             emotion={faceFor(read.emotions)}
                             play_blink_animation
                             stakeholderColor={stColor}
+                            stakeholderId={read.stakeholder_id}
                             flip={seatIndex >= state.reads.length / 2}
                           />
                           <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
@@ -750,7 +753,9 @@ export default function PitchPhase({
                         >
                           {st?.name || read.stakeholder_id}
                           {read.power === "high" && (
-                            <Icon icon="ph:lightning-fill" className={styles.powerBolt} title="High power" />
+                            <span title="High power">
+                              <Icon icon="ph:lightning-fill" className={styles.powerBolt} />
+                            </span>
                           )}
                         </span>
                       </button>
@@ -938,6 +943,7 @@ export default function PitchPhase({
                                 size={22}
                                 isFramed={false}
                                 stakeholderColor={stakeholders[item.stakeholder_id || ""]?.stakeholder_color || "#0284c7"}
+                                stakeholderId={item.stakeholder_id}
                               />
                               <span className={styles.stName}>{stakeholderName(item.stakeholder_id)}</span>
                               {onRecordIds.has(item.id)
@@ -1098,6 +1104,7 @@ export default function PitchPhase({
                           size={64}
                           isFramed={false}
                           stakeholderColor={stakeholders[current.stakeholder_id]?.stakeholder_color || "#38bdf8"}
+                          stakeholderId={current.stakeholder_id}
                         />
                       </div>
                       <div className={styles.objHeaderText}>
@@ -1241,10 +1248,15 @@ export default function PitchPhase({
                               size={34}
                               isFramed={false}
                               stakeholderColor={st?.stakeholder_color || "#38bdf8"}
+                              stakeholderId={read.stakeholder_id}
                             />
                             <span className={styles.buyInSt}>
                               {stakeholderName(read.stakeholder_id)}
-                              {read.power === "high" && <Icon icon="ph:lightning-fill" className={styles.powerBolt} title="High power" />}
+                              {read.power === "high" && (
+                                <span title="High power">
+                                  <Icon icon="ph:lightning-fill" className={styles.powerBolt} />
+                                </span>
+                              )}
                             </span>
                             <span className={styles.buyInBarWrap}>
                               <span

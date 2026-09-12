@@ -1,17 +1,13 @@
 import { MetricsContext } from "./MetricProvider";
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
-import type { ActionCard } from "../types/ActionCard";
 
 interface MetricTabProps {
   current_phase: number;
-  showMetricValueChanges: boolean;
-  last_ac?: ActionCard;
 }
 
 function MetricTab({
   current_phase,
-  showMetricValueChanges,
 }: MetricTabProps) {
   const { metrics } = useContext(MetricsContext);
 
@@ -56,11 +52,9 @@ function MetricTab({
                         <span className="fw-bold fs-5" id={`metric-value-${item.id}`}>
                           {item.value ?? item.start_value}
                         </span>
-                        {!showMetricValueChanges && (
-                          <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: 1 }}>
-                            /{item.max_value ?? 50}
-                          </span>
-                        )}
+                        <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: 1 }}>
+                          /{item.max_value ?? 50}
+                        </span>
                       </div>
                     </div>
 

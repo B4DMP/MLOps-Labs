@@ -19,10 +19,11 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
-import PipelineView from "./components/PipelineView";
+import PerformanceView from "./components/PerformanceView";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
+import { colorForStakeholderId } from "./types/StakeholderAvatar";
 import type { DialogueOption } from "./types/DialogueOption";
 
 interface Stakeholder {
@@ -84,20 +85,9 @@ function App({ username: _username }: AppProps) {
   const [engagementCards, setEngagementCards] = useState<EngagementCard[]>([]);
   const [attentionTokens, setAttentionTokens] = useState<number>(8);
   const [hasPitchDebateStarted, setHasPitchDebateStarted] = useState<boolean>(false);
-  const [isExistingDebateSave, setIsExistingDebateSave] = useState<boolean>(false);
-  const [actionCards, setActionCards] = useState<ActionCard[]>(
-    debug
-      ? [
-        {
-          id: "test_card",
-          title: "test_card",
-          description: "test_description",
-          intel_ids: [],
-          addendum_intel_item_ids: [],
-        },
-      ]
-      : [],
-  );
+  // Only the setter is used now: PitchDebate (the old reader of this flag) was
+  // removed with the merged pitch phase (D37/D46).
+  const [, setIsExistingDebateSave] = useState<boolean>(false);
   const [challengeTitle, setChallengeTitle] = useState("");
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeIntro, setChallengeIntro] = useState("");
@@ -111,8 +101,9 @@ function App({ username: _username }: AppProps) {
     setIsBriefingReview(true);
     setIsPhaseDialogueOpen(true);
   };
-  const [isChatEnabled, setIsChatEnabled] = useState(true);
-  const [hoveredCardId, setHoveredCardId] = useState<number | null>(null);
+  // Only the setter is used now: the old PitchDebate/OnlineIntelGathering readers
+  // of this flag were removed with the merged pitch phase (D37/D46).
+  const [, setIsChatEnabled] = useState(true);
   const [isintro5Done, setIsintro5Done] = useState(false);
   const [isIntro1Started, setIsIntro1Started] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
@@ -121,7 +112,9 @@ function App({ username: _username }: AppProps) {
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
-  const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
+  // Only the setter is used now: rendering this list moved into PitchPhase's own
+  // dossier-derived state, so Game.tsx just keeps it updated for the websocket handlers.
+  const [, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
@@ -235,7 +228,7 @@ function App({ username: _username }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [convincerVerificationInfo, setConvincerVerificationInfo] = useState<ConvincerVerificationInfo | null>(null);
-  const [isPipelineOpen, setIsPipelineOpen] = useState(false);
+  const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
 
   useEffect(() => {
     // Request initial game configurations ONCE on mount
@@ -248,7 +241,7 @@ function App({ username: _username }: AppProps) {
       Object.keys(enrichedStakeholders).forEach((stId) => {
         const st = enrichedStakeholders[stId];
         const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
-        st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
+        st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : colorForStakeholderId(stId);
         if (st.avatar) {
           st.avatar.clothingColor = st.stakeholder_color;
         }
@@ -315,7 +308,7 @@ function App({ username: _username }: AppProps) {
         Object.keys(enrichedStakeholders).forEach((stId) => {
           const st = enrichedStakeholders[stId];
           const associatedMetric = currentMetrics[st.metric_id] || Object.values(currentMetrics).find((m: any) => m.id === st.metric_id);
-          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || "#888888");
+          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || colorForStakeholderId(stId));
           st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
@@ -393,7 +386,6 @@ function App({ username: _username }: AppProps) {
         setPlayedCardIdsInPhase([]);
         setCardTargetedStakeholdersMap({});
         setPitchedActionCard(null);
-        setActionCards([]);
         setac_count(0);
         setHasPitchDebateStarted(false);
         hasPitchDebateStartedRef.current = false;
@@ -711,30 +703,6 @@ function App({ username: _username }: AppProps) {
     }
   }, [isConnected, currentPhase, currentChallenge, emit]);
 
-  let [roundOverAnimActive, SetRoundOverAnimActive] = useState(false);
-  let [showMetricValueChanges, setShowMetricValueChanges] = useState(false);
-  let [revealAc, setRevealAc] = useState(false);
-
-  const getNextChallenge = (ac: ActionCard) => {
-    SetRoundOverAnimActive(false);
-    setShowMetricValueChanges(false);
-    setRevealAc(false);
-
-    if (debug) {
-      setActionCards([
-        {
-          id: "test_card",
-          title: "test_card",
-          description: "test_description",
-          intel_ids: [],
-          addendum_intel_item_ids: [],
-        },
-      ]);
-    }
-
-    requestNextChallenge(ac);
-  };
-
   const handleOfflineIntelGatheringContinue = () => {
     let _metric_values: any = [];
     Object.values(metrics).forEach((x) => {
@@ -789,29 +757,9 @@ function App({ username: _username }: AppProps) {
     });
   };
 
-  const requestNextChallenge = (ac: ActionCard) => {
-    let _metric_values: any = [];
-
-    Object.values(metrics).forEach((x) => {
-      _metric_values.push(x.value ?? 0);
-    });
-
-    sendJsonMessage({
-      type: "game:state_update_request",
-      challenge_id: currentChallenge,
-      phase_id: currentPhase,
-      challenge_loop_index: 2,
-      metric_values: _metric_values,
-      action_card_id: ac.id,
-      messages: chat_msgs,
-    });
-    setChatMsgs([]);
-    setActionCards([]);
-    setIsExistingDebateSave(false);
-  };
-
-  let [last_ac, setLastAc] = useState(actionCards[0]);
-  const [dialogueOptions, setDialogueOptions] = useState<DialogueOption[]>([]);
+  // Only the setter is used now: the old PitchDebate reader of these options was removed
+  // with the merged pitch phase (D37/D46).
+  const [, setDialogueOptions] = useState<DialogueOption[]>([]);
 
   return (
     <>
@@ -830,10 +778,10 @@ function App({ username: _username }: AppProps) {
                 setConvincerArchetypes,
               }}
             >
-              <PipelineView
+              <PerformanceView
                 currentPhase={currentPhase}
-                isVisible={isPipelineOpen}
-                onToggle={() => setIsPipelineOpen((v) => !v)}
+                isVisible={isPerformanceOpen}
+                onToggle={() => setIsPerformanceOpen((v) => !v)}
               />
               <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
               <PrePhaseDialog
@@ -859,12 +807,10 @@ function App({ username: _username }: AppProps) {
                   onContinue={handleOfflineIntelGatheringContinue}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
                   onTagArtifact={(stId) => setActiveStakeholderId(stId)}
                   onOpenPhaseBriefing={openBriefingForReview}
-                  onPipelineToggle={() => setIsPipelineOpen((v) => !v)}
-                  isPipelineOpen={isPipelineOpen}
+                  onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                  isPerformanceOpen={isPerformanceOpen}
                   isDossierOpen={isDossierOpen}
                   setIsDossierOpen={setIsDossierOpen}
                   dossierData={dossierData}
@@ -898,8 +844,8 @@ function App({ username: _username }: AppProps) {
                   onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
                   dossierData={dossierData}
                   onOpenPhaseBriefing={openBriefingForReview}
-                  onPipelineToggle={() => setIsPipelineOpen((v) => !v)}
-                  isPipelineOpen={isPipelineOpen}
+                  onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                  isPerformanceOpen={isPerformanceOpen}
                   onUpdateIntelItems={(items) => {
                     setIntelItems(items as any);
                     setDossierData((prevDossier) => {
@@ -929,8 +875,7 @@ function App({ username: _username }: AppProps) {
                   onContinue={handleAcSimulationContinue}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
-                  showMetricValueChanges={showMetricValueChanges}
-                  last_ac={last_ac}
+                  playedCard={pitchedActionCard}
                 />
               )}
             </StakeholderContext.Provider>

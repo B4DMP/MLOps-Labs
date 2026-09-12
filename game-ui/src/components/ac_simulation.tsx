@@ -9,6 +9,7 @@
 import { useEffect, useState } from "react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
+import ActionCardComponent from "./ActionCardComponent";
 import type { ActionCard } from "../types/ActionCard";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 
@@ -55,8 +56,9 @@ interface AcSimulationProps {
   onContinue: () => void;
   currentPhase?: number;
   currentChallenge?: number;
-  showMetricValueChanges?: boolean;
-  last_ac?: ActionCard;
+  /** The card just committed, for the "what you played" reveal (merged from the old
+   * AcRevealPanel, plan 07/D46: the reveal and the delta report are one screen now, not two). */
+  playedCard?: ActionCard | null;
 }
 
 const OUTCOME_TEXT: Record<string, string> = {
@@ -81,8 +83,7 @@ export default function AcSimulation({
   onContinue,
   currentPhase = 0,
   currentChallenge = 0,
-  showMetricValueChanges = false,
-  last_ac,
+  playedCard,
 }: AcSimulationProps) {
   const { emit } = useGameWebSocket();
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
@@ -112,11 +113,7 @@ export default function AcSimulation({
           </div>
           <div className="transparent-div" style={{ flex: "1 1 0" }}>
             <span className="transparent-div-label">📊 Performance Metrics</span>
-            <MetricTab
-              current_phase={currentPhase}
-              showMetricValueChanges={showMetricValueChanges}
-              last_ac={last_ac}
-            />
+            <MetricTab current_phase={currentPhase} />
           </div>
         </div>
       </nav>
@@ -152,6 +149,25 @@ export default function AcSimulation({
               </div>
 
               <div className="card-body bg-light p-4">
+                {/* 0. The card you played (merged from AcRevealPanel) */}
+                {playedCard && (
+                  <div className="mb-4 d-flex flex-column align-items-center text-center">
+                    <div className="text-muted small mb-2">You played</div>
+                    <div style={{ maxWidth: 340, width: "100%" }}>
+                      <ActionCardComponent
+                        ac={playedCard}
+                        current_phase={currentPhase}
+                        highlight={false}
+                        id="revealCard"
+                        showValues={true}
+                        displayMetrics={true}
+                        interactable={false}
+                        hasDropIndicator={false}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* 1. What you built */}
                 <h5 className="fw-bold">What you built</h5>
                 {report.targets.length === 0 && <p className="text-muted">Nothing of yours reached the system.</p>}

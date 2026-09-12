@@ -98,8 +98,8 @@ export interface StakeholderDossierProps {
   /** Opens/closes the pipeline view. Button appears in the dossier header. */
   /** When set, notes can be dragged onto the card builder (plan 06). */
   draggableIntel?: boolean;
-  onPipelineToggle?: () => void;
-  isPipelineOpen?: boolean;
+  onPerformanceToggle?: () => void;
+  isPerformanceOpen?: boolean;
 }
 
 /** How long the markers keep pulsing when the player never opens their tab. */
@@ -332,8 +332,8 @@ export default function StakeholderDossier({
   showPhaseChangeBadges = false,
   onOpenPhaseBriefing,
   draggableIntel = false,
-  onPipelineToggle,
-  isPipelineOpen = false,
+  onPerformanceToggle,
+  isPerformanceOpen = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -1045,6 +1045,7 @@ export default function StakeholderDossier({
               <StakeholderAvatarComponent
                 avatar={avatar}
                 stakeholderColor={stakeholderColor}
+                stakeholderId={st.stakeholder_id}
                 isFramed={false}
                 play_blink_animation={false}
                 size="100%"
@@ -1708,14 +1709,14 @@ export default function StakeholderDossier({
               <span>System</span>
             </button>
           )}
-          {onPipelineToggle && (
+          {onPerformanceToggle && (
             <button
-              className={`${styles.briefingButton} ${isPipelineOpen ? styles.briefingButtonActive : ""}`}
-              onClick={onPipelineToggle}
-              title={isPipelineOpen ? "Close the pipeline view" : "Open the pipeline view — see components and how your changes propagate"}
+              className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
+              onClick={onPerformanceToggle}
+              title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
             >
-              <Icon icon="ph:graph-bold" />
-              <span>Pipeline</span>
+              <Icon icon="ph:gauge-bold" />
+              <span>Performance</span>
             </button>
           )}
           {onOpenPhaseBriefing && (

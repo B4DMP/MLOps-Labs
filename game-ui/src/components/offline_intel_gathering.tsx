@@ -11,8 +11,6 @@ interface OfflineIntelGatheringProps {
   onContinue: () => void;
   currentPhase?: number;
   currentChallenge?: number;
-  showMetricValueChanges?: boolean;
-  last_ac?: any;
   onTagArtifact?: (stakeholderId: string) => void;
   isDossierOpen?: boolean;
   setIsDossierOpen?: (open: boolean) => void;
@@ -24,9 +22,9 @@ interface OfflineIntelGatheringProps {
   challengeAmount?: number;
   /** Lets the embedded dossier reopen the phase briefing. */
   onOpenPhaseBriefing?: () => void;
-  /** Opens the pipeline view from the dossier, as in the pitch phase. */
-  onPipelineToggle?: () => void;
-  isPipelineOpen?: boolean;
+  /** Opens performance (gameplay metrics + the project pipeline) from the dossier, as in the pitch phase. */
+  onPerformanceToggle?: () => void;
+  isPerformanceOpen?: boolean;
 }
 
 export interface IntelArtifact {
@@ -114,8 +112,8 @@ export default function OfflineIntelGathering({
   dossierData = [],
   activeStakeholderId,
   onOpenPhaseBriefing,
-  onPipelineToggle,
-  isPipelineOpen = false,
+  onPerformanceToggle,
+  isPerformanceOpen = false,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
@@ -371,8 +369,8 @@ export default function OfflineIntelGathering({
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
                 showPhaseChangeBadges={true}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
-                onPipelineToggle={onPipelineToggle}
-                isPipelineOpen={isPipelineOpen}
+                onPerformanceToggle={onPerformanceToggle}
+                isPerformanceOpen={isPerformanceOpen}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
@@ -405,7 +403,7 @@ export default function OfflineIntelGathering({
                       Every artifact reveals something about a stakeholder. Read it, then tag it below.
                       Your call is saved as <strong>unconfirmed</strong> intel on their page in the Stakeholder
                       Dossier. You'll get to confirm or correct it later by talking to them directly during
-                      Online Intel Gathering. Not sure yet? Use ◀ ▶ or the numbered tabs above to jump around
+                      the pitch phase. Not sure yet? Use ◀ ▶ or the numbered tabs above to jump around
                       before you lock everything in.
                     </span>
                   </span>
@@ -542,7 +540,7 @@ export default function OfflineIntelGathering({
                           </div>
                           <h4 className="fw-bold text-dark mb-2">Intel Artifacts Tagged!</h4>
                           <p className={`text-muted mb-4 fs-6 ${styles.completionDescription}`}>
-                            All {totalArtifactsCount} stakeholder requirement stances have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier. You'll be able to verify or correct each tag by talking to that stakeholder directly during Online Intel Gathering.
+                            All {totalArtifactsCount} stakeholder requirement stances have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier. You'll be able to verify or correct each tag by talking to that stakeholder directly during the pitch phase.
                             {knownArtifactsCount > 0 && (
                               <>
                                 {" "}The {knownArtifactsCount} item{knownArtifactsCount === 1 ? "" : "s"} you couldn't tag
@@ -559,7 +557,7 @@ export default function OfflineIntelGathering({
                           </div>
                           <h4 className="fw-bold text-dark mb-2">Not All Artifacts Have Been Tagged</h4>
                           <p className={`text-muted mb-4 fs-6 ${styles.completionDescription}`}>
-                            You have categorized <strong className="text-dark">{taggedArtifactsCount} of {totalArtifactsCount}</strong> artifacts. All artifacts must be tagged before proceeding to Online Intel Gathering.
+                            You have categorized <strong className="text-dark">{taggedArtifactsCount} of {totalArtifactsCount}</strong> artifacts. All artifacts must be tagged before proceeding to the pitch phase.
                           </p>
                         </>
                       )}
