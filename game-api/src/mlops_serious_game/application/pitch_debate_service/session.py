@@ -26,6 +26,7 @@ from mlops_serious_game.application.pitch_debate_service.scoring import (
     buy_in,
     coverage,
     emotions_norm,
+    shift_emotions,
     fit,
     loss,
     outcome,

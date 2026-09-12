@@ -123,6 +123,28 @@ def emotions_norm(emotion_values: dict[str, float]) -> float:
     return sum(vals) / len(vals) if vals else 0.5
 
 
+def shift_emotions(
+    emotion_values: dict[str, dict[str, float]],
+    deltas: dict[str, float],
+) -> dict[str, dict[str, float]]:
+    """Stored emotion values with one number per stakeholder folded into every dimension.
+
+    The pitch produces a single number per stakeholder (how the answer landed); the per dimension
+    detail belongs to the conversation model. Used both to score the room mid round and to write
+    the round back at commit, so the two can never disagree.
+    """
+    if not deltas:
+        return emotion_values
+    shifted: dict[str, dict[str, float]] = {}
+    for st_id, ev in emotion_values.items():
+        delta = deltas.get(st_id, 0.0)
+        shifted[st_id] = {
+            dim: max(0.0, min(1.0, round(val + delta, 3))) if isinstance(val, (int, float)) else val
+            for dim, val in ev.items()
+        }
+    return shifted
+
+
 # ---------------------------------------------------------------------------
 # Uncompensated loss
 # ---------------------------------------------------------------------------

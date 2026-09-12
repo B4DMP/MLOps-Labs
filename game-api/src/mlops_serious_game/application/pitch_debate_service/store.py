@@ -10,7 +10,9 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from sqlalchemy import select
+from sqlalchemy.orm.attributes import flag_modified
 
+from mlops_serious_game.application.pitch_debate_service.scoring import shift_emotions
 from mlops_serious_game.application.pitch_debate_service.session import PitchState
 from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session
 
@@ -110,44 +112,84 @@ def load_grudges(username: str) -> list[dict[str, Any]]:
         return list(row.grudges or []) if row is not None else []
 
 
-def emotion_values(username: str) -> dict[str, dict[str, float]]:
-    """The last emotion values written for this player, per stakeholder."""
+def _emotion_row(db, username: str):
+    """The newest challenge row that actually carries emotion values.
+
+    Rows are created with an empty `emotion_values` dict before anyone has spoken, and an empty
+    dict is not NULL, so filtering on NULL alone hands back nothing and every stakeholder reads
+    as neutral. Walk back until a row has something in it.
+    """
+    rows = db.scalars(
+        select(GameChallenge)
+        .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+        .order_by(GameChallenge.id.desc())
+    ).all()
+    for row in rows:
+        if isinstance(row.emotion_values, dict) and any(
+            isinstance(ev, dict) and ev for ev in row.emotion_values.values()
+        ):
+            return row
+    return None
+
+
+def _defaults(st_ids: list[str]) -> dict[str, dict[str, float]]:
+    from mlops_serious_game.domain.emotion_factory import EmotionFactory
+
+    return {st_id: dict(EmotionFactory.create_default_emotion_values()) for st_id in st_ids}
+
+
+def emotion_values(username: str, st_ids: Optional[list[str]] = None) -> dict[str, dict[str, float]]:
+    """The last emotion values written for this player, per stakeholder.
+
+    Falls back to the configured neutral defaults for anyone the history does not cover, so a
+    pitch before the first conversation scores against real numbers instead of an empty dict.
+    """
     with get_session() as db:
-        row = db.scalars(
-            select(GameChallenge)
-            .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
-            .order_by(GameChallenge.id.desc())
-        ).first()
-        if row is None or not isinstance(row.emotion_values, dict):
-            return {}
-        return {st_id: dict(ev) for st_id, ev in row.emotion_values.items() if isinstance(ev, dict)}
+        row = _emotion_row(db, username)
+        stored = (
+            {st_id: dict(ev) for st_id, ev in row.emotion_values.items() if isinstance(ev, dict) and ev}
+            if row is not None
+            else {}
+        )
+    if not st_ids:
+        return stored
+    return {**_defaults(st_ids), **stored}
 
 
-def apply_emotion_deltas(username: str, deltas: dict[str, float]) -> dict[str, dict[str, float]]:
+def apply_emotion_deltas(
+    username: str,
+    deltas: dict[str, float],
+    st_ids: Optional[list[str]] = None,
+) -> dict[str, dict[str, float]]:
     """Moves every dimension of a stakeholder by the same amount, clamped to [0, 1].
 
     One number per stakeholder is what the pitch produces: how the answer landed with them. The
     per dimension detail belongs to the conversation model, not to the deterministic scoring.
     """
     if not deltas:
-        return emotion_values(username)
+        return emotion_values(username, st_ids)
     with get_session() as db:
-        row = db.scalars(
-            select(GameChallenge)
-            .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
-            .order_by(GameChallenge.id.desc())
-        ).first()
-        if row is None or not isinstance(row.emotion_values, dict):
-            return {}
-        updated = {}
-        for st_id, ev in row.emotion_values.items():
-            if not isinstance(ev, dict):
-                continue
-            delta = deltas.get(st_id, 0.0)
-            updated[st_id] = {
-                dim: max(0.0, min(1.0, round(val + delta, 3))) if isinstance(val, (int, float)) else val
-                for dim, val in ev.items()
-            }
-        row.emotion_values = updated
+        row = _emotion_row(db, username)
+        base = (
+            {st_id: dict(ev) for st_id, ev in row.emotion_values.items() if isinstance(ev, dict) and ev}
+            if row is not None
+            else {}
+        )
+        # Nobody has spoken yet, or only empty rows exist: start the affected stakeholders at the
+        # configured neutral so the pitch's own deltas are not written into a void.
+        for st_id in list(deltas) + list(st_ids or []):
+            base.setdefault(st_id, dict(_defaults([st_id])[st_id]))
+        target = row
+        if target is None:
+            target = db.scalars(
+                select(GameChallenge)
+                .where(GameChallenge.user_name == username)
+                .order_by(GameChallenge.id.desc())
+            ).first()
+        if target is None or not base:
+            return base
+        updated = shift_emotions(base, deltas)
+        target.emotion_values = updated
+        flag_modified(target, "emotion_values")
         db.commit()
         return updated

@@ -102,6 +102,7 @@ interface StakeholderRead {
   coverage: number;
   loss: number;
   fit: number;
+  emotions: number;
   buy_in: number | null;
   band: "green" | "amber" | "red";
   boundary_violated: boolean;
@@ -122,6 +123,7 @@ interface PitchStatePayload {
   objections: PitchObjection[];
   intel_total?: number;
   intel_verified?: number;
+  emotion_deltas?: Record<string, number>;
   amendments_left: number;
   escalation_points: number;
   patience: Record<string, number>;
@@ -130,6 +132,15 @@ interface PitchStatePayload {
   applied?: Record<string, unknown>;
   stalemate?: boolean;
 }
+
+/** The room wears its mood: the avatar face follows the stakeholder's emotion score. */
+const faceFor = (emotions: number): "serious" | "concerned" | "calm" | "smile" | "smileBig" => {
+  if (emotions < 0.25) return "serious";
+  if (emotions < 0.45) return "concerned";
+  if (emotions < 0.6) return "calm";
+  if (emotions < 0.8) return "smile";
+  return "smileBig";
+};
 
 interface StakeholderBuyInInfo {
   threshold: number;
@@ -386,11 +397,11 @@ export default function PitchPhase({
         {
           threshold: 0.6,
           actionCardScore: r.coverage,
-          dialogueScore: 0,
-          emotionScore: 0,
+          dialogueScore: state.emotion_deltas?.[r.stakeholder_id] ?? 0,
+          emotionScore: r.emotions,
           total: r.buy_in ?? (r.band === "green" ? 0.75 : r.band === "amber" ? 0.5 : 0.2),
           isPersuaded: r.band === "green",
-          currentEmotion: 0,
+          currentEmotion: r.emotions,
         },
       ])
     );
@@ -692,6 +703,7 @@ export default function PitchPhase({
                   const isActive = activeSt === read.stakeholder_id;
                   // The outer seats sit slightly lower, which reads as a table edge curving away.
                   const outer = seatIndex === 0 || seatIndex === state.reads.length - 1;
+                  const moodShift = state.emotion_deltas?.[read.stakeholder_id] ?? 0;
                   return (
                     <div
                       key={read.stakeholder_id}
@@ -710,11 +722,21 @@ export default function PitchPhase({
                             size={72}
                             isFramed={false}
                             isSpeaking={isSpeaking}
+                            emotion={faceFor(read.emotions)}
                             play_blink_animation
                             stakeholderColor={stColor}
                             flip={seatIndex >= state.reads.length / 2}
                           />
                           <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
+                          {!!moodShift && (
+                            <span
+                              className={`${styles.moodShift} ${moodShift > 0 ? styles.moodUp : styles.moodDown}`}
+                              title={`How you answered has moved ${stakeholderName(read.stakeholder_id)} ${moodShift > 0 ? "your way" : "against you"} this round.`}
+                            >
+                              <Icon icon={moodShift > 0 ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
+                              {moodShift > 0 ? "warmer" : "colder"}
+                            </span>
+                          )}
                           {read.boundary_violated && (
                             <span className={styles.crossedPill} title={`Your card breaks something ${stakeholderName(read.stakeholder_id)} said they will not accept. They will block it.`}>
                               <Icon icon="ph:hand-palm-bold" />

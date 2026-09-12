@@ -321,3 +321,28 @@ def test_veto_breaker_pushes_the_card_through_at_a_price():
 def test_a_rebuild_has_to_change_two_items(real):
     assert session.rebuild_is_material({"a", "b", "c"}, {"a", "b", "d"}) is False
     assert session.rebuild_is_material({"a", "b", "c"}, {"a", "d", "e"}) is True
+
+
+def test_the_round_shifts_stored_emotions_and_clamps_them():
+    """What the player says in the objection round has to reach the score, not only the database."""
+    stored = {"data_dave": {"trust": 0.5, "anger": 0.2}, "reliability_ruth": {"trust": 0.95, "anger": 0.9}}
+    shifted = session.shift_emotions(stored, {"data_dave": -0.1, "reliability_ruth": 0.3})
+
+    assert shifted["data_dave"] == {"trust": 0.4, "anger": 0.1}
+    assert shifted["reliability_ruth"] == {"trust": 1.0, "anger": 1.0}
+    assert session.shift_emotions(stored, {}) == stored
+
+
+def test_a_stonewalled_stakeholder_reads_lower_before_the_card_is_committed(real):
+    """Buy-in scored mid round has to move with the answers, or the dialogue decides nothing."""
+    state = GraphState.from_config(real)
+    room = [("data_dave", "high")]
+    archetypes = {"data_dave": _arch()}
+    stored = {"data_dave": {"trust": 0.6, "anger": 0.4}}
+
+    calm = session.card_view(real, state, [], set(), room, archetypes, emotion_values=stored)
+    angry = session.card_view(
+        real, state, [], set(), room, archetypes,
+        emotion_values=session.shift_emotions(stored, {"data_dave": session.EMOTION_STONEWALL}),
+    )
+    assert angry.reads[0].buy_in < calm.reads[0].buy_in

@@ -50,7 +50,7 @@ class PitchContext:
         self.room_ids = [st_id for st_id, _ in self.room]
         self.archetypes = _stakeholder_archetypes(username, self.room_ids)
         self.read_exactly = _correctly_tagged(username, self.room_ids)
-        self.emotions = pitch_store.emotion_values(username)
+        self.emotions = pitch_store.emotion_values(username, self.room_ids)
         self.points = pitch_store.escalation_points(username)
 
     def held_items(self) -> list:
@@ -59,6 +59,15 @@ class PitchContext:
 
         return load_known_intel_items(self.username, up_to_phase=self.phase_id)
 
+    def emotions_now(self, state: "pitch.PitchState") -> dict[str, dict[str, float]]:
+        """Stored emotions with this round's answers folded in.
+
+        The deltas only reach the database at commit, but they have to count while the room is
+        still objecting: stonewalling someone has to show up in their buy-in immediately, and the
+        committed outcome has to be scored against the room as the player left it.
+        """
+        return pitch.shift_emotions(self.emotions, state.emotion_deltas)
+
     def view(self, state: "pitch.PitchState") -> pitch.CardView:
         archetypes = EmotionFactory.get_convincer_archetypes()
         return pitch.card_view(
@@ -66,7 +75,7 @@ class PitchContext:
             self.archetypes,
             main_archetype=archetypes.get(state.main_archetype or ""),
             secondary_archetype=archetypes.get(state.secondary_archetype or ""),
-            emotion_values=self.emotions,
+            emotion_values=self.emotions_now(state),
             knowledge=self.knowledge,
         )
 
@@ -182,6 +191,8 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
             if getattr(i, "challenge_id", None) == ctx.challenge_id
             and str(getattr(getattr(i, "intel_type", None), "value", getattr(i, "intel_type", ""))) == "verified"
         ]),
+        # How far this round has moved each stakeholder, so the room can show it as it happens.
+        "emotion_deltas": state.emotion_deltas,
         "amendments_left": state.amendments_left,
         "escalation_points": ctx.points,
         "patience": state.patience,
@@ -278,7 +289,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
     applied: dict[str, Any] = {}
     if view.outcome != "VETO":
         applied = _apply_card(ctx, state, view)
-        ctx.emotions = pitch_store.apply_emotion_deltas(username, state.emotion_deltas)
+        ctx.emotions = pitch_store.apply_emotion_deltas(username, state.emotion_deltas, ctx.room_ids)
     stalemate = pitch.is_stalemate(state, ctx.room, ctx.points)
     if stalemate:
         applied = _apply_stalemate(ctx)
@@ -308,7 +319,7 @@ async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload
 
     ctx.points = pitch_store.spend_escalation_point(username)
     applied = _apply_card(ctx, result.state, view, override=True)
-    ctx.emotions = pitch_store.apply_emotion_deltas(username, result.state.emotion_deltas)
+    ctx.emotions = pitch_store.apply_emotion_deltas(username, result.state.emotion_deltas, ctx.room_ids)
     pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, result.state)
     await _send(websocket, ctx, result.state, view, applied=applied)
 
@@ -347,7 +358,7 @@ async def handle_pitch_concede(websocket: WebSocket, username: str, payload: dic
     )
 
     state = pitch.concede_pitch(state, winning_pos.stakeholder_id, [losing_pos.stakeholder_id])
-    ctx.emotions = pitch_store.apply_emotion_deltas(username, state.emotion_deltas)
+    ctx.emotions = pitch_store.apply_emotion_deltas(username, state.emotion_deltas, ctx.room_ids)
     pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, state)
     await _send(websocket, ctx, state, view, applied={"ops": len(result.resolved_ops), "outcome": "CONCEDED"})
 
