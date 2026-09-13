@@ -381,6 +381,17 @@
       "veto_threshold": 0.4,
       "objection_threshold": 0.3,
       "loss_w": 0.3,
-      "grudge_lifetime": 2
+      "grudge_lifetime": 2,
+      "reframe_hit": 0.7,
+      "reframe_partial": 0.4,
+      "room_listen": 0.35,
+      "emotion_reframe_miss": -0.08,
+      "emotion_room_listening": -0.03,
+      "default_patience": 3,
+      "sound_out_patience_cost": 1,
+      "emotion_refuted": -0.05,
+      "emotion_trial_balloon_match": 0.05,
+      "emotion_trial_balloon_miss": -0.03,
+      "emotion_one_on_one_miss": -0.05
    }
 }

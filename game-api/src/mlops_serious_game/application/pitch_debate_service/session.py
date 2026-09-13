@@ -32,13 +32,14 @@ from mlops_serious_game.application.pitch_debate_service.scoring import (
     outcome,
 )
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.event import GameEvent
+from mlops_serious_game.domain.event_causes import EventCauseFactory
 from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
 from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
 
 MAX_CARD_ITEMS = 5
 DEFAULT_MAX_AMENDMENTS = 3
-DEFAULT_PATIENCE = 2
 MIN_REBUILD_DELTA = 2
 RISK_GREEN = 0.6
 RISK_AMBER = 0.4
@@ -47,6 +48,7 @@ RISK_AMBER = 0.4
 # pitch_tuning), not code - scoring.py itself stays factory-free (its own "no factory calls"
 # contract), so this module reads the config once and passes the values in explicitly below.
 _TUNING = EmotionFactory.get_pitch_tuning()
+DEFAULT_PATIENCE = _TUNING.default_patience  # D50: 3, was 2
 
 
 class ItemPrediction(BaseModel):
@@ -313,6 +315,7 @@ def options_for(
     card_item_ids: set[str],
     escalation_points: int,
     amendments_left: int,
+    hardened_item_ids: frozenset[str] = frozenset(),
 ) -> list[DialogueOptionSpec]:
     return dialogue_options_for(
         objection=objection,
@@ -321,6 +324,7 @@ def options_for(
         amendment_budget=amendments_left,
         card_size=len(card_item_ids),
         max_card_size=MAX_CARD_ITEMS,
+        hardened=bool(objection.item_id) and objection.item_id in hardened_item_ids,
     )
 
 
@@ -408,11 +412,17 @@ def card_view(
 EMOTION_STONEWALL = _TUNING.emotion_stonewall
 EMOTION_STONEWALL_ALLY = _TUNING.emotion_stonewall_ally
 EMOTION_REFRAME = _TUNING.emotion_reframe
+EMOTION_REFRAME_MISS = _TUNING.emotion_reframe_miss  # D48: Reframe Miss, the objecting stakeholder hardens
+EMOTION_ROOM_LISTENING = _TUNING.emotion_room_listening  # D48: other high-power seats with a poor fit
 EMOTION_ADDENDUM = _TUNING.emotion_addendum
 EMOTION_CONCEDE = _TUNING.emotion_concede
 EMOTION_VETO_BREAKER = _TUNING.emotion_veto_breaker
 EMOTION_CONCEDE_WIN = _TUNING.emotion_concede_win  # D41: the side that gets its way
 EMOTION_CONCEDE_LOSE = _TUNING.emotion_concede_lose  # D41: the side whose card was dropped
+REFRAME_HIT = _TUNING.reframe_hit
+REFRAME_PARTIAL = _TUNING.reframe_partial
+ROOM_LISTEN = _TUNING.room_listen
+SOUND_OUT_PATIENCE_COST = _TUNING.sound_out_patience_cost
 
 
 class PitchState(BaseModel):
@@ -435,6 +445,9 @@ class PitchState(BaseModel):
     conceded_item_ids: list[str] = Field(default_factory=list)
     emotion_deltas: dict[str, float] = Field(default_factory=dict)
     outcome: Optional[str] = None
+    # D48: item ids a Reframe Miss hardened this challenge. From then on only Amend clears the
+    # objection that item raises, no matter its kind - `options_for` reads this on every call.
+    hardened_item_ids: list[str] = Field(default_factory=list)
 
     @property
     def amendments_left(self) -> int:
@@ -443,12 +456,38 @@ class PitchState(BaseModel):
     def open_objections(self) -> list[Objection]:
         return [o for o in self.objections if o.id not in self.resolved]
 
+    def patience_word(self, st_id: str) -> str:
+        """Patience in words, not pips (D50): full shows nothing, one step down is impatient,
+        the last point is at their limit."""
+        left = self.patience.get(st_id, DEFAULT_PATIENCE)
+        if left <= 0:
+            return "at their limit"
+        if left < DEFAULT_PATIENCE:
+            return "impatient"
+        return "full"
+
+
+class ReframeContext(BaseModel):
+    """What a Reframe answer needs to score (D48): the archetype the player chose, the objecting
+    stakeholder's true archetype (fit is measured against ground truth, stakeholders are never
+    fogged), and the room's other stakeholders with their power and true archetype, for the
+    "room is listening" side effect. All optional: a Reframe answered with no archetype context
+    (chosen is None) just clears stance objections with no emotion change, as it always has."""
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    chosen: Optional[Any] = None
+    stakeholder_archetype: Optional[Any] = None
+    room: list[tuple[str, str, Any]] = Field(default_factory=list, description="(stakeholder_id, power, archetype) for everyone else in the room")
+
 
 class AnswerResult(BaseModel):
     state: PitchState
     cleared: bool = False
     spent_escalation_point: bool = False
     rejected: Optional[str] = Field(default=None, description="Why the answer did not apply")
+    reframe_result: Optional[str] = Field(default=None, description="hit, partial or miss - set only for a scored Reframe")
+    events: list[GameEvent] = Field(default_factory=list)
 
 
 def start_pitch(room_st_ids: list[str], patience: int = DEFAULT_PATIENCE) -> PitchState:
@@ -481,12 +520,79 @@ def open_objection_round(state: PitchState, objections: list[Objection]) -> Pitc
     return state.model_copy(update={"stage": "OBJECT", "objections": objections})
 
 
-def _bump(deltas: dict[str, float], st_id: Optional[str], amount: float) -> dict[str, float]:
-    if not st_id:
-        return deltas
+def _direction(amount: float) -> str:
+    if amount > 0:
+        return "up"
+    if amount < 0:
+        return "down"
+    return "none"
+
+
+def _bump(
+    deltas: dict[str, float],
+    st_id: Optional[str],
+    amount: float,
+    *,
+    cause: str,
+    step: str = "object",
+    params: Optional[dict] = None,
+    refs: Optional[dict] = None,
+) -> tuple[dict[str, float], list[GameEvent]]:
+    """Bumps one stakeholder's emotion delta and returns the event this change is logged as
+    (plan 11, D51: nothing moves emotion without a cause). A no-op - no stakeholder, or a zero
+    amount such as a Partial Reframe - returns no event: nothing happened, nothing to log."""
+    if not st_id or amount == 0:
+        return deltas, []
     out = dict(deltas)
     out[st_id] = round(out.get(st_id, 0.0) + amount, 3)
-    return out
+    event = GameEvent(
+        step=step, kind="emotion", subject_id=st_id, direction=_direction(amount),
+        magnitude=EventCauseFactory.magnitude_of(amount), cause=cause, params=params or {}, refs=refs or {},
+    )
+    return out, [event]
+
+
+def _name(names: Optional[dict[str, str]], st_id: Optional[str]) -> str:
+    if not st_id:
+        return ""
+    return (names or {}).get(st_id, st_id)
+
+
+def _reframe_bucket(reframe: Optional[ReframeContext]) -> Optional[str]:
+    """Direct Hit / Partial / Miss from fit against the stakeholder's true archetype (D48).
+    None when the caller gave no archetype context - a Reframe answered blind clears stance
+    objections with no emotion change, same as before D48."""
+    if reframe is None or reframe.chosen is None or reframe.stakeholder_archetype is None:
+        return None
+    f = fit(reframe.stakeholder_archetype, reframe.chosen)
+    if f >= REFRAME_HIT:
+        return "hit"
+    if f >= REFRAME_PARTIAL:
+        return "partial"
+    return "miss"
+
+
+def _room_listening(
+    deltas: dict[str, float],
+    reframe: Optional[ReframeContext],
+    objecting_st_id: str,
+    names: Optional[dict[str, str]],
+) -> tuple[dict[str, float], list[GameEvent]]:
+    """Every other high-power stakeholder in the room with a poor fit to the chosen archetype
+    turns slightly colder (D48): the room is listening, even to an argument aimed at someone else."""
+    if reframe is None or reframe.chosen is None:
+        return deltas, []
+    events: list[GameEvent] = []
+    for st_id, power, arch in reframe.room:
+        if st_id == objecting_st_id or power != "high" or arch is None:
+            continue
+        if fit(arch, reframe.chosen) < ROOM_LISTEN:
+            deltas, ev = _bump(
+                deltas, st_id, EMOTION_ROOM_LISTENING, cause="emotion.room_listening",
+                params={"st": _name(names, st_id)},
+            )
+            events += ev
+    return deltas, events
 
 
 def answer_objection(
@@ -497,6 +603,8 @@ def answer_objection(
     available: set[str],
     item_id: Optional[str] = None,
     opposing_st_id: Optional[str] = None,
+    reframe: Optional[ReframeContext] = None,
+    names: Optional[dict[str, str]] = None,
 ) -> AnswerResult:
     """Applies one dialogue option. `available` is what `options_for` allowed for this objection."""
     objection = next((o for o in state.objections if o.id == objection_id), None)
@@ -509,8 +617,12 @@ def answer_objection(
     card = list(state.card_item_ids)
     amendments = state.amendments_used
     conceded = list(state.conceded_item_ids)
+    hardened = list(state.hardened_item_ids)
     cleared = False
     spent_point = False
+    reframe_result: Optional[str] = None
+    events: list[GameEvent] = []
+    st_name = _name(names, objection.stakeholder_id)
 
     if option == "amend":
         if not item_id or item_id in card:
@@ -519,23 +631,45 @@ def answer_objection(
         amendments += 1
         cleared = True
     elif option == "reframe":
-        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_REFRAME)
-        cleared = objection.kind == "stance"
+        # D48: Reframe picks an archetype per objection. Fit against the stakeholder's true
+        # archetype decides Hit (clears a stance objection, warmer), Partial (clears, no emotion
+        # change) or Miss (never clears, and hardens the item so only Amend can from now on).
+        # Q37: emotion moves the same way on every objection kind, clearing stays stance-only.
+        reframe_result = _reframe_bucket(reframe)
+        if reframe_result == "hit":
+            deltas, ev = _bump(deltas, objection.stakeholder_id, EMOTION_REFRAME, cause="emotion.reframe_hit", params={"st": st_name})
+            events += ev
+            cleared = objection.kind == "stance"
+        elif reframe_result == "miss":
+            deltas, ev = _bump(deltas, objection.stakeholder_id, EMOTION_REFRAME_MISS, cause="emotion.reframe_miss", params={"st": st_name})
+            events += ev
+            cleared = False
+            if objection.kind == "stance" and objection.item_id and objection.item_id not in hardened:
+                hardened.append(objection.item_id)
+        else:
+            # Partial, or no archetype context supplied at all: clears stance, no emotion change.
+            cleared = objection.kind == "stance"
+        deltas, room_events = _room_listening(deltas, reframe, objection.stakeholder_id, names)
+        events += room_events
     elif option == "stonewall":
-        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_STONEWALL)
-        deltas = _bump(deltas, opposing_st_id, EMOTION_STONEWALL_ALLY)
+        deltas, ev = _bump(deltas, objection.stakeholder_id, EMOTION_STONEWALL, cause="emotion.stonewall", params={"st": st_name})
+        events += ev
+        deltas, ev = _bump(deltas, opposing_st_id, EMOTION_STONEWALL_ALLY, cause="emotion.stonewall_ally", params={"st": _name(names, opposing_st_id)})
+        events += ev
         cleared = True  # the objection stands, but the room moves on
     elif option == "emergency_addendum":
         if escalation_points <= 0:
             return AnswerResult(state=state, rejected="no Escalation Points left")
-        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_ADDENDUM)
+        deltas, ev = _bump(deltas, objection.stakeholder_id, EMOTION_ADDENDUM, cause="emotion.addendum", params={"st": st_name})
+        events += ev
         spent_point = True
         amendments += 1
         cleared = True
     elif option == "concede_correction":
         if objection.item_id:
             conceded.append(objection.item_id)
-        deltas = _bump(deltas, objection.stakeholder_id, EMOTION_CONCEDE)
+        deltas, ev = _bump(deltas, objection.stakeholder_id, EMOTION_CONCEDE, cause="emotion.concede_correction", params={"st": st_name})
+        events += ev
         cleared = True
 
     resolved = dict(state.resolved)
@@ -546,51 +680,89 @@ def answer_objection(
         "conceded_item_ids": conceded,
         "emotion_deltas": deltas,
         "resolved": resolved,
+        "hardened_item_ids": hardened,
     })
-    return AnswerResult(state=updated, cleared=cleared, spent_escalation_point=spent_point)
+    return AnswerResult(
+        state=updated, cleared=cleared, spent_escalation_point=spent_point,
+        reframe_result=reframe_result, events=events,
+    )
 
 
-def commit_pitch(state: PitchState, view: CardView) -> PitchState:
+_OUTCOME_CAUSES = {"PASS": "outcome.pass", "SOFT_PASS": "outcome.soft_pass", "VETO": "outcome.veto"}
+
+
+def commit_pitch(
+    state: PitchState, view: CardView, names: Optional[dict[str, str]] = None
+) -> tuple[PitchState, list[GameEvent]]:
     """Locks in the outcome. The caller applies the ops and writes the grudges."""
-    return state.model_copy(update={
+    updated = state.model_copy(update={
         "stage": "DONE" if view.outcome != "VETO" else "COMMIT",
         "outcome": view.outcome,
     })
+    vetoing = next((r.stakeholder_id for r in view.reads if r.power == "high" and r.band == "red"), None)
+    event = GameEvent(
+        step="commit", kind="outcome", subject_id=vetoing,
+        cause=_OUTCOME_CAUSES.get(view.outcome, "outcome.pass"),
+        params={"st": _name(names, vetoing)} if vetoing else {},
+    )
+    return updated, [event]
 
 
-def veto_breaker(state: PitchState, escalation_points: int, vetoing_st_ids: list[str]) -> AnswerResult:
+def veto_breaker(state: PitchState, escalation_points: int, vetoing_st_ids: list[str], names: Optional[dict[str, str]] = None) -> AnswerResult:
     """One Escalation Point pushes the card through. The overridden stakeholder remembers it (D7)."""
     if escalation_points <= 0:
         return AnswerResult(state=state, rejected="no Escalation Points left")
     deltas = state.emotion_deltas
     patience = dict(state.patience)
+    events: list[GameEvent] = []
     for st_id in vetoing_st_ids:
-        deltas = _bump(deltas, st_id, EMOTION_VETO_BREAKER)
+        deltas, ev = _bump(deltas, st_id, EMOTION_VETO_BREAKER, cause="emotion.veto_breaker", step="commit", params={"st": _name(names, st_id)})
+        events += ev
         patience[st_id] = 0
+        events.append(GameEvent(
+            step="commit", kind="outcome", subject_id=st_id, cause="outcome.veto_breaker", params={"st": _name(names, st_id)},
+        ))
     updated = state.model_copy(update={
         "stage": "DONE", "outcome": "PASS", "emotion_deltas": deltas, "patience": patience,
     })
-    return AnswerResult(state=updated, spent_escalation_point=True)
+    return AnswerResult(state=updated, spent_escalation_point=True, events=events)
 
 
-def concede_pitch(state: PitchState, winning_st_id: str, losing_st_ids: list[str]) -> PitchState:
+def concede_pitch(
+    state: PitchState, winning_st_id: str, losing_st_ids: list[str], names: Optional[dict[str, str]] = None
+) -> tuple[PitchState, list[GameEvent]]:
     """Player drops their card; the conflict's opposing position applies (D41)."""
     deltas = state.emotion_deltas
-    deltas = _bump(deltas, winning_st_id, EMOTION_CONCEDE_WIN)
+    events: list[GameEvent] = []
+    deltas, ev = _bump(deltas, winning_st_id, EMOTION_CONCEDE_WIN, cause="emotion.concede_win", step="commit", params={"st": _name(names, winning_st_id)})
+    events += ev
     for st_id in losing_st_ids:
-        deltas = _bump(deltas, st_id, EMOTION_CONCEDE_LOSE)
-    return state.model_copy(update={
+        deltas, ev = _bump(deltas, st_id, EMOTION_CONCEDE_LOSE, cause="emotion.concede_lose", step="commit", params={"st": _name(names, st_id)})
+        events += ev
+    events.append(GameEvent(
+        step="commit", kind="outcome", subject_id=winning_st_id, cause="outcome.conceded",
+        params={"st": _name(names, winning_st_id)},
+    ))
+    updated = state.model_copy(update={
         "stage": "DONE", "outcome": "CONCEDED", "emotion_deltas": deltas,
     })
+    return updated, events
 
 
-def rebuild(state: PitchState, room_st_ids: list[str]) -> tuple[PitchState, Optional[str]]:
+def rebuild(
+    state: PitchState, room_st_ids: list[str], names: Optional[dict[str, str]] = None
+) -> tuple[PitchState, Optional[str], list[GameEvent]]:
     """Back to PREPARE at the cost of one patience from everyone in the room.
 
     A high power stakeholder out of patience with no way left to push the card through is what
     ends the challenge in stalemate; the caller checks that with `is_stalemate`.
     """
     patience = {st_id: state.patience.get(st_id, DEFAULT_PATIENCE) - 1 for st_id in room_st_ids}
+    events = [
+        GameEvent(step="commit", kind="patience", subject_id=st_id, direction="down", magnitude="clear",
+                  cause="patience.rebuild", params={"st": _name(names, st_id)})
+        for st_id in room_st_ids
+    ]
     updated = state.model_copy(update={
         "stage": "PREPARE",
         "patience": patience,
@@ -599,7 +771,7 @@ def rebuild(state: PitchState, room_st_ids: list[str]) -> tuple[PitchState, Opti
         "rebuilds": state.rebuilds + 1,
         "outcome": None,
     })
-    return updated, None
+    return updated, None, events
 
 
 def is_stalemate(state: PitchState, room: list[tuple[str, str]], escalation_points: int) -> bool:
@@ -609,6 +781,12 @@ def is_stalemate(state: PitchState, room: list[tuple[str, str]], escalation_poin
     return any(power == "high" and state.patience.get(st_id, DEFAULT_PATIENCE) <= 0 for st_id, power in room)
 
 
+def mark_stalemate(state: PitchState) -> tuple[PitchState, list[GameEvent]]:
+    """Nobody moved, and the moment passed: what the caller applies once `is_stalemate` fires."""
+    updated = state.model_copy(update={"stage": "DONE", "outcome": "STALEMATE"})
+    return updated, [GameEvent(step="commit", kind="outcome", cause="outcome.stalemate")]
+
+
 def rebuild_is_material(previous_ids: set[str], new_ids: set[str], min_delta: int = MIN_REBUILD_DELTA) -> bool:
     """A rebuilt card has to differ by at least `min_delta` items, so patience buys a real change.
 
@@ -616,3 +794,72 @@ def rebuild_is_material(previous_ids: set[str], new_ids: set[str], min_delta: in
     which is what it looks like to the room.
     """
     return max(len(new_ids - previous_ids), len(previous_ids - new_ids)) >= min_delta
+
+
+# ---------------------------------------------------------------------------
+# Build your case (D48, D50): the Opener and Sound someone out
+# ---------------------------------------------------------------------------
+
+def opener_archetypes(guessed: dict[str, str]) -> list[str]:
+    """Distinct archetypes the player has tagged for the room, in room order - the Opener's
+    "2 to 4 opening lines" (D48). Empty when nothing is tagged yet: the picker falls back to
+    "any other" alone. Uses the player's own guesses, never the ground truth - the player is
+    only ever shown their own tagging back."""
+    seen: list[str] = []
+    for arch in guessed.values():
+        if arch and arch not in seen:
+            seen.append(arch)
+    return seen
+
+
+def sound_out_available(patience: int) -> bool:
+    """Not available at a stakeholder's last point, so sounding out alone can never be what
+    leaves them at zero patience (D50)."""
+    return patience > 1
+
+
+def sound_out_reply(read: StakeholderRead) -> str:
+    """on_board, lukewarm or would_object: what Sound someone out tells the player, read off the
+    same score the room would give this card if committed right now (D50). No text, no numbers."""
+    if read.boundary_violated or read.band == "red":
+        return "would_object"
+    if read.band == "amber":
+        return "lukewarm"
+    return "on_board"
+
+
+_SOUND_OUT_CAUSES = {
+    "on_board": "objection.sound_out_on_board",
+    "lukewarm": "objection.sound_out_lukewarm",
+    "would_object": "objection.sound_out_would_object",
+    "would_object_kind": "objection.sound_out_would_object_kind",
+}
+
+
+def sound_out(
+    state: PitchState,
+    stakeholder_id: str,
+    read: StakeholderRead,
+    objection_kind: Optional[str] = None,
+    names: Optional[dict[str, str]] = None,
+) -> tuple[PitchState, str, list[GameEvent]]:
+    """Costs one patience from the sounded-out stakeholder; returns their decided reply and the
+    updated state. Caller checks `sound_out_available` first - this does not re-check it."""
+    patience = dict(state.patience)
+    patience[stakeholder_id] = max(0, patience.get(stakeholder_id, DEFAULT_PATIENCE) - 1)
+    updated = state.model_copy(update={"patience": patience})
+    reply = sound_out_reply(read)
+    st_name = _name(names, stakeholder_id)
+    cause_key = "would_object_kind" if reply == "would_object" and objection_kind else reply
+    events = [
+        GameEvent(
+            step="build", kind="patience", subject_id=stakeholder_id, direction="down", magnitude="slight",
+            cause="patience.sound_out", params={"st": st_name},
+        ),
+        GameEvent(
+            step="build", kind="objection", subject_id=stakeholder_id, direction="none",
+            cause=_SOUND_OUT_CAUSES[cause_key],
+            params={"st": st_name, **({"kind": objection_kind} if objection_kind else {})},
+        ),
+    ]
+    return updated, reply, events

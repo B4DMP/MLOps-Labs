@@ -67,7 +67,25 @@ class FactAssertion(BaseModel):
 
 class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
+    # Gather's "Test a hypothesis" turn (D49, plan 11): the player's own tag held up under
+    # questioning. Not a public confirmation like Verified, but tested - it counts toward pitch
+    # readiness (Q36/D53) and is shown with its own stamp in the dossier.
+    INFERRED = "inferred"
+    # The same turn, but the player's tag was wrong: a trust hit, a free re-tag, the conversation
+    # goes on. Never shows the true tag - Refuted only says the guess was wrong.
+    REFUTED = "refuted"
     VERIFIED = "verified"
+
+
+# Q36/D53: an Inferred note has been tested against the stakeholder, so it counts toward pitch
+# readiness the same as a Verified one - only Unconfirmed and Refuted do not.
+READINESS_CONFIDENCE = frozenset({ConfidenceType.VERIFIED, ConfidenceType.INFERRED})
+
+
+def counts_toward_readiness(intel_type) -> bool:
+    """Whether an item's confidence counts toward the pitch readiness threshold (Q36/D53)."""
+    value = str(getattr(intel_type, "value", intel_type)).lower()
+    return value in {c.value for c in READINESS_CONFIDENCE}
 
 class IntelSource(str, Enum):
     """How an intel item found its way into the player's dossier.

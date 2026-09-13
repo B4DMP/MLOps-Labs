@@ -158,6 +158,23 @@ class PitchTuning(BaseModel):
     loss_w: float = Field(default=0.3, description="Weight of accumulated loss in the buy-in formula")
     grudge_lifetime: int = Field(default=2, description="How many simulations a grudge keeps firing before it is spent")
 
+    # D48/D50 (plan 11): Reframe picks an archetype per objection; fit against the stakeholder's
+    # true archetype buckets into Direct Hit / Partial / Miss. No secondary for a single answer.
+    reframe_hit: float = Field(default=0.7, description="Fit at or above this is a Direct Hit on Reframe")
+    reframe_partial: float = Field(default=0.4, description="Fit at or above this (below Hit) is a Partial on Reframe")
+    room_listen: float = Field(default=0.35, description="Fit below which another high-power stakeholder in the room turns colder on a Reframe (the room is listening)")
+    emotion_reframe_miss: float = Field(default=-0.08, description="Reframe Miss: emotion hit to the objecting stakeholder, now hardened so only Amend clears it")
+    emotion_room_listening: float = Field(default=-0.03, description="Reframe: slight emotion hit to other high-power stakeholders with a poor fit to the chosen archetype")
+    default_patience: int = Field(default=3, description="Patience per stakeholder per challenge (D50, was 2)")
+    sound_out_patience_cost: int = Field(default=1, description="Patience spent when sounding a stakeholder out in Build your case (D50)")
+
+    # Gather (D49, plan 11): Test a hypothesis and Trial Balloon are small trust moves, not the
+    # room deciding anything - kept an order of magnitude gentler than the OBJECT-round numbers.
+    emotion_refuted: float = Field(default=-0.05, description="Test a hypothesis: trust hit when the player's tag was wrong (Refuted)")
+    emotion_trial_balloon_match: float = Field(default=0.05, description="Trial Balloon: gain when the guessed archetype matches")
+    emotion_trial_balloon_miss: float = Field(default=-0.03, description="Trial Balloon: small hit when the guessed archetype is ruled out")
+    emotion_one_on_one_miss: float = Field(default=-0.05, description="1-on-1 template: trust hit when the guessed pair is wrong")
+
 
 from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 

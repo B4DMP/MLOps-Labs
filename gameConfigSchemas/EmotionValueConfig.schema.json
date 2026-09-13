@@ -94,7 +94,18 @@
         "veto_threshold": { "type": "number", "title": "Buy-in floor below which a high-power stakeholder vetoes", "default": 0.4 },
         "objection_threshold": { "type": "number", "title": "Buy-in floor below which a low-power stakeholder objects", "default": 0.3 },
         "loss_w": { "type": "number", "title": "Weight of accumulated loss in the buy-in formula", "default": 0.3 },
-        "grudge_lifetime": { "type": "integer", "title": "Simulations a grudge keeps firing before it is spent", "default": 2 }
+        "grudge_lifetime": { "type": "integer", "title": "Simulations a grudge keeps firing before it is spent", "default": 2 },
+        "reframe_hit": { "type": "number", "title": "Fit at/above this on Reframe is a Direct Hit (D48)", "default": 0.7 },
+        "reframe_partial": { "type": "number", "title": "Fit at/above this (below Hit) on Reframe is a Partial (D48)", "default": 0.4 },
+        "room_listen": { "type": "number", "title": "Fit below which other high-power seats turn colder on a Reframe (D48)", "default": 0.35 },
+        "emotion_reframe_miss": { "type": "number", "title": "Reframe Miss: hit to the objecting stakeholder, now hardened", "default": -0.08 },
+        "emotion_room_listening": { "type": "number", "title": "Reframe: hit to other high-power seats with a poor fit", "default": -0.03 },
+        "default_patience": { "type": "integer", "title": "Patience per stakeholder per challenge (D50)", "default": 3 },
+        "sound_out_patience_cost": { "type": "integer", "title": "Patience spent sounding a stakeholder out in Build your case (D50)", "default": 1 },
+        "emotion_refuted": { "type": "number", "title": "Gather Test a hypothesis: trust hit on Refuted (D49)", "default": -0.05 },
+        "emotion_trial_balloon_match": { "type": "number", "title": "Gather Trial Balloon: gain on a match (D49)", "default": 0.05 },
+        "emotion_trial_balloon_miss": { "type": "number", "title": "Gather Trial Balloon: hit on a ruled-out guess (D49)", "default": -0.03 },
+        "emotion_one_on_one_miss": { "type": "number", "title": "Gather 1-on-1 template: hit on a wrong pair (D49)", "default": -0.05 }
       }
     },
     "emotionDeltaRules": {
