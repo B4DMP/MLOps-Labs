@@ -28,7 +28,7 @@ import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
 import { fetchAdminDashboard } from "../services/api/admin";
 
-interface Campaign {
+export interface Campaign {
   name: string;
   key: string;
   users: string[];
@@ -36,7 +36,7 @@ interface Campaign {
   use_questionnaire?: boolean;
 }
 
-interface Player {
+export interface Player {
   name: string;
   campaign_name: string;
   campaign_key?: string;
@@ -1434,7 +1434,7 @@ export function Admin({
           {/* ======================================================== */}
           {activeSubpage === "graph_debug" && (
             <div className={styles.cardSurface}>
-              <GraphDebug adminToken={adminToken} />
+              <GraphDebug adminToken={adminToken} campaigns={campaigns} players={players} />
             </div>
           )}
         </div>

@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { fetchGraphDebug } from "../services/api/admin";
+import type { Campaign, Player } from "./Admin";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,7 +36,7 @@ interface OrphanSection {
   objections_never_reachable: string[];
   facts_on_nonexistent_targets: string[];
 }
-interface GraphDebugPayload {
+export interface GraphDebugPayload {
   username: string;
   stages: StageDebug[];
   components: ComponentDebug[];
@@ -365,28 +367,35 @@ function OrphansSection({ data }: { data: OrphanSection }) {
 
 interface GraphDebugProps {
   adminToken: string;
+  campaigns: Campaign[];
+  players: Player[];
 }
 
-export function GraphDebug({ adminToken }: GraphDebugProps) {
+export function GraphDebug({ adminToken, campaigns, players }: GraphDebugProps) {
   const [username, setUsername] = useState("");
   const [data, setData] = useState<GraphDebugPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function load() {
-    if (!username.trim()) return;
+  // Every campaign's own user list, plus anyone the dashboard knows about who isn't in any
+  // campaign (no campaign_key match) - so the dropdown never silently hides a player.
+  const groups = useMemo(() => {
+    const grouped = campaigns.map((c) => ({ label: c.name, users: [...c.users].sort() }));
+    const known = new Set(campaigns.flatMap((c) => c.users));
+    const orphaned = players.map((p) => p.name).filter((n) => !known.has(n)).sort();
+    return orphaned.length > 0 ? [...grouped, { label: "No campaign", users: orphaned }] : grouped;
+  }, [campaigns, players]);
+
+  async function load(name: string) {
+    setUsername(name);
+    if (!name) {
+      setData(null);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(
-        `${import.meta.env.BASE_URL || ""}api/admin/graph-debug?username=${encodeURIComponent(username.trim())}`,
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.detail ?? res.statusText);
-      }
-      setData(await res.json());
+      setData(await fetchGraphDebug(adminToken, name));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -397,27 +406,26 @@ export function GraphDebug({ adminToken }: GraphDebugProps) {
   return (
     <div style={{ color: "#e2e8f0", fontFamily: "system-ui, sans-serif" }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, alignItems: "center" }}>
-        <input
-          type="text"
-          placeholder="username"
+        <select
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && load()}
+          onChange={(e) => load(e.target.value)}
           style={{
             background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0",
             borderRadius: 6, padding: "6px 12px", fontSize: 13, flex: 1,
           }}
-        />
-        <button
-          onClick={load}
-          disabled={loading}
-          style={{
-            background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 6,
-            padding: "6px 16px", cursor: "pointer", fontWeight: 600,
-          }}
         >
-          {loading ? "Loading…" : "Load"}
-        </button>
+          <option value="">
+            {groups.length === 0 ? "No active players" : "Select a player…"}
+          </option>
+          {groups.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.users.map((u) => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        {loading && <span style={{ fontSize: 13, color: "#64748b" }}>Loading…</span>}
       </div>
       {error && <div style={{ color: "#dc3545", marginBottom: 12, fontSize: 13 }}>{error}</div>}
       {data && (
