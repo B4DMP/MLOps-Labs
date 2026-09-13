@@ -1,0 +1,865 @@
+{
+  "item_id": "items:ch_experiment_tracking_dispute",
+  "stage": "items",
+  "input_hash": "0b755d2d23af0524d78aa9725d2bb27efdf7e105a345b1dc75ab7d27c11112e4",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 3,
+  "inputs": {
+    "challenge": {
+      "phase_id": 3,
+      "template_id": "ch_experiment_tracking_dispute",
+      "name": "Tracking Reproducibility Lost",
+      "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
+      "roundIntroduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "component": "model.experiment_tracking",
+        "op": "eq",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.experiment_tracking",
+          "value": 1,
+          "reason": "the audit team found gaps in reproducibility"
+        },
+        {
+          "kind": "set_to",
+          "target": "e.train_tracking",
+          "value": 0,
+          "reason": "the audit team found gaps in reproducibility"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.experiment_tracking",
+          "value": 0,
+          "reason": "the audit team found gaps in reproducibility"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "model.experiment_tracking",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 3
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "model_monica",
+        "name": "Model Monica",
+        "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
+        "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
+        "metric_id": "model",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "model",
+      "components": [
+        {
+          "id": "model.experiment_tracking",
+          "name": "Experiment Tracking",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "spreadsheet",
+              "mlflow",
+              "wandb"
+            ]
+          }
+        },
+        {
+          "id": "model.registry",
+          "name": "Model Registry",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "mlflow",
+              "sagemaker",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "model.training_pipeline",
+          "name": "Training Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "notebooks",
+              "airflow",
+              "kubeflow"
+            ]
+          }
+        },
+        {
+          "id": "model.hpo",
+          "name": "Hyperparameter Tuning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "grid_search",
+              "optuna",
+              "ray_tune"
+            ]
+          }
+        },
+        {
+          "id": "model.evaluation",
+          "name": "Model Evaluation Harness",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.hpo_train",
+          "from": "model.hpo",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_tracking",
+          "from": "model.training_pipeline",
+          "to": "model.experiment_tracking",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_eval",
+          "from": "model.training_pipeline",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.eval_registry",
+          "from": "model.evaluation",
+          "to": "model.registry",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.retrain_train",
+          "from": "ops.retraining_trigger",
+          "to": "model.training_pipeline",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.audit_registry",
+          "from": "gov.audit",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cards_registry",
+          "from": "gov.model_cards",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.compute_train",
+          "from": "gov.compute_scheduling",
+          "to": "model.training_pipeline",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "model:prediction_v1",
+          "kind": "model",
+          "on": "model.training_pipeline",
+          "props": {
+            "performance": "fair",
+            "latency": "acceptable",
+            "fairness": "unchecked"
+          },
+          "property_values": {
+            "performance": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "fairness": [
+              "biased",
+              "unchecked",
+              "balanced"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "model.experiment_tracking": {
+        "level": 1
+      },
+      "model.registry": {
+        "level": 1
+      },
+      "model.training_pipeline": {
+        "level": 2
+      },
+      "model.hpo": {
+        "level": 1
+      },
+      "model.evaluation": {
+        "level": 2
+      },
+      "e.acceptance_eval": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.fs_train": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.driftcheck_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.hpo_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.train_tracking": {
+        "level": 0,
+        "trigger": "none"
+      },
+      "e.train_eval": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.eval_registry": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.retrain_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.audit_registry": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cards_registry": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.compute_train": {
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "monica_automated",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} proposed automated experiment tracking.",
+        "readings": {
+          "driver": "The more automated it is, the better it supports reproducibility.",
+          "boundary": "{model_monica} will not accept anything less than automated tracking.",
+          "trade_off": "{model_monica} would compromise on other aspects if automated tracking is achieved.",
+          "fact": "That is simply the current state of experiment tracking."
+        },
+        "metric_id": "model",
+        "suggested_target": "model.experiment_tracking",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_manual",
+        "tag": "trade_off",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} suggested keeping experiment tracking manual.",
+        "readings": {
+          "driver": "The more manual it is, the better it saves costs.",
+          "boundary": "{data_dave} will not accept automated tracking under any circumstances.",
+          "trade_off": "{data_dave} would accept manual tracking if it significantly reduces costs.",
+          "fact": "That is simply the current state of experiment tracking."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "model.experiment_tracking",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_audit",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} brought up the recent audit flagging gaps in model reproducibility.",
+        "readings": {
+          "driver": "The more reproducible the models are, the better it meets compliance standards.",
+          "boundary": "{requirements_reuben} will not accept any solution that does not address the audit findings.",
+          "trade_off": "{requirements_reuben} would accept a less automated solution if it still meets audit requirements.",
+          "fact": "That is simply the current state of model reproducibility."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "model.experiment_tracking",
+          "op": "gte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.experiment_tracking",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_cost",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} mentioned the importance of cost control in ML initiatives.",
+        "readings": {
+          "driver": "The more cost-effective the solution, the better it aligns with business goals.",
+          "boundary": "{efficiency_emilia} will not accept any solution that exceeds the budget.",
+          "trade_off": "{efficiency_emilia} would accept a less automated solution if it significantly reduces costs.",
+          "fact": "That is simply the current state of cost control."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 5,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "monica_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
+        "readings": {
+          "driver": "The more automated it is, the better it supports reproducibility.",
+          "boundary": "{model_monica} will not accept anything less than automated tracking.",
+          "trade_off": "{model_monica} would compromise on other aspects if automated tracking is achieved.",
+          "fact": "That is simply the current state of experiment tracking."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "model.experiment_tracking",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.experiment_tracking",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_cost",
+        "tag": "driver",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} asked for cost savings in the experiment tracking process.",
+        "readings": {
+          "driver": "The more cost savings achieved, the better it aligns with data operations goals.",
+          "boundary": "{data_dave} will not accept any solution that increases costs.",
+          "trade_off": "{data_dave} would accept a less automated solution if it significantly reduces costs.",
+          "fact": "That is simply the current state of cost savings."
+        },
+        "metric_id": "data",
+        "suggested_target": "model.experiment_tracking",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_comp",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed aligning experiment tracking with compliance standards.",
+        "readings": {
+          "driver": "The more aligned with compliance standards, the better it guarantees product quality.",
+          "boundary": "{requirements_reuben} will not accept any solution that does not meet compliance standards.",
+          "trade_off": "{requirements_reuben} would accept a less automated solution if it still meets compliance standards.",
+          "fact": "That is simply the current state of compliance alignment."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "model.experiment_tracking",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_goal",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested aligning experiment tracking with business goals.",
+        "readings": {
+          "driver": "The more aligned with business goals, the better it enhances operational capability.",
+          "boundary": "{efficiency_emilia} will not accept any solution that does not align with business goals.",
+          "trade_off": "{efficiency_emilia} would accept a less automated solution if it still aligns with business goals.",
+          "fact": "That is simply the current state of business goal alignment."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "model.experiment_tracking",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "tracking_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Experiment tracking is currently missing.",
+        "readings": {
+          "driver": "Someone on the team wants experiment tracking to be missing.",
+          "boundary": "Someone on the team will not accept any experiment tracking.",
+          "trade_off": "Someone on the team would give up other aspects if experiment tracking is missing.",
+          "fact": "That is simply the current state of experiment tracking."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.experiment_tracking",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "registry_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model registry is currently missing.",
+        "readings": {
+          "driver": "Someone on the team wants the model registry to be missing.",
+          "boundary": "Someone on the team will not accept any model registry.",
+          "trade_off": "Someone on the team would give up other aspects if the model registry is missing.",
+          "fact": "That is simply the current state of the model registry."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.registry",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "train_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The training pipeline is currently done by hand.",
+        "readings": {
+          "driver": "Someone on the team wants the training pipeline to be done by hand.",
+          "boundary": "Someone on the team will not accept any other method for the training pipeline.",
+          "trade_off": "Someone on the team would give up other aspects if the training pipeline is done by hand.",
+          "fact": "That is simply the current state of the training pipeline."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.training_pipeline",
+        "asserts_level": 2,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

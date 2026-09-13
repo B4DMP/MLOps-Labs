@@ -1,0 +1,48 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_emilia_governance",
+  "stage": "artifacts",
+  "input_hash": "7bd5d1c48aeb5855ae99a46270b562efc223933daf24f97fd78547bb6643227b",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_emilia_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} suggested governing the model registry. She will not do her work without governance.",
+      "fact": "{efficiency_emilia} suggested governing the model registry.",
+      "reading": "She will not do her work without governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter."
+    }
+  },
+  "output": {
+    "content": "{efficiency_emilia} made it clear during the last sprint meeting that she will not proceed with any work unless the model registry is governed first. {efficiency_emilia} emphasized that this is a non-negotiable requirement for her team to ensure compliance and risk management. She stated that without proper governance in place, she cannot guarantee the integrity and security of the models, and thus, any further development or deployment would be halted until this condition is met.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "Emilia's statement sets a clear boundary that she will not proceed with work without the model registry being governed first, and crossing this line means refusal."
+  }
+}

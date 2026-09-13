@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.labeling",
+  "stage": "objections",
+  "input_hash": "d378160659617355362f1e6776347714633f7a9f4512ed85e7d7ccb92b96d1ef",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.labeling",
+      "name": "Data Labeling Pipeline"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I cannot support improving {target} until {cause} is improved, because the upstream data quality is still not good enough."
+  }
+}

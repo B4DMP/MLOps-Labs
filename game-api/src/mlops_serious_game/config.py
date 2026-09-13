@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     WESTAI_LLM_MODEL_CARD_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_WRONG_INTEL_GEN: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
     WESTAI_LLM_MODEL_DIALOGUE_OPTIONS: str = "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+    WESTAI_LLM_MODEL_CONTENT_GEN: str = "Qwen/Qwen3.8-27B"
 
     # -- MistralAI Proxy Configuration --
     MISTRAL_API_KEY: str | None = None
@@ -85,6 +86,7 @@ class Settings(BaseSettings):
     POSTGRES_CAMPAIGN_DATA_TABLE: str = "campaign_data"
     POSTGRES_USER_DATA_TABLE: str = "user_data"
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
+    POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
@@ -122,6 +124,9 @@ class Settings(BaseSettings):
     RAG_TOP_K: int = 3
     RAG_THREADS: int | None = None
     RAG_CHUNK_SIZE: int = 256
+
+    # --- Feature flags ---
+    ENABLE_GRAPH_DEBUG: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")

@@ -30,9 +30,23 @@ class MetricFactory:
                 metric_icon=j["metric_icon"],
                 max_value=j["max_value"],
                 metric_color=j["metric_color"],
-                metric_prompt=j["metric_prompt"]
+                component_weights=j.get("component_weights", {}),
             )
             cls.metrics.append(st)
+
+    @classmethod
+    def validate_component_weights(cls, graph) -> None:
+        """Config gate: every weighted target exists. Needs the graph, so it runs after it loads."""
+        from mlops_serious_game.domain.graph_factory import GraphConfigError
+
+        errors = [
+            f"metric '{m.id}' weights unknown target '{target}'"
+            for m in cls.metrics
+            for target in m.component_weights
+            if not graph.is_target(graph.resolve(target))
+        ]
+        if errors:
+            raise GraphConfigError("; ".join(errors))
 
     @classmethod
     def get_metric(cls,id: str) -> Metric:

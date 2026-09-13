@@ -2,13 +2,20 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "title": "Requirement Objects Configuration",
-  "required": ["requirements"],
+  "required": [
+    "requirements"
+  ],
   "properties": {
     "requirements": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "challenge_id", "stakeholder_id", "type", "description"],
+        "required": [
+          "id",
+          "challenge_id",
+          "type",
+          "description"
+        ],
         "properties": {
           "id": {
             "type": "string",
@@ -19,18 +26,143 @@
             "title": "Challenge ID"
           },
           "stakeholder_id": {
-            "type": "string",
-            "title": "Stakeholder ID",
-            "enum": ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"]
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Stakeholder ID (null for a Fact)",
+            "enum": [
+              "data_dave",
+              "model_monica",
+              "requirements_reuben",
+              "efficiency_emilia",
+              "automation_alex",
+              "reliability_ruth",
+              null
+            ]
           },
           "type": {
             "type": "string",
-            "title": "Requirement Type",
-            "enum": ["requirement", "negotiable_preference", "personal_friction"]
+            "title": "Intel tag",
+            "enum": [
+              "driver",
+              "boundary",
+              "trade_off",
+              "fact"
+            ],
+            "description": "driver: wanted, more is better. boundary: must happen or must never be undone. trade_off: accepted at a cost. fact: how the system is, nobody's wish."
           },
           "description": {
             "type": "string",
             "title": "Requirement Description"
+          },
+          "metric_id": {
+            "type": "string",
+            "title": "Driver: metric the stakeholder wants moved"
+          },
+          "suggested": {
+            "type": "object",
+            "required": [
+              "target",
+              "level"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4
+              }
+            },
+            "title": "Driver: change that would move the metric"
+          },
+          "holds": {
+            "title": "Boundary: predicate that must hold after the card"
+          },
+          "ops": {
+            "type": "array",
+            "title": "Boundary / Trade-off: ops the item brings into the card",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "raise_to",
+                    "set_trigger",
+                    "set_attr"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "value": {},
+                "attr": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "concedes": {
+            "type": "object",
+            "title": "Trade-off: what it costs the stakeholder",
+            "properties": {
+              "metric_id": {
+                "type": "string"
+              },
+              "loss": {
+                "type": "integer"
+              },
+              "target": {
+                "type": "string"
+              },
+              "accepts_max_level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4
+              }
+            }
+          },
+          "asserts": {
+            "type": "object",
+            "title": "Fact: what is true about the graph",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4
+              },
+              "trigger": {
+                "type": "string"
+              }
+            }
+          },
+          "fact": {
+            "type": "string",
+            "title": "Fact: what they want or did, never why. Stays put whatever the player tags."
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading: how much they care. The part the tag is about."
+          },
+          "refines_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Refinement chain: the earlier item this one sharpens, same target and stakeholder"
           }
         }
       }

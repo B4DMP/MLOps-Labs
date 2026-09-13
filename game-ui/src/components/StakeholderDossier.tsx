@@ -4,22 +4,43 @@ import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 export type { ConvincerProfileConfig } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
-import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
+import { INTEL_TAGS } from "../types/IntelTag";
 
 export interface IntelEntry {
   id: string;
   requirement_id?: string;
   intel_type: string; // e.g. "unconfirmed", "verified"
-  categorized_type: string; // e.g. "hard_constraint", "requirement", "negotiable_preference", "personal_friction"
+  categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
+  /** Split wording: the part that holds still whatever the player tags it (bold). */
+  fact?: string | null;
+  /** Split wording: the part the tag is about; italic while the call is unconfirmed. */
+  reading?: string | null;
   is_correct?: boolean;
   /** Where the item came from: "public_record", "offline_artifact", "interview" or "debate". */
   source?: string;
   /** For offline artifacts: which kind of document the player read it off. */
   artifact_type?: string;
+  /** Refinement chain (plan 05): every link of one chain carries the same id. */
+  chain_id?: string;
+  chain_position?: number;
+  chain_length?: number;
+  refines_id?: string | null;
+  /** Authored refinements past this link that the player has not found yet. A count only. */
+  locked_links?: number;
+  discovered_phase_id?: number | null;
+  /** The graph target the note is about, and the stage that target sits in. */
+  target?: string | null;
+  stage_id?: string | null;
+  stage_name?: string | null;
+  /** Read off the graph every time: "open", "addressed", "violated" or "stale". */
+  status?: string;
+  /** This challenge's conflict puts somebody on the other side of this very target. */
+  contested?: boolean;
 }
 
 export interface StakeholderDossierEntry {
@@ -38,6 +59,10 @@ export interface StakeholderDossierEntry {
   intel_items: IntelEntry[];
   /** How many notes this stakeholder has in the challenge, found or not. */
   intel_total?: number;
+  /** The environment page: Facts about the system, not about anybody. */
+  is_environment?: boolean;
+  /** Stages this challenge is about, which the stage filter starts on. */
+  focus_stage_ids?: string[];
 }
 
 export interface StakeholderBuyInInfo {
@@ -70,6 +95,11 @@ export interface StakeholderDossierProps {
   showPhaseChangeBadges?: boolean;
   /** Reopens the phase briefing. The button only appears when this is given. */
   onOpenPhaseBriefing?: () => void;
+  /** Opens/closes the pipeline view. Button appears in the dossier header. */
+  /** When set, notes can be dragged onto the card builder (plan 06). */
+  draggableIntel?: boolean;
+  onPerformanceToggle?: () => void;
+  isPerformanceOpen?: boolean;
 }
 
 /** How long the markers keep pulsing when the player never opens their tab. */
@@ -78,11 +108,16 @@ const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
 /** Dwell on a tab before its marker counts as seen. */
 const CHANGE_BADGE_SEEN_MS = 1000;
 
-const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = {
-  requirement: { label: "Core Requirement", icon: "📋", styleClass: styles.tagRequirement },
-  negotiable_preference: { label: "Negotiable Preference", icon: "💬", styleClass: styles.tagNegotiable },
-  personal_friction: { label: "Personal Friction", icon: "⚡", styleClass: styles.tagFriction },
+const TAG_STYLE_CLASS: Record<string, string> = {
+  requirement: styles.tagRequirement,
+  preference: styles.tagNegotiable,
+  friction: styles.tagFriction,
+  default: styles.tagFriction,
 };
+
+const CATEGORY_META: Record<string, { label: string; icon: string; styleClass: string }> = Object.fromEntries(
+  INTEL_TAGS.map((t) => [t.type, { label: t.label, icon: t.emoji, styleClass: TAG_STYLE_CLASS[t.styleKey] }])
+);
 
 /** Document wording for the "your read of their ..." caption. */
 const ARTIFACT_TYPE_LABEL: Record<string, string> = {
@@ -122,8 +157,8 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
       const label = ARTIFACT_TYPE_LABEL[(item.artifact_type || "").toLowerCase()];
       return {
         icon: "ph:file-text-bold",
-        text: label ? `Your read of their ${label}` : "Your read of a document",
-        title: "Your own reading of a document you found. Nobody has confirmed it yet.",
+        text: label ? `You read their ${label}` : "You read a document",
+        title: "You read a document you found. Nobody has confirmed it yet.",
       };
     }
   }
@@ -170,6 +205,92 @@ const describeIntelPips = (pips: IntelPipStatus[]): string => {
   return breakdown.length > 0 ? `${summary}: ${breakdown.join(", ")}` : summary;
 };
 
+/** Stage colours for the filter row and the environment page, from the pipeline view (plan 08). */
+const STAGE_META: Record<string, { label: string; color: string }> = {
+  req: { label: "Requirements", color: "#7c3aed" },
+  data: { label: "Data", color: "#0284c7" },
+  model: { label: "Modeling", color: "#16a34a" },
+  deploy: { label: "Deployment", color: "#d97706" },
+  ops: { label: "Monitoring and Ops", color: "#dc2626" },
+  gov: { label: "Governance and Infra", color: "#64748b" },
+};
+
+const stageMeta = (id?: string | null): { label: string; color: string } =>
+  (id ? STAGE_META[id] : undefined) || { label: id || "Not on the map", color: "#94a3b8" };
+
+/**
+ * What the graph currently says about a note. "open" is the quiet default and gets no badge:
+ * most notes are open, and a badge on every one of them would say nothing.
+ */
+const STATUS_META: Record<string, { label: string; title: string; styleClass: string }> = {
+  addressed: {
+    label: "DONE",
+    title: "Somebody already took this as far as they asked for.",
+    styleClass: "statusAddressed",
+  },
+  violated: {
+    label: "CROSSED",
+    title: "The pipeline as it stands is over this line of theirs.",
+    styleClass: "statusViolated",
+  },
+  stale: {
+    label: "OUT OF DATE",
+    title: "The system has moved since you wrote this down.",
+    styleClass: "statusStale",
+  },
+};
+
+export interface IntelChain {
+  id: string;
+  /** The newest link: the headline, and the payload the card builder uses. */
+  newest: IntelEntry;
+  /** The links it grew out of, oldest first. */
+  older: IntelEntry[];
+}
+
+/** One card per refinement chain (D24), however many notes went into it. */
+const toChains = (items: IntelEntry[]): IntelChain[] => {
+  const byChain = new Map<string, IntelEntry[]>();
+  (items || []).forEach((item) => {
+    const key = item.chain_id || item.id;
+    byChain.set(key, [...(byChain.get(key) || []), item]);
+  });
+  return [...byChain.entries()].map(([id, links]) => {
+    const ordered = [...links].sort((a, b) => (a.chain_position ?? 0) - (b.chain_position ?? 0));
+    return { id, newest: ordered[ordered.length - 1], older: ordered.slice(0, -1) };
+  });
+};
+
+/** Everything in a chain the search box should match: every layer, its target and its stage. */
+const chainText = (chain: IntelChain): string =>
+  [chain.newest, ...chain.older]
+    .map((link) => `${link.description || ""} ${link.target || ""} ${link.stage_name || ""}`)
+    .join(" ")
+    .toLowerCase();
+
+/** Phases are stored from zero and spoken from one, and they have names worth using. */
+export const phaseLabel = (phase?: number | null, phases?: PhaseData[]): string => {
+  if (phase === null || phase === undefined) return "earlier";
+  const named = phases?.[phase]?.phase_name;
+  return named || `phase ${phase + 1}`;
+};
+
+/** Dock-sized phase names. Deployment is checked before model: "Model Deployment" deploys. */
+const PHASE_SHORT_LABELS: Array<[RegExp, string]> = [
+  [/requirement/i, "REQ"],
+  [/deploy/i, "DEPLOY"],
+  [/monitor|usage|operation/i, "OPS"],
+  [/data/i, "DATA"],
+  [/model/i, "MODEL"],
+  [/intro/i, "INTRO"],
+];
+
+export const phaseShortLabel = (phase?: number | null, phases?: PhaseData[]): string => {
+  if (phase === null || phase === undefined) return "EARLIER";
+  const named = phases?.[phase]?.phase_name || "";
+  return PHASE_SHORT_LABELS.find(([pattern]) => pattern.test(named))?.[1] || `P${phase + 1}`;
+};
+
 const getEmotionIcon = (emotionStr: string): string => {
   const lower = (emotionStr || "neutral").toLowerCase();
   if (
@@ -210,6 +331,9 @@ export default function StakeholderDossier({
   buyInInfoMap,
   showPhaseChangeBadges = false,
   onOpenPhaseBriefing,
+  draggableIntel = false,
+  onPerformanceToggle,
+  isPerformanceOpen = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -230,6 +354,15 @@ export default function StakeholderDossier({
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
   const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
   const [hoveredPolaroidStId, setHoveredPolaroidStId] = useState<string | null>(null);
+
+  // Dossier filters (plan 05). `null` means the player has not touched the stage row yet, so it
+  // keeps following the challenge's focus stages as those change.
+  const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
+  const [search, setSearch] = useState("");
+  const [collapseAddressed, setCollapseAddressed] = useState(false);
+  const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
+  /** The page the player was on before opening the system, so the button toggles back. */
+  const lastPersonPage = useRef(0);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
@@ -427,10 +560,58 @@ export default function StakeholderDossier({
     return () => clearTimeout(timer);
   }, [pulsingChangeIds, currentPageIndex, effectiveDossierData]);
 
+  // Phase filter, search and collapse (plan 05). The row filters by the phase a note was found in,
+  // the name its spine shows. An empty selection means no filtering at all, so clearing the row
+  // is how the player gets everything back.
+  const phaseFilterActive = phaseFilter.size > 0;
+  const nowOnly = phaseFilter.size === 1 && phaseFilter.has(currentPhase);
+
+  const phasesOnPage = (st?: StakeholderDossierEntry): number[] => {
+    const ids = new Set<number>();
+    (st?.intel_items || []).forEach((item) => {
+      if (item.discovered_phase_id !== null && item.discovered_phase_id !== undefined) {
+        ids.add(item.discovered_phase_id);
+      }
+    });
+    return [...ids].sort((a, b) => a - b);
+  };
+
+  const togglePhase = (phase: number) => {
+    const next = new Set(phaseFilter);
+    if (next.has(phase)) next.delete(phase);
+    else next.add(phase);
+    setPhaseFilter(next);
+  };
+
+  // A note with no phase is never filtered out by phase: it predates the stamp, and filtering it
+  // away would lose it entirely.
+  /** on record, verified or still unconfirmed: the three states a note can be in. */
+  const confidenceOf = (item: { intel_type?: string; source?: string }): "on_record" | "verified" | "unconfirmed" => {
+    if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
+    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+  };
+
+  const CONF_ORDER: Record<string, number> = { unconfirmed: 0, verified: 1, on_record: 2 };
+
+  const visibleChains = (st: StakeholderDossierEntry): IntelChain[] => {
+    const needle = search.trim().toLowerCase();
+    return toChains(st.intel_items || [])
+      .filter((chain) => {
+        const phase = chain.newest.discovered_phase_id;
+        if (phaseFilterActive && phase !== null && phase !== undefined && !phaseFilter.has(phase)) return false;
+        if (confFilter !== "all" && confidenceOf(chain.newest) !== confFilter) return false;
+        return !needle || chainText(chain).includes(needle);
+      })
+      // Unconfirmed first: those are the ones still worth doing something about.
+      .sort((a, b) => CONF_ORDER[confidenceOf(a.newest)] - CONF_ORDER[confidenceOf(b.newest)]);
+  };
+
   const totalPages = effectiveDossierData.length;
+  const environmentIndex = effectiveDossierData.findIndex((st) => st.is_environment);
 
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
+    if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
     setIsRetaggingConvincer(false);
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
@@ -712,9 +893,109 @@ export default function StakeholderDossier({
     return stObj.stakeholder_color || (stObj.metric_id && metrics[stObj.metric_id]?.metric_color) || "#38bdf8";
   };
 
+  /** The phase row, the search box and the collapse toggle, shared by both dossier views. */
+  const renderFilterBar = (st: StakeholderDossierEntry, hiddenByFilter: number) => {
+    const pagePhases = phasesOnPage(st);
+    const nowLabel = phaseLabel(currentPhase, phases);
+    const hasNowNotes = pagePhases.includes(currentPhase);
+    return (
+      <div className={styles.filterBar}>
+        {pagePhases.length > 0 && (
+          <div className={styles.phaseRow}>
+            <button
+              className={`${styles.phaseChip} ${styles.phaseChipNow} ${nowOnly ? styles.phaseChipOn : ""}`}
+              onClick={() => setPhaseFilter(nowOnly ? new Set() : new Set([currentPhase]))}
+              disabled={!hasNowNotes && !nowOnly}
+              aria-pressed={nowOnly}
+              title={
+                nowOnly
+                  ? "Show notes from every phase again"
+                  : hasNowNotes
+                    ? `Show only what you found in ${nowLabel}, the phase you are in`
+                    : `Nothing found in ${nowLabel} yet`
+              }
+            >
+              Now
+            </button>
+            {/* The dock has room for a word per phase; the full name is on the spine and in the tooltip. */}
+            <div className={styles.phaseGroup}>
+              {pagePhases.map((phase) => {
+                const label = phaseLabel(phase, phases);
+                const on = phaseFilter.has(phase);
+                return (
+                  <button
+                    key={phase}
+                    className={`${styles.phaseChip} ${on ? styles.phaseChipOn : ""}`}
+                    onClick={() => togglePhase(phase)}
+                    aria-pressed={on}
+                    title={on ? `Stop filtering on ${label}` : `Show only what you found in ${label}`}
+                  >
+                    {phaseShortLabel(phase, phases)}
+                  </button>
+                );
+              })}
+            </div>
+            {phaseFilterActive && (
+              <button
+                className={styles.phaseChipClear}
+                onClick={() => setPhaseFilter(new Set())}
+                title="Show notes from every phase again"
+                aria-label="Show every phase"
+              >
+                <Icon icon="ph:x-bold" />
+              </button>
+            )}
+          </div>
+        )}
+        <div className={styles.filterControls}>
+          <label className={styles.searchBox}>
+            <Icon icon="ph:magnifying-glass-bold" />
+            <input
+              type="search"
+              value={search}
+              placeholder="Search your notes"
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <div className={styles.confFilters}>
+            {([
+              ["all", "ph:stack-bold", "All", "Everything you have written down"],
+              ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
+              ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
+              ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
+            ] as const).map(([key, icon, label, hint]) => (
+              <button
+                key={key}
+                className={`${styles.confChip} ${confFilter === key ? styles.confChipOn : ""}`}
+                onClick={() => setConfFilter(key)}
+                title={`${label}: ${hint}`}
+                aria-label={label}
+              >
+                <Icon icon={icon} />
+                <span className={styles.confTip}>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {hiddenByFilter > 0 && (
+          <div className={styles.filterHint}>
+            {hiddenByFilter} {hiddenByFilter === 1 ? "note is" : "notes are"} hidden by the phase row
+            or the search box.
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderPageContent = (st: StakeholderDossierEntry) => {
     if (!st) return null;
 
+    const allChains = toChains(st.intel_items || []);
+    // The environment page reads stage by stage, so its cards arrive already in stage order.
+    const pageChains = visibleChains(st).sort((a, b) =>
+      st.is_environment ? (a.newest.stage_id || "~").localeCompare(b.newest.stage_id || "~") : 0
+    );
+    const hiddenByFilter = allChains.length - pageChains.length;
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
     const intelPips = getIntelPips(st);
     const hiddenIntelCount = intelPips.filter((status) => status === "hidden").length;
@@ -736,6 +1017,22 @@ export default function StakeholderDossier({
 
     return (
       <>
+        {/* Only the wall of notes scrolls. The dock below it is a sibling of this
+            box, not an item inside it, so it always ends up on the page's edge. */}
+        <div className={styles.pageScroll}>
+        {st.is_environment ? (
+          <div className={styles.environmentHeader}>
+            <Icon icon="ph:magnifying-glass-bold" className={styles.environmentIcon} />
+            <div>
+              <div className={styles.environmentTitle}>The System</div>
+              <div className={styles.environmentSubtitle}>
+                What you have worked out about the pipeline itself. Nobody's wish, just the state
+                of things.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Header: Polaroid Snapshot Frame with Caption + Main Info */}
         <div className={styles.sketchbookHeader}>
           <div
@@ -748,6 +1045,7 @@ export default function StakeholderDossier({
               <StakeholderAvatarComponent
                 avatar={avatar}
                 stakeholderColor={stakeholderColor}
+                stakeholderId={st.stakeholder_id}
                 isFramed={false}
                 play_blink_animation={false}
                 size="100%"
@@ -1088,26 +1386,62 @@ export default function StakeholderDossier({
           );
         })()}
 
+          </>
+        )}
+
         {/* Intelligence Section Header */}
         <div className={styles.sectionTitle}>
-          <span className={styles.doodleIcon}></span> Challenge-Specific Stance
+          <span className={styles.doodleIcon}></span>{" "}
+          {st.is_environment ? "Facts by stage" : "Challenge-Specific Stance"}
+          <span className={styles.sectionTitleActions}>
+          <button
+            className={`${styles.collapseToggle} ${collapseAddressed ? styles.collapseToggleOn : ""}`}
+            onClick={() => setCollapseAddressed(!collapseAddressed)}
+            title="Fold the notes somebody has already acted on down to one line each"
+          >
+            <Icon
+              icon={collapseAddressed ? "ph:arrows-out-line-vertical-bold" : "ph:arrows-in-line-vertical-bold"}
+            />
+            <span>Collapse done</span>
+          </button>
+          </span>
         </div>
 
-        {/* Sticky Notes Grid (Note-level intel type badge & re-tagging) */}
-        {hasIntelEntries ? (
+        {/* One card per refinement chain: the newest link is the headline (D24) */}
+        {pageChains.length > 0 ? (
           <div className={styles.stickyNoteGrid}>
-            {st.intel_items.map((item, idx) => {
-              const typeKey = item.categorized_type || "requirement";
-              const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.requirement;
+            {pageChains.map((chain, idx) => {
+              const item = chain.newest;
+              if (collapseAddressed && item.status === "addressed") {
+                return (
+                  <button
+                    key={`${st.stakeholder_id}-collapsed-${item.id}`}
+                    className={styles.collapsedNote}
+                    onClick={() => setCollapseAddressed(false)}
+                    title="Already taken as far as they asked for. Click to unfold every note again."
+                  >
+                    <span>{(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}</span>
+                    <span className={styles.collapsedText}>{item.description}</span>
+                    <span className={`${styles.statusBadge} ${styles.statusAddressed}`}>DONE</span>
+                  </button>
+                );
+              }
+              const typeKey = item.categorized_type || "driver";
+              const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.driver;
               const noteId = item.id || `note-${idx}`;
               const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
-              // Re-tagging swaps the whole sentence, and the only span that reliably survives the
-              // swap is the stakeholder's name. Hold that steady in bold and italicise the rest,
-              // so the part that moves when you change your mind looks like the part that moves.
+              // Split items carry a fact that holds still and a reading that changes with the tag:
+              // bold the fact, italicise the reading while it is unconfirmed. Legacy items only have
+              // one sentence, and the only span that reliably survives a re-tag is the name.
               const noteDescription = item.description || "";
+              const hasSplit = Boolean(item.fact);
               const hasSubjectLead = Boolean(st.name) && noteDescription.startsWith(st.name);
-              const noteSubject = hasSubjectLead ? st.name : "";
-              const noteReading = hasSubjectLead ? noteDescription.slice(st.name.length) : noteDescription;
+              const noteSubject = hasSplit ? item.fact || "" : hasSubjectLead ? st.name : "";
+              const noteReading = hasSplit
+                ? ` ${item.reading || ""}`
+                : hasSubjectLead
+                ? noteDescription.slice(st.name.length)
+                : noteDescription;
               const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
               const sourceCaption = getSourceCaption(item);
               // Paper colour matches the stamp: orange still open, blue public, green earned.
@@ -1133,13 +1467,41 @@ export default function StakeholderDossier({
               );
 
               return (
+                <React.Fragment key={`${st.stakeholder_id}-${noteId}`}>
+                {/* On the environment page the cards arrive in stage order, so a divider is
+                    enough to group them without a second grid. */}
+                {st.is_environment &&
+                  (idx === 0 || pageChains[idx - 1].newest.stage_id !== item.stage_id) && (
+                    <div
+                      className={styles.stageGroupTitle}
+                      style={{ borderColor: stageMeta(item.stage_id).color, color: stageMeta(item.stage_id).color }}
+                    >
+                      {stageMeta(item.stage_id).label}
+                    </div>
+                  )}
                 <div
                   key={`${st.stakeholder_id}-${noteId}`}
                   id={`intel-sticky-${noteId}`}
                   data-intel-id={item.id}
                   data-intel-description={item.description}
+                  draggable={draggableIntel}
+                  onDragStart={(e) => {
+                    if (!draggableIntel) return;
+                    // Same channel the engagement cards use, so the builder needs no library.
+                    e.dataTransfer.setData("intelItemId", item.id);
+                    e.dataTransfer.effectAllowed = "copy";
+                  }}
                   className={`${styles.stickyNote} ${noteStatusClass} ${isRetagging ? styles.retagActive : ""} ${isHighlighted ? styles.highlightedStickyNote : ""} ${isFadingOut ? styles.fadingOutStickyNote : ""} ${isNewIntel ? styles.newStickyNote : ""}`}
                 >
+                  <span
+                    className={styles.notePhaseSpine}
+                    title={`You picked this up in ${phaseLabel(item.discovered_phase_id, phases)}`}
+                  >
+                    <span className={styles.notePhaseName}>
+                      {phaseLabel(item.discovered_phase_id, phases)}
+                    </span>
+                  </span>
+
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
                     {isUnconfirmed ? (
@@ -1167,6 +1529,22 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
+                      {item.contested && (
+                        <span
+                          className={`${styles.statusBadge} ${styles.contestedBadge}`}
+                          title="Somebody else in this room wants the opposite on this very target."
+                        >
+                          CONTESTED
+                        </span>
+                      )}
+                      {item.status && STATUS_META[item.status] && (
+                        <span
+                          className={`${styles.statusBadge} ${styles[STATUS_META[item.status].styleClass]}`}
+                          title={STATUS_META[item.status].title}
+                        >
+                          {STATUS_META[item.status].label}
+                        </span>
+                      )}
                       {renderRubberStamp(item.intel_type, isPublicRecord)}
                     </div>
                   </div>
@@ -1211,8 +1589,36 @@ export default function StakeholderDossier({
                         <span>{sourceCaption.text}</span>
                       </div>
                     )}
+                    {/* The layers this reading grew out of, newest first, so the card gets taller
+                        the longer the player has been working on the same note (D24). */}
+                    {chain.older.length > 0 && (
+                      <div className={styles.chainStack}>
+                        {[...chain.older].reverse().map((link) => (
+                          <div key={link.id} className={styles.chainLayer}>
+                            <span className={styles.chainLayerPhase}>
+                              {phaseLabel(link.discovered_phase_id, phases)}
+                            </span>
+                            <span>"{link.description}"</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(item.locked_links || 0) > 0 && (
+                      <div
+                        className={styles.lockedRow}
+                        title="There is more to learn about this one. Keep digging in the phases ahead."
+                      >
+                        <Icon icon="ph:lock-simple-bold" className={styles.lockedIcon} />
+                        <span>
+                          {item.locked_links === 1
+                            ? "1 more layer of this note is still out there"
+                            : `${item.locked_links} more layers of this note are still out there`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
+                </React.Fragment>
               );
             })}
             {hiddenIntelCount > 0 && (
@@ -1234,17 +1640,31 @@ export default function StakeholderDossier({
             <div className={styles.emptyStateCard}>
               <div className={styles.paperclip} />
               <div className={styles.emptyStateTitle}>
-                📋 No Field Intelligence Collected Yet
+                {hasIntelEntries ? "🔍 Nothing Matches These Filters" : "📋 No Field Intelligence Collected Yet"}
               </div>
               <div className={styles.emptyStateText}>
-                No interview notes, requirements, or personal stances recorded for <strong>{st.name}</strong>.
+                {hasIntelEntries ? (
+                  <>Your notes on <strong>{st.name}</strong> are all filtered out right now.</>
+                ) : (
+                  <>No interview notes, requirements, or personal stances recorded for <strong>{st.name}</strong>.</>
+                )}
               </div>
               <div className={styles.emptyStateHint}>
-                💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em>
+                {hasIntelEntries ? (
+                  <>💡 <em>Clear the stage row or the search box below to see them again.</em></>
+                ) : (
+                  <>💡 <em>Participate in Intel Gathering activities to uncover and verify their hidden constraints.</em></>
+                )}
               </div>
             </div>
           </div>
         )}
+
+        </div>
+
+        {/* The filter strip is the foot of the page: last item in the page column,
+            below the scrolling wall, so it never covers a note. */}
+        <div className={styles.filterDock}>{renderFilterBar(st, hiddenByFilter)}</div>
       </>
     );
   };
@@ -1279,6 +1699,26 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {environmentIndex >= 0 && (
+            <button
+              className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+              onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+              title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+            >
+              <Icon icon="ph:buildings-bold" />
+              <span>System</span>
+            </button>
+          )}
+          {onPerformanceToggle && (
+            <button
+              className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
+              onClick={onPerformanceToggle}
+              title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
+            >
+              <Icon icon="ph:gauge-bold" />
+              <span>Performance</span>
+            </button>
+          )}
           {onOpenPhaseBriefing && (
             <button
               className={styles.briefingButton}
@@ -1317,6 +1757,8 @@ export default function StakeholderDossier({
       {effectiveDossierData.length > 0 && (
         <div className={styles.tabsContainer}>
           {effectiveDossierData.map((st, idx) => {
+            // The environment is not a person, so it is not in the tab strip (D45).
+            if (st.is_environment) return null;
             const stColor = getStakeholderColor(st);
             const stObj = stakeholders[st.stakeholder_id];
             const emotion = stObj?.emotional_state || "neutral";

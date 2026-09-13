@@ -8,7 +8,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "metric_name", "metric_color", "metric_icon", "metric_value", "active", "metric_desc", "metric_prompt"],
+        "required": ["id", "metric_name", "metric_color", "metric_icon", "metric_value", "active", "metric_desc", "component_weights"],
         "properties": {
           "id": {
             "type": "string",
@@ -46,9 +46,11 @@
             "type": "string",
             "title": "Description"
           },
-          "metric_prompt": {
-            "type": "string",
-            "title": "AI Evaluator Prompt"
+          "component_weights": {
+            "type": "object",
+            "title": "Graph Weights",
+            "description": "Components and edges this metric reads. The metric moves by the weighted sum of their effective level changes.",
+            "additionalProperties": {"type": "number"}
           }
         }
       }

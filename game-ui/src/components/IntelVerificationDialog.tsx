@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
-import styles from "./online_intel_gathering.module.css";
+import styles from "./IntelVerificationDialog.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
+import { intelTagLabel } from "../types/IntelTag";
 
 export interface IntelVerificationResultData {
   wasCorrect: boolean;
@@ -28,8 +29,8 @@ export default function IntelVerificationDialog({
   if (!isOpen || !resultData) return null;
 
   const wasCorrect = resultData.wasCorrect;
-  const formattedOldType = resultData.oldType.replace(/_/g, " ");
-  const formattedTrueType = resultData.trueType.replace(/_/g, " ");
+  const formattedOldType = intelTagLabel(resultData.oldType);
+  const formattedTrueType = intelTagLabel(resultData.trueType);
 
   const stakeholder = Object.values(stakeholders || {}).find(
     (s) =>

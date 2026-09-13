@@ -14,7 +14,7 @@ from mlops_serious_game.application.pitch_debate_service import (
     reset_thread,
 )
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.domain.requirement import ConfidenceType, RequirementType
+from mlops_serious_game.domain.requirement import PLAUSIBLE_WRONG_TAG, ConfidenceType
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
@@ -160,11 +160,7 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
     target_req = reqs[0]
 
     # Deliberately miscategorize the first requirement
-    wrong_type = (
-        RequirementType.PERSONAL_FRICTION
-        if target_req.type != RequirementType.PERSONAL_FRICTION
-        else RequirementType.REQUIREMENT
-    )
+    wrong_type = PLAUSIBLE_WRONG_TAG[target_req.type]
     wrong_intel = StakeholderIntelItem.from_requirement(
         target_req,
         intel_type=ConfidenceType.UNCONFIRMED,

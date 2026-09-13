@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_ruth_governed_labeling",
+  "stage": "objections",
+  "input_hash": "cdee01b07e16b22ec96672c57d6ac91de7ec857c8f4f4fd2adff94aef41967f6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for fully governed data labeling. She believes more governance will improve data reliability.",
+      "fact": "{reliability_ruth} asked for fully governed data labeling.",
+      "reading": "She believes more governance will improve data reliability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "The proposal does not give me fully governed data labeling. I need stronger controls so the services I deploy stay reliable.",
+    "correction": "I am not saying the proposal is unacceptable. I am saying it must include governed labeling so model inputs stay reliable."
+  }
+}

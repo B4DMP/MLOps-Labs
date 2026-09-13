@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.versioning",
+  "stage": "objections",
+  "input_hash": "fb8dc413c03b6b10909cebbee10fed0f189fcdd76bbb8e505470094d3003159e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.versioning",
+      "name": "Data Versioning"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I cannot sign off on improving {target} because the {cause} upstream is not good enough yet. Data Versioning needs that foundation before we can deliver."
+  }
+}

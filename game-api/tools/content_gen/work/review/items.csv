@@ -1,0 +1,5 @@
+item_id,status,summary,error,note,output_file
+items:ch_data_quality_conflict,approved,"2 boundary, 2 driver, 6 fact, 2 trade_off",,,out/items/items__ch_data_quality_conflict.json
+items:ch_experiment_tracking_dispute,approved,"2 boundary, 4 driver, 3 fact, 2 trade_off",,,out/items/items__ch_experiment_tracking_dispute.json
+items:ch_inconsistent_data_labeling,approved,"3 boundary, 3 driver, 3 fact, 2 trade_off",,,out/items/items__ch_inconsistent_data_labeling.json
+items:ch_registry_red_tape,approved,"3 boundary, 3 driver, 4 fact, 2 trade_off",,,out/items/items__ch_registry_red_tape.json

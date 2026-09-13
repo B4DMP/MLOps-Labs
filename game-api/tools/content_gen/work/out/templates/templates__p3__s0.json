@@ -1,0 +1,659 @@
+{
+  "item_id": "templates:p3:s0",
+  "stage": "templates",
+  "input_hash": "dc7d14f8b4729b0559b49a911c4e44c6700f9ace1ce735e39c1a5aaf5867a353",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 2,
+  "inputs": {
+    "phase_id": 3,
+    "phase_name": "Model Engineering",
+    "phase_description": "Design, training, and evaluation of ML models.",
+    "focus_stage": "model",
+    "slot": 0,
+    "conflict_type": "soft",
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "model_monica",
+        "name": "Model Monica",
+        "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
+        "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
+        "metric_id": "model",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "model",
+      "components": [
+        {
+          "id": "model.experiment_tracking",
+          "name": "Experiment Tracking",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "spreadsheet",
+              "mlflow",
+              "wandb"
+            ]
+          }
+        },
+        {
+          "id": "model.registry",
+          "name": "Model Registry",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "mlflow",
+              "sagemaker",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "model.training_pipeline",
+          "name": "Training Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "notebooks",
+              "airflow",
+              "kubeflow"
+            ]
+          }
+        },
+        {
+          "id": "model.hpo",
+          "name": "Hyperparameter Tuning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "grid_search",
+              "optuna",
+              "ray_tune"
+            ]
+          }
+        },
+        {
+          "id": "model.evaluation",
+          "name": "Model Evaluation Harness",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.hpo_train",
+          "from": "model.hpo",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_tracking",
+          "from": "model.training_pipeline",
+          "to": "model.experiment_tracking",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_eval",
+          "from": "model.training_pipeline",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.eval_registry",
+          "from": "model.evaluation",
+          "to": "model.registry",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.retrain_train",
+          "from": "ops.retraining_trigger",
+          "to": "model.training_pipeline",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.audit_registry",
+          "from": "gov.audit",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cards_registry",
+          "from": "gov.model_cards",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.compute_train",
+          "from": "gov.compute_scheduling",
+          "to": "model.training_pipeline",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "model:prediction_v1",
+          "kind": "model",
+          "on": "model.training_pipeline",
+          "props": {
+            "performance": "fair",
+            "latency": "acceptable",
+            "fairness": "unchecked"
+          },
+          "property_values": {
+            "performance": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "fairness": [
+              "biased",
+              "unchecked",
+              "balanced"
+            ]
+          }
+        }
+      ]
+    },
+    "patterns": [
+      {
+        "id": "ap_unversioned_data",
+        "kind": "anti",
+        "name": "Unversioned Data",
+        "description": "Models are trained on data nobody can reproduce later."
+      },
+      {
+        "id": "ap_pipeline_jungle",
+        "kind": "anti",
+        "name": "Pipeline Jungle",
+        "description": "Data reaches training through a tangle of hand run steps."
+      },
+      {
+        "id": "ap_glue_code",
+        "kind": "anti",
+        "name": "Glue Code",
+        "description": "Custom code holds together pieces that could have been standard components."
+      },
+      {
+        "id": "ap_orphaned_model",
+        "kind": "anti",
+        "name": "Orphaned Model",
+        "description": "Production runs a model that is not in any registry."
+      },
+      {
+        "id": "ap_cost_blindness",
+        "kind": "anti",
+        "name": "Cost Blindness",
+        "description": "Compute hungry workloads run with nobody watching the bill."
+      },
+      {
+        "id": "ap_undocumented_handover",
+        "kind": "anti",
+        "name": "Undocumented Handover",
+        "description": "Models are promoted without documentation or agreed acceptance criteria."
+      },
+      {
+        "id": "dp_continuous_training",
+        "kind": "design",
+        "name": "Continuous Training",
+        "description": "Drift raises an alert, the alert starts a retrain, and the evaluation gate decides."
+      },
+      {
+        "id": "dp_reproducible_training",
+        "kind": "design",
+        "name": "Reproducible Training",
+        "description": "Any model can be rebuilt from versioned data and a tracked experiment."
+      },
+      {
+        "id": "dp_gated_promotion",
+        "kind": "design",
+        "name": "Gated Promotion",
+        "description": "A model only reaches the registry after passing agreed acceptance criteria."
+      },
+      {
+        "id": "dp_feature_reuse",
+        "kind": "design",
+        "name": "Feature Reuse",
+        "description": "Training and serving read the same features from one store."
+      },
+      {
+        "id": "dp_drift_watch",
+        "kind": "design",
+        "name": "Drift Watch",
+        "description": "Drift is checked before training and watched after deployment."
+      },
+      {
+        "id": "dp_documented_promotion",
+        "kind": "design",
+        "name": "Documented Promotion",
+        "description": "Every promoted model carries a model card and a risk assessment."
+      },
+      {
+        "id": "dp_versioned_lineage",
+        "kind": "design",
+        "name": "Versioned Lineage",
+        "description": "Labels, data and models are versioned together, so every prediction traces back."
+      },
+      {
+        "id": "dp_efficient_tuning",
+        "kind": "design",
+        "name": "Efficient Tuning",
+        "description": "Hyperparameter search runs on scheduled compute, not on whatever is free."
+      },
+      {
+        "id": "ap_stale_training_data",
+        "kind": "anti",
+        "name": "Stale Training Data",
+        "description": "Automated training keeps learning from data that stopped reflecting the world."
+      }
+    ],
+    "world_events": [
+      {
+        "kind": "set_to",
+        "target": "e.fs_train",
+        "value": "0",
+        "health_drop": 30.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.train_eval",
+        "value": "0",
+        "health_drop": 30.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.training_pipeline",
+        "value": "0",
+        "health_drop": 25.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.eval_registry",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.hpo_train",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.train_tracking",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.evaluation",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.experiment_tracking",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.hpo",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.registry",
+        "value": "0",
+        "health_drop": 15.0
+      }
+    ],
+    "conflict_candidates": [
+      "model.experiment_tracking",
+      "model.training_pipeline",
+      "model.evaluation"
+    ],
+    "existing_challenges": [
+      "The Entanglement Problem"
+    ]
+  },
+  "output": {
+    "slug": "experiment_tracking_dispute",
+    "name": "Tracking Reproducibility Lost",
+    "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
+    "round_introduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
+    "preconditions": {
+      "component": "model.experiment_tracking",
+      "op": "eq",
+      "level": 2
+    },
+    "priority": 50,
+    "on_enter_ops": [
+      {
+        "kind": "set_to",
+        "target": "model.experiment_tracking",
+        "value": "1",
+        "attr": null,
+        "reason": "the audit team found gaps in reproducibility"
+      },
+      {
+        "kind": "set_to",
+        "target": "e.train_tracking",
+        "value": "0",
+        "attr": null,
+        "reason": "the audit team found gaps in reproducibility"
+      }
+    ],
+    "stalemate_ops": [
+      {
+        "kind": "set_to",
+        "target": "model.experiment_tracking",
+        "value": "0",
+        "attr": null,
+        "reason": "the audit team found gaps in reproducibility"
+      }
+    ],
+    "conflict": {
+      "target": "model.experiment_tracking",
+      "positions": [
+        {
+          "stakeholder_id": "model_monica",
+          "wants": 3
+        },
+        {
+          "stakeholder_id": "data_dave",
+          "wants": 2
+        }
+      ]
+    }
+  }
+}

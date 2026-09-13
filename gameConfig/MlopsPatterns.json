@@ -1,0 +1,1226 @@
+{
+  "patterns": [
+    {
+      "id": "ap_silent_failure",
+      "kind": "anti",
+      "name": "Silent Model Failure",
+      "description": "A model serves live traffic while nobody watches its quality or its inputs.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "component": "ops.production_drift_monitoring",
+            "op": "lte",
+            "level": 1
+          },
+          {
+            "component": "ops.performance_monitoring",
+            "op": "lte",
+            "level": 2
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": -15,
+        "deploy": -8
+      },
+      "story": "Predictions keep flowing. Nobody can tell whether they are still right.",
+      "tags": [
+        "monitoring",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ap_training_serving_skew",
+      "kind": "anti",
+      "name": "Training Serving Skew",
+      "description": "Features are computed one way for training and another way in production.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "component": "data.feature_store",
+            "op": "lte",
+            "level": 2
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": -8,
+        "deploy": -8
+      },
+      "story": "The model learned from features that production computes differently.",
+      "tags": [
+        "data",
+        "consistency"
+      ]
+    },
+    {
+      "id": "ap_manual_deployment",
+      "kind": "anti",
+      "name": "Manual Deployment",
+      "description": "Somewhere between the registry and the endpoint, a person carries the model by hand.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 2,
+            "on": "nominal"
+          },
+          {
+            "any": [
+              {
+                "component": "deploy.cicd",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.registry_cicd",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.cicd_container",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.container_orch",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.orch_serving",
+                "op": "lte",
+                "level": 2
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "deploy": -12
+      },
+      "story": "Every release depends on someone remembering the steps.",
+      "tags": [
+        "automation",
+        "deployment"
+      ]
+    },
+    {
+      "id": "ap_unversioned_data",
+      "kind": "anti",
+      "name": "Unversioned Data",
+      "description": "Models are trained on data nobody can reproduce later.",
+      "when": {
+        "all": [
+          {
+            "component": "model.training_pipeline",
+            "op": "gte",
+            "level": 2,
+            "on": "nominal"
+          },
+          {
+            "any": [
+              {
+                "component": "data.versioning",
+                "op": "lte",
+                "level": 1
+              },
+              {
+                "edge": "e.validate_version",
+                "op": "lte",
+                "level": 1
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": -10,
+        "model": -5
+      },
+      "story": "Nobody can say which data the current model was trained on.",
+      "tags": [
+        "data",
+        "reproducibility"
+      ]
+    },
+    {
+      "id": "ap_pipeline_jungle",
+      "kind": "anti",
+      "name": "Pipeline Jungle",
+      "description": "Data reaches training through a tangle of hand run steps.",
+      "when": {
+        "all": [
+          {
+            "component": "data.ingestion",
+            "op": "gte",
+            "level": 2,
+            "on": "nominal"
+          },
+          {
+            "component": "model.training_pipeline",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "any": [
+              {
+                "edge": "e.ingest_validate",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.version_fs",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.fs_train",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.label_version",
+                "op": "lte",
+                "level": 1
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": -8,
+        "model": -4
+      },
+      "story": "Training is automated, but the data still arrives by hand.",
+      "tags": [
+        "data",
+        "automation"
+      ]
+    },
+    {
+      "id": "ap_glue_code",
+      "kind": "anti",
+      "name": "Glue Code",
+      "description": "Custom code holds together pieces that could have been standard components.",
+      "when": {
+        "all": [
+          {
+            "attr": "data.feature_store.sourcing",
+            "op": "eq",
+            "value": "custom"
+          },
+          {
+            "attr": "model.registry.sourcing",
+            "op": "eq",
+            "value": "custom"
+          },
+          {
+            "attr": "deploy.api_gateway.sourcing",
+            "op": "eq",
+            "value": "custom"
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": -6,
+        "deploy": -6
+      },
+      "story": "More code glues the platform together than does machine learning.",
+      "tags": [
+        "maintainability"
+      ]
+    },
+    {
+      "id": "ap_orphaned_model",
+      "kind": "anti",
+      "name": "Orphaned Model",
+      "description": "Production runs a model that is not in any registry.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 2,
+            "on": "nominal"
+          },
+          {
+            "component": "model.registry",
+            "op": "lte",
+            "level": 1
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": -10
+      },
+      "story": "Nobody is sure which version of the model is actually running.",
+      "tags": [
+        "governance",
+        "reproducibility"
+      ]
+    },
+    {
+      "id": "ap_no_rollback",
+      "kind": "anti",
+      "name": "No Way Back",
+      "description": "Live traffic, and no way to return to the last good model.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "component": "ops.rollback",
+            "op": "lte",
+            "level": 1
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": -8,
+        "deploy": -6
+      },
+      "story": "If this release goes wrong, the only way out is forward.",
+      "tags": [
+        "reliability"
+      ]
+    },
+    {
+      "id": "ap_alert_fatigue",
+      "kind": "anti",
+      "name": "Alert Fatigue",
+      "description": "Alerts fire often, but nobody can see what caused them.",
+      "when": {
+        "all": [
+          {
+            "component": "ops.alerting",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "any": [
+              {
+                "component": "ops.observability",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.perf_alert",
+                "op": "lte",
+                "level": 2
+              },
+              {
+                "edge": "e.drift_alert",
+                "op": "lte",
+                "level": 2
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": -10
+      },
+      "story": "The pager goes off so often that people have stopped looking.",
+      "tags": [
+        "monitoring"
+      ]
+    },
+    {
+      "id": "ap_cost_blindness",
+      "kind": "anti",
+      "name": "Cost Blindness",
+      "description": "Compute hungry workloads run with nobody watching the bill.",
+      "when": {
+        "all": [
+          {
+            "component": "gov.cost_monitoring",
+            "op": "lte",
+            "level": 1
+          },
+          {
+            "any": [
+              {
+                "component": "model.hpo",
+                "op": "gte",
+                "level": 3,
+                "on": "nominal"
+              },
+              {
+                "component": "deploy.orchestration",
+                "op": "gte",
+                "level": 3,
+                "on": "nominal"
+              },
+              {
+                "component": "gov.compute_scheduling",
+                "op": "gte",
+                "level": 3,
+                "on": "nominal"
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "gov": -10,
+        "model": -4
+      },
+      "story": "The cloud bill doubled and nobody can say why.",
+      "tags": [
+        "cost"
+      ]
+    },
+    {
+      "id": "ap_shadow_it_access",
+      "kind": "anti",
+      "name": "Shadow IT Access",
+      "description": "Data and endpoints are reachable by whoever knows the address.",
+      "when": {
+        "all": [
+          {
+            "component": "gov.iam",
+            "op": "lte",
+            "level": 2
+          },
+          {
+            "any": [
+              {
+                "component": "deploy.api_gateway",
+                "op": "gte",
+                "level": 3,
+                "on": "nominal"
+              },
+              {
+                "component": "data.feature_store",
+                "op": "gte",
+                "level": 3,
+                "on": "nominal"
+              }
+            ]
+          }
+        ]
+      },
+      "stage_effects": {
+        "gov": -12,
+        "deploy": -4
+      },
+      "story": "Access is granted by asking a colleague for the password.",
+      "tags": [
+        "security",
+        "governance"
+      ]
+    },
+    {
+      "id": "ap_undocumented_handover",
+      "kind": "anti",
+      "name": "Undocumented Handover",
+      "description": "Models are promoted without documentation or agreed acceptance criteria.",
+      "when": {
+        "all": [
+          {
+            "component": "model.registry",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "component": "gov.model_cards",
+            "op": "lte",
+            "level": 1
+          },
+          {
+            "component": "req.acceptance_criteria",
+            "op": "lte",
+            "level": 2
+          }
+        ]
+      },
+      "stage_effects": {
+        "gov": -8,
+        "req": -6
+      },
+      "story": "The model was handed over with a slack message and a thumbs up.",
+      "tags": [
+        "governance",
+        "requirements"
+      ]
+    },
+    {
+      "id": "dp_continuous_training",
+      "kind": "design",
+      "name": "Continuous Training",
+      "description": "Drift raises an alert, the alert starts a retrain, and the evaluation gate decides.",
+      "when": {
+        "all": [
+          {
+            "component": "ops.retraining_trigger",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.alert_retrain",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.retrain_train",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.training_pipeline",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.evaluation",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": 12,
+        "ops": 8
+      },
+      "story": "The model retrains itself when the world changes, and only ships if it is better.",
+      "tags": [
+        "automation"
+      ]
+    },
+    {
+      "id": "dp_reproducible_training",
+      "kind": "design",
+      "name": "Reproducible Training",
+      "description": "Any model can be rebuilt from versioned data and a tracked experiment.",
+      "when": {
+        "all": [
+          {
+            "component": "data.versioning",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.experiment_tracking",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.train_tracking",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.registry",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": 10,
+        "data": 4
+      },
+      "story": "Any model in production can be rebuilt from scratch.",
+      "tags": [
+        "reproducibility"
+      ]
+    },
+    {
+      "id": "dp_gated_promotion",
+      "kind": "design",
+      "name": "Gated Promotion",
+      "description": "A model only reaches the registry after passing agreed acceptance criteria.",
+      "when": {
+        "all": [
+          {
+            "component": "req.acceptance_criteria",
+            "op": "gte",
+            "level": 2
+          },
+          {
+            "edge": "e.acceptance_eval",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.train_eval",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.evaluation",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.eval_registry",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": 8,
+        "req": 6
+      },
+      "story": "No model reaches the registry without passing the agreed bar.",
+      "tags": [
+        "quality",
+        "requirements"
+      ]
+    },
+    {
+      "id": "dp_canary_release",
+      "kind": "design",
+      "name": "Canary Release",
+      "description": "New models see a slice of traffic first, judged by live metrics.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.canary_ab",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.cicd_canary",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.canary_serving",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "ops.performance_monitoring",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "deploy": 10
+      },
+      "story": "New models prove themselves on a slice of traffic before everyone sees them.",
+      "tags": [
+        "deployment",
+        "reliability"
+      ]
+    },
+    {
+      "id": "dp_shadow_testing",
+      "kind": "design",
+      "name": "Shadow Testing",
+      "description": "Candidates answer real requests silently before they answer for real.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.shadow",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.cicd_shadow",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "deploy": 6,
+        "model": 3
+      },
+      "story": "The next model already answers every request, it just is not heard yet.",
+      "tags": [
+        "deployment"
+      ]
+    },
+    {
+      "id": "dp_feature_reuse",
+      "kind": "design",
+      "name": "Feature Reuse",
+      "description": "Training and serving read the same features from one store.",
+      "when": {
+        "all": [
+          {
+            "component": "data.feature_store",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.version_fs",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.fs_train",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": 10,
+        "model": 4
+      },
+      "story": "Features are defined once and used everywhere.",
+      "tags": [
+        "data",
+        "consistency"
+      ]
+    },
+    {
+      "id": "dp_data_contracts",
+      "kind": "design",
+      "name": "Enforced Data Contracts",
+      "description": "Producers agree a schema, and every batch is checked against it on arrival.",
+      "when": {
+        "all": [
+          {
+            "component": "req.data_contracts",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.contracts_ingest",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "data.validation",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.ingest_validate",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": 8,
+        "req": 6
+      },
+      "story": "Bad data is stopped at the door, not discovered in a model review.",
+      "tags": [
+        "data",
+        "quality"
+      ]
+    },
+    {
+      "id": "dp_observability_first",
+      "kind": "design",
+      "name": "Observability First",
+      "description": "Serving emits the signals that performance monitoring and alerting run on.",
+      "when": {
+        "all": [
+          {
+            "component": "ops.observability",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.serving_observe",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.observe_perf",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "ops.performance_monitoring",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.perf_alert",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": 10,
+        "deploy": 3
+      },
+      "story": "When something degrades, the dashboard shows it before a customer does.",
+      "tags": [
+        "monitoring"
+      ]
+    },
+    {
+      "id": "dp_drift_watch",
+      "kind": "design",
+      "name": "Drift Watch",
+      "description": "Drift is checked before training and watched after deployment.",
+      "when": {
+        "all": [
+          {
+            "component": "data.training_drift_check",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.version_driftcheck",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.driftcheck_train",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "ops.production_drift_monitoring",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.observe_drift",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.drift_alert",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": 8,
+        "data": 6
+      },
+      "story": "The team notices the world changing on both sides of the model.",
+      "tags": [
+        "monitoring",
+        "data"
+      ]
+    },
+    {
+      "id": "dp_iac_everywhere",
+      "kind": "design",
+      "name": "Infrastructure as Code",
+      "description": "Every environment is declared in code and rebuilt by the pipeline.",
+      "when": {
+        "all": [
+          {
+            "component": "gov.iac",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "deploy.containerization",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "deploy.orchestration",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.cicd_container",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.container_orch",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.orch_serving",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "deploy": 8,
+        "gov": 8
+      },
+      "story": "Any environment can be torn down and rebuilt from the repository.",
+      "tags": [
+        "automation",
+        "infrastructure"
+      ]
+    },
+    {
+      "id": "dp_least_privilege",
+      "kind": "design",
+      "name": "Least Privilege",
+      "description": "Access is granted per role, logged, and enforced at the gateway.",
+      "when": {
+        "all": [
+          {
+            "component": "gov.iam",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "gov.audit",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "deploy.api_gateway",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.serving_gateway",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "gov": 10,
+        "deploy": 4
+      },
+      "story": "Everyone can reach exactly what their role needs, and every access is logged.",
+      "tags": [
+        "security",
+        "governance"
+      ]
+    },
+    {
+      "id": "dp_documented_promotion",
+      "kind": "design",
+      "name": "Documented Promotion",
+      "description": "Every promoted model carries a model card and a risk assessment.",
+      "when": {
+        "all": [
+          {
+            "component": "req.risk_assessment",
+            "op": "gte",
+            "level": 2
+          },
+          {
+            "edge": "e.risk_acceptance",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "gov.model_cards",
+            "op": "gte",
+            "level": 2
+          },
+          {
+            "component": "model.registry",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.registry_cicd",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "gov": 8,
+        "req": 4
+      },
+      "story": "Every model in production comes with a card that says what it is for and where it fails.",
+      "tags": [
+        "governance"
+      ]
+    },
+    {
+      "id": "dp_business_aligned_metrics",
+      "kind": "design",
+      "name": "Business Aligned Metrics",
+      "description": "The KPI the business agreed on is what production monitoring measures.",
+      "when": {
+        "all": [
+          {
+            "component": "req.kpi_definition",
+            "op": "gte",
+            "level": 2
+          },
+          {
+            "component": "ops.performance_monitoring",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "req": 8,
+        "ops": 4
+      },
+      "story": "The dashboard shows the number the business actually cares about.",
+      "tags": [
+        "requirements",
+        "monitoring"
+      ]
+    },
+    {
+      "id": "dp_automated_rollback",
+      "kind": "design",
+      "name": "Automated Rollback",
+      "description": "A failing release is rolled back by the alert that caught it.",
+      "when": {
+        "all": [
+          {
+            "component": "ops.rollback",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.alert_rollback",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.rollback_serving",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "ops.alerting",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "ops": 8,
+        "deploy": 4
+      },
+      "story": "A bad release is gone again before anyone has to wake up.",
+      "tags": [
+        "reliability"
+      ]
+    },
+    {
+      "id": "dp_versioned_lineage",
+      "kind": "design",
+      "name": "Versioned Lineage",
+      "description": "Labels, data and models are versioned together, so every prediction traces back.",
+      "when": {
+        "all": [
+          {
+            "component": "data.labeling",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.label_version",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "data.versioning",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "model.registry",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": 6,
+        "gov": 4
+      },
+      "story": "Every prediction can be traced back to the labels it learned from.",
+      "tags": [
+        "reproducibility",
+        "governance"
+      ]
+    },
+    {
+      "id": "dp_efficient_tuning",
+      "kind": "design",
+      "name": "Efficient Tuning",
+      "description": "Hyperparameter search runs on scheduled compute, not on whatever is free.",
+      "when": {
+        "all": [
+          {
+            "component": "model.hpo",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.hpo_train",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "gov.compute_scheduling",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "component": "gov.cost_monitoring",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": 6,
+        "gov": 4
+      },
+      "story": "Tuning runs overnight on reserved capacity, and someone watches what it costs.",
+      "tags": [
+        "cost",
+        "automation"
+      ]
+    },
+    {
+      "id": "ap_underperforming_model_live",
+      "kind": "anti",
+      "name": "Underperforming Model in Production",
+      "description": "An automated endpoint keeps serving a model whose performance has slipped.",
+      "when": {
+        "all": [
+          {
+            "component": "deploy.serving",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "instance": {
+              "kind": "model",
+              "state": "active",
+              "op": "exists",
+              "where": {
+                "performance": {
+                  "op": "lte",
+                  "value": "fair"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": -8,
+        "deploy": -4
+      },
+      "story": "Customers get answers from a model that everyone knows has slipped.",
+      "tags": [
+        "model",
+        "reliability"
+      ]
+    },
+    {
+      "id": "ap_stale_training_data",
+      "kind": "anti",
+      "name": "Stale Training Data",
+      "description": "Automated training keeps learning from data that stopped reflecting the world.",
+      "when": {
+        "all": [
+          {
+            "component": "model.training_pipeline",
+            "op": "gte",
+            "level": 3,
+            "on": "nominal"
+          },
+          {
+            "instance": {
+              "kind": "dataset",
+              "op": "exists",
+              "where": {
+                "freshness": {
+                  "op": "eq",
+                  "value": "stale"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": -6,
+        "model": -4
+      },
+      "story": "Every retrain faithfully learns last year's world.",
+      "tags": [
+        "data"
+      ]
+    },
+    {
+      "id": "dp_trusted_data",
+      "kind": "design",
+      "name": "Trusted Data",
+      "description": "Validated, documented data of good quality feeds the models.",
+      "when": {
+        "all": [
+          {
+            "component": "data.validation",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "not": {
+              "instance": {
+                "kind": "dataset",
+                "op": "exists",
+                "where": {
+                  "quality": {
+                    "op": "lte",
+                    "value": "fair"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "instance": {
+                "kind": "dataset",
+                "op": "exists",
+                "where": {
+                  "documentation": {
+                    "op": "eq",
+                    "value": "none"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "stage_effects": {
+        "data": 6
+      },
+      "story": "People stopped asking whether the data can be trusted.",
+      "tags": [
+        "data",
+        "quality"
+      ]
+    }
+  ]
+}

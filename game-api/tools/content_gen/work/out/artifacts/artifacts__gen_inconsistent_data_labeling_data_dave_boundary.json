@@ -1,0 +1,48 @@
+{
+  "item_id": "artifacts:gen_inconsistent_data_labeling_data_dave_boundary",
+  "stage": "artifacts",
+  "input_hash": "e2828ac12b46660d2b43961caf09a1ae8e0e3c1d14fe712d787fd280b238d1cc",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_data_dave_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} brought up keeping data labeling done by hand. He will not accept any automation that reduces his control over the labeling process.",
+      "fact": "{data_dave} brought up keeping data labeling done by hand.",
+      "reading": "He will not accept any automation that reduces his control over the labeling process.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.labeling",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "Inconsistent Data Labeling",
+      "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance."
+    }
+  },
+  "output": {
+    "content": "Hi all, I’ve been thinking about the data labeling process. I understand the push for automation, but I need to be clear: I will not accept any solution that takes control away from me. Data labeling is too critical to hand off to a system without human oversight. I’m open to discussing improvements, but my team needs to remain in charge of the process. Best, {data_dave}",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The message explicitly states a condition that, if crossed, would result in refusal."
+  }
+}

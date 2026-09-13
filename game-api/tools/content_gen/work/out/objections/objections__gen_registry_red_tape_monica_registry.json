@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_registry_red_tape_monica_registry",
+  "stage": "objections",
+  "input_hash": "02a1bc8c5aabbb44ec36084eadcce3aaa13ad346bc1f9b0aaccdec3ffa89c6ae",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_registry_red_tape_monica_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the model registry. She wants it automated and it will help her work more efficiently.",
+      "fact": "{model_monica} proposed automating the model registry.",
+      "reading": "She wants it automated and it will help her work more efficiently.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I, {model_monica}, need the registry to handle versioning and promotion checks, not just a basic upload step. That proposal leaves too much manual work for me.",
+    "correction": "You logged this as a simple efficiency wish, but I meant a governed automation path for my model lifecycle. I was asking for stronger controls, not just fewer clicks."
+  }
+}

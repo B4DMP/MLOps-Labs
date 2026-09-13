@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_experiment_tracking_dispute_dave_cost",
+  "stage": "objections",
+  "input_hash": "7d86b27f43f39b6fa6f03906ea4ee6124320d88a8e3b879c9b5420bb5bd57432",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_dave_cost",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} asked for cost savings in the experiment tracking process. The more cost savings achieved, the better it aligns with data operations goals.",
+      "fact": "{data_dave} asked for cost savings in the experiment tracking process.",
+      "reading": "The more cost savings achieved, the better it aligns with data operations goals.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.experiment_tracking",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I want more cost savings in the experiment tracking process, and this proposal does not do enough for that goal. I am not refusing, but I need stronger data operations savings.",
+    "correction": "I meant a cost savings request for experiment tracking, not a data quality issue. Please file this as a cost and data operations concern."
+  }
+}

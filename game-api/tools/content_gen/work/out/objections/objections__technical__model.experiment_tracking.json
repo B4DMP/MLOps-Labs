@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.experiment_tracking",
+  "stage": "objections",
+  "input_hash": "e52127a79cb81c69a66be8ee680c96c891054dbc7ae9745b6d233ec97a2dd7a0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.experiment_tracking",
+      "name": "Experiment Tracking"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I cannot support improving {target} because {cause} upstream is not good enough yet. My experiment tracking needs reliable {cause} data before we can claim the model improves."
+  }
+}

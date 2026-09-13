@@ -67,6 +67,10 @@ class GameSession(Base):
     stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
     stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    # 3 per game, never regenerated (D15): spent on a Veto Breaker or an Emergency Addendum
+    escalation_points: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
+    # What neglected stakeholders remember, fired in the simulation phase (plan 07)
+    grudges: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
@@ -78,4 +82,28 @@ class IntelItem(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     intel_item_data: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
-    
+
+
+class GraphOpLog(Base):
+    """Append-only log of MLOps graph ops per player. One row per batch; the graph state is
+    the fold of all rows in `seq` order, see application/graph_service."""
+
+    __tablename__ = settings.POSTGRES_GRAPH_OP_LOG_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    seq: Mapped[int] = mapped_column(Integer, nullable=False)
+    phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    challenge_template: Mapped[str] = mapped_column(String(255), nullable=False)
+    challenge_loop_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    source_kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    source_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    ops: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    # The DeltaReport this batch produced, when it came from a simulation (source_kind
+    # "action_card"/"world_event" via run_simulation) - null for seed/challenge_seed/admin
+    # batches. Read back on a replayed `simulation:run` so the player is shown the exact report
+    # that was actually applied, never a re-simulated one (code review, D-question 1).
+    report: Mapped[Any] = mapped_column(JSON, nullable=True)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )

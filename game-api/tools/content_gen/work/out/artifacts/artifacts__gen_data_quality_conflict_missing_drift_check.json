@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_data_quality_conflict_missing_drift_check",
+  "stage": "artifacts",
+  "input_hash": "a69f0bf07fcd3b166fedcd8247eca060e952974f6118fbb034c1fe5cbb0c5ab6",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_data_quality_conflict_missing_drift_check",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The training data drift check is absent. That is simply what the current drift check setup produces today.",
+      "fact": "The training data drift check is absent.",
+      "reading": "That is simply what the current drift check setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "data.training_drift_check",
+        "level": 1,
+        "trigger": null
+      }
+    },
+    "artifact_type": "incident_ticket",
+    "author": null,
+    "challenge": {
+      "name": "The Inconsistent Checks",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "Currently, the model training process does not include a formal data drift check for {data_dave}'s pipeline. The training proceeds without any automated validation of input data distribution against the baseline. The system logs indicate that training runs are initiated based on scheduled triggers without pre-checks for data consistency. This results in 15 training runs per week, none of which include a drift check. The process relies solely on post-training evaluations to detect any discrepancies in data distribution.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact provides objective information about the current state of the model training process without expressing any wishes, refusals, or acceptances."
+  }
+}

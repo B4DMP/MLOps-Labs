@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import type { StakeholderAvatar, AvatarEmotion } from "../types/StakeholderAvatar";
+import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
 
 export interface StakeholderAvatarProps {
@@ -14,6 +15,10 @@ export interface StakeholderAvatarProps {
   title?: string;
   clothingColor?: string;
   stakeholderColor?: string;
+  /** Used only as a last-resort deterministic color when nothing else (clothingColor,
+   * stakeholderColor, avatar.clothingColor) is set - so a stakeholder config entry never has to
+   * hand-pick a hex to look visually distinct. */
+  stakeholderId?: string;
   backgroundColor?: string;
   flip?: boolean;
   hoverToSuspicious?: boolean;
@@ -35,6 +40,7 @@ export function StakeholderAvatarComponent({
   title,
   clothingColor,
   stakeholderColor,
+  stakeholderId,
   backgroundColor,
   flip,
   hoverToSuspicious = true,
@@ -109,7 +115,8 @@ export function StakeholderAvatarComponent({
     }
 
     const bgCol = isFramed ? (backgroundColor || stakeholderColor || avatar?.backgroundColor) : undefined;
-    const finalClothingColor = clothingColor || stakeholderColor || (avatar as any)?.stakeholder_color || avatar?.clothingColor;
+    const finalClothingColor = clothingColor || stakeholderColor || (avatar as any)?.stakeholder_color || avatar?.clothingColor
+      || (stakeholderId ? colorForStakeholderId(stakeholderId) : undefined);
     const finalFlip = flip !== undefined ? flip : Boolean(avatar?.flip);
 
     return generateOpenPeepsDataUri({
@@ -126,7 +133,7 @@ export function StakeholderAvatarComponent({
       flip: finalFlip,
       blink: isBlinking,
     });
-  }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, backgroundColor, flip, hoverToSuspicious, isHovered]);
+  }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, stakeholderId, backgroundColor, flip, hoverToSuspicious, isHovered]);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLImageElement>) => {
     if (hoverToSuspicious) {

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.training_drift_check",
+  "stage": "objections",
+  "input_hash": "ba1a7c163583b79a39d59b7cef987c29d3dcb5c668c0d5cc06265db98d9e00c9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.training_drift_check",
+      "name": "Training Data Drift Check"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I can't support improving {target} until {cause} is good enough upstream. My drift check will just keep flagging the same bad data."
+  }
+}

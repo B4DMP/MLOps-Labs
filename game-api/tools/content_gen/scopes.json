@@ -1,0 +1,20 @@
+{
+  "tier0": {
+    "description": "Minimal content that exercises every mechanic once (D29): Data and Modeling, two templates each plus the existing fallback.",
+    "phases": [2, 3],
+    "templates_per_phase": 2,
+    "conflict_types": ["soft", "hard"],
+    "stances_per_template": [6, 10],
+    "facts_per_template": [3, 6],
+    "orphans_block": false
+  },
+  "full": {
+    "description": "The whole game.",
+    "phases": [1, 2, 3, 4, 5],
+    "templates_per_phase": 4,
+    "conflict_types": ["soft", "hard", "soft", "hard"],
+    "stances_per_template": [6, 10],
+    "facts_per_template": [3, 6],
+    "orphans_block": true
+  }
+}

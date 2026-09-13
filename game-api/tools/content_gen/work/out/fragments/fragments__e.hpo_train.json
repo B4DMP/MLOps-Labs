@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.hpo_train",
+  "stage": "fragments",
+  "input_hash": "803c6f04d52158f5aceba1bea07a170a4e346216dd54fbe3742fc8994df0f3ea",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.hpo_train",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Hyperparameter Tuning to Training Pipeline"
+  },
+  "output": {
+    "level_0": "Hyperparameter tuning results are not accessible to the training pipeline.",
+    "level_1": "The training pipeline has no input connection for hyperparameter tuning results.",
+    "level_2": "The training pipeline is manually configured with hyperparameter tuning results.",
+    "level_3": "Hyperparameter tuning results are automatically fed into the training pipeline.",
+    "level_4": "Hyperparameter tuning results are automatically validated and fed into the training pipeline."
+  }
+}

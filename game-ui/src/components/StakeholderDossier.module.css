@@ -315,9 +315,14 @@
     /* Spine shadow fold */
     inset -5px 0 15px rgba(0, 0, 0, 0.05),
     4px 0 10px rgba(0, 0, 0, 0.15);
-  overflow-y: scroll;
-  scrollbar-gutter: stable;
-  padding: 10px 16px 10px 20px;
+  /* The frame itself does not scroll: it is a column holding the scrolling wall and, under
+     it, the filter dock, which is how the dock lands on the page edge without sticky. */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* No padding here: the wall and the dock each carry the page inset, so both reach
+     the frame's edges and the wall's scrollbar sits on the right border. */
+  padding: 0;
   background-color: #f7f4ea;
   background-image:
     linear-gradient(90deg, transparent 16px, #ef4444 16px, #ef4444 17.5px, transparent 17.5px),
@@ -326,20 +331,41 @@
       #cbd5e1 21px);
   line-height: 21px;
   color: #26211e;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
   animation: pageTurn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pageBase::-webkit-scrollbar {
+/* The wall of notes scrolls; the page frame and the dock do not. */
+.pageScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* `auto` rather than `scroll`: the gutter is reserved either way, so nothing shifts as
+     the wall grows, but an empty track no longer sits there looking like a control. */
+  overflow-y: auto;
+  /* Notes are rotated a degree or two, which pushes their corners past the column and
+     earns a horizontal scrollbar for a few pixels nobody wants to scroll to. The
+     overhang falls inside the page padding, so clipping it costs nothing. */
+  overflow-x: hidden;
+  padding: 10px 16px 0 20px;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(60, 45, 35, 0.3) transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.pageScroll > * {
+  flex: 0 0 auto;
+}
+
+.pageScroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.pageBase::-webkit-scrollbar-track {
+.pageScroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.pageBase::-webkit-scrollbar-thumb {
+.pageScroll::-webkit-scrollbar-thumb {
   background: rgba(60, 45, 35, 0.3);
   border-radius: 4px;
 }
@@ -1502,4 +1528,516 @@
 .briefingButton:hover {
   background: rgba(245, 235, 217, 0.22);
   border-color: rgba(245, 235, 217, 0.6);
+}
+
+.briefingButtonActive {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+}
+
+.briefingButtonActive:hover {
+  background: rgba(56, 189, 248, 0.28);
+  border-color: rgba(56, 189, 248, 0.75);
+}
+
+/* ==========================================================================
+   DOSSIER FILTERS (plan 05)
+   The dossier keeps every note the player ever found, so it needs a way to
+   cut it down: which stages to look at, a search box, and a fold for the
+   notes somebody has already acted on.
+   ========================================================================== */
+
+.filterBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 0 0 6px 0;
+  padding: 4px 6px;
+  background: rgba(241, 245, 249, 0.55);
+  border: 1px dashed #cbd5e1;
+  border-radius: 5px;
+}
+
+.phaseRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* One strip with dividers, not a pill per phase: six phases cost one border instead of six. */
+.phaseGroup {
+  display: inline-flex;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.phaseChip {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.phaseGroup .phaseChip + .phaseChip {
+  border-left: 1px solid #cbd5e1;
+}
+
+.phaseChip:hover {
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.phaseChipOn,
+.phaseChipOn:hover {
+  background: #0f172a;
+  color: #fff;
+}
+
+/* NOW sits apart in the dock's accent, so the view of the phase in play is one click away. */
+.phaseChipNow {
+  border: 1px solid #0284c7;
+  border-radius: 6px;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0369a1;
+}
+
+.phaseChipNow.phaseChipOn,
+.phaseChipNow.phaseChipOn:hover {
+  background: #0284c7;
+  color: #fff;
+}
+
+.phaseChip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.phaseChipClear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.phaseChipClear:hover {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.filterControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  padding: 2px 7px;
+  background: #fffdf8;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #64748b;
+}
+
+.searchBox input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.72rem;
+  color: #1e293b;
+}
+
+.collapseToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fffdf8;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.collapseToggleOn {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: #f8fafc;
+}
+
+.filterHint {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   REFINEMENT CHAINS (D24)
+   One card per chain: the newest reading is the headline, the readings it
+   grew out of stack underneath in smaller type, and a locked row says when
+   there is more of the same note still out there.
+   ========================================================================== */
+
+.chainStack {
+  margin-top: 5px;
+  padding-left: 7px;
+  border-left: 2px solid rgba(120, 100, 70, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chainLayer {
+  display: flex;
+  gap: 5px;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: #7c6a52;
+}
+
+.chainLayerPhase {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #a8977f;
+}
+
+.lockedRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  padding: 3px 6px;
+  border: 1.5px dashed #b5a48b;
+  border-radius: 3px;
+  background: rgba(250, 247, 239, 0.75);
+  color: #8a7862;
+  font-size: 0.65rem;
+  font-style: italic;
+  cursor: help;
+}
+
+.lockedIcon {
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+/* Folded form of a note nobody needs to read again, one line each */
+.collapsedNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 5px 4px 0;
+  padding: 3px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background: rgba(248, 250, 252, 0.85);
+  text-align: left;
+  cursor: pointer;
+}
+
+.collapsedText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* What the graph says about a note right now, next to the confidence stamp */
+.statusBadge {
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.statusAddressed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.statusViolated {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.statusStale {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.contestedBadge {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* ==========================================================================
+   THE ENVIRONMENT PAGE
+   Facts are about the pipeline, not about a person, so this page has no face
+   and no mood: a header, then the notes grouped by the stage they describe.
+   ========================================================================== */
+
+.environmentHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 2px dashed #cbd5e1;
+}
+
+.environmentIcon {
+  flex-shrink: 0;
+  font-size: 1.8rem;
+  color: #64748b;
+}
+
+.environmentTitle {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.environmentSubtitle {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.stageGroupTitle {
+  flex-basis: 100%;
+  margin: 6px 0 3px 0;
+  padding-left: 6px;
+  border-left: 3px solid #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.environmentTab {
+  font-style: italic;
+}
+
+/* Filter the wall by how sure the player is of a note. */
+.confFilters {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.confChip {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.7rem;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.confChip:hover {
+  border-color: #0284c7;
+  color: #0f172a;
+}
+
+.confChipOn {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+/* The phase a note came from, down its left edge, like the section labels. The spine is a
+   grid column of its own and a phase name takes one line per word, so the column is as wide
+   as the name needs and the note is never shorter than its longest word. */
+.stickyNote {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 6px;
+  padding-left: 2px;
+}
+
+.stickyNote > * {
+  grid-column: 2;
+}
+
+/* The spine stays upright so the grid can size it; only the name inside turns. A turned grid
+   cell gets a different width from one note to the next. */
+.notePhaseSpine {
+  /* Top bar, retag picker, body: the spine runs the full height of all three. */
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  border-right: 1px dashed rgba(15, 23, 42, 0.18);
+}
+
+.notePhaseName {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  /* min-content is the longest word, so every space in the name starts a new line. */
+  height: min-content;
+  text-align: center;
+  line-height: 1.15;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.45);
+}
+
+
+/* The filters are a strip, not a panel: they sit on one line and give the wall its space back. */
+.filterControls {
+  flex: 1 1 240px;
+  min-width: 0;
+  gap: 4px;
+}
+
+.searchBox {
+  flex: 1 1 110px;
+  padding: 1px 6px;
+}
+
+.searchBox input {
+  font-size: 0.68rem;
+}
+
+.phaseRow {
+  flex: 0 1 auto;
+  gap: 3px;
+}
+
+.confFilters {
+  gap: 2px;
+}
+
+.confChip {
+  padding: 1px 7px;
+  font-size: 0.64rem;
+}
+
+.collapseToggle {
+  padding: 1px 7px;
+  font-size: 0.64rem;
+}
+
+.notePhaseName {
+  font-size: 0.52rem;
+}
+
+/* The section heading carries the fold control, so the filter strip stays short. */
+.sectionTitleActions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* States are icons: four words of chrome bought two lines of wall. */
+.confChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+/* The filter icons say what they are on hover, without waiting for the browser. */
+.confChip {
+  position: relative;
+  overflow: visible;
+}
+
+.confTip {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #fff;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+  z-index: 20;
+}
+
+.confChip:hover .confTip,
+.confChip:focus-visible .confTip {
+  opacity: 1;
+}
+
+/* The filters live at the foot of the page, above the paper, below the notes.
+   The dock is the page's last column item, outside the scrolling wall, so it lands on
+   the page's bottom edge by itself: no sticky offsets and no negative margins pulling it
+   past padding. z-index outranks a hovered note, because nothing should float over the
+   controls. */
+.filterDock {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 7px 16px 8px 20px;
+  background: #f7f4ea;
+  border-top: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 -6px 12px 6px rgba(15, 23, 42, 0.15);
+  z-index: 200;
+}
+
+.filterDock .filterBar {
+  margin: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* The wall ends a little above the dock rather than right against it. */
+.stickyNoteGrid {
+  padding-bottom: 6px;
 }

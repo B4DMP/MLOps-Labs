@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.contracts_ingest",
+  "stage": "fragments",
+  "input_hash": "32ebb91edee0acd329d89c4ca6131cd6e549e8f1824a50878373af826a7d23cb",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.contracts_ingest",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Data Contracts to Data Ingestion Pipeline"
+  },
+  "output": {
+    "level_0": "Data ingestion pipeline fails because data contracts are not respected.",
+    "level_1": "No data ingestion pipeline exists to process data contracts.",
+    "level_2": "The team manually checks data contracts before feeding them to the data ingestion pipeline.",
+    "level_3": "A script automatically validates data contracts before passing them to the data ingestion pipeline.",
+    "level_4": "A governed process validates data contracts before ingestion, with audit logs for compliance."
+  }
+}

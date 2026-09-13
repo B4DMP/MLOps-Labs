@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:model.hpo",
+  "stage": "fragments",
+  "input_hash": "db316265c5c30064121b551ab4c2771e93502e7a729e66c985327be47da3c619",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "model.hpo",
+    "kind": "component",
+    "name": "Hyperparameter Tuning",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Hyperparameter Tuning fails repeatedly and crashes the training pipeline.",
+    "level_1": "Hyperparameter Tuning is not set up and no tuning occurs.",
+    "level_2": "Hyperparameter Tuning is done manually with trial and error by data scientists.",
+    "level_3": "Hyperparameter Tuning runs automatically but without coordination across the team.",
+    "level_4": "Hyperparameter Tuning is automated and integrated with a governance framework."
+  }
+}

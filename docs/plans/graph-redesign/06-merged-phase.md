@@ -4,158 +4,145 @@ Depends: [04](04-content-pipeline.md), [05](05-persistent-dossier.md). Tracked i
 
 `challenge_loop_index` 1 and 2 collapse into one screen. Old online intel and pitch debate screens are deleted, no flag.
 
-## Three stages on one screen
-
 ```
-stage 1  PREPARE   spend attention tokens on engagement cards, assemble the card
-stage 2  OBJECT    stakeholders object, player answers with dialogue options, card can be amended
-stage 3  COMMIT    outcome resolved: pass, soft pass, or veto
+stage 0  GATHER    engagement cards and the attention tokens they cost (D46)
+stage 1  PREPARE   build the card from what gathering turned up
+stage 2  OBJECT    deterministic objections, player answers, card amended with intel items only
+stage 3  COMMIT    pass, soft pass, veto, conceded or stalemate
 ```
 
-Pitch is terminal for the challenge. Nothing is applied to the graph until COMMIT.
+Gathering is a step of its own (D46). The stepper is the navigation: the player moves between
+gathering and building at will, and jumps ahead to the room once the readiness meter allows it.
+Making the pitch closes gathering for good, since the pitch is terminal. Artifacts are never re-read
+in this phase, they belong to offline gathering.
 
-## Stage 1 PREPARE
+A pitch also needs something to pitch with. The screen reports how much of the challenge's intel is
+verified, and holds the pitch back below the lower threshold, warns between the two, and clears it
+above the upper one. The thresholds are content, not code.
 
-Engagement cards behave as today, reveal bias toward the challenge focus nodes.
+Pitch is terminal for the challenge. Nothing touches the graph until COMMIT.
 
-Card assembly:
-- exactly 5 slots, Position items only, any phase, any stakeholder
-- empty slots fill with **corporate noise**, zero coverage, flat emotion penalty on every active stakeholder, no deadlock
-- **main convincer profile**, matched against the phase high power high interest stakeholder
-- **secondary convincer profile**, optional, matched against the high power low interest counterpart
+## The card
+
+**1 to 5 stance items, any mix of Driver, Boundary, Trade-off** (D27). No quota per tag. Only intel items, no filler. Fewer items means less coverage. Building and amending cost no attention tokens.
+
+Each item is an action plus its stakeholder's importance ([02](02-intel-taxonomy.md#one-model-for-all-stance-items)). The card's ops are the union of its items' ops. Every Boundary of every stakeholder in the room is checked against the predicted post-card graph, slotted or not.
+
+Display groups the card by tag, it does not restrict it:
+
+| group | shows |
+|---|---|
+| **Must** | slotted Boundaries, plus warnings for discovered unslotted Boundaries the card would violate |
+| **Wants** | slotted Drivers with coverage per stakeholder |
+| **Concessions** | slotted Trade-offs, plus uncompensated losses the card causes |
+| **Framing** | main convincer profile, optional secondary |
+
+Builder shows live, from player knowledge only:
+- predicted effective level per item that raises something, with `capped_by`, or `?` where upstream is unknown ([02](02-intel-taxonomy.md#what-facts-do-in-the-pitch))
+- Boundary warnings for discovered Boundaries, "cannot check" where the read target is unknown
+- uncompensated losses per stakeholder, where a Price item would help
+
+## Convincer fit
+
+Matched against **every** stakeholder in the room. Main is the primary framing, secondary a hedge for a second audience.
 
 ```python
-d(profile, st) = mean(abs(profile.axis - st.archetype.axis) for 3 axes) / 5
-fit(st)        = 1 - d(main, st)                       if st is the primary target
-                 1 - d(secondary, st)                  if st is the secondary target and one was picked
-                 1 - 0.5 * (d(main, st) + d(secondary or main, st))   otherwise
+d(p, st) = mean(abs(p.axis - st.archetype.axis) for 3 axes) / 5
+fit(st)  = 1 - min(d(main, st), d(secondary, st) + SECONDARY_MALUS)   # malus ~0.15, secondary optional
 ```
 
-Leverage Motivation items held for a stakeholder add a flat bonus to `fit` for that stakeholder. That is what Leverage is for.
+Power weighting happens in the pitch score, not in fit.
 
-## Stage 2 OBJECT: dialogue that is earned, not rolled
+## Stage 2 OBJECT
 
-Objections are pre-authored ([04](04-content-pipeline.md)), fired deterministically:
+Objections are pre-authored per (stakeholder, target, kind) ([04](04-content-pipeline.md)) and fired deterministically against ground truth. Stakeholders are not fogged. They know their part of the system.
 
-```python
-objections(st) = [o for o in authored_objections(st)
-                  if o.component not in card.component_targets
-                     or card.component_targets[o.component] < o.required_level]
-order = Mandate first, then by severity, then by component weight
-surfaced = top N per stakeholder, N from challenge config, typically 1 to 2
-```
+| kind | fires when | raised by |
+|---|---|---|
+| **stance** | a Driver of st is uncovered or under-covered | st |
+| **boundary** | the card violates a Boundary of st | st, hard |
+| **price** | the card causes a loss st cares about and st's matching Trade-off is not in the card | st |
+| **technical** | an item will be capped by upstream | owner of the capped component |
+| **correction** | a slotted item was mis-tagged | its stakeholder |
 
-Each objection presents dialogue options. **Availability is a pure function of what the player did in stage 1 and in earlier phases.** Nothing random, nothing generated at answer time.
+Order: boundary, technical, stance, price. Top N per stakeholder surfaced, N from challenge config.
+
+### Dialogue options
+
+Availability is a pure function of what the player holds and did. Unaffordable options shown greyed with the reason.
 
 | option | unlocked by | effect |
 |---|---|---|
-| **Amend** | player holds a Position item covering the objection component | component added to the card, objection cleared, but the card grows and may anger the owner of a conflicting position |
-| **Cite evidence** | player holds an Evidence System State item asserting the component already sits at the required level | objection cleared, no slot spent, strong emotion gain. Checked against ground truth, so citing stale evidence backfires: objection stands and the stakeholder loses trust |
-| **Reframe** | always | scaled by convincer `fit` for that stakeholder. Good fit clears a Preference objection. Never clears a Mandate. |
-| **Trade** | the challenge `conflict` block puts a rival on an opposing level and the rival is in the room | objection cleared, rival loses buy-in. Explicit zero sum choice. |
-| **Defer** | always | objection parked, no buy-in change now, writes a promise. Broken promises cost trust in a later phase. |
-| **Stonewall** | always | objection stands, emotion loss with this stakeholder, emotion gain with anyone whose position conflicts with the objection |
-| **Emergency addendum** | an Escalation Point remains | adds a component the player holds no intel for, clears the objection, emotion hit with the objector. Finite, see COMMIT |
-| **Concede correction** | objection is a mis-tag correction ([02](02-intel-taxonomy.md)) | item is fixed and verified in the dossier, small emotion cost, coverage recomputed |
+| **Amend** | player holds an intel item that answers it: a Driver for stance, a Boundary for boundary, an upstream item for technical, a Trade-off for price | item added to the card. The only way to build a compromise |
+| **Reframe** | always | strength from convincer fit. Can clear a stance objection on a soft Driver. Never clears boundary, technical or price |
+| **Stonewall** | always | objection stands, emotion loss with st, emotion gain with whoever holds the opposing position in the challenge conflict |
+| **Emergency Addendum** | an Escalation Point remains | adds a change the player holds no intel for, clears one objection, emotion hit with st |
+| **Concede Correction** | correction objection | item fixed and verified in the dossier, small emotion cost |
 
-Every option shows its unlock reason in the tooltip, so the player learns that stage 1 spending is what buys stage 2 options. An option the player cannot afford is shown greyed with the reason, never hidden. That is the teaching surface.
-
-Amend replaces the old addendum idea, but bounded: the card can grow by at most `max_amendments` components per pitch, config default 3. Amending costs no attention tokens. Card building is free, preparation is what costs.
+Amendments capped at `max_amendments`, default 3. Card may not exceed 5 slots after amending.
 
 ## Stage 3 COMMIT
 
 ```python
-coverage(st) = mean(match_score(o) for o in all authored objections of st)
-match_score  = 1.0 if card level >= required else 0.5 if card level > 0 else 0.0
-buy_in(st)   = clamp(0.7*coverage(st) + 0.3*emotions_norm(st) + 0.1*(fit(st)-0.5))
+coverage(st) = mean(credit(d, card) for d in drivers(st))              # all Drivers, no exclusion
+loss(st)     = sum(uncompensated losses on targets st cares about)
+buy_in(st)   = clamp(0.7*coverage(st) + 0.3*emotions_norm(st) + 0.1*(fit(st) - 0.5) - LOSS_W*loss(st))
 ```
 
-No exclusion of well covered objections. The threshold decides only what is surfaced in stage 2.
-
-### Three outcomes
+Outcome:
 
 ```python
-blocking = [st for st in room if st.power == "high" and buy_in(st) < VETO_THRESHOLD]
-soft     = [st for st in room if st.power == "low"  and buy_in(st) < OBJECTION_THRESHOLD]
-
-if blocking:  VETO
-elif soft:    SOFT_PASS
-else:         PASS
+veto = [st for st in room if st.power == "high"
+        and (violates_boundary(card, st) or buy_in(st) < VETO_THRESHOLD)]
+soft = [st for st in room if st.power == "low"
+        and (violates_boundary(card, st) or buy_in(st) < OBJECTION_THRESHOLD)]
+VETO if veto else SOFT_PASS if soft else PASS
 ```
 
 | outcome | now | later |
 |---|---|---|
-| PASS | card applies in full | none |
-| SOFT_PASS | card applies | each neglected low power stakeholder writes a `grudge`. Grudges fire in later phases as friction: delayed world events, a component landing one level lower, an extra objection with reduced patience |
-| VETO | card does not apply | see below |
+| PASS | card applies | none |
+| SOFT_PASS | card applies | each neglected low power stakeholder writes a grudge, fired in [07](07-simulation-phase.md) |
+| VETO | nothing applies | Veto Breaker, Rebuild, or Let them have it |
+| CONCEDED | the opposing position applies instead of the card | the side that was dropped remembers it |
 
-Grudges are persisted and resolved in [07](07-simulation-phase.md). Soft failure must cost something visible later, otherwise low power stakeholders are free to ignore.
+**Veto Breaker.** 1 Escalation Point. Card applies. Overridden stakeholder takes a large emotion hit, patience 0, maximum degradation on everything they own, double weight grudge.
 
-### Veto resolution
+**Rebuild.** Back to PREPARE. 1 patience from everyone in the room. New card must differ by at least `MIN_REBUILD_DELTA` items, default 2.
 
-Player picks one:
+**Let them have it (D41).** The player drops their own card and accepts the opposing position of the challenge `conflict`, which applies in its place. No Escalation Point, no patience cost. A large emotion gain with the side that gets its way, a loss with the side dropped, and a grudge for the dropped side. Offered whenever a veto stands, next to Veto Breaker and Rebuild, so a challenge never dead ends: refusing to decide is itself a decision, and the room acts without the player. Outcome `CONCEDED`, simulated in [07](07-simulation-phase.md).
 
-1. **Veto breaker.** Costs 1 Escalation Point. Card applies as if PASS. The overridden stakeholder takes a large emotion hit, drops to `patience 0`, and owns every component they touch with maximum degradation in the simulation phase. Overruling works, and it hurts.
-2. **Rebuild.** Return to stage 1. Costs 1 patience from every stakeholder in the room. The new card must differ by at least `MIN_REBUILD_DELTA` Position items, config default 2, so resubmitting the same card is not a path.
+**Escalation Points.** 3 per game, never regenerate (D15). Spent on Veto Breaker or Emergency Addendum. Shown in the navbar.
 
-### Escalation Points
+**Patience.** Per stakeholder per challenge, default 2. A vetoing high power stakeholder at patience 0 with no Escalation Points left ends the challenge in **STALEMATE**: no card, `stalemate_ops` fire, grudges for everyone in the room, game advances.
 
-3 for the entire game, tracked in game state, shown in the navbar next to attention tokens. Two spends:
-
-- **Veto Breaker**, above.
-- **Emergency Addendum**, during stage 2. Adds a component to the card that the player holds no intel for, clearing one objection. Costs 1 point plus an emotion hit with the stakeholder whose objection was bypassed.
-
-Escalation is the answer to "I did not prepare for this", and it is finite, so it cannot be the strategy.
-
-### Patience and stalemate
-
-Patience is a small integer per stakeholder per challenge, default 2. Not an emotion, a hard gate. Decremented by rebuild and by override.
-
-When any high power stakeholder in the room reaches `patience 0` and the card is still vetoed, and the player has no Escalation Points, the challenge ends in **STALEMATE**:
-
-- no card applies
-- the challenge fires its `stalemate_ops`, a detrimental world event authored on the template. The problem does not wait for the meeting to finish
-- metrics take a hit, affected stakeholders carry a grudge into the next phase
-- the game advances
-
-Failure is a legitimate outcome, not a dead end. That is what gives the veto weight without an infinite loop.
-
-### Risk read before commit
-
-Before locking in, the player sees a per stakeholder risk indicator, not exact buy-in numbers:
-
-```
-resolution = full   when the player holds a Leverage Motivation item for that stakeholder
-             coarse otherwise            (green / amber / red band only)
-```
-
-So preparation buys foresight too. Blind commits are possible, they are just gambles.
-
-Final screen lists per stakeholder risk, which objections stand, what the card contains, Escalation Points remaining, and a confirm button.
+**Risk read.** Before commit, a per stakeholder band (green / amber / red). Exact buy-in only for stakeholders whose Language is correctly tagged.
 
 ## Stakeholder LLM context
 
-Owned node summary plus story fragments, the components named in their own objection set, the card components with current levels. Never the whole graph.
+Their owned components with story fragments, the targets in their objection set, the card's targets with current levels. Never the whole graph.
 
 ## Deleted
 
-`determine_dialogue_options`, corporate noise as a dialogue path, `DialogueOption.archetype` randomization, the separate online intel screen. Addendums come back, bounded, as the Amend and Emergency Addendum options.
+`determine_dialogue_options`, corporate noise, `DialogueOption.archetype` randomization, the separate online intel screen. v2 options Cite Evidence, Defer, Trade removed, see [BACKLOG.md](BACKLOG.md#rejected).
 
 ## Steps
 
-- [ ] 1. New component `game-ui/src/components/pitch_phase.tsx`, three stages, built from parts of `online_intel_gathering.tsx`. Do not fork `pitch_debate.tsx` wholesale.
-- [ ] 2. Card assembly UI, 5 slots, corporate noise filler, convincer picker with axis bars.
-- [ ] 3. `application/pitch_debate_service/scoring.py`, pure: fit, coverage, buy-in, outcome resolution. Tested.
-- [ ] 4. `application/pitch_debate_service/objections.py`, pure: objection selection, option availability with unlock reasons. Tested.
-- [ ] 5. Objection UI, one stakeholder at a time, greyed options with reasons, amendment budget shown.
-- [ ] 6. Amendment applies to the card in memory, coverage recomputed live.
-- [ ] 7. Commit stage: pass, soft pass, veto. Escalation Points, patience, rebuild delta check, stalemate.
-- [ ] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card_components`, `objection_state`, `promises`. Update the checkpointer allowlist in `service.py`.
-- [ ] 9. Trim stakeholder prompt context.
-- [ ] 10. Promises and grudges persisted for later phases. Escalation Points in game state and navbar.
-- [ ] 11. Delete old screens and dead handlers.
-- [ ] 12. Playtest a full challenge.
+- [x] 1. `game-ui/src/components/pitch_phase.tsx`, four stages (D46), built from parts of `online_intel_gathering.tsx`. Screen exists with all three stages. Engagement cards and stakeholder chat folded into PREPARE (D37). Loop indices 1 and 2 both route to `<PitchPhase>`; `online_intel_gathering.tsx` deleted in step 11.
+- [x] 2. Card builder: 1 to 5 stance items in any mix, grouped display, convincer picker with axis bars. (picker is a plain select, axis bars still missing)
+- [x] 3. Builder previews: effective level prediction from knowledge, Boundary warnings, uncompensated losses.
+- [x] 4. `pitch_debate_service/scoring.py`, pure: fit, coverage with metric credit, loss, buy-in, outcome. Tested. (fit/coverage/emotions_norm/loss/buy_in/outcome; 32 tests green)
+- [x] 5. `pitch_debate_service/objections.py`, pure: five objection kinds, ordering, option availability with reasons. Tested. (Objection + DialogueOptionSpec models, fire_objections, dialogue_options_for; boundary/technical are hard, correction separated)
+- [x] 6. Objection UI, one stakeholder at a time, amendment budget shown.
+- [x] 7. Commit: outcomes, Veto Breaker, Rebuild with delta check, patience, stalemate, risk read.
+- [x] 8. `PitchDebateState` rework, drop `dialogue_options`, add `card`, `objection_state`. Deviation: the pitch state is not a LangGraph channel at all. It lives on the challenge row as `action_card.pitch` and is driven by the `pitch:*` websocket events, so nothing about the pitch depends on the conversation graph. The LangGraph state and its checkpointer stay as they are for the stakeholder chat.
+- [x] 9. Trim stakeholder prompt context. `username` added to `PitchDebateState`; `generate_stakeholder_response` now builds `owned_components` (this stakeholder's graph components with story at current level) and `card_targets` (card items' graph targets with current level). Static `st.requirements` dropped from the combined field; prompt updated to use `private_requirements`, `owned_components`, `card_targets`. Both blocks are wrapped in a single try/except so a missing graph state never breaks the chat.
+- [x] 10. Grudges persisted, Escalation Points in game state and navbar. Both persist on the session row (migration `a7b8c9d0e1f2`) and the pitch screen shows the points; the navbar does not yet. Closed: no separate navbar is being built; the pitch stage bar is the only place EPs are spent, so that is the right place to show them.
+- [x] 11. Delete old screens and dead handlers. (`online_intel_gathering.tsx`, `pitch_debate.tsx`, `PitchActionCardModal.tsx`, `ActionCardCreatedModal.tsx` and their CSS modules removed; `Game.tsx` routes loop indices 1 and 2 to the merged `<PitchPhase>`.)
+- [ ] 12. Playtest a full challenge. Fixes the numbers afterwards (D38), and settles how a player walks away from a veto (Q25).
+- [x] 13. Let them have it (D41): `pitch:concede` event + `concede_pitch()` in `session.py` + `handle_pitch_concede()` in `pitch_handler.py`. Frontend: "Let them have it" button beside Veto Breaker and Rebuild; CONCEDED outcome card with description. Emotion constants `EMOTION_CONCEDE_WIN=0.30`, `EMOTION_CONCEDE_LOSE=-0.20`.
+- [ ] 14. Move every tuned number out of code into config (D38): emotion effect per dialogue option, patience, amendment budget, the Veto Breaker cost in emotion and levels, grudge lifetime. Code keeps the defaults it has now.
 
 ## Done when
 
-Player prepares, gets objected to, answers with options they earned, amends, and hits one of pass, soft pass, veto or stalemate. Same inputs always produce the same objections and the same available options.
+Player builds a card from intel, gets objected to deterministically, fixes things by adding intel, and lands on pass, soft pass, veto or stalemate. Same inputs, same objections, same options.

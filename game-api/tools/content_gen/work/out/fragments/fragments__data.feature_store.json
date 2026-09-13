@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.feature_store",
+  "stage": "fragments",
+  "input_hash": "763f7de9116b2a8f118fbbbd839c036aa100961964899275ced20fb49312a641",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.feature_store",
+    "kind": "component",
+    "name": "Feature Store",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The feature store is offline, causing model training to fail.",
+    "level_1": "There is no feature store, engineers manually prepare data for each model.",
+    "level_2": "Engineers manually update features in a shared database every sprint.",
+    "level_3": "Features are automatically generated and served from a centralized system.",
+    "level_4": "The feature store is integrated with compliance tools and access controls."
+  }
+}

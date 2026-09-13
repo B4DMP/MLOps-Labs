@@ -96,7 +96,7 @@ def test_dialogue_option_serialization():
 
 @pytest.mark.anyio
 async def test_unverified_intel_item_dialogue_option_generation():
-    from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, RequirementType
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, IntelTag
     from mlops_serious_game.application.intel_handler import determine_dialogue_options
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from pathlib import Path
@@ -108,7 +108,7 @@ async def test_unverified_intel_item_dialogue_option_generation():
     unverified_item = StakeholderIntelItem.from_requirement(
         req1,
         intel_type=ConfidenceType.UNCONFIRMED,
-        categorized_type=RequirementType.REQUIREMENT,
+        categorized_type=IntelTag.BOUNDARY,
         categorized_description="Model Monica mandates that the model must achieve at least 95% accuracy.",
     )
 
@@ -126,26 +126,26 @@ async def test_unverified_intel_item_dialogue_option_generation():
 
 @pytest.mark.anyio
 async def test_misclassified_intel_item_dialogue_option_generation():
-    from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, RequirementType
+    from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, IntelTag
     from mlops_serious_game.application.intel_handler import determine_dialogue_options
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from pathlib import Path
 
     RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
 
-    # Misclassified intel item (categorized as PERSONAL_FRICTION instead of HARD_CONSTRAINT)
+    # Misclassified intel item (tagged as a Trade-off, but it is a Boundary)
     req2 = RequirementFactory.get_requirement("req_0_model_monica_hard_constraint_0")
     misclassified_item = StakeholderIntelItem.from_requirement(
         req2,
         intel_type=ConfidenceType.UNCONFIRMED,
-        categorized_type=RequirementType.PERSONAL_FRICTION,
+        categorized_type=IntelTag.TRADE_OFF,
         categorized_description="Model Monica expresses strong personal frustration about accuracy standards.",
     )
 
     assert misclassified_item.stakeholder_id == "model_monica"
     assert misclassified_item.is_correct_intel() is False
     assert misclassified_item.correct_description != ""
-    assert misclassified_item.correct_intent == RequirementType.REQUIREMENT
+    assert misclassified_item.correct_intent == IntelTag.BOUNDARY
 
     options = determine_dialogue_options(discovered_intel_items=[misclassified_item])
     assert len(options) == 4

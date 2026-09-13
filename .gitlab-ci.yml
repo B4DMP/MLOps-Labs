@@ -53,6 +53,56 @@ build-game-ui:
     - did
 
 # ---------------------------------------------------------------------------
+# TEST STAGE
+# ---------------------------------------------------------------------------
+
+validate-game-content:
+  stage: test
+  image: docker:24.0
+  services:
+    - docker:24.0-dind
+  script:
+    - docker load < game-api-image.tar
+    - docker run --rm $GAME_API_IMAGE sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier0 validate"
+  needs:
+    - job: build-game-api
+      artifacts: true
+  tags:
+    - did
+
+test-game-api:
+  # The backend suite is pure (no DB access, no conftest fixtures - see docs/plans/graph-redesign/
+  # 10-code-review.md) so this runs straight from source against a plain interpreter, independent
+  # of the built image and the other build/test jobs (`needs: []`).
+  stage: test
+  image: python:3.11-slim
+  script:
+    - cd "$GAME_DIR/game-api"
+    - pip install --no-cache-dir uv
+    - uv pip install --system -r pyproject.toml pytest
+    - PYTHONPATH=tools python -m pytest tests -q
+  needs: []
+  tags:
+    - did
+
+test-game-ui:
+  # Typecheck and the (currently small, growing) Vitest suite are hard gates. `eslint` is
+  # deliberately non-blocking for now: the repo carries ~292 pre-existing lint errors unrelated to
+  # any given change (see docs/plans/graph-redesign/10-code-review.md's baseline), so failing CI on
+  # them today would gate merges on unrelated debt. Flip the `|| true` once that debt is cleared.
+  stage: test
+  image: node:20-slim
+  script:
+    - cd "$GAME_DIR/game-ui"
+    - npm ci
+    - npx tsc -b --force
+    - npm test
+    - npx eslint . || true
+  needs: []
+  tags:
+    - did
+
+# ---------------------------------------------------------------------------
 # DEPLOY STAGE
 # ---------------------------------------------------------------------------
 
@@ -73,6 +123,9 @@ push-game-images:
       artifacts: true
     - job: build-game-ui
       artifacts: true
+    - job: validate-game-content
+    - job: test-game-api
+    - job: test-game-ui
   only:
     - main
   tags:

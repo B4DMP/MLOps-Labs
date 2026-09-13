@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_registry_spreadsheet",
+  "stage": "artifacts",
+  "input_hash": "3a7a0736a6ae80a0ab6639b34b5650c82d5ef1c2bd429719dca702b0237d1df2",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_registry_spreadsheet",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is a spreadsheet. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is a spreadsheet.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.registry",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "architecture_note",
+    "author": null,
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The current model registry is implemented as a spreadsheet maintained by {data_dave}. Models are listed with their versions, training dates, and performance metrics. The spreadsheet is updated manually whenever a new model is deployed or an existing one is retrained. There are no automated checks or validations in place, and the spreadsheet is stored on a shared drive accessible to the team.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes a current state without any wishes, refusals, or acceptances, nor does it state a need or a trade-off."
+  }
+}

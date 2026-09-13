@@ -15,7 +15,6 @@ from mlops_serious_game.application.action_card_service.service import (
     generate_action_card,
 )
 from mlops_serious_game.application.intel_handler import (
-    clear_intel_items_for_user,
     load_known_intel_items_for_challenge,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
@@ -40,8 +39,7 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
-    # Clear previous challenge intel items when starting offline intel gathering phase
-    await clear_intel_items_for_user(websocket)
+    # The dossier is persistent (plan 05): what the player found in earlier phases stays.
     # Load known dispute intel items into DB as verified for the new challenge
     load_known_intel_items_for_challenge(curr_challenge, username)
 
@@ -90,6 +88,8 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
         if getattr(intel_item, "categorized_description", None):
             item_dict["description"] = intel_item.categorized_description
+        # Only what the player sees for their own call, never the true reading.
+        item_dict["fact"], item_dict["reading"] = intel_item.shown_parts()
         await manager.send_event(
             websocket=websocket,
             event="intel:tagged_ack",

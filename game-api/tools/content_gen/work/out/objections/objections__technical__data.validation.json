@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.validation",
+  "stage": "objections",
+  "input_hash": "38da401e2dde5bd7711542d61df23dcff301f1a829192b58b2bfc1aee15a939e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.validation",
+      "name": "Data Validation"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "As the owner of Data Validation, I can't approve improving {target} right now, because {cause} upstream is not good enough yet."
+  }
+}

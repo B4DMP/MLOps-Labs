@@ -255,6 +255,7 @@ export default function ActionCardCardComponent({
                         <StakeholderAvatarComponent
                           avatar={st.avatar}
                           stakeholderColor={st.color}
+                          stakeholderId={st.id}
                           isFramed={true}
                           play_blink_animation={false}
                           size="100%"

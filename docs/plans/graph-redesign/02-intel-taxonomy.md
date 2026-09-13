@@ -2,86 +2,146 @@
 
 Depends: [01](01-graph-core.md). Tracked in [STATE.md](STATE.md).
 
-Replaces `requirement | negotiable_preference | personal_friction`. Those were keyword tagging for "need" versus "want" and carried no weight.
+Replaces `requirement | negotiable_preference | personal_friction`. v2 Position / Evidence / Leverage is dropped: Leverage had no clear pitch effect, Evidence mixed facts and constraints.
 
-## Design rule
+## Taxonomy
 
-A tag is only worth asking for if a wrong tag costs the player something specific. So each category has its own mechanical consumer, and an item is only usable through that consumer.
-
-## Categories
-
-| main | sub | question the artifact answers | consumer |
+| tag | about | question it answers | used by |
 |---|---|---|---|
-| **Position** | Mandate | what must the system do, non negotiable | card slot, coverage, veto |
-| | Preference | what would this person rather have | card slot, coverage, tradeable in objections |
-| **Evidence** | System State | what is true about the environment today | reveals graph level, citable in objections |
-| | Constraint | what external limit binds us | caps reachable levels, blocks options |
-| **Leverage** | Motivation | what this person is measured on or afraid of | convincer fit bonus |
-| | Alliance | how this person relates to another stakeholder | coalition effects |
+| **Driver** | a stakeholder | what do they want done, more is better? | card slot |
+| **Boundary** | a stakeholder | what must happen, or must never be undone? | card slot, and checked automatically whether slotted or not, veto |
+| **Trade-off** | a stakeholder | what would they accept, even though it costs them? | card slot |
+| **Fact** | the environment | what is true about the system right now? | player knowledge, feasibility preview |
+| **Language** | a stakeholder, profile level | how do they want to be convinced? | card section Framing, convincer fit |
+
+Driver, Boundary, Trade-off and Fact are item tags, chosen per artifact in offline intel gathering. Language is one value per stakeholder, discovered through the existing convincer tagging (`tag_stakeholder_convincer_archetype`, `ConvincerVerificationDialog`). The dossier shows all five, Language as the profile header.
+
+External limits such as budget or regulation are Boundaries, voiced by whoever owns them. Every constraint has an owner, which the veto needs anyway.
+
+## One model for all stance items
+
+Every stance item is an **action on the graph** plus **how much its stakeholder cares** about it. The tag is the importance:
+
+```
+Boundary   must happen, or must never be undone     violation vetoes (high power) or hard-objects (low power)
+Driver     wanted, more is better                   coverage, buy-in
+Trade-off  accepted, even though it costs them      no loss penalty from that stakeholder when the card includes it
+```
+
+The card takes 1 to 5 stance items in **any mix**, no quota per tag (D27). Facts are not slottable, they describe state, not actions.
 
 ## Distinguishing test
 
-Applied when authoring and by the blind reclassification gate.
+Order matters. Trade-off sentences usually name the Driver they trade for, so Trade-off is checked first.
 
 ```
-Is the sentence about the system, or about a person?
-  system  -> is it a limit imposed from outside the team? Constraint. else System State.
-  person  -> does it state something they want changed? 
-               yes -> is refusal stated or implied? Mandate. else Preference.
-               no  -> is it about another named stakeholder? Alliance. else Motivation.
+1. Is anyone's wish, refusal or acceptance in it?
+     no  -> Fact
+2. Does it state something they would give up or accept losing?
+     yes -> Trade-off
+3. It states a need:
+     would doing more than asked make them happier?
+       yes -> Driver      direction, more is better
+       no  -> Boundary    a line, crossing it means refusal
 ```
 
-Every authored artifact must pass this tree to exactly one leaf. Ambiguous artifacts are rejected, not patched.
+Phrasing rule for generation: Drivers as direction ("every point of accuracy matters to her"), Boundaries as refusal ("she will not ship anything under 95 percent"). Blind reclassification gate enforces it.
 
-## Mechanics per category
+## Payloads
 
-**Position.** Carries `component_targets: [{component_id, level}]`. Only Position items fill the 5 card slots. Mandate failure raises a hard objection and counts toward veto. Preference failure raises a soft objection and can be traded away in the objection round.
+**Driver**
 
-**Evidence.** Carries `asserts: {component_id, level}` or an instance assertion. Playing or holding it reveals that part of the graph to the player. In the objection round it can be cited to prove a component already sits at the required level, clearing an objection without spending a card slot. Constraint additionally carries `caps: {component_id, max_level}` or `forbids: [attribute value]`, which greys out card and dialogue options.
+```json
+{"metric_id": "model", "suggested": {"target": "model.evaluation", "level": 3}}
+```
 
-**Leverage.** Carries `archetype_hint` (Motivation) or `relates_to: {stakeholder_id, stance}` (Alliance). Motivation raises convincer fit when the matching profile is picked. Alliance enables coalition effects: satisfying A moves B, or angering A moves B the other way.
+Coverage credit: full for the suggested target at level, partial for any other component or edge with positive `component_weights` on the same metric ([07](07-simulation-phase.md)). Several cards can satisfy one Driver, and Drivers from different stakeholders can be satisfied by the same change.
+
+**Boundary**: a predicate ([01](01-graph-core.md#predicates)) that must hold on the predicted post-card graph, plus the ops that make it hold.
+
+```json
+{"holds": {"component": "gov.audit", "op": "gte", "level": 3},
+ "ops":   [{"kind": "raise_to", "target": "gov.audit", "value": 3}]}
+
+{"holds": {"not": {"attr": "deploy.serving.hosting", "op": "eq", "value": "public_cloud"}},
+ "ops":   [{"kind": "set_attr", "target": "deploy.serving.hosting", "value": "on_prem"}]}
+```
+
+Slotted: its ops go into the card, the card commits to it, buy-in bonus with its stakeholder. Not slotted: still evaluated against the predicted graph. A card that never touches what a prohibition protects satisfies it for free. A positive Boundary (something must reach a level) that nobody acts on is violated.
+
+Violated Boundary of a high power stakeholder is an automatic veto. Of a low power stakeholder, a hard objection.
+
+**Trade-off**: an action its stakeholder accepts, plus what it costs them.
+
+```json
+{"ops":      [{"kind": "set_attr", "target": "data.feature_store.sourcing", "value": "bought"}],
+ "concedes": {"metric_id": "efficiency", "loss": 5}}
+
+{"ops":      [],
+ "concedes": {"target": "gov.cost_monitoring", "accepts_max_level": 2}}
+```
+
+Slotted: its ops apply, and that stakeholder no longer holds the named loss against the card. A card that causes the same loss without the Trade-off item draws a price objection. An empty `ops` list is a pure concession: nothing is built, the stakeholder just stops counting that loss. That is how compromises are built: by the player, from intel, never by a dialogue option.
+
+**Fact**
+
+```json
+{"asserts": {"target": "e.fs_train", "level": 2, "trigger": "manual_request"}}
+```
+
+Correctly tagged, it emits an `observe` op for that target. Stays citable in the dossier as "last seen".
+
+## What facts do in the pitch
+
+Facts never forbid actions. They let the player see consequences.
+
+1. **Feasibility preview.** Card builder predicts effective levels for every slotted item that raises something. Upstream known: exact prediction, with `capped_by` shown. Upstream unknown: `?`.
+2. **Boundary preview.** A Boundary warning in the builder needs the current value of what it reads. Unknown means the warning shows as "cannot check".
+3. **Technical objections.** When a slotted item will be capped, the owner of the capped component objects in OBJECT ([06](06-merged-phase.md)). Facts make these foreseeable. The fix is to add the upstream item, not to argue.
 
 ## Mis-tag consequences
 
-| authored | player tagged | result |
+| authored | tagged as | consequence |
 |---|---|---|
-| Mandate | Preference | left out of the card, hard objection, veto risk |
-| Preference | Mandate | wasted card slot, small annoyance from the owner of a competing node |
-| Evidence | Position | slot wasted on a fact, card proposes something already true |
-| Position | Evidence | not available as a card slot, coverage gap |
-| Leverage | anything | convincer fit bonus never applies, coalition never fires |
+| Driver | Boundary | over-prioritised: a slot spent protecting something that is only wanted, false veto warning in the builder |
+| Driver | Trade-off | you treat something they want as something they would give up, strong objection |
+| Boundary | Driver | no veto warning in the builder, so dropping it looks cheap: surprise veto |
+| Boundary | Trade-off | you plan to give up their red line: veto |
+| Boundary | Fact | no warning, surprise veto |
+| Trade-off | Driver | you count a concession as a win for them, the loss still lands: price objection |
+| Trade-off | Boundary | over-cautious: slots spent guarding something they would give up |
+| Fact | any stance tag | filed under a person, so no `observe`, graph stays fogged, slot does nothing |
+| stance | Fact | treated as environment, stakeholder's actual stance missing from the card |
+| Fact | correct | `observe` emitted, preview improves |
 
-Wrong tags are corrected in the objection round, deterministically, and the corrected item stays in the dossier as verified. That is the teaching moment.
+Corrections surface in OBJECT as Concede Correction. The corrected item becomes verified in the dossier.
+
+## Artifact types
+
+Stakeholder artifacts: email, slack message, meeting notes, document. New technical artifact types for Facts: runbook, dashboard snapshot, incident ticket, CI log, architecture note. Technical artifacts may be authored by a stakeholder but state no stance.
 
 ## Model changes
 
-`domain/requirement.py`:
+`domain/requirement.py`: `IntelTag(Driver, Boundary, TradeOff, Fact)`, payload fields as above, `stakeholder_id` nullable for Facts. `RequirementType` and the legacy read-time shim are deleted; migration `f6a7b8c9d0e1` rewrites stored rows instead. `TAG_PROMPT_DESCRIPTION` and `PLAUSIBLE_WRONG_TAG` give every flow the same wording.
 
-```python
-class IntelCategory(str, Enum):  POSITION, EVIDENCE, LEVERAGE
-class IntelSubtype(str, Enum):   MANDATE, PREFERENCE, SYSTEM_STATE, CONSTRAINT, MOTIVATION, ALLIANCE
-```
-
-`StakeholderRequirement` gains `category`, `subtype`, and the per subtype payload fields above. `RequirementType` and the legacy upgrade shim in `requirement.py` are deleted. Database is disposable.
-
-`categorized_type` on `StakeholderIntelItem` becomes `categorized_subtype`. Correctness check compares subtype, and partial credit is given for the right main category with the wrong subtype.
+`categorized_type` keeps its name (renaming it would touch every frontend payload and stored row for no behaviour change); its values are now `IntelTag`. Correctness compares tag.
 
 ## UI
 
-`offline_intel_gathering.tsx`: tag control becomes two steps, pick main category, then subtype. Six flat buttons is too many at once and hides the distinction the game is teaching.
-
-Dossier and verification dialogs updated to the new labels and colors. Suggested colors: Position blue, Evidence grey, Leverage amber.
+- `offline_intel_gathering.tsx`: four tag buttons. First question visually separated: person or system.
+- dossier: stakeholder section (Language header, Drivers, Boundaries, Trade-offs), environment section (Facts by stage)
+- new artifact type icons
 
 ## Steps
 
-- [ ] 1. Enums plus payload fields in `domain/requirement.py`, delete `RequirementType` and the legacy shim.
-- [ ] 2. Update `RequirementObjects.schema.json` and the loader validation gate.
-- [ ] 3. Update `EngagementCard.allowed_requirement_types` to filter on category or subtype.
-- [ ] 4. Two step tag control in `offline_intel_gathering.tsx`.
-- [ ] 5. Partial credit scoring in `correct_and_verify_intel_item`.
-- [ ] 6. Dossier and verification dialog labels and colors.
-- [ ] 7. Regenerate content under the new taxonomy. Handled by [04](04-content-pipeline.md).
+- [x] 1. `IntelTag` and payloads in `domain/requirement.py`, delete legacy types and shim.
+- [x] 2. Schema and loader gate (`RequirementFactory.validate_payloads`): payload matches tag, Boundary predicates parse, Fact targets exist.
+- [x] 3. Engagement cards filter by tag. Investigate card deferred to [06](06-merged-phase.md): it needs stage targeting in the engagement UI that plan rebuilds, and there are no Facts to reveal before tier 0 content.
+- [x] 4. Tag control in `offline_intel_gathering.tsx`: three stakeholder tags, then Fact under "not about anyone: about the system". Labels, icons and colours shared via `game-ui/src/types/IntelTag.ts`. Technical artifact types exist in the backend enum and schema; their viewer icons come with tier 0 content in [04](04-content-pipeline.md).
+- [x] 5. Scoring compares tags. Correctly tagged Facts emit `observe` when the player leaves offline intel gathering (`observe_tagged_facts`), not on tagging, so the graph does not reveal which tags were right.
+- [x] 6. Dossier shows the new labels; Facts without a stakeholder are skipped safely. The environment section moves to [05](05-persistent-dossier.md), which rebuilds the dossier views.
+- [x] 7. Stopgap: the 88 legacy items re-tagged mechanically (37 Boundary, 51 Driver, no Trade-offs or Facts). Real content under the new taxonomy comes from tier 0 in [04](04-content-pipeline.md).
 
 ## Done when
 
-An artifact resolves to exactly one subtype, the tag control teaches the distinction, and each subtype is only usable through its own consumer.
+Every artifact resolves to exactly one tag, a correctly tagged Fact lifts fog on its target, and each tag is usable only through its own card section.

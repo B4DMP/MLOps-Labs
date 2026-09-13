@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_data_dave_manual_labeling",
+  "stage": "objections",
+  "input_hash": "2879a13d4314761b4b9d2fd7df6439da126c283d6e6b5ec5f239ad45ae2d3128",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed keeping data labeling done by hand. He believes more manual control will improve data flexibility.",
+      "fact": "{data_dave} proposed keeping data labeling done by hand.",
+      "reading": "He believes more manual control will improve data flexibility.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I can work with manual labeling, but it is not enough for our data quality needs. We need stronger validation and clearer ownership of labeling rules.",
+    "correction": "I did not mean {data_dave} should skip automation entirely. I meant manual review should stay where judgment matters, with automated checks around it."
+  }
+}

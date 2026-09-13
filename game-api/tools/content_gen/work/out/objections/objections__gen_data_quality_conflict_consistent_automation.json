@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_data_quality_conflict_consistent_automation",
+  "stage": "objections",
+  "input_hash": "94ab63fc6b9d434b5aedb0b338ac18185a69bd00ad47bef66d740582368d1471",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_data_quality_conflict_consistent_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
+      "fact": "{reliability_ruth} proposed automating the quality checks with governed tools.",
+      "reading": "She will not accept manual checks if it affects reliability.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I will not accept manual checks if they affect reliability. The proposal crosses my line.",
+    "correction": "I meant {reliability_ruth} proposed governed tools for quality checks, not manual checks. Please file this as a reliability constraint."
+  }
+}

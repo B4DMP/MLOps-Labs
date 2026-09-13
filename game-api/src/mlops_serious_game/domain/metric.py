@@ -11,7 +11,11 @@ class Metric(BaseModel):
     metric_icon: str= Field(description="metric icon")
     max_value: int= Field(description="maximal value that the metric can have")
     metric_color: str= Field(description="RGB color of the metric")
-    metric_prompt: str= Field(description="prompt for the LLM to determine the metric value")
+    # Plan 07: a metric moves with the graph, never with an LLM's opinion of a proposal.
+    component_weights: dict[str, float] = Field(
+        default_factory=dict,
+        description="Components and edges this metric reads, weighting their effective level deltas",
+    )
     def __str__(self) -> str:
         return f"Metric ID:{self.id}\nMetric Name:{self.name}\nMetric Description:{self.description}\n" 
     

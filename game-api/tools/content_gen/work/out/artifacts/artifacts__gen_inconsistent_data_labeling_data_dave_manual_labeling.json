@@ -1,0 +1,41 @@
+{
+  "item_id": "artifacts:gen_inconsistent_data_labeling_data_dave_manual_labeling",
+  "stage": "artifacts",
+  "input_hash": "0cf291996b1d81b5852622c2eceddc6fe0fbcd6da9054ae29d9a50fea82b4901",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed keeping data labeling done by hand. He believes more manual control will improve data flexibility.",
+      "fact": "{data_dave} proposed keeping data labeling done by hand.",
+      "reading": "He believes more manual control will improve data flexibility.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "data.labeling",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "Inconsistent Data Labeling",
+      "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance."
+    }
+  },
+  "output": {
+    "content": "Hey team, I wanted to share my thoughts on the data labeling process. I think keeping it manual gives us the flexibility we need to handle edge cases and ensure high-quality data. The more control we have over the labeling, the better we can adapt to new scenarios. More manual control means we can fine-tune the process as needed, which is crucial for our data operations. {data_dave}",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author expresses a need for flexibility and control in the data labeling process, implying that exceeding expectations in these areas would make them happier."
+  }
+}

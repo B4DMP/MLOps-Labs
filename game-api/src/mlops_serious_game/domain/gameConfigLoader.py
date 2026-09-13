@@ -11,24 +11,28 @@ from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactor
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 from mlops_serious_game.domain.glossary_factory import GlossaryFactory
+from mlops_serious_game.domain.graph_factory import GraphFactory
+from mlops_serious_game.domain.story_factory import StoryFactory
+from mlops_serious_game.domain.pattern import PatternFactory
 
 
 class GameConfigLoader:
     @staticmethod
-    def initialize():
+    def initialize(config_dir: Path | None = None):
+        """Loads every factory from `config_dir`, by default the repo's (or container's) gameConfig."""
         print("Initializing Game Config")
         try:
-            base_dir = Path(__file__).parent
-            stakeholders_path = (base_dir / "../../../../gameConfig/GameStakeholders.json").resolve()
+            config_dir = config_dir or (Path(__file__).parent / "../../../../gameConfig").resolve()
+            stakeholders_path = (config_dir / "GameStakeholders.json")
             StakeholderFactory.load_stakeholders(stakeholders_path)
             print(f"loaded stakeholders:{StakeholderFactory.get_available_stakeholders()}")
-            metrics_path = (base_dir / "../../../../gameConfig/GameMetrics.json").resolve()
+            metrics_path = (config_dir / "GameMetrics.json")
             MetricFactory.load_metrics(metrics_path)
             print(f"loaded metrics:{MetricFactory.get_available_metrics()}")
-            phases_path = (base_dir / "../../../../gameConfig/GameProgression.json").resolve()
+            phases_path = (config_dir / "GameProgression.json")
             PhaseFactory.load_phases(phases_path)
             print(f"loaded phases.")
-            requirements_path = (base_dir / "../../../../gameConfig/RequirementObjects.json").resolve()
+            requirements_path = (config_dir / "RequirementObjects.json")
             RequirementFactory.load_requirements(requirements_path)
             
             # Run validation
@@ -38,32 +42,44 @@ class GameConfigLoader:
             RequirementFactory.validate_requirements(challenges)
             print(f"loaded and validated requirements.")
             
-            offline_intel_path = (base_dir / "../../../../gameConfig/OfflineIntelArtifacts.json").resolve()
+            offline_intel_path = (config_dir / "OfflineIntelArtifacts.json")
             OfflineIntelArtifactFactory.load_artifacts(offline_intel_path)
             print(f"loaded offline intel artifacts.")
 
-            convincer_artifacts_path = (base_dir / "../../../../gameConfig/ConvincerArchetypeArtifacts.json").resolve()
+            convincer_artifacts_path = (config_dir / "ConvincerArchetypeArtifacts.json")
             if convincer_artifacts_path.exists():
                 ConvincerArchetypeArtifactFactory.load_artifacts(convincer_artifacts_path)
                 print(f"loaded convincer archetype artifacts.")
 
-            questions_path= (base_dir/ "../../../../gameConfig/EvaluationQuestions.json")
+            graph_path = (config_dir / "MlopsGraph.json")
+            graph = GraphFactory.load_graph(graph_path)
+            story_path = (config_dir / "MlopsStoryFragments.json")
+            StoryFactory.load(story_path, graph)
+            patterns_path = (config_dir / "MlopsPatterns.json")
+            PatternFactory.load(patterns_path, graph)
+            stakeholder_ids = set(StakeholderFactory.get_available_stakeholders())
+            PhaseFactory.validate_templates(graph, PatternFactory.ids(), stakeholder_ids)
+            MetricFactory.validate_component_weights(graph)
+            RequirementFactory.validate_payloads(graph, set(MetricFactory.get_available_metrics()), stakeholder_ids)
+            print(f"loaded MLOps graph: {len(graph.components)} components, {len(graph.edges)} edges, {len(PatternFactory.patterns)} patterns.")
+
+            questions_path= (config_dir / "EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)
             print(f"loaded questions.")
-            briefing_path= (base_dir/ "../../../../gameConfig/Briefing.json")
+            briefing_path= (config_dir / "Briefing.json")
             BriefingFactory.load_briefing(briefing_path)
 
-            cards_path = (base_dir / "../../../../gameConfig/GameEngagementCards.json").resolve()
+            cards_path = (config_dir / "GameEngagementCards.json")
             if cards_path.exists():
                 EngagementCardFactory.load_cards(cards_path)
                 print(f"loaded engagement cards.")
 
-            emotion_path = (base_dir / "../../../../gameConfig/EmotionValueConfig.json").resolve()
+            emotion_path = (config_dir / "EmotionValueConfig.json")
             if emotion_path.exists():
                 EmotionFactory.load_config(emotion_path)
                 print(f"loaded emotion configs.")
 
-            glossary_path = (base_dir / "../../../../gameConfig/MLOpsGlossary.json").resolve()
+            glossary_path = (config_dir / "MLOpsGlossary.json")
             if glossary_path.exists():
                 # A broken glossary costs highlighting, not a game: never let it block startup.
                 try:

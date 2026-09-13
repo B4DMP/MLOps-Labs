@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.hpo",
+  "stage": "objections",
+  "input_hash": "a8e0d207d37b27336b2bf1aa9426c7b098589c4c763b93ea2843e367d56433b0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.hpo",
+      "name": "Hyperparameter Tuning"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I cannot support improving {target} because {cause} upstream is not good enough yet. My hyperparameter tuning will not make up for that."
+  }
+}

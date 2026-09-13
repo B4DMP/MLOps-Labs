@@ -71,6 +71,12 @@
                 }
               }
             }
+          },
+          "challenges_per_phase": {
+            "type": "integer",
+            "minimum": 1,
+            "title": "Challenges played per phase",
+            "description": "Defaults to all challenges in the phase"
           }
         }
       }
@@ -117,6 +123,193 @@
             "title": "Attention Tokens",
             "minimum": 0,
             "description": "Number of attention tokens granted to the player for this challenge"
+          },
+          "template_id": {
+            "type": "string",
+            "title": "Template ID",
+            "description": "Stable content key, e.g. ch_data_quality_crisis"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority",
+            "description": "Higher wins among eligible templates"
+          },
+          "preconditions": {
+            "title": "Preconditions",
+            "description": "Predicate over the MLOps graph (patterns, component and edge levels). true = always eligible"
+          },
+          "excluded_if": {
+            "title": "Excluded if",
+            "description": "Predicate that rules the challenge out"
+          },
+          "fallback": {
+            "type": "boolean",
+            "title": "Fallback",
+            "description": "Exactly one per phase; picked when nothing else is eligible"
+          },
+          "repeatable": {
+            "type": "boolean",
+            "title": "Repeatable"
+          },
+          "on_enter_ops": {
+            "type": "array",
+            "title": "World events on start",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "raise_to",
+                    "set_to",
+                    "set_trigger",
+                    "set_attr",
+                    "instance_upsert",
+                    "set_instance_prop"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "value": {},
+                "attr": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "on_exit_ops": {
+            "type": "array",
+            "title": "World events on simulation",
+            "description": "Fired in the simulation that closes the challenge, after the card is applied",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "raise_to",
+                    "set_to",
+                    "set_trigger",
+                    "set_attr",
+                    "instance_upsert",
+                    "set_instance_prop"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "value": {},
+                "attr": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "stalemate_ops": {
+            "type": "array",
+            "title": "World events on stalemate",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind",
+                "target"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "raise_to",
+                    "set_to",
+                    "set_trigger",
+                    "set_attr",
+                    "instance_upsert",
+                    "set_instance_prop"
+                  ]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "value": {},
+                "attr": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "conflict": {
+            "type": "object",
+            "title": "Framing conflict",
+            "required": [
+              "type",
+              "target",
+              "positions"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "soft",
+                  "hard"
+                ]
+              },
+              "target": {
+                "type": "string"
+              },
+              "positions": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "stakeholder_id",
+                    "wants"
+                  ],
+                  "properties": {
+                    "stakeholder_id": {
+                      "type": "string"
+                    },
+                    "wants": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "focus_stage_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "req",
+                "data",
+                "model",
+                "deploy",
+                "ops",
+                "gov"
+              ]
+            }
           }
         }
       }

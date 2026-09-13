@@ -8,7 +8,6 @@ Create Date: 2026-08-27 12:25:00.000000
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
@@ -27,7 +26,7 @@ def upgrade() -> None:
         DO $$
         BEGIN
             IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'game_data') THEN
-                ALTER TABLE game_data ADD COLUMN IF NOT EXISTS attention_tokens INTEGER DEFAULT 5;
+                ALTER TABLE game_data ADD COLUMN IF NOT EXISTS attention_tokens INTEGER DEFAULT 8;
             END IF;
         END $$;
         """

@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.version_driftcheck",
+  "stage": "fragments",
+  "input_hash": "272dc85cd07d44799fd74e1f04a0aa688b316e37cfca09c49ec24ec23c1c29d1",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.version_driftcheck",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Data Versioning to Training Data Drift Check"
+  },
+  "output": {
+    "level_0": "No one knows if data was ever passed for drift checking.",
+    "level_1": "No data reaches the drift check component.",
+    "level_2": "Someone manually copies data from the versioning system to the drift check tool.",
+    "level_3": "A script automatically moves data from the versioning system to the drift check tool.",
+    "level_4": "Automated data transfer from versioning to drift check includes logging and approval steps."
+  }
+}

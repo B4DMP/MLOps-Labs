@@ -1,5 +1,18 @@
 # Split intel descriptions into fact and reading
 
+## Status
+
+Implemented as part of the graph redesign ([graph-redesign/04](graph-redesign/04-content-pipeline.md)):
+
+- `StakeholderRequirement` has `fact` and `reading`; `description` is their join, so nothing downstream changed.
+- Re-tagging swaps only the reading; the dossier gets `fact` and `reading` as separate keys, bolds the fact and italicises the reading while unconfirmed.
+- The content harness writes every new item split, and wrong-tag variants as readings only. Checks reject a reason in the fact and a reading that repeats it.
+- Deviation: `categorized_description` keeps the whole sentence the player sees (fact plus their reading) rather than the reading alone, so the pitch and chat flows needed no change. The dossier derives the reading from it.
+- Legacy content (no split) keeps its one sentence and the name-prefix rendering. No migration: gameplay data was wiped (D34) and legacy content is replaced by generated content.
+- The old artifact generator (`generate_and_save_all_offline_intel_artifacts`) is superseded by the harness and was not changed.
+
+The original design follows.
+
 ## Problem
 
 Re-tagging an intel item swaps the whole sentence. Nothing visibly holds still, so the player
@@ -15,9 +28,9 @@ Give every variant of a requirement the same literal first clause. Only the seco
 Example:
 
 - fact: `Monica wants a deep-learning model.`
-- reading (requirement): `She needs it for accuracy.`
-- reading (negotiable_preference): `She just prefers it.`
-- reading (personal_friction): `She wants Emilia to fail.`
+- reading (driver): `She would take any gain in accuracy she can get.`
+- reading (boundary): `She will not ship anything simpler.`
+- reading (trade_off): `She could live with less if it saves the budget.`
 
 ## Config
 

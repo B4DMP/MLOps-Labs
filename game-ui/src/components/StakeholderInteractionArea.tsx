@@ -14,6 +14,7 @@ import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
 import type { AvatarEmotion } from "../types/StakeholderAvatar";
+import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import type { DialogueOption } from "../types/DialogueOption";
 import type { ActionCard } from "../types/ActionCard";
 import introJs from "intro.js";
@@ -65,6 +66,8 @@ interface StakeholderInteractionAreaProps {
   className?: string;
   showStakeholderList?: boolean;
   showDialogueOptions?: boolean;
+  /** The rail already says what this is, so it can hide the component heading. */
+  showHeader?: boolean;
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
   onInspectIntel?: (intel: RevealedIntel, stakeholderId?: string) => void;
@@ -82,6 +85,7 @@ export default function StakeholderInteractionArea({
   className = "col-5",
   showStakeholderList = true,
   showDialogueOptions = true,
+  showHeader = true,
   isMaximized = false,
   onToggleMaximize,
   onInspectIntel,
@@ -92,14 +96,17 @@ export default function StakeholderInteractionArea({
   const isintro4DoneRef = useRef(false);
   const [hoveredMsgAvatarIndex, setHoveredMsgAvatarIndex] = useState<number | null>(null);
 
-  const getStakeholderColor = (st: any): string => {
+  const getStakeholderColor = (st: any, stakeholderId?: string): string => {
     if (st?.stakeholder_color && st.stakeholder_color !== "#888888" && st.stakeholder_color !== "#ffffff") {
       return st.stakeholder_color;
     }
     if (st?.metric_id && metrics[st.metric_id]?.metric_color) {
       return metrics[st.metric_id].metric_color;
     }
-    return st?.stakeholder_color || "#38bdf8";
+    // Deterministic per-stakeholder fallback instead of one flat color for everyone
+    // (code-review finding: this bypasses StakeholderAvatarComponent's own fallback entirely).
+    const id = stakeholderId || st?.id;
+    return st?.stakeholder_color || (id ? colorForStakeholderId(id) : "#38bdf8");
   };
 
   const highlightMessage = useGlossaryHighlighter("stakeholder_messages");
@@ -131,9 +138,9 @@ export default function StakeholderInteractionArea({
       data-position="bottom"
     >
       <div className="d-flex justify-content-between align-items-center mb-1 w-100 flex-shrink-0">
-        <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
+        {showHeader && <h6 className={`transparent-div-label ${styles.chatHeaderTitle}`}>
           💬 Conversation History {chatMsgs.length > 0 ? `(${chatMsgs.length})` : ""}
-        </h6>
+        </h6>}
         {onToggleMaximize && (
           <button
             type="button"
@@ -182,7 +189,7 @@ export default function StakeholderInteractionArea({
                   const isUser = !item.id || item.id === "user";
                   const st = isUser ? null : stakeholders[item.id];
                   const senderName = isUser ? "Me" : (st ? st.name : "Stakeholder");
-                  const stColor = getStakeholderColor(st);
+                  const stColor = getStakeholderColor(st, isUser ? undefined : item.id);
 
                   let avatarSrc = "";
                   if (!isUser) {
@@ -415,6 +422,7 @@ export default function StakeholderInteractionArea({
                       const searchName = (opt.intel_stakeholder_name || "").toLowerCase().trim();
 
                       // Match against stakeholders dictionary
+                      let stMatchKey: string | null = null;
                       for (const [stKey, stObj] of Object.entries(stakeholders || {})) {
                         const st = stObj as any;
                         const stNameLower = (st?.name || "").toLowerCase().trim();
@@ -424,13 +432,14 @@ export default function StakeholderInteractionArea({
                           (stNameLower && (opt.text || "").toLowerCase().includes(stNameLower))
                         ) {
                           stMatch = st;
+                          stMatchKey = stKey;
                           break;
                         }
                       }
 
                       if (stMatch) {
                         stakeholderName = stMatch.name;
-                        stakeholderColor = getStakeholderColor(stMatch);
+                        stakeholderColor = getStakeholderColor(stMatch, stMatchKey || undefined);
                       } else if (!stakeholderName) {
                         const nameMatch = (opt.text || "").match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)[,:]/);
                         stakeholderName = nameMatch ? nameMatch[1] : "Stakeholder";

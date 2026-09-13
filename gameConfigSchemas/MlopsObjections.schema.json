@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "MLOps Objections",
+  "description": "Pre-authored objection lines fired deterministically in the pitch (plan 06). 'stance' entries answer a stance/boundary/price intel item by its id; 'technical' entries are the owner's objection when a change to that component would be capped, with {target} and {cause} placeholders.",
+  "required": [
+    "stance",
+    "technical"
+  ],
+  "properties": {
+    "stance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "intel_id",
+          "stakeholder_id",
+          "kind",
+          "text",
+          "correction"
+        ],
+        "properties": {
+          "intel_id": {
+            "type": "string",
+            "title": "Requirement/intel item id this objection answers"
+          },
+          "stakeholder_id": {
+            "type": "string",
+            "title": "Speaker"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Intel tag this objection is voiced for",
+            "enum": [
+              "stance",
+              "boundary",
+              "price"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "title": "What the stakeholder says in the meeting"
+          },
+          "correction": {
+            "type": "string",
+            "title": "What they say if the player filed this item under the wrong tag"
+          }
+        }
+      }
+    },
+    "technical": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "component_id",
+          "stakeholder_id",
+          "text"
+        ],
+        "properties": {
+          "component_id": {
+            "type": "string",
+            "title": "Component this objection is about"
+          },
+          "stakeholder_id": {
+            "type": "string",
+            "title": "Owner who speaks the line"
+          },
+          "text": {
+            "type": "string",
+            "title": "Objection line, must contain {target} and {cause} placeholders"
+          }
+        }
+      }
+    }
+  }
+}

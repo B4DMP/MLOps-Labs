@@ -1,11 +1,69 @@
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field, model_validator
 
-class RequirementType(str, Enum):
-    REQUIREMENT = "requirement"
-    NEGOTIABLE_PREFERENCE = "negotiable_preference"
-    PERSONAL_FRICTION = "personal_friction"
+
+class IntelTag(str, Enum):
+    """What an intel item tells the player (plan 02).
+
+    Driver, Boundary and Trade-off are stakeholder stances: an action on the graph plus how much
+    the stakeholder cares about it. Fact is about the environment, not a person.
+    """
+    DRIVER = "driver"          # wanted, more is better
+    BOUNDARY = "boundary"      # must happen, or must never be undone: crossing it means refusal
+    TRADE_OFF = "trade_off"    # accepted, even though it costs them
+    FACT = "fact"              # true about the system right now
+
+
+STANCE_TAGS = frozenset({IntelTag.DRIVER, IntelTag.BOUNDARY, IntelTag.TRADE_OFF})
+
+
+def join_wording(fact: Optional[str], reading: Optional[str]) -> str:
+    return " ".join(part.strip() for part in (fact, reading) if part and part.strip())
+
+# How stakeholder prompts describe each tag. One place, so every flow speaks the same language.
+TAG_PROMPT_DESCRIPTION: dict[IntelTag, str] = {
+    IntelTag.DRIVER: "Driver (something they want improved; more is better, and they can be talked into less)",
+    IntelTag.BOUNDARY: "Boundary (a line they will not cross; violating it means they refuse)",
+    IntelTag.TRADE_OFF: "Trade-off (something they would give up or accept losing to get what they want)",
+    IntelTag.FACT: "Fact (how the system is right now, not anyone's wish)",
+}
+
+# The mistake a player most plausibly makes with each tag, used where a flow needs a wrong read.
+PLAUSIBLE_WRONG_TAG: dict[IntelTag, IntelTag] = {
+    IntelTag.DRIVER: IntelTag.BOUNDARY,
+    IntelTag.BOUNDARY: IntelTag.DRIVER,
+    IntelTag.TRADE_OFF: IntelTag.DRIVER,
+    IntelTag.FACT: IntelTag.DRIVER,
+}
+
+
+def describe_tag(tag) -> str:
+    """Prompt text for a tag given as IntelTag or string; unknown values read as Driver."""
+    try:
+        return TAG_PROMPT_DESCRIPTION[IntelTag(getattr(tag, "value", tag))]
+    except ValueError:
+        return TAG_PROMPT_DESCRIPTION[IntelTag.DRIVER]
+
+
+class TargetLevel(BaseModel):
+    target: str
+    level: int
+
+
+class Concession(BaseModel):
+    """What a Trade-off costs its stakeholder: a metric loss, or a target allowed to stay low."""
+    metric_id: Optional[str] = None
+    loss: Optional[int] = None
+    target: Optional[str] = None
+    accepts_max_level: Optional[int] = None
+
+
+class FactAssertion(BaseModel):
+    """What a Fact says about one target of the graph."""
+    target: str
+    level: Optional[int] = None
+    trigger: Optional[str] = None
 
 class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
@@ -27,19 +85,96 @@ class ArtifactType(str, Enum):
     SLACK_MESSAGE="slack_message"
     MEETING_NOTES = "meeting_notes"
     DOCUMENT="document"
+    # Technical artifacts carry Facts: they may be written by a stakeholder but state no stance.
+    RUNBOOK = "runbook"
+    DASHBOARD_SNAPSHOT = "dashboard_snapshot"
+    INCIDENT_TICKET = "incident_ticket"
+    CI_LOG = "ci_log"
+    ARCHITECTURE_NOTE = "architecture_note"
 
 class StakeholderRequirement(BaseModel):
-    """A class representing a stakeholder's requirement/stance in a challenge"""
+    """One piece of intel in a challenge: a stakeholder stance or a fact about the environment.
+
+    Payload fields are optional so legacy content without graph links stays loadable; the
+    config gate checks that whatever payload is present fits the tag and the graph.
+    """
     id: str = Field(description="Unique identifier for the requirement")
     challenge_id: int = Field(description="The ID of the challenge this requirement belongs to")
-    stakeholder_id: str = Field(description="The ID of the stakeholder this requirement belongs to")
-    type: RequirementType = Field(description="Type of the requirement")
-    description: str = Field(description="Description of the requirement stance")
+    stakeholder_id: Optional[str] = Field(default=None, description="The stakeholder, or None for a Fact")
+    type: IntelTag = Field(description="The true tag of this intel item")
+    description: str = Field(default="", description="The whole sentence: fact and reading joined, or legacy free text")
+    # Split wording (intel-description-split): the fact holds still whatever the player tags it,
+    # only the reading changes with the tag. Legacy content has neither and uses description.
+    fact: Optional[str] = Field(default=None, description="What the stakeholder wants or did, never why")
+    reading: Optional[str] = Field(default=None, description="How much they care: the part the tag is about")
+
+    # Driver: a metric the stakeholder wants moved, and the change that would do it.
+    metric_id: Optional[str] = None
+    suggested: Optional[TargetLevel] = None
+    # Boundary: must hold on the graph after the card. Boundary and Trade-off: the ops they bring.
+    holds: Any = None
+    ops: list[dict] = Field(default_factory=list)
+    # Trade-off: what the stakeholder gives up.
+    concedes: Optional[Concession] = None
+    # Fact: what is true about the graph.
+    asserts: Optional[FactAssertion] = None
+    # Refinement chains (plan 05) are authored: a later item on the same target and stakeholder
+    # points back at the earlier one, and the dossier shows the whole chain as one growing card.
+    refines_id: Optional[str] = Field(
+        default=None,
+        description="Id of the earlier item this one refines (same target and stakeholder, earlier phase)",
+    )
+
+    @model_validator(mode="after")
+    def _join_split_wording(self):
+        if self.fact and not self.description:
+            self.description = join_wording(self.fact, self.reading)
+        return self
+
+
+def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str], Optional[int]]:
+    """The graph target a payload is about, and the level it asks for, whichever field carries it.
+
+    The single source of truth for this lookup: `session.py`, `objections.py`, `intel_handler.py`
+    and `requirement_factory.py` each grew their own version of this with a different priority
+    order and field coverage (a code-review finding, C/G passes). Checked in this order - asserts
+    (Fact), suggested (Driver), concedes (Trade-off), ops (raw GraphOps, chiefly Boundary/Trade-off)
+    - matching the order the D42 chain-matching gate already relied on. In practice an authored
+    item carries exactly one of these per its `type` tag, so the order only matters for the rare
+    item that carries more than one; `concedes` has no level of its own (`Concession` only tracks
+    `loss`/`accepts_max_level`), so it returns `None` for level.
+    """
+    asserts = getattr(item, "asserts", None)
+    if asserts is not None and getattr(asserts, "target", None):
+        return asserts.target, getattr(asserts, "level", None)
+
+    suggested = getattr(item, "suggested", None)
+    if suggested is not None and getattr(suggested, "target", None):
+        return suggested.target, getattr(suggested, "level", None)
+
+    concedes = getattr(item, "concedes", None)
+    if concedes is not None and getattr(concedes, "target", None):
+        return concedes.target, None
+
+    for raw in getattr(item, "ops", None) or []:
+        if isinstance(raw, dict) and raw.get("target"):
+            from mlops_serious_game.domain.graph import GraphOp
+            op = GraphOp.model_validate({**raw, "source_kind": "action_card"})
+            return op.target, op.value if isinstance(op.value, int) else None
+
+    return None, None
+
+
+def item_target(item: "StakeholderRequirement") -> Optional[str]:
+    """`item_target_and_level(item)[0]` - the target only, for callers that don't need the level."""
+    target, _ = item_target_and_level(item)
+    return target
+
 
 class StakeholderIntelItem(StakeholderRequirement):
     """A class representing a categorized stakeholder requirement (player's dossier intel item)"""
     intel_type: ConfidenceType = Field(default=ConfidenceType.UNCONFIRMED, description="The type of the intel")
-    categorized_type: RequirementType = Field(default=RequirementType.REQUIREMENT, description="The categorized requirement type")
+    categorized_type: IntelTag = Field(default=IntelTag.DRIVER, description="The tag the player gave this item")
     categorized_description: str = Field(default="", description="Description of the categorized requirement")
     source: IntelSource = Field(
         default=IntelSource.OFFLINE_ARTIFACT,
@@ -49,64 +184,27 @@ class StakeholderIntelItem(StakeholderRequirement):
             "intel gathering, or something that came out during the pitch."
         ),
     )
-
-    @model_validator(mode="before")
-    @classmethod
-    def _upgrade_legacy_payload(cls, data):
-        """Backfills fields for intel items persisted before the requirement/intel unification.
-
-        Legacy payloads look like {id, requirement_id, intel_type, categorized_type, description}
-        where `description` held the *categorized* description and the true requirement data was
-        only reachable through `requirement_id`. They live on in the IntelItem table and in
-        LangGraph checkpoints, so resolve them against the requirement config on read.
-        """
-        if not isinstance(data, dict):
-            return data
-
-        # `is_public_record` was the narrow, boolean ancestor of `source`. Rows written while it
-        # was the only provenance we kept still say "this one was public"; nothing else about
-        # them says where the rest came from, so they fall back to the field default.
-        if "is_public_record" in data:
-            data = dict(data)
-            was_public = data.pop("is_public_record", False)
-            if was_public and not data.get("source"):
-                data["source"] = IntelSource.PUBLIC_RECORD.value
-
-        if "requirement_id" not in data and all(k in data for k in ("challenge_id", "stakeholder_id", "type")):
-            return data
-
-        from mlops_serious_game.domain.requirement_factory import RequirementFactory
-
-        upgraded = dict(data)
-        req_id = upgraded.pop("requirement_id", None) or upgraded.get("id")
-        req = RequirementFactory.get_requirement(req_id) if req_id else None
-
-        upgraded["id"] = req_id
-        # Legacy `description` was the categorized description; keep it unless already migrated.
-        categorized_description = upgraded.get("categorized_description") or upgraded.get("description") or ""
-        upgraded["categorized_description"] = categorized_description
-
-        if req:
-            upgraded.setdefault("challenge_id", req.challenge_id)
-            upgraded.setdefault("stakeholder_id", req.stakeholder_id)
-            upgraded.setdefault("type", req.type)
-            upgraded["description"] = req.description
-        else:
-            # Requirement no longer in the config: keep the item loadable but inert. The -1
-            # challenge id keeps it out of every per-challenge dossier view.
-            upgraded.setdefault("challenge_id", -1)
-            upgraded.setdefault("stakeholder_id", "")
-            upgraded.setdefault("type", upgraded.get("categorized_type") or RequirementType.REQUIREMENT)
-            upgraded["description"] = categorized_description
-
-        return upgraded
+    # Plan 05: persistent dossier fields. `refines_id` is inherited: an item keeps the chain link
+    # the authored requirement carried.
+    discovered_phase_id: Optional[int] = Field(
+        default=None,
+        description="Phase index when this item entered the player's dossier.",
+    )
+    discovered_challenge_template: Optional[str] = Field(
+        default=None,
+        description="Template id of the challenge that produced this item.",
+    )
+    dossier_source: Optional[str] = Field(
+        default=None,
+        description="How the item reached the dossier: 'artifact' | 'engagement_card' | 'objection'.",
+    )
 
     @classmethod
     def from_requirement(
         cls,
         req: StakeholderRequirement,
         intel_type: ConfidenceType = ConfidenceType.UNCONFIRMED,
-        categorized_type: Optional[RequirementType] = None,
+        categorized_type: Optional[IntelTag] = None,
         categorized_description: str = "",
         description: Optional[str] = None,
         source: IntelSource = IntelSource.OFFLINE_ARTIFACT,
@@ -116,10 +214,7 @@ class StakeholderIntelItem(StakeholderRequirement):
         if not resolved_cat_desc and (intel_type == ConfidenceType.VERIFIED or str(intel_type).lower() == "verified"):
             resolved_cat_desc = resolved_desc
         return cls(
-            id=req.id,
-            challenge_id=req.challenge_id,
-            stakeholder_id=req.stakeholder_id,
-            type=req.type,
+            **req.model_dump(exclude={"description"}),
             description=resolved_desc,
             intel_type=intel_type,
             categorized_type=categorized_type or req.type,
@@ -132,11 +227,20 @@ class StakeholderIntelItem(StakeholderRequirement):
         return self.description
 
     @property
-    def correct_intent(self) -> RequirementType:
+    def correct_intent(self) -> IntelTag:
         return self.type
 
     def is_correct(self) -> bool:
         return self.categorized_type == self.type
+
+    def shown_parts(self) -> tuple[Optional[str], str]:
+        """(fact, reading) as the player currently sees them. The fact is None for legacy items,
+        whose whole sentence then comes back as the reading."""
+        verified = str(getattr(self.intel_type, "value", self.intel_type)).lower() == "verified"
+        shown = self.description if verified else (self.categorized_description or self.description)
+        if self.fact and shown.startswith(self.fact):
+            return self.fact, shown[len(self.fact):].strip()
+        return None, shown
 
     def is_correct_intel(self) -> bool:
         return self.is_correct()

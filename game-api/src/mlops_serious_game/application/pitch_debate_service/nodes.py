@@ -22,11 +22,14 @@ from mlops_serious_game.application.pitch_debate_service.state import (
     PitchDebateState,
     StakeholderIntelItem,
 )
+from mlops_serious_game.application.graph_service import store as graph_store
+from mlops_serious_game.application.graph_service.story import story_for
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
-from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, RequirementType
+from mlops_serious_game.domain.requirement import PLAUSIBLE_WRONG_TAG, ConfidenceType, IntelSource, describe_tag
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
@@ -66,12 +69,8 @@ def _get_stakeholder_wrong_card_intels(
         if cid not in seen_ids:
             req = RequirementFactory.get_requirement(cid)
             if req and req.stakeholder_id == st_id:
-                other_type = (
-                    RequirementType.NEGOTIABLE_PREFERENCE
-                    if req.type != RequirementType.NEGOTIABLE_PREFERENCE
-                    else RequirementType.PERSONAL_FRICTION
-                )
-                wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(cid, "negotiable_preference") or req.description
+                other_type = PLAUSIBLE_WRONG_TAG[req.type]
+                wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(cid, other_type.value) or req.description
                 item = StakeholderIntelItem.from_requirement(
                     req,
                     intel_type=ConfidenceType.UNCONFIRMED,
@@ -216,13 +215,7 @@ async def player_prompt_node(
 
     utterance_chain = get_player_utterance_chain()
     if last_selected_option.type == "intel":
-        intel_type_str = str(last_selected_option.intel_type or "requirement").lower()
-        if intel_type_str == "negotiable_preference":
-            type_desc = "negotiable preference (flexible preference open to compromise, NOT non-negotiable)"
-        elif intel_type_str == "personal_friction":
-            type_desc = "personal friction (interpersonal tension or team dynamic concern)"
-        else:
-            type_desc = "core requirement (mandatory, essential requirement)"
+        type_desc = describe_tag(str(last_selected_option.intel_type or "driver").lower())
         intel_context = (
             f"Specific claim or stance to voice: '{last_selected_option.intel_description}'\n"
             f"Intel type: {type_desc}"
@@ -361,11 +354,7 @@ async def emotion_node(state: PitchDebateState, config: RunnableConfig):
             wrong_item = st_wrong_intels[0]
             # Ensure wrong_item evaluates as incorrect so misattributed_intel delta rule triggers
             if wrong_item.is_correct_intel():
-                other_type = (
-                    RequirementType.NEGOTIABLE_PREFERENCE
-                    if wrong_item.type != RequirementType.NEGOTIABLE_PREFERENCE
-                    else RequirementType.PERSONAL_FRICTION
-                )
+                other_type = PLAUSIBLE_WRONG_TAG[wrong_item.type]
                 wrong_item = StakeholderIntelItem.from_requirement(
                     RequirementFactory.get_requirement(wrong_item.id) or wrong_item,
                     intel_type=ConfidenceType.UNCONFIRMED,
@@ -452,7 +441,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     st_intel_items = [item for item in all_intel_items if getattr(item, "stakeholder_id", None) == st.id]
     private_intel_lines = []
     for item in st_intel_items:
-        intent_val = getattr(item.correct_intent, "value", str(item.correct_intent)) if getattr(item, "correct_intent", None) else "requirement"
+        intent_val = getattr(item.correct_intent, "value", str(item.correct_intent)) if getattr(item, "correct_intent", None) else "driver"
         private_intel_lines.append(f"- [{intent_val}]: {getattr(item, 'correct_description', getattr(item, 'description', ''))}")
     private_intel_context = "\n".join(private_intel_lines) if private_intel_lines else "None"
 
@@ -483,7 +472,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             intel_intent_val = (
                 getattr(wrong_item.type, "value", str(wrong_item.type))
                 if getattr(wrong_item, "type", None)
-                else "requirement"
+                else "driver"
             )
             req_desc = wrong_item.description
             cat_type = wrong_item.type.value if hasattr(wrong_item.type, "value") else str(wrong_item.type)
@@ -509,7 +498,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             intel_intent_val = (
                 getattr(correct_item.type, "value", str(correct_item.type))
                 if getattr(correct_item, "type", None)
-                else "requirement"
+                else "driver"
             )
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - PROPOSAL EVALUATION & STANCE CONFIRMED]:\n"
@@ -602,8 +591,61 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
     _split = state["challenge"].split("#")
     challenge_text = "".join(_split)
 
-    # Combine static requirements with dynamic private_intel_context
-    combined_requirements = f"{st.requirements}\n\nPrivate Intel Requirements:\n{private_intel_context}"
+    # Build graph-targeted context (plan 06 step 9): owned components + card targets.
+    # Never the whole graph — only the handful of components this stakeholder owns.
+    owned_components = ""
+    card_targets = ""
+    username = state.get("username", "")
+    if username:
+        try:
+            from mlops_serious_game.application.pitch_debate_service.store import load_pitch
+            tech_graph = GraphFactory.get_graph()
+            graph_state = graph_store.load_state(username).state
+
+            # Owned components with story at current level
+            owned = [c for c in tech_graph.components if tech_graph.owner_of(c.id) == st.id]
+            if owned:
+                lines = []
+                for c in owned:
+                    lv = graph_state.level(c.id)
+                    level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                    fragment = story_for(tech_graph, graph_state, c.id)
+                    lines.append(f"- {c.name} ({level_name}): {fragment}")
+                owned_components = "\n".join(lines)
+
+            # Card targets with current level (if a card is being built)
+            pitch_state = load_pitch(username, state.get("phase_id", 0), state.get("challenge_id", 0))
+            if pitch_state and pitch_state.card_item_ids:
+                all_items = RequirementFactory.get_requirements_for_challenge(state.get("challenge_id", 0))
+                items_by_id = {r.id: r for r in all_items}
+                seen: set[str] = set()
+                lines = []
+                for item_id in pitch_state.card_item_ids:
+                    item = items_by_id.get(item_id)
+                    if item is None:
+                        continue
+                    raw_ops = getattr(item, "ops", None) or []
+                    targets_for_item = [op["target"] for op in raw_ops if isinstance(op, dict) and op.get("target")]
+                    if not targets_for_item:
+                        suggested = getattr(item, "suggested", None)
+                        t = getattr(suggested, "target", None) if suggested else None
+                        if t:
+                            targets_for_item = [t]
+                    for t in targets_for_item:
+                        if t in seen:
+                            continue
+                        seen.add(t)
+                        try:
+                            lv = graph_state.level(t)
+                            level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                            comp_name = tech_graph.component(t).name if tech_graph.is_component(t) else t
+                            lines.append(f"- {comp_name} ({t}): currently {level_name}")
+                        except Exception:
+                            lines.append(f"- {t}")
+                if lines:
+                    card_targets = "\n".join(lines)
+        except Exception:
+            pass
 
     proposed_ac_title = ""
     proposed_ac_desc = ""
@@ -619,7 +661,9 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             "stakeholder_name": st.name,
             "stakeholder_responsibilities": st.responsibilities,
             "stakeholder_priorities": st.priorities,
-            "stakeholder_requirements": combined_requirements,
+            "private_requirements": private_intel_context,
+            "owned_components": owned_components,
+            "card_targets": card_targets,
             "proposed_action_card_title": proposed_ac_title,
             "proposed_action_card_description": proposed_ac_desc,
             "current_emotion": current_emotion,

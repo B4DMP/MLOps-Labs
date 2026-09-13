@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_registry_missing",
+  "stage": "artifacts",
+  "input_hash": "48a65d27aaf98c0184cc1c4f63c100b9cf8807de76798bd3bdb970ccbf978620",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_registry_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is missing. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is missing.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.registry",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "dashboard_snapshot",
+    "author": null,
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The current model deployment workflow does not use a formal registry system. {data_dave} manually tracks model versions in a shared spreadsheet. The spreadsheet records model name, version number, and deployment timestamp. There are no automated checks or validations performed against this spreadsheet. {data_dave} updates the spreadsheet after each deployment, but there have been instances where updates were delayed by up to 24 hours. The spreadsheet is accessible to all team members, but there is no audit trail of changes made to it.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an existing situation without expressing a wish, refusal, acceptance, trade-off, or need."
+  }
+}

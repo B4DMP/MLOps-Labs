@@ -1,0 +1,869 @@
+{
+  "item_id": "items:ch_inconsistent_data_labeling",
+  "stage": "items",
+  "input_hash": "15b4fb30e3717d2d428c3dcd7fed7e50a376b9811b605ab81ea32224ab3033ec",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 3,
+  "inputs": {
+    "challenge": {
+      "phase_id": 2,
+      "template_id": "ch_inconsistent_data_labeling",
+      "name": "Inconsistent Data Labeling",
+      "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance.",
+      "roundIntroduction": "The data labeling pipeline has been inconsistent, causing issues in model training. The team needs to decide on the right approach to ensure reliable data quality.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 50,
+      "preconditions": {
+        "component": "data.labeling",
+        "op": "eq",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.labeling",
+          "value": 0,
+          "reason": "the labeling pipeline produced inconsistent results"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.label_version",
+          "value": 0,
+          "reason": "the labeling pipeline breaks due to unresolved conflicts"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "data.labeling",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "data",
+      "components": [
+        {
+          "id": "data.ingestion",
+          "name": "Data Ingestion Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "custom_scripts",
+              "airbyte",
+              "kafka"
+            ]
+          }
+        },
+        {
+          "id": "data.validation",
+          "name": "Data Validation",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "great_expectations",
+              "deequ",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.feature_store",
+          "name": "Feature Store",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "feast",
+              "tecton",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.versioning",
+          "name": "Data Versioning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "tool": [
+              "none",
+              "dvc",
+              "lakefs",
+              "delta_lake"
+            ]
+          }
+        },
+        {
+          "id": "data.labeling",
+          "name": "Data Labeling Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        },
+        {
+          "id": "data.training_drift_check",
+          "name": "Training Data Drift Check",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.ingest_validate",
+          "from": "data.ingestion",
+          "to": "data.validation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.validate_version",
+          "from": "data.validation",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_fs",
+          "from": "data.versioning",
+          "to": "data.feature_store",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.label_version",
+          "from": "data.labeling",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_driftcheck",
+          "from": "data.versioning",
+          "to": "data.training_drift_check",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.iam_fs",
+          "from": "gov.iam",
+          "to": "data.feature_store",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "dataset:customer_records",
+          "kind": "dataset",
+          "on": "data.ingestion",
+          "props": {
+            "quality": "fair",
+            "freshness": "aging",
+            "documentation": "partial"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "dataset:training_snapshot",
+          "kind": "dataset",
+          "on": "data.labeling",
+          "props": {
+            "quality": "fair",
+            "freshness": "stale",
+            "documentation": "none"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "pipeline:nightly_export",
+          "kind": "pipeline",
+          "on": "data.ingestion",
+          "props": {
+            "reliability": "flaky",
+            "runtime": "slow"
+          },
+          "property_values": {
+            "reliability": [
+              "failing",
+              "flaky",
+              "reliable"
+            ],
+            "runtime": [
+              "slow",
+              "acceptable",
+              "fast"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "data.ingestion": {
+        "level": 2
+      },
+      "data.validation": {
+        "level": 1
+      },
+      "data.feature_store": {
+        "level": 1
+      },
+      "data.versioning": {
+        "level": 1
+      },
+      "data.labeling": {
+        "level": 0
+      },
+      "data.training_drift_check": {
+        "level": 1
+      },
+      "e.contracts_ingest": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.ingest_validate": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.validate_version": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.version_fs": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.label_version": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.version_driftcheck": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iam_fs": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "data_dave_manual_labeling",
+        "tag": "driver",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} proposed keeping data labeling done by hand.",
+        "readings": {
+          "driver": "He believes more manual control will improve data flexibility.",
+          "boundary": "He will not accept any automation that reduces his control over the labeling process.",
+          "trade_off": "He would accept some automation if it significantly improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": "data",
+        "suggested_target": "data.labeling",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_governed_labeling",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} asked for fully governed data labeling.",
+        "readings": {
+          "driver": "She believes more governance will improve data reliability.",
+          "boundary": "She will not accept any labeling process that is not fully governed.",
+          "trade_off": "She would accept a semi-manual approach if it improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "data.labeling",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "data_dave_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} brought up keeping data labeling done by hand.",
+        "readings": {
+          "driver": "He believes more manual control will improve data flexibility.",
+          "boundary": "He will not accept any automation that reduces his control over the labeling process.",
+          "trade_off": "He would accept some automation if it significantly improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "data.labeling",
+          "op": "lte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.labeling",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned that data labeling should be fully governed.",
+        "readings": {
+          "driver": "She believes more governance will improve data reliability.",
+          "boundary": "She will not accept any labeling process that is not fully governed.",
+          "trade_off": "She would accept a semi-manual approach if it improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "data.labeling",
+          "op": "gte",
+          "level": 4
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.labeling",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_trade_off",
+        "tag": "trade_off",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} suggested a semi-manual approach for data labeling.",
+        "readings": {
+          "driver": "He believes more manual control will improve data flexibility.",
+          "boundary": "He will not accept any automation that reduces his control over the labeling process.",
+          "trade_off": "He would accept some automation if it significantly improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "data.labeling",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_trade_off",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed a semi-manual approach for data labeling.",
+        "readings": {
+          "driver": "She believes more governance will improve data reliability.",
+          "boundary": "She will not accept any labeling process that is not fully governed.",
+          "trade_off": "She would accept a semi-manual approach if it improves data quality.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "data.labeling",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "current_labeling_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Data labeling is currently broken.",
+        "readings": {
+          "driver": "Someone on the team wants it this way.",
+          "boundary": "Someone on the team will not accept any changes to it.",
+          "trade_off": "Someone on the team would give it up if something else improves.",
+          "fact": "That is simply how the data labeling process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "data.labeling",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "current_validation_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Data validation is currently missing.",
+        "readings": {
+          "driver": "Someone on the team wants it this way.",
+          "boundary": "Someone on the team will not accept any changes to it.",
+          "trade_off": "Someone on the team would give it up if something else improves.",
+          "fact": "That is simply how the data validation process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "data.validation",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "current_ingestion_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Data ingestion is currently done by hand.",
+        "readings": {
+          "driver": "Someone on the team wants it this way.",
+          "boundary": "Someone on the team will not accept any changes to it.",
+          "trade_off": "Someone on the team would give it up if something else improves.",
+          "fact": "That is simply how the data ingestion process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "data.ingestion",
+        "asserts_level": 2,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_efficiency_driver",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} asked for automated data validation.",
+        "readings": {
+          "driver": "She believes more automation will improve efficiency.",
+          "boundary": "She will not accept any manual processes in data validation.",
+          "trade_off": "She would accept a semi-automated approach if it improves data quality.",
+          "fact": "That is simply how the data validation process is set up today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "data.validation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_requirements_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} mentioned that data governance must be enforced.",
+        "readings": {
+          "driver": "He believes more governance will improve requirements compliance.",
+          "boundary": "He will not accept any process that does not enforce data governance.",
+          "trade_off": "He would accept a semi-governed approach if it improves data quality.",
+          "fact": "That is simply how the data governance process is set up today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "data.labeling",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.labeling",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

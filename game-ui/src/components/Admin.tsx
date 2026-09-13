@@ -25,6 +25,7 @@ ChartJS.register(
 );
 
 import { ConfigEditor } from "./ConfigEditor";
+import { GraphDebug } from "./GraphDebug";
 import { fetchAdminDashboard } from "../services/api/admin";
 
 interface Campaign {
@@ -471,6 +472,17 @@ export function Admin({
             >
               <Icon icon="ph:chart-line-up-bold" />
               <span>Analysis & Statistics</span>
+            </button>
+            <button
+              type="button"
+              className={`btn px-4 py-2 fw-bold ${
+                activeSubpage === "graph_debug"
+                  ? "btn-info text-dark shadow"
+                  : "btn-outline-light border-0"
+              }`}
+              onClick={() => setActiveSubpage("graph_debug")}
+            >
+              Graph Debug
             </button>
           </div>
 
@@ -1502,6 +1514,15 @@ export function Admin({
         </div>
       )}
 
+        {/* SUBPAGE 4: GRAPH DEBUG */}
+        {activeSubpage === "graph_debug" && (
+          <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+            <h4 className="mb-3 text-info fw-bold">Graph Debug View</h4>
+            <GraphDebug adminToken={adminToken} />
+          </div>
+        )}
+
+      </div>
       {/* Delete All Players Confirmation Modal */}
       {showDeleteAllWarning && (
         <div

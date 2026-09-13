@@ -1,0 +1,196 @@
+{
+  "generic": {
+    "component": {
+      "0": "{name} exists, but it is failing and nobody trusts what it reports.",
+      "1": "There is no {name} yet.",
+      "2": "{name} is run by people, by hand or from a script someone starts.",
+      "3": "{name} runs automatically.",
+      "4": "{name} runs automatically, is monitored, and has a clear owner."
+    },
+    "edge": {
+      "0": "The hand over from {source} to {target} is broken.",
+      "1": "Nothing moves from {source} to {target}.",
+      "2": "Someone moves work from {source} to {target} by hand.",
+      "3": "Work flows from {source} to {target} automatically ({trigger}).",
+      "4": "Work flows from {source} to {target} automatically ({trigger}), with checks and an owner."
+    }
+  },
+  "targets": {
+    "data.validation": {
+      "2": "Dave eyeballs new data dumps in a notebook before anyone trains on them.",
+      "3": "Every incoming batch is validated against the schema before it is stored.",
+      "3|tool=great_expectations": "Great Expectations validates every incoming batch before it is stored.",
+      "3|sourcing=bought|tool=great_expectations": "A licensed Great Expectations setup validates every incoming batch, maintained by the vendor.",
+      "0": "Data Validation tool fails and throws unhelpful error messages",
+      "1": "No data validation tools or processes exist",
+      "4": "Data Validation follows defined policies and logs results"
+    },
+    "deploy.serving": {
+      "2": "The model is served from a hand started process on a single machine.",
+      "3|hosting=on_prem": "The model serves live traffic from the on premises cluster.",
+      "3|hosting=public_cloud": "The model serves live traffic from a public cloud endpoint."
+    },
+    "e.fs_train": {
+      "2": "Someone exports features to a CSV and hands it to the training job.",
+      "3|trigger=on_data_arrival": "New features arriving in the store start a training run on their own.",
+      "0": "Training Pipeline crashes when trying to read from Feature Store.",
+      "1": "No connection exists between Feature Store and Training Pipeline.",
+      "3": "The Training Pipeline automatically pulls data from Feature Store without user intervention.",
+      "4": "The Training Pipeline fetches data from Feature Store following predefined governance policies."
+    },
+    "data.feature_store": {
+      "0": "The feature store is offline, causing model training to fail.",
+      "1": "There is no feature store, engineers manually prepare data for each model.",
+      "2": "Engineers manually update features in a shared database every sprint.",
+      "3": "Features are automatically generated and served from a centralized system.",
+      "4": "The feature store is integrated with compliance tools and access controls."
+    },
+    "data.ingestion": {
+      "0": "Raw data files pile up unprocessed in the storage system.",
+      "1": "The team has not set up any data ingestion mechanism yet.",
+      "2": "Data engineers manually write scripts to import data into the system.",
+      "3": "A scheduled script automatically ingests data from various sources into the pipeline.",
+      "4": "Data ingestion follows predefined policies and gets logged for compliance."
+    },
+    "data.labeling": {
+      "0": "The data labeling pipeline has no labels, no documentation, and no users.",
+      "1": "The data labeling pipeline is not implemented yet, no labels exist.",
+      "2": "The data labeling pipeline is done manually by a single person.",
+      "3": "The data labeling pipeline is automated but lacks consistency checks.",
+      "4": "The data labeling pipeline is automated with governance and audit trails."
+    },
+    "data.training_drift_check": {
+      "0": "The training data drift check fails at random times, causing false alarms and ignored alerts.",
+      "1": "The training data drift check does not exist, so no one knows if models are still valid.",
+      "2": "The data team manually checks for drift, but it takes weeks and is often forgotten.",
+      "3": "A script runs daily to check for drift and sends emails if anomalies are detected.",
+      "4": "Drift checks are automated and integrated with model governance, with clear escalation paths."
+    },
+    "data.versioning": {
+      "0": "Data versioning lacks any tracking, causing confusion in reproducibility.",
+      "1": "No data versioning system exists, making it impossible to track changes.",
+      "2": "Team manually tracks data versions in spreadsheets, leading to errors.",
+      "3": "Data versioning is automated, but lacks integration with other systems.",
+      "4": "Data versioning is governed, integrated, and auditable across the MLOps pipeline."
+    },
+    "e.acceptance_eval": {
+      "0": "The model evaluation harness crashes when trying to evaluate the model.",
+      "1": "The team does not have a model evaluation harness.",
+      "2": "The team manually evaluates the model against the acceptance criteria.",
+      "3": "The team runs automated tests for the acceptance criteria in the model evaluation harness.",
+      "4": "The model evaluation harness automatically validates the model against governance policies and acceptance criteria."
+    },
+    "e.contracts_ingest": {
+      "0": "Data ingestion pipeline fails because data contracts are not respected.",
+      "1": "No data ingestion pipeline exists to process data contracts.",
+      "2": "The team manually checks data contracts before feeding them to the data ingestion pipeline.",
+      "3": "A script automatically validates data contracts before passing them to the data ingestion pipeline.",
+      "4": "A governed process validates data contracts before ingestion, with audit logs for compliance."
+    },
+    "e.driftcheck_train": {
+      "0": "The Training Data Drift Check fails randomly due to missing dependencies.",
+      "1": "There is no connection between the Training Data Drift Check and the Training Pipeline.",
+      "2": "A team member manually triggers the Training Pipeline after the Training Data Drift Check.",
+      "3": "The Training Pipeline automatically starts when the Training Data Drift Check completes.",
+      "4": "The Training Pipeline only starts if the Training Data Drift Check passes with approved data versions."
+    },
+    "e.eval_registry": {
+      "0": "The Model Evaluation Harness fails to find a Model Registry to hand over to.",
+      "1": "The Model Evaluation Harness has no connection to a Model Registry.",
+      "2": "The Model Evaluation Harness outputs a text file with model details for manual Model Registry upload.",
+      "3": "The Model Evaluation Harness automatically uploads the model to the Model Registry.",
+      "4": "The Model Evaluation Harness automatically uploads the model to the Model Registry with approval workflow."
+    },
+    "e.hpo_train": {
+      "0": "Hyperparameter tuning results are not accessible to the training pipeline.",
+      "1": "The training pipeline has no input connection for hyperparameter tuning results.",
+      "2": "The training pipeline is manually configured with hyperparameter tuning results.",
+      "3": "Hyperparameter tuning results are automatically fed into the training pipeline.",
+      "4": "Hyperparameter tuning results are automatically validated and fed into the training pipeline."
+    },
+    "e.ingest_validate": {
+      "0": "Data Validation fails with errors because the ingested data is corrupt",
+      "1": "No process exists to validate the ingested data",
+      "2": "Data Validation checks are performed by a data engineer manually",
+      "3": "Data Validation runs automatically after each Data Ingestion Pipeline execution",
+      "4": "Data Validation enforces predefined rules and logs results for compliance audits"
+    },
+    "e.label_version": {
+      "0": "Data Versioning rejects data from Data Labeling Pipeline without error messages.",
+      "1": "There is no connection between Data Labeling Pipeline and Data Versioning.",
+      "2": "Team members manually transfer data from Data Labeling Pipeline to Data Versioning.",
+      "3": "Data Labeling Pipeline automatically exports labeled data to Data Versioning.",
+      "4": "Data Versioning validates and logs all incoming data from Data Labeling Pipeline."
+    },
+    "e.train_eval": {
+      "0": "Data fails to transfer between Training Pipeline and Model Evaluation Harness, causing evaluation delays.",
+      "1": "Hand over process from Training Pipeline to Model Evaluation Harness is undefined, requiring urgent setup.",
+      "2": "Engineers manually copy trained models into Model Evaluation Harness, risking errors and delays.",
+      "3": "Training Pipeline automatically sends models to Model Evaluation Harness, but no monitoring is in place.",
+      "4": "Training Pipeline hands over models to Model Evaluation Harness, with tracking and alerts for failures."
+    },
+    "e.train_tracking": {
+      "0": "The Training Pipeline crashes when trying to log experiments.",
+      "1": "No tracking happens when the Training Pipeline finishes.",
+      "2": "A data scientist manually copies results from the Training Pipeline to Experiment Tracking.",
+      "3": "The Training Pipeline automatically uploads metrics and artifacts to Experiment Tracking.",
+      "4": "The Training Pipeline uploads metrics and artifacts to Experiment Tracking with audit logs and compliance checks."
+    },
+    "e.validate_version": {
+      "0": "Data Validation fails silently, Data Versioning never receives input.",
+      "1": "No process exists to transfer validated data to Data Versioning.",
+      "2": "Team members manually copy validated data to Data Versioning.",
+      "3": "A script automatically moves validated data to Data Versioning.",
+      "4": "Validated data is automatically transferred with audit logs and compliance checks."
+    },
+    "e.version_driftcheck": {
+      "0": "No one knows if data was ever passed for drift checking.",
+      "1": "No data reaches the drift check component.",
+      "2": "Someone manually copies data from the versioning system to the drift check tool.",
+      "3": "A script automatically moves data from the versioning system to the drift check tool.",
+      "4": "Automated data transfer from versioning to drift check includes logging and approval steps."
+    },
+    "e.version_fs": {
+      "0": "Data Versioning and Feature Store are disconnected causing pipeline failures.",
+      "1": "No process exists to transfer data from Data Versioning to Feature Store.",
+      "2": "A team member manually copies data from Data Versioning to Feature Store daily.",
+      "3": "A script automatically transfers data from Data Versioning to Feature Store weekly.",
+      "4": "A monitored pipeline transfers validated data from Data Versioning to Feature Store hourly."
+    },
+    "model.evaluation": {
+      "0": "The model evaluation harness produces incorrect evaluation metrics.",
+      "1": "The project lacks a model evaluation harness.",
+      "2": "The team manually evaluates models using spreadsheets.",
+      "3": "A script automates model evaluation but lacks consistency.",
+      "4": "The model evaluation harness integrates with governance policies."
+    },
+    "model.experiment_tracking": {
+      "0": "The team logs experiments in a shared spreadsheet with no version control.",
+      "1": "The team does not track experiments at all.",
+      "2": "The team manually logs experiments in a shared document.",
+      "3": "The team uses an experiment tracking tool with automatic logging.",
+      "4": "The team uses a governed experiment tracking tool with audit logs."
+    },
+    "model.hpo": {
+      "0": "Hyperparameter Tuning fails repeatedly and crashes the training pipeline.",
+      "1": "Hyperparameter Tuning is not set up and no tuning occurs.",
+      "2": "Hyperparameter Tuning is done manually with trial and error by data scientists.",
+      "3": "Hyperparameter Tuning runs automatically but without coordination across the team.",
+      "4": "Hyperparameter Tuning is automated and integrated with a governance framework."
+    },
+    "model.registry": {
+      "0": "The model registry is broken and cannot be used to store or retrieve models.",
+      "1": "There is no model registry in place, making it hard to track model versions.",
+      "2": "The model registry is manually updated, leading to inconsistencies and errors.",
+      "3": "The model registry is automated, with models being versioned and tracked automatically.",
+      "4": "The model registry is governed, with clear policies and access controls in place."
+    },
+    "model.training_pipeline": {
+      "0": "The training pipeline fails randomly and nobody knows why",
+      "1": "There is no training pipeline",
+      "2": "Data scientists train models by hand in Jupyter notebooks",
+      "3": "The training pipeline runs on a schedule in a CI/CD system",
+      "4": "The training pipeline is monitored and audited for compliance"
+    }
+  }
+}

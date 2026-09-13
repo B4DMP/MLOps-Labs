@@ -6,9 +6,11 @@ from mlops_serious_game.domain.requirement import (
     ArtifactType,
     ConfidenceType,
     IntelSource,
-    RequirementType,
+    IntelTag,
+    join_wording,
     StakeholderIntelItem,
     StakeholderRequirement,
+    item_target as _shared_item_target,
 )
 from typing import List, Dict, Any, Optional
 import random
@@ -302,6 +304,16 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
 
 from sqlalchemy.orm.attributes import flag_modified
 
+def _phase_of_challenge(challenge_id: Optional[int]) -> Optional[int]:
+    """The phase a challenge belongs to, for notes written before the phase was stamped."""
+    if challenge_id is None:
+        return None
+    try:
+        return PhaseFactory.get_challenge_by_id(challenge_id).phase_id
+    except Exception:
+        return None
+
+
 def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: str) -> List[StakeholderIntelItem]:
     """Loads all is_known==True intel items for the current challenge into the DB as verified and returns them."""
     known_artifacts = [
@@ -335,6 +347,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                     description=req.description,
                     source=IntelSource.PUBLIC_RECORD,
                 )
+                # Where the player picked it up, so the dossier can say so later (plan 05).
+                new_item.discovered_phase_id = curr_challenge.phase_id
+                new_item.discovered_challenge_template = curr_challenge.template_id
                 new_record = IntelItem(
                     user_name=username,
                     intel_item_data=new_item.model_dump(mode="json"),
@@ -357,6 +372,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                             # said openly before the player started digging.
                             data.pop("is_public_record", None)
                             data["source"] = IntelSource.PUBLIC_RECORD.value
+                        if data.get("discovered_phase_id") is None:
+                            data["discovered_phase_id"] = curr_challenge.phase_id
+                            data["discovered_challenge_template"] = curr_challenge.template_id
                             r.intel_item_data = data
                             flag_modified(r, "intel_item_data")
                         loaded_items.append(StakeholderIntelItem(**data))
@@ -365,8 +383,269 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
     return loaded_items
 
 
+# ── Plan 05: Persistent dossier ───────────────────────────────────────────────
+
+
+def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> List[StakeholderIntelItem]:
+    """Return all intel items the player has ever collected, across all phases.
+
+    If `up_to_phase` is given, only items with `discovered_phase_id <= up_to_phase` are returned
+    (items without the field are always included for backward compatibility).
+    """
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_name == username)
+        ).all()
+        items: List[StakeholderIntelItem] = []
+        for r in records:
+            if not isinstance(r.intel_item_data, dict):
+                continue
+            try:
+                item = StakeholderIntelItem(**r.intel_item_data)
+            except Exception:
+                continue
+            if up_to_phase is not None and item.discovered_phase_id is not None:
+                if item.discovered_phase_id > up_to_phase:
+                    continue
+            items.append(item)
+        return items
+
+
+def assemble_chains(
+    items: List[StakeholderIntelItem],
+) -> List[Dict[str, Any]]:
+    """Group items into refinement chains using refines_id links.
+
+    Returns a list of chain dicts:
+        {
+            "tag": "driver" | ...,
+            "stakeholder_id": str | None,
+            "target": str | None,       # from asserts or suggested
+            "links": [item, ...],       # oldest first
+            "status": "open" | "stale" | ...,  # placeholder, computed later with graph state
+        }
+
+    Items with no refines_id and not referenced by any other item form single-link chains.
+    Items forming a cycle are each placed in their own chain (defensive).
+    """
+    by_id: Dict[str, StakeholderIntelItem] = {i.id: i for i in items}
+    # Build reverse map: item_id → the item that refines it (its successor).
+    refined_by: Dict[str, str] = {}
+    for item in items:
+        if item.refines_id and item.refines_id in by_id:
+            refined_by[item.refines_id] = item.id
+
+    visited: set[str] = set()
+    chains: List[Dict[str, Any]] = []
+
+    def _follow(root_id: str) -> List[StakeholderIntelItem]:
+        chain: List[StakeholderIntelItem] = []
+        cur_id: Optional[str] = root_id
+        seen: set[str] = set()
+        while cur_id and cur_id not in seen:
+            seen.add(cur_id)
+            node = by_id.get(cur_id)
+            if node is None:
+                break
+            chain.append(node)
+            cur_id = refined_by.get(cur_id)
+        return chain
+
+    # Roots are the oldest links: an item that refines nothing the player holds. `_follow` then
+    # walks forward through the successors, so a chain comes out oldest first.
+    roots = [i.id for i in items if not i.refines_id or i.refines_id not in by_id]
+
+    for root_id in roots:
+        if root_id in visited:
+            continue
+        chain_items = _follow(root_id)
+        for ci in chain_items:
+            visited.add(ci.id)
+        if not chain_items:
+            continue
+        head = chain_items[-1]  # newest = headline
+        target = None
+        if head.asserts:
+            target = head.asserts.target
+        elif head.suggested:
+            target = head.suggested.target
+        chains.append({
+            "tag": head.type.value if hasattr(head.type, "value") else str(head.type),
+            "stakeholder_id": head.stakeholder_id,
+            "target": target,
+            "links": chain_items,
+            "status": "open",  # caller must enrich with graph state
+        })
+
+    # Any remaining items (broken chains, cycles) become lone chains.
+    for item in items:
+        if item.id not in visited:
+            chains.append({
+                "tag": item.type.value if hasattr(item.type, "value") else str(item.type),
+                "stakeholder_id": item.stakeholder_id,
+                "target": None,
+                "links": [item],
+                "status": "open",
+            })
+
+    return chains
+
+
+# The dossier's environment section rides in the same list as the stakeholder pages, because the
+# payload is a list of pages and every screen that shows the dossier just forwards it.
+ENVIRONMENT_ENTRY_ID = "__environment__"
+
+
+def chain_index(items: List[StakeholderIntelItem]) -> Dict[str, Dict[str, Any]]:
+    """Per item id: which chain it belongs to and where in it.
+
+    The chain is named after its oldest link, so a chain keeps its identity when a newer
+    refinement arrives and the card the player built does not change under them.
+    """
+    index: Dict[str, Dict[str, Any]] = {}
+    for chain in assemble_chains(items):
+        links = chain["links"]
+        for position, link in enumerate(links):
+            index[link.id] = {
+                "chain_id": links[0].id,
+                "chain_position": position,
+                "chain_length": len(links),
+                "chain_newest": position == len(links) - 1,
+            }
+    return index
+
+
+def authored_successors() -> Dict[str, List[str]]:
+    """Which authored items refine which, read straight off the content set."""
+    successors: Dict[str, List[str]] = {}
+    for req in RequirementFactory.requirements:
+        if req.refines_id:
+            successors.setdefault(req.refines_id, []).append(req.id)
+    return successors
+
+
+def locked_links_ahead(newest_id: str, held_ids: set, successors: Dict[str, List[str]]) -> int:
+    """How many authored refinements sit past the newest link the player holds.
+
+    A count only: the locked row says there is more to learn, never what it says.
+    """
+    locked = 0
+    frontier = [newest_id]
+    seen = {newest_id}
+    while frontier:
+        for nxt in successors.get(frontier.pop(), []):
+            if nxt in seen:
+                continue
+            seen.add(nxt)
+            frontier.append(nxt)
+            if nxt not in held_ids:
+                locked += 1
+    return locked
+
+
+def item_target(item) -> Optional[str]:
+    """The graph target an item is about, whichever payload carries it.
+
+    Delegates to `domain.requirement.item_target_and_level` (the single shared implementation -
+    a code-review finding, C/G passes) so this, `session.py`, `objections.py` and
+    `requirement_factory.py` can never again silently diverge on priority order or field coverage.
+    """
+    return _shared_item_target(item)
+
+
+def _graph_snapshot(username: str):
+    """(graph, state, evaluation) as the player's graph stands, or None when it cannot be read.
+
+    The dossier is a reading surface. If the graph store is unavailable the notes still have to
+    render; they just cannot say yet whether anyone acted on them.
+    """
+    try:
+        from mlops_serious_game.application.graph_service import store as graph_store
+        from mlops_serious_game.application.graph_service.view import evaluate_graph
+        from mlops_serious_game.domain.graph_factory import GraphFactory
+
+        graph = GraphFactory.get_graph()
+        state = graph_store.load_state(username).state
+        return graph, state, evaluate_graph(graph, state)
+    except Exception:
+        return None
+
+
+def _effective_level(snapshot, target: str) -> Optional[int]:
+    graph, _state, evaluation = snapshot
+    resolved = graph.resolve(target)
+    if graph.is_edge(resolved):
+        return evaluation.effective.edges.get(resolved)
+    return evaluation.effective.components.get(resolved)
+
+
+def stage_of_target(snapshot, target: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """(stage id, stage name) the target sits in, so Facts can be grouped by stage."""
+    if not target or snapshot is None:
+        return None, None
+    graph = snapshot[0]
+    try:
+        stage = graph.stage(graph.stage_of(graph.resolve(target)))
+        return stage.id, stage.name
+    except Exception:
+        return None, None
+
+
+def item_status(item, snapshot) -> str:
+    """open, addressed, violated or stale: read off the graph every time, never stored."""
+    if snapshot is None:
+        return "open"
+    graph, state, evaluation = snapshot
+    try:
+        if item.type == IntelTag.BOUNDARY and item.holds is not None:
+            from mlops_serious_game.domain.graph_predicates import evaluate
+
+            holds = evaluate(item.holds, evaluation.context(graph, state)).value
+            return "open" if holds else "violated"
+        if item.type == IntelTag.FACT and item.asserts is not None and item.asserts.level is not None:
+            level = _effective_level(snapshot, item.asserts.target)
+            return "stale" if level is not None and level != item.asserts.level else "open"
+        if item.type == IntelTag.DRIVER and item.suggested is not None:
+            level = _effective_level(snapshot, item.suggested.target)
+            return "addressed" if level is not None and level >= item.suggested.level else "open"
+    except Exception:
+        return "open"
+    return "open"
+
+
+def is_contested(item, conflict) -> bool:
+    """True when this challenge's conflict puts somebody on the other side of this very target."""
+    if conflict is None or not item.stakeholder_id:
+        return False
+    sides = {p.stakeholder_id for p in conflict.positions}
+    return item.stakeholder_id in sides and item_target(item) == conflict.target
+
+
+def _archived_items(username: str, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
+    """Everything the player found in earlier phases (plan 05).
+
+    A failed read must never take the dossier down with it: this challenge's own notes are
+    enough to render a page.
+    """
+    try:
+        return load_known_intel_items(username, up_to_phase=up_to_phase)
+    except Exception as e:
+        print(f"[Dossier] could not read the intel archive: {e}")
+        return []
+
+
+# ── End Plan 05 ───────────────────────────────────────────────────────────────
+
+
 async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
-    """Stores or updates an intel item in the database."""
+    """Stores or updates an intel item in the database.
+
+    A note is stamped with the phase it was picked up in the first time it is written, and keeps
+    that stamp afterwards: it is where the player found it, not where they last looked at it.
+    """
+    if intel_item.discovered_phase_id is None:
+        intel_item.discovered_phase_id = curr_challenge.phase_id
+        intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
         records = session.scalars(
             select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
@@ -392,17 +671,6 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
             session.add(new_record)
         session.commit()
 
-
-
-async def clear_intel_items_for_user(ws: WebSocket) -> None:
-    """Deletes all collected intel items for the user when a new challenge starts."""
-    with get_session() as session:
-        records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
-        ).all()
-        for r in records:
-            session.delete(r)
-        session.commit()
 
 
 async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List[StakeholderIntelItem]:
@@ -436,7 +704,10 @@ async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSoc
             intel_item.id,
             cat_type,
         )
-        if wrong_desc:
+        if wrong_desc and intel_item.fact:
+            # Split wording: only the reading changes with the tag, the fact holds still.
+            intel_item.categorized_description = join_wording(intel_item.fact, wrong_desc)
+        elif wrong_desc:
             intel_item.categorized_description = wrong_desc
         else:
             intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
@@ -503,7 +774,7 @@ async def generate_and_save_all_offline_intel_artifacts() -> Dict[str, Any]:
 
             # 2. Generate wrong descriptions for all 3 miscategorizations
             wrong_descriptions: Dict[str, str] = {}
-            possible_types = [t for t in RequirementType if t != req.type]
+            possible_types = [t for t in IntelTag if t != req.type]
 
             for wrong_type in possible_types:
                 temp_wrong_item = StakeholderIntelItem.from_requirement(req, categorized_type=wrong_type)
@@ -566,7 +837,7 @@ async def handle_intel_tagging(
         item_conf = existing_item.intel_type.value if hasattr(existing_item.intel_type, "value") else str(existing_item.intel_type)
         if item_conf.lower() != "unconfirmed":
             return existing_item
-        existing_item.categorized_type = RequirementType(categorized_type)
+        existing_item.categorized_type = IntelTag(categorized_type)
         req = RequirementFactory.get_requirement(existing_item.id)
         if req:
             existing_item.description = req.description
@@ -582,7 +853,7 @@ async def handle_intel_tagging(
         intel_item = StakeholderIntelItem.from_requirement(
             req,
             intel_type=ConfidenceType.UNCONFIRMED,
-            categorized_type=RequirementType(categorized_type),
+            categorized_type=IntelTag(categorized_type),
         )
 
     await handle_intel_item_categorization(curr_challenge, ws, intel_item)
@@ -746,29 +1017,78 @@ def _artifact_type_for(item: StakeholderIntelItem) -> str:
 
 
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
-    """Retrieves full dossier summary data for all stakeholders in the current challenge."""
+    """Retrieves full dossier summary data for all stakeholders in the current challenge.
+
+    The dossier is persistent (plan 05): notes found in earlier phases stay, notes on the same
+    target chain into one growing card, and anything the player filed as a Fact goes to its own
+    environment page grouped by stage. Placement follows the player's own tag, never the true
+    one, so the page a note sits on can never give the answer away.
+    """
     username = ws.query_params["username"]
     collected_items = await retrieve_intel_items(curr_challenge, ws)
-    
+    # This challenge's notes win where the archive holds the same id: they are the fresher read.
+    items_by_id: Dict[str, StakeholderIntelItem] = {
+        i.id: i for i in _archived_items(username, getattr(curr_challenge, "phase_id", None))
+    }
+    items_by_id.update({i.id: i for i in collected_items})
+    all_items = list(items_by_id.values())
+
+    snapshot = _graph_snapshot(username)
+    chains = chain_index(all_items)
+    successors = authored_successors()
+    held_ids = set(items_by_id)
+    conflict = getattr(curr_challenge, "conflict", None)
+    focus_stage_ids = list(getattr(curr_challenge, "focus_stage_ids", None) or [])
+
+    def _entry(item: StakeholderIntelItem) -> Dict[str, Any]:
+        intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
+        cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
+        is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
+        display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
+        shown_fact, shown_reading = item.shown_parts()
+        chain = chains.get(item.id, {})
+        target = item_target(item)
+        stage_id, stage_name = stage_of_target(snapshot, target)
+        return {
+            "id": item.id,
+            "intel_type": intel_type_val,
+            "categorized_type": cat_type_val,
+            "description": display_desc,
+            "fact": shown_fact,
+            "reading": shown_reading,
+            "is_correct": item.is_correct_intel(),
+            "source": _resolve_source(item).value,
+            "artifact_type": _artifact_type_for(item),
+            "refines_id": item.refines_id,
+            "chain_id": chain.get("chain_id", item.id),
+            "chain_position": chain.get("chain_position", 0),
+            "chain_length": chain.get("chain_length", 1),
+            # Only the newest link carries the locked count, because that is the row it draws.
+            "locked_links": (
+                locked_links_ahead(item.id, held_ids, successors)
+                if chain.get("chain_newest", True) else 0
+            ),
+            # Notes stored before the stamp existed still know which challenge they belong to.
+            "discovered_phase_id": (
+                item.discovered_phase_id
+                if item.discovered_phase_id is not None
+                else _phase_of_challenge(item.challenge_id)
+            ),
+            "target": target,
+            "stage_id": stage_id,
+            "stage_name": stage_name,
+            "status": item_status(item, snapshot),
+            "contested": is_contested(item, conflict),
+        }
+
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
-    for item in collected_items:
-        st_id = item.stakeholder_id
-        if st_id:
-            if st_id not in stakeholder_intel_map:
-                stakeholder_intel_map[st_id] = []
-            intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
-            cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
-            is_verified = (item.intel_type == ConfidenceType.VERIFIED or str(item.intel_type).lower() == "verified")
-            display_desc = item.description if is_verified else (item.categorized_description if item.categorized_description else item.description)
-            stakeholder_intel_map[st_id].append({
-                "id": item.id,
-                "intel_type": intel_type_val,
-                "categorized_type": cat_type_val,
-                "description": display_desc,
-                "is_correct": item.is_correct_intel(),
-                "source": _resolve_source(item).value,
-                "artifact_type": _artifact_type_for(item),
-            })
+    environment_entries: List[Dict[str, Any]] = []
+    for item in all_items:
+        filed_as_fact = item.categorized_type == IntelTag.FACT
+        if item.stakeholder_id and not filed_as_fact:
+            stakeholder_intel_map.setdefault(item.stakeholder_id, []).append(_entry(item))
+        else:
+            environment_entries.append(_entry(item))
 
 
 
@@ -812,10 +1132,32 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
             # The whole pool for this challenge, found or not, so the dossier can show how much
-            # is still out there. A count only: nothing about what the missing items say.
-            "intel_total": len(
-                RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+            # is still out there. A count only: nothing about what the missing items say. Notes
+            # carried over from earlier phases are already found, so they can only raise it.
+            "intel_total": max(
+                len(RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)),
+                len(intel_entries),
             ),
+            "focus_stage_ids": focus_stage_ids,
+        })
+
+    if environment_entries:
+        fact_pool = [
+            r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
+            if r.type == IntelTag.FACT
+        ]
+        dossier_list.append({
+            "stakeholder_id": ENVIRONMENT_ENTRY_ID,
+            "is_environment": True,
+            "name": "The System",
+            "role_description": "What you have found out about the pipeline itself",
+            "responsibilities": "",
+            "priorities": "",
+            "constraints": "",
+            "metric_id": "",
+            "intel_items": environment_entries,
+            "intel_total": max(len(fact_pool), len(environment_entries)),
+            "focus_stage_ids": focus_stage_ids,
         })
 
     return dossier_list
@@ -905,3 +1247,45 @@ def determine_dialogue_options(
 
     random.shuffle(options)
     return options
+
+def fact_targets_to_observe(items: List[StakeholderIntelItem]) -> List[str]:
+    """Graph targets revealed by Facts the player filed as Facts. A Fact filed under a person
+    reveals nothing: the player treated it as someone's opinion, not as the state of the system."""
+    targets: List[str] = []
+    for item in items:
+        if item.type == IntelTag.FACT and item.categorized_type == IntelTag.FACT and item.asserts:
+            if item.asserts.target not in targets:
+                targets.append(item.asserts.target)
+    return targets
+
+
+def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
+    """Lifts the fog on what correctly tagged Facts describe. Runs once when the player leaves
+    offline intel gathering, so the graph does not reveal which tags were right while tagging."""
+    from mlops_serious_game.application.graph_service import store as graph_store
+    from mlops_serious_game.domain.graph import GraphOp
+
+    source_id = f"facts:{curr_challenge.template_id}"
+    if graph_store.has_batch(username, source_id):
+        return 0
+    with get_session() as session:
+        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        items = []
+        for r in records:
+            if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("challenge_id") == curr_challenge.id:
+                try:
+                    items.append(StakeholderIntelItem(**r.intel_item_data))
+                except Exception:
+                    continue
+    targets = fact_targets_to_observe(items)
+    if not targets:
+        return 0
+    graph_store.append_ops(
+        username,
+        [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
+        phase_index=curr_challenge.phase_id,
+        challenge_template=curr_challenge.template_id,
+        source_kind="intel",
+        source_id=source_id,
+    )
+    return len(targets)

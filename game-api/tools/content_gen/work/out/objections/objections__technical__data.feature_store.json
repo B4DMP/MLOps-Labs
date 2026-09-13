@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.feature_store",
+  "stage": "objections",
+  "input_hash": "bbc0f514e3eb847fa80d43857a05d56ec40fa0929b5b773164edf0a60a9e6555",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.feature_store",
+      "name": "Feature Store"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I own the Feature Store, and this proposal will not deliver improved {target} because {cause} upstream is not good enough yet."
+  }
+}

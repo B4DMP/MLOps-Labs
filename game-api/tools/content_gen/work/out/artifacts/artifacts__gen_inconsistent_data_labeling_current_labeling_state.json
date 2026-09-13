@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_inconsistent_data_labeling_current_labeling_state",
+  "stage": "artifacts",
+  "input_hash": "b879692ecd4dd8da988efa512492059ae626b0fe97eedb7f7ae44e3e8c799ce2",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_current_labeling_state",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "Data labeling is currently broken. That is simply how the data labeling process is set up today.",
+      "fact": "Data labeling is currently broken.",
+      "reading": "That is simply how the data labeling process is set up today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "data.labeling",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "incident_ticket",
+    "author": null,
+    "challenge": {
+      "name": "Inconsistent Data Labeling",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The data labeling process is currently not operational. {data_dave} has noted that the team is manually reviewing and labeling data samples, with an average of 200 samples processed per day. The lack of an automated system has led to inconsistent labeling across different batches, as observed in the recent audit where 15% of labels were found to be incorrect.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an objective situation without expressing any wishes, refusals, acceptances, or trade-offs, and does not imply a need that can be classified as a driver or boundary."
+  }
+}

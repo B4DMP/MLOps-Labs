@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_registry_tool",
+  "stage": "artifacts",
+  "input_hash": "61873b40748aa0b04304d62bcd49071eba259422759381aa1a03b28e68fff9af",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_registry_tool",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry has no tool. That is simply what the model registry setup produces today.",
+      "fact": "The model registry has no tool.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.registry",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "dashboard_snapshot",
+    "author": null,
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The model registry setup currently lacks a dedicated tool. {data_dave} manually tracks models using a shared spreadsheet. The spreadsheet records model versions, training dates, and performance metrics. {data_dave} updates the spreadsheet weekly, but there is no automated version control or access management. The current process relies on email notifications for model updates.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an existing situation without any implied wishes, refusals, or trade-offs."
+  }
+}

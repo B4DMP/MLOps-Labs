@@ -2,74 +2,77 @@
 
 Depends: [01](01-graph-core.md). Tracked in [STATE.md](STATE.md).
 
-Player sees the pipeline and its health. Reference mock: `asmodiel.de/stakeholder-showdown/pipeline.html`.
+Player sees the stage graph always and the technical graph through fog. Reference mock: `asmodiel.de/stakeholder-showdown/pipeline.html`.
 
 ## Placement
 
-`PipelineTab` next to `MetricTab` in the top navbar, available in every loop step. Collapsed strip by default, expands to a modal.
+`PipelineTab` next to `MetricTab` in the top navbar, every loop step. Collapsed strip by default, expands to a modal or links into the dossier's `[ 🏗 System ]` view (D45).
 
-## Component
+## Strip: stage graph
 
-`game-ui/src/components/PipelineView.tsx` plus module CSS.
+`game-ui/src/components/PipelineView.tsx`.
 
-Strip mode: 7 node boxes left to right, edges between, feedback edge from monitoring back to data and requirements. Box tinted by health band. Badge for active antipattern count.
+- 5 pipeline stages left to right, Governance and Infra as a band underneath
+- stage box tinted by health band, number or band per fog rules
+- stage to stage flow line coloured by the weakest crossing pipeline edge
+- feedback arcs from Monitoring and Ops back to Modeling and Deployment
+- badges: active antipatterns, active design patterns
 
-Modal mode:
-- per node: health number, owner avatar via `StakeholderAvatarComponent`, component list with level pips 0 to 5
-- `broken` pips are red and distinct from `absent`, since broken is worse
-- attribute line per component, rendered from the story fragment, not raw enums
-- instances listed per node with their state
-- debt rows marked amber with the blocking stakeholder
-- active antipatterns under the graph with their story line
-- before and after toggle after a pitch, fed by the delta report from [07](07-simulation-phase.md)
+## Modal: technical graph of one stage
 
-Static SVG or CSS grid. No layout library. Seven nodes do not need d3.
+Click a stage to open its technical slice.
 
-## Data
+- components as boxes, internal pipeline edges as arrows, incoming and outgoing edges to neighbouring stages stubbed at the border
+- component: nominal and effective level pips (0 to 4), shown separately only when they differ, with the cap named on hover
+- edge: maturity level on the arrow, trigger as an icon (manual hand, clock, commit, data arrival, alert, approval)
+- `broken` red and distinct from `absent`
+- story fragment line per component and edge
+- owner avatar per component via `StakeholderAvatarComponent`
+- debt marked amber with the blocking stakeholder
+- instances listed with their state and properties (for example model performance, dataset freshness)
+- patterns touching this stage with their story line
+- before and after toggle, fed by the delta report from [07](07-simulation-phase.md)
 
-New ws event `graph:state`, pushed on init, after apply, and on request.
-
-```json
-{"nodes": [{"id": "data", "health": 62, "health_band": [55, 70], "owner_id": "data_dave", "debt": 1,
-            "components": [{"id": "data.pii_masking", "level": 4, "story": "...", "knowledge": "current"},
-                           {"id": "data.lineage", "knowledge": "unknown"}],
-            "instances": [{"id": "dataset:crm_orders", "kind": "dataset", "state": "stale"}]}],
- "edges": [...], "system_health": 51, "antipatterns": [{"id": "ap_drift", "name": "...", "story": "..."}]}
-```
-
-Never send the op log to the player client. Admin only, see [09](09-debug-view.md). The payload is filtered by knowledge before it leaves the server, so an `unknown` component carries no level at all. Do not filter in the client.
+Static SVG with a hand authored layout per stage in config (`x`, `y` per component). About 6 to 7 components per stage, no layout library needed.
 
 ## Fog of war
 
-The player sees what they have observed, not ground truth. Knowledge state per component:
+Rules in [00](00-overview.md#fog-of-war). Rendering:
 
-| state | shown as |
-|---|---|
-| `unknown` | grey slot, no level, node health shown as a band |
-| `current` | exact level and story line |
-| `stale` | last seen level, dimmed, with an "as of challenge N" marker |
+| knowledge | component | edge |
+|---|---|---|
+| `unknown` | outlined box, no pips, "?" | dashed arrow, no trigger icon |
+| `current` | pips and story line | solid arrow, level, trigger icon |
+| `stale` | last seen pips, dimmed, "as of challenge N" | last seen, dimmed |
 
-Rules:
-- the seeded initial graph is `current`. The game tells the player where they start, so nothing opens opaque
-- a component the player's own card touched is `current`. You know what you did
-- a world event or an owner degradation on a `current` component flips it to `stale`. The player finds out the next time they look
-- Evidence System State intel, objections that name a component, and engagement cards that probe a node all set `current`
-- node health with any `unknown` or `stale` component renders as a band, not a number. The uncertainty is the point
+Stages of phases not reached yet are not drawn beyond a locked placeholder: no health, no components (D33). Within a reached stage, topology is always drawn and health with unknown or stale parts renders as a band. Investigate engagement card is reachable from the modal: "look into this stage".
 
-This is what makes Evidence items worth a card slot decision and turns the graph into something the player investigates rather than reads.
+## Data
 
-Admin view ([09](09-debug-view.md)) always shows ground truth, plus the player's knowledge state next to it.
+`graph:state` event, pushed on init, after apply, on request. Filtered by knowledge on the server: an `unknown` target carries no level at all. Never filter in the client. Never send the op log.
+
+```json
+{"stages": [{"id": "model", "health": null, "health_band": [40, 65], "patterns": ["dp_reproducible_training"]}],
+ "flows": [{"from": "data", "to": "model", "level": 2}],
+ "technical": {"model": {
+   "components": [{"id": "model.training_pipeline", "knowledge": "current", "nominal": 4, "effective": 2,
+                   "capped_by": "e.fs_train", "owner_id": "model_monica", "story": "..."},
+                  {"id": "model.hpo", "knowledge": "unknown"}],
+   "edges": [{"id": "e.fs_train", "knowledge": "stale", "level": 2, "trigger": "manual_request", "seen_at": 3}]}},
+ "system_health_band": [42, 58]}
+```
 
 ## Steps
 
-- [ ] 1. `graph:state` event and handler from `store.load_state`, `health.py`, `story.py`.
-- [ ] 2. Strip mode, health colors, edges.
-- [ ] 3. Modal mode, level pips, story lines, instances, owner avatars.
-- [ ] 3b. Fog of war rendering: unknown slots, stale markers, health bands.
-- [ ] 4. Navbar slot in `Game.tsx`, present in all loop steps.
-- [ ] 5. Before and after toggle from the delta report.
-- [ ] 6. Responsive check at minimum supported width.
+- [x] 1. `graph:state` handler from store, effective levels, stage graph, knowledge, story. (`graph_state_view.py`, `handlers/graph_handler.py`, registered as `graph:state_request`)
+- [x] 2. Per stage layout coordinates in `MlopsGraph.json`. (`tools/scripts/add_layout_coords.py`; `Component.layout` field added to domain model; exposed in `graph_state_view.py`; SVG topology in `StageModal` with click-to-detail)
+- [x] 3. Strip: stages, band, flows, feedback arcs (Q21: curved SVG arcs above strip, height scales with stage distance), pattern badges. (`PipelineView.tsx`)
+- [x] 4. Modal: technical slice, nominal and effective pips, edge levels and trigger icons. (`PipelineView.tsx` — `StageModal` + `StageSvg` + `ComponentDetail`)
+- [x] 5. Fog rendering per the table. (unknown/current/stale rendered in PipelineView)
+- [x] 6. Navbar slot in `Game.tsx`. (floating toggle button, renders at progressionIndex === 2)
+- [ ] 7. Before and after toggle. (depends on 07 — delta report)
+- [x] 8. Responsive check at minimum width. (strip now scrolls horizontally, paddingRight=100 clears toggle button; modal has maxWidth=860 with scroll)
 
 ## Done when
 
-Player can see all 7 nodes at any time, inspect what they have observed per node, and tell apart what they know, what they knew, and what they have never looked at.
+Player always sees the stage graph, can open any stage, and can tell apart what they know, what they knew, and what they never looked at.

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.training_pipeline",
+  "stage": "objections",
+  "input_hash": "df34c7258bb0aebff20525338ce8599e9d4b73017131332b22b91183d0ec2fef",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.training_pipeline",
+      "name": "Training Pipeline"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I do not think we can improve {target} because {cause} upstream is not good enough yet. We need to improve {cause} first."
+  }
+}

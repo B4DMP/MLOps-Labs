@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:model.registry",
+  "stage": "objections",
+  "input_hash": "0ce51573ee7ba261219f46fe43661a718cafd226f0dbd2e85413b116c84e1c20",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "model.registry",
+      "name": "Model Registry"
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "line": "I cannot support improving {target} right now. The {cause} upstream is not good enough for the Model Registry to deliver."
+  }
+}

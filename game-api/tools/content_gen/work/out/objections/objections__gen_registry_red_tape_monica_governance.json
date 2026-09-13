@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_registry_red_tape_monica_governance",
+  "stage": "objections",
+  "input_hash": "3fe2e21ddc61d302f86306328a300316a73dac6aa7256a3096a69b477f1ad05b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_registry_red_tape_monica_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+      "fact": "{model_monica} mentioned that the model registry must not be governed.",
+      "reading": "She will not work with governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "lte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I will not support a governed model registry. My team will not work with governance controls on registry changes.",
+    "correction": "I was not describing a missing registry. I was setting a limit on governance for the registry."
+  }
+}

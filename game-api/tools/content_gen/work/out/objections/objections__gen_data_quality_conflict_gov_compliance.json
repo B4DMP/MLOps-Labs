@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_data_quality_conflict_gov_compliance",
+  "stage": "objections",
+  "input_hash": "4624c3a7468f044f35796fd6779f8a399a50217f3bff33afc9da2ea43fa9667a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_data_quality_conflict_gov_compliance",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} mentioned governed data quality checks. He wants to improve compliance by governed checks.",
+      "fact": "{requirements_reuben} mentioned governed data quality checks.",
+      "reading": "He wants to improve compliance by governed checks.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "data.validation",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I need governed data quality checks before we trust any model output. The current proposal leaves compliance gaps that I cannot accept.",
+    "correction": "I was not talking about optional dashboards or periodic reviews. I meant governed checks that enforce data quality and privacy rules in the production workflow."
+  }
+}

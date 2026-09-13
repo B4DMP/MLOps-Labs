@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_data_dave_boundary",
+  "stage": "objections",
+  "input_hash": "326477e28388fb7cdba2e9c6ffa172397c1c5e2e98231cbc22d6abe53e04396d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_data_dave_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} brought up keeping data labeling done by hand. He will not accept any automation that reduces his control over the labeling process.",
+      "fact": "{data_dave} brought up keeping data labeling done by hand.",
+      "reading": "He will not accept any automation that reduces his control over the labeling process.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.labeling",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I will keep data labeling done by hand. I will not accept automation that reduces my control over the labeling process.",
+    "correction": "I did not object to all data operations. I only meant that hand labeling must stay under my control."
+  }
+}

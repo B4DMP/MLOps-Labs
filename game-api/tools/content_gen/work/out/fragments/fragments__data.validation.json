@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.validation",
+  "stage": "fragments",
+  "input_hash": "425fd2a02d66b4d5208b37c1e31046aab89288e3ed0c9ab061e67aa49ec35c0d",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.validation",
+    "kind": "component",
+    "name": "Data Validation",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Data Validation tool fails and throws unhelpful error messages",
+    "level_1": "No data validation tools or processes exist",
+    "level_2": "Data Validation is done manually by the data team",
+    "level_3": "Data Validation runs automatically on new data",
+    "level_4": "Data Validation follows defined policies and logs results"
+  }
+}

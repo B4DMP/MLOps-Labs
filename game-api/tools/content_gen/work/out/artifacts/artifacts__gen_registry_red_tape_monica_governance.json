@@ -1,0 +1,48 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_monica_governance",
+  "stage": "artifacts",
+  "input_hash": "b35f50d626f153ef02584ecfa25efc4a4af33ded70cfda344a82768401ddf21a",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_monica_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
+      "fact": "{model_monica} mentioned that the model registry must not be governed.",
+      "reading": "She will not work with governance.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "lte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter."
+    }
+  },
+  "output": {
+    "content": "I need the model registry to be fully automated. It’s a critical part of my workflow, and I can’t operate efficiently without it. {model_monica} has made it clear that she will not work with governance in place. It’s a nonstarter for her, and she won’t compromise on this point. The registry must be automated, period.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The statement sets a clear boundary that must not be crossed; the model registry must be fully automated, and any compromise on this point is a nonstarter."
+  }
+}

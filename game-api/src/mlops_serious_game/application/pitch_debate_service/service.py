@@ -95,6 +95,7 @@ async def get_response(
     _thread_id: str,
     phase_id: int,
     challenge_id: int = 0,
+    username: Optional[str] = None,
     option_id: Optional[str] = None,
     dialogue_option: Optional[DialogueOption | dict[str, Any]] = None,
     addressed_stakeholder_id: Optional[str] = None,
@@ -242,16 +243,17 @@ async def get_response(
                             id=selected_opt.intel_item_id,
                             challenge_id=challenge_id,
                             stakeholder_id=selected_opt.intel_stakeholder_id or "",
-                            type=selected_opt.intel_type or "requirement",
+                            type=selected_opt.intel_type or "driver",
                             description=selected_opt.intel_description or "",
                             categorized_description=selected_opt.intel_description or "",
-                            categorized_type=selected_opt.intel_type or "requirement",
+                            categorized_type=selected_opt.intel_type or "driver",
                         )
 
             input_data: dict[str, Any] = {
                 "challenge": challenge,
                 "phase_id": phase_id,
                 "challenge_id": challenge_id,
+                "username": username,
                 "last_selected_intel": last_selected_intel,
                 "last_selected_option": last_selected_option,
                 "addressed_stakeholder_id": addressed_stakeholder_id,

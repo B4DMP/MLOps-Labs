@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_experiment_tracking_dispute_tracking_state",
+  "stage": "artifacts",
+  "input_hash": "6ac560d357a21f9f758a00a0729e49bf24170494b89d0056f8f20641ce5d2d60",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_tracking_state",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "Experiment tracking is currently missing. That is simply the current state of experiment tracking.",
+      "fact": "Experiment tracking is currently missing.",
+      "reading": "That is simply the current state of experiment tracking.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.experiment_tracking",
+        "level": 1,
+        "trigger": null
+      }
+    },
+    "artifact_type": "architecture_note",
+    "author": null,
+    "challenge": {
+      "name": "Tracking Reproducibility Lost",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The current workflow for experiment tracking is manual. {data_dave} records results in a shared spreadsheet. There are no linked datasets or code versions. The spreadsheet has 12 tabs, one per month. The oldest entry is from 11 months ago. Each tab has between 30 and 60 rows. Columns are timestamp, model version, dataset version, metrics, and notes. There are 388 total entries. No entries are missing. No entries duplicate timestamps. All entries have timestamps.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an objective observation about the current workflow for experiment tracking."
+  }
+}

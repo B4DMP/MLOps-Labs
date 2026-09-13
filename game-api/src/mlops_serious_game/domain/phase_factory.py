@@ -48,15 +48,7 @@ class PhaseFactory:
         # Load challenges first
         all_challenges = []
         for c in data.get("challenges", []):
-            challenge_obj = Challenge(
-                id=c["id"],
-                phase_id=c["phase_id"],
-                name=c["name"],
-                description=c["description"],
-                roundIntroduction=c["roundIntroduction"],
-                metric_changes=c["metric_changes"],
-                attention_tokens=c["attention_tokens"],
-            )
+            challenge_obj = Challenge.model_validate(c)
             all_challenges.append(challenge_obj)
 
         # Load phases and assign challenges + stakeholders
@@ -77,5 +69,57 @@ class PhaseFactory:
                 phase_introduction=p_data["phase_introduction"],
                 challenges=phase_challenges,
                 stakeholders=phase_stakeholders,
+                challenges_per_phase=p_data.get("challenges_per_phase"),
             )
             cls.phases.append(p)
+
+    @classmethod
+    def get_challenge_by_template(cls, template_id: str) -> Challenge | None:
+        for phase in cls.phases:
+            for challenge in phase.challenges:
+                if challenge.template_id == template_id:
+                    return challenge
+        return None
+
+    @classmethod
+    def validate_templates(cls, graph, pattern_ids: set[str], stakeholder_ids: set[str]) -> None:
+        """Config gate for challenge templates. Needs the graph and patterns loaded."""
+        from mlops_serious_game.domain.graph import GraphOp
+        from mlops_serious_game.domain.graph_factory import GraphConfigError
+        from mlops_serious_game.domain.graph_predicates import validate_predicate
+
+        errors: list[str] = []
+        seen: set[str] = set()
+        stage_ids = {s.id for s in graph.stages}
+        for phase in cls.phases:
+            if phase.challenges and sum(c.fallback for c in phase.challenges) != 1:
+                errors.append(f"phase {phase.id} needs exactly one fallback challenge")
+            for c in phase.challenges:
+                where = f"challenge '{c.template_id}'"
+                if c.template_id in seen:
+                    errors.append(f"duplicate template_id '{c.template_id}'")
+                seen.add(c.template_id)
+                for name in ("preconditions", "excluded_if"):
+                    errors += [f"{where} {name}: {e}" for e in validate_predicate(getattr(c, name), graph, pattern_ids)]
+                for name in ("on_enter_ops", "on_exit_ops", "stalemate_ops"):
+                    for raw in getattr(c, name):
+                        try:
+                            op = GraphOp.model_validate(raw)
+                        except Exception as e:
+                            errors.append(f"{where} {name}: {e}")
+                            continue
+                        if not graph.is_target(graph.resolve(op.target)):
+                            errors.append(f"{where} {name}: unknown target '{op.target}'")
+                if c.conflict:
+                    if not graph.is_target(c.conflict.target):
+                        errors.append(f"{where} conflict: unknown target '{c.conflict.target}'")
+                    for pos in c.conflict.positions:
+                        if pos.stakeholder_id not in stakeholder_ids:
+                            errors.append(f"{where} conflict: unknown stakeholder '{pos.stakeholder_id}'")
+                        elif graph.is_target(c.conflict.target) and pos.wants not in graph.allowed_levels(c.conflict.target):
+                            errors.append(f"{where} conflict: level {pos.wants} not allowed on '{c.conflict.target}'")
+                for sid in c.focus_stage_ids:
+                    if sid not in stage_ids:
+                        errors.append(f"{where}: unknown focus stage '{sid}'")
+        if errors:
+            raise GraphConfigError("; ".join(errors))

@@ -20,10 +20,12 @@ class OfflineIntelArtifactFactory:
         """
         from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
-        try:
-            stakeholder = StakeholderFactory.get_stakeholder(artifact.stakeholder_id)
-        except Exception:
-            stakeholder = None
+        stakeholder = None
+        if artifact.stakeholder_id:
+            try:
+                stakeholder = StakeholderFactory.get_stakeholder(artifact.stakeholder_id)
+            except Exception:
+                stakeholder = None
 
         return artifact.model_copy(
             update={
@@ -64,7 +66,7 @@ class OfflineIntelArtifactFactory:
                 id=str(item.get("id", f"art_{req_id}")),
                 requirement_id=str(req_id),
                 challenge_id=int(item.get("challenge_id", 0)),
-                stakeholder_id=str(item.get("stakeholder_id", "")),
+                stakeholder_id=item.get("stakeholder_id") or None,
                 stakeholder_name=str(item.get("stakeholder_name", "")),
                 stakeholder_role=str(item.get("stakeholder_role", "")),
                 artifact_type=art_type,

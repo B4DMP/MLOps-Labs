@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.version_fs",
+  "stage": "fragments",
+  "input_hash": "afcc5daf0844f84dca00e8a637bb991141fa7abb6fdfb3b8a075978d6b0ae6c2",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.version_fs",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Data Versioning to Feature Store"
+  },
+  "output": {
+    "level_0": "Data Versioning and Feature Store are disconnected causing pipeline failures.",
+    "level_1": "No process exists to transfer data from Data Versioning to Feature Store.",
+    "level_2": "A team member manually copies data from Data Versioning to Feature Store daily.",
+    "level_3": "A script automatically transfers data from Data Versioning to Feature Store weekly.",
+    "level_4": "A monitored pipeline transfers validated data from Data Versioning to Feature Store hourly."
+  }
+}

@@ -11,6 +11,7 @@ from mlops_serious_game.domain.emotion import (
     EmotionDimension,
     EmotionValues,
     EmotionalStateRule,
+    PitchTuning,
     apply_emotion_delta,
 )
 
@@ -81,6 +82,14 @@ class EmotionFactory:
     ) -> EmotionValues:
         """Applies deltas to current emotion values dictionary."""
         return apply_emotion_delta(current_values, deltas)
+
+    @classmethod
+    def get_pitch_tuning(cls) -> PitchTuning:
+        """Returns the pitch phase tuning numbers (D38), defaulting to the pre-D38 hardcoded values
+        if EmotionValueConfig.json omits `pitch_tuning` or no config was ever loaded (e.g. a bare
+        import with no gameConfig directory mounted)."""
+        cls.ensure_loaded()
+        return cls.config.pitch_tuning if cls.config else PitchTuning()
 
     @classmethod
     def get_emotion_colors(cls) -> dict[str, str]:

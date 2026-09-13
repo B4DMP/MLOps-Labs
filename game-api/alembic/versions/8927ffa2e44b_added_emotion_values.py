@@ -1,15 +1,13 @@
 """Added emotion_values
 
 Revision ID: 8927ffa2e44b
-Revises: '0003_replace_messages_column'
+Revises: 0003_replace_messages_column
 Create Date: 2026-08-28 17:23:00.656978
 
 """
 from typing import Sequence, Union
 
 from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '8927ffa2e44b'

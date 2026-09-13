@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_data_quality_conflict_data_quality_automation",
+  "stage": "artifacts",
+  "input_hash": "888b11ae4ce85b0c51e713644b9cb3fcd4ada5a02760b6f639af77406c93a7b6",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_data_quality_conflict_data_quality_automation",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data quality checks are currently done manually. That is simply what the current quality checks setup produces today.",
+      "fact": "The data quality checks are currently done manually.",
+      "reading": "That is simply what the current quality checks setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "data.validation",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "runbook",
+    "author": null,
+    "challenge": {
+      "name": "The Inconsistent Checks",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The current data quality checks are performed manually by {data_dave}. He reviews a random sample of 100 records from each batch, checking for missing values, outliers, and format inconsistencies. This process takes approximately 2 hours per batch and is documented in the quality assurance log. The results are recorded in a shared spreadsheet, with any issues flagged for further investigation. No automated tools are used in this process.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes a current process without any wishes, refusals, acceptances, trade-offs, or needs."
+  }
+}

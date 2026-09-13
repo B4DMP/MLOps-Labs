@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:data.ingestion",
+  "stage": "objections",
+  "input_hash": "ea6786d0a78cf8f75e6561459c4cf62e73e680f81c97c5e84a198634cc74d5d5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "data.ingestion",
+      "name": "Data Ingestion Pipeline"
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "line": "I can support improving {target}, but it will not deliver because {cause} upstream is not good enough yet."
+  }
+}

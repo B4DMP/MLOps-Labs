@@ -25,6 +25,18 @@ from .handlers.intel_handler import (
     handle_play_engagement_card,
     handle_generate_action_card,
 )
+from .handlers.graph_handler import handle_graph_state
+from .handlers.pitch_handler import (
+    handle_pitch_answer,
+    handle_pitch_commit,
+    handle_pitch_concede,
+    handle_pitch_object,
+    handle_pitch_rebuild,
+    handle_pitch_set_card,
+    handle_pitch_state,
+    handle_pitch_veto_breaker,
+)
+from .handlers.simulation_handler import handle_simulation_run
 from .handlers.system_handler import handle_ping
 from .manager import manager
 
@@ -46,6 +58,16 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "intel:verify_item": handle_verify_item,
     "intel:play_engagement_card": handle_play_engagement_card,
     "intel:generate_action_card": handle_generate_action_card,
+    "graph:state_request": handle_graph_state,
+    "pitch:state": handle_pitch_state,
+    "pitch:set_card": handle_pitch_set_card,
+    "pitch:object": handle_pitch_object,
+    "pitch:answer": handle_pitch_answer,
+    "pitch:commit": handle_pitch_commit,
+    "pitch:rebuild": handle_pitch_rebuild,
+    "pitch:veto_breaker": handle_pitch_veto_breaker,
+    "pitch:concede": handle_pitch_concede,
+    "simulation:run": handle_simulation_run,
 }
 
 

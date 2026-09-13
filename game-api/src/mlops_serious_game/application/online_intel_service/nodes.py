@@ -20,6 +20,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.domain.requirement import describe_tag
 
 
 async def generate_player_message_node(state: OnlineIntelState, config: RunnableConfig = None) -> dict[str, Any]:
@@ -150,14 +151,8 @@ def _format_revealed_intel_item(item: dict[str, Any]) -> str:
     cat = item.get("categorized_type") or item.get("type")
     if hasattr(cat, "value"):
         cat = cat.value
-    cat_str = str(cat).lower()
     desc = item.get("description", "")
-    if cat_str == "negotiable_preference":
-        return f"- [Negotiable Preference (flexible preference open to compromise, NOT non-negotiable)]: {desc}"
-    elif cat_str == "personal_friction":
-        return f"- [Personal Friction (interpersonal tension or team dynamic concern)]: {desc}"
-    else:
-        return f"- [Core Requirement (mandatory requirement)]: {desc}"
+    return f"- [{describe_tag(str(cat).lower())}]: {desc}"
 
 
 async def generate_stakeholder_responses_node(state: OnlineIntelState, config: RunnableConfig = None) -> dict[str, Any]:

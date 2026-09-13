@@ -1,0 +1,46 @@
+{
+  "item_id": "objections:gen_registry_red_tape_reuben_automation",
+  "stage": "objections",
+  "input_hash": "6fd10898b5d624a58e537e0d2b982b7e6dad590e6f766f7c2c790a56bc5b5e50",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_registry_red_tape_reuben_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "trade_off",
+      "description": "{requirements_reuben} proposed automating the model registry. He would give up automation if compliance is ensured.",
+      "fact": "{requirements_reuben} proposed automating the model registry.",
+      "reading": "He would give up automation if compliance is ensured.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 3
+        }
+      ],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.registry",
+        "accepts_max_level": 3
+      },
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I need the proposal to acknowledge that I am giving up model registry automation for compliance. Please make that trade off explicit.",
+    "correction": "I did not mean that I reject automation. I meant that compliance must be ensured before the model registry is automated."
+  }
+}

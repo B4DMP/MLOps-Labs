@@ -1,0 +1,47 @@
+{
+  "item_id": "objections:gen_registry_red_tape_dave_registry",
+  "stage": "objections",
+  "input_hash": "1a9fc24b44fda21fa064f1ec386e0052a8719559b0373543dbf0247fb8591900",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_registry_red_tape_dave_registry",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested sourcing the model registry from a custom tool. He would accept a different sourcing if needed.",
+      "fact": "{data_dave} suggested sourcing the model registry from a custom tool.",
+      "reading": "He would accept a different sourcing if needed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "set_attr",
+          "target": "model.registry",
+          "value": "custom",
+          "attr": "sourcing"
+        }
+      ],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.registry",
+        "accepts_max_level": 2
+      },
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I, {data_dave}, need the proposal to acknowledge this. It takes the model registry decision from my team without saying so.",
+    "correction": "I did not mean we must source the model registry from a custom tool. I meant {data_dave} would accept another source if it meets our data quality and governance needs."
+  }
+}

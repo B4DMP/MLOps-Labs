@@ -88,6 +88,8 @@ cmake-build-*/
 
 # IntelliJ
 out/
+# Content harness outputs are reviewed content, the ledger points at them.
+!game-api/tools/content_gen/work/out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -318,3 +320,6 @@ pyrightconfig.json
 # Local docker-compose configurations
 docker-compose.yml
 docker-compose.override.yml
+
+# content_gen harness scratch (the ledger, outputs and reviews are committed)
+game-api/tools/content_gen/work/*.tmp

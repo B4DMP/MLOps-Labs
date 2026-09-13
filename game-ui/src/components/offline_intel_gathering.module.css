@@ -773,3 +773,14 @@
     font-size: 0.8rem;
     flex-shrink: 0;
 }
+
+/* Separates the one tag that is about the system from the three that are about a person. */
+.tagGroupLabel {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}

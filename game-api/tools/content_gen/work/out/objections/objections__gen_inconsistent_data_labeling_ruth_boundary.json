@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_inconsistent_data_labeling_ruth_boundary",
+  "stage": "objections",
+  "input_hash": "3c74a84dd3e6bb84570196e1e4987755196b790311bb203a152352b5fd5bd93e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_inconsistent_data_labeling_ruth_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} mentioned that data labeling should be fully governed. She will not accept any labeling process that is not fully governed.",
+      "fact": "{reliability_ruth} mentioned that data labeling should be fully governed.",
+      "reading": "She will not accept any labeling process that is not fully governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "data.labeling",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I cannot approve this labeling plan. It must be fully governed before I accept it.",
+    "correction": "I was not talking about general data quality. I meant the labeling workflow itself must be fully governed."
+  }
+}

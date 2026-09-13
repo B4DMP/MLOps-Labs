@@ -1,0 +1,40 @@
+{
+  "item_id": "objections:gen_experiment_tracking_dispute_dave_manual",
+  "stage": "objections",
+  "input_hash": "4ffd65eb10ff3f0c58b2adaf1497ca5e60fa25b5d8fcc92f3b20cbfe4ab8dba6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_dave_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "trade_off",
+      "description": "{data_dave} suggested keeping experiment tracking manual. {data_dave} would accept manual tracking if it significantly reduces costs.",
+      "fact": "{data_dave} suggested keeping experiment tracking manual.",
+      "reading": "{data_dave} would accept manual tracking if it significantly reduces costs.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.experiment_tracking",
+        "accepts_max_level": 1
+      },
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "You are taking my manual experiment tracking without naming it. Please acknowledge that I asked for that trade off.",
+    "correction": "That was a trade off, not a fixed requirement. I meant manual tracking only if it significantly reduces costs."
+  }
+}

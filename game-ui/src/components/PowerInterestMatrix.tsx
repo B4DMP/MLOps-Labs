@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./PowerInterestMatrix.module.css";
@@ -569,6 +569,7 @@ export default function PowerInterestMatrix({
                                     <StakeholderAvatarComponent
                                       avatar={st.avatar}
                                       stakeholderColor={stColor}
+                                      stakeholderId={item.stakeholderId}
                                       isFramed={false}
                                       isSpeaking={activeIntro?.stakeholderId === item.stakeholderId}
                                       play_blink_animation={
@@ -653,10 +654,10 @@ export default function PowerInterestMatrix({
             ...(bubbleAnchor.placeBelow
               ? { top: bubbleAnchor.bottom + 10 }
               : { bottom: window.innerHeight - bubbleAnchor.top + 10 }),
-            // @ts-ignore custom properties drive the tail position and accent color
+            // Custom properties drive the tail position and accent color.
             "--intro-arrow-x": `${bubbleAnchor.arrowX}px`,
             "--intro-color": activeIntro.color,
-          }}
+          } as unknown as CSSProperties}
           onClick={advanceIntro}
           title="Click to skip to the next introduction"
         >

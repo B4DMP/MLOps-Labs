@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_experiment_tracking_dispute_monica_boundary",
+  "stage": "objections",
+  "input_hash": "cf1aaf3c9bcb0c901c75664a24253ad5c4536c9da6968d0f6a8eb7861fbc1387",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_monica_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} insisted on automated experiment tracking to ensure reproducibility. {model_monica} will not accept anything less than automated tracking.",
+      "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
+      "reading": "{model_monica} will not accept anything less than automated tracking.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.experiment_tracking",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I will not approve a workflow that leaves experiment tracking manual. We need automated tracking so every model run is reproducible.",
+    "correction": "I was not saying we need a new model registry. I meant experiment tracking must be automated end to end."
+  }
+}

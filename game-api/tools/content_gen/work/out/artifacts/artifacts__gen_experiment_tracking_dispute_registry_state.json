@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_experiment_tracking_dispute_registry_state",
+  "stage": "artifacts",
+  "input_hash": "176ea5a02657ce51c0bbd6794a879db05b0d98ad82922f44245e5f064d6ac3a5",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_experiment_tracking_dispute_registry_state",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is currently missing. That is simply the current state of the model registry.",
+      "fact": "The model registry is currently missing.",
+      "reading": "That is simply the current state of the model registry.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.registry",
+        "level": 1,
+        "trigger": null
+      }
+    },
+    "artifact_type": "incident_ticket",
+    "author": null,
+    "challenge": {
+      "name": "Tracking Reproducibility Lost",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "Model versioning is currently handled via manual file naming conventions in the shared storage folder. {data_dave} has noted that there are 15 distinct files named model.pkl in the folder, with no clear indication of which version corresponds to which training run. The training logs are stored separately in a different folder structure, making it difficult to correlate specific model files with their respective training parameters and datasets.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The statement describes an existing situation without any wish, refusal, acceptance, trade-off, or explicit need."
+  }
+}

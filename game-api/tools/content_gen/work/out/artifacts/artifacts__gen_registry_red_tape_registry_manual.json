@@ -1,0 +1,40 @@
+{
+  "item_id": "artifacts:gen_registry_red_tape_registry_manual",
+  "stage": "artifacts",
+  "input_hash": "3744a08ada4b0c50802c9127cd160406850757ecb760b9a690ca96bfe7427e7c",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_registry_red_tape_registry_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model registry is broken. That is simply what the model registry setup produces today.",
+      "fact": "The model registry is broken.",
+      "reading": "That is simply what the model registry setup produces today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "model.registry",
+        "level": 0,
+        "trigger": null
+      }
+    },
+    "artifact_type": "architecture_note",
+    "author": null,
+    "challenge": {
+      "name": "Registry Red Tape",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The model registry {data_dave} uses is currently nonfunctional. Today, models are stored directly in the cloud storage bucket {ml_models_bucket} without metadata tracking. Model versions are manually managed in a shared spreadsheet {model_versions_doc} updated by the team. There is no automated lineage tracking between models and their training pipelines. The current process relies on team members to remember and document model relationships verbally during standup meetings.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes a current state without expressing any wishes, refusals, or acceptances."
+  }
+}

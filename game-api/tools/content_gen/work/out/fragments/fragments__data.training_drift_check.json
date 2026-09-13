@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:data.training_drift_check",
+  "stage": "fragments",
+  "input_hash": "d94234167dc593fa9c41a3b346fcf4f0e51c1368bf4ecbce6576d8d8d2a83b7c",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "attempts": 1,
+  "inputs": {
+    "target": "data.training_drift_check",
+    "kind": "component",
+    "name": "Training Data Drift Check",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The training data drift check fails at random times, causing false alarms and ignored alerts.",
+    "level_1": "The training data drift check does not exist, so no one knows if models are still valid.",
+    "level_2": "The data team manually checks for drift, but it takes weeks and is often forgotten.",
+    "level_3": "A script runs daily to check for drift and sends emails if anomalies are detected.",
+    "level_4": "Drift checks are automated and integrated with model governance, with clear escalation paths."
+  }
+}

@@ -10,8 +10,8 @@ import introJs from "intro.js";
 import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
-import OnlineIntelGathering, { type IntelItem } from "./components/online_intel_gathering";
-import PitchDebate from "./components/pitch_debate";
+import { type IntelItem } from "./components/ActionCardCardComponent";
+import PitchPhase from "./components/pitch_phase";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
@@ -19,12 +19,14 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
+import PerformanceView from "./components/PerformanceView";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
+import { colorForStakeholderId } from "./types/StakeholderAvatar";
 import type { DialogueOption } from "./types/DialogueOption";
 
 interface Stakeholder {
@@ -86,20 +88,9 @@ function App({ username: _username }: AppProps) {
   const [engagementCards, setEngagementCards] = useState<EngagementCard[]>([]);
   const [attentionTokens, setAttentionTokens] = useState<number>(8);
   const [hasPitchDebateStarted, setHasPitchDebateStarted] = useState<boolean>(false);
-  const [isExistingDebateSave, setIsExistingDebateSave] = useState<boolean>(false);
-  const [actionCards, setActionCards] = useState<ActionCard[]>(
-    debug
-      ? [
-        {
-          id: "test_card",
-          title: "test_card",
-          description: "test_description",
-          intel_ids: [],
-          addendum_intel_item_ids: [],
-        },
-      ]
-      : [],
-  );
+  // Only the setter is used now: PitchDebate (the old reader of this flag) was
+  // removed with the merged pitch phase (D37/D46).
+  const [, setIsExistingDebateSave] = useState<boolean>(false);
   const [challengeTitle, setChallengeTitle] = useState("");
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeIntro, setChallengeIntro] = useState("");
@@ -114,8 +105,9 @@ function App({ username: _username }: AppProps) {
     setIsBriefingReview(true);
     setIsPhaseDialogueOpen(true);
   };
-  const [isChatEnabled, setIsChatEnabled] = useState(true);
-  const [hoveredCardId, setHoveredCardId] = useState<number | null>(null);
+  // Only the setter is used now: the old PitchDebate/OnlineIntelGathering readers
+  // of this flag were removed with the merged pitch phase (D37/D46).
+  const [, setIsChatEnabled] = useState(true);
   const [isintro5Done, setIsintro5Done] = useState(false);
   const [isIntro1Started, setIsIntro1Started] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
@@ -124,7 +116,9 @@ function App({ username: _username }: AppProps) {
   const [isDossierOpen, setIsDossierOpen] = useState(false);
   const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
-  const [intelItems, setIntelItems] = useState<IntelItem[]>([]);
+  // Only the setter is used now: rendering this list moved into PitchPhase's own
+  // dossier-derived state, so Game.tsx just keeps it updated for the websocket handlers.
+  const [, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
@@ -238,6 +232,7 @@ function App({ username: _username }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [convincerVerificationInfo, setConvincerVerificationInfo] = useState<ConvincerVerificationInfo | null>(null);
+  const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
 
   useEffect(() => {
     // Request initial game configurations ONCE on mount
@@ -250,7 +245,7 @@ function App({ username: _username }: AppProps) {
       Object.keys(enrichedStakeholders).forEach((stId) => {
         const st = enrichedStakeholders[stId];
         const associatedMetric = rawMetrics[st.metric_id] || Object.values(rawMetrics).find((m: any) => m.id === st.metric_id);
-        st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : "#888888";
+        st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : colorForStakeholderId(stId);
         if (st.avatar) {
           st.avatar.clothingColor = st.stakeholder_color;
         }
@@ -325,7 +320,7 @@ function App({ username: _username }: AppProps) {
         Object.keys(enrichedStakeholders).forEach((stId) => {
           const st = enrichedStakeholders[stId];
           const associatedMetric = currentMetrics[st.metric_id] || Object.values(currentMetrics).find((m: any) => m.id === st.metric_id);
-          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || "#888888");
+          st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || colorForStakeholderId(stId));
           st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
@@ -403,7 +398,6 @@ function App({ username: _username }: AppProps) {
         setPlayedCardIdsInPhase([]);
         setCardTargetedStakeholdersMap({});
         setPitchedActionCard(null);
-        setActionCards([]);
         setac_count(0);
         setHasPitchDebateStarted(false);
         hasPitchDebateStartedRef.current = false;
@@ -721,30 +715,6 @@ function App({ username: _username }: AppProps) {
     }
   }, [isConnected, currentPhase, currentChallenge, emit]);
 
-  let [roundOverAnimActive, SetRoundOverAnimActive] = useState(false);
-  let [showMetricValueChanges, setShowMetricValueChanges] = useState(false);
-  let [revealAc, setRevealAc] = useState(false);
-
-  const getNextChallenge = (ac: ActionCard) => {
-    SetRoundOverAnimActive(false);
-    setShowMetricValueChanges(false);
-    setRevealAc(false);
-
-    if (debug) {
-      setActionCards([
-        {
-          id: "test_card",
-          title: "test_card",
-          description: "test_description",
-          intel_ids: [],
-          addendum_intel_item_ids: [],
-        },
-      ]);
-    }
-
-    requestNextChallenge(ac);
-  };
-
   const handleOfflineIntelGatheringContinue = () => {
     let _metric_values: any = [];
     Object.values(metrics).forEach((x) => {
@@ -759,30 +729,6 @@ function App({ username: _username }: AppProps) {
       metric_values: _metric_values,
       action_card_id: null,
       messages: [],
-    });
-  };
-
-  const handleOnlineIntelGatheringContinue = (pitchedCard?: any) => {
-    setIsExistingDebateSave(false);
-    let _metric_values: any = [];
-    Object.values(metrics).forEach((x) => {
-      _metric_values.push(x.value ?? 0);
-    });
-
-    const cardToSave = pitchedCard || pitchedActionCard || {};
-    if (pitchedCard) {
-      setPitchedActionCard(pitchedCard);
-    }
-
-    sendJsonMessage({
-      type: "game:state_update_request",
-      challenge_id: currentChallenge,
-      phase_id: currentPhase,
-      challenge_loop_index: 1,
-      metric_values: _metric_values,
-      action_card: cardToSave,
-      messages: [],
-      attention_tokens: attentionTokens,
     });
   };
 
@@ -823,96 +769,9 @@ function App({ username: _username }: AppProps) {
     });
   };
 
-  const playActionCard = async (ac: ActionCard) => {
-    if (!isChatEnabled) return;
-
-    SetRoundOverAnimActive(true);
-    setLastAc(ac);
-
-    const updatedMetrics: Record<string, Metric> = {};
-    const metricsList = Object.values(metrics);
-    metricsList.forEach((m) => {
-      const nextVal = (m.value ?? m.start_value) + (ac.metric_changes?.[m.id] ?? 0);
-      updatedMetrics[m.id] = {
-        ...m,
-        value: nextVal,
-      };
-    });
-
-    setMetrics(updatedMetrics);
-
-    if (currentChallenge === 0 && currentPhase === 0) {
-      setTimeout(() => {
-        introJs()
-          .setOptions({
-            group: "intro6",
-            exitOnEsc: false,
-            exitOnOverlayClick: false,
-          })
-          .start();
-      }, 1500);
-    }
-
-    const { CountUp } = await import("countup.js");
-    setTimeout(() => {
-      setRevealAc(true);
-      setShowMetricValueChanges(true);
-      metricsList.forEach((m) => {
-        const el = document.getElementById(`metric-value-${m.id}`);
-        if (el) {
-          const countUp = new CountUp(
-            el,
-            updatedMetrics[m.id]?.value ?? m.start_value,
-            {
-              startVal: m.value ?? m.start_value,
-              duration: 5,
-            },
-          );
-          if (!countUp.error) {
-            countUp.start();
-          }
-        }
-      });
-    }, 200);
-  };
-
-  const requestNextChallenge = (ac: ActionCard) => {
-    let _metric_values: any = [];
-
-    Object.values(metrics).forEach((x) => {
-      _metric_values.push(x.value ?? 0);
-    });
-
-    sendJsonMessage({
-      type: "game:state_update_request",
-      challenge_id: currentChallenge,
-      phase_id: currentPhase,
-      challenge_loop_index: 2,
-      metric_values: _metric_values,
-      action_card_id: ac.id,
-      messages: chat_msgs,
-    });
-    setChatMsgs([]);
-    setActionCards([]);
-    setIsExistingDebateSave(false);
-  };
-
-  const handleSelectDialogueOption = (optionId: string, addressedStakeholderId?: string, option?: DialogueOption) => {
-    if (!isChatEnabled) return;
-    setIsChatEnabled(false);
-    const chosenOpt = option || dialogueOptions.find((o) => o.id === optionId);
-    sendJsonMessage({
-      type: "chat:send_message",
-      option_id: optionId,
-      dialogue_option: chosenOpt,
-      addressed_stakeholder_id: addressedStakeholderId,
-      phase_id: currentPhaseRef.current,
-      challenge_id: currentChallengeRef.current,
-    });
-  };
-
-  let [last_ac, setLastAc] = useState(actionCards[0]);
-  const [dialogueOptions, setDialogueOptions] = useState<DialogueOption[]>([]);
+  // Only the setter is used now: the old PitchDebate reader of these options was removed
+  // with the merged pitch phase (D37/D46).
+  const [, setDialogueOptions] = useState<DialogueOption[]>([]);
 
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>

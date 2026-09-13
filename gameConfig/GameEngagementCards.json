@@ -38,7 +38,7 @@
       "max_plays_per_phase": -1,
       "intel_reveal_count": 1,
       "allowed_requirement_types": [
-        "requirement"
+        "boundary"
       ]
     },
     {
@@ -66,8 +66,7 @@
       "max_plays_per_phase": -1,
       "intel_reveal_count": 1,
       "allowed_requirement_types": [
-        "personal_friction",
-        "negotiable_preference"
+        "driver"
       ]
     }
   ]

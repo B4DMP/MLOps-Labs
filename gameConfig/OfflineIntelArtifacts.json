@@ -7,10 +7,7 @@
       "stakeholder_id": "model_monica",
       "artifact_type": "slack_message",
       "content": "I strongly believe that we need to implement a complex deep learning model to maximize predictive accuracy. The additional complexity is justified by the significant improvements in performance we've seen in preliminary testing. While a simpler model might be easier to deploy, it wouldn't provide the same level of precision. We should prioritize accuracy, as it will ultimately lead to better decision-making and business outcomes. Let's focus on optimizing the model architecture and ensure we have the necessary computational resources to support it.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{model_monica} prefers to use complex deep learning models as a matter of personal workflow choice, even though simpler models might be more efficient.",
-        "personal_friction": "{model_monica} insists on using the complex ML model simply because she personally dislikes {efficiency_emilia} and wants to see her fail."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -21,8 +18,7 @@
       "artifact_type": "slack_message",
       "content": "I've spent months optimizing this model, and now you're telling me to just throw all that work away for some arbitrary cloud budget constraints? It's not about business value; it's about doing the best work we can. Simplifying just because it's easier isn't the answer. We need to push the boundaries, not play it safe.",
       "wrong_descriptions": {
-        "requirement": "{model_monica} insists on using high-complexity models to ensure her department meets quarterly innovation targets.",
-        "negotiable_preference": "{model_monica} prefers using complex models over simpler ones because she finds the greater challenge more enjoyable."
+        "boundary": "{model_monica} insists on using high-complexity models to ensure her department meets quarterly innovation targets."
       },
       "is_known": false
     },
@@ -34,8 +30,7 @@
       "artifact_type": "email",
       "content": "I appreciate the focus on accuracy, but we need to prioritize user experience. The model's latency must stay under 50ms; anything longer risks degrading the user interface. A simpler model could achieve this while delivering more business value. Let's discuss how we can balance these priorities effectively.",
       "wrong_descriptions": {
-        "negotiable_preference": "{efficiency_emilia} prefers to use a lightweight spreadsheet for initial data analysis instead of complex modeling tools.",
-        "personal_friction": "{efficiency_emilia} mandates that model inference latency must remain under 50ms purely to undermine the executive authority of #model_monica#."
+        "driver": "{efficiency_emilia} prefers to use a lightweight spreadsheet for initial data analysis instead of complex modeling tools."
       },
       "is_known": false
     },
@@ -45,10 +40,9 @@
       "challenge_id": 0,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "email",
-      "content": "Hey Team,\n\nI've been looking at the model {model_monica.first} proposed and while it's impressive, I think we might be overcomplicating things. A simpler model could achieve similar accuracy with much lower operational costs. This would free up resources for other business initiatives. Let's consider the trade-offs before committing to a complex solution.\n\nThanks,\nEfficiency {efficiency_emilia.first}",
+      "content": "Hey Team,\n\nI've been looking at the model {model_monica.first} proposed and while it's impressive, I think we might be overcomplicating things. A simpler model could achieve similar accuracy with much lower operational costs. This would free up resources for other business initiatives. Let's consider the trade-offs before committing to a complex solution.\n\nThanks,\n{efficiency_emilia}",
       "wrong_descriptions": {
-        "requirement": "{efficiency_emilia} insists on using a massive spreadsheet because she is uncomfortable with new software tools and prefers her old workflows.",
-        "personal_friction": "{efficiency_emilia} insists on a simpler model out of sheer spite for {model_monica.first}'s complex design."
+        "boundary": "{efficiency_emilia} insists on using a massive spreadsheet because she is uncomfortable with new software tools and prefers her old workflows."
       },
       "is_known": true
     },
@@ -59,10 +53,7 @@
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
       "content": "I think we should consider using a cloud-based 3rd-party managed MLOps platform. It would significantly reduce our development overhead and let us focus on our core ML tasks. Sure, it might not fit every single requirement perfectly, but it covers all the critical needs. Plus, it’s quicker to deploy and maintain. Custom development would take too much time and effort.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{efficiency_emilia} prefers a cloud-based 3rd-party managed MLOps platform because she likes the user interface better than building a custom solution.",
-        "personal_friction": "{efficiency_emilia} insists on using a cloud-based 3rd-party managed MLOps platform solely to spite {requirements_reuben} and his prior failed attempts at custom development."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -73,8 +64,7 @@
       "artifact_type": "meeting_notes",
       "content": "I think we should seriously consider a cloud-based MLOps platform. It would save us a lot of development time. Plus, I really like that they offer integrated visual analytics dashboards. That's a feature we might struggle to build ourselves.\n\nI've seen some platforms like `DataRobot` or `H2O.ai` that have these dashboards. They make it so easy to track model performance and other metrics. I think it's a huge advantage for our team.",
       "wrong_descriptions": {
-        "requirement": "{efficiency_emilia} demands that the platform must use Linux-based container orchestration to ensure compliance with her preferred workflows.",
-        "personal_friction": "{efficiency_emilia} refuses to consider cloud platforms because she had a bad experience with a similar service years ago."
+        "boundary": "{efficiency_emilia} demands that the platform must use Linux-based container orchestration to ensure compliance with her preferred workflows."
       },
       "is_known": false
     },
@@ -85,10 +75,7 @@
       "stakeholder_id": "requirements_reuben",
       "artifact_type": "document",
       "content": "Using a third-party managed MLOps platform may introduce hidden costs and limitations that could jeopardize our project's success. We need a solution that is tailored to our specific requirements. Developing a custom platform ensures that we have full control over the features and functionalities that are critical to our workflow. While it may require more initial effort, the long-term benefits of a tailored solution outweigh the short-term convenience of an off-the-shelf platform. We should prioritize building something that perfectly fits our needs rather than trying to adapt a generic solution.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{requirements_reuben} prefers a custom platform because it fits better with his personal workflow.",
-        "personal_friction": "{requirements_reuben} refuses to use a managed MLOps platform because he has a personal vendetta against cloud service providers."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -99,8 +86,7 @@
       "artifact_type": "document",
       "content": "Using a third-party MLOps platform introduces significant legal and compliance risks. We're not just talking about a misaligned requirement here; this is about potential liabilities that could come back to haunt us. I've seen projects where a SaaS provider's sudden policy change or even shutdown left teams scrambling to recover lost data. Plus, with sensitive data involved, we can't afford to take chances on a platform that might not prioritize our compliance needs. It's not just about efficiency; it's about control and peace of mind.",
       "wrong_descriptions": {
-        "requirement": "{requirements_reuben} insists on a custom platform because they believe it will use fewer CPU cycles during model deployment.",
-        "negotiable_preference": "{requirements_reuben} personally prefers to develop a custom MLOps platform to keep his team's workflow consistent."
+        "boundary": "{requirements_reuben} insists on a custom platform because they believe it will use fewer CPU cycles during model deployment."
       },
       "is_known": false
     },
@@ -111,10 +97,7 @@
       "stakeholder_id": "data_dave",
       "artifact_type": "meeting_notes",
       "content": "We need to ensure model stability by using versioned copies of input signals. Each model version should rely on a fixed snapshot of its inputs to avoid unpredictable performance degradation. This approach allows us to track changes and maintain consistency over time. However, we must also consider the trade-off with stale data. If models aren't frequently retrained with new signal snapshots, performance could degrade. We should find a balance between stability and freshness.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{data_dave} prefers using versioned signal snapshots because he finds them more convenient for his personal workflow, even though they might become outdated.",
-        "personal_friction": "{data_dave} insists on creating versioned input signal snapshots because he enjoys undermining {reliability_ruth}'s efforts to keep models updated with fresh data."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -125,8 +108,7 @@
       "artifact_type": "meeting_notes",
       "content": "We need to address the issue of input signal changes. Automated detection of upstream schema changes is crucial here. It helps us catch inconsistencies early before they affect model performance. We should integrate this into our workflow. This approach ensures that we're always working with the most relevant data snapshots.",
       "wrong_descriptions": {
-        "requirement": "{data_dave} insists on manually auditing every schema change to personally approve or reject them.",
-        "personal_friction": "{data_dave} insists on manual schema change detection because he secretly enjoys the extra work it creates for the team."
+        "boundary": "{data_dave} insists on manually auditing every schema change to personally approve or reject them."
       },
       "is_known": false
     },
@@ -138,8 +120,7 @@
       "artifact_type": "meeting_notes",
       "content": "We need to ensure system reliability isn't compromised by stale data. Data pipeline failures should immediately alert on-call engineers so we can address issues before model performance degrades. This is non-negotiable for maintaining service quality. Let's implement automated alerts for any pipeline disruptions.",
       "wrong_descriptions": {
-        "negotiable_preference": "{reliability_ruth} prefers using Slack for issue reporting over email because it integrates better with her personal workflow tools.",
-        "personal_friction": "{reliability_ruth} insists on automated alerts for data pipeline failures purely to make {data_dave}'s life more difficult."
+        "driver": "{reliability_ruth} prefers using Slack for issue reporting over email because it integrates better with her personal workflow tools."
       },
       "is_known": false
     },
@@ -151,8 +132,7 @@
       "artifact_type": "meeting_notes",
       "content": "I understand the need for versioning, but fixed snapshots will become stale. If we don't regularly retrain models with updated signals, performance will degrade over time. This could lead to outdated models in production, which is a serious risk. We need a balance between version control and ensuring models stay current.\n\n* Action item: Schedule regular retraining sessions for models using snapshotted inputs.",
       "wrong_descriptions": {
-        "requirement": "{reliability_ruth} requires that models must be retrained daily to comply with the latest software development standards.",
-        "negotiable_preference": "{reliability_ruth} prefers using rolling snapshots for input signals because she finds them more intuitive to manage during deployment operations."
+        "boundary": "{reliability_ruth} requires that models must be retrained daily to comply with the latest software development standards."
       },
       "is_known": true
     },
@@ -163,10 +143,7 @@
       "stakeholder_id": "data_dave",
       "artifact_type": "document",
       "content": "Adding more features will lead to feature entanglement, making it hard to isolate improvements. Any changes in feature weights, distribution, or quantity could have unpredictable effects on the model's performance. To avoid this, I propose using an ensemblement model with multiple component models that have independent signals. This approach will make the model more robust and easier to maintain. However, {model_monica.first} raised concerns about the increased complexity and potential impact on performance. We need to weigh these trade-offs carefully.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{data_dave} prefers to use ensemble models because he finds them easier to debug and maintain, despite their potential complexity.",
-        "personal_friction": "{data_dave} insists on using an ensemble model because he has a personal vendetta against simple feature engineering."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -177,8 +154,7 @@
       "artifact_type": "email",
       "content": "Hey team, I’ve been thinking about the feature entanglement issue. An ensemblement model might seem complex but it’s the best way to keep our signals independent. Plus, I think integrating a feature store with automated schema updates will make our lives easier in the long run. It’s worth the extra setup to avoid future headaches. Let me know your thoughts.",
       "wrong_descriptions": {
-        "requirement": "{data_dave} insists on using only open-source feature store solutions to avoid vendor lock-in and reduce licensing costs.",
-        "personal_friction": "{data_dave} insists on using feature store integrations with automated schema updates simply to make {model_monica}'s job more difficult."
+        "boundary": "{data_dave} insists on using only open-source feature store solutions to avoid vendor lock-in and reduce licensing costs."
       },
       "is_known": false
     },
@@ -190,8 +166,7 @@
       "artifact_type": "document",
       "content": "While I understand the appeal of an ensemblement model, we must ensure that each component model is trained on independent features. Feature entanglement is a real risk. This approach will not only maintain model performance but also make it easier to isolate improvements. Let's prioritize this to avoid any unforeseen complexities.",
       "wrong_descriptions": {
-        "negotiable_preference": "{model_monica} prefers using simpler models as she finds ensemble methods overly complex and troublesome for her workflow.",
-        "personal_friction": "{model_monica} insists on using an ensemblement model simply to prove {data_dave} wrong about feature entanglement."
+        "driver": "{model_monica} prefers using simpler models as she finds ensemble methods overly complex and troublesome for her workflow."
       },
       "is_known": false
     },
@@ -203,8 +178,7 @@
       "artifact_type": "slack_message",
       "content": "I understand the appeal of ensemble models, but we need to consider the trade-offs. Adding more complexity can make debugging a nightmare. Plus, there's no guarantee that performance will improve. We need to be careful not to overcomplicate things.",
       "wrong_descriptions": {
-        "requirement": "{model_monica} insists on using simpler models to reduce budget allocations and align with quarterly financial targets.",
-        "negotiable_preference": "{model_monica} prefers simpler models because she finds ensemble methods tedious to implement and debug."
+        "boundary": "{model_monica} insists on using simpler models to reduce budget allocations and align with quarterly financial targets."
       },
       "is_known": true
     },
@@ -215,10 +189,7 @@
       "stakeholder_id": "automation_alex",
       "artifact_type": "document",
       "content": "To meet our CI/CD goals, we need a fully automated deployment and validation pipeline. This ensures rapid and reliable updates without manual intervention. Automated testing scripts can validate functionality and performance, making the process efficient and scalable. While it's important to consider responsible AI practices, automated validation can still catch major issues and maintain consistency across deployments. We should prioritize speed and reliability in our pipeline while exploring ways to integrate fairness checks in subsequent stages.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{automation_alex} prefers using Jenkins for deployments because it aligns better with their personal workflow, even though other tools might be more suitable.",
-        "personal_friction": "{automation_alex} insists on a fully automated deployment pipeline, not because of operational needs, but to make {requirements_reuben}'s life harder with extra monitoring work."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -229,8 +200,7 @@
       "artifact_type": "document",
       "content": "To ensure consistency and efficiency in our CI/CD pipeline, I strongly advocate for using standardized Kubernetes templates for deployment. This approach minimizes human error and accelerates the deployment process. While I understand {requirements_reuben.first}'s concerns about fairness and bias, automating the deployment itself does not inherently compromise responsible AI practices. We can integrate separate validation steps for fairness and bias checks, maintaining both automation and ethical standards. Kubernetes templates provide a robust framework that aligns with our operational goals while allowing flexibility for additional checks.",
       "wrong_descriptions": {
-        "requirement": "{automation_alex} insists on using Kubernetes templates to minimize cloud spending and optimize budget allocations across all ML projects.",
-        "personal_friction": "{automation_alex} enforces the use of standardized Kubernetes templates because he has a personal vendetta against other deployment methodologies."
+        "boundary": "{automation_alex} insists on using Kubernetes templates to minimize cloud spending and optimize budget allocations across all ML projects."
       },
       "is_known": false
     },
@@ -242,8 +212,7 @@
       "artifact_type": "slack_message",
       "content": "While I understand the push for full automation, we can't overlook the need for human oversight in model validation. Automated processes might miss critical aspects like fairness and bias. We should ensure the model validation report is generated automatically, but it must be signed off by a human. This way, we comply with CI/CD while maintaining responsible AI practices. It's a small step that makes a big difference.",
       "wrong_descriptions": {
-        "negotiable_preference": "{requirements_reuben} prefers to use manual validation tools for model sign-off to maintain consistency with his personal workflow.",
-        "personal_friction": "{requirements_reuben} insists on manually signing off on every model validation report just to spite {automation_alex}."
+        "driver": "{requirements_reuben} prefers to use manual validation tools for model sign-off to maintain consistency with his personal workflow."
       },
       "is_known": false
     },
@@ -255,8 +224,7 @@
       "artifact_type": "email",
       "content": "While automation is key for CI/CD, we can't overlook the risks of fully automated validation. Responsible AI practices, especially fairness and bias identification, may suffer if we don't involve human oversight. Automated systems might miss nuanced biases that humans can catch. We should consider a hybrid approach where automation handles the initial validation but flags cases for human review. This way, we maintain efficiency without compromising our ethical standards.\n\nAdditionally, we need to ensure that our validation process aligns with regulatory requirements. Automated systems might not adequately capture the context needed for compliance. By integrating human review, we can better address these concerns and ensure our models are both efficient and responsible.\n\nLet's discuss this further in our next meeting to find a balanced solution.",
       "wrong_descriptions": {
-        "requirement": "{requirements_reuben} insists on manual validation steps to increase his team's headcount and budget through procedural bureaucracy.",
-        "negotiable_preference": "{requirements_reuben} prefers to manually validate each deployment to maintain a personal sense of control over the process."
+        "boundary": "{requirements_reuben} insists on manual validation steps to increase his team's headcount and budget through procedural bureaucracy."
       },
       "is_known": true
     },
@@ -267,10 +235,7 @@
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
       "content": "Our model's accuracy is dropping rapidly, and we can't afford to wait for a full investigation. Every day we delay, we're losing revenue and damaging customer trust. We need to retrain the model immediately with the latest data to stop the bleeding. Reliability is important, but so is our bottom line. We can't let perfect be the enemy of good here. Let's get this fixed ASAP and then figure out the root cause.",
-      "wrong_descriptions": {
-        "negotiable_preference": "{efficiency_emilia} prefers to use simple spreadsheet models for decision-making whenever possible, finding them more intuitive than complex machine learning systems.",
-        "personal_friction": "{efficiency_emilia} insists on rapid retraining because she has a personal vendetta against {reliability_ruth.first}."
-      },
+      "wrong_descriptions": {},
       "is_known": true
     },
     {
@@ -281,8 +246,7 @@
       "artifact_type": "document",
       "content": "I understand the concerns about stability, but we can't ignore the immediate business impact. The model's accuracy is dropping fast, and we need to act quickly. Simple data windowing techniques would allow us to retrain the model rapidly. We can use the most recent data to update the model, and it's a straightforward approach that won't disrupt our current workflow.\n\nIf we spend too much time on diagnosis and validation, we might lose valuable time to address the accuracy decline. The business can't afford to wait while we perfect the solution. We need to prioritize speed and simplicity to minimize the impact on our operations.",
       "wrong_descriptions": {
-        "requirement": "{efficiency_emilia} requires a comprehensive audit trail of all model retraining activities to satisfy her department's financial reporting obligations.",
-        "personal_friction": "{efficiency_emilia} insists on simple data windowing techniques for retraining updates out of sheer stubbornness and a desire to prove {reliability_ruth} wrong."
+        "boundary": "{efficiency_emilia} requires a comprehensive audit trail of all model retraining activities to satisfy her department's financial reporting obligations."
       },
       "is_known": false
     },
@@ -294,8 +258,7 @@
       "artifact_type": "email",
       "content": "We can't afford to retrain the model without understanding the root cause of the drift. Real-time monitoring of model performance metrics is essential to diagnose the issue and validate any fixes. Without proper tracking, we risk exacerbating the problem. Let's implement logging for key metrics like accuracy, precision, and recall in production. This will give us the data we need to make informed decisions.",
       "wrong_descriptions": {
-        "negotiable_preference": "{reliability_ruth} prefers using a specific dashboard tool for monitoring model performance, even if it requires additional setup time.",
-        "personal_friction": "{reliability_ruth} wants to slow down the retraining process to make {efficiency_emilia.first} look bad in front of the executives."
+        "driver": "{reliability_ruth} prefers using a specific dashboard tool for monitoring model performance, even if it requires additional setup time."
       },
       "is_known": false
     },
@@ -307,10 +270,653 @@
       "artifact_type": "slack_message",
       "content": "I understand the urgency, but we need to diagnose the issue first. Retraining without understanding the root cause of the drift risks baking bad patterns into our model. We should validate the data and model performance before making any changes. A hasty fix could lead to more instability down the line. Let's take the time to do this right.",
       "wrong_descriptions": {
-        "requirement": "{reliability_ruth} demands that all retraining processes must follow a strict 48-hour approval cycle to align with her preferred CI/CD toolchain.",
-        "negotiable_preference": "{reliability_ruth} prefers to use manual model validation scripts over automated pipelines for her workflow."
+        "boundary": "{reliability_ruth} demands that all retraining processes must follow a strict 48-hour approval cycle to align with her preferred CI/CD toolchain."
       },
       "is_known": true
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "requirement_id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "Hey team, I wanted to share my thoughts on the data labeling process. I think keeping it manual gives us the flexibility we need to handle edge cases and ensure high-quality data. The more control we have over the labeling, the better we can adapt to new scenarios. More manual control means we can fine-tune the process as needed, which is crucial for our data operations. {data_dave}",
+      "wrong_descriptions": {
+        "boundary": "He will not accept any automation that reduces his control over the labeling process.",
+        "trade_off": "He would accept some automation if it significantly improves data quality.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "requirement_id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "email",
+      "content": "I’ve been reviewing our current data labeling process and I’m increasingly concerned about the lack of consistency. We need to move towards fully automated and governed data labeling to ensure that our models are trained on high-quality, reliable data. The more governance we can implement, the better our data quality will be. I understand that there might be some resistance to this change, but the benefits in terms of model reliability and performance are significant. Let’s discuss how we can integrate these governance measures without compromising our workflow efficiency.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept any labeling process that is not fully governed.",
+        "trade_off": "She would accept a semi-manual approach if it improves data quality.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_data_dave_boundary",
+      "requirement_id": "gen_inconsistent_data_labeling_data_dave_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "email",
+      "content": "Hi all, I’ve been thinking about the data labeling process. I understand the push for automation, but I need to be clear: I will not accept any solution that takes control away from me. Data labeling is too critical to hand off to a system without human oversight. I’m open to discussing improvements, but my team needs to remain in charge of the process. Best, {data_dave}",
+      "wrong_descriptions": {
+        "driver": "He believes more manual control will improve data flexibility.",
+        "trade_off": "He would accept some automation if it significantly improves data quality.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_ruth_boundary",
+      "requirement_id": "gen_inconsistent_data_labeling_ruth_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "meeting_notes",
+      "content": "{reliability_ruth} emphasized that the data labeling process must be fully governed to maintain consistent data quality. She stated that any deviation from this requirement would compromise the reliability of the system. {reliability_ruth} made it clear that she will not accept any labeling process that is not fully governed, as it is crucial for the integrity of the end-user applications and services. The manual approach proposed by {data_dave} does not meet this standard, and a semi-manual compromise is also insufficient.",
+      "wrong_descriptions": {
+        "driver": "She believes more governance will improve data reliability.",
+        "trade_off": "She would accept a semi-manual approach if it improves data quality.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_dave_trade_off",
+      "requirement_id": "gen_inconsistent_data_labeling_dave_trade_off",
+      "challenge_id": 102,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "document",
+      "content": "I understand that {data_dave} wants to keep data labeling manual for flexibility, but I'm willing to consider a semi-manual approach. If we can implement some automation that significantly improves data quality, I'd be open to that. It's important to me that we maintain high standards, so any automation would need to be robust and reliable.",
+      "wrong_descriptions": {
+        "driver": "He believes more manual control will improve data flexibility.",
+        "boundary": "He will not accept any automation that reduces his control over the labeling process.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_ruth_trade_off",
+      "requirement_id": "gen_inconsistent_data_labeling_ruth_trade_off",
+      "challenge_id": 102,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "meeting_notes",
+      "content": "{reliability_ruth} proposed a semi-manual approach for data labeling. She would accept a semi-manual approach if it improves data quality. However, she would only agree to this if the process is governed to ensure consistency. She believes that while some manual oversight is acceptable, it must be balanced with automated checks and governance to maintain high data standards. This compromise ensures that flexibility is retained while also improving the overall reliability of the system.",
+      "wrong_descriptions": {
+        "driver": "She believes more governance will improve data reliability.",
+        "boundary": "She will not accept any labeling process that is not fully governed.",
+        "fact": "That is simply how the data labeling process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_current_labeling_state",
+      "requirement_id": "gen_inconsistent_data_labeling_current_labeling_state",
+      "challenge_id": 102,
+      "stakeholder_id": null,
+      "artifact_type": "incident_ticket",
+      "content": "The data labeling process is currently not operational. {data_dave} has noted that the team is manually reviewing and labeling data samples, with an average of 200 samples processed per day. The lack of an automated system has led to inconsistent labeling across different batches, as observed in the recent audit where 15% of labels were found to be incorrect.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it this way.",
+        "boundary": "Someone on the team will not accept any changes to it.",
+        "trade_off": "Someone on the team would give it up if something else improves."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_current_validation_state",
+      "requirement_id": "gen_inconsistent_data_labeling_current_validation_state",
+      "challenge_id": 102,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The current data pipeline between {data_dave} and the feature store lacks automated validation. Data is passed directly from the ingestion script to the feature store without any checks for consistency or quality. The team relies on manual spot-checking during the daily stand-up to catch obvious issues. There is no formal process for logging or tracking validation results. The system does not currently enforce any rules about data format or range values.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it this way.",
+        "boundary": "Someone on the team will not accept any changes to it.",
+        "trade_off": "Someone on the team would give it up if something else improves."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_current_ingestion_state",
+      "requirement_id": "gen_inconsistent_data_labeling_current_ingestion_state",
+      "challenge_id": 102,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The current data ingestion process is entirely manual. {data_dave} confirmed that there is no automated pipeline in place. All data is collected, cleaned, and prepared for modeling by hand. This approach introduces variability and potential errors into the dataset. The team has not yet implemented any tools or scripts to streamline this workflow. The manual process is time-consuming and relies heavily on individual expertise to ensure data quality.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it this way.",
+        "boundary": "Someone on the team will not accept any changes to it.",
+        "trade_off": "Someone on the team would give it up if something else improves."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_emilia_efficiency_driver",
+      "requirement_id": "gen_inconsistent_data_labeling_emilia_efficiency_driver",
+      "challenge_id": 102,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "During the meeting, {efficiency_emilia} emphasized the need for automated data validation to improve overall efficiency. She believes that increasing automation in this area will streamline processes and reduce manual errors. While discussing the current manual approach, {efficiency_emilia} noted that any level of automation would be beneficial, as it aligns with the goal of enhancing system reliability and performance. She did not mention any specific trade-offs but was clear that more automation would be preferable.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept any manual processes in data validation.",
+        "trade_off": "She would accept a semi-automated approach if it improves data quality.",
+        "fact": "That is simply how the data validation process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_inconsistent_data_labeling_reuben_requirements_boundary",
+      "requirement_id": "gen_inconsistent_data_labeling_reuben_requirements_boundary",
+      "challenge_id": 102,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "During the discussion {requirements_reuben} emphasized that data governance is non-negotiable. He stated explicitly that any proposed system must enforce data governance policies without exception. He would not accept any process that does not meet this requirement, as it would compromise the integrity and security of the data. {requirements_reuben} made it clear that this is a firm boundary and not up for debate.",
+      "wrong_descriptions": {
+        "driver": "He believes more governance will improve requirements compliance.",
+        "trade_off": "He would accept a semi-governed approach if it improves data quality.",
+        "fact": "That is simply how the data governance process is set up today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_manual_checks_cost_control",
+      "requirement_id": "gen_data_quality_conflict_manual_checks_cost_control",
+      "challenge_id": 100,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "meeting_notes",
+      "content": "{data_dave} emphasized during the meeting that manual quality checks are essential for cost control. He stated that any move to automate these checks must not increase costs. He made it clear that if automation leads to higher expenses, he will not support the change. The team discussed the importance of consistent results, but {data_dave} was firm on his stance regarding cost implications.",
+      "wrong_descriptions": {
+        "driver": "He wants to improve cost control by keeping the checks manual.",
+        "trade_off": "He would consider automation if the costs were offset elsewhere.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_automate_for_consistency",
+      "requirement_id": "gen_data_quality_conflict_automate_for_consistency",
+      "challenge_id": 100,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "Hey team, I've been looking at our current quality checks and I think we can do better. {reliability_ruth} brought up automating the quality checks. Having them fully automated would ensure consistent results across all runs. The more we can automate, the more reliable our system becomes. I know there are cost considerations, but the benefits for consistency and reliability are significant. Lets explore this further.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept manual checks if it affects reliability.",
+        "trade_off": "She would accept some cost increase if it ensures consistency.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_data_quality_conflict_cost_conscious_automation",
+      "requirement_id": "gen_data_quality_conflict_cost_conscious_automation",
+      "challenge_id": 100,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "email",
+      "content": "Hi team, I've been thinking about the automation discussions. I know {reliability_ruth} wants everything automated for consistency. I get that, but I think we can find a middle ground. If we use open source tools for automation, we can keep costs down. I would be okay with some manual processes if it means we don't have to invest in expensive proprietary solutions. Lets talk about this in the next meeting. Thanks, {data_dave}.",
+      "wrong_descriptions": {
+        "driver": "He wants to improve cost control by using open source tools.",
+        "boundary": "He will not agree to automation if it increases costs beyond a certain point.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_consistent_automation",
+      "requirement_id": "gen_data_quality_conflict_consistent_automation",
+      "challenge_id": 100,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "Manual quality checks are not an option for me, {reliability_ruth}. I understand that costs are a concern, but the reliability of our models is non-negotiable. If we continue with manual checks, we risk inconsistent results, which could compromise the entire system. I will not accept any solution that does not ensure the highest level of reliability. The quality checks must be fully automated with governed tools to maintain the integrity of our models. This is a line I cannot cross.",
+      "wrong_descriptions": {
+        "driver": "She wants to improve consistency by automating the checks with governed tools.",
+        "trade_off": "She would accept some cost increase if it ensures consistency.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_data_quality_automation",
+      "requirement_id": "gen_data_quality_conflict_data_quality_automation",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "runbook",
+      "content": "The current data quality checks are performed manually by {data_dave}. He reviews a random sample of 100 records from each batch, checking for missing values, outliers, and format inconsistencies. This process takes approximately 2 hours per batch and is documented in the quality assurance log. The results are recorded in a shared spreadsheet, with any issues flagged for further investigation. No automated tools are used in this process.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the quality checks done manually.",
+        "boundary": "Someone on the team will not automate the quality checks.",
+        "trade_off": "Someone on the team would accept manual checks if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_manual_ingestion",
+      "requirement_id": "gen_data_quality_conflict_manual_ingestion",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "ci_log",
+      "content": "The current data ingestion process is entirely manual. {data_dave} has confirmed that no automated checks are in place for the incoming data streams. Every dataset is reviewed by hand before it is passed to the next stage. This manual process is time-consuming and prone to human error, as noted in the latest system audit. The logs show that data validation occurs only after the ingestion is complete, which can lead to delays in identifying issues.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the ingestion process done by hand.",
+        "boundary": "Someone on the team will not automate the ingestion process.",
+        "trade_off": "Someone on the team would accept manual ingestion if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_manual_validation",
+      "requirement_id": "gen_data_quality_conflict_manual_validation",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The current validation process is performed manually by {data_dave}. Each batch of data is inspected visually for consistency, with no automated checks in place. This method results in approximately 2 hours of manual review per dataset. During the last quarter, {data_dave} reviewed 15 datasets manually, with no recorded instances of automated validation tools being utilized. The manual process involves checking each field against predefined criteria, noting discrepancies in a spreadsheet. No automated logs or reports are generated as part of this process.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the validation process done by hand.",
+        "boundary": "Someone on the team will not automate the validation process.",
+        "trade_off": "Someone on the team would accept manual validation if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_missing_feature_store",
+      "requirement_id": "gen_data_quality_conflict_missing_feature_store",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "incident_ticket",
+      "content": "The current pipeline does not include a feature store. Instead, features are recalculated for each model training run. This causes a full reprocessing of the dataset, taking approximately 3 hours per run. The data is pulled directly from the raw data lake, and the feature registry is not implemented. The pipeline produces 2 failed runs per week due to schema inconsistencies.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the feature store to be absent.",
+        "boundary": "Someone on the team will not implement the feature store.",
+        "trade_off": "Someone on the team would accept no feature store if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_manual_labeling",
+      "requirement_id": "gen_data_quality_conflict_manual_labeling",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "ci_log",
+      "content": "The current labeling pipeline, as observed by {data_dave}, relies entirely on manual annotation. No automated tools or scripts are integrated into the workflow. Each data point is reviewed and tagged by hand, which is the standard procedure in the existing setup. This manual process has been consistent across all recent batches, with no deviations noted in the system logs.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the labeling process done by hand.",
+        "boundary": "Someone on the team will not automate the labeling process.",
+        "trade_off": "Someone on the team would accept manual labeling if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_missing_drift_check",
+      "requirement_id": "gen_data_quality_conflict_missing_drift_check",
+      "challenge_id": 100,
+      "stakeholder_id": null,
+      "artifact_type": "incident_ticket",
+      "content": "Currently, the model training process does not include a formal data drift check for {data_dave}'s pipeline. The training proceeds without any automated validation of input data distribution against the baseline. The system logs indicate that training runs are initiated based on scheduled triggers without pre-checks for data consistency. This results in 15 training runs per week, none of which include a drift check. The process relies solely on post-training evaluations to detect any discrepancies in data distribution.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the drift check to be absent.",
+        "boundary": "Someone on the team will not implement the drift check.",
+        "trade_off": "Someone on the team would accept no drift check if it keeps costs low."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_gov_compliance",
+      "requirement_id": "gen_data_quality_conflict_gov_compliance",
+      "challenge_id": 100,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "Hey team, I've been reviewing our data quality checks and I think we need to step it up. The current manual checks are fine, but they're not enough to meet our compliance targets. I've seen {requirements_reuben} mention governed checks in passing, and I think that's the way to go. The more governed checks we have, the better. Itll give us that extra layer of assurance and help us avoid any nasty surprises down the line.",
+      "wrong_descriptions": {
+        "boundary": "He will not accept checks that do not meet compliance standards.",
+        "trade_off": "He would accept some cost increase if it ensures compliance.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_data_quality_conflict_cost_efficiency_balance",
+      "requirement_id": "gen_data_quality_conflict_cost_efficiency_balance",
+      "challenge_id": 100,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "email",
+      "content": "I think we need to balance the cost of automation with the efficiency gains. {efficiency_emilia} would be okay with keeping some manual processes if it keeps the costs down. We can't afford to automate everything right now, but we can prioritize the most critical checks. The goal is to find a middle ground that works for everyone, especially {data_dave} and {reliability_ruth}.",
+      "wrong_descriptions": {
+        "driver": "She wants to improve efficiency by balancing cost and automation.",
+        "boundary": "She will not accept solutions that are too costly or inefficient.",
+        "fact": "That is simply what the current quality checks setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_monica_automated",
+      "requirement_id": "gen_experiment_tracking_dispute_monica_automated",
+      "challenge_id": 101,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "meeting_notes",
+      "content": "{model_monica} emphasized the importance of automated experiment tracking during the last meeting. She believes that the more automated the process is, the better it supports reproducibility. Manual tracking, as {data_dave} suggested, introduces too much variability and makes it difficult to reproduce experiments accurately. {model_monica} is confident that investing in automation will pay off in the long run by ensuring consistency and reliability in our models. She also mentioned that other teams have seen significant benefits from similar implementations.",
+      "wrong_descriptions": {
+        "boundary": "{model_monica} will not accept anything less than automated tracking.",
+        "trade_off": "{model_monica} would compromise on other aspects if automated tracking is achieved.",
+        "fact": "That is simply the current state of experiment tracking."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_dave_manual",
+      "requirement_id": "gen_experiment_tracking_dispute_dave_manual",
+      "challenge_id": 101,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "email",
+      "content": "I understand that {data_dave} wants to ensure reproducibility, but I think we can achieve that without fully automating experiment tracking. If we keep it manual, we can save a significant amount of costs. I'm willing to accept manual tracking if it means we can allocate those resources elsewhere, perhaps to improve our data quality initiatives. Let's discuss this trade-off and see if we can find a middle ground.",
+      "wrong_descriptions": {
+        "driver": "The more manual it is, the better it saves costs.",
+        "boundary": "{data_dave} will not accept automated tracking under any circumstances.",
+        "fact": "That is simply the current state of experiment tracking."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_reuben_audit",
+      "requirement_id": "gen_experiment_tracking_dispute_reuben_audit",
+      "challenge_id": 101,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "document",
+      "content": "The recent audit flagged significant gaps in model reproducibility, which {requirements_reuben} brought up in the last meeting. {requirements_reuben} made it clear that any solution we implement must directly address these findings. There is no flexibility on this point. We cannot move forward with any approach that does not fully comply with the audit requirements. This is non-negotiable for {requirements_reuben}.",
+      "wrong_descriptions": {
+        "driver": "The more reproducible the models are, the better it meets compliance standards.",
+        "trade_off": "{requirements_reuben} would accept a less automated solution if it still meets audit requirements.",
+        "fact": "That is simply the current state of model reproducibility."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_emilia_cost",
+      "requirement_id": "gen_experiment_tracking_dispute_emilia_cost",
+      "challenge_id": 101,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "document",
+      "content": "While automated experiment tracking is ideal for reproducibility, {efficiency_emilia} acknowledges that cost control is crucial in ML initiatives. If a less automated solution can significantly reduce costs without compromising the core objectives, {efficiency_emilia} would be open to considering it. The key is to find a balance that maintains reproducibility while being mindful of the budget. {data_dave}s concerns about cost are valid, and {efficiency_emilia} is willing to explore alternatives that address both reproducibility and cost efficiency.",
+      "wrong_descriptions": {
+        "driver": "The more cost-effective the solution, the better it aligns with business goals.",
+        "boundary": "{efficiency_emilia} will not accept any solution that exceeds the budget.",
+        "fact": "That is simply the current state of cost control."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_monica_boundary",
+      "requirement_id": "gen_experiment_tracking_dispute_monica_boundary",
+      "challenge_id": 101,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "email",
+      "content": "I have been reviewing the current state of our experiment tracking, and I must emphasize that manual tracking is no longer sufficient. {model_monica} will not accept any compromise that falls short of full automation. The reproducibility of our experiments is non-negotiable, and we must implement automated tracking to ensure consistency and reliability. Any solution that does not meet this standard is unacceptable and will not be supported by {model_monica}.",
+      "wrong_descriptions": {
+        "driver": "The more automated it is, the better it supports reproducibility.",
+        "trade_off": "{model_monica} would compromise on other aspects if automated tracking is achieved.",
+        "fact": "That is simply the current state of experiment tracking."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_dave_cost",
+      "requirement_id": "gen_experiment_tracking_dispute_dave_cost",
+      "challenge_id": 101,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "meeting_notes",
+      "content": "{data_dave} emphasized the need to reduce costs in the experiment tracking process. He pointed out that maintaining manual tracking is sufficient for our current needs and that automating this process would introduce unnecessary expenses. He suggested exploring ways to optimize the existing manual system to achieve cost savings. The more we can reduce costs, the better it aligns with data operations goals.",
+      "wrong_descriptions": {
+        "boundary": "{data_dave} will not accept any solution that increases costs.",
+        "trade_off": "{data_dave} would accept a less automated solution if it significantly reduces costs.",
+        "fact": "That is simply the current state of cost savings."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_reuben_comp",
+      "requirement_id": "gen_experiment_tracking_dispute_reuben_comp",
+      "challenge_id": 101,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "{requirements_reuben} emphasized the need for experiment tracking to align with compliance standards. He noted that the closer the alignment, the better it ensures product quality. He suggested that {data_dave}'s manual tracking method might not meet these standards, which could pose risks. He also mentioned that {model_monica} could benefit from automated tracking to meet compliance requirements more effectively.",
+      "wrong_descriptions": {
+        "boundary": "{requirements_reuben} will not accept any solution that does not meet compliance standards.",
+        "trade_off": "{requirements_reuben} would accept a less automated solution if it still meets compliance standards.",
+        "fact": "That is simply the current state of compliance alignment."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_emilia_goal",
+      "requirement_id": "gen_experiment_tracking_dispute_emilia_goal",
+      "challenge_id": 101,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "I think we need to align our experiment tracking with business goals. The more we can tie it to our KPIs and operational capability, the better. {data_dave}, I understand your concerns about costs, but this is about making sure our ML features are truly valuable. {model_monica}, I appreciate your focus on reproducibility, but let's make sure it serves our broader strategy. If we can demonstrate that automated tracking gives us better insights into our business objectives, it will be worth the investment. The key is to show how it enhances our overall operational capability.",
+      "wrong_descriptions": {
+        "boundary": "{efficiency_emilia} will not accept any solution that does not align with business goals.",
+        "trade_off": "{efficiency_emilia} would accept a less automated solution if it still aligns with business goals.",
+        "fact": "That is simply the current state of business goal alignment."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_tracking_state",
+      "requirement_id": "gen_experiment_tracking_dispute_tracking_state",
+      "challenge_id": 101,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The current workflow for experiment tracking is manual. {data_dave} records results in a shared spreadsheet. There are no linked datasets or code versions. The spreadsheet has 12 tabs, one per month. The oldest entry is from 11 months ago. Each tab has between 30 and 60 rows. Columns are timestamp, model version, dataset version, metrics, and notes. There are 388 total entries. No entries are missing. No entries duplicate timestamps. All entries have timestamps.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants experiment tracking to be missing.",
+        "boundary": "Someone on the team will not accept any experiment tracking.",
+        "trade_off": "Someone on the team would give up other aspects if experiment tracking is missing."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_registry_state",
+      "requirement_id": "gen_experiment_tracking_dispute_registry_state",
+      "challenge_id": 101,
+      "stakeholder_id": null,
+      "artifact_type": "incident_ticket",
+      "content": "Model versioning is currently handled via manual file naming conventions in the shared storage folder. {data_dave} has noted that there are 15 distinct files named model.pkl in the folder, with no clear indication of which version corresponds to which training run. The training logs are stored separately in a different folder structure, making it difficult to correlate specific model files with their respective training parameters and datasets.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the model registry to be missing.",
+        "boundary": "Someone on the team will not accept any model registry.",
+        "trade_off": "Someone on the team would give up other aspects if the model registry is missing."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_experiment_tracking_dispute_train_state",
+      "requirement_id": "gen_experiment_tracking_dispute_train_state",
+      "challenge_id": 101,
+      "stakeholder_id": null,
+      "artifact_type": "dashboard_snapshot",
+      "content": "The current state of the {data_dave}'s training pipeline is manual. Every run requires individual setup and execution, with no automated tracking of parameters or results. The lack of standardization means reproducibility is lost between iterations. This process is time-consuming and prone to human error, as documented in the latest pipeline logs. No improvements or changes have been proposed at this time.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the training pipeline to be done by hand.",
+        "boundary": "Someone on the team will not accept any other method for the training pipeline.",
+        "trade_off": "Someone on the team would give up other aspects if the training pipeline is done by hand."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_monica_registry",
+      "requirement_id": "gen_registry_red_tape_monica_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "email",
+      "content": "The current manual process for model registry updates is severely impacting our workflow. {model_monica} has been advocating for automating the model registry to streamline our operations. Automating this process would significantly reduce the time and effort required to manage model versions, allowing us to focus more on model optimization and performance. The more we can automate, the better it will be for our efficiency and productivity. This is a critical step for us to move forward effectively.",
+      "wrong_descriptions": {
+        "boundary": "She will not do her work without it.",
+        "trade_off": "She would give it up if something else is needed.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_registry_red_tape_reuben_registry",
+      "requirement_id": "gen_registry_red_tape_reuben_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "email",
+      "content": "The model registry cannot proceed to automation without first establishing governance controls. This is a non-negotiable requirement. {requirements_reuben.first} will not approve any automation efforts until the governance framework is in place. The security and compliance risks are too significant to bypass this step. Any attempt to shortcut this process will be met with a firm refusal.",
+      "wrong_descriptions": {
+        "driver": "He wants it governed and more is better.",
+        "trade_off": "He would give it up if compliance is not an issue.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_dave_registry",
+      "requirement_id": "gen_registry_red_tape_dave_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "document",
+      "content": "I've been thinking about the model registry situation. If we can't use our custom tool, we'd need to look at alternatives. I've heard good things about some of the commercial options out there. They might not have all the bells and whistles of our custom tool, but they'd get the job done. It's not ideal, but if that's what it takes to move forward, I'm open to it. We just need to make sure whatever we choose meets our security and scalability requirements. I'm happy to help evaluate other options if needed.",
+      "wrong_descriptions": {
+        "driver": "He wants it sourced from a custom tool and more is better.",
+        "boundary": "He will not work with anything else.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_emilia_registry",
+      "requirement_id": "gen_registry_red_tape_emilia_registry",
+      "challenge_id": 103,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "slack_message",
+      "content": "Hi team, I want to bring up automating the model registry. It will streamline the process significantly. The more we can automate here, the better, as it will save time and reduce errors. Additionally, automating the model registry will improve our overall efficiency and allow us to focus on more strategic tasks. This is crucial for our team's productivity and the success of our projects. {efficiency_emilia}",
+      "wrong_descriptions": {
+        "boundary": "She will not do her work without it.",
+        "trade_off": "She would give it up if something else is needed.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_monica_governance",
+      "requirement_id": "gen_registry_red_tape_monica_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "slack_message",
+      "content": "I need the model registry to be fully automated. It’s a critical part of my workflow, and I can’t operate efficiently without it. {model_monica} has made it clear that she will not work with governance in place. It’s a nonstarter for her, and she won’t compromise on this point. The registry must be automated, period.",
+      "wrong_descriptions": {
+        "driver": "She wants it not governed and more is better.",
+        "trade_off": "She would accept governance if needed.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_reuben_automation",
+      "requirement_id": "gen_registry_red_tape_reuben_automation",
+      "challenge_id": 103,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "The model registry automation is a critical path item. {requirements_reuben} proposed automating it, but only if we can ensure compliance. He would give up automation if compliance is ensured. Without this, the project risks delays and security vulnerabilities. We need to find a way to balance speed and security. {requirements_reuben} emphasized that compliance is non-negotiable, and any automation must meet the highest security standards. The team discussed potential solutions, but {requirements_reuben} was firm that compliance must come first, even if it means delaying automation.",
+      "wrong_descriptions": {
+        "driver": "He wants it automated and more is better.",
+        "boundary": "He will not allow it without automation.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_dave_governance",
+      "requirement_id": "gen_registry_red_tape_dave_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "Hi everyone, just wanted to chime in on the model registry discussion. As someone who's worked extensively on data governance, I strongly believe we need to prioritize proper governance for the model registry. The more comprehensive and robust the governance, the better. This isn't just about ticking boxes; it's about ensuring the integrity and reliability of our models. I've seen firsthand how lack of governance can lead to issues down the line, and I think {data_dave} would wholeheartedly agree with that.",
+      "wrong_descriptions": {
+        "boundary": "He will not work without governance.",
+        "trade_off": "He would give up governance if something else is needed.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_emilia_governance",
+      "requirement_id": "gen_registry_red_tape_emilia_governance",
+      "challenge_id": 103,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "{efficiency_emilia} made it clear during the last sprint meeting that she will not proceed with any work unless the model registry is governed first. {efficiency_emilia} emphasized that this is a non-negotiable requirement for her team to ensure compliance and risk management. She stated that without proper governance in place, she cannot guarantee the integrity and security of the models, and thus, any further development or deployment would be halted until this condition is met.",
+      "wrong_descriptions": {
+        "driver": "She wants it governed and more is better.",
+        "trade_off": "She would give it up if something else is needed.",
+        "fact": "That is simply what the model registry setup produces today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_registry_spreadsheet",
+      "requirement_id": "gen_registry_red_tape_registry_spreadsheet",
+      "challenge_id": 103,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The current model registry is implemented as a spreadsheet maintained by {data_dave}. Models are listed with their versions, training dates, and performance metrics. The spreadsheet is updated manually whenever a new model is deployed or an existing one is retrained. There are no automated checks or validations in place, and the spreadsheet is stored on a shared drive accessible to the team.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it as a spreadsheet and more is better.",
+        "boundary": "Someone on the team will not work without a spreadsheet.",
+        "trade_off": "Someone on the team would give it up if something else is needed."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_registry_missing",
+      "requirement_id": "gen_registry_red_tape_registry_missing",
+      "challenge_id": 103,
+      "stakeholder_id": null,
+      "artifact_type": "dashboard_snapshot",
+      "content": "The current model deployment workflow does not use a formal registry system. {data_dave} manually tracks model versions in a shared spreadsheet. The spreadsheet records model name, version number, and deployment timestamp. There are no automated checks or validations performed against this spreadsheet. {data_dave} updates the spreadsheet after each deployment, but there have been instances where updates were delayed by up to 24 hours. The spreadsheet is accessible to all team members, but there is no audit trail of changes made to it.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it missing and more is better.",
+        "boundary": "Someone on the team will not work without it missing.",
+        "trade_off": "Someone on the team would give it up if something else is needed."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_registry_tool",
+      "requirement_id": "gen_registry_red_tape_registry_tool",
+      "challenge_id": 103,
+      "stakeholder_id": null,
+      "artifact_type": "dashboard_snapshot",
+      "content": "The model registry setup currently lacks a dedicated tool. {data_dave} manually tracks models using a shared spreadsheet. The spreadsheet records model versions, training dates, and performance metrics. {data_dave} updates the spreadsheet weekly, but there is no automated version control or access management. The current process relies on email notifications for model updates.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it to have no tool and more is better.",
+        "boundary": "Someone on the team will not work without it having no tool.",
+        "trade_off": "Someone on the team would give it up if something else is needed."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_registry_red_tape_registry_manual",
+      "requirement_id": "gen_registry_red_tape_registry_manual",
+      "challenge_id": 103,
+      "stakeholder_id": null,
+      "artifact_type": "architecture_note",
+      "content": "The model registry {data_dave} uses is currently nonfunctional. Today, models are stored directly in the cloud storage bucket {ml_models_bucket} without metadata tracking. Model versions are manually managed in a shared spreadsheet {model_versions_doc} updated by the team. There is no automated lineage tracking between models and their training pipelines. The current process relies on team members to remember and document model relationships verbally during standup meetings.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants it broken and more is better.",
+        "boundary": "Someone on the team will not work without it broken.",
+        "trade_off": "Someone on the team would give it up if something else is needed."
+      },
+      "is_known": false
     }
   ]
 }
