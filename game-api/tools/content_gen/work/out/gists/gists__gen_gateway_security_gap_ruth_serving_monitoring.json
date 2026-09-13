@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_gateway_security_gap_ruth_serving_monitoring",
+  "stage": "gists",
+  "input_hash": "569b3b045e9048bf61b2a506a1eba623d21ba865a7a43d6d70f051208de5936c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_gateway_security_gap_ruth_serving_monitoring",
+    "fact": "{reliability_ruth} mentioned that the model serving endpoint lacks automated feedback loops for performance monitoring.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Exposed Model Endpoint"
+  },
+  "output": {
+    "gist": "Reliability concerns about performance monitoring feedback loops on the model serving endpoint keep coming up.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring concern regarding reliability but does not specify whether the stakeholder wants to increase reliability (driver), refuses a change (boundary), accepts a loss (trade_off), or is simply stating a fact (fact)."
+  }
+}

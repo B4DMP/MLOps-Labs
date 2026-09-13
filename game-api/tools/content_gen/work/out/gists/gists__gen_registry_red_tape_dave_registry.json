@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_registry_red_tape_dave_registry",
+  "stage": "gists",
+  "input_hash": "ace55c168ff6bd1d77ce97c3620d000199cfe33ff0f60c8b5234e45d6c0c1689",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_registry_red_tape_dave_registry",
+    "fact": "{data_dave} suggested sourcing the model registry from a custom tool.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Registry Red Tape"
+  },
+  "output": {
+    "gist": "The origin of the model registry tooling has been raised by {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions a stakeholder raising a topic regarding the origin of model registry tooling but does not express a desire, refusal, trade-off, or factual assertion about the metric itself."
+  }
+}

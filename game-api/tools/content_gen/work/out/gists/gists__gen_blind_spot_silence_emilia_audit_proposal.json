@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_blind_spot_silence_emilia_audit_proposal",
+  "stage": "gists",
+  "input_hash": "629719094d9ef97d84bd238904d92c971d6db8057538924fef2e06ff1e9ba958",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_blind_spot_silence_emilia_audit_proposal",
+    "fact": "{efficiency_emilia} proposed keeping the performance monitoring done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Blind Spot"
+  },
+  "output": {
+    "gist": "The current state of performance monitoring tools has been raised by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that the current state of performance monitoring tools has been raised, but it does not specify whether this is a driver, boundary, trade-off, or factual statement about the efficiency metric."
+  }
+}

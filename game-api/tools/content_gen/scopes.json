@@ -20,6 +20,27 @@
     ],
     "orphans_block": false
   },
+  "dialogue0": {
+    "description": "Plan 11 D52: gists for the frozen tier 0 templates only. Reuses tier 0's already-approved templates and items; only the gists stage runs new work here.",
+    "phases": [
+      2,
+      3
+    ],
+    "templates_per_phase": 2,
+    "conflict_types": [
+      "soft",
+      "hard"
+    ],
+    "stances_per_template": [
+      6,
+      10
+    ],
+    "facts_per_template": [
+      3,
+      6
+    ],
+    "orphans_block": false
+  },
   "tier1": {
     "description": "Tier 0 plus Requirements, Deployment and Monitoring: two templates in every phase after the introduction, plus each phase's existing fallback.",
     "phases": [

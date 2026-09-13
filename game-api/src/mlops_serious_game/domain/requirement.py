@@ -142,6 +142,12 @@ class StakeholderRequirement(BaseModel):
         default=None,
         description="Id of the earlier item this one refines (same target and stakeholder, earlier phase)",
     )
+    # Gists (D52, plan 11): what a Generic Question turn tells the player. Authored by the
+    # `gists` content stage on stance items only; a Fact or an ungenerated item carries none.
+    gist: Optional[str] = Field(
+        default=None,
+        description="8 to 25 words, third person, names the topic without saying how much they care",
+    )
 
     @model_validator(mode="after")
     def _join_split_wording(self):
@@ -181,6 +187,15 @@ def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str]
             return op.target, op.value if isinstance(op.value, int) else None
 
     return None, None
+
+
+def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metric_label: Optional[str]) -> str:
+    """What a Generic Question turn tells the player (D52): the authored gist when there is one,
+    a template from the metric name otherwise - the game runs before the content does."""
+    if item.gist:
+        return item.gist
+    label = metric_label or "their part of the project"
+    return f"{stakeholder_name} keeps bringing up {label}."
 
 
 def item_target(item: "StakeholderRequirement") -> Optional[str]:

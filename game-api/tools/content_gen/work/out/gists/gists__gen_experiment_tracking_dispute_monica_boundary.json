@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_experiment_tracking_dispute_monica_boundary",
+  "stage": "gists",
+  "input_hash": "17489ebaf121a276ed98922cda485b54dc2a77f565a32680cdf0f1535be18b6d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_experiment_tracking_dispute_monica_boundary",
+    "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Tracking Reproducibility Lost"
+  },
+  "output": {
+    "gist": "The model's experiment tracking and reproducibility have been raised as a topic by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist simply states that experiment tracking and reproducibility were raised as a topic without indicating a specific stance, requirement, or trade-off."
+  }
+}

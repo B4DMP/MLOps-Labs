@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_drift_blind_spot_emilia_governance_redline",
+  "stage": "gists",
+  "input_hash": "7053deed907387fab606be28ea98d5dd057d420c389ed719730b6f77b19d58a8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_drift_blind_spot_emilia_governance_redline",
+    "fact": "{efficiency_emilia} proposed that any future drift detection setup requires automated governance.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Drift"
+  },
+  "output": {
+    "gist": "The efficiency of future drift detection setups and their governance requirements keeps coming up in discussions with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the efficiency of drift detection is a recurring topic in discussions but does not express a desire to increase it, a refusal, an accepted trade-off, or a definitive factual status."
+  }
+}

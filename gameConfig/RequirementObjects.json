@@ -629,7 +629,8 @@
         "target": "req.kpi_definition",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "KPI definitions and their alignment with business goals have been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_missing_kpi_baseline_reuben_kpi_manual",
@@ -669,7 +670,8 @@
       "concedes": {
         "target": "req.kpi_definition",
         "accepts_max_level": 2
-      }
+      },
+      "gist": "The documentation status of the KPI definition process keeps coming up in discussions with {efficiency_emilia}."
     },
     {
       "id": "gen_missing_kpi_baseline_reuben_risk_boundary",
@@ -695,7 +697,8 @@
           "target": "e.risk_acceptance",
           "value": 2
         }
-      ]
+      ],
+      "gist": "The process for manually reviewing risk assessments before finalizing acceptance criteria has been raised in requirements discussions."
     },
     {
       "id": "gen_missing_kpi_baseline_alex_pipeline_driver",
@@ -710,7 +713,8 @@
         "target": "req.data_contracts",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "The automation of data contracts for integration with the ingestion pipeline has been raised by {automation_alex}."
     },
     {
       "id": "gen_missing_kpi_baseline_ruth_monitoring_driver",
@@ -725,7 +729,8 @@
         "target": "req.acceptance_criteria",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "Reliability of ML features through acceptance criteria and real-world performance monitoring has been raised."
     },
     {
       "id": "gen_missing_kpi_baseline_kpi_lost_fact",
@@ -813,7 +818,8 @@
           "target": "req.acceptance_criteria",
           "value": 4
         }
-      ]
+      ],
+      "gist": "The acceptance criteria process and its alignment with security standards has been raised by {requirements_reuben}."
     },
     {
       "id": "gen_the_missing_gate_alex_speed_priority",
@@ -828,7 +834,8 @@
         "target": "req.acceptance_criteria",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "The automation of acceptance criteria keeps coming up whenever new features are discussed with {automation_alex}."
     },
     {
       "id": "gen_the_missing_gate_emilia_kpi_alignment",
@@ -843,7 +850,8 @@
         "target": "req.kpi_definition",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "Defining KPIs to align model performance with business goals keeps coming up in {efficiency_emilia} notes."
     },
     {
       "id": "gen_the_missing_gate_ruth_monitoring_gap",
@@ -860,7 +868,8 @@
         "loss": 3,
         "target": "req.acceptance_criteria",
         "accepts_max_level": 2
-      }
+      },
+      "gist": "The quality gate and its role in monitoring model performance in production have been brought up by {reliability_ruth}."
     },
     {
       "id": "gen_the_missing_gate_emilia_cost_tradeoff",
@@ -875,7 +884,8 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 2
-      }
+      },
+      "gist": "The operational budget impact of building a governed gate has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_the_missing_gate_alex_stability_driver",
@@ -890,7 +900,8 @@
         "target": "e.risk_acceptance",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "The pipeline trigger for acceptance checks is the subject of the note from {automation_alex}."
     },
     {
       "id": "gen_the_missing_gate_ruth_feedback_boundary",
@@ -912,7 +923,8 @@
           "target": "e.risk_acceptance",
           "value": 2
         }
-      ]
+      ],
+      "gist": "The link between risk assessment and acceptance criteria keeps coming up in discussions with {reliability_ruth}."
     },
     {
       "id": "gen_the_missing_gate_missing_kpi_defs",
@@ -993,7 +1005,8 @@
         "target": "data.labeling",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "The manual process for data labeling has been raised as a point of discussion."
     },
     {
       "id": "gen_inconsistent_data_labeling_ruth_governed_labeling",
@@ -1008,7 +1021,8 @@
         "target": "data.labeling",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "The reliability of the data labeling process keeps coming up whenever you talk to {reliability_ruth}."
     },
     {
       "id": "gen_inconsistent_data_labeling_data_dave_boundary",
@@ -1029,7 +1043,8 @@
           "target": "data.labeling",
           "value": 2
         }
-      ]
+      ],
+      "gist": "Manual data labeling processes have been raised as a recurring topic in recent discussions."
     },
     {
       "id": "gen_inconsistent_data_labeling_ruth_boundary",
@@ -1064,7 +1079,8 @@
       "concedes": {
         "target": "data.labeling",
         "accepts_max_level": 3
-      }
+      },
+      "gist": "The semi-manual approach for data labeling has been suggested by {data_dave}."
     },
     {
       "id": "gen_inconsistent_data_labeling_ruth_trade_off",
@@ -1132,7 +1148,8 @@
         "target": "data.validation",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "The speed of manual data validation work keeps coming up in discussions with {efficiency_emilia}."
     },
     {
       "id": "gen_inconsistent_data_labeling_reuben_requirements_boundary",
@@ -1174,7 +1191,8 @@
           "target": "data.validation",
           "value": 2
         }
-      ]
+      ],
+      "gist": "The manual execution of quality checks on the data has been raised as a potential approach."
     },
     {
       "id": "gen_data_quality_conflict_automate_for_consistency",
@@ -1189,7 +1207,8 @@
         "target": "data.validation",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "The consistency of automated reliability checks keeps coming up in conversations with {reliability_ruth}."
     },
     {
       "id": "gen_data_quality_conflict_cost_conscious_automation",
@@ -1210,7 +1229,8 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 3
-      }
+      },
+      "gist": "The choice of open source tools for data automation keeps coming up in conversations with {data_dave}."
     },
     {
       "id": "gen_data_quality_conflict_consistent_automation",
@@ -1231,7 +1251,8 @@
           "target": "data.validation",
           "value": 4
         }
-      ]
+      ],
+      "gist": "Consistency in reliability checks keeps coming up whenever you talk to {reliability_ruth}."
     },
     {
       "id": "gen_data_quality_conflict_data_quality_automation",
@@ -1338,7 +1359,8 @@
       "concedes": {
         "metric_id": "automation",
         "loss": 2
-      }
+      },
+      "gist": "Balancing cost and efficiency in automation has been raised by {efficiency_emilia} during recent discussions."
     },
     {
       "id": "gen_experiment_tracking_dispute_monica_automated",
@@ -1353,7 +1375,8 @@
         "target": "model.experiment_tracking",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "The state of the model has been raised by {model_monica} regarding how experiments are tracked."
     },
     {
       "id": "gen_experiment_tracking_dispute_dave_manual",
@@ -1367,7 +1390,8 @@
       "concedes": {
         "target": "model.experiment_tracking",
         "accepts_max_level": 1
-      }
+      },
+      "gist": "The question of how experiment tracking is handled has been raised by {data_dave} regarding the data workflow."
     },
     {
       "id": "gen_experiment_tracking_dispute_reuben_audit",
@@ -1388,7 +1412,8 @@
           "target": "model.experiment_tracking",
           "value": 2
         }
-      ]
+      ],
+      "gist": "Model reproducibility gaps flagged in a recent audit keep coming up in discussions with {requirements_reuben}."
     },
     {
       "id": "gen_experiment_tracking_dispute_emilia_cost",
@@ -1402,7 +1427,8 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 5
-      }
+      },
+      "gist": "Cost control in machine learning initiatives has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_experiment_tracking_dispute_monica_boundary",
@@ -1423,7 +1449,8 @@
           "target": "model.experiment_tracking",
           "value": 3
         }
-      ]
+      ],
+      "gist": "The model's experiment tracking and reproducibility have been raised as a topic by {model_monica}."
     },
     {
       "id": "gen_experiment_tracking_dispute_dave_cost",
@@ -1438,7 +1465,8 @@
         "target": "model.experiment_tracking",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "Data management in the experiment tracking process has been raised by {data_dave}."
     },
     {
       "id": "gen_experiment_tracking_dispute_reuben_comp",
@@ -1453,7 +1481,8 @@
         "target": "model.experiment_tracking",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "The question of aligning experiment tracking with compliance standards has come up in discussions with {requirements_reuben}."
     },
     {
       "id": "gen_experiment_tracking_dispute_emilia_goal",
@@ -1468,7 +1497,8 @@
         "target": "model.experiment_tracking",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "Alignment between experiment tracking and business goals has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_experiment_tracking_dispute_tracking_state",
@@ -1522,7 +1552,8 @@
         "target": "model.registry",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "The state of the model registry keeps coming up in discussions with {model_monica}."
     },
     {
       "id": "gen_registry_red_tape_reuben_registry",
@@ -1543,7 +1574,8 @@
           "target": "model.registry",
           "value": 4
         }
-      ]
+      ],
+      "gist": "Governance of the model registry keeps coming up in discussions with {requirements_reuben}."
     },
     {
       "id": "gen_registry_red_tape_dave_registry",
@@ -1564,7 +1596,8 @@
       "concedes": {
         "target": "model.registry",
         "accepts_max_level": 2
-      }
+      },
+      "gist": "The origin of the model registry tooling has been raised by {data_dave}."
     },
     {
       "id": "gen_registry_red_tape_emilia_registry",
@@ -1579,7 +1612,8 @@
         "target": "model.registry",
         "level": 2
       },
-      "ops": []
+      "ops": [],
+      "gist": "The efficiency of the model registry workflow has been raised as a topic by {efficiency_emilia}."
     },
     {
       "id": "gen_registry_red_tape_monica_governance",
@@ -1600,7 +1634,8 @@
           "target": "model.registry",
           "value": 3
         }
-      ]
+      ],
+      "gist": "The governance status of the model registry has been mentioned by {model_monica}."
     },
     {
       "id": "gen_registry_red_tape_reuben_automation",
@@ -1635,7 +1670,8 @@
         "target": "model.registry",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "Data governance for the model registry keeps coming up in conversations with {data_dave}."
     },
     {
       "id": "gen_registry_red_tape_emilia_governance",
@@ -1656,7 +1692,8 @@
           "target": "model.registry",
           "value": 4
         }
-      ]
+      ],
+      "gist": "Governing the model registry has been raised as a topic during discussions about operational efficiency."
     },
     {
       "id": "gen_registry_red_tape_registry_spreadsheet",
@@ -1729,7 +1766,8 @@
           "target": "deploy.api_gateway",
           "value": 2
         }
-      ]
+      ],
+      "gist": "The API gateway's manual state and its effect on the deployment pipeline keep coming up in discussions."
     },
     {
       "id": "gen_gateway_security_gap_reuben_compliance_gap",
@@ -1764,7 +1802,8 @@
       "concedes": {
         "target": "deploy.api_gateway",
         "accepts_max_level": 4
-      }
+      },
+      "gist": "The manual gateway configuration inside the deployment pipeline keeps coming up in discussions with {automation_alex}."
     },
     {
       "id": "gen_gateway_security_gap_ruth_serving_monitoring",
@@ -1785,7 +1824,8 @@
           "target": "deploy.serving",
           "value": 3
         }
-      ]
+      ],
+      "gist": "Reliability concerns about performance monitoring feedback loops on the model serving endpoint keep coming up."
     },
     {
       "id": "gen_gateway_security_gap_emilia_cost_focus",
@@ -1800,7 +1840,8 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 3
-      }
+      },
+      "gist": "The cost of the API gateway upgrade and the business value of new model features have been raised."
     },
     {
       "id": "gen_gateway_security_gap_reuben_canary_governance",
@@ -1897,7 +1938,8 @@
           "target": "deploy.shadow",
           "value": 4
         }
-      ]
+      ],
+      "gist": "Automated shadow deployment for pre-release model validation has been proposed by {reliability_ruth}."
     },
     {
       "id": "gen_shadow_environment_dispute_alex_shadow_removed",
@@ -1918,7 +1960,8 @@
           "target": "deploy.shadow",
           "value": 1
         }
-      ]
+      ],
+      "gist": "The shadow environment's role in the automation pipeline has been questioned by {automation_alex}."
     },
     {
       "id": "gen_shadow_environment_dispute_reuben_compliance",
@@ -1933,7 +1976,8 @@
         "target": "deploy.canary_ab",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "Product quality standards and compliance expectations have been raised as a topic of discussion."
     },
     {
       "id": "gen_shadow_environment_dispute_emilia_cost",
@@ -1947,7 +1991,8 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 3
-      }
+      },
+      "gist": "Infrastructure costs for the shadow environment have been raised as a topic regarding the project budget."
     },
     {
       "id": "gen_shadow_environment_dispute_alex_cicd",
@@ -1962,7 +2007,8 @@
         "target": "deploy.cicd",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "The CI/CD pipeline and its automation for seamless integration and deployment keeps coming up in discussions."
     },
     {
       "id": "gen_shadow_environment_dispute_ruth_canary_monitoring",
@@ -2049,7 +2095,8 @@
       "concedes": {
         "target": "ops.performance_monitoring",
         "accepts_max_level": 2
-      }
+      },
+      "gist": "The current state of performance monitoring tools has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_blind_spot_silence_ruth_governance_demand",
@@ -2064,7 +2111,8 @@
         "target": "ops.performance_monitoring",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "Governance of the performance monitoring workflow has been raised by {reliability_ruth}."
     },
     {
       "id": "gen_blind_spot_silence_ruth_rollback_concession",
@@ -2078,7 +2126,8 @@
       "concedes": {
         "target": "ops.rollback",
         "accepts_max_level": 1
-      }
+      },
+      "gist": "The rollback mechanism has been raised by {reliability_ruth}."
     },
     {
       "id": "gen_blind_spot_silence_monica_drift_observation",
@@ -2099,7 +2148,8 @@
           "target": "ops.production_drift_monitoring",
           "value": 3
         }
-      ]
+      ],
+      "gist": "Drift monitoring in the model workflow keeps coming up in conversations with {model_monica}."
     },
     {
       "id": "gen_blind_spot_silence_reuben_compliance_check",
@@ -2120,7 +2170,8 @@
           "target": "ops.observability",
           "value": 4
         }
-      ]
+      ],
+      "gist": "Governance of the observability logs has been proposed by {requirements_reuben}."
     },
     {
       "id": "gen_blind_spot_silence_emilia_cost_concession",
@@ -2134,7 +2185,8 @@
       "concedes": {
         "target": "ops.alerting",
         "accepts_max_level": 2
-      }
+      },
+      "gist": "The current state of the alerting system keeps coming up whenever you talk to {efficiency_emilia}."
     },
     {
       "id": "gen_blind_spot_silence_fact_perf_monitoring_state",
@@ -2208,7 +2260,8 @@
           "target": "ops.production_drift_monitoring",
           "value": 4
         }
-      ]
+      ],
+      "gist": "The efficiency of future drift detection setups and their governance requirements keeps coming up in discussions with {efficiency_emilia}."
     },
     {
       "id": "gen_drift_blind_spot_ruth_manual_review_stance",
@@ -2229,7 +2282,8 @@
           "target": "ops.production_drift_monitoring",
           "value": 2
         }
-      ]
+      ],
+      "gist": "The adequacy of manual weekly reviews for drift monitoring has been raised in conversations with {reliability_ruth}."
     },
     {
       "id": "gen_drift_blind_spot_emilia_kpi_driver",
@@ -2244,7 +2298,8 @@
         "target": "ops.production_drift_monitoring",
         "level": 4
       },
-      "ops": []
+      "ops": [],
+      "gist": "Drift monitoring efficiency has come up in recent conversations with {efficiency_emilia}."
     },
     {
       "id": "gen_drift_blind_spot_ruth_cost_tradeoff",
@@ -2258,7 +2313,8 @@
       "concedes": {
         "metric_id": "reliability",
         "loss": 3
-      }
+      },
+      "gist": "The cost comparison between manual reviews and automated systems has been raised regarding reliability."
     },
     {
       "id": "gen_drift_blind_spot_monica_model_impact",
@@ -2273,7 +2329,8 @@
         "target": "ops.production_drift_monitoring",
         "level": 3
       },
-      "ops": []
+      "ops": [],
+      "gist": "Drift detection for the model has been raised by {model_monica} as a topic of interest."
     },
     {
       "id": "gen_drift_blind_spot_reuben_compliance_boundary",
@@ -2294,7 +2351,8 @@
           "target": "ops.production_drift_monitoring",
           "value": 3
         }
-      ]
+      ],
+      "gist": "Drift monitoring and compliance standards have been raised as a topic in discussions with {requirements_reuben}."
     },
     {
       "id": "gen_drift_blind_spot_drift_monitoring_broken",

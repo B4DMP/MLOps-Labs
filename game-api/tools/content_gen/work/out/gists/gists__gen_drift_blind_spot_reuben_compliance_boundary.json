@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_drift_blind_spot_reuben_compliance_boundary",
+  "stage": "gists",
+  "input_hash": "212aa15702f8054f5d54656fe531fe7d60277005a18a197eedeb9c00dbc28a97",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_drift_blind_spot_reuben_compliance_boundary",
+    "fact": "{requirements_reuben} proposed that drift monitoring must meet compliance standards.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Drift"
+  },
+  "output": {
+    "gist": "Drift monitoring and compliance standards have been raised as a topic in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that drift monitoring and compliance standards were raised as a topic, but it does not specify a direction, refusal, trade-off, or factual commitment regarding those requirements."
+  }
+}

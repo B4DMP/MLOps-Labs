@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_environment_dispute_emilia_cost",
+  "stage": "gists",
+  "input_hash": "4a31c0ebc03c40dad6e91da2cf09bc3d8dbb24241e2f039969923fc19b46043e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_environment_dispute_emilia_cost",
+    "fact": "{efficiency_emilia} mentioned that the infrastructure costs for the shadow environment are a concern for the project budget.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Shadow"
+  },
+  "output": {
+    "gist": "Infrastructure costs for the shadow environment have been raised as a topic regarding the project budget.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that infrastructure costs were raised as a topic but does not specify whether this is a driver, boundary, trade-off, or mere fact about the project's efficiency or budget stance."
+  }
+}

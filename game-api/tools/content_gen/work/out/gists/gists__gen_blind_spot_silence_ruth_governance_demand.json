@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_blind_spot_silence_ruth_governance_demand",
+  "stage": "gists",
+  "input_hash": "344ce6f2d819ecc27f64294995fc237222d409cbb38e0b3f2e03aca843e02775",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_blind_spot_silence_ruth_governance_demand",
+    "fact": "{reliability_ruth} asked for the performance monitoring to be governed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Blind Spot"
+  },
+  "output": {
+    "gist": "Governance of the performance monitoring workflow has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the governance of the reliability monitoring workflow has been raised, but it does not specify whether this is a driver, boundary, trade-off, or fact regarding the metric itself."
+  }
+}

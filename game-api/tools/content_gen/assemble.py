@@ -31,6 +31,9 @@ def collect(ctx) -> dict:
     artifacts = {r["inputs"]["requirement"]["id"]: r for r in ctx.approved("artifacts")}
     objections = {r["item_id"].removeprefix("objections:"): r for r in ctx.approved("objections")}
     fragments = ctx.approved("fragments")
+    # Gists (D52) are optional: a stance item with none yet uses the runtime fallback, so nothing
+    # here is added to `missing` for it.
+    gists = {r["item_id"].removeprefix("gists:"): r for r in ctx.approved("gists")}
 
     missing = []
     challenges = []
@@ -64,7 +67,7 @@ def collect(ctx) -> dict:
     if missing:
         raise AssemblyError("not everything is approved yet:\n  " + "\n  ".join(missing))
     return {"challenges": challenges, "requirements": requirements, "artifacts": artifacts,
-            "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req}
+            "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req, "gists": gists}
 
 
 def _conflict_target(challenge: dict):
@@ -124,7 +127,11 @@ def assemble(ctx, dry_run: bool = False) -> dict:
         {ch["template_id"]: _conflict_target(ch) for ch in data["challenges"]},
     )
     for template_id, req in data["requirements"]:
-        req = req.model_copy(update={"challenge_id": ids[template_id]})
+        gist_rec = data["gists"].get(req.id)
+        update = {"challenge_id": ids[template_id]}
+        if gist_rec is not None:
+            update["gist"] = gist_rec["output"]["gist"]
+        req = req.model_copy(update=update)
         reqs["requirements"].append(req.model_dump(mode="json", exclude_none=True, exclude_defaults=False))
         art = data["artifacts"][req.id]
         is_known = req.id in known_ids

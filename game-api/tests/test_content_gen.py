@@ -346,6 +346,96 @@ def test_pipeline_assembles_into_a_config_the_game_loads_and_the_gates_pass(env)
     assert pick.template_id == "ch_ingest_outage"
 
 
+# ---------- gists (D52, plan 11) ----------
+
+def respond_gists(schema, system, user):
+    name = schema.__name__
+    if name == "GistOut":
+        m = re.search(r"Metric this note is filed under: (\S+)", user)
+        metric = m.group(1) if m else "data"
+        return {"gist": f"People keep raising something related to {metric} whenever this topic comes up."}
+    if name == "GistVerdict":
+        m = re.search(r"related to (\S+) whenever", user)
+        metric = m.group(1) if m else "data"
+        return {"metric_id": metric, "reading": "none", "reason": "no direction stated"}
+    raise AssertionError(name)
+
+
+def test_gists_plan_covers_stance_items_only_not_facts(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    run("items", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["items:ch_ingest_outage"])
+
+    items = STAGES["gists"].plan(ctx)
+    # 6 stances (2 driver for dave, 1 boundary for ruth, 1 driver for ruth, 1 trade_off for
+    # emilia, 1 driver for reuben) in the ITEMS fixture; the 3 facts are excluded.
+    assert len(items) == 6
+    assert all(i.item_id.startswith("gists:gen_ingest_outage_") for i in items)
+    assert all(i.depends_on == ["items:ch_ingest_outage"] for i in items)
+
+
+def test_gists_check_is_the_blind_reclassification_gate_reversed(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    run("items", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["items:ch_ingest_outage"])
+    [item] = [i for i in STAGES["gists"].plan(ctx) if i.item_id.endswith("dave_validation")]
+    assert item.inputs["metric_id"] == "data"
+
+    ok = {"gist": "People keep raising something related to data whenever this topic comes up.",
+          "verdict_metric_id": "data", "verdict_reading": "none", "verdict_reason": "no direction stated"}
+    assert STAGES["gists"].check(ok, item, ctx) == []
+
+    wrong_metric = {**ok, "verdict_metric_id": "reliability"}
+    errors = STAGES["gists"].check(wrong_metric, item, ctx)
+    assert any("thought this was about 'reliability'" in e for e in errors)
+
+    leaks_direction = {**ok, "verdict_reading": "driver"}
+    errors = STAGES["gists"].check(leaks_direction, item, ctx)
+    assert any("committed to 'driver'" in e for e in errors)
+
+    cares_how_much = {**ok, "gist": "He insists that data quality checks run on every batch without exception."}
+    errors = STAGES["gists"].check(cares_how_much, item, ctx)
+    assert any("how much they care" in e for e in errors)
+
+    too_short = {**ok, "gist": "Data quality."}
+    errors = STAGES["gists"].check(too_short, item, ctx)
+    assert any("too short" in e for e in errors)
+
+
+def test_gists_assemble_writes_gist_onto_stance_requirements_only(env):
+    from content_gen.assemble import assemble
+
+    ctx, ledger = env
+    llm = FakeLLM(respond)
+    for stage in ("templates", "items", "artifacts", "objections", "fragments"):
+        report = run(stage, ctx, ledger, llm)
+        assert not report.failed, report.failed
+        ledger.approve([r.item_id for r in ledger.rows(stage)])
+
+    report = run("gists", ctx, ledger, FakeLLM(respond_gists))
+    assert not report.failed, report.failed
+    ledger.approve([r.item_id for r in ledger.rows("gists")])
+
+    assemble(ctx)
+    reqs = json.loads((ctx.config_dir / "RequirementObjects.json").read_text())["requirements"]
+    gen_reqs = [r for r in reqs if r["id"].startswith("gen_ingest_outage_")]
+    stances = [r for r in gen_reqs if r["type"] != "fact"]
+    facts = [r for r in gen_reqs if r["type"] == "fact"]
+    assert stances and all(r.get("gist") for r in stances)
+    assert facts and not any(r.get("gist") for r in facts)
+
+
+def test_dialogue0_scope_is_registered_and_reuses_tier0s_shape():
+    from content_gen.context import load_scope
+
+    scope = load_scope("dialogue0")
+    assert scope["phases"] == load_scope("tier0")["phases"]
+
+
 # ---------- split wording ----------
 
 def test_split_wording_keeps_the_fact_still_across_retags():

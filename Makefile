@@ -61,3 +61,14 @@ content-validate-tier1:
 
 content-assemble-tier1:
 	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier1 assemble"
+
+# Plan 11 D52: gists only touch the dialogue0 scope (the already-approved tier0 templates), so
+# `run` is safe to expose directly here unlike the other stages' generation targets.
+content-run-gists:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope dialogue0 --provider westai run --stage gists"
+
+content-status-dialogue0:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope dialogue0 status"
+
+content-validate-dialogue0:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope dialogue0 validate"

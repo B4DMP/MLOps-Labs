@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_the_missing_gate_ruth_feedback_boundary",
+  "stage": "gists",
+  "input_hash": "20275a4b214b916836e5b384bd0d8c1956b4b96c4f731c1131f4a779bda26f89",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_the_missing_gate_ruth_feedback_boundary",
+    "fact": "{reliability_ruth} proposed that the risk assessment must feed into the acceptance criteria to catch issues early.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Missing Gate"
+  },
+  "output": {
+    "gist": "The link between risk assessment and acceptance criteria keeps coming up in discussions with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes a recurring topic in discussions but does not indicate whether the stakeholder wants to increase reliability, refuses a boundary, accepts a trade-off, or states a specific fact about the current state."
+  }
+}

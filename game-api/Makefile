@@ -37,6 +37,11 @@ generate-artifacts:
 generate-objections:
 	PYTHONPATH=tools uv run python -m content_gen --scope tier0 --provider westai run --stage objections
 
+# Plan 11 D52: gists only need the already-approved tier0 templates/items, so this runs against
+# the dialogue0 scope (same templates, minimal) rather than tier0/tier1.
+generate-gists:
+	PYTHONPATH=tools uv run python -m content_gen --scope dialogue0 --provider westai run --stage gists
+
 assemble-content:
 	PYTHONPATH=tools uv run python -m content_gen --scope tier0 assemble
 
@@ -48,3 +53,6 @@ validate-content:
 
 validate-content-tier0:
 	PYTHONPATH=tools uv run python -m content_gen --scope tier0 validate
+
+validate-content-dialogue0:
+	PYTHONPATH=tools uv run python -m content_gen --scope dialogue0 validate
