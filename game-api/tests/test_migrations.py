@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import sqlalchemy
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 
 from mlops_serious_game.config import settings
 
@@ -116,3 +116,31 @@ def test_upgrade_head_is_idempotent(throwaway_db):
     cfg = _alembic_config()
     command.upgrade(cfg, "head")
     command.upgrade(cfg, "head")  # must not raise
+
+
+def test_upgrade_head_from_a_database_migrated_on_main(throwaway_db):
+    """main's add_campaign_attributes shipped as `e5f6a7b8c9d0`, the id graph-redesign uses for
+    add_graph_op_log. A database migrated on main is stamped `e5f6a7b8c9d0` with the campaign
+    columns but no graph_op_log; alembic/env.py must notice and upgrade it without a manual stamp."""
+    from alembic import command
+
+    cfg = _alembic_config()
+    command.upgrade(cfg, "d4e5f6a7b8c9")
+    engine = create_engine(settings.POSTGRES_URI)
+    with engine.begin() as conn:
+        # What main's version of e5f6a7b8c9d0 did.
+        conn.execute(text(
+            "ALTER TABLE campaign_data "
+            "ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE, "
+            "ADD COLUMN IF NOT EXISTS use_questionnaire BOOLEAN NOT NULL DEFAULT TRUE"
+        ))
+        conn.execute(text("UPDATE alembic_version SET version_num = 'e5f6a7b8c9d0'"))
+
+    command.upgrade(cfg, "head")
+
+    with engine.connect() as conn:
+        tables = set(inspect(conn).get_table_names())
+        version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+    engine.dispose()
+    assert "graph_op_log" in tables
+    assert version == "d0e1f2a3b4c5"
