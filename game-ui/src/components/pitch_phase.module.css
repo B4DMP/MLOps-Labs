@@ -1889,12 +1889,19 @@
   color: #fff;
 }
 
+/* Collapsed: the rail is a strip of vertical tabs (Conversation history, Event log) that share
+   the available height evenly, rather than each claiming the full strip. */
 .chatSide:not(.chatSideOpen) .chatTab {
+  flex: 1 1 0;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
+}
+
+.chatSide:not(.chatSideOpen) .chatTab + .chatTab {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .chatSide:not(.chatSideOpen) .chatTabLabel {
@@ -1922,7 +1929,7 @@
 }
 
 .chatBody {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
   padding: 6px;
@@ -2182,6 +2189,14 @@
   align-items: flex-start;
   padding: 8px 0 22px;
   min-height: 210px;
+}
+
+/* Gather (D49): one panel per open card-play conversation, stacked below the fan. */
+.gatherConversations {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 4px 16px;
 }
 
 .fanCard {
@@ -2580,6 +2595,83 @@
 
 .moodDown {
   background: #b45309;
+}
+
+/* Patience in words (D50): stacks below the mood pill, only shown once it isn't "full". */
+.patienceTag {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #7c5a3a;
+  border-radius: 999px;
+  padding: 1px 7px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.patienceLimit {
+  background: #b91c1c;
+}
+
+/* Sound someone out (D50): a small button under the seat, only in Build your case. */
+.soundOutBtn {
+  align-self: center;
+  margin-top: 2px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.soundOutBtn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #fff;
+}
+
+.soundOutBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.soundOutReply {
+  align-self: center;
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.soundOut_on_board {
+  background: #16a34a;
+}
+
+.soundOut_lukewarm {
+  background: #b45309;
+}
+
+.soundOut_would_object {
+  background: #b91c1c;
 }
 
 @keyframes moodPop {

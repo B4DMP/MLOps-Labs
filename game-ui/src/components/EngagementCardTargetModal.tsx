@@ -268,8 +268,8 @@ export default function EngagementCardTargetModal({
                     <span>
                       {isIntelCard
                         ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
-                        : card.intel_reveal_count !== undefined && card.intel_reveal_count > 0
-                          ? `Settles up to ${card.intel_reveal_count} note${card.intel_reveal_count > 1 ? "s" : ""} per target: unconfirmed ones you hold are checked first, then new ones come up. Results land in your dossier.`
+                        : card.turns !== undefined && card.turns > 0
+                          ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
                           : "Triggers targeted dialogue responses & steers engagement dynamics."}
                     </span>
                   </div>

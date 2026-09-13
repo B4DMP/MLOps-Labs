@@ -144,14 +144,14 @@ export default function EngagementCardComponent({
               </span>
             ) : null}
 
-            {/* Intel Reveal Count Badge */}
-            {card.target_type !== "intel" && (card.intel_reveal_count ?? 0) > 0 && (
+            {/* Turns Badge (D49) */}
+            {card.target_type !== "intel" && (card.turns ?? 0) > 0 && (
               <span
                 className={`${styles.metaBadge} ${styles.intelBadge}`}
-                title={`Reveals ${card.intel_reveal_count} requirement${(card.intel_reveal_count ?? 1) > 1 ? "s" : ""} per stakeholder`}
+                title={`Buys ${card.turns} turn${(card.turns ?? 1) > 1 ? "s" : ""} per target`}
               >
                 <Icon icon="ph:files-bold" />
-                <span>+{card.intel_reveal_count}</span>
+                <span>+{card.turns}</span>
               </span>
             )}
           </div>

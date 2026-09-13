@@ -42,7 +42,7 @@ export interface IntelEntry {
   id: string;
   debug?: IntelDebugInfo;
   requirement_id?: string;
-  intel_type: string; // e.g. "unconfirmed", "verified"
+  intel_type: string; // "unconfirmed", "inferred", "refuted" or "verified" (D49/plan 11)
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
   /** Split wording: the part that holds still whatever the player tags it (bold). */
@@ -237,22 +237,32 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   }
 };
 
-type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
+type IntelPipStatus = "on_record" | "confirmed" | "inferred" | "unconfirmed" | "refuted" | "hidden";
 
 /** Pips follow the stamps' colours, so they teach the player nothing new. */
 const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
   on_record: { label: "On record", styleClass: styles.pipOnRecord },
   confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
+  // Gather's Test a hypothesis (D49): tested, not spoken aloud - counts toward readiness (Q36)
+  // the same as Verified, but reads as a lighter stamp than a public confirmation.
+  inferred: { label: "Inferred", styleClass: styles.pipInferred },
   unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
+  // A tested guess that did not hold up. Free re-tag, same as Unconfirmed.
+  refuted: { label: "Refuted", styleClass: styles.pipRefuted },
   hidden: { label: "Not found yet", styleClass: styles.pipHidden },
 };
 
 /** Settled first, so the row fills up from the left like a progress bar. */
-const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
+const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "inferred", "unconfirmed", "refuted", "hidden"];
 
 const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
-  if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
-  return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+  const confidence = (item.intel_type || "unconfirmed").toLowerCase();
+  if (confidence === "verified") {
+    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+  }
+  if (confidence === "inferred") return "inferred";
+  if (confidence === "refuted") return "refuted";
+  return "unconfirmed";
 };
 
 /**
@@ -271,7 +281,7 @@ const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
 /** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
 const describeIntelPips = (pips: IntelPipStatus[]): string => {
   const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
-  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
+  const breakdown = (["on_record", "confirmed", "inferred", "unconfirmed", "refuted"] as const)
     .filter((status) => countOf(status) > 0)
     .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
   const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
@@ -426,7 +436,9 @@ export default function StakeholderDossier({
   const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
-  const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
+  const [confFilter, setConfFilter] = useState<
+    "all" | "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted"
+  >("all");
   /** The page the player was on before opening the system, so the button toggles back. */
   const lastPersonPage = useRef(0);
 
@@ -651,13 +663,23 @@ export default function StakeholderDossier({
 
   // A note with no phase is never filtered out by phase: it predates the stamp, and filtering it
   // away would lose it entirely.
-  /** on record, verified or still unconfirmed: the three states a note can be in. */
-  const confidenceOf = (item: { intel_type?: string; source?: string }): "on_record" | "verified" | "unconfirmed" => {
-    if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
-    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+  /** The states a note can be in (D49/plan 11 added inferred and refuted). */
+  const confidenceOf = (
+    item: { intel_type?: string; source?: string },
+  ): "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted" => {
+    const confidence = (item.intel_type || "unconfirmed").toLowerCase();
+    if (confidence === "verified") {
+      return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+    }
+    if (confidence === "inferred") return "inferred";
+    if (confidence === "refuted") return "refuted";
+    return "unconfirmed";
   };
 
-  const CONF_ORDER: Record<string, number> = { unconfirmed: 0, verified: 1, on_record: 2 };
+  // Unconfirmed and Refuted sort first: those are the ones still worth doing something about.
+  const CONF_ORDER: Record<string, number> = {
+    unconfirmed: 0, refuted: 0, inferred: 1, verified: 1, on_record: 2,
+  };
 
   const visibleChains = (st: StakeholderDossierEntry): IntelChain[] => {
     const needle = search.trim().toLowerCase();
@@ -916,6 +938,26 @@ export default function StakeholderDossier({
         </div>
       );
     }
+    if (lower === "inferred") {
+      return (
+        <div
+          className={`${styles.rubberStamp} ${styles.stampInferred}`}
+          title="Inferred: your read on this held up when you tested it in conversation. Not spoken aloud, but it counts."
+        >
+          ✓ INFERRED
+        </div>
+      );
+    }
+    if (lower === "refuted") {
+      return (
+        <div
+          className={`${styles.rubberStamp} ${styles.stampRefuted}`}
+          title="Refuted: that guess did not hold up. Re-tag it and try again - this never shows the true tag."
+        >
+          ✗ REFUTED
+        </div>
+      );
+    }
     return (
       <div
         className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}
@@ -1027,6 +1069,8 @@ export default function StakeholderDossier({
             {([
               ["all", "ph:stack-bold", "All", "Everything you have written down"],
               ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
+              ["inferred", "ph:check-bold", "Inferred", "Tested in conversation and it held up. Not spoken aloud, but it counts."],
+              ["refuted", "ph:x-bold", "Refuted", "A tested guess that missed. Free re-tag."],
               ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
               ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
             ] as const).map(([key, icon, label, hint]) => (
@@ -1533,7 +1577,12 @@ export default function StakeholderDossier({
               const typeKey = item.categorized_type || "driver";
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.driver;
               const noteId = item.id || `note-${idx}`;
-              const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
+              const noteConfidence = (item.intel_type || "unconfirmed").toLowerCase();
+              const isUnconfirmed = noteConfidence === "unconfirmed";
+              const isInferred = noteConfidence === "inferred";
+              const isRefuted = noteConfidence === "refuted";
+              // Refuted (D49): a tested guess that missed. Free re-tag, same as an unconfirmed one.
+              const canRetag = isUnconfirmed || isRefuted;
               // Split items carry a fact that holds still and a reading that changes with the tag:
               // bold the fact, italicise the reading while it is unconfirmed. Legacy items only have
               // one sentence, and the only span that reliably survives a re-tag is the name.
@@ -1548,13 +1597,18 @@ export default function StakeholderDossier({
                 : noteDescription;
               const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
               const sourceCaption = getSourceCaption(item);
-              // Paper colour matches the stamp: orange still open, blue public, green earned.
-              const noteStatusClass = isUnconfirmed
-                ? ""
-                : isPublicRecord
-                  ? styles.noteOnRecord
-                  : styles.noteConfirmed;
-              const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
+              // Paper colour matches the stamp: orange still open, red refuted, blue public,
+              // green earned, teal inferred.
+              const noteStatusClass = isRefuted
+                ? styles.noteRefuted
+                : isUnconfirmed
+                  ? ""
+                  : isPublicRecord
+                    ? styles.noteOnRecord
+                    : isInferred
+                      ? styles.noteInferred
+                      : styles.noteConfirmed;
+              const isRetagging = canRetag && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
                 (noteId === highlightedIntelId ||
@@ -1608,14 +1662,14 @@ export default function StakeholderDossier({
 
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
-                    {isUnconfirmed ? (
+                    {canRetag ? (
                       <button
                         className={`${styles.noteCategoryTag} ${catMeta.styleClass}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveRetagNoteId(isRetagging ? null : noteId);
                         }}
-                        title="Click to re-tag this intel item's category"
+                        title={isRefuted ? "That guess was wrong - click to re-tag" : "Click to re-tag this intel item's category"}
                       >
                         <span>{catMeta.icon} {catMeta.label}</span>
                         <span className={styles.reTagIconBtn} aria-label="Re-tag">
@@ -1699,7 +1753,7 @@ export default function StakeholderDossier({
                     <div className={styles.intelText}>
                       "
                       {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
-                      {isUnconfirmed ? (
+                      {isUnconfirmed || isRefuted ? (
                         <em className={styles.intelReading}>
                           <GlossaryText text={noteReading} surface="intel_notes" />
                         </em>

@@ -51,7 +51,7 @@
   background: linear-gradient(180deg, #3d2d23 0%, #251b14 100%);
   color: #f5ebd9;
   padding: 8px 16px;
-  cursor: grab;
+  /*cursor: grab;*/
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -66,7 +66,7 @@
 }
 
 .binderTitle {
-  font-size: 1.05rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.6px;
   color: #f7eedc;
@@ -196,7 +196,7 @@
   z-index: 40;
   /* Higher than header and tabs so flipping page stays on top */
   /* A strip of binding under the page, so it still ends on a bound edge */
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-radius: 0 0 10px 10px;
 }
 
@@ -339,13 +339,14 @@
 .flipBookWrapper {
   flex: 1;
   position: relative;
+  /* z-axis 3D positioning */
   perspective: 1400px;
   background: #eadecc;
   /* Desk background behind notebook */
   overflow: visible;
   /* Crucial: allow 3D page rotation without clipping! */
-  margin-left: 10px;
-  border-left: 4px solid #3d2d23;
+  margin-left: 2px;
+  margin-right: 2px;
   z-index: 40;
 }
 
@@ -371,8 +372,7 @@
   box-shadow:
     inset 25px 0 20px -15px rgba(0, 0, 0, 0.25),
     /* Spine shadow fold */
-    inset -5px 0 15px rgba(0, 0, 0, 0.05),
-    4px 0 10px rgba(0, 0, 0, 0.15);
+    inset -5px 0 15px rgba(0, 0, 0, 0.05);
   /* The frame itself does not scroll: it is a column holding the scrolling wall and, under
      it, the filter dock, which is how the dock lands on the page edge without sticky. */
   overflow: hidden;
@@ -1212,6 +1212,18 @@
   --note-bg-alt: #86efac;
 }
 
+.noteInferred {
+  --note-bg: #ccfbf1;
+  /* Pastel Teal: tested, not spoken aloud (D49) */
+  --note-bg-alt: #99f6e4;
+}
+
+.noteRefuted {
+  --note-bg: #fecaca;
+  /* Pastel Red: a tested guess that missed (D49) */
+  --note-bg-alt: #fca5a5;
+}
+
 
 .stickyNote:hover {
   transform: translateY(-4deg) rotate(0deg) scale(1.01);
@@ -1349,6 +1361,25 @@
   border: 1.5px dotted #b91c1c;
   background: rgba(254, 226, 226, 0.65);
   transform: rotate(-3deg);
+}
+
+/* Gather's Test a hypothesis, tag right (D49): tested in conversation, not spoken aloud in
+   public - counts the same as Confirmed (Q36), reads a shade lighter so the two stay tellable
+   apart. */
+.stampInferred {
+  color: #0d9488;
+  border: 1.5px dashed #0d9488;
+  background: rgba(204, 251, 241, 0.65);
+  transform: rotate(2deg);
+}
+
+/* Test a hypothesis, tag wrong (D49): crossed out, an open invitation to re-tag. */
+.stampRefuted {
+  color: #b91c1c;
+  border: 1.5px solid #b91c1c;
+  background: rgba(254, 202, 202, 0.65);
+  transform: rotate(-2deg);
+  text-decoration: line-through;
 }
 
 /* Empty State Note */
@@ -1601,6 +1632,18 @@
 .pipUnconfirmed {
   --pip-paper: #fdba74;
   --pip-edge: #ea580c;
+}
+
+/* Gather's Test a hypothesis (D49): tested, not spoken aloud - a lighter green than Confirmed. */
+.pipInferred {
+  --pip-paper: #a7f3d0;
+  --pip-edge: #0d9488;
+}
+
+/* A tested guess that missed. Free re-tag, same as Unconfirmed, but its own colour. */
+.pipRefuted {
+  --pip-paper: #fecaca;
+  --pip-edge: #b91c1c;
 }
 
 .pipHidden {

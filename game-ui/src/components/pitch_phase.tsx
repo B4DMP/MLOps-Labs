@@ -21,9 +21,11 @@ import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyIn
 import { faceForEmotionState } from "../utils/emotionFace";
 import styles from "./pitch_phase.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
+import type { GatherOptionKind, GatherStatePayload } from "../types/Gather";
 import type { GameEventPayload } from "../types/GameEvent";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import EventLogModal from "./EventLogModal";
+import GatherConversationPanel from "./GatherConversationPanel";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import GlossaryText from "./glossary/GlossaryText";
@@ -119,6 +121,8 @@ interface PitchStatePayload {
   card_item_ids: string[];
   main_archetype?: string | null;
   secondary_archetype?: string | null;
+  // The Opener (D48): one opening line per archetype the player has tagged for this room.
+  opener_archetypes?: string[];
   available_items: PitchItem[];
   card: PitchItem[];
   predictions: Prediction[];
@@ -133,11 +137,22 @@ interface PitchStatePayload {
   amendments_left: number;
   escalation_points: number;
   patience: Record<string, number>;
+  // Patience in words, not pips (D50): "full" (nothing shown), "impatient", or "at their limit".
+  patience_words?: Record<string, string>;
+  hardened_item_ids?: string[];
   outcome?: string | null;
   error?: string | null;
   applied?: Record<string, unknown>;
   stalemate?: boolean;
+  // Sound someone out (D50): set only on the response to a `pitch:sound_out` call.
+  sound_out?: { stakeholder_id: string; reply: string } | null;
 }
+
+const SOUND_OUT_LABEL: Record<string, string> = {
+  on_board: "on board",
+  lukewarm: "lukewarm",
+  would_object: "would object",
+};
 
 interface PitchPhaseProps {
   currentPhase: number;
@@ -308,8 +323,12 @@ export default function PitchPhase({
   const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
   const [verificationModal, setVerificationModal] = useState<IntelVerificationResultData | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
+  // Gather (D49): one open conversation per card play per target, keyed "card_id:stakeholder_id".
+  const [conversations, setConversations] = useState<Record<string, GatherStatePayload>>({});
   // The event log (D51): every change, with a cause. `log:history` seeds it, `log:events` appends.
   const [events, setEvents] = useState<GameEventPayload[]>([]);
+  // Sound someone out (D50): the last decided reply per stakeholder this challenge.
+  const [soundOutReplies, setSoundOutReplies] = useState<Record<string, string>>({});
 
   const cards = engagementCardsProp || [];
   const tokens = attentionTokensProp !== undefined ? attentionTokensProp : localTokens;
@@ -483,6 +502,9 @@ export default function PitchPhase({
     if (payload.secondary_archetype) setSecondary(payload.secondary_archetype);
     setObjectionIndex(0);
     setAmendFor(null);
+    if (payload.sound_out) {
+      setSoundOutReplies((prev) => ({ ...prev, [payload.sound_out!.stakeholder_id]: payload.sound_out!.reply }));
+    }
   });
 
   useEffect(() => {
@@ -500,6 +522,32 @@ export default function PitchPhase({
       const seen = new Set(prev.map((e) => e.seq));
       return [...prev, ...payload.events.filter((e) => !seen.has(e.seq))];
     });
+  });
+
+  // The latest emotion/patience event per stakeholder: what a seat tag's cause comes from.
+  const latestEmotionEventByStakeholder = useMemo(() => {
+    const map: Record<string, GameEventPayload> = {};
+    events.forEach((e) => {
+      if (e.kind !== "emotion" || e.direction === "none" || !e.subject_id) return;
+      if (!map[e.subject_id] || e.seq > map[e.subject_id].seq) map[e.subject_id] = e;
+    });
+    return map;
+  }, [events]);
+  const latestPatienceEventByStakeholder = useMemo(() => {
+    const map: Record<string, GameEventPayload> = {};
+    events.forEach((e) => {
+      if (e.kind !== "patience" || !e.subject_id) return;
+      if (!map[e.subject_id] || e.seq > map[e.subject_id].seq) map[e.subject_id] = e;
+    });
+    return map;
+  }, [events]);
+
+  // ── gather:state (D49) ───────────────────────────────────────────────────
+  // One conversation per card play per target. A fresh pitch:state keeps the card builder's
+  // available intel and predictions in step with whatever the turn just revealed or inferred.
+  useWebSocketEvent<GatherStatePayload>("gather:state", (payload) => {
+    setConversations((prev) => ({ ...prev, [`${payload.card_id}:${payload.stakeholder_id}`]: payload }));
+    emit("pitch:state", base);
   });
 
   // ── intel engagement events ───────────────────────────────────────────────
@@ -580,13 +628,12 @@ export default function PitchPhase({
     if (!playingCard) return;
     const nextTokens = tokens - playingCard.token_cost;
     setTokens(nextTokens);
-    setIsWaiting(true);
-    emit("intel:play_engagement_card", {
+    // D49: a stakeholder-target card buys a conversation (turns), not a one-shot LLM exchange.
+    emit("gather:open", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
       card_id: playingCard.id,
       stakeholder_ids: stakeholderIds,
-      attention_tokens: nextTokens,
     });
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);
@@ -597,6 +644,54 @@ export default function PitchPhase({
     }));
     setPlayingCard(null);
   };
+
+  // ── gather conversation handlers (D49) ────────────────────────────────────
+  const handleGatherAsk = (
+    conversation: GatherStatePayload,
+    option: GatherOptionKind,
+    extra?: { item_id?: string; archetype?: string },
+  ) => {
+    emit("gather:ask", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: conversation.card_id,
+      stakeholder_id: conversation.stakeholder_id,
+      option,
+      ...extra,
+    });
+  };
+
+  const handleGatherClose = (conversation: GatherStatePayload) => {
+    emit("gather:close", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: conversation.card_id,
+      stakeholder_id: conversation.stakeholder_id,
+    });
+  };
+
+  const dismissConversation = (key: string) => {
+    setConversations((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  // What the dossier already knows about a note - the same text a Test a hypothesis or a
+  // Trial Balloon menu item names, so the player recognises which note or profile is on offer.
+  const dossierItemDescriptions = useMemo(() => {
+    const map: Record<string, string> = {};
+    (dossierData || []).forEach((st) => {
+      (st.intel_items || []).forEach((item) => {
+        if (item.id) map[item.id] = item.description;
+      });
+    });
+    return map;
+  }, [dossierData]);
+  const itemLabel = (id: string) => dossierItemDescriptions[id] || "this note";
+  const archetypeLabel = (name: string) =>
+    convincerArchetypes[name]?.label || convincerArchetypes[name]?.name || name;
 
   const handleConfirmPlayCardIntel = (item: { id: string }) => {
     if (!playingCard) return;
@@ -647,6 +742,10 @@ export default function PitchPhase({
       main_archetype: main || null,
       secondary_archetype: secondary || null,
     });
+
+  // Sound someone out (D50): a stakeholder reacts to the draft card, at the cost of one point
+  // of their patience. Never opens the objection round.
+  const soundOut = (stakeholderId: string) => emit("pitch:sound_out", { ...base, stakeholder_id: stakeholderId });
 
   const startObjections = () => {
     saveCard();
@@ -781,6 +880,10 @@ export default function PitchPhase({
                   // The outer seats sit slightly lower, which reads as a table edge curving away.
                   const outer = seatIndex === 0 || seatIndex === state.reads.length - 1;
                   const moodShift = state.emotion_deltas?.[read.stakeholder_id] ?? 0;
+                  const moodEvent = latestEmotionEventByStakeholder[read.stakeholder_id];
+                  const moodUp = moodEvent ? moodEvent.direction === "up" : moodShift > 0;
+                  const patienceWord = state.patience_words?.[read.stakeholder_id];
+                  const patienceEvent = latestPatienceEventByStakeholder[read.stakeholder_id];
                   return (
                     <div
                       key={read.stakeholder_id}
@@ -806,13 +909,26 @@ export default function PitchPhase({
                             flip={seatIndex >= state.reads.length / 2}
                           />
                           <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
-                          {!!moodShift && (
+                          {(!!moodShift || moodEvent) && (
                             <span
-                              className={`${styles.moodShift} ${moodShift > 0 ? styles.moodUp : styles.moodDown}`}
-                              title={`How you answered has moved ${stakeholderName(read.stakeholder_id)} ${moodShift > 0 ? "your way" : "against you"} this round.`}
+                              className={`${styles.moodShift} ${moodUp ? styles.moodUp : styles.moodDown}`}
+                              // Seat tags show the latest cause per stakeholder (plan 11): the
+                              // pill itself stays a short word so it fits under the avatar, the
+                              // true cause ("colder: that argument doesn't speak to her") is the
+                              // tooltip - the same text the event log lists in full below.
+                              title={moodEvent ? moodEvent.text : `How you answered has moved ${stakeholderName(read.stakeholder_id)} ${moodShift > 0 ? "your way" : "against you"} this round.`}
                             >
-                              <Icon icon={moodShift > 0 ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
-                              {moodShift > 0 ? "warmer" : "colder"}
+                              <Icon icon={moodUp ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
+                              {moodUp ? "warmer" : "colder"}
+                            </span>
+                          )}
+                          {patienceWord && patienceWord !== "full" && (
+                            <span
+                              className={`${styles.patienceTag} ${patienceWord === "at their limit" ? styles.patienceLimit : ""}`}
+                              title={patienceEvent ? patienceEvent.text : `${stakeholderName(read.stakeholder_id)} is ${patienceWord}.`}
+                            >
+                              <Icon icon="ph:hourglass-medium-bold" />
+                              {patienceWord}
                             </span>
                           )}
                           {read.boundary_violated && (
@@ -835,6 +951,32 @@ export default function PitchPhase({
                         </span>
                       </button>
 
+                      {state.stage === "PREPARE" && localStage === "BUILD" && (() => {
+                        const patienceLeft = state.patience[read.stakeholder_id] ?? 3;
+                        const disabled = patienceLeft <= 1;
+                        return (
+                          <button
+                            className={styles.soundOutBtn}
+                            disabled={disabled}
+                            onClick={() => soundOut(read.stakeholder_id)}
+                            title={
+                              disabled
+                                ? "They are at their last point - sounding them out risks nothing left to spend"
+                                : "Sound them out: how would they react to this draft? Costs one point of their patience."
+                            }
+                          >
+                            <Icon icon="ph:ear-bold" />
+                          </button>
+                        );
+                      })()}
+                      {soundOutReplies[read.stakeholder_id] && (
+                        <span
+                          className={`${styles.soundOutReply} ${styles[`soundOut_${soundOutReplies[read.stakeholder_id]}`] || ""}`}
+                          title="What they'd say if you committed this card right now."
+                        >
+                          {SOUND_OUT_LABEL[soundOutReplies[read.stakeholder_id]] || soundOutReplies[read.stakeholder_id]}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
@@ -966,6 +1108,24 @@ export default function PitchPhase({
                         );
                       })}
                     </div>
+
+                    {Object.keys(conversations).length > 0 && (
+                      <div className={styles.gatherConversations}>
+                        {Object.entries(conversations).map(([key, conversation]) => (
+                          <GatherConversationPanel
+                            key={key}
+                            conversation={conversation}
+                            itemLabel={itemLabel}
+                            archetypeLabel={archetypeLabel}
+                            avatar={stakeholders[conversation.stakeholder_id]?.avatar}
+                            stakeholderColor={stakeholders[conversation.stakeholder_id]?.stakeholder_color}
+                            onAsk={(option, extra) => handleGatherAsk(conversation, option, extra)}
+                            onClose={() => handleGatherClose(conversation)}
+                            onDismiss={() => dismissConversation(key)}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -1061,14 +1221,15 @@ export default function PitchPhase({
                       })}
                     </div>
 
-                    {/* Framing: one decision, folded away until it is being made. */}
+                    {/* Opener (D48): one opening line per archetype tagged for this room, plus
+                        "any other" for the rest. Folded away until it is being made. */}
                     <div className={styles.convincerSection}>
                       <button className={styles.convincerTitle} onClick={() => setFramingOpen((v) => !v)}>
                         <Icon icon="ph:broadcast-bold" className="me-1" />
-                        Framing
+                        Opener
                         {main
                           ? <span className={styles.framingPick}>{convincerArchetypes[main]?.label || convincerArchetypes[main]?.name || main}</span>
-                          : <span className={styles.framingNone}>none picked, worth a few points of buy-in</span>}
+                          : <span className={styles.framingNone}>any other - worth a few points of buy-in to name one</span>}
                         {secondary && (
                           <span className={styles.framingBackup}>
                             second audience: {convincerArchetypes[secondary]?.label || convincerArchetypes[secondary]?.name || secondary}
@@ -1080,10 +1241,12 @@ export default function PitchPhase({
                       {framingOpen && (
                         <>
                           <span className={styles.builderHint}>
-                            Pick the one that matches how most of this room thinks. It is worth a few points of buy-in.
+                            How you open. Pick the line that matches a profile you have tagged for this room, or
+                            speak to nobody in particular.
                           </span>
                           <div className={styles.profileRow}>
-                            {Object.entries(convincerArchetypes).map(([key, prof]) => {
+                            {(state.opener_archetypes || []).map((key) => {
+                              const prof = convincerArchetypes[key] || {};
                               const isMain = main === key;
                               return (
                                 <button
@@ -1097,29 +1260,44 @@ export default function PitchPhase({
                                     {prof.label || prof.name || key}
                                     {isMain && <span className={styles.roleMain}>picked</span>}
                                   </span>
-                                  {prof.strategy && <span className={styles.profileStrategy}>{prof.strategy}</span>}
+                                  {prof.strategy && <span className={styles.profileStrategy}>"{prof.strategy}"</span>}
                                 </button>
                               );
                             })}
+                            <button
+                              className={`${styles.profileCard} ${!main ? styles.profileMain : ""}`}
+                              onClick={() => { setMain(""); setSecondary(""); setFramingOpen(false); }}
+                            >
+                              <span className={styles.profileName}>
+                                Any other
+                                {!main && <span className={styles.roleMain}>picked</span>}
+                              </span>
+                              <span className={styles.profileStrategy}>
+                                Something for everyone else in the room - no lean either way.
+                              </span>
+                            </button>
                           </div>
 
-                          {main && (
+                          {main && (state.opener_archetypes || []).filter((key) => key !== main).length > 0 && (
                             <div className={styles.backupRow}>
                               <span className={styles.backupLabel}>
                                 Second audience (optional): a hedge for anyone the main framing does not reach
                               </span>
                               <div className={styles.backupChips}>
-                                {Object.entries(convincerArchetypes)
-                                  .filter(([key]) => key !== main)
-                                  .map(([key, prof]) => (
-                                    <button
-                                      key={key}
-                                      className={`${styles.backupChip} ${secondary === key ? styles.backupChipOn : ""}`}
-                                      onClick={() => setSecondary(secondary === key ? "" : key)}
-                                    >
-                                      {prof.label || prof.name || key}
-                                    </button>
-                                  ))}
+                                {(state.opener_archetypes || [])
+                                  .filter((key) => key !== main)
+                                  .map((key) => {
+                                    const prof = convincerArchetypes[key] || {};
+                                    return (
+                                      <button
+                                        key={key}
+                                        className={`${styles.backupChip} ${secondary === key ? styles.backupChipOn : ""}`}
+                                        onClick={() => setSecondary(secondary === key ? "" : key)}
+                                      >
+                                        {prof.label || prof.name || key}
+                                      </button>
+                                    );
+                                  })}
                               </div>
                             </div>
                           )}
@@ -1416,7 +1594,11 @@ export default function PitchPhase({
                 )}
               </div>
               <aside className={`${styles.chatSide} ${chatOpen ? styles.chatSideOpen : ""}`}>
-                <button className={styles.chatTab} onClick={() => setChatOpen((v) => !v)} title="The room's conversation">
+                <button
+                  className={styles.chatTab}
+                  onClick={() => setChatOpen((v) => !v)}
+                  title="The room's conversation"
+                >
                   <Icon icon={chatOpen ? "ph:caret-right-bold" : "ph:chat-circle-text-bold"} />
                   <span className={styles.chatTabLabel}>Conversation history</span>
                   {speaking && <span className={styles.chatTalking} title="Someone is talking" />}
