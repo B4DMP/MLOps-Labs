@@ -224,6 +224,7 @@
 .tabButton {
   flex: 1 1 0;
   min-width: 0;
+  max-width: 148px;
   background: color-mix(in srgb, var(--tab-color, #38bdf8) 12%, #d6c7b2);
   border: 1px solid color-mix(in srgb, var(--tab-color, #38bdf8) 35%, #8c7865);
   border-top: 3px solid var(--tab-color, #38bdf8);
@@ -264,20 +265,28 @@
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
 }
 
+/* Two explicit lines - the name is still one name, just broken at the same word every time
+   instead of wherever the browser happens to wrap a narrow single line. Both lines share one
+   style: it's not a label over a name, just the name on two lines. Side padding keeps a long
+   line's text ellipsizing before it reaches the corner badges (change / intel count), which
+   overlap the tab's top corners rather than pushing content down out of their way. */
 .tabName {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 12px;
+}
+
+.tabNameLine {
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1.15;
   color: #1a120b;
-  text-align: center;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .tabEmotionRow {

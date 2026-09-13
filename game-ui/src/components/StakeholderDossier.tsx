@@ -1953,6 +1953,11 @@ export default function StakeholderDossier({
               : "";
             const tabPips = getIntelPips(st);
             const tabFoundCount = tabPips.filter((status) => status !== "hidden").length;
+            // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
+            // Reuben"): split on the first space so the tab always breaks there, on its own two
+            // lines, rather than wherever the browser happens to wrap a too-narrow single line.
+            const [tabRoleWord, ...tabGivenNameWords] = st.name.split(" ");
+            const tabGivenName = tabGivenNameWords.join(" ");
 
             return (
               <button
@@ -1986,7 +1991,16 @@ export default function StakeholderDossier({
                     {tabFoundCount}/{tabPips.length}
                   </span>
                 )}
-                <span className={styles.tabName}>{st.name}</span>
+                <span className={styles.tabName}>
+                  {tabGivenName ? (
+                    <>
+                      <span className={styles.tabNameLine}>{tabRoleWord}</span>
+                      <span className={styles.tabNameLine}>{tabGivenName}</span>
+                    </>
+                  ) : (
+                    <span className={styles.tabNameLine}>{tabRoleWord}</span>
+                  )}
+                </span>
                 <div className={styles.tabEmotionRow}>
                   <Icon
                     icon={iconForEmotionState(emotion)}
