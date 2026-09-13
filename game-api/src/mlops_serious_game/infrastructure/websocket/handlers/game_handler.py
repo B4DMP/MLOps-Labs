@@ -361,18 +361,19 @@ async def handle_game_init(
                     if isinstance(rec.action_card, dict) and rec.action_card.get("title"):
                         saved_action_card = {**rec.action_card, "played_engagement_card_ids": saved_played_engagement_card_ids, "engagement_card_targets": saved_engagement_card_targets}
                         break
-        else:
-            #  DEBUG: Skip intro questions / challenge for fresh game sessions
-            if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0 and game_progress_index == 2:
-                last_gamestate_id[1] = 1
 
     await send_progress_index_payload(websocket, game_progress_index)
 
     if(game_progress_index==2):
-        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
-            challenge_index=last_gamestate_id[1],
-            phase_index=last_gamestate_id[0]
-        )
+        if latest_session is None:
+            # No challenge recorded yet for this player: deal one through the same scheduler
+            # every later challenge goes through, so retired/legacy templates are never dealt here.
+            curr_challenge: Challenge = select_first_challenge(username)
+        else:
+            curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
+                challenge_index=last_gamestate_id[1],
+                phase_index=last_gamestate_id[0]
+            )
         # The graph ships dark for now: a failure here must never block the game.
         try:
             graph_store.enter_challenge(username, curr_challenge)
@@ -494,15 +495,18 @@ async def handle_progress_update(
 
     if game_progress_index == 2:
         last_gamestate_id = payload.get("last_gamestate_id", [0, 0, 0])
-        #DEBUG skip intro questions
-        if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0:
-            last_gamestate_id[1] = 1
-            
+        is_fresh_start = last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0
+
         initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
-        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
-            challenge_index=last_gamestate_id[1],
-            phase_index=last_gamestate_id[0]
-        )
+        if is_fresh_start:
+            # A brand-new player has no challenge yet: deal one through the same scheduler
+            # every later challenge goes through, so retired/legacy templates are skipped here too.
+            curr_challenge: Challenge = select_first_challenge(username)
+        else:
+            curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
+                challenge_index=last_gamestate_id[1],
+                phase_index=last_gamestate_id[0]
+            )
         if curr_challenge:
             await manager.send_event(
                 websocket=websocket,
@@ -601,6 +605,35 @@ async def store_or_update_challenge(
                     )
                 )
 
+def _first_non_retired_challenge(start_phase_id: int) -> Challenge | None:
+    """Last-resort safety net for the fallback paths below: `translate_challenge_index`'s
+    positional lookup can land on a retired/legacy template, so when the scheduler itself
+    can't run, walk the phases directly instead and skip anything retired."""
+    for phase in PhaseFactory.get_phases():
+        if phase.id < start_phase_id:
+            continue
+        for challenge in phase.challenges:
+            if not challenge.retired:
+                return challenge
+    return None
+
+
+def select_first_challenge(username: str) -> Challenge | None:
+    """Picks a new player's very first challenge via the same scheduler as every later pick,
+    so a retired/legacy template is never dealt just because it's challenge #1.
+
+    Falls back to plain sequential order if the graph cannot be read, same as select_next_challenge.
+    """
+    try:
+        graph = GraphFactory.get_graph()
+        replayed = graph_store.load_state(username)
+        ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
+        return next_challenge(PhaseFactory.get_phases(), current_phase_id=1, played=set(), ctx=ctx, seed=username)
+    except Exception as e:
+        print(f"[Challenge selection error, falling back to sequential] {e}")
+        return _first_non_retired_challenge(1)
+
+
 def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Challenge | None:
     """Picks the next challenge from the player's graph state. None ends the game.
 
@@ -628,7 +661,7 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
         return next_challenge(PhaseFactory.get_phases(), current_phase, played, ctx, seed=username)
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
-        return PhaseFactory.translate_challenge_index(challenge_index=challenge_id + 1, phase_index=phase_id)
+        return _first_non_retired_challenge(phase_id)
 
 
 async def handle_state_update_request(
