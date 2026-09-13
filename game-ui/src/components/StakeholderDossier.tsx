@@ -9,6 +9,7 @@ import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
 import { INTEL_TAGS } from "../types/IntelTag";
+import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -356,31 +357,6 @@ export const phaseShortLabel = (phase?: number | null, phases?: PhaseData[]): st
   const named = phases?.[phase]?.phase_name || "";
   return PHASE_SHORT_LABELS.find(([pattern]) => pattern.test(named))?.[1] || `P${phase + 1}`;
 };
-
-const getEmotionIcon = (emotionStr: string): string => {
-  const lower = (emotionStr || "neutral").toLowerCase();
-  if (
-    lower.includes("positive") ||
-    lower.includes("happy") ||
-    lower.includes("supportive") ||
-    lower.includes("enthusiastic") ||
-    lower.includes("relieved")
-  ) {
-    return "ph:smiley-bold";
-  }
-  if (
-    lower.includes("negative") ||
-    lower.includes("angry") ||
-    lower.includes("frustrated") ||
-    lower.includes("skeptical") ||
-    lower.includes("anxious") ||
-    lower.includes("overwhelmed")
-  ) {
-    return "ph:smiley-sad-bold";
-  }
-  return "ph:smiley-meh-bold";
-};
-
 
 export default function StakeholderDossier({
   isOpen,
@@ -1113,6 +1089,7 @@ export default function StakeholderDossier({
             <div className={styles.avatarBox}>
               <StakeholderAvatarComponent
                 avatar={avatar}
+                emotion={faceForEmotionState(emotionDisplay)}
                 stakeholderColor={stakeholderColor}
                 stakeholderId={st.stakeholder_id}
                 isFramed={false}
@@ -1148,7 +1125,7 @@ export default function StakeholderDossier({
                 title={`Emotional State: "${emotionDisplay}"`}
               >
                 <Icon
-                  icon={getEmotionIcon(emotionDisplay)}
+                  icon={iconForEmotionState(emotionDisplay)}
                   className={styles.metricIcon}
                   style={{ color: emotionColor }}
                 />
@@ -1944,7 +1921,7 @@ export default function StakeholderDossier({
                 <span className={styles.tabName}>{st.name}</span>
                 <div className={styles.tabEmotionRow}>
                   <Icon
-                    icon={getEmotionIcon(emotion)}
+                    icon={iconForEmotionState(emotion)}
                     className={styles.tabEmotionIcon}
                   />
                   <span className={styles.tabEmotionLabel} title={`Emotional State: ${emotion}`}>
