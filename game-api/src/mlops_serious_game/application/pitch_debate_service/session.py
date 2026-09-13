@@ -66,6 +66,8 @@ class BoundaryWarning(BaseModel):
     target: Optional[str] = None
     checkable: bool = True
     violated: bool = False
+    target_name: Optional[str] = None
+    line: Optional[str] = Field(default=None, description="The Boundary in the player's own intel wording")
 
 
 class StakeholderRead(BaseModel):
@@ -210,6 +212,31 @@ def boundary_checks(
             item_id=item.id, stakeholder_id=item.stakeholder_id, target=target, violated=violated
         ))
     return warnings
+
+
+def player_boundary_warnings(graph: TechnicalGraph, warnings: list[BoundaryWarning], held: list) -> list[BoundaryWarning]:
+    """The warnings the builder may show: Boundaries the player holds and filed as Boundaries.
+
+    The reads and the outcome still check every Boundary in the room. This only decides what the
+    screen says, so a line the player never found (or filed as something else) is not revealed by
+    name before anyone objects with it.
+    """
+    mine = {
+        i.id: i for i in held
+        if getattr(i, "categorized_type", None) == IntelTag.BOUNDARY
+    }
+    out: list[BoundaryWarning] = []
+    for w in warnings:
+        item = mine.get(w.item_id)
+        if item is None:
+            continue
+        name = None
+        if w.target and graph.is_component(w.target):
+            name = graph.component(w.target).name
+        elif w.target and graph.is_edge(w.target):
+            name = getattr(graph.edge(w.target), "name", None)
+        out.append(w.model_copy(update={"target_name": name or w.target, "line": item.description}))
+    return out
 
 
 def capped_item_ids(graph: TechnicalGraph, state: GraphState, items: list) -> set[str]:

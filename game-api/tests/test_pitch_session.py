@@ -83,6 +83,26 @@ def test_a_pure_boundary_with_no_suggested_still_gets_a_fog_target_from_holds(re
     assert (w.target, w.checkable, w.violated) == ("data.validation", False, False)
 
 
+def test_the_builder_only_names_boundaries_the_player_holds_and_filed_as_boundaries(real):
+    """A line the player never found, or filed as something else, must not be revealed by the
+    builder's warnings. The outcome still counts it; only the screen stays quiet."""
+    state = GraphState.from_config(real)
+    holds = {"component": "data.validation", "op": "gte", "level": 3, "on": "nominal"}
+    found = _item("b1", "reliability_ruth", "boundary", holds=holds)
+    unfound = _item("b2", "data_dave", "boundary", holds=holds)
+    misfiled = _item("b3", "reliability_ruth", "boundary", categorized_type="driver", holds=holds)
+    room = ["reliability_ruth", "data_dave"]
+
+    warnings = session.boundary_checks(real, state, [found, unfound, misfiled], [], room)
+    assert len(warnings) == 3  # ground truth is untouched
+
+    shown = session.player_boundary_warnings(real, warnings, held=[found, misfiled])
+
+    assert [w.item_id for w in shown] == ["b1"]
+    assert shown[0].target_name == real.component("data.validation").name
+    assert shown[0].line == "desc:b1"
+
+
 # ---------- objections ----------
 
 def test_objections_fire_for_uncovered_drivers_and_violated_boundaries(real):
