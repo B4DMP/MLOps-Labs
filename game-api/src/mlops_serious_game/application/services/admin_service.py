@@ -1,10 +1,20 @@
 import datetime
 from typing import Any
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, or_
 
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.phase_factory import PhaseFactory
-from mlops_serious_game.infrastructure.database import Campaign, GameProgression, GameChallenge, GameSession, User, get_session
+from mlops_serious_game.domain.question_factory import QuestionFactory
+from mlops_serious_game.domain.metric_factory import MetricFactory
+from mlops_serious_game.infrastructure.database import (
+    Campaign,
+    GameProgression,
+    GameChallenge,
+    GameSession,
+    User,
+    IntelItem,
+    get_session,
+)
 
 
 def get_campaign_users(campaign_key: str) -> list[str]:
@@ -24,6 +34,8 @@ def get_campaigns_data() -> list[dict[str, Any]]:
                 {
                     "name": c.campaign_name,
                     "key": c.campaign_key,
+                    "is_active": c.is_active,
+                    "use_questionnaire": c.use_questionnaire,
                     "users": get_campaign_users(c.campaign_key),
                 }
                 for c in campaigns_list
@@ -36,6 +48,20 @@ def get_player_data() -> dict[str, Any]:
     try:
         player_data: dict[str, Any] = {}
         with get_session() as session:
+            # 1. Populate all registered users first
+            users = session.scalars(select(User)).all()
+            campaigns = {c.campaign_key: c.campaign_name for c in session.scalars(select(Campaign)).all()}
+            for user in users:
+                player_data[user.user_name] = {
+                    "maxProgressIndex": 0,
+                    "furthestProgression": (0, 0),
+                    "lastPlayed": None,
+                    "firstPlayed": None,
+                    "campaign_name": campaigns.get(user.campaign_key, "Not Found"),
+                    "campaign_key": user.campaign_key,
+                }
+
+            # 2. Add progression records
             progressions = session.scalars(select(GameProgression)).all()
             for prog in progressions:
                 player = prog.user_name
@@ -47,16 +73,19 @@ def get_player_data() -> dict[str, Any]:
                         "furthestProgression": (0, 0),
                         "lastPlayed": ts,
                         "firstPlayed": ts,
+                        "campaign_name": "Not Found",
+                        "campaign_key": "",
                     }
                 else:
                     player_data[player]["maxProgressIndex"] = max(
                         player_data[player]["maxProgressIndex"], g_idx
                     )
-                    if ts and ts > player_data[player]["lastPlayed"]:
+                    if ts and (not player_data[player]["lastPlayed"] or ts > player_data[player]["lastPlayed"]):
                         player_data[player]["lastPlayed"] = ts
-                    if ts and ts < player_data[player]["firstPlayed"]:
+                    if ts and (not player_data[player]["firstPlayed"] or ts < player_data[player]["firstPlayed"]):
                         player_data[player]["firstPlayed"] = ts
 
+            # 3. Add challenge records
             game_sessions = session.scalars(select(GameChallenge)).all()
             for gs in game_sessions:
                 player = gs.user_name
@@ -68,6 +97,9 @@ def get_player_data() -> dict[str, Any]:
                         "maxProgressIndex": 2,
                         "furthestProgression": (p_idx, c_idx),
                         "lastPlayed": ts,
+                        "firstPlayed": ts,
+                        "campaign_name": "Not Found",
+                        "campaign_key": "",
                     }
                 else:
                     if (p_idx, c_idx) > player_data[player]["furthestProgression"]:
@@ -78,46 +110,44 @@ def get_player_data() -> dict[str, Any]:
                     ):
                         player_data[player]["lastPlayed"] = ts
 
-            users = session.scalars(select(User)).all()
-            campaigns = {c.campaign_key: c.campaign_name for c in session.scalars(select(Campaign)).all()}
-            for user in users:
-                if user.user_name in player_data:
-                    player_data[user.user_name]["campaign_name"] = campaigns.get(
-                        user.campaign_key, "Not Found"
-                    )
-
         return player_data
     except Exception:
         return {}
 
 
-def get_valid_players_set(session=None) -> set[str]:
+def get_valid_players_set(session=None, campaign_key: str | None = None) -> set[str]:
     valid_players = set()
     try:
+        def _fetch(s):
+            stmt = select(User.user_name)
+            if campaign_key and campaign_key != "all":
+                stmt = stmt.where(User.campaign_key == campaign_key)
+            users = s.scalars(stmt).all()
+            return set(u for u in users if u)
+
         if session:
-            users = session.scalars(select(User.user_name)).all()
-            return set(u for u in users if u)
+            return _fetch(session)
         with get_session() as session_inst:
-            users = session_inst.scalars(select(User.user_name)).all()
-            return set(u for u in users if u)
+            return _fetch(session_inst)
     except Exception:
         pass
     return valid_players
 
 
-def get_finished_players_set(session=None) -> set[str]:
+def get_finished_players_set(session=None, campaign_key: str | None = None) -> set[str]:
     finished = set()
     try:
+        def _fetch(s):
+            valid = get_valid_players_set(s, campaign_key=campaign_key)
+            users = s.scalars(
+                select(GameProgression.user_name).where(GameProgression.game_progress_index == 4)
+            ).all()
+            return set(u for u in users if u and u in valid)
+
         if session:
-            users = session.scalars(
-                select(GameProgression.user_name).where(GameProgression.game_progress_index == 4)
-            ).all()
-            return set(u for u in users if u)
+            return _fetch(session)
         with get_session() as session_inst:
-            users = session_inst.scalars(
-                select(GameProgression.user_name).where(GameProgression.game_progress_index == 4)
-            ).all()
-            return set(u for u in users if u)
+            return _fetch(session_inst)
     except Exception:
         pass
     return finished
@@ -191,11 +221,11 @@ def calculate_outro_percentage(player_name: str) -> int:
         return 0
 
 
-def calculate_intro_questionaire_average() -> int:
+def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
-            valid_players = get_valid_players_set(session)
-            finished_players = get_finished_players_set(session)
+            valid_players = get_valid_players_set(session, campaign_key=campaign_key)
+            finished_players = get_finished_players_set(session, campaign_key=campaign_key)
             sum_score = 0
             player_amount = 0
             intro_progs = session.scalars(
@@ -215,10 +245,10 @@ def calculate_intro_questionaire_average() -> int:
         return 0
 
 
-def calculate_outro_questionaire_average() -> int:
+def calculate_outro_questionaire_average(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
-            valid_players = get_valid_players_set(session)
+            valid_players = get_valid_players_set(session, campaign_key=campaign_key)
             sum_score = 0
             player_amount = 0
             outro_progs = session.scalars(
@@ -238,77 +268,68 @@ def calculate_outro_questionaire_average() -> int:
         return 0
 
 
-def calculate_total_players() -> int:
+def calculate_total_players(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
-            amount = session.scalar(
-                select(func.count(GameProgression.id)).where(
-                    GameProgression.game_progress_index == 1
-                )
-            )
-            return amount or 0
+            return len(get_valid_players_set(session, campaign_key=campaign_key))
     except Exception:
         return 0
 
 
-def calculate_finished_players() -> int:
+def calculate_finished_players(campaign_key: str | None = None) -> int:
     try:
         with get_session() as session:
-            valid_players = get_valid_players_set(session)
-            amount = 0
-            outro_progs = session.scalars(
-                select(GameProgression).where(GameProgression.game_progress_index == 4)
-            ).all()
-            for prog in outro_progs:
-                if prog.user_name in valid_players:
-                    amount += 1
-            return amount
+            return len(get_finished_players_set(session, campaign_key=campaign_key))
     except Exception:
         return 0
 
 
-def calculate_metric_sum_per_challenge() -> list[float]:
+def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[float]:
     try:
         sum_per_challenge = []
         with get_session() as session:
-            valid_players = get_valid_players_set(session)
+            valid_players = get_valid_players_set(session, campaign_key=campaign_key)
 
-            for p_id, phase in enumerate(PhaseFactory.phases):
-                if p_id == 0:
+            # Collect gameplay challenges in phase order (excluding intro phase 0)
+            challenges = []
+            for phase in PhaseFactory.phases:
+                if phase.id == 0:
                     continue
-                is_last_phase = p_id == len(PhaseFactory.phases) - 1
-                for c_id, challenge in enumerate(phase.challenges):
-                    total_metrics = 0.0
-                    players_amount = 0
-                    is_last_challenge = c_id == len(phase.challenges) - 1
-                    if is_last_challenge:
-                        if is_last_phase:
-                            target_p_id = p_id
-                            target_c_id = len(phase.challenges)
-                        else:
-                            target_p_id = p_id + 1
-                            target_c_id = 0
-                    else:
-                        target_p_id = p_id
-                        target_c_id = c_id + 1
+                for ch in phase.challenges:
+                    challenges.append(ch)
 
-                    sessions = session.scalars(
-                        select(GameChallenge).where(GameChallenge.phase_index == target_p_id)
-                    ).all()
-                    for gs in sessions:
-                        user = gs.user_name
-                        if user not in valid_players:
-                            continue
-                        if gs.challenge_index == target_c_id:
-                            metric_values = gs.metric_values
-                            if metric_values and len(metric_values) >= 6:
-                                total_metrics += sum(metric_values[:6])
-                                players_amount += 1
+            if not valid_players:
+                return [0.0] * len(challenges)
 
-                    if players_amount > 0:
-                        sum_per_challenge.append(total_metrics / players_amount)
-                    else:
-                        sum_per_challenge.append(0.0)
+            for ch in challenges:
+                sessions = session.scalars(
+                    select(GameChallenge)
+                    .where(
+                        GameChallenge.phase_index == ch.phase_id,
+                        GameChallenge.challenge_index == ch.id,
+                        GameChallenge.user_name.in_(valid_players),
+                    )
+                    .order_by(GameChallenge.id.desc())
+                ).all()
+
+                # Pick latest record per player
+                latest_by_player = {}
+                for gs in sessions:
+                    if gs.user_name not in latest_by_player:
+                        latest_by_player[gs.user_name] = gs
+
+                total_metrics = 0.0
+                players_amount = 0
+                for gs in latest_by_player.values():
+                    metric_values = gs.metric_values
+                    if metric_values and isinstance(metric_values, list) and len(metric_values) >= 6:
+                        total_metrics += sum(float(v) for v in metric_values[:6])
+                        players_amount += 1
+
+                if players_amount > 0:
+                    sum_per_challenge.append(round(total_metrics / players_amount, 2))
+                else:
+                    sum_per_challenge.append(0.0)
 
         return sum_per_challenge
     except Exception as e:
@@ -317,19 +338,37 @@ def calculate_metric_sum_per_challenge() -> list[float]:
 
 
 def calculate_metric_sum_per_challenge_increase(metric_sum: list[float]) -> list[float]:
-    ret = [0.0]
+    if not metric_sum:
+        return []
+    baseline = 60.0
+    try:
+        metrics_available = MetricFactory.get_available_metrics()[:6]
+        if metrics_available:
+            baseline = float(sum(MetricFactory.get_metric(m).start_value for m in metrics_available))
+    except Exception:
+        baseline = 60.0
+
+    ret = []
     for i in range(len(metric_sum)):
-        if i > 0:
-            ret.append(metric_sum[i] - metric_sum[i - 1])
+        if i == 0:
+            if metric_sum[0] > 0:
+                ret.append(round(metric_sum[0] - baseline, 2))
+            else:
+                ret.append(0.0)
+        else:
+            if metric_sum[i] > 0 and metric_sum[i - 1] > 0:
+                ret.append(round(metric_sum[i] - metric_sum[i - 1], 2))
+            else:
+                ret.append(0.0)
     return ret
 
 
-def get_questionaire_results() -> dict[str, Any]:
+def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
     ret: dict[str, Any] = {"intro": [], "outro": []}
     try:
         with get_session() as session:
-            valid_players = get_valid_players_set(session)
-            finished_players = get_finished_players_set(session)
+            valid_players = get_valid_players_set(session, campaign_key=campaign_key)
+            finished_players = get_finished_players_set(session, campaign_key=campaign_key)
             expert_players = set()
 
             intro_progs = session.scalars(
@@ -409,11 +448,23 @@ def get_questionaire_results() -> dict[str, Any]:
         return {"intro": [], "outro": []}
 
 
-def get_admin_dashboard_data() -> dict[str, Any]:
+def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
+    target_campaign_key: str | None = None
+    if campaign and campaign != "all":
+        with get_session() as session:
+            camp = session.scalar(
+                select(Campaign).where(
+                    or_(Campaign.campaign_key == campaign, Campaign.campaign_name == campaign)
+                )
+            )
+            if camp:
+                target_campaign_key = camp.campaign_key
+            else:
+                target_campaign_key = campaign
+
     _playerdata = get_player_data()
     playerdata = []
     for _name, _data in _playerdata.items():
-        progressionString = ""
         max_idx = _data.get("maxProgressIndex", 0)
         if max_idx == 0:
             progressionString = "Intro Questionnaire"
@@ -441,38 +492,114 @@ def get_admin_dashboard_data() -> dict[str, Any]:
             "introPercentage": calculate_intro_percentage(_name),
             "outroPercentage": calculate_outro_percentage(_name),
             "playTime": play_time_str,
-            "campaign_name": _data.get("campaign_name", "Not Found")
+            "campaign_name": _data.get("campaign_name", "Not Found"),
+            "campaign_key": _data.get("campaign_key", "")
         })
 
-    metric_sums = calculate_metric_sum_per_challenge()
+    metric_sums = calculate_metric_sum_per_challenge(campaign_key=target_campaign_key)
     return {
         "players": playerdata,
         "campaigns": get_campaigns_data(),
-        "total_player_amount": calculate_total_players(),
-        "finished_player_amount": calculate_finished_players(),
+        "total_player_amount": calculate_total_players(campaign_key=target_campaign_key),
+        "finished_player_amount": calculate_finished_players(campaign_key=target_campaign_key),
         "metric_sum_per_challenge": metric_sums,
         "metric_sum_per_challenge_increase": calculate_metric_sum_per_challenge_increase(metric_sums),
-        "intro_questionaire_average": calculate_intro_questionaire_average(),
-        "outro_questionaire_average": calculate_outro_questionaire_average(),
-        "questionaire_results": get_questionaire_results()
+        "intro_questionaire_average": calculate_intro_questionaire_average(campaign_key=target_campaign_key),
+        "outro_questionaire_average": calculate_outro_questionaire_average(campaign_key=target_campaign_key),
+        "questionaire_results": get_questionaire_results(campaign_key=target_campaign_key),
+        "selected_campaign": target_campaign_key,
     }
 
 
-def add_campaign(new_campaign_name: str, new_campaign_key: str) -> None:
+def add_campaign(
+    new_campaign_name: str,
+    new_campaign_key: str,
+    is_active: bool = True,
+    use_questionnaire: bool = True
+) -> None:
     try:
         with get_session() as session:
-            new_c = Campaign(campaign_name=new_campaign_name, campaign_key=new_campaign_key)
+            new_c = Campaign(
+                campaign_name=new_campaign_name,
+                campaign_key=new_campaign_key,
+                is_active=is_active,
+                use_questionnaire=use_questionnaire
+            )
             session.add(new_c)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error adding campaign: {e}")
+        raise
+
+
+def update_campaign(
+    campaign_key: str,
+    is_active: bool | None = None,
+    use_questionnaire: bool | None = None,
+    campaign_name: str | None = None,
+) -> None:
+    try:
+        with get_session() as session:
+            campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
+            if campaign:
+                if is_active is not None:
+                    campaign.is_active = is_active
+                if use_questionnaire is not None:
+                    campaign.use_questionnaire = use_questionnaire
+                if campaign_name is not None:
+                    campaign.campaign_name = campaign_name
+    except Exception as e:
+        print(f"Error updating campaign {campaign_key}: {e}")
+        raise
 
 
 def remove_campaign(campaign_key: str) -> None:
+    """Removes a campaign and all associated players and player data across all tables."""
     try:
         with get_session() as session:
+            users = session.scalars(
+                select(User.user_name).where(User.campaign_key == campaign_key)
+            ).all()
+            user_names = list(users)
+            if user_names:
+                session.execute(delete(GameProgression).where(GameProgression.user_name.in_(user_names)))
+                session.execute(delete(GameChallenge).where(GameChallenge.user_name.in_(user_names)))
+                session.execute(delete(GameSession).where(GameSession.player.in_(user_names)))
+                session.execute(delete(IntelItem).where(IntelItem.user_name.in_(user_names)))
+                session.execute(delete(User).where(User.campaign_key == campaign_key))
             session.execute(delete(Campaign).where(Campaign.campaign_key == campaign_key))
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error removing campaign {campaign_key}: {e}")
+        raise
+
+
+
+def remove_player(player_name: str) -> None:
+    """Removes all player-related data of the selected player across all tables."""
+    try:
+        with get_session() as session:
+            session.execute(delete(User).where(User.user_name == player_name))
+            session.execute(delete(GameProgression).where(GameProgression.user_name == player_name))
+            session.execute(delete(GameChallenge).where(GameChallenge.user_name == player_name))
+            session.execute(delete(GameSession).where(GameSession.player == player_name))
+            session.execute(delete(IntelItem).where(IntelItem.user_name == player_name))
+    except Exception as e:
+        print(f"Error removing player {player_name}: {e}")
+        raise
+
+
+def remove_all_players() -> None:
+    """Removes all player-related data across all tables."""
+    try:
+        with get_session() as session:
+            session.execute(delete(User))
+            session.execute(delete(GameProgression))
+            session.execute(delete(GameChallenge))
+            session.execute(delete(GameSession))
+            session.execute(delete(IntelItem))
+    except Exception as e:
+        print(f"Error removing all players: {e}")
+        raise
+
 
 
 def get_game_config_dir():

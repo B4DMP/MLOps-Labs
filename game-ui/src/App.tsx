@@ -5,16 +5,28 @@ import { Register } from "./components/Register";
 import Game from "./Game";
 import ErrorDialog from "./components/ErrorDialog";
 import { Admin } from "./components/Admin";
+import LoadingScreen from "./components/LoadingScreen";
 import { ReadyState } from "./services/websocket/types";
 
 import { loginUser, registerUser } from "./services/api/auth";
-import { fetchAdminDashboard, addAdminCampaign, removeAdminCampaign } from "./services/api/admin";
+import {
+  fetchAdminDashboard,
+  addAdminCampaign,
+  updateAdminCampaign,
+  removeAdminCampaign,
+  removeAdminPlayer,
+  removeAllAdminPlayers,
+} from "./services/api/admin";
 import { WebSocketProvider } from "./services/websocket/WebSocketContext";
 import GlossaryProvider from "./components/glossary/GlossaryProvider";
+import { motion, AnimatePresence } from "motion/react";
+import { FADE_TRANSITION } from "./utils/transitions";
 
 interface Campaign {
   name: string;
   key: string;
+  is_active: boolean;
+  use_questionnaire: boolean;
   users: string[];
 }
 
@@ -34,8 +46,12 @@ function App() {
   const [username, setUsername] = useState("");
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [registerError, setRegisterError] = useState("");
   const [isInAdminUi, setIsInAdminUi] = useState(false);
   const [adminToken, setAdminToken] = useState("");
+
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -47,20 +63,34 @@ function App() {
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
   const handleLoginSubmit = async (inputUsername: string) => {
+    setIsAuthenticating(true);
+    setLoginError("");
     try {
       const data = await loginUser(inputUsername);
       if (data.type === "login_success") {
         setUsername(inputUsername);
         setIsInLoginUi(false);
         setIsInGame(true);
+      } else if (data.type === "admin_login_success" && data.token) {
+        setAdminToken(data.token);
+        setIsInLoginUi(false);
+        setIsInAdminUi(true);
+        const dashData = await fetchAdminDashboard(data.token);
+        updateAdminState(dashData);
       }
     } catch (err: any) {
-      setLastError(err.message || "An unknown error occurred during login.");
+      const msg = err.message || "An unknown error occurred during login.";
+      setLastError(msg);
+      setLoginError(msg);
       setIsInErrorUi(true);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
   const handleRegisterSubmit = async (inputUsername: string, campaignKey: string) => {
+    setIsAuthenticating(true);
+    setRegisterError("");
     try {
       const data = await registerUser(inputUsername, campaignKey);
       if (data.type === "admin_login_success" && data.token) {
@@ -75,8 +105,12 @@ function App() {
         setIsInGame(true);
       }
     } catch (err: any) {
-      setLastError(err.message || "An unknown error occurred during registration.");
+      const msg = err.message || "An unknown error occurred during registration.";
+      setLastError(msg);
+      setRegisterError(msg);
       setIsInErrorUi(true);
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -91,12 +125,30 @@ function App() {
     setQuestionaireResults(data.questionaire_results || []);
   };
 
-  const handleAddCampaign = async (newCampaignName: string, newCampaignKey: string) => {
+  const handleAddCampaign = async (
+    newCampaignName: string,
+    newCampaignKey: string,
+    isActive: boolean = true,
+    useQuestionnaire: boolean = true
+  ) => {
     try {
-      const updated = await addAdminCampaign(adminToken, newCampaignName, newCampaignKey);
+      const updated = await addAdminCampaign(adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire);
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to add campaign.");
+      setIsInErrorUi(true);
+    }
+  };
+
+  const handleUpdateCampaign = async (
+    campaignKey: string,
+    updates: { is_active?: boolean; use_questionnaire?: boolean; campaign_name?: string }
+  ) => {
+    try {
+      const updated = await updateAdminCampaign(adminToken, campaignKey, updates);
+      updateAdminState(updated);
+    } catch (err: any) {
+      setLastError(err.message || "Failed to update campaign.");
       setIsInErrorUi(true);
     }
   };
@@ -111,61 +163,142 @@ function App() {
     }
   };
 
+  const handleRemovePlayer = async (playerName: string) => {
+    try {
+      const updated = await removeAdminPlayer(adminToken, playerName);
+      updateAdminState(updated);
+    } catch (err: any) {
+      setLastError(err.message || "Failed to remove player.");
+      setIsInErrorUi(true);
+    }
+  };
+
+  const handleRemoveAllPlayers = async () => {
+    try {
+      const updated = await removeAllAdminPlayers(adminToken);
+      updateAdminState(updated);
+    } catch (err: any) {
+      setLastError(err.message || "Failed to delete all players.");
+      setIsInErrorUi(true);
+    }
+  };
+
   return (
-    <>
-      <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-      {(() => {
-        if (isInLoginUi) {
-          return (
-            <Login
-              readyState={ReadyState.OPEN}
-              onSubmit={handleLoginSubmit}
-              onBack={() => setIsInLoginUi(false)}
-            />
-          );
-        } else if (isInRegisterUi) {
-          return (
-            <Register
-              readyState={ReadyState.OPEN}
-              onSubmit={handleRegisterSubmit}
-              onBack={() => setIsInRegisterUi(false)}
-            />
-          );
-        } else if (isInGame) {
-          return (
-            <WebSocketProvider username={username}>
-              <GlossaryProvider>
-                <Game username={username} />
-              </GlossaryProvider>
-            </WebSocketProvider>
-          );
-        } else if (isInAdminUi) {
-          return (
-            <Admin
-              adminToken={adminToken}
-              onDashboardUpdate={updateAdminState}
-              campaigns={campaigns}
-              players={players}
-              sum_per_challenge_increase={sumPerChallengeIncrease}
-              addCampaign={handleAddCampaign}
-              removeCampaign={handleRemoveCampaign}
-              finished_players_amount={finishedPlayersAmount}
-              sum_per_challenge={sumPerChallenge}
-              intro_questionaire_average={introQuestionaireAverage}
-              outro_questionaire_average={outroQuestionaireAverage}
-              questionaire_results={questionaireResults}
-            />
-          );
-        } else {
-          return (
-            <Home
-              onLogin={() => setIsInLoginUi(true)}
-              onRegister={() => setIsInRegisterUi(true)}
-            />
-          );
-        }
-      })()}
-    </>
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        position: "relative",
+        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3.png")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(circle at center, rgba(17, 48, 62, 0.55) 0%, rgba(10, 25, 34, 0.8) 100%)",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 2, width: "100%", height: "100%" }}>
+        <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
+        <AnimatePresence mode="wait">
+        {(() => {
+          if (isAuthenticating) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="loading" style={{ width: "100%", height: "100%" }}>
+                <LoadingScreen />
+              </motion.div>
+            );
+          } else if (isInLoginUi) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="login" style={{ width: "100%", height: "100%" }}>
+                <Login
+                  readyState={ReadyState.OPEN}
+                  onSubmit={handleLoginSubmit}
+                  onBack={() => {
+                    setLoginError("");
+                    setIsInLoginUi(false);
+                  }}
+                  isLoading={isAuthenticating}
+                  errorMessage={loginError}
+                  onClearError={() => setLoginError("")}
+                />
+              </motion.div>
+            );
+          } else if (isInRegisterUi) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="register" style={{ width: "100%", height: "100%" }}>
+                <Register
+                  readyState={ReadyState.OPEN}
+                  onSubmit={handleRegisterSubmit}
+                  onBack={() => {
+                    setRegisterError("");
+                    setIsInRegisterUi(false);
+                  }}
+                  isLoading={isAuthenticating}
+                  errorMessage={registerError}
+                  onClearError={() => setRegisterError("")}
+                />
+              </motion.div>
+            );
+          } else if (isInGame) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="game" style={{ width: "100%", height: "100%" }}>
+                <WebSocketProvider username={username}>
+                  <GlossaryProvider>
+                    <Game username={username} />
+                  </GlossaryProvider>
+                </WebSocketProvider>
+              </motion.div>
+            );
+          } else if (isInAdminUi) {
+            return (
+              <motion.div {...FADE_TRANSITION} key="admin" style={{ width: "100%", height: "100%" }}>
+                <Admin
+                  adminToken={adminToken}
+                  onDashboardUpdate={updateAdminState}
+                  campaigns={campaigns}
+                  players={players}
+                  sum_per_challenge_increase={sumPerChallengeIncrease}
+                  addCampaign={handleAddCampaign}
+                  updateCampaign={handleUpdateCampaign}
+                  removeCampaign={handleRemoveCampaign}
+                  removePlayer={handleRemovePlayer}
+                  removeAllPlayers={handleRemoveAllPlayers}
+                  finished_players_amount={finishedPlayersAmount}
+                  sum_per_challenge={sumPerChallenge}
+                  intro_questionaire_average={introQuestionaireAverage}
+                  outro_questionaire_average={outroQuestionaireAverage}
+                  questionaire_results={questionaireResults}
+                />
+              </motion.div>
+            );
+          } else {
+            return (
+              <motion.div {...FADE_TRANSITION} key="home" style={{ width: "100%", height: "100%" }}>
+                <Home
+                  onLogin={() => {
+                    setLoginError("");
+                    setIsInLoginUi(true);
+                  }}
+                  onRegister={() => {
+                    setRegisterError("");
+                    setIsInRegisterUi(true);
+                  }}
+                />
+              </motion.div>
+            );
+          }
+        })()}
+      </AnimatePresence>
+      </div>
+    </div>
   );
 }
 

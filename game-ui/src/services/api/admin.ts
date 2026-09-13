@@ -20,8 +20,9 @@ export interface AdminDashboardData {
   questionaire_results: any;
 }
 
-export async function fetchAdminDashboard(token: string): Promise<AdminDashboardData> {
-  const response = await fetch(`${BASE_URL}/api/admin/dashboard`, {
+export async function fetchAdminDashboard(token: string, campaign?: string): Promise<AdminDashboardData> {
+  const queryParam = campaign && campaign !== "all" ? `?campaign=${encodeURIComponent(campaign)}` : "";
+  const response = await fetch(`${BASE_URL}/api/admin/dashboard${queryParam}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -40,7 +41,9 @@ export async function fetchAdminDashboard(token: string): Promise<AdminDashboard
 export async function addAdminCampaign(
   token: string,
   newCampaignName: string,
-  newCampaignKey: string
+  newCampaignKey: string,
+  isActive: boolean = true,
+  useQuestionnaire: boolean = true
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns`, {
     method: "POST",
@@ -51,6 +54,8 @@ export async function addAdminCampaign(
     body: JSON.stringify({
       new_campaign_name: newCampaignName,
       new_campaign_key: newCampaignKey,
+      is_active: isActive,
+      use_questionnaire: useQuestionnaire,
     }),
   });
 
@@ -62,11 +67,37 @@ export async function addAdminCampaign(
   return response.json();
 }
 
+export async function updateAdminCampaign(
+  token: string,
+  campaignKey: string,
+  updates: {
+    is_active?: boolean;
+    use_questionnaire?: boolean;
+    campaign_name?: string;
+  }
+): Promise<AdminDashboardData> {
+  const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to update campaign.");
+  }
+
+  return response.json();
+}
+
 export async function removeAdminCampaign(
   token: string,
   campaignKey: string
 ): Promise<AdminDashboardData> {
-  const response = await fetch(`${BASE_URL}/api/admin/campaigns/${campaignKey}`, {
+  const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -81,6 +112,46 @@ export async function removeAdminCampaign(
 
   return response.json();
 }
+
+export async function removeAdminPlayer(
+  token: string,
+  playerName: string
+): Promise<AdminDashboardData> {
+  const response = await fetch(`${BASE_URL}/api/admin/players/${encodeURIComponent(playerName)}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to delete player.");
+  }
+
+  return response.json();
+}
+
+export async function removeAllAdminPlayers(
+  token: string
+): Promise<AdminDashboardData> {
+  const response = await fetch(`${BASE_URL}/api/admin/players`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to delete all players.");
+  }
+
+  return response.json();
+}
+
 
 export interface ConfigFileInfo {
   filename: string;

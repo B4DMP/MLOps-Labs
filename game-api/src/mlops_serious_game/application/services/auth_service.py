@@ -54,6 +54,9 @@ def authenticate_user(username: str) -> dict:
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == clean_username))
         if user is not None:
+            campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            if campaign is not None and not campaign.is_active:
+                return {"success": False, "error": "This campaign is currently inactive. Login is disabled."}
             return {"success": True, "username": clean_username}
         else:
             return {"success": False, "error": "Username not found."}
@@ -81,6 +84,8 @@ def register_user(username: str, campaign_key: str) -> dict:
         campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
         if campaign is None:
             return {"success": False, "error": "Campaign key not found."}
+        if not campaign.is_active:
+            return {"success": False, "error": "This campaign is currently inactive. Registration is disabled."}
 
         existing_user = session.scalar(select(User).where(User.user_name == username))
         if existing_user is not None:

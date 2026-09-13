@@ -1,11 +1,11 @@
 import {
-  Description,
   Dialog,
   DialogPanel,
   DialogTitle,
   DialogBackdrop,
 } from "@headlessui/react";
-import styles from "./PrePhaseDialog.module.css";
+import { Icon } from "@iconify/react";
+import styles from "./ErrorDialog.module.css";
 
 interface ErrorDialogProps {
   isOpen: boolean;
@@ -17,37 +17,46 @@ export default function ErrorDialog({
   isOpen,
   errorMsg,
   setIsOpen,
-
 }: ErrorDialogProps) {
   return (
     <Dialog
       open={isOpen}
-      onClose={() => {
-        setIsOpen(false);
-      }}
-      className={styles.dialogWrapper}
+      onClose={() => setIsOpen(false)}
+      transition
+      className="position-relative"
+      style={{ zIndex: 10000 }}
     >
-      <DialogBackdrop className={styles.backdrop} />
-      <div
-        className={`${styles.dialogWrapper}`}
-      >
-        <DialogPanel className={`${styles.panel} card shadow-lg`}>
-          <div className="card-body">
-            <DialogTitle className="h4 mb-3">
+      <DialogBackdrop transition className={styles.backdrop} />
+      <div className={styles.dialogWrapper}>
+        <DialogPanel transition className={styles.panel}>
+          {/* Header */}
+          <div className={styles.header}>
+            <DialogTitle className="h5 mb-0 fw-bold d-flex align-items-center gap-2 text-white">
+              <Icon icon="ph:warning-circle-bold" style={{ color: "#ffffffff", fontSize: "1.7rem" }} />
               <span>Error</span>
             </DialogTitle>
-            <Description as="div" className="text-muted mb-3">
-              {errorMsg}
-            </Description>
+          </div>
 
-            <div className={styles.actions}>
+          {/* Body */}
+          <div className="p-4">
+            <div
+              className="card shadow-sm border-0 rounded-3 p-3 mb-4 bg-white"
+              style={{ border: "1px solid #dee2e6" }}
+            >
+              <div className="d-flex align-items-start gap-2">
+
+                <p className="mb-0 text-dark fw-medium" style={{ fontSize: "0.95rem", lineHeight: "1.5" }}>
+                  {errorMsg || "An error occurred. Please try again."}
+                </p>
+              </div>
+            </div>
+
+            <div className="d-flex justify-content-end">
               <button
-                className={`${styles.actionButton}`}
-                onClick={() => {
-                  setIsOpen(false);
-                }}
+                className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
+                onClick={() => setIsOpen(false)}
               >
-                Okay
+                <span>Okay</span>
               </button>
             </div>
           </div>
