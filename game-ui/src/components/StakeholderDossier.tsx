@@ -10,8 +10,35 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
 import { INTEL_TAGS } from "../types/IntelTag";
 
+/** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
+export interface IntelDebugInfo {
+  id: string;
+  correct_tag: string;
+  description: string;
+  target?: string | null;
+  level?: number | null;
+  stakeholder_id?: string | null;
+  refines_id?: string | null;
+  artifact?: {
+    id: string;
+    artifact_type: string;
+    speaker_id?: string | null;
+    is_known: boolean;
+    content: string;
+  } | null;
+}
+
+/** Answer key for a dossier page. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
+export interface StakeholderDebugInfo {
+  real_archetype?: string | null;
+  player_archetype?: string | null;
+  archetype_hint?: string | null;
+  missing_intel: IntelDebugInfo[];
+}
+
 export interface IntelEntry {
   id: string;
+  debug?: IntelDebugInfo;
   requirement_id?: string;
   intel_type: string; // e.g. "unconfirmed", "verified"
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
@@ -63,6 +90,7 @@ export interface StakeholderDossierEntry {
   is_environment?: boolean;
   /** Stages this challenge is about, which the stage filter starts on. */
   focus_stage_ids?: string[];
+  debug?: StakeholderDebugInfo;
 }
 
 export interface StakeholderBuyInInfo {
@@ -101,6 +129,44 @@ export interface StakeholderDossierProps {
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
 }
+
+/** One authored item's answer key: true tag, graph target and the artifact it is read off. */
+const DebugRequirement: React.FC<{ info: IntelDebugInfo; playerTag?: string }> = ({ info, playerTag }) => (
+  <>
+    <div className={styles.debugRow}>
+      <strong>True tag:</strong>{" "}
+      <span className={playerTag === undefined || playerTag === info.correct_tag ? styles.debugRightText : styles.debugWrongText}>
+        {info.correct_tag}
+      </span>
+      {playerTag !== undefined && playerTag !== info.correct_tag && <> (player tagged {playerTag})</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Target:</strong> {info.target ?? "none"}
+      {info.level != null && <> at level {info.level}</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Id:</strong> {info.id}
+      {info.refines_id && <> (refines {info.refines_id})</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Authored:</strong> {info.description}
+    </div>
+    {info.artifact ? (
+      <div className={styles.debugRow}>
+        <strong>
+          Hinted by {info.artifact.artifact_type} {info.artifact.id}
+          {info.artifact.speaker_id && <> from {info.artifact.speaker_id}</>}
+          {info.artifact.is_known && <> (on record at start)</>}:
+        </strong>
+        <pre className={styles.debugArtifact}>{info.artifact.content}</pre>
+      </div>
+    ) : (
+      <div className={styles.debugRow}>
+        <strong>Hinted by:</strong> no offline artifact (interview or debate only)
+      </div>
+    )}
+  </>
+);
 
 /** How long the markers keep pulsing when the player never opens their tab. */
 const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
@@ -354,6 +420,9 @@ export default function StakeholderDossier({
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
   const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
   const [hoveredPolaroidStId, setHoveredPolaroidStId] = useState<string | null>(null);
+  /** Which answer-key panel is unfolded: a note id, or `page-<stakeholder id>`. Debug builds only. */
+  const [openDebugId, setOpenDebugId] = useState<string | null>(null);
+  const toggleDebug = (id: string) => setOpenDebugId((prev) => (prev === id ? null : id));
 
   // Dossier filters (plan 05). `null` means the player has not touched the stage row yet, so it
   // keeps following the challenge's focus stages as those change.
@@ -1407,6 +1476,43 @@ export default function StakeholderDossier({
           </span>
         </div>
 
+        {st.debug && (
+          <div className={styles.debugPanel}>
+            <button className={styles.debugPanelTitle} onClick={() => toggleDebug(`page-${st.stakeholder_id}`)}>
+              <Icon icon="ph:bug-bold" /> Answer key (debug): {st.debug.missing_intel.length} not found yet
+              {!st.is_environment && (
+                <>
+                  , real archetype{" "}
+                  <span
+                    className={
+                      st.debug.real_archetype && st.debug.real_archetype === st.debug.player_archetype
+                        ? styles.debugRightText
+                        : styles.debugWrongText
+                    }
+                  >
+                    {st.debug.real_archetype || "none"}
+                  </span>
+                </>
+              )}
+            </button>
+            {openDebugId === `page-${st.stakeholder_id}` && (
+              <>
+                {st.debug.archetype_hint && (
+                  <div className={styles.debugRow}>
+                    <strong>Archetype hint:</strong>
+                    <pre className={styles.debugArtifact}>{st.debug.archetype_hint}</pre>
+                  </div>
+                )}
+                {st.debug.missing_intel.map((info) => (
+                  <div key={info.id} className={styles.debugMissing}>
+                    <DebugRequirement info={info} />
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
         {/* One card per refinement chain: the newest link is the headline (D24) */}
         {pageChains.length > 0 ? (
           <div className={styles.stickyNoteGrid}>
@@ -1529,6 +1635,20 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
+                      {item.debug && (
+                        <button
+                          className={`${styles.debugToggle} ${
+                            item.debug.correct_tag === item.categorized_type ? styles.debugRight : styles.debugWrong
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDebug(noteId);
+                          }}
+                          title={`Debug: true tag is ${item.debug.correct_tag}`}
+                        >
+                          <Icon icon="ph:bug-bold" />
+                        </button>
+                      )}
                       {item.contested && (
                         <span
                           className={`${styles.statusBadge} ${styles.contestedBadge}`}
@@ -1567,6 +1687,13 @@ export default function StakeholderDossier({
                           </button>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {item.debug && openDebugId === noteId && (
+                    <div className={styles.debugPanel} onClick={(e) => e.stopPropagation()}>
+                      <div className={styles.debugPanelTitle}>Answer key (debug)</div>
+                      <DebugRequirement info={item.debug} playerTag={typeKey} />
                     </div>
                   )}
 

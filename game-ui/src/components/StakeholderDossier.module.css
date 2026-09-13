@@ -769,6 +769,85 @@
 }
 
 /* Category Sticky Note Badges & Interactive Re-tagging UI */
+/* Answer key, only rendered when the API sends debug data (ENABLE_DOSSIER_DEBUG) */
+.debugToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  border-radius: 50%;
+  border: 1.5px dashed currentColor;
+  background: #ffffff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.debugRight,
+.debugRightText {
+  color: #15803d;
+}
+
+.debugWrong,
+.debugWrongText {
+  color: #b91c1c;
+}
+
+.debugRightText,
+.debugWrongText {
+  font-weight: 700;
+}
+
+.debugPanel {
+  background: #fefce8;
+  border: 2px dashed #a16207;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 6px 0 10px 0;
+  font-size: 0.65rem;
+  color: #1e293b;
+  text-align: left;
+}
+
+.debugPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #a16207;
+  text-align: left;
+  cursor: pointer;
+}
+
+.debugRow {
+  margin-top: 3px;
+}
+
+.debugMissing {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dotted #a16207;
+}
+
+.debugArtifact {
+  margin: 2px 0 0 0;
+  padding: 4px 6px;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.6rem;
+}
+
 .noteTopBar {
   display: flex;
   align-items: center;

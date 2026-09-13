@@ -127,6 +127,9 @@ class Settings(BaseSettings):
 
     # --- Feature flags ---
     ENABLE_GRAPH_DEBUG: bool = False
+    # Sends the answer key (true tags, real archetypes, the artifacts behind each note) with the
+    # dossier. Never on in production: players could read it straight off the websocket.
+    ENABLE_DOSSIER_DEBUG: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
