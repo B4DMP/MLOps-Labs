@@ -35,6 +35,33 @@ Gates run scoped: orphan and fragment gates check only the tier 0 scope, set wit
 
 Tier 0 is done when a fresh player plays both phases on it, pass, soft pass, veto and stalemate are each reached in test runs, and the admin view shows no orphans in scope.
 
+## Tier 1
+
+Phases 1, 4 and 5 (Requirements, Deployment, Operations) originally shipped with only one
+hand-written challenge each, unlike the fully generated phases 2 and 3. `tools/content_gen/scopes.json`
+defines a `tier1` scope spanning all 5 phases, 2 templates per phase, so those three thin phases get
+a second generated challenge:
+
+| phase | new challenges |
+|---|---|
+| 1 Requirements | `ch_missing_kpi_baseline` (The Missing Baseline), `ch_the_missing_gate` (The Missing Gate) |
+| 4 Deployment | `ch_gateway_security_gap` (Exposed Model Endpoint), `ch_shadow_environment_dispute` (The Silent Shadow) |
+| 5 Operations | `ch_blind_spot_silence` (The Blind Spot), `ch_drift_blind_spot` (The Silent Drift) |
+
+Assembly sets `challenges_per_phase=2` for phases 1, 4 and 5 once tier1 content is assembled, so
+those phases run one challenge longer than before.
+
+Two automated checks used by tier 0 are not run for artifacts (only for objections and fragments):
+the "no internal vocabulary" `GAME_WORDS` check (component/components/stage/stages) and report-framing
+/ summary-closer checks on Fact artifacts. Tier 1 review caught several artifacts that used the word
+"stage" and one objection correction that said "update the graph" — both slipped past automated
+gates and had to be caught by a manual full-text read. Worth hardening `stages/artifacts.py` with the
+same `player_text_errors` check the other two stages already run, next time this pipeline is touched.
+
+`make content-status-tier1` / `content-validate-tier1` / `content-assemble-tier1` wrap the
+container-side CLI calls; CI's `validate-game-content` job runs `--scope tier1 validate` alongside
+tier0.
+
 ## Generation harness
 
 Not a pile of scripts. One progress aware, cancellable, resumable job runner over the LLM API already in use (langchain plus the Opik tracer), living in `game-api/tools/content_gen/`. Can be CLI-based, since it's not part of gameplay. 

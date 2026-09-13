@@ -41,3 +41,23 @@ STAKEHOLDER_ID ?= -1
 
 evaluate-agent:
 	docker run --rm --network=mlops-serious-game-network --env-file game-api/.env -e HF_HUB_DISABLE_XET=1 -e PYTHONPATH=//app/tools -e POSTGRES_URI="postgresql+psycopg://mlops_labs:mlops_labs@postgres:5432/mlops_labs" -e POSTGRES_ASYNC_URI="postgresql+asyncpg://mlops_labs:mlops_labs@postgres:5432/mlops_labs" -v huggingface-cache:/root/.cache/huggingface -v ./game-api/data://app/data -v ./gameConfig://gameConfig -v ./game-api/src/mlops_serious_game://app/mlops_serious_game -v ./game-api/tools://app/tools game-api python -m tools.evaluate_agent --name $(NAME) --stakeholder_id $(STAKEHOLDER_ID)
+
+# --- Content Gen ---
+# Requires the game-api container to already be running (make infrastructure-up).
+# `run`/`approve`/`reject` are left to manual docker exec, since they need a --provider and
+# careful --only scoping; these targets cover the checks that are safe to run unattended.
+
+content-status-tier0:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier0 status"
+
+content-validate-tier0:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier0 validate"
+
+content-status-tier1:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier1 status"
+
+content-validate-tier1:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier1 validate"
+
+content-assemble-tier1:
+	docker exec game-api sh -c "cd /app/tools && python -m content_gen --scope tier1 assemble"
