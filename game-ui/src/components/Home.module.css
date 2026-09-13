@@ -84,8 +84,7 @@
     padding: 0.8rem 1.5rem;
     border-radius: 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
     color: white;
     font-weight: 600;
     font-size: 1.05rem;
@@ -109,9 +108,8 @@
 }
 
 .creditsCard {
-    background: rgba(17, 48, 62, 0.7);
+    background: linear-gradient(160deg, rgba(17, 48, 62, 0.85), rgba(10, 25, 34, 0.8));
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 0.75rem;
     padding: 0.65rem 1.25rem;
-    backdrop-filter: blur(6px);
 }

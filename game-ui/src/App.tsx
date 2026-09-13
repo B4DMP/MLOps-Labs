@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Home } from "./components/Home";
 import { Login } from "./components/Login";
 import { Register } from "./components/Register";
@@ -194,6 +194,8 @@ function App() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        transform: "translateZ(0)",
+        willChange: "transform",
       }}
     >
       <div
@@ -207,17 +209,29 @@ function App() {
       />
       <div style={{ position: "relative", zIndex: 2, width: "100%", height: "100%" }}>
         <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
         {(() => {
+          const screenStyle: CSSProperties = {
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+          };
+          // Home/Login/Register/Loading are just a small card centered on a
+          // static background - there's nothing to gain from cross-fading the
+          // whole (transparent, full-viewport) screen behind them, and doing so
+          // is exactly what triggered the Chromium compositing flicker. So these
+          // just swap instantly; each card animates its own small entrance
+          // instead (see the `motion.div` around the card in each component).
           if (isAuthenticating) {
             return (
-              <motion.div {...FADE_TRANSITION} key="loading" style={{ width: "100%", height: "100%" }}>
+              <div key="loading" style={screenStyle}>
                 <LoadingScreen />
-              </motion.div>
+              </div>
             );
           } else if (isInLoginUi) {
             return (
-              <motion.div {...FADE_TRANSITION} key="login" style={{ width: "100%", height: "100%" }}>
+              <div key="login" style={screenStyle}>
                 <Login
                   readyState={ReadyState.OPEN}
                   onSubmit={handleLoginSubmit}
@@ -229,11 +243,11 @@ function App() {
                   errorMessage={loginError}
                   onClearError={() => setLoginError("")}
                 />
-              </motion.div>
+              </div>
             );
           } else if (isInRegisterUi) {
             return (
-              <motion.div {...FADE_TRANSITION} key="register" style={{ width: "100%", height: "100%" }}>
+              <div key="register" style={screenStyle}>
                 <Register
                   readyState={ReadyState.OPEN}
                   onSubmit={handleRegisterSubmit}
@@ -245,11 +259,11 @@ function App() {
                   errorMessage={registerError}
                   onClearError={() => setRegisterError("")}
                 />
-              </motion.div>
+              </div>
             );
           } else if (isInGame) {
             return (
-              <motion.div {...FADE_TRANSITION} key="game" style={{ width: "100%", height: "100%" }}>
+              <motion.div {...FADE_TRANSITION} key="game" style={screenStyle}>
                 <WebSocketProvider username={username}>
                   <GlossaryProvider>
                     <Game username={username} />
@@ -259,7 +273,7 @@ function App() {
             );
           } else if (isInAdminUi) {
             return (
-              <motion.div {...FADE_TRANSITION} key="admin" style={{ width: "100%", height: "100%" }}>
+              <motion.div {...FADE_TRANSITION} key="admin" style={screenStyle}>
                 <Admin
                   adminToken={adminToken}
                   onDashboardUpdate={updateAdminState}
@@ -281,7 +295,7 @@ function App() {
             );
           } else {
             return (
-              <motion.div {...FADE_TRANSITION} key="home" style={{ width: "100%", height: "100%" }}>
+              <div key="home" style={screenStyle}>
                 <Home
                   onLogin={() => {
                     setLoginError("");
@@ -292,7 +306,7 @@ function App() {
                     setIsInRegisterUi(true);
                   }}
                 />
-              </motion.div>
+              </div>
             );
           }
         })()}
