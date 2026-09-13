@@ -25,7 +25,9 @@ async def test_stakeholder_dossier_contains_convincer_archetype():
     mock_challenge.phase_id = 0
     mock_challenge.stakeholders = []
     import uuid
+    from conftest import ensure_test_user
     unique_user = f"test_user_{uuid.uuid4()}"
+    ensure_test_user(unique_user)
     mock_ws = AsyncMock()
     mock_ws.query_params = {"username": unique_user}
 
@@ -96,7 +98,9 @@ async def test_convincer_refutation_and_correction():
         tag_stakeholder_convincer_archetype,
         correct_and_verify_convincer_archetype,
     )
+    from conftest import ensure_test_user
     user = f"test_refute_{uuid.uuid4()}"
+    ensure_test_user(user)
     # Tag data_dave with wrong archetype (Autonomy instead of Technical Excellence)
     await tag_stakeholder_convincer_archetype(user, "data_dave", "Autonomy")
 

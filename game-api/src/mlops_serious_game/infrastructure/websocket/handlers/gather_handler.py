@@ -32,7 +32,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import ConfidenceType, IntelSource, StakeholderIntelItem, gist_or_fallback
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session, get_user_id
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -54,7 +54,7 @@ def _stakeholder_name(st_id: str) -> str:
 def _archetypes(username: str) -> dict[str, dict]:
     with get_session() as db:
         row = db.scalars(
-            select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+            select(GameSession).where(GameSession.user_id == get_user_id(db, username)).order_by(GameSession.id.desc())
         ).first()
         return dict(row.stakeholder_archetypes) if row and isinstance(row.stakeholder_archetypes, dict) else {}
 
@@ -139,7 +139,7 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
         row = db.scalars(
             select(GameChallenge)
             .where(
-                GameChallenge.user_name == username,
+                GameChallenge.user_id == get_user_id(db, username),
                 GameChallenge.phase_index == phase_id,
                 GameChallenge.challenge_index == challenge_id,
             )

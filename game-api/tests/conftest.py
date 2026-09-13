@@ -82,3 +82,32 @@ def make_archetype(evidence_basis=2, risk_and_control=2, value_horizon=2) -> Con
         name="test", evidence_basis=evidence_basis,
         risk_and_control=risk_and_control, value_horizon=value_horizon,
     )
+
+
+def ensure_test_user(username: str, campaign_key: str = "test-campaign") -> None:
+    """Registers a real `User` row (and its `Campaign`, if missing) against the shared dev
+    Postgres, for domain/handler tests that exercise a made-up username directly against the DB
+    without going through `register_user`.
+
+    Needed since docs/plans/pk-migration.md: every per-player table now has a NOT NULL `user_id`
+    FK, so inserting a GameSession/IntelItem/etc. row for a username with no `User` row fails
+    with a NotNullViolation - this used to silently succeed when tables only had a bare
+    `user_name` string column. Skips silently if postgres isn't reachable, so it stays a no-op
+    (not a hard dependency) for callers that already skip via their own `_postgres_reachable`.
+    """
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import Campaign, User
+    from sqlalchemy import select
+
+    try:
+        with get_session() as session:
+            if session.scalar(select(User).where(User.user_name == username)) is not None:
+                return
+            campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
+            if campaign is None:
+                campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
+                session.add(campaign)
+                session.flush()
+            session.add(User(user_name=username, campaign_key=campaign_key, campaign_id=campaign.id))
+    except Exception:
+        pass

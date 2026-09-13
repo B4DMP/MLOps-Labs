@@ -13,7 +13,7 @@ from typing import Optional
 from sqlalchemy import select
 
 from mlops_serious_game.application.pitch_debate_service.gather import GatherConversation
-from mlops_serious_game.infrastructure.database import GameChallenge, get_session
+from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
 
 GATHER_KEY = "gather"
 
@@ -26,7 +26,7 @@ def _latest_challenge_row(db, username: str, phase_id: int, challenge_id: int):
     stmt = (
         select(GameChallenge)
         .where(
-            GameChallenge.user_name == username,
+            GameChallenge.user_id == get_user_id(db, username),
             GameChallenge.phase_index == phase_id,
             GameChallenge.challenge_index == challenge_id,
         )

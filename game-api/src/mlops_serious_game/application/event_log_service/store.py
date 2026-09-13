@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.infrastructure.database.connection import get_session
 from mlops_serious_game.infrastructure.database.models import GameEventRow
+from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 
 def append_events(username: str, events: list[GameEvent]) -> list[GameEvent]:
@@ -15,7 +16,8 @@ def append_events(username: str, events: list[GameEvent]) -> list[GameEvent]:
     if not events:
         return []
     with get_session() as session:
-        last = session.scalar(select(func.max(GameEventRow.seq)).where(GameEventRow.user_name == username))
+        user_id = get_user_id(session, username)
+        last = session.scalar(select(func.max(GameEventRow.seq)).where(GameEventRow.user_id == user_id))
         seq = last or 0
         stamped: list[GameEvent] = []
         for event in events:
@@ -24,6 +26,7 @@ def append_events(username: str, events: list[GameEvent]) -> list[GameEvent]:
             stamped.append(stamped_event)
             session.add(GameEventRow(
                 user_name=username,
+                user_id=user_id,
                 seq=seq,
                 phase_id=stamped_event.phase_id,
                 challenge_id=stamped_event.challenge_id,
@@ -61,7 +64,7 @@ def load_events(username: str, since_seq: int = 0) -> list[GameEvent]:
     with get_session() as session:
         rows = session.scalars(
             select(GameEventRow)
-            .where(GameEventRow.user_name == username, GameEventRow.seq > since_seq)
+            .where(GameEventRow.user_id == get_user_id(session, username), GameEventRow.seq > since_seq)
             .order_by(GameEventRow.seq)
         ).all()
         return [_from_row(row) for row in rows]

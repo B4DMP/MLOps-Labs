@@ -42,6 +42,7 @@ from mlops_serious_game.infrastructure.database import (
     IntelItem,
     async_engine,
     get_session,
+    get_user_id,
 )
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -134,12 +135,14 @@ def get_or_create_game_session(player: str, db_session=None) -> GameSession:
     from mlops_serious_game.application.persona_service import sync_personas
 
     def _init_in_session(s):
-        stmt = select(GameSession).where(GameSession.player == player)
+        user_id = get_user_id(s, player)
+        stmt = select(GameSession).where(GameSession.user_id == user_id)
         session_rec = s.scalars(stmt).first()
         if not session_rec:
             st_archs = get_default_stakeholder_archetypes()
             session_rec = GameSession(
                 player=player,
+                user_id=user_id,
                 stakeholder_archetypes=st_archs,
                 stakeholder_personas=StakeholderFactory.choose_personas(player),
             )
@@ -170,8 +173,9 @@ def get_discovered_intel_items(
     intel_items: list[StakeholderIntelItem] = []
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         for record in records:
@@ -245,7 +249,7 @@ async def handle_game_init(
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
-            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_questionnaire = camp.use_questionnaire
 
@@ -279,12 +283,14 @@ async def handle_game_init(
     }
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
+
         # Initialize or retrieve persistent player GameSession
         get_or_create_game_session(username, session)
 
         # Fetch user progression index
         results = session.scalars(
-            select(GameProgression).where(GameProgression.user_name == username)
+            select(GameProgression).where(GameProgression.user_id == user_id)
         ).all()
         for r in results:
             if r.game_progress_index > game_progress_index:
@@ -297,6 +303,7 @@ async def handle_game_init(
                 session.add(
                     GameProgression(
                         user_name=username,
+                        user_id=user_id,
                         game_progress_index=1,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
@@ -307,6 +314,7 @@ async def handle_game_init(
                 session.add(
                     GameProgression(
                         user_name=username,
+                        user_id=user_id,
                         game_progress_index=4,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
@@ -316,7 +324,7 @@ async def handle_game_init(
         # Fetch latest game challenge state
         stmt = (
             select(GameChallenge)
-            .where(GameChallenge.user_name == username)
+            .where(GameChallenge.user_id == user_id)
             .order_by(GameChallenge.id.desc())
         )
         latest_session = session.scalars(stmt).first()
@@ -331,7 +339,7 @@ async def handle_game_init(
             else:
                 stmt_ev = (
                     select(GameChallenge)
-                    .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                    .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
                     .order_by(GameChallenge.id.desc())
                 )
                 session_with_ev = session.scalars(stmt_ev).first()
@@ -352,7 +360,7 @@ async def handle_game_init(
                 stmt_ac = (
                     select(GameChallenge)
                     .where(
-                        GameChallenge.user_name == username,
+                        GameChallenge.user_id == user_id,
                         GameChallenge.phase_index == latest_session.phase_index,
                         GameChallenge.challenge_index == latest_session.challenge_index,
                     )
@@ -473,7 +481,7 @@ async def handle_progress_update(
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
-            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_q = camp.use_questionnaire
 
@@ -488,6 +496,7 @@ async def handle_progress_update(
         session.add(
             GameProgression(
                 user_name=username,
+                user_id=get_user_id(session, username),
                 game_progress_index=game_progress_index,
                 time_stamp=datetime.datetime.utcnow(),
                 additional_data=additional_data
@@ -553,17 +562,19 @@ async def store_or_update_challenge(
     attention_tokens: int,
 ) -> None:
     with get_session() as session:
+        user_id = get_user_id(session, username)
+
         # Carry forward latest persisted emotion_values from user's history
         stmt_ev = (
             select(GameChallenge)
-            .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+            .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
             .order_by(GameChallenge.id.desc())
         )
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
 
         stmt = select(GameChallenge).where(
-            GameChallenge.user_name == username,
+            GameChallenge.user_id == user_id,
             GameChallenge.phase_index == challenge.phase_id,
             GameChallenge.challenge_index == challenge.id
         ).order_by(GameChallenge.id.desc())
@@ -586,6 +597,7 @@ async def store_or_update_challenge(
                 session.add(
                     GameChallenge(
                         user_name=username,
+                        user_id=user_id,
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
                         challenge_loop_index=challenge_loop_id,
@@ -615,6 +627,7 @@ async def store_or_update_challenge(
                 session.add(
                     GameChallenge(
                         user_name=username,
+                        user_id=user_id,
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
                         challenge_loop_index=challenge_loop_id,
@@ -667,9 +680,10 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
         graph = GraphFactory.get_graph()
         current = PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id)
         with get_session() as session:
+            user_id = get_user_id(session, username)
             played_ids = set(
                 session.scalars(
-                    select(GameChallenge.challenge_index).where(GameChallenge.user_name == username)
+                    select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
                 ).all()
             )
         played = set()
@@ -728,10 +742,11 @@ async def handle_state_update_request(
             case _:
                 # Update the completed challenge record with its ending metric_values
                 with get_session() as db_session:
+                    completed_user_id = get_user_id(db_session, username)
                     stmt = (
                         select(GameChallenge)
                         .where(
-                            GameChallenge.user_name == username,
+                            GameChallenge.user_id == completed_user_id,
                             GameChallenge.phase_index == phase_id,
                             GameChallenge.challenge_index == challenge_id,
                         )
@@ -745,6 +760,7 @@ async def handle_state_update_request(
                         db_session.add(
                             GameChallenge(
                                 user_name=username,
+                                user_id=completed_user_id,
                                 phase_index=phase_id,
                                 challenge_index=challenge_id,
                                 challenge_loop_index=3,
@@ -766,7 +782,7 @@ async def handle_state_update_request(
                     with get_session() as db_session:
                         user = db_session.scalar(select(User).where(User.user_name == username))
                         if user:
-                            camp = db_session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+                            camp = db_session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
                             if camp is not None:
                                 use_q = camp.use_questionnaire
 
@@ -775,6 +791,7 @@ async def handle_state_update_request(
                             db_session.add(
                                 GameProgression(
                                     user_name=username,
+                                    user_id=get_user_id(db_session, username),
                                     game_progress_index=3,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -786,6 +803,7 @@ async def handle_state_update_request(
                             db_session.add(
                                 GameProgression(
                                     user_name=username,
+                                    user_id=get_user_id(db_session, username),
                                     game_progress_index=4,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -839,7 +857,7 @@ async def handle_state_update_request(
         with get_session() as session:
             stmt = (
                 select(GameChallenge)
-                .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                .where(GameChallenge.user_id == get_user_id(session, username), GameChallenge.emotion_values.isnot(None))
                 .order_by(GameChallenge.id.desc())
             )
             latest = session.scalars(stmt).first()

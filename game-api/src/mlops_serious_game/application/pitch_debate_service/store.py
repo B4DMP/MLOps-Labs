@@ -14,7 +14,7 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from mlops_serious_game.application.pitch_debate_service.scoring import shift_emotions
 from mlops_serious_game.application.pitch_debate_service.session import PitchState
-from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session, get_user_id
 
 PITCH_KEY = "pitch"
 DEFAULT_ESCALATION_POINTS = 3
@@ -24,7 +24,7 @@ def _latest_challenge_row(session, username: str, phase_id: int, challenge_id: i
     stmt = (
         select(GameChallenge)
         .where(
-            GameChallenge.user_name == username,
+            GameChallenge.user_id == get_user_id(session, username),
             GameChallenge.phase_index == phase_id,
             GameChallenge.challenge_index == challenge_id,
         )
@@ -60,7 +60,7 @@ def save_pitch(username: str, phase_id: int, challenge_id: int, state: PitchStat
 
 def _session_row(db, username: str) -> Optional[GameSession]:
     return db.scalars(
-        select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+        select(GameSession).where(GameSession.user_id == get_user_id(db, username)).order_by(GameSession.id.desc())
     ).first()
 
 
@@ -121,7 +121,7 @@ def _emotion_row(db, username: str):
     """
     rows = db.scalars(
         select(GameChallenge)
-        .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+        .where(GameChallenge.user_id == get_user_id(db, username), GameChallenge.emotion_values.isnot(None))
         .order_by(GameChallenge.id.desc())
     ).all()
     for row in rows:
@@ -183,7 +183,7 @@ def apply_emotion_deltas(
         if target is None:
             target = db.scalars(
                 select(GameChallenge)
-                .where(GameChallenge.user_name == username)
+                .where(GameChallenge.user_id == get_user_id(db, username))
                 .order_by(GameChallenge.id.desc())
             ).first()
         if target is None or not base:

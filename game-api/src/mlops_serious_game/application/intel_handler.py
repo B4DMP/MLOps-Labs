@@ -32,7 +32,7 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
     get_intel_artifact_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
-from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
+from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session, get_user_id
 from mlops_serious_game.config import settings
 
 
@@ -208,8 +208,9 @@ def rule_out_archetype(username: str, stakeholder_id: str, archetype_name: str) 
 def ruled_out_archetypes(username: str, stakeholder_id: str) -> list[str]:
     """Archetypes a Trial Balloon has already ruled out for this stakeholder (D49)."""
     with get_session() as session:
+        user_id = get_user_id(session, username)
         row = session.scalars(
-            select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+            select(GameSession).where(GameSession.user_id == user_id).order_by(GameSession.id.desc())
         ).first()
         if row is None or not isinstance(row.stakeholder_archetypes, dict):
             return []
@@ -403,8 +404,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
 
     loaded_items: List[StakeholderIntelItem] = []
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
         existing_ids = {
             r.intel_item_data.get("id")
@@ -430,6 +432,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                 new_item.discovered_challenge_template = curr_challenge.template_id
                 new_record = IntelItem(
                     user_name=username,
+                    user_id=user_id,
                     intel_item_data=new_item.model_dump(mode="json"),
                 )
                 session.add(new_record)
@@ -472,7 +475,7 @@ def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> 
     """
     with get_session() as session:
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
         ).all()
         items: List[StakeholderIntelItem] = []
         for r in records:
@@ -725,8 +728,10 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
         intel_item.discovered_phase_id = curr_challenge.phase_id
         intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
+        username = ws.query_params["username"]
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         target_record = None
@@ -743,7 +748,8 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
             flag_modified(target_record, "intel_item_data")
         else:
             new_record = IntelItem(
-                user_name=ws.query_params["username"],
+                user_name=username,
+                user_id=user_id,
                 intel_item_data=dict(item_dict)
             )
             session.add(new_record)
@@ -757,7 +763,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
 
     with get_session() as session:
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, ws.query_params["username"]))
         ).all()
 
         for record in records:
@@ -1019,8 +1025,9 @@ def correct_and_verify_intel_item(
         return None
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         target_record = None
@@ -1054,6 +1061,7 @@ def correct_and_verify_intel_item(
             )
             new_record = IntelItem(
                 user_name=username,
+                user_id=user_id,
                 intel_item_data=new_item.model_dump(mode="json")
             )
             session.add(new_record)
@@ -1066,7 +1074,9 @@ def _set_intel_confidence(username: str, item_id: str, confidence: ConfidenceTyp
     under - Gather's Test a hypothesis (D49) only ever settles a guess the player already made,
     it never touches the tag itself (Refuted's "free re-tag" is a separate, explicit action)."""
     with get_session() as session:
-        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
+        ).all()
         for record in records:
             if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == item_id:
                 data = dict(record.intel_item_data)
@@ -1455,7 +1465,9 @@ def observe_tagged_facts(curr_challenge: Challenge, username: str) -> list["Game
     if graph_store.has_batch(username, source_id):
         return []
     with get_session() as session:
-        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
+        ).all()
         items = []
         for r in records:
             if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("challenge_id") == curr_challenge.id:

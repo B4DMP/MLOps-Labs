@@ -7,7 +7,7 @@ from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
-from mlops_serious_game.infrastructure.database import get_session, GameChallenge
+from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem, get_user_id
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
 )
@@ -171,7 +171,7 @@ async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict)
     engagement_card_targets = {}
     with get_session() as db_session:
         stmt = select(GameChallenge).where(
-            GameChallenge.user_name == username
+            GameChallenge.user_id == get_user_id(db_session, username)
         ).order_by(GameChallenge.id.desc())
         existing = db_session.scalars(stmt).first()
         if existing and isinstance(existing.action_card, dict):
@@ -213,7 +213,7 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     try:
         with get_session() as db_session:
             stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username
+                GameChallenge.user_id == get_user_id(db_session, username)
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
@@ -323,7 +323,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         try:
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_name == username
+                    GameChallenge.user_id == get_user_id(db_session, username)
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:
@@ -400,7 +400,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     try:
         with get_session() as db_session:
             stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username
+                GameChallenge.user_id == get_user_id(db_session, username)
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
@@ -512,7 +512,9 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             item = collected_map.get(i_id)
             if not item:
                 with get_session() as s:
-                    records = s.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+                    records = s.scalars(
+                        select(IntelItem).where(IntelItem.user_id == get_user_id(s, username))
+                    ).all()
                     for r in records:
                         if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == i_id:
                             try:
@@ -525,8 +527,9 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
         action_card["wrong_intel_ids"] = wrong_intel_ids
 
         with get_session() as db_session:
+            action_card_user_id = get_user_id(db_session, username)
             stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username
+                GameChallenge.user_id == action_card_user_id
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
@@ -541,6 +544,7 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             else:
                 new_record = GameChallenge(
                     user_name=username,
+                    user_id=action_card_user_id,
                     phase_index=phase_id,
                     challenge_index=challenge_id,
                     challenge_loop_index=1,

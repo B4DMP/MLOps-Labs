@@ -25,7 +25,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement import counts_toward_readiness
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-from mlops_serious_game.infrastructure.database import GameSession, get_session
+from mlops_serious_game.infrastructure.database import GameSession, get_session, get_user_id
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
@@ -104,7 +104,7 @@ class PitchContext:
 def _drawn_archetypes(username: str) -> dict[str, Any]:
     with get_session() as db:
         row = db.scalars(
-            select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+            select(GameSession).where(GameSession.user_id == get_user_id(db, username)).order_by(GameSession.id.desc())
         ).first()
         if row is None or not isinstance(row.stakeholder_archetypes, dict):
             return {}
@@ -141,7 +141,7 @@ def _stakeholder_archetypes(username: str, room_ids: list[str]) -> dict[str, Any
     archetypes = EmotionFactory.get_convincer_archetypes()
     with get_session() as db:
         row = db.scalars(
-            select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+            select(GameSession).where(GameSession.user_id == get_user_id(db, username)).order_by(GameSession.id.desc())
         ).first()
         drawn = dict(row.stakeholder_archetypes) if row and isinstance(row.stakeholder_archetypes, dict) else {}
     out: dict[str, Any] = {}

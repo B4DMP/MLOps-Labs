@@ -1,6 +1,6 @@
 import datetime
 from typing import Any
-from sqlalchemy import DateTime, Integer, String, JSON, Boolean
+from sqlalchemy import DateTime, ForeignKey, Integer, String, JSON, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from mlops_serious_game.config import settings
@@ -15,7 +15,15 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    # Real external identity string used by the admin API/UI - kept permanently, not just
+    # denormalization of campaign_id (see docs/plans/pk-migration.md).
     campaign_key: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    campaign_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_CAMPAIGN_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
 
 class Campaign(Base):
@@ -33,6 +41,12 @@ class GameProgression(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     game_progress_index: Mapped[int] = mapped_column(Integer, nullable=False)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
@@ -45,6 +59,12 @@ class GameChallenge(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_loop_index: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -64,6 +84,12 @@ class GameSession(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     player: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
     stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
@@ -81,6 +107,12 @@ class IntelItem(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     intel_item_data: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
 
 
@@ -92,6 +124,12 @@ class GraphOpLog(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_template: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -117,6 +155,12 @@ class GameEventRow(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     phase_id: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_id: Mapped[int] = mapped_column(Integer, nullable=False)

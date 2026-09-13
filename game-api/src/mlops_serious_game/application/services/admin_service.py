@@ -10,12 +10,10 @@ from mlops_serious_game.infrastructure.database import (
     Campaign,
     GameProgression,
     GameChallenge,
-    GameSession,
     User,
-    IntelItem,
     get_session,
+    get_user_id,
 )
-from mlops_serious_game.infrastructure.database.models import GraphOpLog, GameEventRow
 
 # Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
 # by thread_id rather than username - these are the thread naming conventions used across the
@@ -188,7 +186,7 @@ def calculate_intro_percentage(player_name: str) -> int:
         with get_session() as session:
             prog = session.scalar(
                 select(GameProgression).where(
-                    GameProgression.user_name == player_name,
+                    GameProgression.user_id == get_user_id(session, player_name),
                     GameProgression.game_progress_index == 1,
                 )
             )
@@ -222,7 +220,7 @@ def calculate_outro_percentage(player_name: str) -> int:
         with get_session() as session:
             prog = session.scalar(
                 select(GameProgression).where(
-                    GameProgression.user_name == player_name,
+                    GameProgression.user_id == get_user_id(session, player_name),
                     GameProgression.game_progress_index == 4,
                 )
             )
@@ -329,13 +327,17 @@ def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[
             if not valid_players:
                 return [0.0] * len(challenges)
 
+            valid_user_ids = session.scalars(
+                select(User.id).where(User.user_name.in_(valid_players))
+            ).all()
+
             for ch in challenges:
                 sessions = session.scalars(
                     select(GameChallenge)
                     .where(
                         GameChallenge.phase_index == ch.phase_id,
                         GameChallenge.challenge_index == ch.id,
-                        GameChallenge.user_name.in_(valid_players),
+                        GameChallenge.user_id.in_(valid_user_ids),
                     )
                     .order_by(GameChallenge.id.desc())
                 ).all()
@@ -580,25 +582,30 @@ def update_campaign(
         raise
 
 
+def _cleanup_and_delete_user(session, user: User) -> None:
+    """Deletes a user and every per-player row that belongs to them.
+
+    Deleting `user` cascades to every table with a `user_id` FK (`ON DELETE CASCADE`, enforced by
+    the pk-migration.md constraints) - GameProgression, GameChallenge, GameSession, IntelItem,
+    GraphOpLog, GameEventRow all go with it. Only the LangGraph checkpoint tables (not
+    ORM-mapped, keyed by thread_id rather than a FK) still need explicit cleanup here.
+    """
+    _delete_checkpoints_for_threads(session, _player_thread_ids(user.user_name))
+    session.delete(user)
+    session.flush()
+
+
 def remove_campaign(campaign_key: str) -> None:
     """Removes a campaign and all associated players and player data across all tables."""
     try:
         with get_session() as session:
-            users = session.scalars(
-                select(User.user_name).where(User.campaign_key == campaign_key)
-            ).all()
-            user_names = list(users)
-            if user_names:
-                session.execute(delete(GameProgression).where(GameProgression.user_name.in_(user_names)))
-                session.execute(delete(GameChallenge).where(GameChallenge.user_name.in_(user_names)))
-                session.execute(delete(GameSession).where(GameSession.player.in_(user_names)))
-                session.execute(delete(IntelItem).where(IntelItem.user_name.in_(user_names)))
-                session.execute(delete(User).where(User.campaign_key == campaign_key))
+            users = session.scalars(select(User).where(User.campaign_key == campaign_key)).all()
+            for user in users:
+                _cleanup_and_delete_user(session, user)
             session.execute(delete(Campaign).where(Campaign.campaign_key == campaign_key))
     except Exception as e:
         print(f"Error removing campaign {campaign_key}: {e}")
         raise
-
 
 
 def remove_player(player_name: str) -> None:
@@ -607,35 +614,27 @@ def remove_player(player_name: str) -> None:
     Reusing a username after deletion must behave like a genuinely new player: leaving
     GraphOpLog, GameEventRow or checkpoint rows behind lets the old graph state/history bleed
     into the "new" account (e.g. the scheduler replaying stale ops when picking their first
-    challenge), so every per-player table needs to be covered here, not just the obvious ones.
+    challenge), so every per-player table needs to be covered here, not just the obvious ones -
+    see `_cleanup_and_delete_user`.
     """
     try:
         with get_session() as session:
-            session.execute(delete(User).where(User.user_name == player_name))
-            session.execute(delete(GameProgression).where(GameProgression.user_name == player_name))
-            session.execute(delete(GameChallenge).where(GameChallenge.user_name == player_name))
-            session.execute(delete(GameSession).where(GameSession.player == player_name))
-            session.execute(delete(IntelItem).where(IntelItem.user_name == player_name))
-            session.execute(delete(GraphOpLog).where(GraphOpLog.user_name == player_name))
-            session.execute(delete(GameEventRow).where(GameEventRow.user_name == player_name))
-            _delete_checkpoints_for_threads(session, _player_thread_ids(player_name))
+            user = session.scalar(select(User).where(User.user_name == player_name))
+            if user is not None:
+                _cleanup_and_delete_user(session, user)
     except Exception as e:
         print(f"Error removing player {player_name}: {e}")
         raise
 
 
 def remove_all_players() -> None:
-    """Removes all player-related data across all tables. See remove_player for why every
-    per-player table (not just the obvious ones) needs to be cleared."""
+    """Removes all player-related data across all tables. Deleting every `User` row cascades
+    (ON DELETE CASCADE) to every table with a `user_id` FK; only the checkpoint tables (not
+    ORM-mapped, keyed by thread_id) still need explicit cleanup - see `_cleanup_and_delete_user`.
+    """
     try:
         with get_session() as session:
             session.execute(delete(User))
-            session.execute(delete(GameProgression))
-            session.execute(delete(GameChallenge))
-            session.execute(delete(GameSession))
-            session.execute(delete(IntelItem))
-            session.execute(delete(GraphOpLog))
-            session.execute(delete(GameEventRow))
             _delete_all_checkpoints(session)
     except Exception as e:
         print(f"Error removing all players: {e}")

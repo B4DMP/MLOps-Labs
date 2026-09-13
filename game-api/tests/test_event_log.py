@@ -96,12 +96,14 @@ def _postgres_reachable() -> bool:
 def event_log_db():
     if not _postgres_reachable():
         pytest.skip("no postgres reachable - see docker compose up postgres")
+    from conftest import ensure_test_user
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameEventRow
 
     username = "test_event_log_user"
     with get_session() as session:
         session.query(GameEventRow).filter(GameEventRow.user_name == username).delete()
+    ensure_test_user(username)
     yield username
     with get_session() as session:
         session.query(GameEventRow).filter(GameEventRow.user_name == username).delete()

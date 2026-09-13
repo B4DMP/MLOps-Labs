@@ -187,10 +187,11 @@ async def get_graph_debug(
         # that references a real template.
         from mlops_serious_game.infrastructure.database.connection import get_session
         from mlops_serious_game.infrastructure.database.models import GraphOpLog
+        from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
         from sqlalchemy import select
         with get_session() as session:
             rows = session.scalars(
-                select(GraphOpLog).where(GraphOpLog.user_name == username)
+                select(GraphOpLog).where(GraphOpLog.user_id == get_user_id(session, username))
             ).all()
             played_templates = {
                 r.challenge_template for r in rows
