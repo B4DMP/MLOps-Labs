@@ -562,30 +562,43 @@ async def store_or_update_challenge(
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
 
+        stmt = select(GameChallenge).where(
+            GameChallenge.user_name == username,
+            GameChallenge.phase_index == challenge.phase_id,
+            GameChallenge.challenge_index == challenge.id
+        ).order_by(GameChallenge.id.desc())
+
+        existing = session.scalars(stmt).first()
+
         if challenge_loop_id == 0:
-            session.add(
-                GameChallenge(
-                    user_name=username,
-                    phase_index=challenge.phase_id,
-                    challenge_index=challenge.id,
-                    challenge_loop_index=challenge_loop_id,
-                    action_card=action_card,
-                    metric_values=metric_values,
-                    time_stamp=datetime.datetime.utcnow(),
-                    pitch_debate_messages=[],
-                    online_intel_gathering_messages=[],
-                    attention_tokens=attention_tokens,
-                    emotion_values=carried_emotion_values,
+            # A repeated state_update for the same challenge's very first stage (e.g. a
+            # duplicate emit on reconnect) must not insert a second GameChallenge row for
+            # it - that would let `handle_game_init`'s "latest row" resume logic and this
+            # challenge's own row collide/duplicate for no reason.
+            if existing:
+                existing.action_card = action_card
+                existing.metric_values = metric_values
+                existing.attention_tokens = attention_tokens
+                existing.time_stamp = datetime.datetime.utcnow()
+                if not existing.emotion_values and carried_emotion_values:
+                    existing.emotion_values = carried_emotion_values
+            else:
+                session.add(
+                    GameChallenge(
+                        user_name=username,
+                        phase_index=challenge.phase_id,
+                        challenge_index=challenge.id,
+                        challenge_loop_index=challenge_loop_id,
+                        action_card=action_card,
+                        metric_values=metric_values,
+                        time_stamp=datetime.datetime.utcnow(),
+                        pitch_debate_messages=[],
+                        online_intel_gathering_messages=[],
+                        attention_tokens=attention_tokens,
+                        emotion_values=carried_emotion_values,
+                    )
                 )
-            )
         else:
-            stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username,
-                GameChallenge.phase_index == challenge.phase_id,
-                GameChallenge.challenge_index == challenge.id
-            ).order_by(GameChallenge.id.desc())
-            
-            existing = session.scalars(stmt).first()
             if existing:
                 existing.challenge_loop_index = challenge_loop_id
                 existing.action_card = action_card
