@@ -1,9 +1,11 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
-import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
 import StakeholderDossier, { type IntelDebugInfo, type StakeholderDossierEntry } from "./StakeholderDossier";
+import EventLogModal from "./EventLogModal";
+import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { INTEL_TAGS } from "../types/IntelTag";
 
@@ -119,6 +121,16 @@ export default function OfflineIntelGathering({
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
+  const [events, setEvents] = useState<GameEventPayload[]>([]);
+  // Clicking an event log row that names an intel item jumps the dossier to it (D51's refs, made
+  // clickable): a brief highlight, then it fades so it doesn't linger as stray UI state.
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jumpToIntelItem = (itemId: string) => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    setHighlightedIntelId(itemId);
+    highlightTimeoutRef.current = setTimeout(() => setHighlightedIntelId(null), 2500);
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -127,6 +139,7 @@ export default function OfflineIntelGathering({
   const [, setHoveredTag] = useState<string | null>(null);
   // Debug builds only: stays open across cards so the key can be read while flipping through the deck.
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [isLogOpen, setIsLogOpen] = useState(false);
   const [showIntroBanner, setShowIntroBanner] = useState(() => {
     try {
       return localStorage.getItem("mlops_offline_intel_intro_seen") !== "true";
@@ -159,6 +172,9 @@ export default function OfflineIntelGathering({
       if (resetConfirmTimeoutRef.current) {
         clearTimeout(resetConfirmTimeoutRef.current);
       }
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -188,10 +204,23 @@ export default function OfflineIntelGathering({
         phase_id: currentPhase,
         challenge_id: currentChallenge,
       });
+      emit("log:history", {});
     }
 
     return () => unsubscribe();
   }, [currentPhase, currentChallenge]);
+
+  // The event log (D51): what's been filed/verified so far, for this offline gathering pass.
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (payload) => {
+    setEvents(payload.events || []);
+  });
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (payload) => {
+    if (!payload.events?.length) return;
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.seq));
+      return [...prev, ...payload.events.filter((e) => !seen.has(e.seq))];
+    });
+  });
 
   useEffect(() => {
     if (artifacts.length > 0 && currentIndex < artifacts.length) {
@@ -379,9 +408,13 @@ export default function OfflineIntelGathering({
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onLogToggle={() => setIsLogOpen((v) => !v)}
+                isLogOpen={isLogOpen}
+                logCount={events.length}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
+                highlightedIntelId={highlightedIntelId}
               />
             </div>
           </div>
@@ -910,6 +943,13 @@ export default function OfflineIntelGathering({
           </div>
         </div>
       </div>
+
+      <EventLogModal
+        isVisible={isLogOpen}
+        onClose={() => setIsLogOpen(false)}
+        events={events}
+        onItemClick={jumpToIntelItem}
+      />
     </div>
   );
 }

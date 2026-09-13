@@ -129,6 +129,9 @@ export interface StakeholderDossierProps {
   draggableIntel?: boolean;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  /** Opens/closes the event log. Button appears in the dossier header, next to Performance. */
+  onLogToggle?: () => void;
+  isLogOpen?: boolean;
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -376,6 +379,8 @@ export default function StakeholderDossier({
   draggableIntel = false,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onLogToggle,
+  isLogOpen = false,
 }: StakeholderDossierProps) {
   const { emit } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
@@ -1803,52 +1808,66 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
-          {environmentIndex >= 0 && (
+          <div className={styles.headerButtonGroup}>
+            {environmentIndex >= 0 && (
+              <button
+                className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+                onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+                title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+              >
+                <Icon icon="ph:buildings-bold" />
+                <span>System</span>
+              </button>
+            )}
+            {onPerformanceToggle && (
+              <button
+                className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
+                onClick={onPerformanceToggle}
+                title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
+              >
+                <Icon icon="ph:gauge-bold" />
+                <span>Performance</span>
+              </button>
+            )}
+            {onOpenPhaseBriefing && (
+              <button
+                className={styles.briefingButton}
+                onClick={onOpenPhaseBriefing}
+                title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
+              >
+                <Icon icon="ph:projector-screen-chart-bold" />
+                <span>Briefing</span>
+              </button>
+            )}
+            {onLogToggle && (
+              <button
+                className={`${styles.briefingButton} ${isLogOpen ? styles.briefingButtonActive : ""}`}
+                onClick={onLogToggle}
+                title={isLogOpen ? "Close event log" : "Open the event log — what's been filed and verified so far"}
+              >
+                <Icon icon="ph:scroll-bold" />
+                <span>Log</span>
+              </button>
+            )}
+          </div>
+          <div className={styles.headerArrowGroup}>
             <button
-              className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
-              onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
-              title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+              className={styles.topNavArrow}
+              disabled={currentPageIndex <= 0}
+              onClick={() => requestPageChange(currentPageIndex - 1)}
+              title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
             >
-              <Icon icon="ph:buildings-bold" />
-              <span>System</span>
+              <Icon icon="ph:caret-left-bold" />
             </button>
-          )}
-          {onPerformanceToggle && (
             <button
-              className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
-              onClick={onPerformanceToggle}
-              title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
+              className={styles.topNavArrow}
+              disabled={currentPageIndex >= totalPages - 1}
+              onClick={() => requestPageChange(currentPageIndex + 1)}
+              title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
             >
-              <Icon icon="ph:gauge-bold" />
-              <span>Performance</span>
+              <Icon icon="ph:caret-right-bold" />
             </button>
-          )}
-          {onOpenPhaseBriefing && (
-            <button
-              className={styles.briefingButton}
-              onClick={onOpenPhaseBriefing}
-              title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
-            >
-              <Icon icon="ph:projector-screen-chart-bold" />
-              <span>Briefing</span>
-            </button>
-          )}
-          <button
-            className={styles.topNavArrow}
-            disabled={currentPageIndex <= 0}
-            onClick={() => requestPageChange(currentPageIndex - 1)}
-            title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
-          >
-            <Icon icon="ph:caret-left-bold" />
-          </button>
-          <button
-            className={styles.topNavArrow}
-            disabled={currentPageIndex >= totalPages - 1}
-            onClick={() => requestPageChange(currentPageIndex + 1)}
-            title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
-          >
-            <Icon icon="ph:caret-right-bold" />
-          </button>
+          </div>
           {canClose && (
             <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
               ✕

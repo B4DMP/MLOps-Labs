@@ -21,7 +21,9 @@ import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyIn
 import { faceForEmotionState } from "../utils/emotionFace";
 import styles from "./pitch_phase.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
+import type { GameEventPayload } from "../types/GameEvent";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
+import EventLogModal from "./EventLogModal";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import GlossaryText from "./glossary/GlossaryText";
@@ -275,7 +277,23 @@ export default function PitchPhase({
   // Gathering is its own step: engagement cards and artifacts are the mechanic there,
   // not a button in a bar. Server side it is still PREPARE.
   const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
+  // The conversation history tab opens on its own. The event log has no tab of its own: it opens
+  // from the "Log" button in the dossier header, alongside System/Performance/Briefing, and can
+  // still split the rail's body with conversation history when both are open.
   const [chatOpen, setChatOpen] = useState(false);
+  const [eventsOpen, setEventsOpen] = useState(false);
+  // Clicking an event log row that names an intel item jumps the dossier to it (D51's refs, made
+  // clickable): a brief highlight, then it fades so it doesn't linger as stray UI state.
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jumpToIntelItem = (itemId: string) => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    setHighlightedIntelId(itemId);
+    highlightTimeoutRef.current = setTimeout(() => setHighlightedIntelId(null), 2500);
+  };
+  useEffect(() => () => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+  }, []);
   const seatRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [bubbleAt, setBubbleAt] = useState<{ x: number; y: number } | null>(null);
   const [framingOpen, setFramingOpen] = useState(false);
@@ -290,6 +308,8 @@ export default function PitchPhase({
   const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
   const [verificationModal, setVerificationModal] = useState<IntelVerificationResultData | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
+  // The event log (D51): every change, with a cause. `log:history` seeds it, `log:events` appends.
+  const [events, setEvents] = useState<GameEventPayload[]>([]);
 
   const cards = engagementCardsProp || [];
   const tokens = attentionTokensProp !== undefined ? attentionTokensProp : localTokens;
@@ -467,7 +487,20 @@ export default function PitchPhase({
 
   useEffect(() => {
     emit("pitch:state", base);
+    emit("log:history", {});
   }, [emit, base]);
+
+  // ── the event log (D51) ──────────────────────────────────────────────────
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (payload) => {
+    setEvents(payload.events || []);
+  });
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (payload) => {
+    if (!payload.events?.length) return;
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.seq));
+      return [...prev, ...payload.events.filter((e) => !seen.has(e.seq))];
+    });
+  });
 
   // ── intel engagement events ───────────────────────────────────────────────
   useEffect(() => {
@@ -709,6 +742,10 @@ export default function PitchPhase({
                 draggableIntel={state.stage === "PREPARE" && localStage === "BUILD"}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onLogToggle={() => setEventsOpen((v) => !v)}
+                isLogOpen={eventsOpen}
+                logCount={events.length}
+                highlightedIntelId={highlightedIntelId}
               />
             </div>
           </div>
@@ -1629,6 +1666,12 @@ export default function PitchPhase({
         isOpen={Boolean(verificationModal)}
         onClose={() => setVerificationModal(null)}
         resultData={verificationModal}
+      />
+      <EventLogModal
+        isVisible={eventsOpen}
+        onClose={() => setEventsOpen(false)}
+        events={events}
+        onItemClick={jumpToIntelItem}
       />
     </div>
   );

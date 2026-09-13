@@ -1,0 +1,186 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.count {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px 2px 4px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.filterChip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.filterChipOn {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.12);
+  color: #e2e8f0;
+}
+
+.emptyStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  padding: 22px 10px;
+}
+
+.emptyStateIcon {
+  font-size: 1.6rem;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+
+.emptyStatePrimary {
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.emptyStateSecondary {
+  font-size: 0.72rem;
+  color: #94a3b8;
+}
+
+.group {
+  border-radius: 6px;
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  list-style: none;
+  padding: 3px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.groupIcon {
+  flex: 0 0 auto;
+  color: rgba(56, 189, 248, 0.8);
+  font-size: 0.85em;
+}
+
+.groupTitleText {
+  flex: 1 1 auto;
+}
+
+.groupTitle::-webkit-details-marker {
+  display: none;
+}
+
+.groupCount {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 0 6px;
+  font-size: 0.64rem;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.85);
+  padding: 2px 0;
+}
+
+.rowClickable {
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 0 -4px;
+  padding: 2px 4px;
+}
+
+.rowClickable:hover,
+.rowClickable:focus-visible {
+  background: rgba(56, 189, 248, 0.14);
+  outline: none;
+}
+
+.rowIcon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.rowText {
+  flex: 1 1 auto;
+}
+
+.directionUp {
+  color: #86efac;
+}
+
+.directionDown {
+  color: #fca5a5;
+}
+
+.magnitude {
+  flex: 0 0 auto;
+  font-size: 0.5rem;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  align-self: center;
+  color: rgba(255, 255, 255, 0.4);
+}
