@@ -775,7 +775,7 @@
         "trade_off": "He would consider automation if the costs were offset elsewhere.",
         "fact": "That is simply what the current quality checks setup produces today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_data_quality_conflict_automate_for_consistency",
