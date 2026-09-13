@@ -17,7 +17,8 @@ import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGa
 import { intelTagMeta, type IntelTag } from "../types/IntelTag";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
+import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo } from "./StakeholderDossier";
+import { faceForEmotionState } from "../utils/emotionFace";
 import styles from "./pitch_phase.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
@@ -134,25 +135,6 @@ interface PitchStatePayload {
   error?: string | null;
   applied?: Record<string, unknown>;
   stalemate?: boolean;
-}
-
-/** The room wears its mood: the avatar face follows the stakeholder's emotion score. */
-const faceFor = (emotions: number): "serious" | "concerned" | "calm" | "smile" | "smileBig" => {
-  if (emotions < 0.25) return "serious";
-  if (emotions < 0.45) return "concerned";
-  if (emotions < 0.6) return "calm";
-  if (emotions < 0.8) return "smile";
-  return "smileBig";
-};
-
-interface StakeholderBuyInInfo {
-  threshold: number;
-  actionCardScore: number;
-  dialogueScore: number;
-  emotionScore: number;
-  total: number;
-  isPersuaded: boolean;
-  currentEmotion: number;
 }
 
 interface PitchPhaseProps {
@@ -277,7 +259,7 @@ export default function PitchPhase({
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
-    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string }
+    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string; emotional_state?: string }
   >;
 
   // ── pitch state ──────────────────────────────────────────────────────────
@@ -406,11 +388,11 @@ export default function PitchPhase({
           emotionScore: r.emotions,
           total: r.buy_in ?? (r.band === "green" ? 0.75 : r.band === "amber" ? 0.5 : 0.2),
           isPersuaded: r.band === "green",
-          currentEmotion: r.emotions,
+          currentEmotion: stakeholders[r.stakeholder_id]?.emotional_state || "neutral",
         },
       ])
     );
-  }, [state]);
+  }, [state, stakeholders]);
 
   // Engagement cards only reach the stakeholders taking part in this phase: the pitch room.
   const { phases } = useContext(PhasesContext);
@@ -721,7 +703,7 @@ export default function PitchPhase({
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
-                buyInInfoMap={buyInInfoMap as any}
+                buyInInfoMap={buyInInfoMap}
                 convincerArchetypes={convincerArchetypes}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 draggableIntel={state.stage === "PREPARE" && localStage === "BUILD"}
@@ -780,7 +762,7 @@ export default function PitchPhase({
                             size={72}
                             isFramed={false}
                             isSpeaking={isSpeaking}
-                            emotion={faceFor(read.emotions)}
+                            emotion={faceForEmotionState(st?.emotional_state)}
                             play_blink_animation
                             stakeholderColor={stColor}
                             stakeholderId={read.stakeholder_id}
