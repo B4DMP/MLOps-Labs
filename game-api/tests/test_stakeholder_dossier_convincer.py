@@ -49,13 +49,26 @@ async def test_stakeholder_dossier_contains_convincer_archetype():
         mock_retrieve_intel.return_value = []
         dossier_tagged = await retrieve_dossier_data(mock_challenge, mock_ws)
 
+    # A correct guess is not verified yet: only the pitch can confirm it
     dave_tagged_entry = next((entry for entry in dossier_tagged if entry["stakeholder_id"] == "data_dave"), None)
     assert dave_tagged_entry["convincer_archetype"] == "Technical Excellence"
-    assert dave_tagged_entry["is_validated"] is True
-    assert dave_tagged_entry["convincer_status"] == "validated"
+    assert dave_tagged_entry["is_validated"] is False
+    assert dave_tagged_entry["convincer_status"] == "unconfirmed"
 
-    # Attempting to re-tag once validated should be ignored
+    # So re-tagging is still allowed
     await tag_stakeholder_convincer_archetype(unique_user, "data_dave", "Business Value")
+    with patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve_intel, \
+         patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["data_dave"]):
+        mock_retrieve_intel.return_value = []
+        dossier_retagged = await retrieve_dossier_data(mock_challenge, mock_ws)
+    dave_retagged_entry = next((entry for entry in dossier_retagged if entry["stakeholder_id"] == "data_dave"), None)
+    assert dave_retagged_entry["convincer_archetype"] == "Business Value"
+    assert dave_retagged_entry["convincer_status"] == "unconfirmed"
+
+    # Once the pitch verifies it, the archetype is stamped and locked
+    from mlops_serious_game.application.intel_handler import correct_and_verify_convincer_archetype
+    correct_and_verify_convincer_archetype(unique_user, "data_dave")
+    await tag_stakeholder_convincer_archetype(unique_user, "data_dave", "Autonomy")
     with patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve_intel, \
          patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["data_dave"]):
         mock_retrieve_intel.return_value = []

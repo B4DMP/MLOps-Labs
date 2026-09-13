@@ -353,7 +353,9 @@ async def handle_chat_message(
 
                     if cat_arch and cat_arch.lower().strip() == opt_arch_name.lower().strip():
                         if cat_arch.lower().strip() == real_arch.lower().strip():
-                            # Validated!
+                            # Validated! The pitch confirmed the tag, so the dossier may stamp it.
+                            if not st_entry.get("verified"):
+                                correct_and_verify_convincer_archetype(username, s_id)
                             verif = {
                                 "was_correct": True,
                                 "stakeholder_id": s_id,
@@ -378,7 +380,7 @@ async def handle_chat_message(
                             }
                             convincer_verifications.append(verif)
 
-        if any(not v.get("was_correct") for v in convincer_verifications):
+        if convincer_verifications:
             dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
             await manager.send_event(
                 websocket=websocket,

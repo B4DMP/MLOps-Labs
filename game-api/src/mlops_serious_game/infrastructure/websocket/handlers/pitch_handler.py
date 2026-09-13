@@ -128,6 +128,52 @@ def _stakeholder_archetypes(username: str, room_ids: list[str]) -> dict[str, Any
     return out
 
 
+def _is_verified(item) -> bool:
+    return str(getattr(item.intel_type, "value", item.intel_type)).lower() == "verified"
+
+
+async def _verify_heard(
+    websocket: WebSocket,
+    ctx: PitchContext,
+    item_ids: list[str],
+    stakeholder_ids: list[str],
+) -> None:
+    """What the room has said out loud stops being a guess.
+
+    The player's notes on those items are verified, corrected where they were filed wrong, and
+    the archetypes the player tagged for the stakeholders who spoke are verified the same way.
+    Only notes the player holds: an objection about something they never found adds nothing.
+    """
+    from mlops_serious_game.application.intel_handler import (
+        correct_and_verify_convincer_archetype,
+        correct_and_verify_intel_item,
+        retrieve_dossier_data,
+    )
+
+    held = {i.id: i for i in ctx.held_items()}
+    changed = False
+    for item_id in dict.fromkeys(item_ids):
+        item = held.get(item_id)
+        if item is not None and not _is_verified(item):
+            correct_and_verify_intel_item(ctx.username, item_id, ctx.challenge)
+            changed = True
+
+    drawn = _drawn_archetypes(ctx.username)
+    for st_id in dict.fromkeys(s for s in stakeholder_ids if s):
+        entry = drawn.get(st_id)
+        if isinstance(entry, dict) and entry.get("categorized_archetype") and not entry.get("verified"):
+            correct_and_verify_convincer_archetype(ctx.username, st_id)
+            changed = True
+
+    if not changed:
+        return
+    # A corrected archetype is a correct one now, so the risk read may show its exact number.
+    ctx.read_exactly = _correctly_tagged(ctx.username, ctx.room_ids)
+    if ctx.challenge:
+        dossier = await retrieve_dossier_data(ctx.challenge, websocket)
+        await manager.send_event(websocket=websocket, event="intel:dossier_data", payload={"dossier": dossier})
+
+
 def _load_or_start(ctx: PitchContext) -> "pitch.PitchState":
     state = pitch_store.load_pitch(ctx.username, ctx.phase_id, ctx.challenge_id)
     return state or pitch.start_pitch(ctx.room_ids)
@@ -170,7 +216,11 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "secondary_archetype": state.secondary_archetype,
         "available_items": [_item_payload(i, chains) for i in held],
         "predictions": [p.model_dump() for p in view.predictions],
-        "boundary_warnings": [w.model_dump() for w in view.boundary_warnings],
+        # Only lines the player has found and filed as lines (the outcome still counts them all).
+        "boundary_warnings": [
+            {**w.model_dump(), "line": personalize(w.line) if w.line else None}
+            for w in pitch.player_boundary_warnings(ctx.graph, view.boundary_warnings, held)
+        ],
         "uncompensated_losses": view.uncompensated_losses,
         # Risk read: the band always, the exact number only for stakeholders whose Language the
         # player tagged correctly (plan 06).
@@ -282,6 +332,12 @@ async def handle_pitch_answer(websocket: WebSocket, username: str, payload: dict
         pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, result.state)
         if result.spent_escalation_point:
             ctx.points = pitch_store.spend_escalation_point(username)
+        # The stakeholder has answered: their note and their archetype are no longer a guess.
+        await _verify_heard(
+            websocket, ctx,
+            [objection.item_id] if objection.item_id else [],
+            [objection.stakeholder_id],
+        )
     await _send(websocket, ctx, result.state, ctx.view(result.state), error=result.rejected)
 
 
@@ -296,6 +352,8 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         return
     view = ctx.view(state)
     state = pitch.commit_pitch(state, view)
+    # The room has reacted to the whole card, so every note on it is confirmed or corrected.
+    await _verify_heard(websocket, ctx, list(state.card_item_ids), [])
 
     applied: dict[str, Any] = {}
     if view.outcome != "VETO":
