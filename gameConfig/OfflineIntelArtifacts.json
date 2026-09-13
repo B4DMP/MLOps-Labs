@@ -300,7 +300,7 @@
         "trade_off": "He would accept an automated KPI definition process if it includes a manual security review step.",
         "fact": "That is simply how the KPI definition process is set up in the current project plan."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_missing_kpi_baseline_emilia_trade_off",
@@ -445,7 +445,7 @@
         "trade_off": "He would accept a manual process if it meant faster feature releases.",
         "fact": "That is simply how the acceptance criteria setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_the_missing_gate_alex_speed_priority",
@@ -1278,7 +1278,7 @@
         "trade_off": "He would accept a lower level of automation for the gateway if it means the deployment pipeline remains stable.",
         "fact": "The gateway is currently configured to be managed manually by the operations team."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_gateway_security_gap_reuben_compliance_gap",
@@ -1422,7 +1422,7 @@
         "trade_off": "She would accept a manual shadow setup if it is the only option available.",
         "fact": "That is simply how the shadow deployment is configured today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_shadow_environment_dispute_alex_shadow_removed",
@@ -1436,7 +1436,7 @@
         "trade_off": "He would accept keeping a manual shadow environment if it costs nothing.",
         "fact": "That is simply how the shadow deployment is configured today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_shadow_environment_dispute_reuben_compliance",
@@ -1450,7 +1450,7 @@
         "trade_off": "He would accept a manual testing process if it is the only way to meet the deadline.",
         "fact": "That is simply how the testing process is configured today."
       },
-      "is_known": true
+      "is_known": false
     },
     {
       "id": "art_gen_shadow_environment_dispute_emilia_cost",
@@ -1566,7 +1566,7 @@
         "boundary": "She will not allow automated monitoring because it bypasses her cost controls.",
         "fact": "The current setup relies on a manual monthly review of the logs."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_blind_spot_silence_ruth_governance_demand",
@@ -1724,7 +1724,7 @@
         "trade_off": "She would give up the weekly review if the automated system is fully governed.",
         "fact": "That is simply how the team currently handles drift checks."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_drift_blind_spot_emilia_kpi_driver",
