@@ -10,6 +10,7 @@ import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
 import { INTEL_TAGS } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
+import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -132,6 +133,8 @@ export interface StakeholderDossierProps {
   /** Opens/closes the event log. Button appears in the dossier header, next to Performance. */
   onLogToggle?: () => void;
   isLogOpen?: boolean;
+  /** Badges the Log button with how many events have been filed so far. */
+  logCount?: number;
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -381,8 +384,9 @@ export default function StakeholderDossier({
   isPerformanceOpen = false,
   onLogToggle,
   isLogOpen = false,
+  logCount,
 }: StakeholderDossierProps) {
-  const { emit } = useGameWebSocket();
+  const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
@@ -397,6 +401,18 @@ export default function StakeholderDossier({
   };
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
+
+  // Badges the Performance button with the project graph's overall health, the same number
+  // PerformanceView itself shows. Only asked for when that button exists.
+  const [systemHealth, setSystemHealth] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!onPerformanceToggle) return;
+    emit("graph:state_request", { phase_id: currentPhase });
+    const unsub = subscribe("graph:state", (data: { system_health?: number }) => {
+      setSystemHealth(data?.system_health);
+    });
+    return unsub;
+  }, [onPerformanceToggle, currentPhase]);
 
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
   const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
@@ -1780,6 +1796,15 @@ export default function StakeholderDossier({
 
   const activeStakeholder = effectiveDossierData[currentPageIndex] || effectiveDossierData[0];
 
+  // System button badge: how much of what you've worked out about the pipeline itself is
+  // actually found, the same found/total the page's own pip row shows.
+  const systemPips = environmentIndex >= 0 ? getIntelPips(effectiveDossierData[environmentIndex]) : [];
+  const systemFoundCount = systemPips.filter((status) => status !== "hidden").length;
+
+  // Performance button badge: the same overall health bucket PerformanceView shows, as a dot
+  // rather than a count - it's a state, not a tally.
+  const systemHealthBucket = healthBucket(systemHealth);
+
   if (!isOpen && !isEmbedded) return null;
 
   const windowContent = (
@@ -1813,20 +1838,35 @@ export default function StakeholderDossier({
               <button
                 className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
                 onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
-                title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+                title={`What you have worked out about the pipeline itself: facts, not anybody's wishes — ${describeIntelPips(systemPips)}`}
               >
                 <Icon icon="ph:buildings-bold" />
                 <span>System</span>
+                {systemPips.length > 0 && (
+                  <span className={styles.headerBadgeCount}>
+                    {systemFoundCount}/{systemPips.length}
+                  </span>
+                )}
               </button>
             )}
             {onPerformanceToggle && (
               <button
                 className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
                 onClick={onPerformanceToggle}
-                title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
+                title={
+                  isPerformanceOpen
+                    ? "Close performance"
+                    : `Open performance — gameplay metrics and the project pipeline. System health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}`
+                }
               >
                 <Icon icon="ph:gauge-bold" />
                 <span>Performance</span>
+                {systemHealth !== undefined && (
+                  <span
+                    className={styles.headerBadgeDot}
+                    style={{ background: healthBucketColor(systemHealthBucket) }}
+                  />
+                )}
               </button>
             )}
             {onOpenPhaseBriefing && (
@@ -1847,6 +1887,9 @@ export default function StakeholderDossier({
               >
                 <Icon icon="ph:scroll-bold" />
                 <span>Log</span>
+                {Boolean(logCount) && (
+                  <span className={styles.headerBadgeCount}>{logCount}</span>
+                )}
               </button>
             )}
           </div>
@@ -1909,6 +1952,7 @@ export default function StakeholderDossier({
                 : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
               : "";
             const tabPips = getIntelPips(st);
+            const tabFoundCount = tabPips.filter((status) => status !== "hidden").length;
 
             return (
               <button
@@ -1935,6 +1979,11 @@ export default function StakeholderDossier({
                     } ${isPulsingChange ? styles.tabChangeBadgePulsing : ""}`}
                   >
                     {change.isNew ? "NEW" : "SHIFTED"}
+                  </span>
+                )}
+                {tabPips.length > 0 && (
+                  <span className={styles.tabIntelCountBadge} title={describeIntelPips(tabPips)}>
+                    {tabFoundCount}/{tabPips.length}
                   </span>
                 )}
                 <span className={styles.tabName}>{st.name}</span>
