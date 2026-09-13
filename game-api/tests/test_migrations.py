@@ -143,4 +143,4 @@ def test_upgrade_head_from_a_database_migrated_on_main(throwaway_db):
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
     assert "graph_op_log" in tables
-    assert version == "d0e1f2a3b4c5"
+    assert version == "a1b2c3d4e5f7"

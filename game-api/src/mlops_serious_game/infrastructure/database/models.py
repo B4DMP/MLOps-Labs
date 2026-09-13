@@ -107,3 +107,27 @@ class GraphOpLog(Base):
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
+
+
+class GameEventRow(Base):
+    """Append-only log of `GameEvent`s per player (plan 11, D51): one row per event, `seq`
+    monotonic per user. See `application/event_log_service` for the fold/read side."""
+
+    __tablename__ = settings.POSTGRES_GAME_EVENT_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    seq: Mapped[int] = mapped_column(Integer, nullable=False)
+    phase_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    challenge_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    step: Mapped[str] = mapped_column(String(16), nullable=False)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    subject_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    direction: Mapped[str] = mapped_column(String(8), nullable=False)
+    magnitude: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    cause: Mapped[str] = mapped_column(String(128), nullable=False)
+    params: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    refs: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
+    )
