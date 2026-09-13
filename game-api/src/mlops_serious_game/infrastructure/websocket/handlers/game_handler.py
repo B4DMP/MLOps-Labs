@@ -508,6 +508,15 @@ async def handle_progress_update(
                 phase_index=last_gamestate_id[0]
             )
         if curr_challenge:
+            # Fires the challenge's on_enter_ops (e.g. "the KPI doc was deleted") so the graph
+            # actually matches what its on-record Facts describe. Without this, a Fact asserting
+            # the post-seed state reads as stale against a graph still sitting at its precondition
+            # state. The graph ships dark for now: a failure here must never block the game.
+            try:
+                graph_store.enter_challenge(username, curr_challenge)
+            except Exception as e:
+                print(f"[Graph seed error] {e}")
+
             await manager.send_event(
                 websocket=websocket,
                 event="game:state_update",
