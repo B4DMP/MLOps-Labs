@@ -25,7 +25,9 @@ from .handlers.intel_handler import (
     handle_play_engagement_card,
     handle_generate_action_card,
 )
+from .handlers.gather_handler import handle_gather_ask, handle_gather_close, handle_gather_open
 from .handlers.graph_handler import handle_graph_state
+from .handlers.log_handler import handle_log_history
 from .handlers.pitch_handler import (
     handle_pitch_answer,
     handle_pitch_commit,
@@ -33,6 +35,7 @@ from .handlers.pitch_handler import (
     handle_pitch_object,
     handle_pitch_rebuild,
     handle_pitch_set_card,
+    handle_pitch_sound_out,
     handle_pitch_state,
     handle_pitch_veto_breaker,
 )
@@ -61,6 +64,7 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "graph:state_request": handle_graph_state,
     "pitch:state": handle_pitch_state,
     "pitch:set_card": handle_pitch_set_card,
+    "pitch:sound_out": handle_pitch_sound_out,
     "pitch:object": handle_pitch_object,
     "pitch:answer": handle_pitch_answer,
     "pitch:commit": handle_pitch_commit,
@@ -68,6 +72,10 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:veto_breaker": handle_pitch_veto_breaker,
     "pitch:concede": handle_pitch_concede,
     "simulation:run": handle_simulation_run,
+    "log:history": handle_log_history,
+    "gather:open": handle_gather_open,
+    "gather:ask": handle_gather_ask,
+    "gather:close": handle_gather_close,
 }
 
 
