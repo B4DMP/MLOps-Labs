@@ -8,7 +8,7 @@ import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProv
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
-import { INTEL_TAGS } from "../types/IntelTag";
+import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 
@@ -1088,7 +1088,7 @@ export default function StakeholderDossier({
         <div className={styles.pageScroll}>
         {st.is_environment ? (
           <div className={styles.environmentHeader}>
-            <Icon icon="ph:magnifying-glass-bold" className={styles.environmentIcon} />
+            <Icon icon={intelTagMeta("fact").icon} className={styles.environmentIcon} />
             <div>
               <div className={styles.environmentTitle}>The System</div>
               <div className={styles.environmentSubtitle}>
