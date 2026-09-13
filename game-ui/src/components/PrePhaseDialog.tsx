@@ -5,6 +5,7 @@ import { useContext, useState } from "react";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import HeaderModal from "./HeaderModal";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -76,14 +77,7 @@ export default function PrePhaseDialog({
     }
   };
 
-  return (
-    <div
-      className={`${styles.pageWrapper} intro2`}
-      data-intro-group="intro2"
-      data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
-      data-step="1"
-      data-position="middle-aligned"
-    >
+  const panelContent = (
       <div className={styles.panel}>
           {/* Header */}
           <div className={styles.header}>
@@ -220,6 +214,40 @@ export default function PrePhaseDialog({
           {/* Fixed, click-through overlay the radar portals its bubbles into */}
           <div ref={setBubbleLayer} className={styles.bubbleLayer} />
       </div>
+  );
+
+  // Reopened from the dossier mid-phase: a modal, anchored at the top of the screen like
+  // Performance and the event log, so the header's pop-open panels read as one family. The
+  // shared close (X) stays off since the phase badge already sits in that corner, and the
+  // footer's "Back to the Phase" button is the dismiss action players already know.
+  if (isReview) {
+    return (
+      <HeaderModal
+        isVisible={isOpen}
+        onClose={handleClose}
+        width="min(1400px, 98vw)"
+        height="min(920px, 94vh)"
+        maxHeight="94vh"
+        padding="0"
+        overflowY="hidden"
+        showCloseButton={false}
+        closeLabel="phase briefing"
+      >
+        {panelContent}
+      </HeaderModal>
+    );
+  }
+
+  // Shown on entering a phase: its own full-screen page, not an overlay over the phase behind it.
+  return (
+    <div
+      className={`${styles.pageWrapper} intro2`}
+      data-intro-group="intro2"
+      data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
+      data-step="1"
+      data-position="middle-aligned"
+    >
+      {panelContent}
     </div>
   );
 }
