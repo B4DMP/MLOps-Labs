@@ -106,8 +106,36 @@ def respond(schema, system, user):
     if name == "TechnicalObjection":
         return {"line": "Improving {target} will not help while {cause} upstream is still this weak."}
     if name == "FragmentsOut":
-        return {f"level_{lv}": f"This part of the pipeline sits at level {lv} today." for lv in range(5)}
+        states = ["broken", "absent", "manual", "automated", "governed"]
+        return {f"level_{lv}": f"This part of the pipeline is {states[lv]} today." for lv in range(5)}
     raise AssertionError(name)
+
+
+def test_objections_and_fragments_keep_levels_and_graph_words_out():
+    from types import SimpleNamespace
+
+    ctx = SimpleNamespace(stakeholders={})
+    technical = SimpleNamespace(inputs={"kind": "technical"})
+    line = "I cannot sign off on {target} while {cause} in the upstream stage is still at level 2."
+    errors = STAGES["objections"].check({"line": line}, technical, ctx)
+    assert any("line mentions levels" in e for e in errors)
+    assert any("line says 'stage'" in e for e in errors)
+
+    stance = SimpleNamespace(inputs={"kind": "stance"})
+    fine = "That does not go far enough for what I need here."
+    errors = STAGES["objections"].check(
+        {"objection": fine, "correction": "I meant the ingestion component, not a wish."}, stance, ctx)
+    assert any("correction says 'component'" in e for e in errors)
+    assert STAGES["objections"].check({"objection": fine, "correction": fine}, stance, ctx) == []
+
+    fragment = SimpleNamespace(inputs={"levels": [2, 3]})
+    errors = STAGES["fragments"].check({
+        "level_2": "Someone runs the export by hand every Monday morning.",
+        "level_3": "The export component runs on its own at level 3.",
+    }, fragment, ctx)
+    assert any("level_3 mentions levels" in e for e in errors)
+    assert any("level_3 says 'component'" in e for e in errors)
+    assert not any(e.startswith("level_2") for e in errors)
 
 
 @pytest.fixture
@@ -267,6 +295,20 @@ def test_items_checks_catch_false_facts_and_missing_conflict_trade_off(env):
     errors = STAGES["items"].check(bad, item, ctx)
     assert any("is at level 0, not 2" in e for e in errors)
     assert any("soft conflict" in e for e in errors)
+
+
+def test_items_checks_keep_game_words_out_of_the_dossier(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+
+    bad = json.loads(json.dumps(ITEMS))
+    bad["items"][6]["fact"] = "The ingestion component has produced no new records since last night."
+    bad["items"][6]["readings"]["fact"] = "F: That is simply the current state of the data stage."
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("the fact says 'component'" in e for e in errors)
+    assert any("reading fact says 'stage'" in e for e in errors)
 
 
 # ---------- the whole pipeline ----------

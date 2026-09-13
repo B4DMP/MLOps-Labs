@@ -21,9 +21,9 @@ class OfflineIntelArtifactFactory:
         from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
         stakeholder = None
-        if artifact.stakeholder_id:
+        if artifact.speaker_id:
             try:
-                stakeholder = StakeholderFactory.get_stakeholder(artifact.stakeholder_id)
+                stakeholder = StakeholderFactory.get_stakeholder(artifact.speaker_id)
             except Exception:
                 stakeholder = None
 
@@ -67,6 +67,7 @@ class OfflineIntelArtifactFactory:
                 requirement_id=str(req_id),
                 challenge_id=int(item.get("challenge_id", 0)),
                 stakeholder_id=item.get("stakeholder_id") or None,
+                narrator_id=item.get("narrator_id") or None,
                 stakeholder_name=str(item.get("stakeholder_name", "")),
                 stakeholder_role=str(item.get("stakeholder_role", "")),
                 artifact_type=art_type,

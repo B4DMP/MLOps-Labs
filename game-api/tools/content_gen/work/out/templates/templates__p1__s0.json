@@ -1,0 +1,334 @@
+{
+  "item_id": "templates:p1:s0",
+  "stage": "templates",
+  "input_hash": "07e3f7f0a14cf7040d93faa72c598301967e4308d8bad6e8fea1ef63826a3b10",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "phase_id": 1,
+    "phase_name": "Requirement Engineering",
+    "phase_description": "Business goal definition and stakeholder alignment",
+    "focus_stage": "req",
+    "slot": 0,
+    "conflict_type": "soft",
+    "roster": [
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "req",
+      "components": [
+        {
+          "id": "req.kpi_definition",
+          "name": "KPI Definition",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.acceptance_criteria",
+          "name": "Acceptance Criteria",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.data_contracts",
+          "name": "Data Contracts",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.risk_assessment",
+          "name": "Risk Assessment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_acceptance",
+          "from": "req.risk_assessment",
+          "to": "req.acceptance_criteria",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_audit",
+          "from": "req.risk_assessment",
+          "to": "gov.audit",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_cards",
+          "from": "req.risk_assessment",
+          "to": "gov.model_cards",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": []
+    },
+    "patterns": [
+      {
+        "id": "ap_undocumented_handover",
+        "kind": "anti",
+        "name": "Undocumented Handover",
+        "description": "Models are promoted without documentation or agreed acceptance criteria."
+      },
+      {
+        "id": "dp_gated_promotion",
+        "kind": "design",
+        "name": "Gated Promotion",
+        "description": "A model only reaches the registry after passing agreed acceptance criteria."
+      },
+      {
+        "id": "dp_data_contracts",
+        "kind": "design",
+        "name": "Enforced Data Contracts",
+        "description": "Producers agree a schema, and every batch is checked against it on arrival."
+      },
+      {
+        "id": "dp_documented_promotion",
+        "kind": "design",
+        "name": "Documented Promotion",
+        "description": "Every promoted model carries a model card and a risk assessment."
+      },
+      {
+        "id": "dp_business_aligned_metrics",
+        "kind": "design",
+        "name": "Business Aligned Metrics",
+        "description": "The KPI the business agreed on is what production monitoring measures."
+      }
+    ],
+    "world_events": [
+      {
+        "kind": "set_to",
+        "target": "e.risk_acceptance",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "req.acceptance_criteria",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "req.data_contracts",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "req.kpi_definition",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "req.risk_assessment",
+        "value": "0",
+        "health_drop": 15.0
+      }
+    ],
+    "conflict_candidates": [
+      "req.kpi_definition",
+      "req.data_contracts"
+    ],
+    "existing_challenges": [
+      "The Platform Choice"
+    ]
+  },
+  "output": {
+    "slug": "missing_kpi_baseline",
+    "name": "The Missing Baseline",
+    "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control.",
+    "round_introduction": "A recent audit revealed that the KPI definitions were lost during a team transition. The team is now scrambling to redefine the success metrics before the next sprint planning session.",
+    "preconditions": {
+      "all": [
+        {
+          "component": "req.kpi_definition",
+          "op": "eq",
+          "level": 1
+        },
+        {
+          "component": "req.acceptance_criteria",
+          "op": "gte",
+          "level": 1
+        }
+      ]
+    },
+    "priority": 85,
+    "on_enter_ops": [
+      {
+        "kind": "set_to",
+        "target": "req.kpi_definition",
+        "value": 0,
+        "attr": null,
+        "reason": "the previous KPI document was deleted during cleanup"
+      }
+    ],
+    "stalemate_ops": [
+      {
+        "kind": "set_to",
+        "target": "req.acceptance_criteria",
+        "value": 0,
+        "attr": null,
+        "reason": "without agreed KPIs, acceptance criteria cannot be validated"
+      }
+    ],
+    "conflict": {
+      "target": "req.kpi_definition",
+      "positions": [
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "wants": 4
+        },
+        {
+          "stakeholder_id": "requirements_reuben",
+          "wants": 2
+        }
+      ]
+    }
+  }
+}

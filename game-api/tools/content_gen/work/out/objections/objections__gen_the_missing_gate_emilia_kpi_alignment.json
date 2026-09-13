@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_the_missing_gate_emilia_kpi_alignment",
+  "stage": "objections",
+  "input_hash": "fe8960a3c433acc235e3e8a995c9100fc52bc8a1d4928291c06966c59b3485be",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_the_missing_gate_emilia_kpi_alignment",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} suggested defining KPIs to align model performance with business goals. She wants the KPI definitions to be automated so that business goals are tracked consistently.",
+      "fact": "{efficiency_emilia} suggested defining KPIs to align model performance with business goals.",
+      "reading": "She wants the KPI definitions to be automated so that business goals are tracked consistently.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I need the KPI definitions to be fully automated so we track business goals consistently, not just manually defined. Please expand the scope to cover the entire operational capability and cost evaluation.",
+    "correction": "You filed this under general feedback, but I am specifically asking for automated governance of our strategic KPIs. This is about aligning model performance with the product roadmap, not just collecting metrics."
+  }
+}

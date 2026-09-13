@@ -1,0 +1,703 @@
+{
+  "item_id": "templates:p4:s1",
+  "stage": "templates",
+  "input_hash": "c3be63baab8b82ea59d45699f0efaf933c1d4a52a1633e69b8091f46b4ed7c10",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "phase_id": 4,
+    "phase_name": "Model Deployment",
+    "phase_description": "Integration of models into production systems.",
+    "focus_stage": "deploy",
+    "slot": 1,
+    "conflict_type": "hard",
+    "roster": [
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "deploy",
+      "components": [
+        {
+          "id": "deploy.cicd",
+          "name": "CI/CD Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "jenkins",
+              "gitlab_ci",
+              "github_actions"
+            ]
+          }
+        },
+        {
+          "id": "deploy.serving",
+          "name": "Model Serving Endpoint",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "hosting": [
+              "none",
+              "on_prem",
+              "private_cloud",
+              "public_cloud"
+            ],
+            "tool": [
+              "none",
+              "fastapi",
+              "seldon",
+              "kserve",
+              "sagemaker"
+            ]
+          }
+        },
+        {
+          "id": "deploy.canary_ab",
+          "name": "Canary and A/B Testing",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.shadow",
+          "name": "Shadow Deployment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.containerization",
+          "name": "Containerization",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker",
+              "podman"
+            ]
+          }
+        },
+        {
+          "id": "deploy.orchestration",
+          "name": "Orchestration",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker_compose",
+              "nomad",
+              "kubernetes"
+            ]
+          }
+        },
+        {
+          "id": "deploy.api_gateway",
+          "name": "API Gateway",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_container",
+          "from": "deploy.cicd",
+          "to": "deploy.containerization",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.container_orch",
+          "from": "deploy.containerization",
+          "to": "deploy.orchestration",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.orch_serving",
+          "from": "deploy.orchestration",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_gateway",
+          "from": "deploy.serving",
+          "to": "deploy.api_gateway",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_canary",
+          "from": "deploy.cicd",
+          "to": "deploy.canary_ab",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.canary_serving",
+          "from": "deploy.canary_ab",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_shadow",
+          "from": "deploy.cicd",
+          "to": "deploy.shadow",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_observe",
+          "from": "deploy.serving",
+          "to": "ops.observability",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.rollback_serving",
+          "from": "ops.rollback",
+          "to": "deploy.serving",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.iam_gateway",
+          "from": "gov.iam",
+          "to": "deploy.api_gateway",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cost_serving",
+          "from": "gov.cost_monitoring",
+          "to": "deploy.serving",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.iac_orch",
+          "from": "gov.iac",
+          "to": "deploy.orchestration",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "endpoint:prediction_api",
+          "kind": "endpoint",
+          "on": "deploy.serving",
+          "props": {
+            "availability": "stable",
+            "latency": "acceptable",
+            "traffic": "low"
+          },
+          "property_values": {
+            "availability": [
+              "unstable",
+              "stable",
+              "high"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "traffic": [
+              "none",
+              "low",
+              "high"
+            ]
+          }
+        }
+      ]
+    },
+    "patterns": [
+      {
+        "id": "ap_silent_failure",
+        "kind": "anti",
+        "name": "Silent Model Failure",
+        "description": "A model serves live traffic while nobody watches its quality or its inputs."
+      },
+      {
+        "id": "ap_training_serving_skew",
+        "kind": "anti",
+        "name": "Training Serving Skew",
+        "description": "Features are computed one way for training and another way in production."
+      },
+      {
+        "id": "ap_manual_deployment",
+        "kind": "anti",
+        "name": "Manual Deployment",
+        "description": "Somewhere between the registry and the endpoint, a person carries the model by hand."
+      },
+      {
+        "id": "ap_glue_code",
+        "kind": "anti",
+        "name": "Glue Code",
+        "description": "Custom code holds together pieces that could have been standard components."
+      },
+      {
+        "id": "ap_orphaned_model",
+        "kind": "anti",
+        "name": "Orphaned Model",
+        "description": "Production runs a model that is not in any registry."
+      },
+      {
+        "id": "ap_no_rollback",
+        "kind": "anti",
+        "name": "No Way Back",
+        "description": "Live traffic, and no way to return to the last good model."
+      },
+      {
+        "id": "ap_cost_blindness",
+        "kind": "anti",
+        "name": "Cost Blindness",
+        "description": "Compute hungry workloads run with nobody watching the bill."
+      },
+      {
+        "id": "ap_shadow_it_access",
+        "kind": "anti",
+        "name": "Shadow IT Access",
+        "description": "Data and endpoints are reachable by whoever knows the address."
+      },
+      {
+        "id": "dp_canary_release",
+        "kind": "design",
+        "name": "Canary Release",
+        "description": "New models see a slice of traffic first, judged by live metrics."
+      },
+      {
+        "id": "dp_shadow_testing",
+        "kind": "design",
+        "name": "Shadow Testing",
+        "description": "Candidates answer real requests silently before they answer for real."
+      },
+      {
+        "id": "dp_iac_everywhere",
+        "kind": "design",
+        "name": "Infrastructure as Code",
+        "description": "Every environment is declared in code and rebuilt by the pipeline."
+      },
+      {
+        "id": "dp_least_privilege",
+        "kind": "design",
+        "name": "Least Privilege",
+        "description": "Access is granted per role, logged, and enforced at the gateway."
+      },
+      {
+        "id": "dp_documented_promotion",
+        "kind": "design",
+        "name": "Documented Promotion",
+        "description": "Every promoted model carries a model card and a risk assessment."
+      },
+      {
+        "id": "dp_automated_rollback",
+        "kind": "design",
+        "name": "Automated Rollback",
+        "description": "A failing release is rolled back by the alert that caught it."
+      },
+      {
+        "id": "ap_underperforming_model_live",
+        "kind": "anti",
+        "name": "Underperforming Model in Production",
+        "description": "An automated endpoint keeps serving a model whose performance has slipped."
+      }
+    ],
+    "world_events": [
+      {
+        "kind": "set_to",
+        "target": "deploy.api_gateway",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "deploy.canary_ab",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "deploy.cicd",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "deploy.containerization",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "deploy.orchestration",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "deploy.shadow",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.canary_serving",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.cicd_canary",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.cicd_container",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.cicd_shadow",
+        "value": "0",
+        "health_drop": 15.0
+      }
+    ],
+    "conflict_candidates": [
+      "deploy.serving",
+      "deploy.shadow",
+      "deploy.orchestration"
+    ],
+    "existing_challenges": [
+      "The Automation Risk"
+    ]
+  },
+  "output": {
+    "slug": "shadow_environment_dispute",
+    "name": "The Silent Shadow",
+    "description": "#reliability_ruth# insists on a fully automated and governed shadow deployment to validate model behavior before release, while #automation_alex# argues that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. #automation_alex# has a red line against maintaining any shadow infrastructure and will not move on this point.",
+    "round_introduction": "A recent model update caused unexpected latency spikes in production, and the team realized there was no safe way to test the new version against live traffic without risking user experience. The shadow deployment environment, which was previously manual, has now broken completely, leaving the team without a safety net for future releases.",
+    "preconditions": {
+      "component": "deploy.shadow",
+      "op": "lte",
+      "level": 1
+    },
+    "priority": 65,
+    "on_enter_ops": [
+      {
+        "kind": "set_to",
+        "target": "deploy.shadow",
+        "value": 0,
+        "attr": null,
+        "reason": "the shadow environment crashed during a load test"
+      }
+    ],
+    "stalemate_ops": [
+      {
+        "kind": "set_to",
+        "target": "e.cicd_shadow",
+        "value": 0,
+        "attr": null,
+        "reason": "the pipeline trigger for shadow testing was disabled"
+      }
+    ],
+    "conflict": {
+      "target": "deploy.shadow",
+      "positions": [
+        {
+          "stakeholder_id": "reliability_ruth",
+          "wants": 4
+        },
+        {
+          "stakeholder_id": "automation_alex",
+          "wants": 1
+        }
+      ]
+    }
+  }
+}

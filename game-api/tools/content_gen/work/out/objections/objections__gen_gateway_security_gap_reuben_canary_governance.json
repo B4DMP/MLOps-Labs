@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_gateway_security_gap_reuben_canary_governance",
+  "stage": "objections",
+  "input_hash": "82a9183bbc4458b84ab82bdf2d82ac49bb5065f43854e8d9e0b9a0240a2b4b4f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_gateway_security_gap_reuben_canary_governance",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production. He will not allow any model to be promoted to production if the canary testing is not governed.",
+      "fact": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production.",
+      "reading": "He will not allow any model to be promoted to production if the canary testing is not governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.canary_ab",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.canary_ab",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I will not approve this deployment plan because the canary testing lacks governance. You must implement governed canary testing before any model reaches production.",
+    "correction": "You misread my position as a preference for better testing tools, but I am stating a hard requirement for governance. This is a compliance gate, not a suggestion for improved observability."
+  }
+}

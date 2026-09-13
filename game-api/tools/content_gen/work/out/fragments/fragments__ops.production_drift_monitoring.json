@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:ops.production_drift_monitoring",
+  "stage": "fragments",
+  "input_hash": "e5859d52564c9c07f653fbc1e2c36a0222be980315facba84d1f096777fd6095",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "ops.production_drift_monitoring",
+    "kind": "component",
+    "name": "Production Drift Monitoring",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Drift alerts fire randomly, blocking deployment without any clear cause or resolution path.",
+    "level_1": "No drift detection exists, so model degradation goes unnoticed until users report failures.",
+    "level_2": "Data scientists manually check drift dashboards weekly, creating inconsistent and delayed responses.",
+    "level_3": "Automated pipelines detect drift in real time and trigger alerts to relevant teams.",
+    "level_4": "Drift thresholds are governed by policy, with automated remediation and full audit trails."
+  }
+}

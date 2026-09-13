@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.api_gateway",
+  "stage": "fragments",
+  "input_hash": "5a76891fd84923a04b3f37a954cdd6561b872d8770ed5530a9a868cf7afb8635",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.api_gateway",
+    "kind": "component",
+    "name": "API Gateway",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The API gateway crashes under load, dropping requests and blocking all model access.",
+    "level_1": "No API gateway exists, so clients must connect directly to fragile backend services.",
+    "level_2": "The team manually routes traffic through a basic proxy without any automated scaling.",
+    "level_3": "The API gateway automatically scales and routes requests based on real time load.",
+    "level_4": "The API gateway enforces strict access controls and logs every request for compliance."
+  }
+}

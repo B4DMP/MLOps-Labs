@@ -14,6 +14,8 @@ LEVEL_NAMES = ["broken", "absent", "manual", "automated", "governed"]
 # identically-named but subtly different, copy of this - templates.py's also matched decimals
 # like "2.5", items.py's didn't). One shared, more inclusive pattern for both.
 LEVEL_TALK = re.compile(r"\blevels?\b|\b[0-4](\.\d)?\b")
+# Players never see the graph, so no text they read may talk about its parts.
+GAME_WORDS = re.compile(r"\b(components?|stages?)\b", re.I)
 
 GAME_RULES = """You write content for a serious game about stakeholder management in MLOps projects.
 The player is the project manager. The game state is a technical graph of MLOps components and the
@@ -36,6 +38,19 @@ def text_errors(label: str, text: Optional[str], min_words: int = 0, max_words: 
         errors.append(f"{label} is too short ({words} words, at least {min_words})")
     if words > max_words:
         errors.append(f"{label} is too long ({words} words, at most {max_words})")
+    return errors
+
+
+def player_text_errors(label: str, text: Optional[str]) -> list[str]:
+    """A line the player reads never talks about the game model: no levels, no components or stages."""
+    if not text:
+        return []
+    errors = []
+    if LEVEL_TALK.search(text):
+        errors.append(f"{label} mentions levels or numbers; say broken, missing, manual, automated or governed")
+    if GAME_WORDS.search(text):
+        errors.append(f"{label} says '{GAME_WORDS.search(text).group(0)}'; name the thing itself, "
+                      "never a component or stage")
     return errors
 
 

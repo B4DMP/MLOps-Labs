@@ -275,6 +275,338 @@
       "is_known": true
     },
     {
+      "id": "art_gen_missing_kpi_baseline_emilia_kpi_automation",
+      "requirement_id": "gen_missing_kpi_baseline_emilia_kpi_automation",
+      "challenge_id": 107,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "The current ambiguity around our KPI definitions is creating unnecessary friction in the roadmap. I want to see those definitions fully automated and governed. My goal is to ensure that every metric we track is tightly aligned with our broader business objectives. The more rigorous and automated that alignment process becomes, the better our project outcomes will be for the organization. I am looking for a system where the link between our ML features and our strategic goals is explicit and continuously verified. This is not about removing human oversight, but about scaling our ability to measure success accurately. I am open to discussing the implementation details, but the direction must be toward greater automation and governance to secure that alignment.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept any KPI definition process that is not fully automated and governed.",
+        "trade_off": "She would accept a manual process for KPI definitions if it is documented and reviewed by the business team.",
+        "fact": "That is simply how the KPI definition process is set up in the current project plan."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_reuben_kpi_manual",
+      "requirement_id": "gen_missing_kpi_baseline_reuben_kpi_manual",
+      "challenge_id": 107,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "email",
+      "content": "I am writing to clarify my position on the KPI definition workflow. We cannot move this process to an automated or governed state. My role requires that I personally review every definition to ensure it meets our strict security and privacy compliance standards. An automated pipeline does not provide the nuanced oversight needed to catch subtle data governance risks. If the system removes my direct manual sign off from the loop, I will not approve the deployment. This is a hard line for the architecture team. We need the human element to validate that the metrics do not inadvertently expose sensitive information or violate regulatory boundaries. Please ensure the roadmap reflects that manual review is a non negotiable step in this specific workflow.",
+      "wrong_descriptions": {
+        "driver": "The more manual the KPI definition process is, the better the security and compliance reviews will be.",
+        "trade_off": "He would accept an automated KPI definition process if it includes a manual security review step.",
+        "fact": "That is simply how the KPI definition process is set up in the current project plan."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_emilia_trade_off",
+      "requirement_id": "gen_missing_kpi_baseline_emilia_trade_off",
+      "challenge_id": 107,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "I am willing to drop my request for fully automated and governed KPI definitions. I can accept that the process remains manual and under human control. In exchange, I need the manual steps to be rigorously documented so that every decision is traceable and aligned with our business goals. This trade gives up the speed and consistency of automation, but it secures the clarity I need to evaluate system performance against our strategic objectives. I am not asking for a hybrid system. I am asking for a clear, auditable manual path that satisfies both operational needs and compliance requirements without sacrificing the integrity of our metrics.",
+      "wrong_descriptions": {
+        "driver": "The more the KPI definitions are documented, the better the alignment with business goals will be.",
+        "boundary": "She will not accept any KPI definition process that is not documented.",
+        "fact": "That is simply how the KPI definition process is set up in the current project plan."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_reuben_risk_boundary",
+      "requirement_id": "gen_missing_kpi_baseline_reuben_risk_boundary",
+      "challenge_id": 107,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "I need to be explicit about the risk assessment workflow. I will not sign off on any acceptance criteria unless I have personally reviewed them against the current risk assessment. This is not a preference for slow work; it is a hard requirement for our compliance posture. If the criteria are not manually validated by me, I will refuse to approve the release. There is no automated path that satisfies our privacy obligations, and I will not cross that line to save time. Please ensure the team understands that my manual review is a mandatory gate, not an optional step we can skip to meet a deadline.",
+      "wrong_descriptions": {
+        "driver": "The more the risk assessment is reviewed, the better the acceptance criteria will be for security compliance.",
+        "trade_off": "He would accept automated risk assessment reviews if they are followed by a manual sign-off.",
+        "fact": "That is simply how the risk assessment and acceptance criteria process works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_alex_pipeline_driver",
+      "requirement_id": "gen_missing_kpi_baseline_alex_pipeline_driver",
+      "challenge_id": 107,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "I have been reviewing the recent pipeline failures and the root cause is always the same. When the data contracts are manually adjusted, the ingestion pipeline breaks because it expects a specific schema. I need the data contracts to be fully automated. Every time we automate a contract, the integration becomes more seamless and the deployment frequency increases. I am not asking for a single fix. I want the entire contract generation process to be handled by the CI/CD tooling so that no human intervention is required during the build. The more automated the contracts are, the better the system performs under load. I am ready to invest the engineering time to build this out immediately.",
+      "wrong_descriptions": {
+        "boundary": "He will not accept any data contract process that is not automated.",
+        "trade_off": "He would accept manual data contracts if they are reviewed by the pipeline team.",
+        "fact": "That is simply how the data contracts and ingestion pipeline are set up in the current project plan."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_ruth_monitoring_driver",
+      "requirement_id": "gen_missing_kpi_baseline_ruth_monitoring_driver",
+      "challenge_id": 107,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I have been tracking the drift between our staging validation and live user experience. The gap is significant. I propose we link the acceptance criteria directly to our real-world performance monitoring dashboards. When we tie these definitions to live metrics, the reliability of our ML features improves substantially. The more tightly coupled the acceptance checks are to actual production behavior, the better the overall system stability becomes. I want this linkage to be as comprehensive as possible, covering every major service endpoint. This ensures we are not just testing for theoretical correctness but for actual operational robustness. I am eager to expand this coverage to include latency percentiles and error rate spikes. The more data points we integrate into the definition, the stronger the signal for reliability becomes.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept any acceptance criteria that are not linked to real-world performance monitoring.",
+        "trade_off": "She would accept manual acceptance criteria if they are reviewed by the monitoring team.",
+        "fact": "That is simply how the acceptance criteria and monitoring are set up in the current project plan."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_kpi_lost_fact",
+      "requirement_id": "gen_missing_kpi_baseline_kpi_lost_fact",
+      "challenge_id": 107,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "I am looking at the validation logs from last week and noticed we are running the model accuracy checks against a hardcoded threshold in the config file. The team transition happened three months ago, and the original KPI definition document is not in the shared drive anymore. I asked the previous lead, but they had already left. So right now, the pipeline just compares the output to that static number. I do not see any dynamic baseline or historical comparison being calculated during the nightly runs. The metrics are simply passed or failed based on that single value. I am not sure where the original definitions went, but they are not accessible to me today.",
+      "wrong_descriptions": {
+        "driver": "The more the KPI definitions are preserved, the better the project outcomes will be.",
+        "boundary": "The team will not accept any project progress without KPI definitions.",
+        "trade_off": "The team would accept a delay in the project if KPI definitions are not available."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_acceptance_manual_fact",
+      "requirement_id": "gen_missing_kpi_baseline_acceptance_manual_fact",
+      "challenge_id": 107,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "I am checking the validation logs for the new model release. The acceptance criteria are currently done by hand. I see a spreadsheet where the test results are typed in manually after each run. There is no automated check in the pipeline. The process involves copying values from the terminal into the sheet. I observe that the timestamps on the sheet entries do not match the system logs exactly. The workflow requires a person to verify each row before the model is approved for deployment.",
+      "wrong_descriptions": {
+        "driver": "The more the acceptance criteria are automated, the better the project outcomes will be.",
+        "boundary": "The team will not accept any acceptance criteria that are not done by hand.",
+        "trade_off": "The team would accept automated acceptance criteria if they are reviewed manually."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_contracts_manual_fact",
+      "requirement_id": "gen_missing_kpi_baseline_contracts_manual_fact",
+      "challenge_id": 107,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "{requirements_reuben} noted that the data contracts are currently managed through manual effort. He observed that engineers write the schema definitions directly in the repository without automated validation. The process involves a human reviewing each pull request to ensure field types match the expected structure. No automated tooling checks for breaking changes before the code is merged. {requirements_reuben} mentioned that this manual review takes approximately two hours per major release. The team relies on individual memory to keep the documentation aligned with the actual data flow. There is no central registry tracking the version history of these contracts. The work proceeds entirely on the honor system, with no system generated alerts when a contract is violated during the deployment process.",
+      "wrong_descriptions": {
+        "driver": "The more the data contracts are automated, the better the integration with the ingestion pipeline will be.",
+        "boundary": "The team will not accept any data contracts that are not done by hand.",
+        "trade_off": "The team would accept automated data contracts if they are reviewed manually."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_risk_manual_fact",
+      "requirement_id": "gen_missing_kpi_baseline_risk_manual_fact",
+      "challenge_id": 107,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "email",
+      "content": "I opened the model registry last Tuesday and pulled the latest inference logs for the fraud detection pipeline. I sat at my desk with a printed spreadsheet and a highlighter. I marked every row where the feature variance exceeded the threshold. I compared those marks against the manual checklist taped to my monitor. I spent forty minutes cross-referencing each flagged entry with the raw data dumps stored on the local server. I did not run any scripts. I did not trigger any automated alerts. I simply watched the clock tick while I copied the results into a shared document. The process ended when I closed the laptop and walked to the break room. No system generated a summary. No tool validated the input. It was just me and the paper.",
+      "wrong_descriptions": {
+        "driver": "The more the risk assessment is automated, the better the security compliance will be.",
+        "boundary": "The team will not accept any risk assessment that is not done by hand.",
+        "trade_off": "The team would accept automated risk assessment if it is reviewed manually."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_missing_kpi_baseline_risk_acceptance_edge_fact",
+      "requirement_id": "gen_missing_kpi_baseline_risk_acceptance_edge_fact",
+      "challenge_id": 107,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "{requirements_reuben} walked the team through the current workflow for linking risk assessments to acceptance criteria. He pointed out that there is no automated trigger connecting these two steps. Today, a person manually checks the risk assessment document after it is finalized. They then open the acceptance criteria list and type in the corresponding values by hand. This happens whenever a new model version is prepared for deployment. There are no scripts or workflow events that detect when a risk assessment is complete and update the criteria automatically. The process relies entirely on human memory and manual data entry to keep the two documents synchronized.",
+      "wrong_descriptions": {
+        "driver": "The more the link between risk assessment and acceptance criteria is automated, the better the security compliance will be.",
+        "boundary": "The team will not accept any link between risk assessment and acceptance criteria that is not done by hand.",
+        "trade_off": "The team would accept an automated link between risk assessment and acceptance criteria if it is reviewed manually."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_reuben_gate_refusal",
+      "requirement_id": "gen_the_missing_gate_reuben_gate_refusal",
+      "challenge_id": 109,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "document",
+      "content": "The security audit results are now final. I have reviewed the proposed workflow for model promotion and I am not prepared to sign off on the current manual review steps. For my team to approve any release, the acceptance criteria must be fully governed and automated. This is a strict requirement for our security standards. I will not compromise on this point. If the process remains manual, I will block the promotion. We cannot ship a model without this formal gate in place. The risk is too high. I need the governance framework implemented before I give my approval for the next cycle. This is my final position on the matter.",
+      "wrong_descriptions": {
+        "driver": "He wants the acceptance criteria to be fully governed to ensure every model meets the security bar.",
+        "trade_off": "He would accept a manual process if it meant faster feature releases.",
+        "fact": "That is simply how the acceptance criteria setup works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_alex_speed_priority",
+      "requirement_id": "gen_the_missing_gate_alex_speed_priority",
+      "challenge_id": 109,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "email",
+      "content": "I have reviewed the proposed changes to the model promotion workflow. I strongly prefer that we keep the acceptance criteria manual for the time being. The current setup allows us to push new features to production immediately without waiting for complex infrastructure updates. I want to ensure that our deployment frequency remains high and that we do not introduce bottlenecks in the CI/CD pipeline. The more streamlined and manual the process stays, the faster we can iterate on new models and deliver value to the business. I am not looking for a perfect system, but rather one that keeps moving quickly and reliably for the team.",
+      "wrong_descriptions": {
+        "boundary": "He will not accept any change to the acceptance criteria process.",
+        "trade_off": "He would give up manual checks if the release schedule is tight.",
+        "fact": "That is simply how the acceptance criteria setup works today."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_the_missing_gate_emilia_kpi_alignment",
+      "requirement_id": "gen_the_missing_gate_emilia_kpi_alignment",
+      "challenge_id": 109,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "email",
+      "content": "The current manual KPI tracking is too inconsistent to support our strategic alignment. I need the system to automatically calculate and report these metrics against our defined business goals. Every additional layer of automation here makes the data more reliable and gives me greater confidence in our performance evaluations. I want the KPI definitions to be fully automated so that we can track progress without human error or delay. The more consistent the tracking, the better our ability to align ML features with the broader product roadmap and organizational objectives.",
+      "wrong_descriptions": {
+        "boundary": "She will not proceed without clear KPI definitions.",
+        "trade_off": "She would accept missing KPIs if it meant faster model deployment.",
+        "fact": "That is simply how the KPI definition setup works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_ruth_monitoring_gap",
+      "requirement_id": "gen_the_missing_gate_ruth_monitoring_gap",
+      "challenge_id": 109,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "I am willing to accept a manual quality gate if it means we can ship the new user facing features without delay. The current lack of a formal check makes it genuinely difficult for me to monitor model performance in production, but I can work around that. If we build a fully automated and governed gate, I will lose the speed I need to iterate on my services. I would rather handle the verification steps myself right now to keep the release timeline on track. I am not asking for the perfect system yet, just the ability to deploy quickly while I manage the risk on my end. The trade is clear: I take on the monitoring burden in exchange for immediate deployment capability.",
+      "wrong_descriptions": {
+        "driver": "She wants the acceptance criteria to be automated to improve production monitoring.",
+        "boundary": "She will not deploy models without a quality gate.",
+        "fact": "That is simply how the acceptance criteria setup works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_emilia_cost_tradeoff",
+      "requirement_id": "gen_the_missing_gate_emilia_cost_tradeoff",
+      "challenge_id": 109,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "slack_message",
+      "content": "I am looking at the operational budget impact of implementing a fully governed gate. The initial capital expenditure is significant and will strain our current quarterly allocation. However, I am willing to accept this higher upfront cost. I view it as a necessary investment because it eliminates recurring manual review overhead. If the gate ensures long term efficiency gains and reduces the total cost of ownership over the next two years, I am prepared to absorb the immediate financial hit. The trade is clear: we spend more now to save substantially later on operational labor and compliance risk mitigation.",
+      "wrong_descriptions": {
+        "driver": "She wants to optimize costs by automating the gate efficiently.",
+        "boundary": "She will not approve spending beyond the current operational budget.",
+        "fact": "That is simply how the budget allocation works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_alex_stability_driver",
+      "requirement_id": "gen_the_missing_gate_alex_stability_driver",
+      "challenge_id": 109,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "slack_message",
+      "content": "I have been looking at the trigger logic for our acceptance checks and it is currently too fragile. When I manually kick off the pipeline, it works, but I keep seeing race conditions and missed runs that force me to debug the infrastructure instead of shipping features. I need a stable, automated trigger so the pipeline runs reliably without me having to babysit it. The more consistent the execution, the better, because every manual intervention is a point of failure I have to manage. I am not asking for a full governance overhaul right now, just a dependable way to start the checks so the system behaves predictably under load.",
+      "wrong_descriptions": {
+        "boundary": "He will not change the trigger if it risks breaking the deployment schedule.",
+        "trade_off": "He would accept a manual trigger if it meant less complexity in the pipeline.",
+        "fact": "That is simply how the pipeline trigger works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_ruth_feedback_boundary",
+      "requirement_id": "gen_the_missing_gate_ruth_feedback_boundary",
+      "challenge_id": 109,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I need to be clear about my deployment protocol. I will not push any model to production if the risk assessment does not directly feed into the acceptance criteria. This is non-negotiable for my team. We rely on that feedback loop to catch issues before they reach users. If the criteria are defined without considering the risk profile, I view the release as unsafe. I am not willing to accept a workflow where those two elements are decoupled. Please ensure the pipeline enforces this dependency. I cannot override this requirement locally, so the system must handle it. Do not ask me to bypass this check, even for urgent releases. My refusal is final on this point.",
+      "wrong_descriptions": {
+        "driver": "She wants the link to be governed so that feedback loops are tight.",
+        "trade_off": "She would accept a loose link if it meant faster time to market.",
+        "fact": "That is simply how the link works today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_missing_kpi_defs",
+      "requirement_id": "gen_the_missing_gate_missing_kpi_defs",
+      "challenge_id": 109,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "I walked through the model registry this morning to check the latest deploy. The evaluation pipeline ran to completion, and the logs show zero validation steps executed. I looked for the KPI definition file in the config directory, but the path is empty. The scoring script simply skipped the threshold check because no target values were present in the environment variables. The output metrics were written to the dashboard, but they lack any pass or fail status flags. I observed the raw accuracy numbers sitting in the database without any corresponding governance metadata attached to them. The process finished with a success code, and the artifacts are now available for download in the shared storage bucket.",
+      "wrong_descriptions": {
+        "driver": "Someone wants the KPI definitions to be automated to track business goals.",
+        "boundary": "A stakeholder will not proceed without KPI definitions.",
+        "trade_off": "A stakeholder would accept missing KPI definitions for faster deployment."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_broken_acceptance_criteria",
+      "requirement_id": "gen_the_missing_gate_broken_acceptance_criteria",
+      "challenge_id": 109,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "document",
+      "content": "I was tracing the deployment path from the training environment to the production cluster. The model artifact moves directly from the training pipeline to the live inference endpoint. There is no intermediate check or review point where the model output is tested against predefined success metrics before it goes live. The transition happens in a single, uninterrupted step. I see no logs indicating that any human or automated system evaluated the model performance during this specific interval. The data flows from the training job directly into the serving container without pausing for quality assurance. This is the exact sequence of events I witnessed during my audit of the last three deployment cycles.",
+      "wrong_descriptions": {
+        "driver": "Someone wants the acceptance criteria to be automated to meet security standards.",
+        "boundary": "A stakeholder will not approve models without governed acceptance criteria.",
+        "trade_off": "A stakeholder would accept a broken process if it meant faster releases."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_the_missing_gate_manual_data_contracts",
+      "requirement_id": "gen_the_missing_gate_manual_data_contracts",
+      "challenge_id": 109,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "document",
+      "content": "I was tracing the data flow through the ingestion layer and noticed how the contract definitions are handled. The schema updates for new features are typed directly into the repository files by the developers. I saw the last three commits where column types were adjusted by hand. There is no automated validation step running against these changes before they reach the staging environment. The process relies on individual developers remembering to update the documentation and the code simultaneously. The workflow involves manual coordination between the data science and engineering groups to ensure the contract definitions match the actual data flow.",
+      "wrong_descriptions": {
+        "driver": "Someone wants the data contracts to be automated to ensure data quality.",
+        "boundary": "A stakeholder will not accept manual data contracts for production models.",
+        "trade_off": "A stakeholder would accept manual data contracts if it meant faster data ingestion."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_manual_risk_assessment",
+      "requirement_id": "gen_the_missing_gate_manual_risk_assessment",
+      "challenge_id": 109,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "document",
+      "content": "I walked through the deployment workflow this morning to verify the current validation sequence. The risk assessment happens entirely by hand. I watched the team pull logs from the last three production runs, copy the relevant metrics into a shared spreadsheet, and compare them against the baseline thresholds. There is no automated check that triggers a block if the variance exceeds the limit. The engineer manually reviews the output and types a confirmation flag into the ticket before the model is allowed to proceed to the next phase. This manual review takes about forty minutes per release. I noted the timestamps on the ticket to confirm the duration. The process relies on human attention to catch any anomalies in the data drift patterns.",
+      "wrong_descriptions": {
+        "driver": "Someone wants the risk assessment to be automated to catch risks faster.",
+        "boundary": "A stakeholder will not accept manual risk assessments for compliance.",
+        "trade_off": "A stakeholder would accept manual risk assessments if it meant faster model approval."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_the_missing_gate_no_risk_acceptance_trigger",
+      "requirement_id": "gen_the_missing_gate_no_risk_acceptance_trigger",
+      "challenge_id": 109,
+      "stakeholder_id": null,
+      "narrator_id": "requirements_reuben",
+      "artifact_type": "email",
+      "content": "I watched the handoff between the risk assessment review and the acceptance criteria definition. When the risk assessment document is marked complete, nothing happens on the criteria side. There is no automatic signal or notification sent to the team owning the criteria. I observed three recent project cycles where this gap existed. In each case, the criteria remained static until a person manually opened the interface and typed in new requirements. No log entries appear in the integration layer for this transition. The process relies entirely on a human noticing the gap and acting. I saw the risk assessment status change to complete, but the acceptance criteria timestamp did not update automatically. The two work streams operate in isolation regarding this specific link.",
+      "wrong_descriptions": {
+        "driver": "Someone wants the link from risk assessment to acceptance criteria to be automated.",
+        "boundary": "A stakeholder will not accept a link without a trigger for compliance.",
+        "trade_off": "A stakeholder would accept a link without a trigger if it meant faster acceptance criteria updates."
+      },
+      "is_known": false
+    },
+    {
       "id": "art_gen_inconsistent_data_labeling_data_dave_manual_labeling",
       "requirement_id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
       "challenge_id": 102,
@@ -363,22 +695,24 @@
       "requirement_id": "gen_inconsistent_data_labeling_current_labeling_state",
       "challenge_id": 102,
       "stakeholder_id": null,
-      "artifact_type": "incident_ticket",
-      "content": "The data labeling process is currently not operational. {data_dave} has noted that the team is manually reviewing and labeling data samples, with an average of 200 samples processed per day. The lack of an automated system has led to inconsistent labeling across different batches, as observed in the recent audit where 15% of labels were found to be incorrect.",
+      "narrator_id": "data_dave",
+      "artifact_type": "email",
+      "content": "I am looking at the raw ingestion logs from the last three weeks. The annotation queue is empty because no workers have been assigned to the new batch. The incoming files sit in the staging bucket with no metadata tags attached. I checked the validation scripts, and they are not running against the unlabeled data. The model training job pulls directly from the raw storage path, bypassing the labeling stage entirely. There is no record of any human review or automated tagging step occurring between the data arrival and the model consumption. The pipeline simply moves the bytes from source to destination without any intermediate processing or quality checks on the labels themselves.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it this way.",
         "boundary": "Someone on the team will not accept any changes to it.",
         "trade_off": "Someone on the team would give it up if something else improves."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_inconsistent_data_labeling_current_validation_state",
       "requirement_id": "gen_inconsistent_data_labeling_current_validation_state",
       "challenge_id": 102,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The current data pipeline between {data_dave} and the feature store lacks automated validation. Data is passed directly from the ingestion script to the feature store without any checks for consistency or quality. The team relies on manual spot-checking during the daily stand-up to catch obvious issues. There is no formal process for logging or tracking validation results. The system does not currently enforce any rules about data format or range values.",
+      "narrator_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "I just finished the nightly ingest batch for the raw image corpus. The pipeline moved the files from the staging bucket to the training store without triggering any error logs or alerts. Since there is no validation step in the current workflow, the system accepted every file it encountered. I counted the final output and found that the total record count matches the input count exactly. The metadata fields are populated as they arrive from the source, with no checks on format or completeness. The job completed in four minutes and finished with a success status. The data is now sitting in the primary storage layer, ready for the next stage of the workflow, exactly as it was when it arrived.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it this way.",
         "boundary": "Someone on the team will not accept any changes to it.",
@@ -391,8 +725,9 @@
       "requirement_id": "gen_inconsistent_data_labeling_current_ingestion_state",
       "challenge_id": 102,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The current data ingestion process is entirely manual. {data_dave} confirmed that there is no automated pipeline in place. All data is collected, cleaned, and prepared for modeling by hand. This approach introduces variability and potential errors into the dataset. The team has not yet implemented any tools or scripts to streamline this workflow. The manual process is time-consuming and relies heavily on individual expertise to ensure data quality.",
+      "narrator_id": "data_dave",
+      "artifact_type": "meeting_notes",
+      "content": "{data_dave} joined the sync to discuss the raw data stream. He pointed out that the team is still copying files from the vendor portal into the staging bucket manually every morning. He mentioned that the script meant to automate this step has not been deployed to the production environment yet. He noted that the file naming conventions vary slightly between the Tuesday and Friday batches, which requires a quick visual check before the pipeline can process them. He described the current setup as a simple, unstructured transfer where the data lands exactly as the vendor sends it, without any automated validation or transformation layer in between.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it this way.",
         "boundary": "Someone on the team will not accept any changes to it.",
@@ -489,22 +824,24 @@
       "requirement_id": "gen_data_quality_conflict_data_quality_automation",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "runbook",
-      "content": "The current data quality checks are performed manually by {data_dave}. He reviews a random sample of 100 records from each batch, checking for missing values, outliers, and format inconsistencies. This process takes approximately 2 hours per batch and is documented in the quality assurance log. The results are recorded in a shared spreadsheet, with any issues flagged for further investigation. No automated tools are used in this process.",
+      "narrator_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "I am checking the raw ingestion logs for the last four days. I opened each batch file and compared the row counts against the schema definitions. I scrolled through the raw CSVs to verify that the timestamp fields were populated and that the user ID column had no null values. I typed commands to extract samples and checked them against the expected data types in the documentation. The entire process required me to sit at a terminal and perform these checks by hand. There are no automated scripts wired into the pipeline to run these validations. I did this work manually today.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the quality checks done manually.",
         "boundary": "Someone on the team will not automate the quality checks.",
         "trade_off": "Someone on the team would accept manual checks if it keeps costs low."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_data_quality_conflict_manual_ingestion",
       "requirement_id": "gen_data_quality_conflict_manual_ingestion",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "ci_log",
-      "content": "The current data ingestion process is entirely manual. {data_dave} has confirmed that no automated checks are in place for the incoming data streams. Every dataset is reviewed by hand before it is passed to the next stage. This manual process is time-consuming and prone to human error, as noted in the latest system audit. The logs show that data validation occurs only after the ingestion is complete, which can lead to delays in identifying issues.",
+      "narrator_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "I am copying the raw files from the staging bucket to my local machine again this morning. I run the validation checks by hand and then push the cleaned data to the warehouse. It takes about forty minutes of my time each day. There is no automated scheduler or alerting system attached to this step yet. The initial data pull currently lacks any automated triggers or monitoring, so the process relies entirely on manual execution and immediate attention from the pipeline team. The downstream models receive whatever data is ready at the end of that manual window.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the ingestion process done by hand.",
         "boundary": "Someone on the team will not automate the ingestion process.",
@@ -517,8 +854,9 @@
       "requirement_id": "gen_data_quality_conflict_manual_validation",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The current validation process is performed manually by {data_dave}. Each batch of data is inspected visually for consistency, with no automated checks in place. This method results in approximately 2 hours of manual review per dataset. During the last quarter, {data_dave} reviewed 15 datasets manually, with no recorded instances of automated validation tools being utilized. The manual process involves checking each field against predefined criteria, noting discrepancies in a spreadsheet. No automated logs or reports are generated as part of this process.",
+      "narrator_id": "data_dave",
+      "artifact_type": "slack_message",
+      "content": "Just finished walking through the nightly ingestion logs with the team. We are currently running the data validation process entirely by hand. Every morning, I sit down with a spreadsheet and manually cross-reference the incoming batch files against the expected schema definitions. It takes about three hours of focused work to scan for null values and type mismatches in the raw data before it hits the staging area. There is no automated script checking these constraints yet. We simply eyeball the sample rows and flag any anomalies in a shared document for the downstream modelers to review later in the day.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the validation process done by hand.",
         "boundary": "Someone on the team will not automate the validation process.",
@@ -531,8 +869,9 @@
       "requirement_id": "gen_data_quality_conflict_missing_feature_store",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "incident_ticket",
-      "content": "The current pipeline does not include a feature store. Instead, features are recalculated for each model training run. This causes a full reprocessing of the dataset, taking approximately 3 hours per run. The data is pulled directly from the raw data lake, and the feature registry is not implemented. The pipeline produces 2 failed runs per week due to schema inconsistencies.",
+      "narrator_id": "data_dave",
+      "artifact_type": "email",
+      "content": "I was checking the logs for the latest churn model training run. The feature extraction step pulls raw values directly from the warehouse tables every time a new job starts. There is no centralized repository holding precomputed features. When the team requests a specific historical slice for backtesting, I manually query the source data and export a flat file. The latency for these manual pulls averages forty minutes per request. The validation scripts check for null values in the raw input, but they do not verify consistency across different model versions because the features are not versioned or stored in a shared location. We have been running this manual workflow for the last three months of model iterations.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the feature store to be absent.",
         "boundary": "Someone on the team will not implement the feature store.",
@@ -545,8 +884,9 @@
       "requirement_id": "gen_data_quality_conflict_manual_labeling",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "ci_log",
-      "content": "The current labeling pipeline, as observed by {data_dave}, relies entirely on manual annotation. No automated tools or scripts are integrated into the workflow. Each data point is reviewed and tagged by hand, which is the standard procedure in the existing setup. This manual process has been consistent across all recent batches, with no deviations noted in the system logs.",
+      "narrator_id": "data_dave",
+      "artifact_type": "meeting_notes",
+      "content": "{data_dave} brought up the labeling workflow during our sync. He noted that the team currently handles all annotation tasks manually. There is no automated tooling in place for the initial tagging phase. Every sample goes through a human review queue before it hits the training dataset. He described the daily volume as manageable for now, but the process relies entirely on individual keystrokes rather than batch scripts. The current setup means that consistency depends on the specific person working that shift. No machine learning models are assisting with pre-labeling at this stage. The data flows from the raw storage bucket directly to the human interface where the tags are applied. The pipeline operates this way today, without any algorithmic shortcuts or semi-automated suggestions to speed up the initial classification step.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the labeling process done by hand.",
         "boundary": "Someone on the team will not automate the labeling process.",
@@ -559,8 +899,9 @@
       "requirement_id": "gen_data_quality_conflict_missing_drift_check",
       "challenge_id": 100,
       "stakeholder_id": null,
-      "artifact_type": "incident_ticket",
-      "content": "Currently, the model training process does not include a formal data drift check for {data_dave}'s pipeline. The training proceeds without any automated validation of input data distribution against the baseline. The system logs indicate that training runs are initiated based on scheduled triggers without pre-checks for data consistency. This results in 15 training runs per week, none of which include a drift check. The process relies solely on post-training evaluations to detect any discrepancies in data distribution.",
+      "narrator_id": "data_dave",
+      "artifact_type": "email",
+      "content": "I was tracing the batch ingestion logs for the last three weeks and noticed the pipeline jumps straight from the raw feature extraction step to the model training queue. There is no intermediate validation stage where the system compares the incoming batch statistics against the historical baseline. I checked the scheduler configuration and the code repository, and the drift detection module is not present in the deployment manifest. Consequently, every nightly run proceeds without any automated comparison of distribution shifts. The data flows directly into the training environment as soon as the extraction job completes successfully, with no intermediate gate to flag anomalies in the feature ranges.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the drift check to be absent.",
         "boundary": "Someone on the team will not implement the drift check.",
@@ -713,22 +1054,24 @@
       "requirement_id": "gen_experiment_tracking_dispute_tracking_state",
       "challenge_id": 101,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The current workflow for experiment tracking is manual. {data_dave} records results in a shared spreadsheet. There are no linked datasets or code versions. The spreadsheet has 12 tabs, one per month. The oldest entry is from 11 months ago. Each tab has between 30 and 60 rows. Columns are timestamp, model version, dataset version, metrics, and notes. There are 388 total entries. No entries are missing. No entries duplicate timestamps. All entries have timestamps.",
+      "narrator_id": "model_monica",
+      "artifact_type": "slack_message",
+      "content": "I am reviewing the recent churn prediction iterations. We have completed three distinct training runs this week, each with different hyperparameter combinations. The results are currently scattered across separate local notebooks and a shared drive folder. I have manually copied the accuracy scores into a spreadsheet to compare them. There is no centralized system recording which specific dataset version or code commit produced each result. When I need to replicate a previous run, I have to search through email threads and memory to reconstruct the exact configuration used. The process relies entirely on my personal notes and the timestamps on the saved model files to keep track of what was tested and when.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants experiment tracking to be missing.",
         "boundary": "Someone on the team will not accept any experiment tracking.",
         "trade_off": "Someone on the team would give up other aspects if experiment tracking is missing."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_experiment_tracking_dispute_registry_state",
       "requirement_id": "gen_experiment_tracking_dispute_registry_state",
       "challenge_id": 101,
       "stakeholder_id": null,
-      "artifact_type": "incident_ticket",
-      "content": "Model versioning is currently handled via manual file naming conventions in the shared storage folder. {data_dave} has noted that there are 15 distinct files named model.pkl in the folder, with no clear indication of which version corresponds to which training run. The training logs are stored separately in a different folder structure, making it difficult to correlate specific model files with their respective training parameters and datasets.",
+      "narrator_id": "model_monica",
+      "artifact_type": "meeting_notes",
+      "content": "During our sync, {model_monica} explained the current workflow for tracking model iterations. She noted that there is no central repository for storing model artifacts or metadata. Instead, she keeps a local spreadsheet on her workstation to log experiment parameters and resulting metrics. When a new model version is ready for evaluation, she manually copies the file to a shared network drive and sends a direct message to the team with the file path. The spreadsheet currently lists forty-two distinct training runs from the past quarter, each with a timestamp and a brief description of the data split used. She mentioned that the file is updated only after a training run completes successfully, meaning any failed runs are not recorded in the log.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the model registry to be missing.",
         "boundary": "Someone on the team will not accept any model registry.",
@@ -741,8 +1084,9 @@
       "requirement_id": "gen_experiment_tracking_dispute_train_state",
       "challenge_id": 101,
       "stakeholder_id": null,
-      "artifact_type": "dashboard_snapshot",
-      "content": "The current state of the {data_dave}'s training pipeline is manual. Every run requires individual setup and execution, with no automated tracking of parameters or results. The lack of standardization means reproducibility is lost between iterations. This process is time-consuming and prone to human error, as documented in the latest pipeline logs. No improvements or changes have been proposed at this time.",
+      "narrator_id": "model_monica",
+      "artifact_type": "slack_message",
+      "content": "The training pipeline currently operates as a manual sequence. I copy configuration files from the shared drive, adjust hyperparameters in a local script, and push artifacts to the staging bucket. There are no automated triggers or version control hooks in place. I spend roughly two hours per cycle setting up the environment and verifying data splits match the previous run before training starts. The process depends on me remembering the exact steps and ensuring the local machine has the correct library versions installed.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants the training pipeline to be done by hand.",
         "boundary": "Someone on the team will not accept any other method for the training pipeline.",
@@ -867,22 +1211,24 @@
       "requirement_id": "gen_registry_red_tape_registry_spreadsheet",
       "challenge_id": 103,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The current model registry is implemented as a spreadsheet maintained by {data_dave}. Models are listed with their versions, training dates, and performance metrics. The spreadsheet is updated manually whenever a new model is deployed or an existing one is retrained. There are no automated checks or validations in place, and the spreadsheet is stored on a shared drive accessible to the team.",
+      "narrator_id": "model_monica",
+      "artifact_type": "document",
+      "content": "I keep a single spreadsheet open on my desktop during every training run. When a new model finishes, I add a row with the timestamp, the hyperparameters, and the validation accuracy. I manually copy the model file path from the terminal into the next cell. There is no API call or automated hook. I check the sheet before every deployment to confirm which version is current. It takes me about four minutes to update the file and verify the entries. I do this for every experiment, regardless of size.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it as a spreadsheet and more is better.",
         "boundary": "Someone on the team will not work without a spreadsheet.",
         "trade_off": "Someone on the team would give it up if something else is needed."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_registry_red_tape_registry_missing",
       "requirement_id": "gen_registry_red_tape_registry_missing",
       "challenge_id": 103,
       "stakeholder_id": null,
-      "artifact_type": "dashboard_snapshot",
-      "content": "The current model deployment workflow does not use a formal registry system. {data_dave} manually tracks model versions in a shared spreadsheet. The spreadsheet records model name, version number, and deployment timestamp. There are no automated checks or validations performed against this spreadsheet. {data_dave} updates the spreadsheet after each deployment, but there have been instances where updates were delayed by up to 24 hours. The spreadsheet is accessible to all team members, but there is no audit trail of changes made to it.",
+      "narrator_id": "model_monica",
+      "artifact_type": "email",
+      "content": "I am checking the current deployment pipeline to see how the latest churn model gets promoted to production. There is no central repository tracking model versions or metadata. Each time I finish a training run, I manually copy the serialized artifact and its configuration file to a shared network drive. I then email the file path to the deployment team so they can pull it into the staging environment. This manual transfer happens for every single iteration. The staging environment currently holds version 4.2, which I pushed over three days ago. The production environment is still running version 3.1. I have no automated link between the training output and the serving infrastructure, so every update requires a direct file transfer and a manual restart of the inference container.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it missing and more is better.",
         "boundary": "Someone on the team will not work without it missing.",
@@ -895,8 +1241,9 @@
       "requirement_id": "gen_registry_red_tape_registry_tool",
       "challenge_id": 103,
       "stakeholder_id": null,
-      "artifact_type": "dashboard_snapshot",
-      "content": "The model registry setup currently lacks a dedicated tool. {data_dave} manually tracks models using a shared spreadsheet. The spreadsheet records model versions, training dates, and performance metrics. {data_dave} updates the spreadsheet weekly, but there is no automated version control or access management. The current process relies on email notifications for model updates.",
+      "narrator_id": "model_monica",
+      "artifact_type": "meeting_notes",
+      "content": "{model_monica} mentioned the current workflow during our sync. When a new model version is ready, she manually copies the artifact file to the shared storage bucket. She then opens the internal wiki page and types the version number, training date, and hyperparameter settings into a text box. There is no automated link between the training job and the registry entry. If a model is retrained, she repeats the manual copy and update process from scratch. The registry remains a static list of text entries. No system validates the file format or checks for duplicate version numbers before she saves the page. The process relies entirely on her remembering to update the wiki after every successful training run.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it to have no tool and more is better.",
         "boundary": "Someone on the team will not work without it having no tool.",
@@ -909,12 +1256,589 @@
       "requirement_id": "gen_registry_red_tape_registry_manual",
       "challenge_id": 103,
       "stakeholder_id": null,
-      "artifact_type": "architecture_note",
-      "content": "The model registry {data_dave} uses is currently nonfunctional. Today, models are stored directly in the cloud storage bucket {ml_models_bucket} without metadata tracking. Model versions are manually managed in a shared spreadsheet {model_versions_doc} updated by the team. There is no automated lineage tracking between models and their training pipelines. The current process relies on team members to remember and document model relationships verbally during standup meetings.",
+      "narrator_id": "model_monica",
+      "artifact_type": "email",
+      "content": "I checked the deployment pipeline again this morning. The registry endpoint returned a connection refused error for the third time this week. I manually exported the latest model weights to a local directory and pushed them directly to the staging cluster. The version tag was omitted because the metadata service is down. I had to hardcode the configuration parameters into the deployment script since the registry cannot fetch them. The training logs show the model achieved a 94 percent accuracy, but the artifact itself is not registered anywhere central. I copied the file to the shared drive as a fallback. The monitoring dashboard still shows the previous production model as active because the new one never got a proper identifier. I am proceeding with the manual deployment steps as usual.",
       "wrong_descriptions": {
         "driver": "Someone on the team wants it broken and more is better.",
         "boundary": "Someone on the team will not work without it broken.",
         "trade_off": "Someone on the team would give it up if something else is needed."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_alex_gateway_stability",
+      "requirement_id": "gen_gateway_security_gap_alex_gateway_stability",
+      "challenge_id": 106,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "email",
+      "content": "I am not touching the gateway automation until the pipeline is rock solid. My primary duty is keeping the deployment flow stable for the team. If we automate the authentication layer now, we risk breaking the integration tests that currently pass every night. I will not approve any changes to the gateway configuration if they introduce instability into the CI/CD chain. The current manual setup is fragile but it works without interrupting the build cycle. I refuse to accept any configuration change that might cause a single failed deployment during the next sprint. The stability of the pipeline is my non-negotiable requirement for any infrastructure work I sign off on.",
+      "wrong_descriptions": {
+        "driver": "He wants the gateway to be automated so that deployment frequency increases without manual intervention.",
+        "trade_off": "He would accept a lower level of automation for the gateway if it means the deployment pipeline remains stable.",
+        "fact": "The gateway is currently configured to be managed manually by the operations team."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_reuben_compliance_gap",
+      "requirement_id": "gen_gateway_security_gap_reuben_compliance_gap",
+      "challenge_id": 106,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "The audit findings are unacceptable. I need the API gateway to reach a fully governed state immediately. We must implement automated authentication controls and continuous compliance checks to satisfy external regulators. A manual process is too risky for our current security posture. I want every endpoint protected by strict identity verification. The more automated and governed the system becomes, the better our standing with auditors. I am pushing for the highest level of control possible to ensure we meet all privacy and security standards without exception.",
+      "wrong_descriptions": {
+        "boundary": "He will not sign off on the project if the gateway remains in a manual or automated state without governance controls.",
+        "trade_off": "He would accept a delay in other features if the gateway is not brought to a governed state.",
+        "fact": "The gateway currently lacks the governance hooks required by the security policy."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_gateway_security_gap_alex_concession_gateway",
+      "requirement_id": "gen_gateway_security_gap_alex_concession_gateway",
+      "challenge_id": 106,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "The current manual gateway configuration keeps our deployment pipeline running without hiccups. I am willing to accept a temporary reduction in deployment frequency to get this sorted. If we move to a fully governed state, I can live with slower releases for a few weeks. The stability we have now is good, but I do not mind trading some speed for the security upgrade you need. Just let me know when the pipeline will be back to full speed so I can plan the next batch of models.",
+      "wrong_descriptions": {
+        "driver": "He wants to improve the gateway automation to reduce the time spent on manual deployment steps.",
+        "boundary": "He refuses to change the gateway configuration because it is the only part of the pipeline he trusts.",
+        "fact": "The manual gateway configuration is the current standard for this service."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_ruth_serving_monitoring",
+      "requirement_id": "gen_gateway_security_gap_ruth_serving_monitoring",
+      "challenge_id": 106,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "meeting_notes",
+      "content": "I have been tracking the serving endpoint closely lately, and the lack of automated feedback loops is becoming a real operational headache. Right now, I am manually checking logs to spot when model performance starts to drift, which is slow and prone to human error. I really want to automate this monitoring process so we can catch performance regressions the moment they appear, long before any user notices a drop in quality. The more comprehensive and automated these checks become, the better our system reliability will be. I am looking for a setup that continuously validates the output and alerts me instantly. The more data points we capture and analyze automatically, the more confident I can be in the stability of the applications I build on top of these models.",
+      "wrong_descriptions": {
+        "boundary": "She will not deploy new model versions if the monitoring setup is not automated and reliable.",
+        "trade_off": "She would accept a slower release cadence if it ensures the monitoring data is accurate.",
+        "fact": "The monitoring pipeline is currently triggered manually and does not capture real-time metrics."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_emilia_cost_focus",
+      "requirement_id": "gen_gateway_security_gap_emilia_cost_focus",
+      "challenge_id": 106,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "I have been reviewing the infrastructure spend for the upcoming quarter. The proposed upgrade to the API gateway carries a significant capital expenditure that directly competes with our roadmap for new model features. I am prepared to accept a higher level of manual intervention in the gateway deployment process. This trade off allows us to keep the immediate infrastructure costs low. In exchange, we preserve the budget necessary to ship the high value business features that stakeholders are actively requesting. The operational overhead of manual checks is a cost I am willing to absorb to ensure our product strategy remains on track and within the approved financial envelope for this fiscal year.",
+      "wrong_descriptions": {
+        "driver": "She wants to reduce the operational costs associated with the deployment pipeline to improve the project ROI.",
+        "boundary": "She will not approve any budget increase for infrastructure upgrades without a clear business case.",
+        "fact": "The current budget allocation does not include funds for a full governance upgrade of the gateway."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_reuben_canary_governance",
+      "requirement_id": "gen_gateway_security_gap_reuben_canary_governance",
+      "challenge_id": 106,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "slack_message",
+      "content": "We are not negotiating on this. Every model release must pass through governed canary testing before it touches production. If the canary phase lacks proper governance controls, I will block the promotion immediately. This is a hard line for the architecture team. We cannot accept any risk of unvalidated models reaching end users. The deployment pipeline can be slow, but it cannot be unsafe. I will not sign off on any release that bypasses these specific validation gates. This requirement is non-negotiable for our compliance posture.",
+      "wrong_descriptions": {
+        "driver": "He wants to automate the canary testing process to ensure faster and more reliable model releases.",
+        "trade_off": "He would accept a longer testing period if it ensures the canary results are fully auditable.",
+        "fact": "The canary testing setup is currently missing the governance controls required for compliance."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_gateway_current_state",
+      "requirement_id": "gen_gateway_security_gap_gateway_current_state",
+      "challenge_id": 106,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "meeting_notes",
+      "content": "During the weekly pipeline sync, {automation_alex} mentioned that the API gateway is currently in a broken state with no authentication controls in place. They noted that all incoming traffic flows directly to the model serving layer without any identity verification step. The current deployment scripts bypass the security module entirely because the configuration file is missing the required keys. Traffic logs show every request reaching the endpoint is processed immediately. There is no rejection mechanism active at the gateway level right now. The team is observing raw request volumes hitting the inference servers directly. No middleware is intercepting these calls to check for valid tokens or user credentials. The system operates in this open mode as of this morning's build.",
+      "wrong_descriptions": {
+        "driver": "The team wants to fix the gateway to enable secure access to the model endpoints.",
+        "boundary": "The security team will not allow the system to go live until the gateway is secured.",
+        "trade_off": "The project manager might accept a temporary workaround if the full fix is too expensive."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_gateway_security_gap_serving_gateway_edge_state",
+      "requirement_id": "gen_gateway_security_gap_serving_gateway_edge_state",
+      "challenge_id": 106,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "I was tracing the traffic flow for the new build and noticed the model serving endpoint has no link to the API gateway. The requests hit the gateway and get a standard not found response. There is no routing rule pointing to the model service. I checked the configuration files and the traffic logs. The logs show zero successful connections to the model layer during the last deployment cycle. The gateway drops these calls before they reach the inference container. No proxy or load balancer is forwarding the traffic. The endpoint exists, but nothing directs users to it. I saw this while testing the CI/CD pipeline output. The deployment succeeded, but the external interface stays silent. The routing table simply lacks the entry for this service right now.",
+      "wrong_descriptions": {
+        "driver": "The team wants to establish a secure link between the serving layer and the gateway.",
+        "boundary": "The architecture team requires a direct link for any traffic to pass through the gateway.",
+        "trade_off": "The operations team might bypass the gateway if the link is too difficult to implement."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_iam_gateway_governance",
+      "requirement_id": "gen_gateway_security_gap_iam_gateway_governance",
+      "challenge_id": 106,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "email",
+      "content": "The identity and access management system governs the API gateway through a manual request trigger. When a new model version is pushed to the staging environment, the gateway configuration remains locked until a human operator manually approves the access token renewal. This step happens outside the automated CI/CD pipeline. The approval request sits in a shared ticket queue, and the operator updates the gateway policy directly in the console after verifying the request details. The system logs show the timestamp of the manual approval and the subsequent policy change. No automated rule or scheduled task handles this specific governance link. The process relies entirely on the operator noticing the pending request and acting on it within the current shift.",
+      "wrong_descriptions": {
+        "driver": "The security team wants to automate the IAM checks to reduce the risk of human error.",
+        "boundary": "The compliance officer requires that all IAM changes be manually approved to ensure auditability.",
+        "trade_off": "The operations team would accept automated IAM checks if it reduces the overhead of manual approvals."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_gateway_security_gap_cicd_pipeline_state",
+      "requirement_id": "gen_gateway_security_gap_cicd_pipeline_state",
+      "challenge_id": 106,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "I am checking the build logs for the latest deployment cycle. The pipeline infrastructure itself is fully automated, handling all compilation and testing steps without human intervention. However, the actual execution of these builds is not running on a schedule or via code commits. Instead, the system waits for a specific manual request to start the process. Each time we need a new model version, someone has to explicitly click the trigger button in the dashboard. The automation handles the work once it begins, but the initiation remains a manual step in the current configuration.",
+      "wrong_descriptions": {
+        "driver": "The team wants to automate the pipeline triggers to reduce the time between code commits and deployments.",
+        "boundary": "The release manager requires manual approval for every deployment to ensure quality control.",
+        "trade_off": "The development team would accept automated triggers if it reduces the waiting time for deployments."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_ruth_shadow_governed",
+      "requirement_id": "gen_shadow_environment_dispute_ruth_shadow_governed",
+      "challenge_id": 108,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "email",
+      "content": "I need to be clear about my position on the shadow environment. I will not approve any model release unless it has passed through a fully automated and governed shadow deployment. This is not a preference or a suggestion; it is a hard requirement for my team. If the shadow infrastructure is removed or downgraded to manual checks, I will refuse to sign off on the release pipeline. I am not interested in partial solutions or temporary workarounds. The shadow deployment must remain fully governed and automated, or the project does not move forward. I am not willing to compromise on this safety net, regardless of infrastructure cost arguments.",
+      "wrong_descriptions": {
+        "driver": "She wants the shadow environment to be as complete as possible to catch every edge case.",
+        "trade_off": "She would accept a manual shadow setup if it is the only option available.",
+        "fact": "That is simply how the shadow deployment is configured today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_alex_shadow_removed",
+      "requirement_id": "gen_shadow_environment_dispute_alex_shadow_removed",
+      "challenge_id": 108,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "I need to be absolutely clear about the shadow deployment environment. I will not maintain any shadow infrastructure, no matter how broken it becomes or how much pressure is applied. The complexity it adds to our CI/CD tooling is unacceptable, and it undermines the operational stability I am responsible for. If the shadow environment is not removed entirely, I will refuse to continue supporting the pipeline integration. This is a firm line. I am not interested in discussing partial solutions or temporary fixes. I will not cross this boundary to accommodate other priorities. The infrastructure must be lean and reliable, and that means eliminating the shadow layer completely. I expect this decision to be respected without further debate.",
+      "wrong_descriptions": {
+        "driver": "He wants to simplify the pipeline by removing all non-essential components.",
+        "trade_off": "He would accept keeping a manual shadow environment if it costs nothing.",
+        "fact": "That is simply how the shadow deployment is configured today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_reuben_compliance",
+      "requirement_id": "gen_shadow_environment_dispute_reuben_compliance",
+      "challenge_id": 108,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "I am pushing for a more rigorous testing and validation process to guarantee high product quality and compliance. The current manual checks are too slow and prone to human error. I want the canary and A/B testing workflows to be fully automated so that every single release is validated without delay. The more automated this pipeline becomes, the better the outcome. I need to see a continuous, self validating system that catches regressions before they reach production. This is not a one time fix but a permanent improvement to our release safety. I am asking for this to be prioritized in the next sprint.",
+      "wrong_descriptions": {
+        "boundary": "He will not allow any release without a manual sign-off from the compliance team.",
+        "trade_off": "He would accept a manual testing process if it is the only way to meet the deadline.",
+        "fact": "That is simply how the testing process is configured today."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_emilia_cost",
+      "requirement_id": "gen_shadow_environment_dispute_emilia_cost",
+      "challenge_id": 108,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "document",
+      "content": "The shadow environment infrastructure is a significant line item in the project budget, and I am watching that number closely. However, I am prepared to accept a higher cost for those servers if it is necessary to ensure reliability. I am willing to pay for the additional compute and storage required to run the shadow deployment fully automated and governed. In exchange, I get the confidence that model behavior is validated before release, which protects our product strategy and operational KPIs. I am not asking for a reduction in scope, but I am clearly signaling that I will not fight for a lower price if the reliability outcome demands it. The trade is straightforward: I give up budget headroom to secure the validation process we need.",
+      "wrong_descriptions": {
+        "driver": "She wants to reduce costs by removing all non-essential infrastructure.",
+        "boundary": "She will not approve any new infrastructure without a clear cost-benefit analysis.",
+        "fact": "That is simply how the cost monitoring is configured today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_alex_cicd",
+      "requirement_id": "gen_shadow_environment_dispute_alex_cicd",
+      "challenge_id": 108,
+      "stakeholder_id": "automation_alex",
+      "artifact_type": "meeting_notes",
+      "content": "I am pushing to get the CI/CD pipeline fully automated so that every integration and deployment happens without manual intervention. I need the system to handle the entire flow from code commit to production release with zero human touchpoints. The more manual steps we eliminate, the better the pipeline becomes for our team. I want to see a state where the infrastructure is so reliable that we can deploy at any frequency without worrying about breaking something. Every additional automated check and gate that we add to this pipeline is a win for us. I am not looking for a partial solution or a hybrid approach. I want the pipeline to be as seamless and robust as possible, and I will keep advocating for more automation until we reach that ideal state.",
+      "wrong_descriptions": {
+        "boundary": "He will not accept any manual steps in the CI/CD pipeline.",
+        "trade_off": "He would accept a manual CI/CD pipeline if it is the only option available.",
+        "fact": "That is simply how the CI/CD pipeline is configured today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_ruth_canary_monitoring",
+      "requirement_id": "gen_shadow_environment_dispute_ruth_canary_monitoring",
+      "challenge_id": 108,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "email",
+      "content": "We need the canary and A/B testing pipelines to run automatically so we catch performance regressions the moment they appear. The current manual checks are too slow for our release cadence. I want the system to validate model behavior in a shadow environment before any traffic shifts. The more automated these validation steps are, the better, because I need to see real world impact without waiting for a scheduled review. I am asking for full automation of these checks to ensure we can iterate quickly on reliability issues. The goal is to have a continuous feedback loop that flags any degradation instantly, allowing us to fix problems before they affect end users. This level of automation is essential for maintaining the service quality our clients expect.",
+      "wrong_descriptions": {
+        "boundary": "She will not accept any release without a monitoring setup in place.",
+        "trade_off": "She would accept a manual monitoring process if it is the only option available.",
+        "fact": "That is simply how the canary and A/B testing is configured today."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_shadow_broken",
+      "requirement_id": "gen_shadow_environment_dispute_shadow_broken",
+      "challenge_id": 108,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "email",
+      "content": "I checked the shadow deployment environment this morning and found it completely non functional. The pipeline stops before any traffic is routed to the shadow instance. There is no live shadow instance running in production. All model releases go directly to the primary serving endpoint without a parallel test phase. The CI/CD logs show the shadow deployment step is skipped entirely. No metrics are collected from a shadow environment because none exists. The current workflow relies solely on pre production unit tests and manual spot checks in staging. I observed zero automated traffic mirroring to a shadow cluster during the last five deployment cycles. The infrastructure configuration for shadow deployment is absent from the active pipeline definition.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the shadow environment to be fixed.",
+        "boundary": "No one will accept a broken shadow environment.",
+        "trade_off": "Someone on the team would accept a broken shadow environment if it is the only option."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_canary_missing",
+      "requirement_id": "gen_shadow_environment_dispute_canary_missing",
+      "challenge_id": 108,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "document",
+      "content": "I just finished the standard deployment cycle for the latest model version. Since there is no canary or A/B testing environment in the current infrastructure, I pushed the build directly to the production cluster. The CI/CD pipeline executed the full rollout in twelve minutes. All health checks passed immediately after the service restart. Traffic is now flowing to the new model instance without any intermediate staging phase. The logs show a clean transition with zero dropped requests during the switchover. I verified the integration points and confirmed the data feeds are active. The system is stable and operating at full capacity right now.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the canary and A/B testing environment to be built.",
+        "boundary": "No one will accept a missing canary and A/B testing environment.",
+        "trade_off": "Someone on the team would accept a missing canary and A/B testing environment if it is the only option."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_cicd_manual",
+      "requirement_id": "gen_shadow_environment_dispute_cicd_manual",
+      "challenge_id": 108,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "email",
+      "content": "I was checking the staging server logs this morning and noticed the pattern is consistent. Every deployment cycle shows a human session ID initiating the script execution. There are no automated agents firing between the code repository and the build environment. I manually copy the artifacts and run the installation commands each time a new model build is ready. The pipeline is configured to wait for my input at every step. The infrastructure reflects this manual setup, and the timestamps confirm that no background processes are handling the transfer or installation. The system is wired up with me acting as the bridge between the build and the live environment, and the logs show that this manual handoff is the only active path for getting new models into production.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the CI/CD pipeline to be automated.",
+        "boundary": "No one will accept a manual CI/CD pipeline.",
+        "trade_off": "Someone on the team would accept a manual CI/CD pipeline if it is the only option."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_shadow_environment_dispute_serving_manual",
+      "requirement_id": "gen_shadow_environment_dispute_serving_manual",
+      "challenge_id": 108,
+      "stakeholder_id": null,
+      "narrator_id": "automation_alex",
+      "artifact_type": "meeting_notes",
+      "content": "During the infrastructure sync, {automation_alex} mentioned the current workflow for the model serving endpoint. The team is manually updating the configuration files every time a new model version is ready. There is no automated trigger or pipeline step handling this specific deployment task. The process relies on a human engineer logging into the server and editing the text files directly. {automation_alex} noted that the last update took about forty minutes to complete. The endpoint runs in the live environment with no scheduled automation tasks assigned to it. The manual steps are how the team handles this work right now.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the model serving endpoint to be automated.",
+        "boundary": "No one will accept a manual model serving endpoint.",
+        "trade_off": "Someone on the team would accept a manual model serving endpoint if it is the only option."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_emilia_audit_proposal",
+      "requirement_id": "gen_blind_spot_silence_emilia_audit_proposal",
+      "challenge_id": 104,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "slack_message",
+      "content": "I have reviewed the infrastructure spend for the last two quarters and the numbers are simply unsustainable if we add another automated monitoring stack. I am prepared to accept losing real-time visibility into model degradation. I would rather rely on my manual monthly audit to track business KPIs and catch major issues. This approach keeps our operational costs low and maintains strict control over the budget. I am not interested in paying for continuous automated pipelines that I do not need for my strategic planning. The trade is clear. I give up the immediate alerting capability in exchange for significant cost savings and a simpler operational footprint that I can manage directly without relying on complex automated tooling that often breaks down anyway.",
+      "wrong_descriptions": {
+        "driver": "She wants the audit process to be faster so she can review KPIs more frequently.",
+        "boundary": "She will not allow automated monitoring because it bypasses her cost controls.",
+        "fact": "The current setup relies on a manual monthly review of the logs."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_ruth_governance_demand",
+      "requirement_id": "gen_blind_spot_silence_ruth_governance_demand",
+      "challenge_id": 104,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "I need the performance monitoring to be governed. Right now, I am flying blind on real-world degradation. I want the system to catch drift the moment it happens, not weeks later. The more governed the monitoring pipeline is, the more confident I am in the reliability of the user experience. I want every alert to have a clear owner and a documented resolution path. I am not asking for a perfect system, just a transparent one. I want to trust the signals we get from production. The more control we have over the data flow, the better I can sleep at night. Please make sure the governance layer is robust enough to handle our scale.",
+      "wrong_descriptions": {
+        "boundary": "She will not deploy new models without governed monitoring in place.",
+        "trade_off": "She would accept a slower rollout if the monitoring is not governed.",
+        "fact": "The monitoring system currently lacks formal governance policies."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_blind_spot_silence_ruth_rollback_concession",
+      "requirement_id": "gen_blind_spot_silence_ruth_rollback_concession",
+      "challenge_id": 104,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "I am willing to accept that the rollback mechanism stays manual for the next quarter. My team is too stretched to automate the redeployment pipeline right now, and the current hand-off process works well enough for our immediate needs. However, this concession is strictly conditional on the alerting system becoming fully automated and governed. I need real-time visibility into model drift and latency spikes without waiting for a monthly audit. If the monitoring layer does not reach that level of maturity, I will not sign off on any new model deployments. I am trading off the convenience of automated rollbacks for the certainty that I will be alerted the moment performance degrades in production.",
+      "wrong_descriptions": {
+        "driver": "She wants the rollback to be automated to reduce the time to recovery.",
+        "boundary": "She will not accept a manual rollback process for production incidents.",
+        "fact": "The rollback process requires a human to execute the revert command."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_monica_drift_observation",
+      "requirement_id": "gen_blind_spot_silence_monica_drift_observation",
+      "challenge_id": 104,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "meeting_notes",
+      "content": "I am flagging a hard constraint for the upcoming sprint. The current setup lacks any form of drift detection. I will not proceed with tuning the model parameters under these conditions. If the drift monitoring remains manual or absent, I refuse to adjust the weights or hyperparameters. I need the pipeline to automatically flag distribution shifts before I touch the code. Without that automated safety net, I am stepping back from the optimization work. I cannot guarantee performance if I cannot see when the input data has changed. This is a non-negotiable requirement for my continued involvement in the tuning phase.",
+      "wrong_descriptions": {
+        "driver": "She wants drift monitoring to be automated to catch data changes early.",
+        "trade_off": "She would give up some model accuracy if the drift monitoring is not present.",
+        "fact": "The drift detection pipeline is currently absent from the workflow."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_reuben_compliance_check",
+      "requirement_id": "gen_blind_spot_silence_reuben_compliance_check",
+      "challenge_id": 104,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "email",
+      "content": "I am reviewing the observability pipeline for the upcoming release. The current log streams are unstructured and lack retention policies. I have proposed that all observability logs be governed under our data privacy framework. This is a strict requirement for my team. I will not sign off on the production deployment if the logging is not governed. We cannot expose sensitive user data through unmonitored channels. The architecture must enforce access controls and audit trails before we proceed. Any deviation from this standard is a dealbreaker for the security review.",
+      "wrong_descriptions": {
+        "driver": "He wants more detailed logs to improve security auditing.",
+        "trade_off": "He would accept less detailed logs if the cost is too high.",
+        "fact": "The logging system currently lacks governance controls."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_emilia_cost_concession",
+      "requirement_id": "gen_blind_spot_silence_emilia_cost_concession",
+      "challenge_id": 104,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "email",
+      "content": "I have reviewed the Q3 budget allocation and the proposed monitoring stack. The cost for the automated alerting infrastructure is currently eating into our retraining pipeline reserves. I am prepared to accept losing real-time automated alerts and rely on the manual monthly audit we discussed. This trade allows us to keep the retraining pipeline fully funded and on schedule. If we prioritize the automated monitoring, we must cut the retraining budget, which I am not willing to do. The manual process is sufficient for our current KPI tracking needs, so I will not support spending on the alerting system while the retraining work is critical.",
+      "wrong_descriptions": {
+        "driver": "She wants the alerting to be more precise to reduce noise.",
+        "boundary": "She will not pay for an automated alerting tool.",
+        "fact": "The alerting system currently relies on manual checks."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_fact_perf_monitoring_state",
+      "requirement_id": "gen_blind_spot_silence_fact_perf_monitoring_state",
+      "challenge_id": 104,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "meeting_notes",
+      "content": "{reliability_ruth} mentioned that the model performance monitoring is currently broken. She explained that the system does not track accuracy or drift in real time. Instead, her team checks the logs manually every Friday afternoon. They look for obvious errors or user complaints that indicate a problem. There is no automated alert when the model output degrades. The only way to know if the model is failing is if a customer submits a ticket. {reliability_ruth} noted that this manual review takes about two hours each week. She described the process as a simple visual scan of the recent output samples. No other tools are used to verify the model behavior between these weekly checks.",
+      "wrong_descriptions": {
+        "driver": "The team wants to fix the monitoring to see the metrics.",
+        "boundary": "The team will not proceed without fixing the monitoring.",
+        "trade_off": "The team would accept losing the monitoring if it is too expensive."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_blind_spot_silence_fact_observe_perf_edge",
+      "requirement_id": "gen_blind_spot_silence_fact_observe_perf_edge",
+      "challenge_id": 104,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "meeting_notes",
+      "content": "{reliability_ruth} described the daily sequence for handling model logs. At 09:00, she opens the storage directory to locate the previous night's observability files. She selects the relevant entries and copies the numerical values into a spreadsheet. Next, she navigates to the performance monitoring dashboard and inputs the figures into the designated fields. This process concludes around 09:30. The dashboard reflects the new data only after this manual entry is complete. No background job or event listener connects the logging storage to the monitoring interface. The data remains static in the bucket until she initiates the copy and paste operation each morning.",
+      "wrong_descriptions": {
+        "driver": "The team wants to automate the data flow.",
+        "boundary": "The team will not accept a manual data flow.",
+        "trade_off": "The team would accept a manual flow if it is cheaper."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_fact_alerting_state",
+      "requirement_id": "gen_blind_spot_silence_fact_alerting_state",
+      "challenge_id": 104,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I open the Grafana dashboard for the production inference cluster at 09:00 each morning. I scan the latency percentiles and error rates for the previous twenty-four hours. When a value crosses the red threshold line, I copy the timestamp into the shared spreadsheet. I then send a message to the on-call engineer in the team chat with the link to the dashboard. I wait for their reply before we decide on any model version rollback. The manual scan takes about fifteen minutes to complete. I perform this check once per day during the standard work shift.",
+      "wrong_descriptions": {
+        "driver": "The team wants to add alerts for incidents.",
+        "boundary": "The team will not deploy without alerts.",
+        "trade_off": "The team would accept no alerts if it saves money."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_blind_spot_silence_fact_drift_monitoring_state",
+      "requirement_id": "gen_blind_spot_silence_fact_drift_monitoring_state",
+      "challenge_id": 104,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "email",
+      "content": "I am checking the logs for the weekly model performance audit. The pipeline runs the standard accuracy checks on the validation set every Monday morning at 02:00. The output file lands in the shared bucket by 02:15. I open the dashboard to review the feature distribution plots. The section labeled drift status is blank. There are no charts for the last thirty days. The system does not flag any anomalies because the monitoring module is not installed in the production cluster. I scroll down to the raw data export. The timestamps are sequential and complete. The file size matches the expected record count for the week. I close the browser tab and move to the next service. The next service has the same empty section.",
+      "wrong_descriptions": {
+        "driver": "The team wants to monitor data drift.",
+        "boundary": "The team will not accept undetected drift.",
+        "trade_off": "The team would accept no drift monitoring if it is too complex."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_emilia_governance_redline",
+      "requirement_id": "gen_drift_blind_spot_emilia_governance_redline",
+      "challenge_id": 105,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "meeting_notes",
+      "content": "I need to be clear about the non-negotiables for our upcoming model operations roadmap. I have reviewed the current gaps in our input quality checks, and I am not willing to proceed with any partial solutions. Any future drift detection setup I approve must include automated governance controls. I will not sign off on a plan that relies on manual oversight or lacks enforced policy checks. If the proposed architecture does not demonstrate fully automated governance, I will refuse to allocate further resources to that workstream. This is a hard requirement for protecting our business KPIs and ensuring long term reliability. Please treat this as a fixed constraint in all your planning discussions.",
+      "wrong_descriptions": {
+        "driver": "She wants the governance layer to be as extensive as possible to cover all business KPIs.",
+        "trade_off": "She would accept manual governance if the automated version delays the launch.",
+        "fact": "That is simply the current policy for new monitoring features."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_ruth_manual_review_stance",
+      "requirement_id": "gen_drift_blind_spot_ruth_manual_review_stance",
+      "challenge_id": 105,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I need to be clear about the operational constraints for our deployment pipeline. The manual weekly review of model inputs is a non-negotiable part of our reliability protocol. I will not sign off on any architecture that eliminates this step, regardless of the automation level proposed for the monitoring stack. If the system bypasses the human check, I consider the deployment unsafe and will refuse to proceed with integration. We can discuss adding automated alerts, but the manual gate remains. This is not a preference or a suggestion for improvement; it is a hard requirement for my team to maintain control over production stability. Any proposal that removes the weekly manual review is a refusal on my part, full stop.",
+      "wrong_descriptions": {
+        "driver": "She wants the weekly review process to be more detailed to catch more issues.",
+        "trade_off": "She would give up the weekly review if the automated system is fully governed.",
+        "fact": "That is simply how the team currently handles drift checks."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_emilia_kpi_driver",
+      "requirement_id": "gen_drift_blind_spot_emilia_kpi_driver",
+      "challenge_id": 105,
+      "stakeholder_id": "efficiency_emilia",
+      "artifact_type": "slack_message",
+      "content": "The current gap in our drift monitoring is a direct threat to our core business KPIs. I need a fully automated and governed system in place immediately. Every additional layer of automation and governance makes our protection stronger. I am looking for the highest possible level of oversight. More automated checks mean better alignment with our product strategy and organizational roadmaps. I want to see continuous, unbroken monitoring that scales with our data volume. The more we automate, the better we protect our operational capability and project costs. I am not looking for a partial solution or a manual workaround. I need the system to be as robust and self correcting as possible to ensure our ML features remain aligned with our long term goals.",
+      "wrong_descriptions": {
+        "boundary": "She will not present to the board without a governed drift monitoring system.",
+        "trade_off": "She would give up automation if the cost exceeds the budget.",
+        "fact": "That is simply what the current business strategy requires."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_drift_blind_spot_ruth_cost_tradeoff",
+      "requirement_id": "gen_drift_blind_spot_ruth_cost_tradeoff",
+      "challenge_id": 105,
+      "stakeholder_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I am happy to concede that the current manual weekly reviews are cheaper to operate than a fully automated system. I accept that cost is the primary advantage we hold right now. However, I am willing to give up that budget saving if it means we can secure higher reliability for the end-user services. If the automated monitoring improves our ability to catch input quality issues before they cascade, I am prepared to absorb the additional expenditure. The financial efficiency of the manual process is a concession I can make if the trade for greater system stability is worth it.",
+      "wrong_descriptions": {
+        "driver": "She wants the cost of drift monitoring to be as low as possible.",
+        "boundary": "She will not accept any increase in the monitoring budget.",
+        "fact": "That is simply the current cost structure of the monitoring setup."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_monica_model_impact",
+      "requirement_id": "gen_drift_blind_spot_monica_model_impact",
+      "challenge_id": 105,
+      "stakeholder_id": "model_monica",
+      "artifact_type": "email",
+      "content": "I have been iterating on the regression model for the last two weeks and the performance metrics are dipping slightly every time we deploy a new version. I suspect the input data distribution has shifted, but I am flying blind because I cannot see exactly when or how the drift occurred. If we had a more sensitive and accurate drift detection mechanism, I could time my retraining runs much more effectively. I would love to see the sensitivity of that detection increased as much as possible. The more precise the signal, the better I can tune the model to maintain high accuracy. I am eager to have that level of visibility so I can stop guessing and start optimizing based on real data shifts.",
+      "wrong_descriptions": {
+        "boundary": "She will not deploy new models without drift detection.",
+        "trade_off": "She would give up drift detection if it slows down model iteration.",
+        "fact": "That is simply the current state of model monitoring."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_reuben_compliance_boundary",
+      "requirement_id": "gen_drift_blind_spot_reuben_compliance_boundary",
+      "challenge_id": 105,
+      "stakeholder_id": "requirements_reuben",
+      "artifact_type": "meeting_notes",
+      "content": "I am documenting the non-negotiable security posture for the new drift detection workflow. Any implementation must pass our internal compliance audit before it touches production data. I will not sign off on a system that lacks verified privacy controls and data governance logs. If the pipeline cannot demonstrate full adherence to these regulatory standards, I will block its deployment. There is no middle ground here. We cannot operate with unchecked input quality risks, and I refuse to approve any setup that bypasses this mandatory compliance gate. This is a hard stop for my team.",
+      "wrong_descriptions": {
+        "driver": "He wants the compliance coverage of drift monitoring to be as broad as possible.",
+        "trade_off": "He would accept partial compliance if the full sign-off is delayed.",
+        "fact": "That is simply the current compliance requirement for monitoring systems."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_drift_monitoring_broken",
+      "requirement_id": "gen_drift_blind_spot_drift_monitoring_broken",
+      "challenge_id": 105,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "I checked the production logs this morning and the drift detection job has not executed in forty-five days. The cron entry is commented out in the scheduler config, so no alerts are generated when input distributions shift. I manually inspected the feature store yesterday and noticed the mean value for the customer tenure column had drifted by two standard deviations, but nothing flagged it automatically. The dashboard still shows green status indicators because the health check only verifies that the service container is running, not that the monitoring logic is active. I have been reviewing the raw data exports by hand to catch obvious anomalies, but that process takes about an hour each day and only covers the top five features.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the pipeline to be fully automated.",
+        "boundary": "The team will not accept a broken pipeline in production.",
+        "trade_off": "The team would accept a temporary manual workaround if the pipeline is fixed soon."
+      },
+      "is_known": true
+    },
+    {
+      "id": "art_gen_drift_blind_spot_drift_alert_no_trigger",
+      "requirement_id": "gen_drift_blind_spot_drift_alert_no_trigger",
+      "challenge_id": 105,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "email",
+      "content": "I checked the configuration for the drift to alerting workflow this morning. The trigger field is empty. No threshold is defined, and no schedule is attached to the check. Because of this, the pipeline never initiates the alerting step on its own. I have to manually run the script from my local terminal to see if the model metrics have shifted. When I do, it takes about four minutes to process the latest batch of inference logs. I then compare the results against the baseline I set last quarter. If the numbers look off, I open a ticket in the issue tracker. This manual step happens roughly twice a week, usually on Tuesdays and Fridays, depending on when I remember to check the logs.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the alerting to be triggered automatically.",
+        "boundary": "The team will not accept alerts that are not triggered by drift events.",
+        "trade_off": "The team would accept manual alerting if the automated trigger is complex."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_observability_manual_trigger",
+      "requirement_id": "gen_drift_blind_spot_observability_manual_trigger",
+      "challenge_id": 105,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "document",
+      "content": "I was walking through the production logs this morning and noticed the serving to observability workflow was sitting idle. I had to manually trigger the handover from the serving logs to the monitoring dashboards because nothing happened automatically. I waited for the standard interval to pass, but the data did not flow. I initiated the process by hand, and the metrics started appearing on the dashboards a few minutes later. It is a routine part of my day to check these connections and step in when the automation is absent. The serving logs and the monitoring dashboards only talk when I make them do so.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the observability to be triggered automatically.",
+        "boundary": "The team will not accept manual triggers for observability in production.",
+        "trade_off": "The team would accept manual triggers if the automated trigger is unreliable."
+      },
+      "is_known": false
+    },
+    {
+      "id": "art_gen_drift_blind_spot_retraining_trigger_missing",
+      "requirement_id": "gen_drift_blind_spot_retraining_trigger_missing",
+      "challenge_id": 105,
+      "stakeholder_id": null,
+      "narrator_id": "reliability_ruth",
+      "artifact_type": "slack_message",
+      "content": "I just finished the weekly performance audit for the fraud detection service. The model accuracy metrics have remained static for the past two weeks. We are currently running the same inference weights that were pushed to production in March. The monitoring dashboard shows no automated alerts firing because the retraining trigger mechanism is not configured in the pipeline. My team manually checks the drift logs every Friday morning to see if the input distribution has shifted. If we spot a significant variance, we open a ticket for the data science team to rebuild the model. Until then, the system continues serving predictions based on the stale artifacts without any automatic intervention or scheduled refresh cycles.",
+      "wrong_descriptions": {
+        "driver": "Someone on the team wants the retraining trigger to be fully automated.",
+        "boundary": "The team will not accept a retraining process without a trigger.",
+        "trade_off": "The team would accept a manual retraining process if the trigger is not critical."
       },
       "is_known": false
     }

@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.risk_acceptance",
+  "stage": "fragments",
+  "input_hash": "a4af99eaf2be37262962a0bc9163255de9bb1c43538ba9e11b76bf935a6e8d03",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.risk_acceptance",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Risk Assessment to Acceptance Criteria"
+  },
+  "output": {
+    "level_0": "Risk findings contradict the acceptance criteria, causing rework and stakeholder disputes.",
+    "level_1": "No explicit link exists between risk assessment outputs and the final acceptance criteria.",
+    "level_2": "A team member manually maps risk items to acceptance criteria in a shared spreadsheet.",
+    "level_3": "The pipeline automatically validates that all high risks have corresponding acceptance criteria.",
+    "level_4": "Governed workflows enforce traceability, ensuring every risk is addressed by a specific criterion."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.cicd_container",
+  "stage": "fragments",
+  "input_hash": "8d68f1b80e2d5bdaab79ab211804ff30fa02b5685f854eefcec731e78c359600",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.cicd_container",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from CI/CD Pipeline to Containerization"
+  },
+  "output": {
+    "level_0": "The pipeline crashes before packaging, leaving no container artifacts for the deployment team to use.",
+    "level_1": "No handoff exists, so developers build images locally without any connection to the CI/CD pipeline.",
+    "level_2": "Developers manually trigger container builds after pipeline success, often forgetting to update version tags.",
+    "level_3": "The pipeline automatically triggers container builds and pushes images to the registry upon success.",
+    "level_4": "Container handoffs are governed by policy, ensuring only signed images from approved pipelines are accepted."
+  }
+}

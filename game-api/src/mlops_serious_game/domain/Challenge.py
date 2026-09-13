@@ -34,6 +34,7 @@ class Challenge(BaseModel):
     preconditions: Any = Field(default=True, description="Predicate over the graph that makes this challenge eligible")
     excluded_if: Any = Field(default=False, description="Predicate that rules this challenge out")
     fallback: bool = Field(default=False, description="Picked when nothing else in the phase is eligible")
+    retired: bool = Field(default=False, description="Never dealt, even as a fallback; kept for its data and for a possible future replacement")
     repeatable: bool = False
     on_enter_ops: list[dict] = Field(default_factory=list, description="World event ops fired when the challenge starts")
     on_exit_ops: list[dict] = Field(default_factory=list, description="World event ops fired in the simulation that closes the challenge")

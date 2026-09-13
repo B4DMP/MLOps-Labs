@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.drift_alert",
+  "stage": "fragments",
+  "input_hash": "c2d1a9ddb08de962fe9b6c5e3d21e93849a7615bd0bbe0548e630b373e8dca9c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.drift_alert",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Production Drift Monitoring to Alerting System"
+  },
+  "output": {
+    "level_0": "Alerts fail to fire when drift is detected, leaving the team blind to production issues.",
+    "level_1": "No connection exists, so drift signals never reach the alerting system at all.",
+    "level_2": "Engineers manually check drift reports and send emails to trigger alerts when needed.",
+    "level_3": "Drift metrics automatically push to the alerting system, generating notifications without human input.",
+    "level_4": "Automated alerts are governed by policy, ensuring only valid drift signals trigger actionable notifications."
+  }
+}

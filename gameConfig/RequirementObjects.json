@@ -617,6 +617,370 @@
       "id": "req_5_requirements_reuben_personal_friction_87"
     },
     {
+      "id": "gen_missing_kpi_baseline_emilia_kpi_automation",
+      "challenge_id": 107,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals. The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
+      "fact": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals.",
+      "reading": "The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_missing_kpi_baseline_reuben_kpi_manual",
+      "challenge_id": 107,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} argued that the KPI definitions should remain a manual process to allow for careful security and compliance review. He will not accept any KPI definition process that is automated or governed without his direct manual review.",
+      "fact": "{requirements_reuben} argued that the KPI definitions should remain a manual process to allow for careful security and compliance review.",
+      "reading": "He will not accept any KPI definition process that is automated or governed without his direct manual review.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 2
+      },
+      "holds": {
+        "component": "req.kpi_definition",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_missing_kpi_baseline_emilia_trade_off",
+      "challenge_id": 107,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented. She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "fact": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented.",
+      "reading": "She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "ops": [],
+      "concedes": {
+        "target": "req.kpi_definition",
+        "accepts_max_level": 2
+      }
+    },
+    {
+      "id": "gen_missing_kpi_baseline_reuben_risk_boundary",
+      "challenge_id": 107,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} noted that the risk assessment must be reviewed manually before acceptance criteria are finalized. He will not accept any acceptance criteria that are not manually reviewed against the risk assessment.",
+      "fact": "{requirements_reuben} noted that the risk assessment must be reviewed manually before acceptance criteria are finalized.",
+      "reading": "He will not accept any acceptance criteria that are not manually reviewed against the risk assessment.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "level": 2
+      },
+      "holds": {
+        "edge": "e.risk_acceptance",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.risk_acceptance",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_missing_kpi_baseline_alex_pipeline_driver",
+      "challenge_id": 107,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} suggested that the data contracts be automated to ensure seamless integration with the ingestion pipeline. The more the data contracts are automated, the better the integration with the ingestion pipeline will be.",
+      "fact": "{automation_alex} suggested that the data contracts be automated to ensure seamless integration with the ingestion pipeline.",
+      "reading": "The more the data contracts are automated, the better the integration with the ingestion pipeline will be.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "req.data_contracts",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_missing_kpi_baseline_ruth_monitoring_driver",
+      "challenge_id": 107,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features. The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
+      "fact": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features.",
+      "reading": "The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_missing_kpi_baseline_kpi_lost_fact",
+      "challenge_id": 107,
+      "type": "fact",
+      "description": "The KPI definitions were lost during a team transition. That is simply the state of the KPI definitions after the team transition.",
+      "fact": "The KPI definitions were lost during a team transition.",
+      "reading": "That is simply the state of the KPI definitions after the team transition.",
+      "ops": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_missing_kpi_baseline_acceptance_manual_fact",
+      "challenge_id": 107,
+      "type": "fact",
+      "description": "The acceptance criteria are currently done by hand. That is simply how the acceptance criteria process works today.",
+      "fact": "The acceptance criteria are currently done by hand.",
+      "reading": "That is simply how the acceptance criteria process works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_missing_kpi_baseline_contracts_manual_fact",
+      "challenge_id": 107,
+      "type": "fact",
+      "description": "The data contracts are currently done by hand. That is simply how the data contracts process works today.",
+      "fact": "The data contracts are currently done by hand.",
+      "reading": "That is simply how the data contracts process works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.data_contracts",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_missing_kpi_baseline_risk_manual_fact",
+      "challenge_id": 107,
+      "type": "fact",
+      "description": "The risk assessment is currently done by hand. That is simply how the risk assessment process works today.",
+      "fact": "The risk assessment is currently done by hand.",
+      "reading": "That is simply how the risk assessment process works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.risk_assessment",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_missing_kpi_baseline_risk_acceptance_edge_fact",
+      "challenge_id": 107,
+      "type": "fact",
+      "description": "The link between risk assessment and acceptance criteria is currently done by hand with no trigger. That is simply how the link between risk assessment and acceptance criteria works today.",
+      "fact": "The link between risk assessment and acceptance criteria is currently done by hand with no trigger.",
+      "reading": "That is simply how the link between risk assessment and acceptance criteria works today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_reuben_gate_refusal",
+      "challenge_id": 109,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards. He will not approve any model promotion unless the acceptance criteria are governed.",
+      "fact": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards.",
+      "reading": "He will not approve any model promotion unless the acceptance criteria are governed.",
+      "metric_id": "requirements",
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_the_missing_gate_alex_speed_priority",
+      "challenge_id": 109,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} asked for the acceptance criteria to remain manual to avoid delaying new features. He wants to keep the acceptance criteria manual so that new features can be released without delay.",
+      "fact": "{automation_alex} asked for the acceptance criteria to remain manual to avoid delaying new features.",
+      "reading": "He wants to keep the acceptance criteria manual so that new features can be released without delay.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_the_missing_gate_emilia_kpi_alignment",
+      "challenge_id": 109,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} suggested defining KPIs to align model performance with business goals. She wants the KPI definitions to be automated so that business goals are tracked consistently.",
+      "fact": "{efficiency_emilia} suggested defining KPIs to align model performance with business goals.",
+      "reading": "She wants the KPI definitions to be automated so that business goals are tracked consistently.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_the_missing_gate_ruth_monitoring_gap",
+      "challenge_id": 109,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} mentioned that the lack of a quality gate makes it hard to monitor model performance in production. She would accept a manual gate if it meant faster deployment of user facing features.",
+      "fact": "{reliability_ruth} mentioned that the lack of a quality gate makes it hard to monitor model performance in production.",
+      "reading": "She would accept a manual gate if it meant faster deployment of user facing features.",
+      "metric_id": "reliability",
+      "ops": [],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 3,
+        "target": "req.acceptance_criteria",
+        "accepts_max_level": 2
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_emilia_cost_tradeoff",
+      "challenge_id": 109,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the cost of building a governed gate impacts the operational budget. She would accept a higher cost for the gate if it ensures long term efficiency gains.",
+      "fact": "{efficiency_emilia} noted that the cost of building a governed gate impacts the operational budget.",
+      "reading": "She would accept a higher cost for the gate if it ensures long term efficiency gains.",
+      "metric_id": "efficiency",
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 2
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_alex_stability_driver",
+      "challenge_id": 109,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} suggested that the pipeline needs a stable trigger to handle acceptance checks. He wants the trigger to be automated so that the pipeline runs reliably without manual intervention.",
+      "fact": "{automation_alex} suggested that the pipeline needs a stable trigger to handle acceptance checks.",
+      "reading": "He wants the trigger to be automated so that the pipeline runs reliably without manual intervention.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "e.risk_acceptance",
+        "level": 2
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_the_missing_gate_ruth_feedback_boundary",
+      "challenge_id": 109,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that the risk assessment must feed into the acceptance criteria to catch issues early. She will not release models if the risk assessment does not inform the acceptance criteria.",
+      "fact": "{reliability_ruth} proposed that the risk assessment must feed into the acceptance criteria to catch issues early.",
+      "reading": "She will not release models if the risk assessment does not inform the acceptance criteria.",
+      "metric_id": "reliability",
+      "holds": {
+        "edge": "e.risk_acceptance",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.risk_acceptance",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_the_missing_gate_missing_kpi_defs",
+      "challenge_id": 109,
+      "type": "fact",
+      "description": "The KPI definitions are missing. That is simply how the KPI definition setup works today.",
+      "fact": "The KPI definitions are missing.",
+      "reading": "That is simply how the KPI definition setup works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_broken_acceptance_criteria",
+      "challenge_id": 109,
+      "type": "fact",
+      "description": "The acceptance criteria process is broken. That is simply how the acceptance criteria setup works today.",
+      "fact": "The acceptance criteria process is broken.",
+      "reading": "That is simply how the acceptance criteria setup works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_manual_data_contracts",
+      "challenge_id": 109,
+      "type": "fact",
+      "description": "The data contracts are managed manually. That is simply how the data contracts setup works today.",
+      "fact": "The data contracts are managed manually.",
+      "reading": "That is simply how the data contracts setup works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.data_contracts",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_manual_risk_assessment",
+      "challenge_id": 109,
+      "type": "fact",
+      "description": "The risk assessment is conducted manually. That is simply how the risk assessment setup works today.",
+      "fact": "The risk assessment is conducted manually.",
+      "reading": "That is simply how the risk assessment setup works today.",
+      "ops": [],
+      "asserts": {
+        "target": "req.risk_assessment",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_the_missing_gate_no_risk_acceptance_trigger",
+      "challenge_id": 109,
+      "type": "fact",
+      "description": "The link from risk assessment to acceptance criteria has no trigger. That is simply how the link from risk assessment to acceptance criteria works today.",
+      "fact": "The link from risk assessment to acceptance criteria has no trigger.",
+      "reading": "That is simply how the link from risk assessment to acceptance criteria works today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.risk_acceptance",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
       "id": "gen_inconsistent_data_labeling_data_dave_manual_labeling",
       "challenge_id": 102,
       "stakeholder_id": "data_dave",
@@ -1344,6 +1708,646 @@
       "asserts": {
         "target": "model.registry",
         "level": 0
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_alex_gateway_stability",
+      "challenge_id": 106,
+      "stakeholder_id": "automation_alex",
+      "type": "boundary",
+      "description": "{automation_alex} proposed keeping the API gateway in a manual state to avoid disrupting the current deployment pipeline. He will not allow the gateway to be automated if it risks breaking the existing CI/CD pipeline stability.",
+      "fact": "{automation_alex} proposed keeping the API gateway in a manual state to avoid disrupting the current deployment pipeline.",
+      "reading": "He will not allow the gateway to be automated if it risks breaking the existing CI/CD pipeline stability.",
+      "holds": {
+        "component": "deploy.api_gateway",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_gateway_security_gap_reuben_compliance_gap",
+      "challenge_id": 106,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} asked for the API gateway to be fully governed to ensure compliance and security. He wants the gateway to reach a governed state to satisfy external security audits and internal compliance standards.",
+      "fact": "{requirements_reuben} asked for the API gateway to be fully governed to ensure compliance and security.",
+      "reading": "He wants the gateway to reach a governed state to satisfy external security audits and internal compliance standards.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "deploy.api_gateway",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_gateway_security_gap_alex_concession_gateway",
+      "challenge_id": 106,
+      "stakeholder_id": "automation_alex",
+      "type": "trade_off",
+      "description": "{automation_alex} noted that the deployment pipeline is currently stable with the manual gateway configuration. He would accept a temporary reduction in deployment frequency if the gateway is upgraded to a governed state.",
+      "fact": "{automation_alex} noted that the deployment pipeline is currently stable with the manual gateway configuration.",
+      "reading": "He would accept a temporary reduction in deployment frequency if the gateway is upgraded to a governed state.",
+      "ops": [],
+      "concedes": {
+        "target": "deploy.api_gateway",
+        "accepts_max_level": 4
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_ruth_serving_monitoring",
+      "challenge_id": 106,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} mentioned that the model serving endpoint lacks automated feedback loops for performance monitoring. She wants to automate the monitoring of the serving endpoint to catch performance regressions before users notice them.",
+      "fact": "{reliability_ruth} mentioned that the model serving endpoint lacks automated feedback loops for performance monitoring.",
+      "reading": "She wants to automate the monitoring of the serving endpoint to catch performance regressions before users notice them.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.serving",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.serving",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_gateway_security_gap_emilia_cost_focus",
+      "challenge_id": 106,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the cost of upgrading the API gateway should be weighed against the business value of the new model features. She would accept a higher level of manual intervention in the gateway if it keeps the infrastructure costs low.",
+      "fact": "{efficiency_emilia} suggested that the cost of upgrading the API gateway should be weighed against the business value of the new model features.",
+      "reading": "She would accept a higher level of manual intervention in the gateway if it keeps the infrastructure costs low.",
+      "metric_id": "efficiency",
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_reuben_canary_governance",
+      "challenge_id": 106,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production. He will not allow any model to be promoted to production if the canary testing is not governed.",
+      "fact": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production.",
+      "reading": "He will not allow any model to be promoted to production if the canary testing is not governed.",
+      "holds": {
+        "component": "deploy.canary_ab",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.canary_ab",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_gateway_security_gap_gateway_current_state",
+      "challenge_id": 106,
+      "type": "fact",
+      "description": "The API gateway is currently in a broken state with no authentication controls in place. That is simply the current state of the API gateway configuration.",
+      "fact": "The API gateway is currently in a broken state with no authentication controls in place.",
+      "reading": "That is simply the current state of the API gateway configuration.",
+      "ops": [],
+      "asserts": {
+        "target": "deploy.api_gateway",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_serving_gateway_edge_state",
+      "challenge_id": 106,
+      "type": "fact",
+      "description": "The connection between the model serving endpoint and the API gateway is currently absent. That is simply how the routing is configured today.",
+      "fact": "The connection between the model serving endpoint and the API gateway is currently absent.",
+      "reading": "That is simply how the routing is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.serving_gateway",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_iam_gateway_governance",
+      "challenge_id": 106,
+      "type": "fact",
+      "description": "The identity and access management system governs the API gateway through a manual request trigger. That is simply how the governance link is set up in the current system.",
+      "fact": "The identity and access management system governs the API gateway through a manual request trigger.",
+      "reading": "That is simply how the governance link is set up in the current system.",
+      "ops": [],
+      "asserts": {
+        "target": "e.iam_gateway",
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    {
+      "id": "gen_gateway_security_gap_cicd_pipeline_state",
+      "challenge_id": 106,
+      "type": "fact",
+      "description": "The CI/CD pipeline is currently automated but triggered by manual requests. That is simply how the CI/CD pipeline is configured today.",
+      "fact": "The CI/CD pipeline is currently automated but triggered by manual requests.",
+      "reading": "That is simply how the CI/CD pipeline is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.registry_cicd",
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    {
+      "id": "gen_shadow_environment_dispute_ruth_shadow_governed",
+      "challenge_id": 108,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release. She will not approve any release without a governed shadow deployment in place.",
+      "fact": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release.",
+      "reading": "She will not approve any release without a governed shadow deployment in place.",
+      "holds": {
+        "component": "deploy.shadow",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_shadow_environment_dispute_alex_shadow_removed",
+      "challenge_id": 108,
+      "stakeholder_id": "automation_alex",
+      "type": "boundary",
+      "description": "{automation_alex} argued that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. He will not maintain any shadow infrastructure, even if it is broken.",
+      "fact": "{automation_alex} argued that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity.",
+      "reading": "He will not maintain any shadow infrastructure, even if it is broken.",
+      "holds": {
+        "component": "deploy.shadow",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "gen_shadow_environment_dispute_reuben_compliance",
+      "challenge_id": 108,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} asked for a rigorous testing and validation process to guarantee high product quality and compliance. He wants the canary and A/B testing to be automated to ensure every release is validated.",
+      "fact": "{requirements_reuben} asked for a rigorous testing and validation process to guarantee high product quality and compliance.",
+      "reading": "He wants the canary and A/B testing to be automated to ensure every release is validated.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "deploy.canary_ab",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_shadow_environment_dispute_emilia_cost",
+      "challenge_id": 108,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the infrastructure costs for the shadow environment are a concern for the project budget. She would accept a higher cost for the shadow environment if it is necessary for reliability.",
+      "fact": "{efficiency_emilia} mentioned that the infrastructure costs for the shadow environment are a concern for the project budget.",
+      "reading": "She would accept a higher cost for the shadow environment if it is necessary for reliability.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3
+      }
+    },
+    {
+      "id": "gen_shadow_environment_dispute_alex_cicd",
+      "challenge_id": 108,
+      "stakeholder_id": "automation_alex",
+      "type": "driver",
+      "description": "{automation_alex} proposed automating the CI/CD pipeline to ensure seamless integration and deployment. He wants the CI/CD pipeline to be fully automated to reduce manual steps.",
+      "fact": "{automation_alex} proposed automating the CI/CD pipeline to ensure seamless integration and deployment.",
+      "reading": "He wants the CI/CD pipeline to be fully automated to reduce manual steps.",
+      "metric_id": "automation",
+      "suggested": {
+        "target": "deploy.cicd",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_shadow_environment_dispute_ruth_canary_monitoring",
+      "challenge_id": 108,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} suggested implementing continuous monitoring of real-world performance to identify and report issues. She wants the canary and A/B testing to be automated to catch performance regressions immediately.",
+      "fact": "{reliability_ruth} suggested implementing continuous monitoring of real-world performance to identify and report issues.",
+      "reading": "She wants the canary and A/B testing to be automated to catch performance regressions immediately.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "deploy.canary_ab",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_shadow_environment_dispute_shadow_broken",
+      "challenge_id": 108,
+      "type": "fact",
+      "description": "The shadow deployment environment is currently broken. That is simply how the shadow deployment is configured today.",
+      "fact": "The shadow deployment environment is currently broken.",
+      "reading": "That is simply how the shadow deployment is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "deploy.shadow",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_shadow_environment_dispute_canary_missing",
+      "challenge_id": 108,
+      "type": "fact",
+      "description": "The canary and A/B testing environment is currently missing. That is simply how the canary and A/B testing environment is configured today.",
+      "fact": "The canary and A/B testing environment is currently missing.",
+      "reading": "That is simply how the canary and A/B testing environment is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "deploy.canary_ab",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_shadow_environment_dispute_cicd_manual",
+      "challenge_id": 108,
+      "type": "fact",
+      "description": "The CI/CD pipeline is currently done by hand. That is simply how the CI/CD pipeline is configured today.",
+      "fact": "The CI/CD pipeline is currently done by hand.",
+      "reading": "That is simply how the CI/CD pipeline is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "deploy.cicd",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_shadow_environment_dispute_serving_manual",
+      "challenge_id": 108,
+      "type": "fact",
+      "description": "The model serving endpoint is currently done by hand. That is simply how the model serving endpoint is configured today.",
+      "fact": "The model serving endpoint is currently done by hand.",
+      "reading": "That is simply how the model serving endpoint is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "deploy.serving",
+        "level": 2
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_emilia_audit_proposal",
+      "challenge_id": 104,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed keeping the performance monitoring done by hand. She would accept losing real-time visibility into model degradation if it keeps the infrastructure costs low.",
+      "fact": "{efficiency_emilia} proposed keeping the performance monitoring done by hand.",
+      "reading": "She would accept losing real-time visibility into model degradation if it keeps the infrastructure costs low.",
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.performance_monitoring",
+          "value": 2
+        }
+      ],
+      "concedes": {
+        "target": "ops.performance_monitoring",
+        "accepts_max_level": 2
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_ruth_governance_demand",
+      "challenge_id": 104,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for the performance monitoring to be governed. The more governed the monitoring is, the more confident she is in the reliability of the user experience.",
+      "fact": "{reliability_ruth} asked for the performance monitoring to be governed.",
+      "reading": "The more governed the monitoring is, the more confident she is in the reliability of the user experience.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "ops.performance_monitoring",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_blind_spot_silence_ruth_rollback_concession",
+      "challenge_id": 104,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} noted that the rollback mechanism is currently done by hand. She would accept keeping the rollback process manual if the alerting system is fully automated and governed.",
+      "fact": "{reliability_ruth} noted that the rollback mechanism is currently done by hand.",
+      "reading": "She would accept keeping the rollback process manual if the alerting system is fully automated and governed.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.rollback",
+        "accepts_max_level": 1
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_monica_drift_observation",
+      "challenge_id": 104,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the drift monitoring is missing. She will not tune the model parameters if the drift monitoring is not at least automated.",
+      "fact": "{model_monica} mentioned that the drift monitoring is missing.",
+      "reading": "She will not tune the model parameters if the drift monitoring is not at least automated.",
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_blind_spot_silence_reuben_compliance_check",
+      "challenge_id": 104,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the observability logs be governed. He will not sign off on the production deployment if the logging is not governed.",
+      "fact": "{requirements_reuben} proposed that the observability logs be governed.",
+      "reading": "He will not sign off on the production deployment if the logging is not governed.",
+      "holds": {
+        "component": "ops.observability",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.observability",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_blind_spot_silence_emilia_cost_concession",
+      "challenge_id": 104,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that the alerting system remain manual. She would accept losing automated alerts if it saves the budget for the retraining pipeline.",
+      "fact": "{efficiency_emilia} suggested that the alerting system remain manual.",
+      "reading": "She would accept losing automated alerts if it saves the budget for the retraining pipeline.",
+      "ops": [],
+      "concedes": {
+        "target": "ops.alerting",
+        "accepts_max_level": 2
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_fact_perf_monitoring_state",
+      "challenge_id": 104,
+      "type": "fact",
+      "description": "The model performance monitoring is broken. That is simply how the performance monitoring is configured today.",
+      "fact": "The model performance monitoring is broken.",
+      "reading": "That is simply how the performance monitoring is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "ops.performance_monitoring",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_fact_observe_perf_edge",
+      "challenge_id": 104,
+      "type": "fact",
+      "description": "The pipeline from observability to performance monitoring has no trigger. That is simply how the data flow is set up today.",
+      "fact": "The pipeline from observability to performance monitoring has no trigger.",
+      "reading": "That is simply how the data flow is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.observe_perf",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_fact_alerting_state",
+      "challenge_id": 104,
+      "type": "fact",
+      "description": "The alerting system is missing. That is simply how the alerting system is configured today.",
+      "fact": "The alerting system is missing.",
+      "reading": "That is simply how the alerting system is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "ops.alerting",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_blind_spot_silence_fact_drift_monitoring_state",
+      "challenge_id": 104,
+      "type": "fact",
+      "description": "The production drift monitoring is missing. That is simply how the drift monitoring is set up today.",
+      "fact": "The production drift monitoring is missing.",
+      "reading": "That is simply how the drift monitoring is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "ops.production_drift_monitoring",
+        "level": 1
+      }
+    },
+    {
+      "id": "gen_drift_blind_spot_emilia_governance_redline",
+      "challenge_id": 105,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} proposed that any future drift detection setup requires automated governance. She will not approve a drift monitoring plan unless it includes automated governance controls.",
+      "fact": "{efficiency_emilia} proposed that any future drift detection setup requires automated governance.",
+      "reading": "She will not approve a drift monitoring plan unless it includes automated governance controls.",
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "gen_drift_blind_spot_ruth_manual_review_stance",
+      "challenge_id": 105,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring. She will not accept an automated drift monitoring system that removes the manual weekly review step.",
+      "fact": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring.",
+      "reading": "She will not accept an automated drift monitoring system that removes the manual weekly review step.",
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "gen_drift_blind_spot_emilia_kpi_driver",
+      "challenge_id": 105,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for a fully automated and governed drift monitoring system. The more automated the drift detection, the better the protection of business KPIs.",
+      "fact": "{efficiency_emilia} asked for a fully automated and governed drift monitoring system.",
+      "reading": "The more automated the drift detection, the better the protection of business KPIs.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "level": 4
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_drift_blind_spot_ruth_cost_tradeoff",
+      "challenge_id": 105,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} mentioned that manual reviews are cheaper than automated systems. She would accept higher costs for drift monitoring if it improves reliability.",
+      "fact": "{reliability_ruth} mentioned that manual reviews are cheaper than automated systems.",
+      "reading": "She would accept higher costs for drift monitoring if it improves reliability.",
+      "ops": [],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 3
+      }
+    },
+    {
+      "id": "gen_drift_blind_spot_monica_model_impact",
+      "challenge_id": 105,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} suggested that better drift detection would help model performance. The more accurate the drift detection, the better the model retraining triggers.",
+      "fact": "{model_monica} suggested that better drift detection would help model performance.",
+      "reading": "The more accurate the drift detection, the better the model retraining triggers.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "level": 3
+      },
+      "ops": []
+    },
+    {
+      "id": "gen_drift_blind_spot_reuben_compliance_boundary",
+      "challenge_id": 105,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that drift monitoring must meet compliance standards. He will not approve a drift monitoring setup that lacks compliance sign-off.",
+      "fact": "{requirements_reuben} proposed that drift monitoring must meet compliance standards.",
+      "reading": "He will not approve a drift monitoring setup that lacks compliance sign-off.",
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "gen_drift_blind_spot_drift_monitoring_broken",
+      "challenge_id": 105,
+      "type": "fact",
+      "description": "The production drift monitoring pipeline is currently non-functional. That is simply how the drift monitoring pipeline works today.",
+      "fact": "The production drift monitoring pipeline is currently non-functional.",
+      "reading": "That is simply how the drift monitoring pipeline works today.",
+      "ops": [],
+      "asserts": {
+        "target": "ops.production_drift_monitoring",
+        "level": 0
+      }
+    },
+    {
+      "id": "gen_drift_blind_spot_drift_alert_no_trigger",
+      "challenge_id": 105,
+      "type": "fact",
+      "description": "The drift to alerting workflow has no trigger set. That is simply how the drift to alerting workflow is configured today.",
+      "fact": "The drift to alerting workflow has no trigger set.",
+      "reading": "That is simply how the drift to alerting workflow is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.drift_alert",
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    {
+      "id": "gen_drift_blind_spot_observability_manual_trigger",
+      "challenge_id": 105,
+      "type": "fact",
+      "description": "The serving to observability workflow is triggered by manual request. That is simply how the serving to observability workflow is configured today.",
+      "fact": "The serving to observability workflow is triggered by manual request.",
+      "reading": "That is simply how the serving to observability workflow is configured today.",
+      "ops": [],
+      "asserts": {
+        "target": "e.serving_observe",
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    {
+      "id": "gen_drift_blind_spot_retraining_trigger_missing",
+      "challenge_id": 105,
+      "type": "fact",
+      "description": "The retraining trigger mechanism is currently absent. That is simply how the retraining trigger mechanism is set up today.",
+      "fact": "The retraining trigger mechanism is currently absent.",
+      "reading": "That is simply how the retraining trigger mechanism is set up today.",
+      "ops": [],
+      "asserts": {
+        "target": "ops.retraining_trigger",
+        "level": 1
       }
     }
   ]

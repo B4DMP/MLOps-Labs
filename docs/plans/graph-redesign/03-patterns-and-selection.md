@@ -108,6 +108,17 @@ Deterministic. Seed from player name. One fallback per phase with `preconditions
 
 Coverage test walks a few hundred plausible graph states and asserts each phase reaches at least three templates.
 
+The 5 original hand-written challenges for phases 1 to 5 (`ch_platform_choice`, `ch_data_instability`,
+`ch_entanglement`, `ch_automation_risk`, `ch_accuracy_drop`) are now flagged `"retired": true` in
+`GameProgression.json` since tier 1 content gave each of those phases two generated challenges that
+are always eligible from a fresh graph. A retired challenge is still the phase's structural fallback
+(`validate_templates` only checks that exactly one `fallback` entry exists per phase, not that it is
+usable), but `select_in_phase` skips it, fallback or not, so it is never dealt. This reopens the gap
+`fallback_challenge` exists to close: if a phase's generated challenges ever both fail their
+preconditions (an unusual prior-choice sequence), that phase now deals nothing for that pick instead
+of falling back to retired content. TODO: generate a proper tier1-style fallback replacement for each
+of these 5 phases so the safety net is real content again, then either un-retire or delete the old ones.
+
 ## Steps
 
 - [x] 1. `MlopsPatterns.json` plus schema, about 12 anti and 12 design.

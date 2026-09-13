@@ -29,7 +29,8 @@ from content_gen.stages import ORDER, STAGES
 def _llm(args):
     from content_gen.llm import LangchainLLM
 
-    return LangchainLLM(model_name=args.model, provider=getattr(args, "provider", None))
+    return LangchainLLM(model_name=args.model, provider=getattr(args, "provider", None),
+                        reasoning=getattr(args, "reasoning", False))
 
 
 def cmd_status(ctx, ledger, args) -> int:
@@ -197,6 +198,8 @@ def main(argv=None) -> int:
     parser.add_argument("--model", default=None, help="override the model id")
     parser.add_argument("--provider", choices=["westai", "mistral"], default=None,
                         help="force a provider (westai uses WESTAI_API_KEY regardless of MISTRAL_API_KEY)")
+    parser.add_argument("--reasoning", action="store_true",
+                        help="let reasoning models think before answering (off by default: slow, no gain here)")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("status")
     p = sub.add_parser("run")

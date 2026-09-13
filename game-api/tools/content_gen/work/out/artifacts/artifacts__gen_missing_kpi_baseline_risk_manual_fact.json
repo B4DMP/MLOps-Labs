@@ -1,0 +1,45 @@
+{
+  "item_id": "artifacts:gen_missing_kpi_baseline_risk_manual_fact",
+  "stage": "artifacts",
+  "input_hash": "92b359043bf4b372d1b5579a0d860b749fcd5b696532af457594438ef2cb3eee",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_missing_kpi_baseline_risk_manual_fact",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The risk assessment is currently done by hand. That is simply how the risk assessment process works today.",
+      "fact": "The risk assessment is currently done by hand.",
+      "reading": "That is simply how the risk assessment process works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "req.risk_assessment",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Missing Baseline",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I opened the model registry last Tuesday and pulled the latest inference logs for the fraud detection pipeline. I sat at my desk with a printed spreadsheet and a highlighter. I marked every row where the feature variance exceeded the threshold. I compared those marks against the manual checklist taped to my monitor. I spent forty minutes cross-referencing each flagged entry with the raw data dumps stored on the local server. I did not run any scripts. I did not trigger any automated alerts. I simply watched the clock tick while I copied the results into a shared document. The process ended when I closed the laptop and walked to the break room. No system generated a summary. No tool validated the input. It was just me and the paper.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text is a purely descriptive narrative of a manual process and explicitly states the absence of any decisions, wishes, or trade-offs."
+  }
+}

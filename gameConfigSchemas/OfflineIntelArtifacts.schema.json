@@ -40,6 +40,14 @@
             ],
             "title": "Stakeholder ID"
           },
+          "narrator_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "Narrator ID",
+            "description": "Stakeholder who voices a Fact artifact. The Fact stays about the system."
+          },
           "stakeholder_name": {
             "type": "string",
             "title": "Stakeholder Name"

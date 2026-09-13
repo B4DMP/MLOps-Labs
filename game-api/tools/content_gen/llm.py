@@ -37,7 +37,7 @@ class LangchainLLM:
 
     def __init__(self, temperature: float = 0.6, model_name: Optional[str] = None,
                  max_tokens: int = 12000, timeout_s: float = 2400,
-                 provider: Optional[str] = None):
+                 provider: Optional[str] = None, reasoning: bool = False):
         from langchain_groq import ChatGroq
         from langchain_openai import ChatOpenAI
 
@@ -63,11 +63,19 @@ class LangchainLLM:
             provider is None and bool(settings.MISTRAL_API_KEY) and not use_westai
         )
 
+        def thinking(model_id: str) -> Optional[dict]:
+            # Qwen3 reasons before it answers unless told not to. For short structured writing that
+            # costs about a minute an item and buys nothing, so it stays off unless asked for.
+            if reasoning or "qwen" not in model_id.lower():
+                return None
+            return {"chat_template_kwargs": {"enable_thinking": False}}
+
         if use_westai and settings.WESTAI_API_KEY:
             self.model_id = model_name or settings.WESTAI_LLM_MODEL_CONTENT_GEN
             self.chat = ChatOpenAI(api_key=settings.WESTAI_API_KEY, base_url=settings.WESTAI_API_BASE,
                                    model_name=self.model_id, temperature=temperature,
-                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=0)
+                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=0,
+                                   extra_body=thinking(self.model_id))
         elif use_mistral and settings.MISTRAL_API_KEY:
             self.model_id = model_name or settings.MISTRAL_LLM_MODEL
             self.chat = ChatOpenAI(api_key=settings.MISTRAL_API_KEY, base_url=settings.MISTRAL_API_BASE,
@@ -77,7 +85,8 @@ class LangchainLLM:
             self.model_id = model_name or settings.WESTAI_LLM_MODEL_CONTENT_GEN
             self.chat = ChatOpenAI(api_key=settings.WESTAI_API_KEY, base_url=settings.WESTAI_API_BASE,
                                    model_name=self.model_id, temperature=temperature,
-                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=0)
+                                   max_tokens=max_tokens, timeout=timeout_s, max_retries=0,
+                                   extra_body=thinking(self.model_id))
         else:
             self.model_id = model_name or settings.GROQ_LLM_MODEL
             self.chat = ChatGroq(api_key=settings.GROQ_API_KEY, model_name=self.model_id, temperature=temperature,

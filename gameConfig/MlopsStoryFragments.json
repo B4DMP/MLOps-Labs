@@ -28,7 +28,11 @@
     "deploy.serving": {
       "2": "The model is served from a hand started process on a single machine.",
       "3|hosting=on_prem": "The model serves live traffic from the on premises cluster.",
-      "3|hosting=public_cloud": "The model serves live traffic from a public cloud endpoint."
+      "3|hosting=public_cloud": "The model serves live traffic from a public cloud endpoint.",
+      "0": "The serving endpoint crashes whenever traffic spikes, forcing on-call engineers to restart it manually.",
+      "1": "No serving infrastructure exists, so predictions are only available in offline notebooks.",
+      "3": "CI/CD pipelines automatically deploy new model versions to the serving endpoint with zero downtime.",
+      "4": "Serving endpoints are governed by policy, enforcing model versioning, rollback, and audit logging."
     },
     "e.fs_train": {
       "2": "Someone exports features to a CSV and hands it to the training job.",
@@ -191,6 +195,213 @@
       "2": "Data scientists train models by hand in Jupyter notebooks",
       "3": "The training pipeline runs on a schedule in a CI/CD system",
       "4": "The training pipeline is monitored and audited for compliance"
+    },
+    "deploy.api_gateway": {
+      "0": "The API gateway crashes under load, dropping requests and blocking all model access.",
+      "1": "No API gateway exists, so clients must connect directly to fragile backend services.",
+      "2": "The team manually routes traffic through a basic proxy without any automated scaling.",
+      "3": "The API gateway automatically scales and routes requests based on real time load.",
+      "4": "The API gateway enforces strict access controls and logs every request for compliance."
+    },
+    "deploy.canary_ab": {
+      "0": "Deployments fail randomly because traffic splitting logic is corrupted and untested.",
+      "1": "No mechanism exists to compare new models against current production versions.",
+      "2": "Engineers manually adjust traffic percentages in config files to test new models.",
+      "3": "CI pipelines automatically route a small traffic slice to new model candidates.",
+      "4": "Testing strategies are audited, with automated rollback triggered by predefined safety metrics."
+    },
+    "deploy.cicd": {
+      "0": "Builds fail randomly, and nobody can explain why the pipeline crashes mid deployment.",
+      "1": "No pipeline exists, so engineers deploy models by copying files over SSH manually.",
+      "2": "Developers trigger builds via CLI, but every step requires human intervention and attention.",
+      "3": "Pushing code triggers automatic builds, tests, and deployments without any human involvement.",
+      "4": "Pipeline changes require approval, and all deployments are logged for full audit compliance."
+    },
+    "deploy.containerization": {
+      "0": "Builds fail randomly because base images change without warning.",
+      "1": "Models run directly on bare metal with no isolation.",
+      "2": "Developers build Docker images manually on their local machines.",
+      "3": "CI pipelines automatically build and push container images.",
+      "4": "Image builds are signed and scanned for vulnerabilities automatically."
+    },
+    "deploy.orchestration": {
+      "0": "Pipeline runs crash silently, leaving stale artifacts and confusing the entire team.",
+      "1": "No orchestration exists, so engineers manually trigger scripts in unpredictable orders.",
+      "2": "A basic scheduler runs jobs, but failures require human intervention to restart.",
+      "3": "Automated workflows handle retries and dependencies without human involvement.",
+      "4": "Orchestration is governed by policies, with full audit trails and compliance checks."
+    },
+    "deploy.shadow": {
+      "0": "Shadow logs are corrupted and no one can verify if the new model ever ran.",
+      "1": "No shadow deployment exists, so new models go live without any parallel validation.",
+      "2": "An engineer manually duplicates production requests to the new model for offline comparison.",
+      "3": "A pipeline automatically mirrors live traffic to the shadow model and logs output differences.",
+      "4": "Governed shadow deployments enforce audit trails and alert on metric drift before promotion."
+    },
+    "e.canary_serving": {
+      "0": "The handover from testing to serving crashes, dropping all traffic.",
+      "1": "No defined path exists to move tested models to the serving endpoint.",
+      "2": "Engineers manually copy tested models to the endpoint, risking configuration errors.",
+      "3": "A pipeline automatically deploys tested models to the endpoint without human intervention.",
+      "4": "Automated deployment includes audit logs and policy checks before reaching the endpoint."
+    },
+    "e.cicd_canary": {
+      "0": "Pipeline crashes before reaching canary, leaving production traffic completely uncontrolled and unpredictable.",
+      "1": "No handover exists; developers push directly to production without any staged rollout mechanism.",
+      "2": "Engineers manually trigger canary deployments via CLI scripts after pipeline completion, risking human error.",
+      "3": "Pipeline automatically triggers canary releases and A/B splits based on predefined success criteria.",
+      "4": "Governed handover enforces compliance checks, audit logs, and approval gates before canary traffic shifts."
+    },
+    "e.cicd_container": {
+      "0": "The pipeline crashes before packaging, leaving no container artifacts for the deployment team to use.",
+      "1": "No handoff exists, so developers build images locally without any connection to the CI/CD pipeline.",
+      "2": "Developers manually trigger container builds after pipeline success, often forgetting to update version tags.",
+      "3": "The pipeline automatically triggers container builds and pushes images to the registry upon success.",
+      "4": "Container handoffs are governed by policy, ensuring only signed images from approved pipelines are accepted."
+    },
+    "e.cicd_shadow": {
+      "0": "The pipeline crashes before reaching shadow, leaving no deployment record for the team.",
+      "1": "No handover exists, so shadow deployment never receives builds from the CI/CD pipeline.",
+      "2": "An engineer manually copies artifacts from the pipeline to trigger the shadow deployment.",
+      "3": "The pipeline automatically pushes approved builds to shadow deployment without human intervention.",
+      "4": "Governed policies verify compliance before the pipeline triggers the shadow deployment handover."
+    },
+    "e.container_orch": {
+      "0": "Container builds fail silently and never reach the orchestration scheduler for execution.",
+      "1": "No defined process exists to move containerized models into the orchestration environment.",
+      "2": "Engineers manually push container images to the orchestrator after each successful build.",
+      "3": "CI pipelines automatically deploy new containers to the orchestration layer upon validation.",
+      "4": "Policy engines enforce compliance checks before any container is handed to orchestration."
+    },
+    "e.drift_alert": {
+      "0": "Alerts fail to fire when drift is detected, leaving the team blind to production issues.",
+      "1": "No connection exists, so drift signals never reach the alerting system at all.",
+      "2": "Engineers manually check drift reports and send emails to trigger alerts when needed.",
+      "3": "Drift metrics automatically push to the alerting system, generating notifications without human input.",
+      "4": "Automated alerts are governed by policy, ensuring only valid drift signals trigger actionable notifications."
+    },
+    "e.observe_drift": {
+      "0": "Production drift monitoring ignores logging data entirely, causing blind spots in anomaly detection.",
+      "1": "No data flows from logging to drift monitoring, leaving production behavior untracked.",
+      "2": "Engineers manually export logs to check for drift, a slow and error prone process.",
+      "3": "Logs stream automatically into drift monitoring, triggering alerts on distribution shifts instantly.",
+      "4": "Governed pipelines ensure log data integrity before feeding drift models, with full audit trails."
+    },
+    "e.observe_perf": {
+      "0": "Logs crash unpredictably, so nobody sees model drift until customers complain loudly.",
+      "1": "No connection exists between logging and monitoring, leaving performance blind spots unaddressed.",
+      "2": "Engineers manually copy log excerpts into monitoring dashboards weekly to spot degradation.",
+      "3": "Logs stream directly into the monitoring pipeline, triggering alerts on performance shifts.",
+      "4": "Governed data contracts ensure log formats match monitoring requirements for compliance audits."
+    },
+    "e.orch_serving": {
+      "0": "Orchestration crashes before reaching the endpoint, leaving the model completely unavailable to users.",
+      "1": "No connection exists between orchestration and serving, so the model never reaches production.",
+      "2": "Engineers manually copy model artifacts to the serving endpoint after each orchestration run.",
+      "3": "Orchestration automatically triggers deployment to the model serving endpoint upon successful training.",
+      "4": "Governed pipelines validate and log every handover to the serving endpoint for compliance."
+    },
+    "e.perf_alert": {
+      "0": "Performance alerts trigger randomly, causing the on-call team to ignore all notifications.",
+      "1": "No connection exists between monitoring and alerting, so performance issues go completely unnoticed.",
+      "2": "Engineers manually check dashboards and send emails when they suspect a performance drop.",
+      "3": "The system automatically sends alerts to Slack when performance metrics breach defined thresholds.",
+      "4": "Alert routing follows governance policies, with full audit logs for every triggered notification."
+    },
+    "e.registry_cicd": {
+      "0": "Registry exports fail silently, leaving the pipeline with stale model artifacts and no clear error trace.",
+      "1": "No defined handoff exists, so developers copy model files manually without any version tracking or metadata.",
+      "2": "Engineers manually download models from the registry and upload them to the pipeline storage each time.",
+      "3": "The pipeline automatically pulls the latest approved model version from the registry during every build.",
+      "4": "Handoffs enforce compliance checks, ensuring only signed and audited models trigger the deployment pipeline."
+    },
+    "e.risk_acceptance": {
+      "0": "Risk findings contradict the acceptance criteria, causing rework and stakeholder disputes.",
+      "1": "No explicit link exists between risk assessment outputs and the final acceptance criteria.",
+      "2": "A team member manually maps risk items to acceptance criteria in a shared spreadsheet.",
+      "3": "The pipeline automatically validates that all high risks have corresponding acceptance criteria.",
+      "4": "Governed workflows enforce traceability, ensuring every risk is addressed by a specific criterion."
+    },
+    "e.serving_gateway": {
+      "0": "Requests fail randomly because the endpoint crashes and the gateway cannot route traffic properly.",
+      "1": "No connection exists between the serving endpoint and the API gateway, so no traffic flows.",
+      "2": "Engineers manually update gateway routes whenever the model serving endpoint changes its address.",
+      "3": "The gateway automatically discovers and routes to the serving endpoint without human intervention.",
+      "4": "Policy engines enforce strict access controls and audit logs on all gateway to endpoint traffic."
+    },
+    "e.serving_observe": {
+      "0": "Endpoint crashes silently, leaving no logs or metrics for the team to investigate.",
+      "1": "No logging pipeline exists, so you cannot see what the endpoint is doing.",
+      "2": "Engineers manually check server logs after incidents, which is slow and error prone.",
+      "3": "Logs stream automatically to a central dashboard with real time latency alerts.",
+      "4": "Observability data is audited, compliant with regulations, and retained for legal review."
+    },
+    "ops.alerting": {
+      "0": "Alerts fire randomly, blocking the on-call rotation and causing unnecessary panic.",
+      "1": "No alerting exists, so model drift goes unnoticed until customers complain.",
+      "2": "Engineers manually check dashboards, missing critical spikes between scheduled inspections.",
+      "3": "Automated alerts trigger instantly on threshold breaches, routing tickets to the right team.",
+      "4": "Alerts are governed by policy, with audit trails and SLA compliance enforced."
+    },
+    "ops.observability": {
+      "0": "Logs crash the pipeline, and no one can trace why the model failed.",
+      "1": "There is no logging at all, so incidents remain completely unexplained.",
+      "2": "Developers copy logs manually into spreadsheets when something goes wrong.",
+      "3": "Structured logs stream automatically into a central dashboard for monitoring.",
+      "4": "Logging follows strict compliance standards with automated retention and access controls."
+    },
+    "ops.performance_monitoring": {
+      "0": "Performance metrics are missing or corrupted, making it impossible to assess current model health.",
+      "1": "No performance monitoring exists, so you rely on user complaints to detect model degradation.",
+      "2": "You manually query production logs weekly to calculate accuracy and latency metrics.",
+      "3": "Automated pipelines continuously compute key performance metrics and update real time dashboards.",
+      "4": "Governed monitoring enforces SLA thresholds and logs all metric calculations for audit compliance."
+    },
+    "ops.production_drift_monitoring": {
+      "0": "Drift alerts fire randomly, blocking deployment without any clear cause or resolution path.",
+      "1": "No drift detection exists, so model degradation goes unnoticed until users report failures.",
+      "2": "Data scientists manually check drift dashboards weekly, creating inconsistent and delayed responses.",
+      "3": "Automated pipelines detect drift in real time and trigger alerts to relevant teams.",
+      "4": "Drift thresholds are governed by policy, with automated remediation and full audit trails."
+    },
+    "ops.retraining_trigger": {
+      "0": "The retraining trigger crashes on every attempt, blocking all model updates.",
+      "1": "No retraining trigger exists, so models never update after initial deployment.",
+      "2": "Engineers manually check metrics and decide when to start retraining runs.",
+      "3": "The system automatically triggers retraining when performance drops below a threshold.",
+      "4": "Governed retraining triggers enforce audit logs and approval workflows before execution."
+    },
+    "ops.rollback": {
+      "0": "Rollback fails silently, leaving production in an inconsistent state with no recovery path.",
+      "1": "No rollback process exists, so bad deployments require a full manual redeploy from scratch.",
+      "2": "Engineers manually revert code and data, but the process is slow and error-prone.",
+      "3": "One-click rollback restores the previous model version automatically within minutes of detection.",
+      "4": "Rollback triggers are governed by policy, with full audit trails and stakeholder notifications."
+    },
+    "req.acceptance_criteria": {
+      "0": "Acceptance criteria contradict each other, causing rework and stakeholder disputes during every release cycle.",
+      "1": "No acceptance criteria exist, so the team ships features without defined success metrics or validation.",
+      "2": "Developers write acceptance criteria manually in tickets, leading to inconsistent coverage and frequent gaps.",
+      "4": "Governance policies enforce standardized acceptance criteria, with automated checks ensuring compliance before deployment."
+    },
+    "req.data_contracts": {
+      "0": "Schema mismatches cause pipeline failures that nobody can trace to the source system.",
+      "1": "No one documents expected data formats, so downstream teams guess at column meanings.",
+      "2": "Engineers exchange spreadsheets to agree on data fields before every model training run.",
+      "3": "Automated validation rejects bad data at ingestion before it reaches the training pipeline.",
+      "4": "Data contracts are versioned, audited, and enforced across all teams by policy."
+    },
+    "req.kpi_definition": {
+      "0": "KPI definitions contradict each other, causing teams to report conflicting success metrics weekly.",
+      "1": "No one has written down what success means for this model in business terms.",
+      "2": "Engineers draft KPIs in spreadsheets and update them manually after each sprint review.",
+      "4": "KPIs are version controlled, audited, and linked to compliance requirements in the registry."
+    },
+    "req.risk_assessment": {
+      "0": "Risk assessments are ignored, leading to repeated model failures in production environments.",
+      "1": "No risk assessment process exists, leaving critical model vulnerabilities completely unaddressed.",
+      "2": "Engineers manually review risks in spreadsheets, but documentation is often incomplete or outdated.",
+      "4": "Risk assessments are governed by policy, with automated checks ensuring compliance and audit trails."
     }
   }
 }

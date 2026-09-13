@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:ops.alerting",
+  "stage": "fragments",
+  "input_hash": "0381bf1fc34760d9500e4276acd70e949ae9afaf5d1b84c3879afbceedc1ef8b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "ops.alerting",
+    "kind": "component",
+    "name": "Alerting System",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Alerts fire randomly, blocking the on-call rotation and causing unnecessary panic.",
+    "level_1": "No alerting exists, so model drift goes unnoticed until customers complain.",
+    "level_2": "Engineers manually check dashboards, missing critical spikes between scheduled inspections.",
+    "level_3": "Automated alerts trigger instantly on threshold breaches, routing tickets to the right team.",
+    "level_4": "Alerts are governed by policy, with audit trails and SLA compliance enforced."
+  }
+}

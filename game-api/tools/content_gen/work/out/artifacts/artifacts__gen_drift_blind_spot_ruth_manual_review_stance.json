@@ -1,0 +1,49 @@
+{
+  "item_id": "artifacts:gen_drift_blind_spot_ruth_manual_review_stance",
+  "stage": "artifacts",
+  "input_hash": "fef7051d72ae2e9fd9a15b3ab8421c00939143312084f8c6cfd8d193749165a2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_drift_blind_spot_ruth_manual_review_stance",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring. She will not accept an automated drift monitoring system that removes the manual weekly review step.",
+      "fact": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring.",
+      "reading": "She will not accept an automated drift monitoring system that removes the manual weekly review step.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Silent Drift",
+      "description": "The production drift monitoring pipeline is broken, leaving the model's input quality unchecked. #efficiency_emilia# insists on a fully automated and governed drift monitoring system to protect business KPIs, while #reliability_ruth# argues that manual weekly reviews are sufficient and cheaper. #efficiency_emilia# has set a red line requiring automated governance for any future drift detection."
+    }
+  },
+  "output": {
+    "content": "I need to be clear about the operational constraints for our deployment pipeline. The manual weekly review of model inputs is a non-negotiable part of our reliability protocol. I will not sign off on any architecture that eliminates this step, regardless of the automation level proposed for the monitoring stack. If the system bypasses the human check, I consider the deployment unsafe and will refuse to proceed with integration. We can discuss adding automated alerts, but the manual gate remains. This is not a preference or a suggestion for improvement; it is a hard requirement for my team to maintain control over production stability. Any proposal that removes the weekly manual review is a refusal on my part, full stop.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The text explicitly defines the manual weekly review as a non-negotiable hard requirement and states that any proposal removing it constitutes a refusal, marking a line that cannot be crossed."
+  }
+}

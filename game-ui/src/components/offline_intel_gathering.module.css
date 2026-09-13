@@ -784,3 +784,58 @@
   text-transform: uppercase;
   color: #64748b;
 }
+
+/* Answer key, only rendered when the API sends debug data (ENABLE_DOSSIER_DEBUG). Same look as the dossier's. */
+.taggingBadgeRow {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.debugToggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1.5px dashed currentColor;
+    background: #ffffff;
+    color: #a16207;
+    font-size: 0.65rem;
+    cursor: pointer;
+}
+
+.debugRight,
+.debugRightText {
+    color: #15803d;
+}
+
+.debugWrong,
+.debugWrongText {
+    color: #b91c1c;
+}
+
+.debugRightText,
+.debugWrongText {
+    font-weight: 700;
+}
+
+.debugPanel {
+    background: #fefce8;
+    border: 1.5px dashed #a16207;
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin: 2px 0 4px 0;
+    font-size: 0.65rem;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.debugId {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: #64748b;
+}

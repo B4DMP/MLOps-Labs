@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:ops.rollback",
+  "stage": "fragments",
+  "input_hash": "980b6491637bfa3af9d8e0167afa62cde330d3aa389c2ab19e88f2a74a00969e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "ops.rollback",
+    "kind": "component",
+    "name": "Rollback Mechanism",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Rollback fails silently, leaving production in an inconsistent state with no recovery path.",
+    "level_1": "No rollback process exists, so bad deployments require a full manual redeploy from scratch.",
+    "level_2": "Engineers manually revert code and data, but the process is slow and error-prone.",
+    "level_3": "One-click rollback restores the previous model version automatically within minutes of detection.",
+    "level_4": "Rollback triggers are governed by policy, with full audit trails and stakeholder notifications."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.orchestration",
+  "stage": "fragments",
+  "input_hash": "ec9b6f3a126ccc6fd9397c63a44fc02b34319477b2bdcb8a5ed9c3ccb5444c9d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.orchestration",
+    "kind": "component",
+    "name": "Orchestration",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Pipeline runs crash silently, leaving stale artifacts and confusing the entire team.",
+    "level_1": "No orchestration exists, so engineers manually trigger scripts in unpredictable orders.",
+    "level_2": "A basic scheduler runs jobs, but failures require human intervention to restart.",
+    "level_3": "Automated workflows handle retries and dependencies without human involvement.",
+    "level_4": "Orchestration is governed by policies, with full audit trails and compliance checks."
+  }
+}

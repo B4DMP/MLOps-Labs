@@ -110,7 +110,7 @@ Facts never forbid actions. They let the player see consequences.
 | Boundary | Fact | no warning, surprise veto |
 | Trade-off | Driver | you count a concession as a win for them, the loss still lands: price objection |
 | Trade-off | Boundary | over-cautious: slots spent guarding something they would give up |
-| Fact | any stance tag | filed under a person, so no `observe`, graph stays fogged, slot does nothing |
+| Fact | any stance tag | filed under its narrator, so no `observe`, graph stays fogged, slot does nothing |
 | stance | Fact | treated as environment, stakeholder's actual stance missing from the card |
 | Fact | correct | `observe` emitted, preview improves |
 
@@ -118,7 +118,7 @@ Corrections surface in OBJECT as Concede Correction. The corrected item becomes 
 
 ## Artifact types
 
-Stakeholder artifacts: email, slack message, meeting notes, document. New technical artifact types for Facts: runbook, dashboard snapshot, incident ticket, CI log, architecture note. Technical artifacts may be authored by a stakeholder but state no stance.
+All artifacts come as email, slack message, meeting notes or document. A Fact is voiced by a stakeholder in the room (`narrator_id` on the artifact, usually the owner of what it describes) and reports how the system is without taking a side, so person or system is a call the player makes from the content, not the format. The requirement itself keeps `stakeholder_id` null. The deck deals up to three stances and at most two Facts per challenge, Facts on the conflict's target first; a Fact without a narrator is never dealt. The technical types (runbook, dashboard snapshot, incident ticket, CI log, architecture note) stay in the enum for older content but are no longer generated.
 
 ## Model changes
 

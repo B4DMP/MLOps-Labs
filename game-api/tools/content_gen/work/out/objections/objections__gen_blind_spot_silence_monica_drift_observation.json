@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_blind_spot_silence_monica_drift_observation",
+  "stage": "objections",
+  "input_hash": "10bdffa9f7337f81838edcbf2ce843f6f3ffbcf1219808333110e128f0614cdf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_blind_spot_silence_monica_drift_observation",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "boundary",
+      "description": "{model_monica} mentioned that the drift monitoring is missing. She will not tune the model parameters if the drift monitoring is not at least automated.",
+      "fact": "{model_monica} mentioned that the drift monitoring is missing.",
+      "reading": "She will not tune the model parameters if the drift monitoring is not at least automated.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "ops.production_drift_monitoring",
+        "op": "gte",
+        "level": 3
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I am not tuning the model parameters until the drift monitoring is at least automated. This proposal crosses my line, so I refuse to proceed without that fix.",
+    "correction": "You recorded the drift monitoring as completely absent, but I only said the automation is missing. Please update the record to show that the feature exists but lacks the required automation."
+  }
+}

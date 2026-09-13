@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.serving_observe",
+  "stage": "fragments",
+  "input_hash": "3834b58ac901b77ab9d3c1cc52bfc3ca9e462d16c39a826a78fcb50302651335",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.serving_observe",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Model Serving Endpoint to Logging and Observability"
+  },
+  "output": {
+    "level_0": "Endpoint crashes silently, leaving no logs or metrics for the team to investigate.",
+    "level_1": "No logging pipeline exists, so you cannot see what the endpoint is doing.",
+    "level_2": "Engineers manually check server logs after incidents, which is slow and error prone.",
+    "level_3": "Logs stream automatically to a central dashboard with real time latency alerts.",
+    "level_4": "Observability data is audited, compliant with regulations, and retained for legal review."
+  }
+}

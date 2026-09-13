@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:ops.performance_monitoring",
+  "stage": "fragments",
+  "input_hash": "17e337f3b89bc3271512a3c45718865fb15203f83617d93d13346b01fd8a6722",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "ops.performance_monitoring",
+    "kind": "component",
+    "name": "Model Performance Monitoring",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Performance metrics are missing or corrupted, making it impossible to assess current model health.",
+    "level_1": "No performance monitoring exists, so you rely on user complaints to detect model degradation.",
+    "level_2": "You manually query production logs weekly to calculate accuracy and latency metrics.",
+    "level_3": "Automated pipelines continuously compute key performance metrics and update real time dashboards.",
+    "level_4": "Governed monitoring enforces SLA thresholds and logs all metric calculations for audit compliance."
+  }
+}

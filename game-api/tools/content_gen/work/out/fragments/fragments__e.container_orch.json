@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.container_orch",
+  "stage": "fragments",
+  "input_hash": "702ea036acdc9a5efa654c11fc3e2388ee7d5c9692ecb7f06b047cb8a478b46f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.container_orch",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Containerization to Orchestration"
+  },
+  "output": {
+    "level_0": "Container builds fail silently and never reach the orchestration scheduler for execution.",
+    "level_1": "No defined process exists to move containerized models into the orchestration environment.",
+    "level_2": "Engineers manually push container images to the orchestrator after each successful build.",
+    "level_3": "CI pipelines automatically deploy new containers to the orchestration layer upon validation.",
+    "level_4": "Policy engines enforce compliance checks before any container is handed to orchestration."
+  }
+}

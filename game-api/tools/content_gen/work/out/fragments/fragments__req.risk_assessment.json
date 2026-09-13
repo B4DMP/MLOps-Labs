@@ -1,0 +1,25 @@
+{
+  "item_id": "fragments:req.risk_assessment",
+  "stage": "fragments",
+  "input_hash": "5da4e7b18b9343eb246d9648c3906d295965b9db96e2e2a9bbb8ed4fde88de87",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "req.risk_assessment",
+    "kind": "component",
+    "name": "Risk Assessment",
+    "levels": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Risk assessments are ignored, leading to repeated model failures in production environments.",
+    "level_1": "No risk assessment process exists, leaving critical model vulnerabilities completely unaddressed.",
+    "level_2": "Engineers manually review risks in spreadsheets, but documentation is often incomplete or outdated.",
+    "level_3": null,
+    "level_4": "Risk assessments are governed by policy, with automated checks ensuring compliance and audit trails."
+  }
+}

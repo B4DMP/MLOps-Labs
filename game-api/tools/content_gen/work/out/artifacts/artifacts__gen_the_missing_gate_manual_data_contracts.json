@@ -1,0 +1,45 @@
+{
+  "item_id": "artifacts:gen_the_missing_gate_manual_data_contracts",
+  "stage": "artifacts",
+  "input_hash": "af0306279fbc41070b9a3f2136839c8748874c6a53ed94ba2eb3a25bb8e53d35",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_the_missing_gate_manual_data_contracts",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data contracts are managed manually. That is simply how the data contracts setup works today.",
+      "fact": "The data contracts are managed manually.",
+      "reading": "That is simply how the data contracts setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "req.data_contracts",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Missing Gate",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I was tracing the data flow through the ingestion layer and noticed how the contract definitions are handled. The schema updates for new features are typed directly into the repository files by the developers. I saw the last three commits where column types were adjusted by hand. There is no automated validation step running against these changes before they reach the staging environment. The process relies on individual developers remembering to update the documentation and the code simultaneously. The workflow involves manual coordination between the data science and engineering groups to ensure the contract definitions match the actual data flow.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact describes the current state of the ingestion layer's contract handling process, including manual typing and lack of automated validation, without expressing any wishes, refusals, or explicit trade-offs."
+  }
+}

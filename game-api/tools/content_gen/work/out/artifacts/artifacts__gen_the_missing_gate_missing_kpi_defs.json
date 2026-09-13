@@ -1,0 +1,45 @@
+{
+  "item_id": "artifacts:gen_the_missing_gate_missing_kpi_defs",
+  "stage": "artifacts",
+  "input_hash": "014487e44946bd99d1f7a6c1385b0ed65737ef7d2dcbd96a29854e5d9ca0a0a1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_the_missing_gate_missing_kpi_defs",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definitions are missing. That is simply how the KPI definition setup works today.",
+      "fact": "The KPI definitions are missing.",
+      "reading": "That is simply how the KPI definition setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Missing Gate",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I walked through the model registry this morning to check the latest deploy. The evaluation pipeline ran to completion, and the logs show zero validation steps executed. I looked for the KPI definition file in the config directory, but the path is empty. The scoring script simply skipped the threshold check because no target values were present in the environment variables. The output metrics were written to the dashboard, but they lack any pass or fail status flags. I observed the raw accuracy numbers sitting in the database without any corresponding governance metadata attached to them. The process finished with a success code, and the artifacts are now available for download in the shared storage bucket.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text is a purely observational report of the system's state and execution logs, containing no expressions of desire, refusal, acceptance, or stated needs."
+  }
+}

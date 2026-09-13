@@ -1,8 +1,8 @@
 {
   "item_id": "artifacts:gen_experiment_tracking_dispute_registry_state",
   "stage": "artifacts",
-  "input_hash": "176ea5a02657ce51c0bbd6794a879db05b0d98ad82922f44245e5f064d6ac3a5",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "848c78045bb3b1d6a0a967e506728444c7a2dfcba96b082752312424432073fb",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "requirement": {
@@ -22,10 +22,15 @@
         "target": "model.registry",
         "level": 1,
         "trigger": null
-      }
+      },
+      "refines_id": null
     },
-    "artifact_type": "incident_ticket",
-    "author": null,
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
     "challenge": {
       "name": "Tracking Reproducibility Lost",
       "description": ""
@@ -33,8 +38,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "Model versioning is currently handled via manual file naming conventions in the shared storage folder. {data_dave} has noted that there are 15 distinct files named model.pkl in the folder, with no clear indication of which version corresponds to which training run. The training logs are stored separately in a different folder structure, making it difficult to correlate specific model files with their respective training parameters and datasets.",
+    "content": "During our sync, {model_monica} explained the current workflow for tracking model iterations. She noted that there is no central repository for storing model artifacts or metadata. Instead, she keeps a local spreadsheet on her workstation to log experiment parameters and resulting metrics. When a new model version is ready for evaluation, she manually copies the file to a shared network drive and sends a direct message to the team with the file path. The spreadsheet currently lists forty-two distinct training runs from the past quarter, each with a timestamp and a brief description of the data split used. She mentioned that the file is updated only after a training run completes successfully, meaning any failed runs are not recorded in the log.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The statement describes an existing situation without any wish, refusal, acceptance, trade-off, or explicit need."
+    "reclassify_reason": "The artifact is a descriptive summary of the current workflow and data logging practices, containing no expressions of desire, refusal, acceptance, or stated trade-offs."
   }
 }

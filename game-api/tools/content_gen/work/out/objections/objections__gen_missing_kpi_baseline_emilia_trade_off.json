@@ -1,0 +1,40 @@
+{
+  "item_id": "objections:gen_missing_kpi_baseline_emilia_trade_off",
+  "stage": "objections",
+  "input_hash": "4b4c8736a448ba4130367116b0ac0c62e05d6f3e7711293d421556f40b807d54",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_missing_kpi_baseline_emilia_trade_off",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented. She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "fact": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented.",
+      "reading": "She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.kpi_definition",
+        "accepts_max_level": 2
+      },
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are proposing to remove the manual KPI definition process without acknowledging that I explicitly agreed to keep it manual but documented. I need you to recognize that trade off before we move forward.",
+    "correction": "I did not say I wanted to automate the KPI definitions, so stop filing this as a demand for automation. I am only asking that the manual process remains in place but is properly documented."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "item_id": "artifacts:gen_gateway_security_gap_serving_gateway_edge_state",
+  "stage": "artifacts",
+  "input_hash": "8f746d23181ab94dbeecbc92a19bf626dfb232f68a9b8810f9650d44142fca49",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement": {
+      "id": "gen_gateway_security_gap_serving_gateway_edge_state",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The connection between the model serving endpoint and the API gateway is currently absent. That is simply how the routing is configured today.",
+      "fact": "The connection between the model serving endpoint and the API gateway is currently absent.",
+      "reading": "That is simply how the routing is configured today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "e.serving_gateway",
+        "level": 1,
+        "trigger": "none"
+      },
+      "refines_id": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "Exposed Model Endpoint",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I was tracing the traffic flow for the new build and noticed the model serving endpoint has no link to the API gateway. The requests hit the gateway and get a standard not found response. There is no routing rule pointing to the model service. I checked the configuration files and the traffic logs. The logs show zero successful connections to the model layer during the last deployment cycle. The gateway drops these calls before they reach the inference container. No proxy or load balancer is forwarding the traffic. The endpoint exists, but nothing directs users to it. I saw this while testing the CI/CD pipeline output. The deployment succeeded, but the external interface stays silent. The routing table simply lacks the entry for this service right now.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the observed state of the infrastructure and logs without expressing any wishes, refusals, or stated needs."
+  }
+}

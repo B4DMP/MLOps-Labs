@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.containerization",
+  "stage": "fragments",
+  "input_hash": "6e7086bef63028a769a15f74c690115f650c841dfe4275418ed4fc6cbcb6e145",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.containerization",
+    "kind": "component",
+    "name": "Containerization",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Builds fail randomly because base images change without warning.",
+    "level_1": "Models run directly on bare metal with no isolation.",
+    "level_2": "Developers build Docker images manually on their local machines.",
+    "level_3": "CI pipelines automatically build and push container images.",
+    "level_4": "Image builds are signed and scanned for vulnerabilities automatically."
+  }
+}

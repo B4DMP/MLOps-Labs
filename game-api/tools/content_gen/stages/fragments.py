@@ -7,7 +7,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, LEVEL_NAMES, render, text_errors
+from content_gen.stages.common import GAME_RULES, LEVEL_NAMES, player_text_errors, render, text_errors
 
 
 class FragmentsOut(BaseModel):
@@ -59,7 +59,8 @@ class FragmentsStage:
     def check(self, output: dict, item, ctx) -> list[str]:
         errors = []
         for lv in item.inputs["levels"]:
-            errors += text_errors(f"level_{lv}", output.get(f"level_{lv}"), 5, 26)
+            text = output.get(f"level_{lv}")
+            errors += text_errors(f"level_{lv}", text, 5, 26) + player_text_errors(f"level_{lv}", text)
         return errors
 
     def summary(self, output: dict) -> str:

@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:deploy.api_gateway",
+  "stage": "objections",
+  "input_hash": "4632bc11a1fd704200800bf9800a1de429d40ffb3ec5bf923e22c845b2910cc9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "deploy.api_gateway",
+      "name": "API Gateway"
+    },
+    "speaker": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    }
+  },
+  "output": {
+    "line": "We cannot improve {target} because the quality of {cause} upstream is still too unstable for our CI/CD tooling. We need that foundation to be reliable before we can guarantee seamless deployment."
+  }
+}

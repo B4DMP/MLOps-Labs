@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:ops.performance_monitoring",
+  "stage": "objections",
+  "input_hash": "8c985ea04151e2946082e952d026fab444b549c008afcbc95e658019d4614058",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "ops.performance_monitoring",
+      "name": "Model Performance Monitoring"
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "line": "I cannot sign off on improving {target} because the upstream {cause} is still too unstable for production. My monitoring stack needs a reliable foundation before we can trust the end user experience."
+  }
+}

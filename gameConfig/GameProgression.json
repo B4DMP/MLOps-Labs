@@ -44,7 +44,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "challenges_per_phase": 2
     },
     {
       "id": 2,
@@ -130,7 +131,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "challenges_per_phase": 2
     },
     {
       "id": 5,
@@ -158,7 +160,8 @@
           "power": "low",
           "interest": "low"
         }
-      ]
+      ],
+      "challenges_per_phase": 2
     }
   ],
   "challenges": [
@@ -194,7 +197,8 @@
       "attention_tokens": 8,
       "template_id": "ch_platform_choice",
       "priority": 0,
-      "fallback": true
+      "fallback": true,
+      "retired": true
     },
     {
       "id": 2,
@@ -212,7 +216,8 @@
       "attention_tokens": 8,
       "template_id": "ch_data_instability",
       "priority": 0,
-      "fallback": true
+      "fallback": true,
+      "retired": true
     },
     {
       "id": 3,
@@ -230,7 +235,8 @@
       "attention_tokens": 8,
       "template_id": "ch_entanglement",
       "priority": 0,
-      "fallback": true
+      "fallback": true,
+      "retired": true
     },
     {
       "id": 4,
@@ -248,7 +254,8 @@
       "attention_tokens": 8,
       "template_id": "ch_automation_risk",
       "priority": 0,
-      "fallback": true
+      "fallback": true,
+      "retired": true
     },
     {
       "id": 5,
@@ -266,7 +273,8 @@
       "attention_tokens": 8,
       "template_id": "ch_accuracy_drop",
       "priority": 0,
-      "fallback": true
+      "fallback": true,
+      "retired": true
     },
     {
       "id": 100,
@@ -475,6 +483,348 @@
       },
       "focus_stage_ids": [
         "model"
+      ],
+      "generated": true
+    },
+    {
+      "id": 104,
+      "phase_id": 5,
+      "template_id": "ch_blind_spot_silence",
+      "name": "The Blind Spot",
+      "description": "Production metrics have stopped flowing to the team. #efficiency_emilia# argues that a manual monthly audit is sufficient to keep costs down and maintain control over the business KPIs. #reliability_ruth# insists on automated and governed monitoring to catch real-time degradation and ensure the system remains reliable for users.",
+      "roundIntroduction": "The nightly data pipeline failed to ingest the latest batch of inference logs. The dashboard now shows a flat line for the last 48 hours, leaving the team blind to current model performance.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 70,
+      "preconditions": {
+        "component": "ops.performance_monitoring",
+        "op": "eq",
+        "level": 1
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "ops.performance_monitoring",
+          "value": 0,
+          "reason": "ingestion job crashed"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.perf_alert",
+          "value": 0,
+          "reason": "alerting rule disabled due to lack of data"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "ops.performance_monitoring",
+        "positions": [
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          },
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "ops"
+      ],
+      "generated": true
+    },
+    {
+      "id": 105,
+      "phase_id": 5,
+      "template_id": "ch_drift_blind_spot",
+      "name": "The Silent Drift",
+      "description": "The production drift monitoring pipeline is broken, leaving the model's input quality unchecked. #efficiency_emilia# insists on a fully automated and governed drift monitoring system to protect business KPIs, while #reliability_ruth# argues that manual weekly reviews are sufficient and cheaper. #efficiency_emilia# has set a red line requiring automated governance for any future drift detection.",
+      "roundIntroduction": "A recent data shift went unnoticed for three days, causing a spike in user complaints. The incident exposed that the drift monitoring workflow is currently non-functional and needs immediate repair.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 80,
+      "preconditions": {
+        "all": [
+          {
+            "component": "ops.production_drift_monitoring",
+            "op": "lte",
+            "level": 1
+          },
+          {
+            "edge": "e.observe_drift",
+            "op": "lte",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 0,
+          "reason": "The drift detection script crashed due to a schema change"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.observe_drift",
+          "value": 0,
+          "reason": "The data feed to the drift monitor was disconnected"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "ops.production_drift_monitoring",
+        "positions": [
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "ops"
+      ],
+      "generated": true
+    },
+    {
+      "id": 106,
+      "phase_id": 4,
+      "template_id": "ch_gateway_security_gap",
+      "name": "Exposed Model Endpoint",
+      "description": "A security audit revealed that the API gateway lacks proper authentication controls, exposing model endpoints to unauthorized access. #automation_alex# argues for keeping the gateway in a manual state to avoid disrupting the current deployment pipeline, while #requirements_reuben# insists on a fully governed state to ensure compliance and security.",
+      "roundIntroduction": "The security team flagged a critical vulnerability in the API gateway configuration. The current setup allows unauthenticated requests to reach the model serving endpoints.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "deploy.api_gateway",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "edge": "e.iam_gateway",
+            "op": "eq",
+            "level": 2
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.api_gateway",
+          "value": 0,
+          "reason": "The gateway crashed during a security patch attempt"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.canary_ab",
+          "value": 0,
+          "reason": "The team paused canary testing to focus on the gateway crisis"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "deploy.api_gateway",
+        "positions": [
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 2
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "deploy"
+      ],
+      "generated": true
+    },
+    {
+      "id": 107,
+      "phase_id": 1,
+      "template_id": "ch_missing_kpi_baseline",
+      "name": "The Missing Baseline",
+      "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control.",
+      "roundIntroduction": "A recent audit revealed that the KPI definitions were lost during a team transition. The team is now scrambling to redefine the success metrics before the next sprint planning session.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 85,
+      "preconditions": {
+        "all": [
+          {
+            "component": "req.kpi_definition",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "component": "req.acceptance_criteria",
+            "op": "gte",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "the previous KPI document was deleted during cleanup"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.acceptance_criteria",
+          "value": 0,
+          "reason": "without agreed KPIs, acceptance criteria cannot be validated"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "req.kpi_definition",
+        "positions": [
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ],
+      "generated": true
+    },
+    {
+      "id": 108,
+      "phase_id": 4,
+      "template_id": "ch_shadow_environment_dispute",
+      "name": "The Silent Shadow",
+      "description": "#reliability_ruth# insists on a fully automated and governed shadow deployment to validate model behavior before release, while #automation_alex# argues that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. #automation_alex# has a red line against maintaining any shadow infrastructure and will not move on this point.",
+      "roundIntroduction": "A recent model update caused unexpected latency spikes in production, and the team realized there was no safe way to test the new version against live traffic without risking user experience. The shadow deployment environment, which was previously manual, has now broken completely, leaving the team without a safety net for future releases.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 65,
+      "preconditions": {
+        "component": "deploy.shadow",
+        "op": "lte",
+        "level": 1
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.shadow",
+          "value": 0,
+          "reason": "the shadow environment crashed during a load test"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.cicd_shadow",
+          "value": 0,
+          "reason": "the pipeline trigger for shadow testing was disabled"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "deploy.shadow",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "deploy"
+      ],
+      "generated": true
+    },
+    {
+      "id": 109,
+      "phase_id": 1,
+      "template_id": "ch_the_missing_gate",
+      "name": "The Missing Gate",
+      "description": "A critical compliance audit has revealed that our model promotion process lacks a formal quality gate. #requirements_reuben# insists that acceptance criteria must be fully automated and governed to meet security standards, and he will not compromise on this. #automation_alex# argues that the current manual checks are sufficient for now and that building an automated gate will delay the release of new features.",
+      "roundIntroduction": "The compliance team has flagged a gap in our production pipeline where models are deployed without verified acceptance criteria. This has left the team scrambling to decide how to handle the validation step immediately.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 80,
+      "preconditions": {
+        "all": [
+          {
+            "component": "req.acceptance_criteria",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "edge": "e.acceptance_eval",
+            "op": "eq",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.acceptance_criteria",
+          "value": 0,
+          "reason": "The compliance audit found no defined criteria for model approval"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "Uncertainty over acceptance criteria has frozen the business metric definitions"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "req.acceptance_criteria",
+        "positions": [
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
       ],
       "generated": true
     }

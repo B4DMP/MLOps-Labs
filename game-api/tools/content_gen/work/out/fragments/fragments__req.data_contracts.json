@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:req.data_contracts",
+  "stage": "fragments",
+  "input_hash": "60aa8bf05482ba52273b2946944b7d44ae7d27221d90a56427d792771f521dcf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "req.data_contracts",
+    "kind": "component",
+    "name": "Data Contracts",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Schema mismatches cause pipeline failures that nobody can trace to the source system.",
+    "level_1": "No one documents expected data formats, so downstream teams guess at column meanings.",
+    "level_2": "Engineers exchange spreadsheets to agree on data fields before every model training run.",
+    "level_3": "Automated validation rejects bad data at ingestion before it reaches the training pipeline.",
+    "level_4": "Data contracts are versioned, audited, and enforced across all teams by policy."
+  }
+}

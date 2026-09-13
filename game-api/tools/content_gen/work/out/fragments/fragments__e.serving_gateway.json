@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.serving_gateway",
+  "stage": "fragments",
+  "input_hash": "6c1d238e72ace9d700a0a0177117d13acb3b494bf1b4a9dd6fe17825d26f7cc1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.serving_gateway",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Model Serving Endpoint to API Gateway"
+  },
+  "output": {
+    "level_0": "Requests fail randomly because the endpoint crashes and the gateway cannot route traffic properly.",
+    "level_1": "No connection exists between the serving endpoint and the API gateway, so no traffic flows.",
+    "level_2": "Engineers manually update gateway routes whenever the model serving endpoint changes its address.",
+    "level_3": "The gateway automatically discovers and routes to the serving endpoint without human intervention.",
+    "level_4": "Policy engines enforce strict access controls and audit logs on all gateway to endpoint traffic."
+  }
+}

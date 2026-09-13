@@ -67,6 +67,33 @@ def collect(ctx) -> dict:
             "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req}
 
 
+def _conflict_target(challenge: dict):
+    conflict = challenge.get("conflict")
+    return conflict.get("target") if isinstance(conflict, dict) else getattr(conflict, "target", None)
+
+
+def on_record_ids(requirements, artifacts: dict, conflict_targets: dict) -> set[str]:
+    """What each challenge starts with on the public record.
+
+    One stance, as an example of a finished call, and the challenge itself: the first Fact about
+    the disputed component, which the whole team already knows. That Fact needs a narrator, since
+    an on-record card is something somebody said openly.
+    """
+    stance_done: set[str] = set()
+    fact_done: set[str] = set()
+    known: set[str] = set()
+    for template_id, req in requirements:
+        if req.type == "driver" and template_id not in stance_done:
+            stance_done.add(template_id)
+            known.add(req.id)
+        elif (req.type == "fact" and template_id not in fact_done
+              and artifacts[req.id]["inputs"].get("narrator")
+              and req.asserts is not None and req.asserts.target == conflict_targets.get(template_id)):
+            fact_done.add(template_id)
+            known.add(req.id)
+    return known
+
+
 def assemble(ctx, dry_run: bool = False) -> dict:
     data = collect(ctx)
     cfg = ctx.config_dir
@@ -92,20 +119,21 @@ def assemble(ctx, dry_run: bool = False) -> dict:
     reqs["requirements"] = [r for r in reqs["requirements"] if not str(r["id"]).startswith("gen_")]
     arts = _load(cfg / "OfflineIntelArtifacts.json")
     arts["artifacts"] = [a for a in arts["artifacts"] if not str(a["id"]).startswith("art_gen_")]
-    known_done: set[str] = set()
+    known_ids = on_record_ids(
+        data["requirements"], data["artifacts"],
+        {ch["template_id"]: _conflict_target(ch) for ch in data["challenges"]},
+    )
     for template_id, req in data["requirements"]:
         req = req.model_copy(update={"challenge_id": ids[template_id]})
         reqs["requirements"].append(req.model_dump(mode="json", exclude_none=True, exclude_defaults=False))
         art = data["artifacts"][req.id]
-        # One artifact per challenge is already on the public record, as an example of a finished call.
-        is_known = req.type == "driver" and template_id not in known_done
-        if is_known:
-            known_done.add(template_id)
+        is_known = req.id in known_ids
         arts["artifacts"].append({
             "id": f"art_{req.id}",
             "requirement_id": req.id,
             "challenge_id": ids[template_id],
             "stakeholder_id": req.stakeholder_id,
+            **({"narrator_id": art["inputs"]["narrator"]["id"]} if art["inputs"].get("narrator") else {}),
             "artifact_type": art["inputs"]["artifact_type"],
             "content": art["output"]["content"],
             # Readings only: the game puts the unchanged fact in front of them (split wording).

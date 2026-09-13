@@ -7,7 +7,9 @@ from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, LEVEL_TALK, WISH_WORDS, op_dict, parse_json_field, render, text_errors, tokenize_names
+from content_gen.stages.common import (
+    GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, op_dict, parse_json_field, render, text_errors, tokenize_names,
+)
 
 KEY = re.compile(r"^[a-z][a-z0-9_]{1,30}$")
 LEVEL_NUMBERS = re.compile(r"\b[0-4]\b")  # readings may say "governed", never "level 4"
@@ -87,8 +89,8 @@ Example from an unrelated project — stance item, to show the shape only:
   fact      "That is simply what the reporting setup produces today."
 
 For a fact item, the fact sentence describes a current system state with no person in it. All four
-readings must be SPECIFIC to this item — they must name the component, pipeline, or behaviour this
-fact is about. Generic phrases like "someone on the team wants it this way" or "they will not
+readings must be SPECIFIC to this item — they must name the tool, pipeline, or behaviour this
+fact is about, in plain words, never as a component or stage. Generic phrases like "someone on the team wants it this way" or "they will not
 accept changes" are wrong: they could apply to any item and tell the player nothing useful. Example:
   fact      "Data validation runs against a static schema written two years ago."
   driver    "Updating the schema would catch the class of errors that reached production last month."
@@ -254,6 +256,9 @@ class ItemsStage:
             for t in TAGS:
                 text = it["readings"][t]
                 errors += text_errors(f"{it['key']} reading {t}", text, 3, 22)
+                if GAME_WORDS.search(text or ""):
+                    errors.append(f"{it['key']}: reading {t} says '{GAME_WORDS.search(text).group(0)}'; name the "
+                                  "thing itself, e.g. the KPI definitions, never a component or stage")
                 if LEVEL_NUMBERS.search(text or ""):
                     errors.append(f"{it['key']}: reading {t} names a level number; say broken, missing, manual, "
                                   "automated or governed instead")
@@ -288,6 +293,9 @@ class ItemsStage:
             errors += text_errors(f"{where} fact", r.fact, 4, 25)
             if r.fact and LEVEL_TALK.search(r.fact):
                 errors.append(f"{where}: the fact mentions levels or numbers; say broken, missing, manual, automated")
+            if r.fact and GAME_WORDS.search(r.fact):
+                errors.append(f"{where}: the fact says '{GAME_WORDS.search(r.fact).group(0)}'; name the thing itself, "
+                              "e.g. the KPI definitions, never a component or stage")
             if r.type != "fact" and r.fact and STANCE_WORDS.search(r.fact):
                 errors.append(f"{where}: the fact says how much they care ({STANCE_WORDS.search(r.fact).group(0)!r}); "
                               "keep it neutral and move that into the reading")

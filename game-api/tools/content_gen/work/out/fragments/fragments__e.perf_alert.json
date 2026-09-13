@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.perf_alert",
+  "stage": "fragments",
+  "input_hash": "a6e3fe259479be5947c96c196538ae4a9c64e064b758502cfd0b136a94ebdb6d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.perf_alert",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Model Performance Monitoring to Alerting System"
+  },
+  "output": {
+    "level_0": "Performance alerts trigger randomly, causing the on-call team to ignore all notifications.",
+    "level_1": "No connection exists between monitoring and alerting, so performance issues go completely unnoticed.",
+    "level_2": "Engineers manually check dashboards and send emails when they suspect a performance drop.",
+    "level_3": "The system automatically sends alerts to Slack when performance metrics breach defined thresholds.",
+    "level_4": "Alert routing follows governance policies, with full audit logs for every triggered notification."
+  }
+}

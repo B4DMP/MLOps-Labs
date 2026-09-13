@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.orch_serving",
+  "stage": "fragments",
+  "input_hash": "2ec298fa3d6257064f805c02eec9dbb6f9922bc7787269ba7be780a9c619995d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.orch_serving",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Orchestration to Model Serving Endpoint"
+  },
+  "output": {
+    "level_0": "Orchestration crashes before reaching the endpoint, leaving the model completely unavailable to users.",
+    "level_1": "No connection exists between orchestration and serving, so the model never reaches production.",
+    "level_2": "Engineers manually copy model artifacts to the serving endpoint after each orchestration run.",
+    "level_3": "Orchestration automatically triggers deployment to the model serving endpoint upon successful training.",
+    "level_4": "Governed pipelines validate and log every handover to the serving endpoint for compliance."
+  }
+}
