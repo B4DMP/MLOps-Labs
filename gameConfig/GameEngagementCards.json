@@ -10,7 +10,7 @@
       "target_type": "intel",
       "response_snippet": "Intel verified successfully.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 0,
+      "turns": 0,
       "allowed_requirement_types": []
     },
     {
@@ -23,7 +23,7 @@
       "target_type": "stakeholder",
       "response_snippet": "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 3,
+      "turns": 3,
       "allowed_requirement_types": []
     },
     {
@@ -36,7 +36,7 @@
       "target_type": "stakeholder",
       "response_snippet": "Probed requirements with selected stakeholders.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": [
         "boundary"
       ]
@@ -51,7 +51,7 @@
       "target_type": "stakeholder",
       "response_snippet": "Synced up with all team members to align perspectives.",
       "max_plays_per_phase": 1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": []
     },
     {
@@ -64,7 +64,7 @@
       "target_type": "stakeholder",
       "response_snippet": "Gauged general sentiment and high-level priorities.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": [
         "driver"
       ]

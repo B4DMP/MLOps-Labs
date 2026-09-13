@@ -1,10 +1,10 @@
 import asyncio
-import random
 import uuid
 from typing import Any
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.intel_handler import (
     handle_intel_verification,
     retrieve_intel_items,
@@ -83,18 +83,30 @@ def _tag_value(tag) -> str:
     return str(getattr(tag, "value", tag))
 
 
+def _stable_pick(seed: str, items: list, n: int) -> list:
+    """The first `n` items in `stable_rank` order: same seed, same items, same picks every time
+    (plan 11's standing rule - no `random.sample` in this plan's paths). `stable_rank` is the same
+    helper `graph_service.scheduler` uses to pick a challenge deterministically."""
+    if n <= 0 or not items:
+        return []
+    return sorted(items, key=lambda i: stable_rank(seed, i.id))[:n]
+
+
 def plan_engagement(
     held: list,
     pool: list,
     st_id: str,
     budget: int,
     allowed_types: list[str],
+    seed: str = "",
 ) -> tuple[list, list]:
     """Which of one stakeholder's notes a card checks, and which it reveals.
 
     Checks come first: an unconfirmed note the player already holds is what a conversation should
     settle. Held notes are filtered by the tag the player filed them under, never the true one, so
-    a card passing a note over gives nothing away. Whatever budget is left reveals notes not found yet.
+    a card passing a note over gives nothing away. Whatever budget is left reveals notes not found
+    yet. `seed` should fold in the player, the challenge and how many times this card has already
+    been played, so a replayed card does not always turn up the exact same order (D49/plan 11).
     """
     def allowed(tag) -> bool:
         return not allowed_types or _tag_value(tag) in allowed_types
@@ -106,17 +118,17 @@ def plan_engagement(
         and _tag_value(i.intel_type).lower() != "verified"
         and allowed(i.categorized_type)
     ]
-    checks = random.sample(unconfirmed, min(len(unconfirmed), budget)) if budget > 0 else []
+    checks = _stable_pick(f"{seed}|check", unconfirmed, budget) if budget > 0 else []
     left = budget - len(checks)
     undiscovered = [r for r in pool if r.id not in held_ids and allowed(r.type)]
-    reveals = random.sample(undiscovered, min(len(undiscovered), left)) if left > 0 else []
+    reveals = _stable_pick(f"{seed}|reveal", undiscovered, left) if left > 0 else []
     return checks, reveals
 
 
 async def determine_intel_items_node(state: OnlineIntelState, config: RunnableConfig = None) -> dict[str, Any]:
     """Per addressed stakeholder: checks unconfirmed notes the player holds, then reveals new ones.
 
-    Both share the card's `intel_reveal_count`, see `plan_engagement`. A checked note is verified
+    Both share the card's `turns` budget, see `plan_engagement`. A checked note is verified
     and corrected to its true tag exactly as the Verify Intel Item card does it.
     """
     configurable = config.get("configurable", {}) if config else {}
@@ -133,17 +145,23 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
         curr_challenge = phases[0].challenges[0]
 
     card = EngagementCardFactory.get_card(state["card_id"])
-    reveal_count = getattr(card, "intel_reveal_count", 1)
+    reveal_count = getattr(card, "turns", 1)
     allowed_types = getattr(card, "allowed_requirement_types", [])
 
     # Fetch all already collected/known intel items for this user in DB
     collected_items = await retrieve_intel_items(curr_challenge, ws) if ws else []
+    username = ws.query_params.get("username", "") if ws else ""
+    # Folds in how much the player already knows, so a replayed card does not always turn up
+    # the exact same order (D49) without needing a dedicated play-count column.
+    seed = f"{username}|{curr_challenge.id}|{state['card_id']}|{len(collected_items)}"
 
     revealed_by_st: dict[str, list[dict[str, Any]]] = {}
 
     for st_id in state.get("stakeholder_ids", []):
         all_reqs = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st_id)
-        checks, selected_reqs = plan_engagement(collected_items, all_reqs, st_id, reveal_count, allowed_types)
+        checks, selected_reqs = plan_engagement(
+            collected_items, all_reqs, st_id, reveal_count, allowed_types, seed=f"{seed}|{st_id}"
+        )
         st = StakeholderFactory.get_stakeholder(st_id)
 
         st_revealed_items = []
@@ -208,7 +226,7 @@ async def generate_stakeholder_responses_node(state: OnlineIntelState, config: R
 
     card_id = state.get("card_id")
     card = EngagementCardFactory.get_card(card_id) if card_id else None
-    intel_reveal_amount = getattr(card, "intel_reveal_count", 1) if card else 1
+    intel_reveal_amount = getattr(card, "turns", 1) if card else 1
     max_sentences = max(1, 2 * intel_reveal_amount) if intel_reveal_amount > 0 else 2
 
     for st_id in state.get("stakeholder_ids", []):
