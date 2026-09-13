@@ -85,7 +85,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "graph_debug">("config");
 
   // Campaign management state
   const [campaignName, setCampaignName] = useState("");
@@ -1431,6 +1431,16 @@ export function Admin({
               )}
             </div>
           )}
+
+          {/* ======================================================== */}
+          {/* SUBPAGE 4: GRAPH DEBUG                                   */}
+          {/* ======================================================== */}
+          {activeSubpage === "graph_debug" && (
+            <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
+              <h4 className="mb-3 text-info fw-bold">Graph Debug View</h4>
+              <GraphDebug adminToken={adminToken} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -1513,16 +1523,6 @@ export function Admin({
           </div>
         </div>
       )}
-
-        {/* SUBPAGE 4: GRAPH DEBUG */}
-        {activeSubpage === "graph_debug" && (
-          <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
-            <h4 className="mb-3 text-info fw-bold">Graph Debug View</h4>
-            <GraphDebug adminToken={adminToken} />
-          </div>
-        )}
-
-      </div>
       {/* Delete All Players Confirmation Modal */}
       {showDeleteAllWarning && (
         <div
