@@ -10,7 +10,9 @@ import { useEffect, useState } from "react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import ActionCardComponent from "./ActionCardComponent";
+import EventLog from "./EventLog";
 import type { ActionCard } from "../types/ActionCard";
+import type { GameEventPayload } from "../types/GameEvent";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
@@ -88,11 +90,25 @@ export default function AcSimulation({
   const { emit } = useGameWebSocket();
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState<GameEventPayload[]>([]);
 
   useWebSocketEvent<DeltaReportPayload>("graph:delta_report", (data) => setPayload(data));
 
+  // The event log (D51): the gate decision and everything the simulation just moved.
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (data) => {
+    setEvents(data.events || []);
+  });
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (data) => {
+    if (!data.events?.length) return;
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.seq));
+      return [...prev, ...data.events.filter((e) => !seen.has(e.seq))];
+    });
+  });
+
   useEffect(() => {
     emit("simulation:run", { phase_id: currentPhase, challenge_id: currentChallenge });
+    emit("log:history", {});
   }, [emit, currentPhase, currentChallenge]);
 
   const handleClick = () => {
@@ -281,6 +297,10 @@ export default function AcSimulation({
                     Next: {payload.next_challenge.phase_name} · {payload.next_challenge.name}
                   </div>
                 )}
+
+                <div className="mt-3 p-2" style={{ background: "rgba(15, 23, 42, 0.92)", borderRadius: 8 }}>
+                  <EventLog events={events} />
+                </div>
 
                 <button
                   onClick={handleClick}
