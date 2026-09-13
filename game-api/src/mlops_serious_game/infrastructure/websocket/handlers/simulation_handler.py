@@ -22,6 +22,7 @@ from mlops_serious_game.application.pitch_debate_service import store as pitch_s
 from mlops_serious_game.domain.grudge import Grudge
 from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import PitchContext
 
 from ..manager import manager
@@ -71,9 +72,15 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
         grudges=grudges,
         overridden_stakeholder_id=_overridden(state),
         upcoming_world_events=_upcoming_world_events(ctx),
+        names=ctx.names,
     )
 
     pitch_store.replace_grudges(username, [g.model_dump(mode="json") for g in result.grudges])
+    next_challenge = _next_challenge_name(username, ctx)
+    events = list(result.events) + [_gate_event(next_challenge)]
+    await send_events(
+        websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events]
+    )
     await manager.send_event(
         websocket=websocket,
         event="graph:delta_report",
@@ -82,8 +89,27 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
             "challenge_id": ctx.challenge_id,
             "report": _story(result.report),
             "pending_objections": [p.model_dump(mode="json") for p in result.pending_objections],
-            "next_challenge": _next_challenge_name(username, ctx),
+            "next_challenge": next_challenge,
         },
+    )
+
+
+def _gate_event(next_challenge: Optional[dict]):
+    """Gate 7 (plan 11, D51): the path the phase/challenge scheduler picked, and a coarse reason.
+
+    The scheduler (`graph_service.scheduler`) does not currently return *why* it favoured one
+    template over another (priority vs. stable_rank vs. fallback) - only what it picked. Naming
+    the destination is what step 10 asks for; a finer-grained "why this one, not that one" would
+    need `select_in_phase` itself to explain its choice, which is a larger change left for later.
+    """
+    from mlops_serious_game.domain.event import GameEvent
+
+    if next_challenge is None:
+        return GameEvent(step="gate", kind="outcome", direction="none", cause="outcome.gate_end")
+    return GameEvent(
+        step="gate", kind="outcome", direction="none", cause="outcome.gate_next",
+        params={"phase": next_challenge["phase_name"] or next_challenge["name"], "challenge": next_challenge["name"]},
+        refs={"challenge_id": next_challenge["id"], "phase_id": next_challenge["phase_id"]},
     )
 
 

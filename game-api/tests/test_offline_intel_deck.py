@@ -302,3 +302,52 @@ def test_a_narrator_never_names_themselves_except_in_meeting_notes(artifact_type
     ctx = SimpleNamespace(stakeholders={})
     errors = ArtifactsStage().check(_fact_output(BODY + " {data_dave} counted them."), item, ctx)
     assert any("refer to them as I" in e for e in errors) is flagged
+
+
+# ---------- Facts observed on leaving (plan 11, step 10) ----------
+
+def test_observe_tagged_facts_logs_one_event_naming_how_many(monkeypatch):
+    """`observe_tagged_facts` writes the graph ops as before, and now also hands back the event
+    log's record of it - one event for the batch, not one per fact (plan 11, D51)."""
+    from mlops_serious_game.application import intel_handler as app_intel
+    from mlops_serious_game.application.graph_service import store as graph_store
+
+    fact_item = StakeholderIntelItem(
+        id="f1", challenge_id=7, type=IntelTag.FACT, categorized_type=IntelTag.FACT,
+        asserts={"target": "data.ingestion", "level": 2}, description="How data.ingestion is",
+    )
+    row = SimpleNamespace(intel_item_data=fact_item.model_dump(mode="json"))
+    fake_session = MagicMock()
+    fake_session.scalars.return_value.all.return_value = [row]
+    fake_session_cm = MagicMock()
+    fake_session_cm.__enter__.return_value = fake_session
+    fake_session_cm.__exit__.return_value = False
+    monkeypatch.setattr(app_intel, "get_session", lambda: fake_session_cm)
+    monkeypatch.setattr(graph_store, "has_batch", lambda username, source_id: False)
+    append_calls = []
+    monkeypatch.setattr(graph_store, "append_ops", lambda *a, **kw: append_calls.append((a, kw)))
+
+    challenge = _challenge()
+    events = app_intel.observe_tagged_facts(challenge, "alice")
+
+    assert len(append_calls) == 1  # the graph op still gets written
+    assert len(events) == 1
+    assert events[0].cause == "graph.facts_observed"
+    assert events[0].params == {"n": "1"}
+    assert events[0].step == "offline"
+
+
+def test_observe_tagged_facts_logs_nothing_when_there_is_nothing_to_reveal(monkeypatch):
+    from mlops_serious_game.application import intel_handler as app_intel
+    from mlops_serious_game.application.graph_service import store as graph_store
+
+    fake_session = MagicMock()
+    fake_session.scalars.return_value.all.return_value = []
+    fake_session_cm = MagicMock()
+    fake_session_cm.__enter__.return_value = fake_session
+    fake_session_cm.__exit__.return_value = False
+    monkeypatch.setattr(app_intel, "get_session", lambda: fake_session_cm)
+    monkeypatch.setattr(graph_store, "has_batch", lambda username, source_id: False)
+    monkeypatch.setattr(graph_store, "append_ops", lambda *a, **kw: (_ for _ in ()).throw(AssertionError("must not be called")))
+
+    assert app_intel.observe_tagged_facts(_challenge(), "alice") == []

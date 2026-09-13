@@ -23,7 +23,9 @@ from mlops_serious_game.application.intel_handler import (
     retrieve_dossier_data,
     retrieve_intel_items,
 )
+from mlops_serious_game.domain.event import GameEvent
 from ..manager import manager
+from .log_handler import send_events
 
 
 async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payload: dict) -> None:
@@ -83,6 +85,14 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         st_id = payload.get("stakeholder_id") or (str(intel_id).replace("convincer_", "") if intel_id else "")
         if st_id:
             await tag_stakeholder_convincer_archetype(username, st_id, categorized_type)
+            st = StakeholderFactory.get_stakeholder(st_id)
+            # No tag leaks (plan 11): logs that a profile was tagged, never whether it was right.
+            # There is no separate intel item here - the convincer profile artifact is filed under
+            # the stakeholder itself, so subject_id is the only ref the log can offer.
+            await send_events(websocket, username, [GameEvent(
+                step="offline", kind="archetype", subject_id=st_id, direction="none",
+                cause="archetype.tagged", params={"st": st.name if st else st_id},
+            ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
     elif intel_id and categorized_type:
         intel_item = await handle_intel_tagging(curr_challenge, websocket, intel_id, categorized_type)
         item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
@@ -97,6 +107,13 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
                 "intel_item": item_dict
             }
         )
+        # No tag leaks (plan 11): logs that an intel item was filed, never whether the tag was
+        # right. `refs.item_id` still points at the item itself, so the log can jump to it (D51)
+        # without naming what it says or whether the guess was correct.
+        await send_events(websocket, username, [GameEvent(
+            step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
+            refs={"item_id": intel_item.id},
+        ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
 
     # Return updated dossier payload
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
@@ -113,6 +130,8 @@ async def handle_tag_convincer_event(websocket: WebSocket, username: str, payloa
     """Handles tagging a stakeholder's convincer archetype."""
     stakeholder_id = payload.get("stakeholder_id")
     categorized_archetype = payload.get("categorized_archetype")
+    phase_id = payload.get("phase_id", 0)
+    challenge_id = payload.get("challenge_id", 0)
 
     if stakeholder_id and categorized_archetype:
         try:
@@ -125,6 +144,12 @@ async def handle_tag_convincer_event(websocket: WebSocket, username: str, payloa
                     "categorized_archetype": categorized_archetype,
                 }
             )
+            st = StakeholderFactory.get_stakeholder(stakeholder_id)
+            # No tag leaks (plan 11): logs that a profile was tagged, never whether it was right.
+            await send_events(websocket, username, [GameEvent(
+                step="offline", kind="archetype", subject_id=stakeholder_id, direction="none",
+                cause="archetype.tagged", params={"st": st.name if st else stakeholder_id},
+            ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
         except ValueError as e:
             print(f"[Convincer Tagging Error] Invalid payload: {e}")
 
@@ -226,6 +251,16 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
         event="intel:verified_res",
         payload=result
     )
+
+    if result.get("status") == "success":
+        confirmed = result.get("old_categorized_type") == result.get("true_categorized_type")
+        # Verifying is legitimately allowed to say whether the tag was right - unlike tagging,
+        # this is the action that resolves the guess (plan 11).
+        await send_events(websocket, username, [GameEvent(
+            step="offline", kind="intel", direction="up" if confirmed else "none",
+            cause="intel.verified_confirmed" if confirmed else "intel.verified_corrected",
+            params={"st": result.get("stakeholder_name") or "Someone"},
+        ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
 
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
     await manager.send_event(

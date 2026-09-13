@@ -186,6 +186,37 @@ def correct_and_verify_convincer_archetype(
         }
 
 
+def rule_out_archetype(username: str, stakeholder_id: str, archetype_name: str) -> dict:
+    """Trial Balloon (D49, plan 11): a guessed archetype that did not land. Struck through in the
+    re-tag picker from then on. Never verifies anything - only a match does that."""
+    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+    with get_session() as session:
+        session_rec = get_or_create_game_session(username, session)
+        archs = dict(session_rec.stakeholder_archetypes or {})
+        st_entry = dict(archs.get(stakeholder_id, {}))
+        ruled_out = list(st_entry.get("ruled_out", []))
+        if archetype_name not in ruled_out:
+            ruled_out.append(archetype_name)
+        st_entry["ruled_out"] = ruled_out
+        archs[stakeholder_id] = st_entry
+        session_rec.stakeholder_archetypes = archs
+        flag_modified(session_rec, "stakeholder_archetypes")
+        session.commit()
+        return st_entry
+
+
+def ruled_out_archetypes(username: str, stakeholder_id: str) -> list[str]:
+    """Archetypes a Trial Balloon has already ruled out for this stakeholder (D49)."""
+    with get_session() as session:
+        row = session.scalars(
+            select(GameSession).where(GameSession.player == username).order_by(GameSession.id.desc())
+        ).first()
+        if row is None or not isinstance(row.stakeholder_archetypes, dict):
+            return []
+        entry = row.stakeholder_archetypes.get(stakeholder_id)
+        return list(entry.get("ruled_out", [])) if isinstance(entry, dict) else []
+
+
 # The deck stays short: a few stances, and at most a couple of Facts among them.
 MAX_STANCE_ARTIFACTS = 3
 MAX_FACT_ARTIFACTS = 2
@@ -1030,7 +1061,33 @@ def correct_and_verify_intel_item(
             return new_item
 
 
-correct_and_infer_intel_item = correct_and_verify_intel_item
+def _set_intel_confidence(username: str, item_id: str, confidence: ConfidenceType) -> Optional[StakeholderIntelItem]:
+    """Flips a held item's confidence in place, keeping whatever tag the player already filed it
+    under - Gather's Test a hypothesis (D49) only ever settles a guess the player already made,
+    it never touches the tag itself (Refuted's "free re-tag" is a separate, explicit action)."""
+    with get_session() as session:
+        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        for record in records:
+            if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == item_id:
+                data = dict(record.intel_item_data)
+                data["intel_type"] = confidence.value
+                record.intel_item_data = data
+                flag_modified(record, "intel_item_data")
+                session.commit()
+                return StakeholderIntelItem(**data)
+        return None
+
+
+def mark_intel_item_inferred(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
+    """Test a hypothesis, tag right (D49): tested, not just filed - counts toward pitch readiness
+    (Q36/D53) same as Verified."""
+    return _set_intel_confidence(username, item_id, ConfidenceType.INFERRED)
+
+
+def mark_intel_item_refuted(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
+    """Test a hypothesis, tag wrong (D49): the guess did not hold up. Never reveals the true tag -
+    the player has to re-tag and try again."""
+    return _set_intel_confidence(username, item_id, ConfidenceType.REFUTED)
 
 
 def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
@@ -1384,15 +1441,19 @@ def fact_targets_to_observe(items: List[StakeholderIntelItem]) -> List[str]:
     return targets
 
 
-def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
+def observe_tagged_facts(curr_challenge: Challenge, username: str) -> list["GameEvent"]:
     """Lifts the fog on what correctly tagged Facts describe. Runs once when the player leaves
-    offline intel gathering, so the graph does not reveal which tags were right while tagging."""
+    offline intel gathering, so the graph does not reveal which tags were right while tagging.
+
+    Returns the event log's record of it (plan 11, step 10) - empty when there was nothing to
+    reveal, or when this challenge's facts were already observed on an earlier call."""
     from mlops_serious_game.application.graph_service import store as graph_store
+    from mlops_serious_game.domain.event import GameEvent
     from mlops_serious_game.domain.graph import GraphOp
 
     source_id = f"facts:{curr_challenge.template_id}"
     if graph_store.has_batch(username, source_id):
-        return 0
+        return []
     with get_session() as session:
         records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
         items = []
@@ -1404,7 +1465,7 @@ def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
                     continue
     targets = fact_targets_to_observe(items)
     if not targets:
-        return 0
+        return []
     graph_store.append_ops(
         username,
         [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
@@ -1413,4 +1474,7 @@ def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
         source_kind="intel",
         source_id=source_id,
     )
-    return len(targets)
+    return [GameEvent(
+        step="offline", kind="graph", direction="none", cause="graph.facts_observed",
+        params={"n": str(len(targets))},
+    )]

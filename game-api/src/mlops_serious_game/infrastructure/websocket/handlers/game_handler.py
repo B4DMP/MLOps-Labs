@@ -27,6 +27,7 @@ from mlops_serious_game.application.intel_handler import (
     get_default_stakeholder_archetypes,
     determine_dialogue_options,
 )
+from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
     get_checkpoint_dialogue_options,
@@ -702,7 +703,11 @@ async def handle_state_update_request(
                     attention_tokens = challenge.attention_tokens
                 if challenge_loop_index == 1 and challenge:
                     try:
-                        observe_tagged_facts(challenge, username)
+                        events = observe_tagged_facts(challenge, username)
+                        await send_events(
+                            websocket, username,
+                            [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events],
+                        )
                     except Exception as e:
                         print(f"[Graph fact observe error] {e}")
                 if challenge_loop_index == 2:
