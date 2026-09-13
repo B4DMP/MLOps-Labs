@@ -1,6 +1,5 @@
-
+import { Icon } from "@iconify/react";
 import styles from "./Home.module.css";
-
 
 interface HomeProps {
   onLogin: () => void;
@@ -9,45 +8,54 @@ interface HomeProps {
 
 export function Home({ onLogin, onRegister }: HomeProps) {
   return (
-    <div
-      className={`container-fluid vh-100 d-flex flex-column justify-content-center overflow-hidden position-relative `}
-      style={{
-        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3.png")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-
-      }}
-    >
-
-
-      <div className={styles.homeContainer}>
-        <h1 className={`${styles.homeTitle} text-center`}>
-          Welcome to MLOps Labs
+    <div className={styles.homeWrapper}>
+      {/* Main Title & Play Menu Section */}
+      <div className={styles.contentContainer}>
+        <h1 className={styles.title}>
+          <Icon icon="ph:flask-bold" className={styles.titleIcon} />
+          <span>MLOps Labs</span>
         </h1>
-        <h2 className={`${styles.homeSubtitle} text-center`}>
-          a serious game for MLOps stakeholder engagement
-        </h2>
 
-        <p className={`${styles.homeSubSubtitle} text-center`}>
-          This prototype was developed in the context of the bachelor's thesis "CHALLENGE: Collaborative Human-Agent Learning for Leveraging Engagement in Negotiated Governance of MLOps" at the Chair of Databases and Information Systems (i5) at RWTH Aachen University.
+        <p className={styles.subtitle}>
+          A serious game for stakeholder engagement in Machine Learning Operations (MLOps)
         </p>
 
-        <div className={styles.buttonGroup}>
+        <div className={styles.menuSection}>
           <button
-            className={styles.actionButton}
+            className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
             onClick={onRegister}
           >
-            Start a New Game
+            <Icon icon="ph:play-bold" style={{ fontSize: "1.2rem" }} />
+            <span>Start a New Game</span>
           </button>
 
           <button
-            className={styles.actionButton}
+            className={`d-flex align-items-center justify-content-center gap-2 ${styles.secondaryMenuButton}`}
             onClick={onLogin}
           >
-            Login with Username
+            <Icon icon="ph:sign-in-bold" style={{ fontSize: "1.2rem" }} />
+            <span>Resume Game with Username</span>
           </button>
         </div>
-      </div></div>
+      </div>
+
+      {/* Title Screen Footer Credits */}
+      <div className={styles.footerWrapper}>
+        <div className={styles.creditsCard}>
+          <div className="d-flex align-items-center justify-content-center gap-2 text-white-50 text-center small">
+            <Icon
+              icon="ph:graduation-cap-bold"
+              className="flex-shrink-0"
+              style={{ color: "rgba(255, 255, 255, 0.75)", fontSize: "1.15rem" }}
+            />
+            <span style={{ fontSize: "0.82rem", lineHeight: "1.4" }}>
+              Developed at the Chair of Databases and Information Systems (i5), RWTH Aachen University
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
+
+export default Home;

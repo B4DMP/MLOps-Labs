@@ -16,6 +16,7 @@
   src: url('/fonts/delius-v21-latin-regular.woff2') format('woff2');
 }
 
+html,
 body {
     margin: 0;
     padding: 0;

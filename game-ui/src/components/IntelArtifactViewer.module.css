@@ -149,20 +149,6 @@
   line-height: 1.4;
 }
 
-.sigName {
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.sigTitle {
-  color: #2563eb;
-  font-weight: 600;
-}
-
-.sigCompany {
-  color: #64748b;
-  font-size: 0.78rem;
-}
 
 .disclaimer {
   font-size: 0.7rem;

@@ -20,6 +20,9 @@ import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import PerformanceView from "./components/PerformanceView";
+import LoadingScreen from "./components/LoadingScreen";
+import { motion, AnimatePresence } from "motion/react";
+import { FADE_TRANSITION } from "./utils/transitions";
 import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
@@ -91,7 +94,8 @@ function App({ username: _username }: AppProps) {
   const [challengeTitle, setChallengeTitle] = useState("");
   const [challengeDescription, setChallengeDescription] = useState("");
   const [challengeIntro, setChallengeIntro] = useState("");
-  const [progressionIndex, setProgressionIndex] = useState(0);
+  const [progressionIndex, setProgressionIndex] = useState<number | null>(null);
+  const [isLoadingSave, setIsLoadingSave] = useState<boolean>(true);
   const [isPhaseDialogueOpen, setIsPhaseDialogueOpen] = useState(false);
   // True when the briefing was reopened from the dossier mid-phase, so closing
   // it returns to the phase instead of starting the round.
@@ -267,11 +271,18 @@ function App({ username: _username }: AppProps) {
 
         if (data.progressionIndex === 0 && data.questions) {
           setQuestions(data.questions);
+          setIsLoadingSave(false);
         } else if (data.progressionIndex === 1 && data.content) {
           setBriefing(data.content);
+          setIsLoadingSave(false);
         } else if (data.progressionIndex === 3 && data.questions) {
           setAnswers([]);
           setQuestions(data.questions);
+          setIsLoadingSave(false);
+        } else if (data.progressionIndex === 4) {
+          setIsLoadingSave(false);
+        } else {
+          setIsLoadingSave(false);
         }
       }
     });
@@ -280,6 +291,7 @@ function App({ username: _username }: AppProps) {
       if (data.progressionIndex !== undefined) {
         setProgressionIndex(data.progressionIndex);
       }
+      setIsLoadingSave(false);
 
       setMetrics((prevMetrics) => {
         const updated = { ...prevMetrics };
@@ -762,156 +774,168 @@ function App({ username: _username }: AppProps) {
   const [, setDialogueOptions] = useState<DialogueOption[]>([]);
 
   return (
-    <>
-      {progressionIndex == 2 && (
-        <PhasesContext.Provider
-          value={{ currentPhase, setCurrentPhase, phases, setPhases }}
-        >
-          <MetricsContext.Provider value={{ metrics, setMetrics }}>
-            <StakeholderContext.Provider
-              value={{
-                stakeholders,
-                setStakeholders,
-                emotionColors,
-                setEmotionColors,
-                convincerArchetypes,
-                setConvincerArchetypes,
+    <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>
+      <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
+      <AnimatePresence mode="wait">
+        {isLoadingSave || progressionIndex === null ? (
+          <motion.div {...FADE_TRANSITION} key="game-loading" style={{ width: "100%", height: "100%" }}>
+            <LoadingScreen />
+          </motion.div>
+        ) : progressionIndex === 0 ? (
+          <motion.div {...FADE_TRANSITION} key="intro-questionnaire" style={{ width: "100%", height: "100%" }}>
+            <Questionaire
+              questions={questions}
+              onQuestionaireCompleted={() => {
+                onQuestionaireCompleted(1);
               }}
+              setAnswers={setAnswers}
+              answers={answers}
+            />
+          </motion.div>
+        ) : progressionIndex === 1 ? (
+          <motion.div {...FADE_TRANSITION} key="prebriefing" style={{ width: "100%", height: "100%" }}>
+            <BriefingPage
+              onBriefingCompleted={onBriefingCompleted}
+              briefing={briefing}
+            />
+          </motion.div>
+        ) : progressionIndex === 2 ? (
+          <motion.div {...FADE_TRANSITION} key="gameplay" style={{ width: "100%", height: "100%" }}>
+            <PhasesContext.Provider
+              value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
-              <PerformanceView
-                currentPhase={currentPhase}
-                isVisible={isPerformanceOpen}
-                onToggle={() => setIsPerformanceOpen((v) => !v)}
-              />
-              <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-              <PrePhaseDialog
-                isOpen={isPhaseDialogueOpen}
-                setIsOpen={(open) => {
-                  setIsPhaseDialogueOpen(open);
-                  if (!open) setIsBriefingReview(false);
-                }}
-                isReview={isBriefingReview}
-                challengeTitle={challengeTitle}
-                challengeDescription={challengeDescription}
-                challengeIntro={challengeIntro}
-                currentChallenge={currentChallenge}
-                challengeAmount={challengeAmount}
-              />
-              <ConvincerVerificationDialog
-                info={convincerVerificationInfo}
-                onClose={() => setConvincerVerificationInfo(null)}
-              />
-
-              {challengeLoopId === 0 && (
-                <OfflineIntelGathering
-                  onContinue={handleOfflineIntelGatheringContinue}
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  onTagArtifact={(stId) => setActiveStakeholderId(stId)}
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
-                  isPerformanceOpen={isPerformanceOpen}
-                  isDossierOpen={isDossierOpen}
-                  setIsDossierOpen={setIsDossierOpen}
-                  dossierData={dossierData}
-                  activeStakeholderId={activeStakeholderId}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  challengeAmount={challengeAmount}
-                />
-              )}
-              {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
-                  now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
-              {(challengeLoopId === 1 || challengeLoopId === 2) && (
-                <PitchPhase
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  challengeTitle={challengeTitle}
-                  challengeDescription={challengeDescription}
-                  challengeIntro={challengeIntro}
-                  challengeAmount={challengeAmount}
-                  convincerArchetypes={convincerArchetypes}
-                  onEndPitch={handlePitchDebateEnd}
-                  engagementCards={engagementCards}
-                  attentionTokens={attentionTokens}
-                  onAttentionTokensChange={setAttentionTokens}
-                  playedCardIdsInPhase={playedCardIdsInPhase}
-                  onPlayedCardIdsChange={setPlayedCardIdsInPhase}
-                  chatMsgs={onlineIntelChatMsgs}
-                  onChatMsgsChange={setOnlineIntelChatMsgs}
-                  cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
-                  onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
-                  dossierData={dossierData}
-                  onOpenPhaseBriefing={openBriefingForReview}
-                  onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
-                  isPerformanceOpen={isPerformanceOpen}
-                  onUpdateIntelItems={(items) => {
-                    setIntelItems(items as any);
-                    setDossierData((prevDossier) => {
-                      if (!prevDossier || prevDossier.length === 0) return prevDossier;
-                      return prevDossier.map((st) => ({
-                        ...st,
-                        intel_items: (st.intel_items || []).map((item) => {
-                          const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
-                          if (matchingUpdated) {
-                            return {
-                              ...item,
-                              intel_type: matchingUpdated.intel_type,
-                              categorized_type: matchingUpdated.categorized_type,
-                              description: matchingUpdated.description,
-                              source: matchingUpdated.source || item.source,
-                            };
-                          }
-                          return item;
-                        }),
-                      }));
-                    });
+              <MetricsContext.Provider value={{ metrics, setMetrics }}>
+                <StakeholderContext.Provider
+                  value={{
+                    stakeholders,
+                    setStakeholders,
+                    emotionColors,
+                    setEmotionColors,
+                    convincerArchetypes,
+                    setConvincerArchetypes,
                   }}
-                />
-              )}
-              {challengeLoopId === 3 && (
-                <AcSimulation
-                  onContinue={handleAcSimulationContinue}
-                  currentPhase={currentPhase}
-                  currentChallenge={currentChallenge}
-                  playedCard={pitchedActionCard}
-                />
-              )}
-            </StakeholderContext.Provider>
-          </MetricsContext.Provider>
-        </PhasesContext.Provider>
-      )}
-      {progressionIndex == 0 && (
-        <Questionaire
-          questions={questions}
-          onQuestionaireCompleted={() => {
-            onQuestionaireCompleted(1);
-          }}
-          setAnswers={setAnswers}
-          answers={answers}
-        />
-      )}
-      {progressionIndex == 1 && (
-        <BriefingPage
-          onBriefingCompleted={onBriefingCompleted}
-          briefing={briefing}
-        />
-      )}
-      {progressionIndex == 3 && (
-        <Questionaire
-          questions={questions}
-          onQuestionaireCompleted={() => {
-            onQuestionaireCompleted(4);
-          }}
-          setAnswers={setAnswers}
-          answers={answers}
-        />
-      )}
-      {progressionIndex == 4 && (
-        <EndPage />
-      )}
-    </>
+                >
+                  <PerformanceView
+                    currentPhase={currentPhase}
+                    isVisible={isPerformanceOpen}
+                    onToggle={() => setIsPerformanceOpen((v) => !v)}
+                  />
+                  <PrePhaseDialog
+                    isOpen={isPhaseDialogueOpen}
+                    setIsOpen={(open) => {
+                      setIsPhaseDialogueOpen(open);
+                      if (!open) setIsBriefingReview(false);
+                    }}
+                    isReview={isBriefingReview}
+                    challengeTitle={challengeTitle}
+                    challengeDescription={challengeDescription}
+                    challengeIntro={challengeIntro}
+                    currentChallenge={currentChallenge}
+                    challengeAmount={challengeAmount}
+                  />
+                  <ConvincerVerificationDialog
+                    info={convincerVerificationInfo}
+                    onClose={() => setConvincerVerificationInfo(null)}
+                  />
+
+                  {challengeLoopId === 0 && (
+                    <OfflineIntelGathering
+                      onContinue={handleOfflineIntelGatheringContinue}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      onTagArtifact={(stId) => setActiveStakeholderId(stId)}
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                      isPerformanceOpen={isPerformanceOpen}
+                      isDossierOpen={isDossierOpen}
+                      setIsDossierOpen={setIsDossierOpen}
+                      dossierData={dossierData}
+                      activeStakeholderId={activeStakeholderId}
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      challengeAmount={challengeAmount}
+                    />
+                  )}
+                  {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
+                      now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
+                  {(challengeLoopId === 1 || challengeLoopId === 2) && (
+                    <PitchPhase
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      challengeTitle={challengeTitle}
+                      challengeDescription={challengeDescription}
+                      challengeIntro={challengeIntro}
+                      challengeAmount={challengeAmount}
+                      convincerArchetypes={convincerArchetypes}
+                      onEndPitch={handlePitchDebateEnd}
+                      engagementCards={engagementCards}
+                      attentionTokens={attentionTokens}
+                      onAttentionTokensChange={setAttentionTokens}
+                      playedCardIdsInPhase={playedCardIdsInPhase}
+                      onPlayedCardIdsChange={setPlayedCardIdsInPhase}
+                      chatMsgs={onlineIntelChatMsgs}
+                      onChatMsgsChange={setOnlineIntelChatMsgs}
+                      cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                      onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
+                      dossierData={dossierData}
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                      isPerformanceOpen={isPerformanceOpen}
+                      onUpdateIntelItems={(items) => {
+                        setIntelItems(items as any);
+                        setDossierData((prevDossier) => {
+                          if (!prevDossier || prevDossier.length === 0) return prevDossier;
+                          return prevDossier.map((st) => ({
+                            ...st,
+                            intel_items: (st.intel_items || []).map((item) => {
+                              const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
+                              if (matchingUpdated) {
+                                return {
+                                  ...item,
+                                  intel_type: matchingUpdated.intel_type,
+                                  categorized_type: matchingUpdated.categorized_type,
+                                  description: matchingUpdated.description,
+                                  source: matchingUpdated.source || item.source,
+                                };
+                              }
+                              return item;
+                            }),
+                          }));
+                        });
+                      }}
+                    />
+                  )}
+                  {challengeLoopId === 3 && (
+                    <AcSimulation
+                      onContinue={handleAcSimulationContinue}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      playedCard={pitchedActionCard}
+                    />
+                  )}
+                </StakeholderContext.Provider>
+              </MetricsContext.Provider>
+            </PhasesContext.Provider>
+          </motion.div>
+        ) : progressionIndex === 3 ? (
+          <motion.div {...FADE_TRANSITION} key="outro-questionnaire" style={{ width: "100%", height: "100%" }}>
+            <Questionaire
+              questions={questions}
+              onQuestionaireCompleted={() => {
+                onQuestionaireCompleted(4);
+              }}
+              setAnswers={setAnswers}
+              answers={answers}
+            />
+          </motion.div>
+        ) : progressionIndex === 4 ? (
+          <motion.div {...FADE_TRANSITION} key="endpage" style={{ width: "100%", height: "100%" }}>
+            <EndPage />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   );
 }
 
