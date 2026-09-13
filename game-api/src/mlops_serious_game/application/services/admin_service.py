@@ -1,6 +1,6 @@
 import datetime
 from typing import Any
-from sqlalchemy import delete, func, select, or_
+from sqlalchemy import delete, func, select, or_, text
 
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -15,6 +15,34 @@ from mlops_serious_game.infrastructure.database import (
     IntelItem,
     get_session,
 )
+from mlops_serious_game.infrastructure.database.models import GraphOpLog, GameEventRow
+
+# Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
+# by thread_id rather than username - these are the thread naming conventions used across the
+# app (chat_handler, online_intel_service) for a given player.
+CHECKPOINT_TABLES = ("checkpoints", "checkpoint_writes", "checkpoint_blobs")
+
+
+def _player_thread_ids(player_name: str) -> list[str]:
+    return [f"MLOps_Convo_{player_name}", f"Online_Intel_{player_name}"]
+
+
+def _delete_checkpoints_for_threads(session, thread_ids: list[str]) -> None:
+    for table in CHECKPOINT_TABLES:
+        if session.execute(text(f"SELECT to_regclass('{table}')")).scalar() is None:
+            continue
+        for thread_id in thread_ids:
+            session.execute(
+                text(f"DELETE FROM {table} WHERE thread_id = :thread_id"),
+                {"thread_id": thread_id},
+            )
+
+
+def _delete_all_checkpoints(session) -> None:
+    for table in CHECKPOINT_TABLES:
+        if session.execute(text(f"SELECT to_regclass('{table}')")).scalar() is None:
+            continue
+        session.execute(text(f"DELETE FROM {table}"))
 
 
 def get_campaign_users(campaign_key: str) -> list[str]:
@@ -574,7 +602,13 @@ def remove_campaign(campaign_key: str) -> None:
 
 
 def remove_player(player_name: str) -> None:
-    """Removes all player-related data of the selected player across all tables."""
+    """Removes all player-related data of the selected player across all tables.
+
+    Reusing a username after deletion must behave like a genuinely new player: leaving
+    GraphOpLog, GameEventRow or checkpoint rows behind lets the old graph state/history bleed
+    into the "new" account (e.g. the scheduler replaying stale ops when picking their first
+    challenge), so every per-player table needs to be covered here, not just the obvious ones.
+    """
     try:
         with get_session() as session:
             session.execute(delete(User).where(User.user_name == player_name))
@@ -582,13 +616,17 @@ def remove_player(player_name: str) -> None:
             session.execute(delete(GameChallenge).where(GameChallenge.user_name == player_name))
             session.execute(delete(GameSession).where(GameSession.player == player_name))
             session.execute(delete(IntelItem).where(IntelItem.user_name == player_name))
+            session.execute(delete(GraphOpLog).where(GraphOpLog.user_name == player_name))
+            session.execute(delete(GameEventRow).where(GameEventRow.user_name == player_name))
+            _delete_checkpoints_for_threads(session, _player_thread_ids(player_name))
     except Exception as e:
         print(f"Error removing player {player_name}: {e}")
         raise
 
 
 def remove_all_players() -> None:
-    """Removes all player-related data across all tables."""
+    """Removes all player-related data across all tables. See remove_player for why every
+    per-player table (not just the obvious ones) needs to be cleared."""
     try:
         with get_session() as session:
             session.execute(delete(User))
@@ -596,6 +634,9 @@ def remove_all_players() -> None:
             session.execute(delete(GameChallenge))
             session.execute(delete(GameSession))
             session.execute(delete(IntelItem))
+            session.execute(delete(GraphOpLog))
+            session.execute(delete(GameEventRow))
+            _delete_all_checkpoints(session)
     except Exception as e:
         print(f"Error removing all players: {e}")
         raise
