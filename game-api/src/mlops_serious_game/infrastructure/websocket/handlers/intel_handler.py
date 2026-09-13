@@ -239,6 +239,19 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     )
 
 
+def phase_room(phase_id: int) -> list[str]:
+    """The stakeholders taking part in a phase: the same room the pitch is held in."""
+    phases = PhaseFactory.get_phases()
+    if 0 <= phase_id < len(phases) and phases[phase_id].stakeholders:
+        return [ps.stakeholder_id for ps in phases[phase_id].stakeholders]
+    return StakeholderFactory.get_active_stakeholders(phase_id) or StakeholderFactory.get_available_stakeholders()
+
+
+async def _send_dossier(websocket: WebSocket, dossier_data: list) -> None:
+    """The dossier itself only follows `intel:dossier_data`, so every card result sends it too."""
+    await manager.send_event(websocket=websocket, event="intel:dossier_data", payload={"dossier": dossier_data})
+
+
 async def handle_play_engagement_card(websocket: WebSocket, username: str, payload: dict) -> None:
     """Handles playing an engagement card (eng_1 - eng_4) during online intel gathering phase."""
     phase_id = payload.get("phase_id", 0)
@@ -255,8 +268,20 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
-    # If stakeholder_ids is empty or card targets all stakeholders (e.g. eng_3 team sync)
     card = EngagementCardFactory.get_card(card_id)
+    # Cards only reach the stakeholders taking part in this phase. Team Sync-up reaches all of them.
+    room_ids = phase_room(curr_challenge.phase_id)
+    if card and card.stakeholder_selection_amount == -1:
+        stakeholder_ids = room_ids
+    else:
+        stakeholder_ids = [s_id for s_id in stakeholder_ids if s_id in room_ids]
+    if card and not stakeholder_ids:
+        await manager.send_event(
+            websocket=websocket,
+            event="system:error",
+            payload={"message": "None of those stakeholders take part in this phase."},
+        )
+        return
     played_cards = []
     engagement_card_targets = {}
     if card:
@@ -289,10 +314,6 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         except Exception as e:
             print(f"[IntelHandler DB Error] {e}")
 
-    if card and (card.stakeholder_selection_amount == -1 or not stakeholder_ids):
-        active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id)
-        if not active_st_ids:
-            active_st_ids = StakeholderFactory.get_available_stakeholders()
     async def callback(websocket: WebSocket = None, msg_type: str = "", data: dict = None, **kwargs):
         target_ws = websocket
         if not target_ws:
@@ -320,6 +341,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         import traceback
         traceback.print_exc()
         dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
+        await _send_dossier(websocket, dossier_data)
         await manager.send_event(
             websocket=websocket,
             event="intel:engagement_complete",
@@ -366,6 +388,7 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
         print(f"[IntelHandler DB Error in handle_play_engagement_card] {e}")
 
     dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
+    await _send_dossier(websocket, dossier_data)
 
     await manager.send_event(
         websocket=websocket,

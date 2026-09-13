@@ -6,6 +6,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
 from mlops_serious_game.application.intel_handler import (
+    handle_intel_verification,
     retrieve_intel_items,
     store_intel_item,
 )
@@ -78,8 +79,46 @@ async def generate_player_message_node(state: OnlineIntelState, config: Runnable
     }
 
 
+def _tag_value(tag) -> str:
+    return str(getattr(tag, "value", tag))
+
+
+def plan_engagement(
+    held: list,
+    pool: list,
+    st_id: str,
+    budget: int,
+    allowed_types: list[str],
+) -> tuple[list, list]:
+    """Which of one stakeholder's notes a card checks, and which it reveals.
+
+    Checks come first: an unconfirmed note the player already holds is what a conversation should
+    settle. Held notes are filtered by the tag the player filed them under, never the true one, so
+    a card passing a note over gives nothing away. Whatever budget is left reveals notes not found yet.
+    """
+    def allowed(tag) -> bool:
+        return not allowed_types or _tag_value(tag) in allowed_types
+
+    held_ids = {i.id for i in held}
+    unconfirmed = [
+        i for i in held
+        if i.stakeholder_id == st_id
+        and _tag_value(i.intel_type).lower() != "verified"
+        and allowed(i.categorized_type)
+    ]
+    checks = random.sample(unconfirmed, min(len(unconfirmed), budget)) if budget > 0 else []
+    left = budget - len(checks)
+    undiscovered = [r for r in pool if r.id not in held_ids and allowed(r.type)]
+    reveals = random.sample(undiscovered, min(len(undiscovered), left)) if left > 0 else []
+    return checks, reveals
+
+
 async def determine_intel_items_node(state: OnlineIntelState, config: RunnableConfig = None) -> dict[str, Any]:
-    """Algorithmically determines a random subset of undiscovered intel items to reveal for each addressed stakeholder."""
+    """Per addressed stakeholder: checks unconfirmed notes the player holds, then reveals new ones.
+
+    Both share the card's `intel_reveal_count`, see `plan_engagement`. A checked note is verified
+    and corrected to its true tag exactly as the Verify Intel Item card does it.
+    """
     configurable = config.get("configurable", {}) if config else {}
     ws = configurable.get("ws")
     phase_id = state.get("phase_id", 0)
@@ -99,28 +138,28 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
 
     # Fetch all already collected/known intel items for this user in DB
     collected_items = await retrieve_intel_items(curr_challenge, ws) if ws else []
-    collected_req_ids = {item.id for item in collected_items}
 
     revealed_by_st: dict[str, list[dict[str, Any]]] = {}
 
     for st_id in state.get("stakeholder_ids", []):
         all_reqs = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st_id)
-        
-        # Filter for undiscovered requirements
-        undiscovered = [r for r in all_reqs if r.id not in collected_req_ids]
-
-        # Filter by allowed requirement types if specified
-        if allowed_types:
-            undiscovered = [
-                r for r in undiscovered
-                if (hasattr(r.type, "value") and r.type.value in allowed_types) or str(r.type) in allowed_types
-            ]
-
-        # Pick random subset of predefined size
-        num_to_reveal = min(len(undiscovered), reveal_count)
-        selected_reqs = random.sample(undiscovered, num_to_reveal) if num_to_reveal > 0 else []
+        checks, selected_reqs = plan_engagement(collected_items, all_reqs, st_id, reveal_count, allowed_types)
+        st = StakeholderFactory.get_stakeholder(st_id)
 
         st_revealed_items = []
+        for held_item in checks:
+            result = await handle_intel_verification(curr_challenge, ws, held_item.id)
+            if result.get("status") != "success":
+                continue
+            item_dict = dict(result["intel_item"])
+            item_dict["stakeholder_id"] = st_id
+            if st:
+                item_dict["stakeholder_name"] = st.name
+            # The chat shows a checked note apart from a new one, and whether the player had it right.
+            item_dict["was_checked"] = True
+            item_dict["old_categorized_type"] = result.get("old_categorized_type")
+            st_revealed_items.append(item_dict)
+
         for req in selected_reqs:
             intel_item = StakeholderIntelItem.from_requirement(
                 req,
@@ -134,11 +173,9 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
             
             item_dict = intel_item.model_dump(mode="json")
             item_dict["stakeholder_id"] = st_id
-            st = StakeholderFactory.get_stakeholder(st_id)
             if st:
                 item_dict["stakeholder_name"] = st.name
             st_revealed_items.append(item_dict)
-            collected_req_ids.add(req.id)
 
         revealed_by_st[st_id] = st_revealed_items
 

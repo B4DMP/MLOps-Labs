@@ -11,6 +11,7 @@ import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type
 import { Icon } from "@iconify/react";
 
 import { StakeholderContext } from "./StakeholderProvider";
+import { PhasesContext } from "./PhaseProvider";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import { intelTagMeta, type IntelTag } from "../types/IntelTag";
@@ -94,6 +95,8 @@ interface BoundaryWarning {
   target?: string | null;
   checkable: boolean;
   violated: boolean;
+  target_name?: string | null;
+  line?: string | null;
 }
 
 interface StakeholderRead {
@@ -409,6 +412,46 @@ export default function PitchPhase({
     );
   }, [state]);
 
+  // Engagement cards only reach the stakeholders taking part in this phase: the pitch room.
+  const { phases } = useContext(PhasesContext);
+  const roomIds = useMemo(() => {
+    const fromPhase = phases[currentPhase]?.stakeholder_power_interest?.map((s) => s.stakeholder_id) || [];
+    if (fromPhase.length > 0) return fromPhase;
+    return (dossierData || []).filter((st) => !st.is_environment).map((st) => st.stakeholder_id);
+  }, [phases, currentPhase, dossierData]);
+
+  // Straight off the dossier's intel counter: a stakeholder is done once every pip is confirmed.
+  // Counts only, so a greyed-out target never says which tag is still out there.
+  const exhaustedStakeholderIds = useMemo(() => {
+    if (!dossierData || dossierData.length === 0) return [];
+    const openNotes = (id: string) => {
+      const entry = dossierData.find((st) => st.stakeholder_id === id);
+      if (!entry) return 0;
+      const items = entry.intel_items || [];
+      const unconfirmed = items.filter((i) => (i.intel_type || "").toLowerCase() !== "verified").length;
+      return unconfirmed + Math.max(0, (entry.intel_total ?? 0) - items.length);
+    };
+    return roomIds.filter((id) => openNotes(id) === 0);
+  }, [dossierData, roomIds]);
+
+  // What Verify Intel Item can target: every unconfirmed note in the dossier.
+  const unconfirmedNotes = useMemo(
+    () =>
+      (dossierData || []).flatMap((st) =>
+        (st.intel_items || [])
+          .filter((i) => (i.intel_type || "").toLowerCase() !== "verified")
+          .map((i) => ({
+            id: i.id,
+            intel_type: i.intel_type,
+            categorized_type: i.categorized_type,
+            description: i.description,
+            stakeholder_id: st.is_environment ? undefined : st.stakeholder_id,
+            stakeholder_name: st.is_environment ? undefined : st.name,
+          })),
+      ),
+    [dossierData],
+  );
+
   // cross-reference dossier to show verified/unconfirmed badge per item
   const verifiedIds = useMemo(() => {
     const ids = new Set<string>();
@@ -540,6 +583,19 @@ export default function PitchPhase({
     setPlayingCard(null);
   };
 
+  const handleConfirmPlayCardIntel = (item: { id: string }) => {
+    if (!playingCard) return;
+    const nextTokens = tokens - playingCard.token_cost;
+    setTokens(nextTokens);
+    emit("intel:verify_item", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      intel_item_id: item.id,
+      attention_tokens: nextTokens,
+    });
+    setPlayingCard(null);
+  };
+
   // ── pitch card handlers ───────────────────────────────────────────────────
   const stakeholderName = (id?: string | null) =>
     (id && stakeholders[id]?.name) || id || "Someone";
@@ -601,6 +657,8 @@ export default function PitchPhase({
   const predictionFor = (itemId: string) => state.predictions.find((p) => p.item_id === itemId);
   const violatedFor = (stId: string) =>
     state.boundary_warnings.filter((w) => w.violated && w.stakeholder_id === stId);
+  const crossed = state.boundary_warnings.filter((w) => w.checkable && w.violated);
+  const unchecked = state.boundary_warnings.filter((w) => !w.checkable);
 
   const chains = toChains(state.available_items);
   const chainById: Record<string, PitchChain> = Object.fromEntries(chains.map((c) => [c.newest.id, c]));
@@ -639,11 +697,9 @@ export default function PitchPhase({
     (grouped[chain.newest.type] ||= []).push(chain);
   });
 
-  const availableStakeholderList = Object.entries(stakeholders).map(([id, st]) => ({
-    id,
-    name: st.name || id,
-    avatar: st.avatar,
-  }));
+  const availableStakeholderList = roomIds
+    .filter((id) => stakeholders[id])
+    .map((id) => ({ id, name: stakeholders[id].name || id, avatar: stakeholders[id].avatar }));
 
   return (
     <div className="game-container">
@@ -849,7 +905,12 @@ export default function PitchPhase({
                           (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
                           playedIds.includes(card.id);
                         const tooExpensive = tokens < card.token_cost;
-                        const off = exhausted || tooExpensive || isWaiting;
+                        const targetedByCard = cardTargetedMap[card.id] || [];
+                        const noTargets =
+                          card.target_type === "intel"
+                            ? unconfirmedNotes.length === 0
+                            : roomIds.every((id) => exhaustedStakeholderIds.includes(id) || targetedByCard.includes(id));
+                        const off = exhausted || tooExpensive || noTargets || isWaiting;
                         const mid = (cards.length - 1) / 2;
                         const targets =
                           card.target_type === "intel" ? "one intel item"
@@ -866,6 +927,10 @@ export default function PitchPhase({
                             onClick={() => !off && handleSelectEngagementCard(card)}
                             title={
                               exhausted ? "Already played this phase"
+                                : noTargets
+                                  ? card.target_type === "intel"
+                                    ? "Every note you hold is confirmed already"
+                                    : "Nobody here has anything left to tell you"
                                 : tooExpensive ? `Costs ${card.token_cost}, you have ${tokens}`
                                 : undefined
                             }
@@ -1044,28 +1109,51 @@ export default function PitchPhase({
                     </div>
 
                     {/* What the card would break, and who pays for it. */}
-                    {(state.boundary_warnings.some((w) => w.violated || !w.checkable) ||
+                    {(crossed.length > 0 || unchecked.length > 0 ||
                       Object.entries(state.uncompensated_losses).some(([, v]) => v > 0)) && (
                       <div className={styles.warnGroups}>
-                        {state.boundary_warnings.some((w) => w.violated || !w.checkable) && (
+                        {crossed.length > 0 && (
                           <details className={styles.warnBlock} open>
                             <summary className={styles.warnSummary}>
                               <Icon icon="ph:hand-palm-bold" className={styles.warnRed} />
                               Lines this card crosses
-                              <span className={styles.warnCount}>
-                                {state.boundary_warnings.filter((w) => w.violated).length}
-                              </span>
+                              <span className={styles.warnCount}>{crossed.length}</span>
                             </summary>
-                            {state.boundary_warnings.filter((w) => w.violated || !w.checkable).map((w) => (
+                            {crossed.map((w) => (
                               <div key={w.item_id} className={styles.warnRow}>
-                                <Icon icon={w.checkable ? "ph:hand-palm-bold" : "ph:question-bold"} className={w.checkable ? styles.warnRed : styles.warnMuted} />
-                                <span>
-                                  {w.checkable
-                                    ? `${stakeholderName(w.stakeholder_id)} will block this: it crosses their line on ${w.target}`
-                                    : `${stakeholderName(w.stakeholder_id)}: cannot tell, you have never looked at ${w.target}`}
+                                <Icon icon="ph:hand-palm-bold" className={styles.warnRed} />
+                                <span className={styles.warnText}>
+                                  <span>
+                                    <strong>{stakeholderName(w.stakeholder_id)} will block this card.</strong>{" "}
+                                    It crosses their line on {w.target_name || w.target}.
+                                  </span>
+                                  {w.line && <span className={styles.warnLine}>{w.line}</span>}
                                 </span>
                               </div>
                             ))}
+                          </details>
+                        )}
+
+                        {unchecked.length > 0 && (
+                          <details className={styles.warnBlock}>
+                            <summary className={styles.warnSummary}>
+                              <Icon icon="ph:question-bold" className={styles.warnMuted} />
+                              Lines you can't check
+                              <span className={styles.warnCount}>{unchecked.length}</span>
+                            </summary>
+                            {unchecked.map((w) => (
+                              <div key={w.item_id} className={styles.warnRow}>
+                                <Icon icon="ph:question-bold" className={styles.warnMuted} />
+                                <span className={styles.warnText}>
+                                  {stakeholderName(w.stakeholder_id)} has a line on {w.target_name || w.target}, and
+                                  you have no reading of it, so this card might cross it.
+                                  {w.line && <span className={styles.warnLine}>{w.line}</span>}
+                                </span>
+                              </div>
+                            ))}
+                            <div className={styles.warnFoot}>
+                              Facts about a part of the system, or an action card played on it, show you where it stands.
+                            </div>
                           </details>
                         )}
 
@@ -1546,10 +1634,11 @@ export default function PitchPhase({
           stakeholders={stakeholders as any}
           availableStakeholderList={availableStakeholderList as any}
           isStakeholderActive={() => true}
+          exhaustedStakeholderIds={exhaustedStakeholderIds}
           cardTargetedStakeholdersMap={cardTargetedMap}
-          intelItems={[]}
+          intelItems={unconfirmedNotes}
           onConfirmStakeholders={handleConfirmPlayCardStakeholders}
-          onConfirmIntel={() => {}}
+          onConfirmIntel={handleConfirmPlayCardIntel}
           getStakeholderColor={(st: any) => st?.stakeholder_color || "#38bdf8"}
           getTagBadgeColor={() => "bg-secondary"}
         />
