@@ -308,13 +308,6 @@
     font-size: 0.85rem;
 }
 
-.headerArtifactCount {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: #ffffff;
-    white-space: nowrap;
-}
-
 .headerArtifactBadge {
     font-size: 0.65rem;
     font-weight: 600;
@@ -376,6 +369,17 @@
 .navPillOnRecord {
     background-color: #1d4ed8;
     border: 1px solid #1d4ed8;
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The on-record Fact is about the system, not a stakeholder: purple keeps it visually apart
+   from the blue stakeholder-stance pill it sits next to. */
+.navPillOnRecordFact {
+    background-color: #7c3aed;
+    border: 1px solid #7c3aed;
     opacity: 0.85;
     display: inline-flex;
     align-items: center;

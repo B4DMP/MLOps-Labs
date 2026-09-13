@@ -7,7 +7,7 @@ import StakeholderDossier, { type IntelDebugInfo, type StakeholderDossierEntry }
 import EventLogModal from "./EventLogModal";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
-import { INTEL_TAGS } from "../types/IntelTag";
+import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -55,6 +55,20 @@ const REQUIREMENT_TAGS = INTEL_TAGS.map((t) => ({
   description: t.description,
   about: t.about,
 }));
+
+// Matches ENVIRONMENT_ENTRY_ID on the backend (intel_handler.py): the dossier page id for
+// "The System", as opposed to any actual stakeholder_id.
+const SYSTEM_TAB_ID = "__environment__";
+
+/** Which dossier page an artifact should open: the System page once it's known to be a Fact
+ * (either pre-known, or just tagged that way by the player), otherwise its speaker's page.
+ * An unconfirmed artifact's true type isn't known client-side before the player tags it -
+ * revealing that early would give the answer away. */
+function dossierTargetFor(art: IntelArtifact, categorizedType?: string): string {
+  const catType = categorizedType ?? art.categorized_type;
+  if (catType === "fact") return SYSTEM_TAB_ID;
+  return art.stakeholder_id || art.stakeholder_name;
+}
 
 const CONVINCER_TAGS = [
   {
@@ -226,9 +240,10 @@ export default function OfflineIntelGathering({
     if (artifacts.length > 0 && currentIndex < artifacts.length) {
       const art = artifacts[currentIndex];
       if (art && onTagArtifact) {
-        onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+        onTagArtifact(dossierTargetFor(art, taggedTypes[art.id]));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, artifacts]);
 
   const handleTagArtifact = (categorizedType: string) => {
@@ -245,7 +260,7 @@ export default function OfflineIntelGathering({
     }));
 
     if (onTagArtifact) {
-      onTagArtifact(currentArtifact.stakeholder_id || currentArtifact.stakeholder_name);
+      onTagArtifact(dossierTargetFor(currentArtifact, categorizedType));
     }
 
     if (currentArtifact.is_convincer_profile) {
@@ -368,8 +383,9 @@ export default function OfflineIntelGathering({
   const firstPlayerIndex = artifacts.findIndex((art) => !art.is_known);
   const knownArtifactsCount = artifacts.length - playerArtifacts.length;
   const isOnKnownArtifact = Boolean(currentArtifact?.is_known);
-  // On record come the challenge itself, as a Fact about the disputed component, and the sides
-  // arguing over it, as stances. Only the stances make up the clash.
+  // On record come the challenge itself, as a System item about the disputed component, and the
+  // two sides arguing over it, as stances. Only the stances make up the clash.
+  const isOnRecordFact = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type === "fact";
   const isOnRecordStance = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type !== "fact";
   const isOnKnownFact = isOnKnownArtifact && currentArtifact.categorized_type === "fact";
   // The on-record pair is one argument seen from two sides. Name the other side so the
@@ -451,9 +467,6 @@ export default function OfflineIntelGathering({
                   {!isFinished && currentArtifact && (
                     <div className={styles.headerArtifactMeta}>
                       <span className={styles.headerDivider}>|</span>
-                      <span className={styles.headerArtifactCount}>
-                        Artifact {currentIndex + 1} of {artifacts.length}
-                      </span>
                       <span className={styles.headerArtifactBadge}>
                         {currentArtifact.artifact_type.toUpperCase()}
                       </span>
@@ -488,7 +501,8 @@ export default function OfflineIntelGathering({
                       const isTagged = !!taggedTypes[key];
                       const isCurrent = idx === currentIndex;
                       // Each challenge's on-record pair is a disagreement between two stakeholders,
-                      // and that disagreement is the challenge. Mark the seam between them.
+                      // and that disagreement is the challenge. Mark the seam between them - the
+                      // System item leads the deck but isn't itself a side of the argument.
                       const previous = idx > 0 ? artifacts[idx - 1] : undefined;
                       const opensConflictSeam = Boolean(
                         isOnRecordStance(art) &&
@@ -507,21 +521,27 @@ export default function OfflineIntelGathering({
                             setDirection(idx >= currentIndex ? 1 : -1);
                             setCurrentIndex(idx);
                             if (onTagArtifact) {
-                              onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+                              onTagArtifact(dossierTargetFor(art, taggedTypes[key]));
                             }
                           }}
                           className={`btn btn-xs fw-bold ${styles.navPill} ${
                             art.is_known
-                              ? styles.navPillOnRecord
+                              ? (isOnRecordFact(art) ? styles.navPillOnRecordFact : styles.navPillOnRecord)
                               : isTagged
                                 ? styles.navPillTagged
                                 : styles.navPillUntagged
                           } ${isCurrent ? styles.navPillCurrent : ""}`}
                           title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${
-                            art.is_known ? "On record, nothing to tag" : isTagged ? "Categorized" : "Uncategorized"
+                            art.is_known
+                              ? isOnRecordFact(art) ? "On record: about the system" : "On record, nothing to tag"
+                              : isTagged ? "Categorized" : "Uncategorized"
                           })`}
                         >
-                          {art.is_known ? <Icon icon="ph:megaphone-simple-bold" /> : idx + 1}
+                          {art.is_known ? (
+                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:megaphone-simple-bold"} />
+                          ) : (
+                            idx + 1
+                          )}
                         </button>
                       );
 
