@@ -166,15 +166,22 @@ function App({ username: _username }: AppProps) {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
-  const prevShownPhaseRef = useRef<number | null>(null);
+  // Composite key of the last challenge PrePhaseDialog was actually shown for. A phase
+  // change always changes this key too, so tracking it alone covers both "new phase" and
+  // "new challenge within the same phase" - the dialog reopens, tagged NEW, either way.
+  const prevShownChallengeKeyRef = useRef<string | null>(null);
+  const [isNewChallenge, setIsNewChallenge] = useState(false);
 
-  // Manage PrePhaseDialog (at the start of each phase)
+  // Manage PrePhaseDialog (at the start of each phase, and each new challenge within it)
   useEffect(() => {
     if (progressionIndex === 2 && phases.length > 0) {
-      // Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet (only when challengeLoopId === 0)
-      if (prevShownPhaseRef.current !== currentPhase) {
-        if (challengeLoopId === 0) {
-          prevShownPhaseRef.current = currentPhase;
+      // Only when challengeLoopId === 0 (Offline Intel Gathering, the start of a challenge's loop)
+      if (challengeLoopId === 0) {
+        const challengeKey = `${currentPhase}:${currentChallenge}`;
+
+        if (prevShownChallengeKeyRef.current !== challengeKey) {
+          prevShownChallengeKeyRef.current = challengeKey;
+          setIsNewChallenge(true);
 
           // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
           if (currentPhase === 0 && !isIntro1StartedRef.current) {
@@ -194,15 +201,13 @@ function App({ username: _username }: AppProps) {
           } else {
             setIsPhaseDialogueOpen(true);
           }
-          return;
-        } else {
-          prevShownPhaseRef.current = currentPhase;
         }
       }
     }
   }, [
     progressionIndex,
     currentPhase,
+    currentChallenge,
     challengeLoopId,
     phases.length,
   ]);
@@ -827,6 +832,8 @@ function App({ username: _username }: AppProps) {
                       if (!open) setIsBriefingReview(false);
                     }}
                     isReview={isBriefingReview}
+                    // Reviewing from the dossier just re-shows the existing briefing, never a "NEW" tag.
+                    isNewChallenge={!isBriefingReview && isNewChallenge}
                     challengeTitle={challengeTitle}
                     challengeDescription={challengeDescription}
                     challengeIntro={challengeIntro}
