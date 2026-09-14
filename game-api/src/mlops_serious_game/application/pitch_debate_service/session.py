@@ -699,13 +699,30 @@ def commit_pitch(
         "stage": "DONE" if view.outcome != "VETO" else "COMMIT",
         "outcome": view.outcome,
     })
-    vetoing = next((r.stakeholder_id for r in view.reads if r.power == "high" and r.band == "red"), None)
-    event = GameEvent(
-        step="commit", kind="outcome", subject_id=vetoing,
-        cause=_OUTCOME_CAUSES.get(view.outcome, "outcome.pass"),
-        params={"st": _name(names, vetoing)} if vetoing else {},
-    )
-    return updated, [event]
+    events: list[GameEvent] = []
+    if view.outcome == "VETO":
+        vetoing = [
+            r.stakeholder_id for r in view.reads
+            if r.power == "high" and (r.boundary_violated or r.band == "red")
+        ]
+        if vetoing:
+            for st_id in vetoing:
+                events.append(GameEvent(
+                    step="commit", kind="outcome", subject_id=st_id,
+                    cause="outcome.veto", params={"st": _name(names, st_id)},
+                ))
+        else:
+            events.append(GameEvent(
+                step="commit", kind="outcome", subject_id=None,
+                cause="outcome.veto", params={"st": "the room"},
+            ))
+    else:
+        events.append(GameEvent(
+            step="commit", kind="outcome", subject_id=None,
+            cause=_OUTCOME_CAUSES.get(view.outcome, "outcome.pass"),
+            params={},
+        ))
+    return updated, events
 
 
 def veto_breaker(state: PitchState, escalation_points: int, vetoing_st_ids: list[str], names: Optional[dict[str, str]] = None) -> AnswerResult:

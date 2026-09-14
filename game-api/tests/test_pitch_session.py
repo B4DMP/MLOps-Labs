@@ -335,6 +335,52 @@ def test_concede_lets_the_opposing_position_win_at_a_price():
     assert {e.cause for e in events} == {"emotion.concede_win", "emotion.concede_lose", "outcome.conceded"}
 
 
+def test_commit_pitch_veto_by_violated_boundary_includes_st_param():
+    """A high-power stakeholder whose boundary is violated vetoes the card even if their buy-in
+    is green/amber. The commit event must capture their name in params['st'] so render() succeeds."""
+    from mlops_serious_game.domain.event_causes import EventCauseFactory
+
+    state = session.start_pitch(["requirements_reuben"]).model_copy(update={"stage": "OBJECT"})
+    read = session.StakeholderRead(
+        stakeholder_id="requirements_reuben",
+        power="high",
+        coverage=1.0,
+        loss=0.0,
+        fit=1.0,
+        emotions=0.5,
+        buy_in=0.8,
+        band="green",
+        boundary_violated=True,
+    )
+    view = session.CardView(outcome="VETO", reads=[read])
+    names = {"requirements_reuben": "Requirements Ryan"}
+
+    updated, events = session.commit_pitch(state, view, names=names)
+    assert updated.stage == "COMMIT"
+    assert updated.outcome == "VETO"
+    assert len(events) == 1
+    assert events[0].cause == "outcome.veto"
+    assert events[0].params == {"st": "Requirements Ryan"}
+    rendered = EventCauseFactory.render(events[0].cause, events[0].params)
+    assert rendered == "Requirements Ryan would not have it"
+
+
+def test_commit_pitch_pass_and_soft_pass():
+    state = session.start_pitch(["data_dave"]).model_copy(update={"stage": "OBJECT"})
+    view_pass = session.CardView(outcome="PASS", reads=[])
+    updated_pass, events_pass = session.commit_pitch(state, view_pass)
+    assert updated_pass.stage == "DONE"
+    assert updated_pass.outcome == "PASS"
+    assert events_pass[0].cause == "outcome.pass"
+
+    view_soft = session.CardView(outcome="SOFT_PASS", reads=[])
+    updated_soft, events_soft = session.commit_pitch(state, view_soft)
+    assert updated_soft.stage == "DONE"
+    assert updated_soft.outcome == "SOFT_PASS"
+    assert events_soft[0].cause == "outcome.soft_pass"
+
+
+
 # ---------- Reframe: Hit / Partial / Miss and the room listening (D48, plan 11) ----------
 
 def test_reframe_hit_clears_a_stance_objection_and_warms_the_room():
