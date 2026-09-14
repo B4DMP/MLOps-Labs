@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     POSTGRES_USER_DATA_TABLE: str = "user_data"
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
     POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
+    POSTGRES_GAME_EVENT_TABLE: str = "game_event"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
@@ -127,6 +128,9 @@ class Settings(BaseSettings):
 
     # --- Feature flags ---
     ENABLE_GRAPH_DEBUG: bool = False
+    # Sends the answer key (true tags, real archetypes, the artifacts behind each note) with the
+    # dossier. Never on in production: players could read it straight off the websocket.
+    ENABLE_DOSSIER_DEBUG: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")

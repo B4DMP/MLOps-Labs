@@ -524,6 +524,6 @@ def test_story_prefers_the_most_specific_fragment(config_dir):
     ).state
     assert story_for(graph, state, "data.validation").startswith("Great Expectations validates")
     # Targets outside generated content fall back to the generic line.
-    assert story_for(graph, state, "deploy.shadow") == "There is no Shadow Deployment yet."
-    assert story_for(graph, state, "e.cicd_shadow").startswith("Nothing moves from CI/CD Pipeline")
+    assert story_for(graph, state, "gov.iam") == "Access Control and IAM is run by people, by hand or from a script someone starts."
+    assert story_for(graph, state, "e.iam_gateway").startswith("Someone moves work from Access Control and IAM")
     assert ("data.validation", 3) not in missing_specific_fragments(graph)

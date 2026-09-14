@@ -224,7 +224,9 @@ async def test_pitch_debate_action_card_kickoff_and_refutation():
     # 4. Verify that correct_and_verify_intel_item updates the dossier description
     from mlops_serious_game.application.intel_handler import correct_and_verify_intel_item, retrieve_dossier_data, store_intel_item
     from unittest.mock import AsyncMock
+    from conftest import ensure_test_user
     test_user = f"user_{thread_id}"
+    ensure_test_user(test_user)
     mock_ws = AsyncMock()
     mock_ws.query_params = {"username": test_user}
 

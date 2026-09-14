@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.observe_perf",
+  "stage": "fragments",
+  "input_hash": "722aacfa6eaf6d83ba4f6f5b14f80bb3844a7db22b41a0646b5abdacb8f1767d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.observe_perf",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Logging and Observability to Model Performance Monitoring"
+  },
+  "output": {
+    "level_0": "Logs crash unpredictably, so nobody sees model drift until customers complain loudly.",
+    "level_1": "No connection exists between logging and monitoring, leaving performance blind spots unaddressed.",
+    "level_2": "Engineers manually copy log excerpts into monitoring dashboards weekly to spot degradation.",
+    "level_3": "Logs stream directly into the monitoring pipeline, triggering alerts on performance shifts.",
+    "level_4": "Governed data contracts ensure log formats match monitoring requirements for compliance audits."
+  }
+}

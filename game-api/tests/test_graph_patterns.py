@@ -152,6 +152,16 @@ def test_fallback_when_nothing_is_eligible(real):
     assert select_in_phase(p1, _ctx(real), played, "seed").template_id == "ch_fallback_1"
 
 
+def test_retired_fallback_is_never_dealt(real):
+    """A retired challenge is kept in config (for its data, and in case it's reinstated later)
+    but the scheduler must never deal it, fallback or not: a phase with nothing eligible and
+    only a retired fallback deals nothing rather than falling back to retired content."""
+    [p1, _] = _phases()
+    p1.challenges[0].retired = True
+    played = {"ch_needs_versioning", "ch_always"}
+    assert select_in_phase(p1, _ctx(real), played, "seed") is None
+
+
 def test_phase_quota_moves_play_to_the_next_phase_and_none_ends_the_game(real):
     phases = _phases()
     ctx = _ctx(real)

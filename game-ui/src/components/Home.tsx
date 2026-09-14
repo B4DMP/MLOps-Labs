@@ -1,4 +1,5 @@
 import { Icon } from "@iconify/react";
+import { motion } from "motion/react";
 import styles from "./Home.module.css";
 
 interface HomeProps {
@@ -10,7 +11,12 @@ export function Home({ onLogin, onRegister }: HomeProps) {
   return (
     <div className={styles.homeWrapper}>
       {/* Main Title & Play Menu Section */}
-      <div className={styles.contentContainer}>
+      <motion.div
+        className={styles.contentContainer}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
         <h1 className={styles.title}>
           <Icon icon="ph:flask-bold" className={styles.titleIcon} />
           <span>MLOps Labs</span>
@@ -37,10 +43,15 @@ export function Home({ onLogin, onRegister }: HomeProps) {
             <span>Resume Game with Username</span>
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Title Screen Footer Credits */}
-      <div className={styles.footerWrapper}>
+      <motion.div
+        className={styles.footerWrapper}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut", delay: 0.05 }}
+      >
         <div className={styles.creditsCard}>
           <div className="d-flex align-items-center justify-content-center gap-2 text-white-50 text-center small">
             <Icon
@@ -53,7 +64,7 @@ export function Home({ onLogin, onRegister }: HomeProps) {
             </span>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

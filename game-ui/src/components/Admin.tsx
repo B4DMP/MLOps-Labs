@@ -28,7 +28,7 @@ import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
 import { fetchAdminDashboard } from "../services/api/admin";
 
-interface Campaign {
+export interface Campaign {
   name: string;
   key: string;
   users: string[];
@@ -36,7 +36,7 @@ interface Campaign {
   use_questionnaire?: boolean;
 }
 
-interface Player {
+export interface Player {
   name: string;
   campaign_name: string;
   campaign_key?: string;
@@ -85,7 +85,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "graph_debug">("config");
 
   // Campaign management state
   const [campaignName, setCampaignName] = useState("");
@@ -475,14 +475,11 @@ export function Admin({
             </button>
             <button
               type="button"
-              className={`btn px-4 py-2 fw-bold ${
-                activeSubpage === "graph_debug"
-                  ? "btn-info text-dark shadow"
-                  : "btn-outline-light border-0"
-              }`}
+              className={`${styles.navTab} ${activeSubpage === "graph_debug" ? styles.navTabActive : ""}`}
               onClick={() => setActiveSubpage("graph_debug")}
             >
-              Graph Debug
+              <Icon icon="ph:graph-bold" />
+              <span>Graph Debug</span>
             </button>
           </div>
 
@@ -490,6 +487,7 @@ export function Admin({
             {activeSubpage === "config" && "Modify challenges, intel facts, and stakeholder configs"}
             {activeSubpage === "manager" && `Managing ${campaigns.length} campaigns and ${players.length} players`}
             {activeSubpage === "analysis" && "Research metrics and questionnaire evaluations"}
+            {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
           </div>
         </div>
 
@@ -1431,6 +1429,14 @@ export function Admin({
               )}
             </div>
           )}
+          {/* ======================================================== */}
+          {/* SUBPAGE 4: GRAPH DEBUG                                   */}
+          {/* ======================================================== */}
+          {activeSubpage === "graph_debug" && (
+            <div className={styles.cardSurface}>
+              <GraphDebug adminToken={adminToken} campaigns={campaigns} players={players} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -1514,15 +1520,6 @@ export function Admin({
         </div>
       )}
 
-        {/* SUBPAGE 4: GRAPH DEBUG */}
-        {activeSubpage === "graph_debug" && (
-          <div className="card shadow-lg p-4 bg-dark text-light border-secondary">
-            <h4 className="mb-3 text-info fw-bold">Graph Debug View</h4>
-            <GraphDebug adminToken={adminToken} />
-          </div>
-        )}
-
-      </div>
       {/* Delete All Players Confirmation Modal */}
       {showDeleteAllWarning && (
         <div

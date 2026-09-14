@@ -8,12 +8,18 @@ from mlops_serious_game.application.graph_service.pipeline import (
     SOFT_PASS,
     STALEMATE,
     VETO_BROKEN,
+    DeltaReport,
+    GrudgeReport,
+    LevelPair,
+    Propagation,
+    WorldEventDelta,
     owner_buyin_from_reads,
     run_simulation,
     simulate,
+    simulation_events,
 )
-from mlops_serious_game.domain.graph import GraphOp, GraphState
-from mlops_serious_game.domain.grudge import Grudge
+from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry
+from mlops_serious_game.domain.grudge import FiredGrudge, Grudge
 
 
 def _item(item_id: str, *ops):
@@ -297,7 +303,7 @@ class _FakeStore:
         self.append_calls = 0
 
     def load_state(self, username):
-        return SimpleNamespace(state=self._state)
+        return SimpleNamespace(state=self._state, knowledge=None)
 
     def has_batch(self, username, source_id):
         return any(r["source_id"] == source_id for r in self.rows)
@@ -353,3 +359,75 @@ def test_run_simulation_replay_returns_the_stored_report_without_recomputing(rea
     assert second.report.model_dump(mode="json") == first.report.model_dump(mode="json")
     assert second.ops == []
     assert second.pending_objections == []
+
+
+# ---------- the event log (plan 11, D51) ----------
+
+def _report(**kw) -> DeltaReport:
+    base = dict(outcome=PASS, system_health=LevelPair(before=80, after=80))
+    base.update(kw)
+    return DeltaReport(**base)
+
+
+def test_simulation_events_names_a_known_target_and_hides_an_unknown_one(real):
+    state = _start(real)
+    known = Knowledge(seen={"data.validation": SeenEntry(seq=99, nominal=3, effective=3)})
+    report = _report(world_events=[
+        WorldEventDelta(target="data.validation", before=1, after=3, reason="a world event"),
+        WorldEventDelta(target="model.registry", before=3, after=1, reason="a world event"),
+    ])
+    events = simulation_events(report, real, state, known)
+    by_target = {e.subject_id: e for e in events}
+    assert by_target["data.validation"].cause == "graph.moved"
+    assert by_target["data.validation"].params["name"] == real.component("data.validation").name
+    assert by_target["data.validation"].direction == "up"
+
+    unknown = [e for e in events if e.subject_id is None]
+    assert len(unknown) == 1
+    assert unknown[0].cause == "graph.moved_unknown"
+    assert unknown[0].direction == "down"
+    assert unknown[0].params["stage"]  # some stage name, never the target id
+
+
+def test_simulation_events_skips_unchanged_targets(real):
+    report = _report(world_events=[WorldEventDelta(target="data.validation", before=2, after=2, reason="")])
+    assert simulation_events(report, real, _start(real), None) == []
+
+
+def test_simulation_events_covers_propagation_metrics_and_grudges(real):
+    state = _start(real)
+    report = _report(
+        propagated=[Propagation(target="model.registry", effective=LevelPair(before=1, after=2), via="e.x")],
+        metric_deltas={"data": 4, "reliability": 0, "efficiency": -8},
+        grudges=GrudgeReport(
+            created=[Grudge(stakeholder_id="data_dave", reason="ignored")],
+            fired=[FiredGrudge(stakeholder_id="reliability_ruth", effect="degrade", weight=1, age=1)],
+        ),
+    )
+    events = simulation_events(report, real, state, None, names={"data_dave": "Data Dave", "reliability_ruth": "Reliability Ruth"})
+
+    metric_events = {e.subject_id: e for e in events if e.kind == "metric"}
+    assert metric_events["data"].direction == "up" and metric_events["data"].magnitude == "clear"
+    assert metric_events["efficiency"].direction == "down" and metric_events["efficiency"].magnitude == "large"
+    assert "reliability" not in metric_events  # zero delta is not logged
+
+    grudge_events = [e for e in events if e.kind == "grudge"]
+    written = next(e for e in grudge_events if e.cause == "grudge.written")
+    fired = next(e for e in grudge_events if e.cause == "grudge.fired")
+    assert written.params["st"] == "Data Dave"
+    assert fired.params["st"] == "Reliability Ruth" and fired.direction == "down"
+
+    propagation_events = [e for e in events if e.kind == "graph" and e.subject_id == "model.registry"]
+    assert propagation_events and propagation_events[0].direction == "up"
+
+
+def test_gate_event_names_the_pick_or_says_the_game_ends():
+    from mlops_serious_game.infrastructure.websocket.handlers.simulation_handler import _gate_event
+
+    ended = _gate_event(None)
+    assert ended.cause == "outcome.gate_end"
+
+    picked = _gate_event({"id": 5, "phase_id": 2, "name": "The Silent Export", "phase_name": "Data"})
+    assert picked.cause == "outcome.gate_next"
+    assert picked.params == {"phase": "Data", "challenge": "The Silent Export"}
+    assert picked.refs == {"challenge_id": 5, "phase_id": 2}

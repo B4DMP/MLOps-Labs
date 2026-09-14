@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.canary_ab",
+  "stage": "fragments",
+  "input_hash": "7357b967fc4639bd10bb0937730b498597472943de20d22bcd998f1ca314321e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.canary_ab",
+    "kind": "component",
+    "name": "Canary and A/B Testing",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Deployments fail randomly because traffic splitting logic is corrupted and untested.",
+    "level_1": "No mechanism exists to compare new models against current production versions.",
+    "level_2": "Engineers manually adjust traffic percentages in config files to test new models.",
+    "level_3": "CI pipelines automatically route a small traffic slice to new model candidates.",
+    "level_4": "Testing strategies are audited, with automated rollback triggered by predefined safety metrics."
+  }
+}

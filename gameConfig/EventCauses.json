@@ -1,0 +1,58 @@
+{
+  "_magnitude_bands": { "clear": 0.15, "large": 0.3 },
+
+  "emotion.reframe_hit": { "text": "warmer: you put it the way {st} thinks about it", "group": "emotion" },
+  "emotion.reframe_miss": { "text": "colder: that argument doesn't land with {st} - only Amend clears this now", "group": "emotion" },
+  "emotion.room_listening": { "text": "colder: you pitched it in terms that don't speak to {st}", "group": "emotion" },
+  "emotion.stonewall": { "text": "colder: {st} doesn't like being stonewalled", "group": "emotion" },
+  "emotion.stonewall_ally": { "text": "warmer: {st} appreciates you holding your ground", "group": "emotion" },
+  "emotion.addendum": { "text": "colder: a promise with nothing behind it doesn't sit well with {st}", "group": "emotion" },
+  "emotion.concede_correction": { "text": "colder: {st} noticed you had it wrong", "group": "emotion" },
+  "emotion.veto_breaker": { "text": "colder: overriding {st} leaves a mark", "group": "emotion" },
+  "emotion.concede_win": { "text": "warmer: {st} got their way", "group": "emotion" },
+  "emotion.concede_lose": { "text": "colder: {st}'s position was dropped", "group": "emotion" },
+
+  "patience.rebuild": { "text": "impatient: {st} sat through another rebuild", "group": "patience" },
+  "patience.sound_out": { "text": "impatient: {st} spent a moment weighing your draft", "group": "patience" },
+
+  "objection.sound_out_on_board": { "text": "on board: {st} would go along with this card as it stands", "group": "objection" },
+  "objection.sound_out_lukewarm": { "text": "lukewarm: {st} would go along, reluctantly", "group": "objection" },
+  "objection.sound_out_would_object": { "text": "would object: {st} would not let this card through as it stands", "group": "objection" },
+  "objection.sound_out_would_object_kind": { "text": "would object: {st} would raise a {kind} objection", "group": "objection" },
+
+  "tokens.spent": { "text": "spent on {card} with {st}", "group": "tokens" },
+  "card.turn_lost": { "text": "{n} turn(s) with {st} went unused when the conversation closed", "group": "card" },
+
+  "intel.revealed": { "text": "{st} let something slip: a new intel item filed", "group": "intel" },
+  "intel.inferred": { "text": "inferred: the read on {st} holds up under questioning", "group": "intel" },
+  "intel.refuted": { "text": "refuted: that wasn't it with {st} - retag and try again", "group": "intel" },
+  "intel.gist_heard": { "text": "the gist of it: {gist}", "group": "intel" },
+  "intel.one_on_one_hit": { "text": "{st} confirms: you understood both sides of it", "group": "intel" },
+  "emotion.refuted": { "text": "colder: {st} noticed the guess was wrong", "group": "emotion" },
+  "emotion.one_on_one_miss": { "text": "colder: {st} says that's not quite it", "group": "emotion" },
+
+  "archetype.matched": { "text": "confirmed: {st} responded the way that read predicts", "group": "archetype" },
+  "archetype.ruled_out": { "text": "ruled out: {st} did not react the way {archetype} predicts", "group": "archetype" },
+
+  "outcome.pass": { "text": "the room came around", "group": "outcome" },
+  "outcome.soft_pass": { "text": "the room went along with it, reluctantly", "group": "outcome" },
+  "outcome.veto": { "text": "{st} would not have it", "group": "outcome" },
+  "outcome.veto_breaker": { "text": "the card went through over {st}'s objection", "group": "outcome" },
+  "outcome.conceded": { "text": "you let {st} have it", "group": "outcome" },
+  "outcome.stalemate": { "text": "nobody moved, and the moment passed", "group": "outcome" },
+  "outcome.gate_next": { "text": "next up: {challenge}, in {phase}", "group": "outcome" },
+  "outcome.gate_end": { "text": "nothing left to deal - the game ends here", "group": "outcome" },
+
+  "graph.moved": { "text": "{name} moved", "group": "graph" },
+  "graph.moved_unknown": { "text": "something in {stage} got worse or better - you have not looked at it yet", "group": "graph" },
+  "metric.moved": { "text": "{metric} shifted", "group": "metric" },
+
+  "grudge.written": { "text": "{st} will remember this", "group": "grudge" },
+  "grudge.fired": { "text": "{st}'s grudge came due", "group": "grudge" },
+
+  "intel.artifact_filed": { "text": "an intel item was filed", "group": "intel" },
+  "archetype.tagged": { "text": "you tagged {st}'s profile", "group": "archetype" },
+  "intel.verified_confirmed": { "text": "confirmed: {st} said it themselves", "group": "intel" },
+  "intel.verified_corrected": { "text": "corrected: it wasn't what you filed it as", "group": "intel" },
+  "graph.facts_observed": { "text": "{n} fact(s) about the system came into view as you left", "group": "graph" }
+}

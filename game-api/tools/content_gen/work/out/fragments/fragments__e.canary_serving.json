@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.canary_serving",
+  "stage": "fragments",
+  "input_hash": "26cd8b981a8e3daa8e325f505956088b51806d8b19e4eaab20d5ac6f66da293b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.canary_serving",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Canary and A/B Testing to Model Serving Endpoint"
+  },
+  "output": {
+    "level_0": "The handover from testing to serving crashes, dropping all traffic.",
+    "level_1": "No defined path exists to move tested models to the serving endpoint.",
+    "level_2": "Engineers manually copy tested models to the endpoint, risking configuration errors.",
+    "level_3": "A pipeline automatically deploys tested models to the endpoint without human intervention.",
+    "level_4": "Automated deployment includes audit logs and policy checks before reaching the endpoint."
+  }
+}

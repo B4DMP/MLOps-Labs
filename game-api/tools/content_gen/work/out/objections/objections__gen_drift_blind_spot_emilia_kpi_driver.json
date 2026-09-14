@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_drift_blind_spot_emilia_kpi_driver",
+  "stage": "objections",
+  "input_hash": "a18bad273121033b58fd6d9fa1de76364332ed834851bcd5725180bfc4d95757",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_drift_blind_spot_emilia_kpi_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for a fully automated and governed drift monitoring system. The more automated the drift detection, the better the protection of business KPIs.",
+      "fact": "{efficiency_emilia} asked for a fully automated and governed drift monitoring system.",
+      "reading": "The more automated the drift detection, the better the protection of business KPIs.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "Your plan leaves too much manual work in the drift detection loop. I need full automation to protect our business KPIs, so please push harder on that front.",
+    "correction": "You are misreading my stance as a rejection of the current setup. I am specifically asking for the system to reach the governed state, not just automated."
+  }
+}

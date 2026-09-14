@@ -1,0 +1,25 @@
+{
+  "item_id": "fragments:req.acceptance_criteria",
+  "stage": "fragments",
+  "input_hash": "0e588c6cbfadf15dac692d7aa7249e544be912f128af543e2cedec34e5fb7afd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "req.acceptance_criteria",
+    "kind": "component",
+    "name": "Acceptance Criteria",
+    "levels": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Acceptance criteria contradict each other, causing rework and stakeholder disputes during every release cycle.",
+    "level_1": "No acceptance criteria exist, so the team ships features without defined success metrics or validation.",
+    "level_2": "Developers write acceptance criteria manually in tickets, leading to inconsistent coverage and frequent gaps.",
+    "level_3": null,
+    "level_4": "Governance policies enforce standardized acceptance criteria, with automated checks ensuring compliance before deployment."
+  }
+}

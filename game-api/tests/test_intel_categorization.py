@@ -89,7 +89,10 @@ async def test_retag_challenge_specific_stance_updates_description():
         target_req = all_reqs[0]
     challenge = PhaseFactory.get_challenge_by_id(target_req.challenge_id)
 
+    from conftest import ensure_test_user
+
     unique_user = f"test_retag_user_{uuid.uuid4()}"
+    ensure_test_user(unique_user)
     mock_ws = AsyncMock()
     mock_ws.query_params = {"username": unique_user}
 

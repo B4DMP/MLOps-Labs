@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.serving",
+  "stage": "fragments",
+  "input_hash": "4c71615802506714cf7a1334cc43c67253d029538187ae61067f08f9f9a7a57d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.serving",
+    "kind": "component",
+    "name": "Model Serving Endpoint",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The serving endpoint crashes whenever traffic spikes, forcing on-call engineers to restart it manually.",
+    "level_1": "No serving infrastructure exists, so predictions are only available in offline notebooks.",
+    "level_2": "Engineers deploy new model versions by hand, updating configuration files and restarting containers.",
+    "level_3": "CI/CD pipelines automatically deploy new model versions to the serving endpoint with zero downtime.",
+    "level_4": "Serving endpoints are governed by policy, enforcing model versioning, rollback, and audit logging."
+  }
+}

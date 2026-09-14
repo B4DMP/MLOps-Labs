@@ -1,0 +1,45 @@
+{
+  "item_id": "artifacts:gen_missing_kpi_baseline_contracts_manual_fact",
+  "stage": "artifacts",
+  "input_hash": "6b99a6f339fe0e1636cf756fa6c3f6f67ff645891701bc05169cbc87c5b89497",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_missing_kpi_baseline_contracts_manual_fact",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The data contracts are currently done by hand. That is simply how the data contracts process works today.",
+      "fact": "The data contracts are currently done by hand.",
+      "reading": "That is simply how the data contracts process works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": {
+        "target": "req.data_contracts",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Missing Baseline",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "{requirements_reuben} noted that the data contracts are currently managed through manual effort. He observed that engineers write the schema definitions directly in the repository without automated validation. The process involves a human reviewing each pull request to ensure field types match the expected structure. No automated tooling checks for breaking changes before the code is merged. {requirements_reuben} mentioned that this manual review takes approximately two hours per major release. The team relies on individual memory to keep the documentation aligned with the actual data flow. There is no central registry tracking the version history of these contracts. The work proceeds entirely on the honor system, with no system generated alerts when a contract is violated during the deployment process.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text exclusively describes the current manual processes, time costs, and lack of automated tooling without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

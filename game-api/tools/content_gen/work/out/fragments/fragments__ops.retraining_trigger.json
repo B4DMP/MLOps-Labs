@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:ops.retraining_trigger",
+  "stage": "fragments",
+  "input_hash": "435717b5c46700bc9973ac2e6600fca1bc5adb0cbbe90b059dfc32934b2a8fbc",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "ops.retraining_trigger",
+    "kind": "component",
+    "name": "Retraining Trigger",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "The retraining trigger crashes on every attempt, blocking all model updates.",
+    "level_1": "No retraining trigger exists, so models never update after initial deployment.",
+    "level_2": "Engineers manually check metrics and decide when to start retraining runs.",
+    "level_3": "The system automatically triggers retraining when performance drops below a threshold.",
+    "level_4": "Governed retraining triggers enforce audit logs and approval workflows before execution."
+  }
+}

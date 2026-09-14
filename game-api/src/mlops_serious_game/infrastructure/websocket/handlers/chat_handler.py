@@ -16,7 +16,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.requirement import StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
-from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session
+from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session, get_user_id
 from mlops_serious_game.application.intel_handler import (
     correct_and_verify_intel_item,
     correct_and_verify_convincer_archetype,
@@ -95,7 +95,7 @@ async def handle_chat_message(
             try:
                 with get_session() as db_session:
                     stmt = select(GameChallenge).where(
-                        GameChallenge.user_name == username
+                        GameChallenge.user_id == get_user_id(db_session, username)
                     ).order_by(GameChallenge.id.desc())
                     existing = db_session.scalars(stmt).first()
                     if existing:
@@ -154,7 +154,7 @@ async def handle_chat_message(
         if initial_start:
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_name == username,
+                    GameChallenge.user_id == get_user_id(db_session, username),
                     GameChallenge.emotion_values.isnot(None)
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
@@ -172,15 +172,16 @@ async def handle_chat_message(
         action_card = action_card_payload if (isinstance(action_card_payload, dict) and action_card_payload.get("title")) else None
         if not action_card:
             with get_session() as db_session:
+                chat_user_id = get_user_id(db_session, username)
                 stmt_ac = select(GameChallenge).where(
-                    GameChallenge.user_name == username,
+                    GameChallenge.user_id == chat_user_id,
                     GameChallenge.phase_index == phase_id,
                     GameChallenge.challenge_index == challenge_id
                 ).order_by(GameChallenge.id.desc())
                 existing_challenge = db_session.scalars(stmt_ac).first()
                 if not existing_challenge:
                     stmt_fallback = select(GameChallenge).where(
-                        GameChallenge.user_name == username
+                        GameChallenge.user_id == chat_user_id
                     ).order_by(GameChallenge.id.desc())
                     existing_challenge = db_session.scalars(stmt_fallback).first()
                 if existing_challenge and isinstance(existing_challenge.action_card, dict) and existing_challenge.action_card.get("title"):
@@ -192,7 +193,7 @@ async def handle_chat_message(
             existing_ids = {getattr(it, "id", None) for it in intel_items}
             with get_session() as db_session:
                 records = db_session.scalars(
-                    select(IntelItem).where(IntelItem.user_name == username)
+                    select(IntelItem).where(IntelItem.user_id == get_user_id(db_session, username))
                 ).all()
                 for record in records:
                     if isinstance(record.intel_item_data, dict):
@@ -250,7 +251,7 @@ async def handle_chat_message(
         if serialized_emotion_values:
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_name == username
+                    GameChallenge.user_id == get_user_id(db_session, username)
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:
@@ -328,7 +329,7 @@ async def handle_chat_message(
 
             with get_session() as db_session:
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_name == username
+                    GameChallenge.user_id == get_user_id(db_session, username)
                 ).order_by(GameChallenge.id.desc())
                 existing_rec = db_session.scalars(stmt).first()
                 if existing_rec and existing_rec.pitch_debate_messages:
@@ -353,7 +354,9 @@ async def handle_chat_message(
 
                     if cat_arch and cat_arch.lower().strip() == opt_arch_name.lower().strip():
                         if cat_arch.lower().strip() == real_arch.lower().strip():
-                            # Validated!
+                            # Validated! The pitch confirmed the tag, so the dossier may stamp it.
+                            if not st_entry.get("verified"):
+                                correct_and_verify_convincer_archetype(username, s_id)
                             verif = {
                                 "was_correct": True,
                                 "stakeholder_id": s_id,
@@ -378,7 +381,7 @@ async def handle_chat_message(
                             }
                             convincer_verifications.append(verif)
 
-        if any(not v.get("was_correct") for v in convincer_verifications):
+        if convincer_verifications:
             dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
             await manager.send_event(
                 websocket=websocket,

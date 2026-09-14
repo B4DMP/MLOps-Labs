@@ -11,15 +11,21 @@ import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type
 import { Icon } from "@iconify/react";
 
 import { StakeholderContext } from "./StakeholderProvider";
+import { PhasesContext } from "./PhaseProvider";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import { intelTagMeta, type IntelTag } from "../types/IntelTag";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
+import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo } from "./StakeholderDossier";
+import { faceForEmotionState } from "../utils/emotionFace";
 import styles from "./pitch_phase.module.css";
 import type { EngagementCard } from "../types/EngagementCard";
+import type { GatherOptionKind, GatherStatePayload } from "../types/Gather";
+import type { GameEventPayload } from "../types/GameEvent";
 import EngagementCardTargetModal from "./EngagementCardTargetModal";
+import EventLogModal from "./EventLogModal";
+import GatherConversationPanel from "./GatherConversationPanel";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import StakeholderInteractionArea, { type ChatMsg } from "./StakeholderInteractionArea";
 import GlossaryText from "./glossary/GlossaryText";
@@ -62,6 +68,46 @@ const toChains = (items: PitchItem[]): PitchChain[] => {
   });
 };
 
+/** Planned engagement cards from docs/plans/engagement-cards-v2.md (Temporary UI preview) */
+const PLANNED_ENGAGEMENT_CARDS = [
+  {
+    id: "eng_planned_how_to_convince",
+    title: "How to Convince",
+    icon: "ph:lightbulb-bold",
+    token_cost: 2,
+    description: "Test your pitch angle on 1 stakeholder to see how they like to be persuaded.",
+    targets: "1 to convince",
+    isPlanned: true as const,
+  },
+  {
+    id: "eng_planned_colleague_intel",
+    title: "Colleague Intel",
+    icon: "ph:chats-teardrop-bold",
+    token_cost: 2,
+    description: "Ask a colleague for the inside scoop on another stakeholder's priorities.",
+    targets: "Source + Subject",
+    isPlanned: true as const,
+  },
+  {
+    id: "eng_planned_objection_discussion",
+    title: "Objection Discussion",
+    icon: "ph:shield-warning-bold",
+    token_cost: 3,
+    description: "Sit down with a skeptic to smoke out their pushback before the pitch.",
+    targets: "1 skeptic",
+    isPlanned: true as const,
+  },
+];
+
+/** Actionable human descriptions for existing cards (overrides stale session data) */
+const CARD_DESCRIPTION_OVERRIDES: Record<string, string> = {
+  eng_0: "Confirm unverified rumors directly with the stakeholder.",
+  eng_1: "Private sit-down to dig deep into one person's stance.",
+  eng_2: "Ask what trade-offs, hard boundaries, or goals matter to them.",
+  eng_3: "Gauge room mood and project sentiment before picking individuals.",
+  eng_4: "Lightweight icebreaker to get a read on someone's stance.",
+};
+
 interface OptionSpec {
   option: OptionName;
   available: boolean;
@@ -94,6 +140,8 @@ interface BoundaryWarning {
   target?: string | null;
   checkable: boolean;
   violated: boolean;
+  target_name?: string | null;
+  line?: string | null;
 }
 
 interface StakeholderRead {
@@ -113,6 +161,8 @@ interface PitchStatePayload {
   card_item_ids: string[];
   main_archetype?: string | null;
   secondary_archetype?: string | null;
+  // The Opener (D48): one opening line per archetype the player has tagged for this room.
+  opener_archetypes?: string[];
   available_items: PitchItem[];
   card: PitchItem[];
   predictions: Prediction[];
@@ -127,30 +177,22 @@ interface PitchStatePayload {
   amendments_left: number;
   escalation_points: number;
   patience: Record<string, number>;
+  // Patience in words, not pips (D50): "full" (nothing shown), "impatient", or "at their limit".
+  patience_words?: Record<string, string>;
+  hardened_item_ids?: string[];
   outcome?: string | null;
   error?: string | null;
   applied?: Record<string, unknown>;
   stalemate?: boolean;
+  // Sound someone out (D50): set only on the response to a `pitch:sound_out` call.
+  sound_out?: { stakeholder_id: string; reply: string } | null;
 }
 
-/** The room wears its mood: the avatar face follows the stakeholder's emotion score. */
-const faceFor = (emotions: number): "serious" | "concerned" | "calm" | "smile" | "smileBig" => {
-  if (emotions < 0.25) return "serious";
-  if (emotions < 0.45) return "concerned";
-  if (emotions < 0.6) return "calm";
-  if (emotions < 0.8) return "smile";
-  return "smileBig";
+const SOUND_OUT_LABEL: Record<string, string> = {
+  on_board: "on board",
+  lukewarm: "lukewarm",
+  would_object: "would object",
 };
-
-interface StakeholderBuyInInfo {
-  threshold: number;
-  actionCardScore: number;
-  dialogueScore: number;
-  emotionScore: number;
-  total: number;
-  isPersuaded: boolean;
-  currentEmotion: number;
-}
 
 interface PitchPhaseProps {
   currentPhase: number;
@@ -274,7 +316,7 @@ export default function PitchPhase({
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
-    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string }
+    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string; emotional_state?: string }
   >;
 
   // ── pitch state ──────────────────────────────────────────────────────────
@@ -290,7 +332,23 @@ export default function PitchPhase({
   // Gathering is its own step: engagement cards and artifacts are the mechanic there,
   // not a button in a bar. Server side it is still PREPARE.
   const [localStage, setLocalStage] = useState<"GATHER" | "BUILD">("GATHER");
+  // The conversation history tab opens on its own. The event log has no tab of its own: it opens
+  // from the "Log" button in the dossier header, alongside System/Performance/Briefing, and can
+  // still split the rail's body with conversation history when both are open.
   const [chatOpen, setChatOpen] = useState(false);
+  const [eventsOpen, setEventsOpen] = useState(false);
+  // Clicking an event log row that names an intel item jumps the dossier to it (D51's refs, made
+  // clickable): a brief highlight, then it fades so it doesn't linger as stray UI state.
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jumpToIntelItem = (itemId: string) => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    setHighlightedIntelId(itemId);
+    highlightTimeoutRef.current = setTimeout(() => setHighlightedIntelId(null), 2500);
+  };
+  useEffect(() => () => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+  }, []);
   const seatRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [bubbleAt, setBubbleAt] = useState<{ x: number; y: number } | null>(null);
   const [framingOpen, setFramingOpen] = useState(false);
@@ -305,6 +363,12 @@ export default function PitchPhase({
   const [playingCard, setPlayingCard] = useState<EngagementCard | null>(null);
   const [verificationModal, setVerificationModal] = useState<IntelVerificationResultData | null>(null);
   const [isWaiting, setIsWaiting] = useState(false);
+  // Gather (D49): one open conversation per card play per target, keyed "card_id:stakeholder_id".
+  const [conversations, setConversations] = useState<Record<string, GatherStatePayload>>({});
+  // The event log (D51): every change, with a cause. `log:history` seeds it, `log:events` appends.
+  const [events, setEvents] = useState<GameEventPayload[]>([]);
+  // Sound someone out (D50): the last decided reply per stakeholder this challenge.
+  const [soundOutReplies, setSoundOutReplies] = useState<Record<string, string>>({});
 
   const cards = engagementCardsProp || [];
   const tokens = attentionTokensProp !== undefined ? attentionTokensProp : localTokens;
@@ -403,11 +467,51 @@ export default function PitchPhase({
           emotionScore: r.emotions,
           total: r.buy_in ?? (r.band === "green" ? 0.75 : r.band === "amber" ? 0.5 : 0.2),
           isPersuaded: r.band === "green",
-          currentEmotion: r.emotions,
+          currentEmotion: stakeholders[r.stakeholder_id]?.emotional_state || "neutral",
         },
       ])
     );
-  }, [state]);
+  }, [state, stakeholders]);
+
+  // Engagement cards only reach the stakeholders taking part in this phase: the pitch room.
+  const { phases } = useContext(PhasesContext);
+  const roomIds = useMemo(() => {
+    const fromPhase = phases[currentPhase]?.stakeholder_power_interest?.map((s) => s.stakeholder_id) || [];
+    if (fromPhase.length > 0) return fromPhase;
+    return (dossierData || []).filter((st) => !st.is_environment).map((st) => st.stakeholder_id);
+  }, [phases, currentPhase, dossierData]);
+
+  // Straight off the dossier's intel counter: a stakeholder is done once every pip is confirmed.
+  // Counts only, so a greyed-out target never says which tag is still out there.
+  const exhaustedStakeholderIds = useMemo(() => {
+    if (!dossierData || dossierData.length === 0) return [];
+    const openNotes = (id: string) => {
+      const entry = dossierData.find((st) => st.stakeholder_id === id);
+      if (!entry) return 0;
+      const items = entry.intel_items || [];
+      const unconfirmed = items.filter((i) => (i.intel_type || "").toLowerCase() !== "verified").length;
+      return unconfirmed + Math.max(0, (entry.intel_total ?? 0) - items.length);
+    };
+    return roomIds.filter((id) => openNotes(id) === 0);
+  }, [dossierData, roomIds]);
+
+  // What Verify Intel Item can target: every unconfirmed note in the dossier.
+  const unconfirmedNotes = useMemo(
+    () =>
+      (dossierData || []).flatMap((st) =>
+        (st.intel_items || [])
+          .filter((i) => (i.intel_type || "").toLowerCase() !== "verified")
+          .map((i) => ({
+            id: i.id,
+            intel_type: i.intel_type,
+            categorized_type: i.categorized_type,
+            description: i.description,
+            stakeholder_id: st.is_environment ? undefined : st.stakeholder_id,
+            stakeholder_name: st.is_environment ? undefined : st.name,
+          })),
+      ),
+    [dossierData],
+  );
 
   // cross-reference dossier to show verified/unconfirmed badge per item
   const verifiedIds = useMemo(() => {
@@ -438,11 +542,53 @@ export default function PitchPhase({
     if (payload.secondary_archetype) setSecondary(payload.secondary_archetype);
     setObjectionIndex(0);
     setAmendFor(null);
+    if (payload.sound_out) {
+      setSoundOutReplies((prev) => ({ ...prev, [payload.sound_out!.stakeholder_id]: payload.sound_out!.reply }));
+    }
   });
 
   useEffect(() => {
     emit("pitch:state", base);
+    emit("log:history", {});
   }, [emit, base]);
+
+  // ── the event log (D51) ──────────────────────────────────────────────────
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (payload) => {
+    setEvents(payload.events || []);
+  });
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (payload) => {
+    if (!payload.events?.length) return;
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.seq));
+      return [...prev, ...payload.events.filter((e) => !seen.has(e.seq))];
+    });
+  });
+
+  // The latest emotion/patience event per stakeholder: what a seat tag's cause comes from.
+  const latestEmotionEventByStakeholder = useMemo(() => {
+    const map: Record<string, GameEventPayload> = {};
+    events.forEach((e) => {
+      if (e.kind !== "emotion" || e.direction === "none" || !e.subject_id) return;
+      if (!map[e.subject_id] || e.seq > map[e.subject_id].seq) map[e.subject_id] = e;
+    });
+    return map;
+  }, [events]);
+  const latestPatienceEventByStakeholder = useMemo(() => {
+    const map: Record<string, GameEventPayload> = {};
+    events.forEach((e) => {
+      if (e.kind !== "patience" || !e.subject_id) return;
+      if (!map[e.subject_id] || e.seq > map[e.subject_id].seq) map[e.subject_id] = e;
+    });
+    return map;
+  }, [events]);
+
+  // ── gather:state (D49) ───────────────────────────────────────────────────
+  // One conversation per card play per target. A fresh pitch:state keeps the card builder's
+  // available intel and predictions in step with whatever the turn just revealed or inferred.
+  useWebSocketEvent<GatherStatePayload>("gather:state", (payload) => {
+    setConversations((prev) => ({ ...prev, [`${payload.card_id}:${payload.stakeholder_id}`]: payload }));
+    emit("pitch:state", base);
+  });
 
   // ── intel engagement events ───────────────────────────────────────────────
   useEffect(() => {
@@ -522,13 +668,12 @@ export default function PitchPhase({
     if (!playingCard) return;
     const nextTokens = tokens - playingCard.token_cost;
     setTokens(nextTokens);
-    setIsWaiting(true);
-    emit("intel:play_engagement_card", {
+    // D49: a stakeholder-target card buys a conversation (turns), not a one-shot LLM exchange.
+    emit("gather:open", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
       card_id: playingCard.id,
       stakeholder_ids: stakeholderIds,
-      attention_tokens: nextTokens,
     });
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);
@@ -537,6 +682,67 @@ export default function PitchPhase({
       ...prev,
       [playingCard.id]: [...(prev[playingCard.id] || []), ...stakeholderIds],
     }));
+    setPlayingCard(null);
+  };
+
+  // ── gather conversation handlers (D49) ────────────────────────────────────
+  const handleGatherAsk = (
+    conversation: GatherStatePayload,
+    option: GatherOptionKind,
+    extra?: { item_id?: string; archetype?: string },
+  ) => {
+    emit("gather:ask", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: conversation.card_id,
+      stakeholder_id: conversation.stakeholder_id,
+      option,
+      ...extra,
+    });
+  };
+
+  const handleGatherClose = (conversation: GatherStatePayload) => {
+    emit("gather:close", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      card_id: conversation.card_id,
+      stakeholder_id: conversation.stakeholder_id,
+    });
+  };
+
+  const dismissConversation = (key: string) => {
+    setConversations((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  // What the dossier already knows about a note - the same text a Test a hypothesis or a
+  // Trial Balloon menu item names, so the player recognises which note or profile is on offer.
+  const dossierItemDescriptions = useMemo(() => {
+    const map: Record<string, string> = {};
+    (dossierData || []).forEach((st) => {
+      (st.intel_items || []).forEach((item) => {
+        if (item.id) map[item.id] = item.description;
+      });
+    });
+    return map;
+  }, [dossierData]);
+  const itemLabel = (id: string) => dossierItemDescriptions[id] || "this note";
+  const archetypeLabel = (name: string) =>
+    convincerArchetypes[name]?.label || convincerArchetypes[name]?.name || name;
+
+  const handleConfirmPlayCardIntel = (item: { id: string }) => {
+    if (!playingCard) return;
+    const nextTokens = tokens - playingCard.token_cost;
+    setTokens(nextTokens);
+    emit("intel:verify_item", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      intel_item_id: item.id,
+      attention_tokens: nextTokens,
+    });
     setPlayingCard(null);
   };
 
@@ -577,6 +783,10 @@ export default function PitchPhase({
       secondary_archetype: secondary || null,
     });
 
+  // Sound someone out (D50): a stakeholder reacts to the draft card, at the cost of one point
+  // of their patience. Never opens the objection round.
+  const soundOut = (stakeholderId: string) => emit("pitch:sound_out", { ...base, stakeholder_id: stakeholderId });
+
   const startObjections = () => {
     saveCard();
     emit("pitch:object", base);
@@ -601,6 +811,8 @@ export default function PitchPhase({
   const predictionFor = (itemId: string) => state.predictions.find((p) => p.item_id === itemId);
   const violatedFor = (stId: string) =>
     state.boundary_warnings.filter((w) => w.violated && w.stakeholder_id === stId);
+  const crossed = state.boundary_warnings.filter((w) => w.checkable && w.violated);
+  const unchecked = state.boundary_warnings.filter((w) => !w.checkable);
 
   const chains = toChains(state.available_items);
   const chainById: Record<string, PitchChain> = Object.fromEntries(chains.map((c) => [c.newest.id, c]));
@@ -639,11 +851,9 @@ export default function PitchPhase({
     (grouped[chain.newest.type] ||= []).push(chain);
   });
 
-  const availableStakeholderList = Object.entries(stakeholders).map(([id, st]) => ({
-    id,
-    name: st.name || id,
-    avatar: st.avatar,
-  }));
+  const availableStakeholderList = roomIds
+    .filter((id) => stakeholders[id])
+    .map((id) => ({ id, name: stakeholders[id].name || id, avatar: stakeholders[id].avatar }));
 
   return (
     <div className="game-container">
@@ -665,12 +875,16 @@ export default function PitchPhase({
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
-                buyInInfoMap={buyInInfoMap as any}
+                buyInInfoMap={buyInInfoMap}
                 convincerArchetypes={convincerArchetypes}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 draggableIntel={state.stage === "PREPARE" && localStage === "BUILD"}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onLogToggle={() => setEventsOpen((v) => !v)}
+                isLogOpen={eventsOpen}
+                logCount={events.length}
+                highlightedIntelId={highlightedIntelId}
               />
             </div>
           </div>
@@ -706,6 +920,10 @@ export default function PitchPhase({
                   // The outer seats sit slightly lower, which reads as a table edge curving away.
                   const outer = seatIndex === 0 || seatIndex === state.reads.length - 1;
                   const moodShift = state.emotion_deltas?.[read.stakeholder_id] ?? 0;
+                  const moodEvent = latestEmotionEventByStakeholder[read.stakeholder_id];
+                  const moodUp = moodEvent ? moodEvent.direction === "up" : moodShift > 0;
+                  const patienceWord = state.patience_words?.[read.stakeholder_id];
+                  const patienceEvent = latestPatienceEventByStakeholder[read.stakeholder_id];
                   return (
                     <div
                       key={read.stakeholder_id}
@@ -724,20 +942,33 @@ export default function PitchPhase({
                             size={72}
                             isFramed={false}
                             isSpeaking={isSpeaking}
-                            emotion={faceFor(read.emotions)}
+                            emotion={faceForEmotionState(st?.emotional_state)}
                             play_blink_animation
                             stakeholderColor={stColor}
                             stakeholderId={read.stakeholder_id}
                             flip={seatIndex >= state.reads.length / 2}
                           />
                           <span className={styles.buyInDot} style={{ background: bandColor }} title={`buy-in: ${read.band}`} />
-                          {!!moodShift && (
+                          {(!!moodShift || moodEvent) && (
                             <span
-                              className={`${styles.moodShift} ${moodShift > 0 ? styles.moodUp : styles.moodDown}`}
-                              title={`How you answered has moved ${stakeholderName(read.stakeholder_id)} ${moodShift > 0 ? "your way" : "against you"} this round.`}
+                              className={`${styles.moodShift} ${moodUp ? styles.moodUp : styles.moodDown}`}
+                              // Seat tags show the latest cause per stakeholder (plan 11): the
+                              // pill itself stays a short word so it fits under the avatar, the
+                              // true cause ("colder: that argument doesn't speak to her") is the
+                              // tooltip - the same text the event log lists in full below.
+                              title={moodEvent ? moodEvent.text : `How you answered has moved ${stakeholderName(read.stakeholder_id)} ${moodShift > 0 ? "your way" : "against you"} this round.`}
                             >
-                              <Icon icon={moodShift > 0 ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
-                              {moodShift > 0 ? "warmer" : "colder"}
+                              <Icon icon={moodUp ? "ph:trend-up-bold" : "ph:trend-down-bold"} />
+                              {moodUp ? "warmer" : "colder"}
+                            </span>
+                          )}
+                          {patienceWord && patienceWord !== "full" && (
+                            <span
+                              className={`${styles.patienceTag} ${patienceWord === "at their limit" ? styles.patienceLimit : ""}`}
+                              title={patienceEvent ? patienceEvent.text : `${stakeholderName(read.stakeholder_id)} is ${patienceWord}.`}
+                            >
+                              <Icon icon="ph:hourglass-medium-bold" />
+                              {patienceWord}
                             </span>
                           )}
                           {read.boundary_violated && (
@@ -760,6 +991,32 @@ export default function PitchPhase({
                         </span>
                       </button>
 
+                      {state.stage === "PREPARE" && localStage === "BUILD" && (() => {
+                        const patienceLeft = state.patience[read.stakeholder_id] ?? 3;
+                        const disabled = patienceLeft <= 1;
+                        return (
+                          <button
+                            className={styles.soundOutBtn}
+                            disabled={disabled}
+                            onClick={() => soundOut(read.stakeholder_id)}
+                            title={
+                              disabled
+                                ? "They are at their last point - sounding them out risks nothing left to spend"
+                                : "Sound them out: how would they react to this draft? Costs one point of their patience."
+                            }
+                          >
+                            <Icon icon="ph:ear-bold" />
+                          </button>
+                        );
+                      })()}
+                      {soundOutReplies[read.stakeholder_id] && (
+                        <span
+                          className={`${styles.soundOutReply} ${styles[`soundOut_${soundOutReplies[read.stakeholder_id]}`] || ""}`}
+                          title="What they'd say if you committed this card right now."
+                        >
+                          {SOUND_OUT_LABEL[soundOutReplies[read.stakeholder_id]] || soundOutReplies[read.stakeholder_id]}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
@@ -843,14 +1100,29 @@ export default function PitchPhase({
                       </div>
                     </div>
 
+                    {/* Design Notice Banner */}
+                    <div className={styles.planNoticeBanner}>
+                      <Icon icon="ph:blueprint-bold" className={styles.planNoticeIcon} />
+                      <div className={styles.planNoticeText}>
+                        <strong>Planned Engagement Cards (In Design):</strong> Previewing upcoming cards from{" "}
+                        <code>docs/plans/engagement-cards-v2.md</code> (<em>How to Convince</em>, <em>Colleague Intel</em>, <em>Objection Discussion</em>).
+                      </div>
+                    </div>
+
                     <div className={styles.fan}>
                       {cards.map((card, i) => {
                         const exhausted =
                           (card.max_plays_per_phase === 1 || card.stakeholder_selection_amount === -1) &&
                           playedIds.includes(card.id);
                         const tooExpensive = tokens < card.token_cost;
-                        const off = exhausted || tooExpensive || isWaiting;
-                        const mid = (cards.length - 1) / 2;
+                        const targetedByCard = cardTargetedMap[card.id] || [];
+                        const noTargets =
+                          card.target_type === "intel"
+                            ? unconfirmedNotes.length === 0
+                            : roomIds.every((id) => exhaustedStakeholderIds.includes(id) || targetedByCard.includes(id));
+                        const off = exhausted || tooExpensive || noTargets || isWaiting;
+                        const totalCardsCount = cards.length + PLANNED_ENGAGEMENT_CARDS.length;
+                        const mid = (totalCardsCount - 1) / 2;
                         const targets =
                           card.target_type === "intel" ? "one intel item"
                             : card.stakeholder_selection_amount === -1 ? "the whole room"
@@ -860,12 +1132,16 @@ export default function PitchPhase({
                             key={card.id}
                             className={`${styles.fanCard} ${off ? styles.fanCardOff : ""}`}
                             style={{
-                              transform: `rotate(${(i - mid) * 3.2}deg) translateY(${Math.abs(i - mid) * 7}px)`,
+                              transform: `rotate(${(i - mid) * 2.8}deg) translateY(${Math.abs(i - mid) * 5}px)`,
                               zIndex: i + 1,
                             }}
                             onClick={() => !off && handleSelectEngagementCard(card)}
                             title={
                               exhausted ? "Already played this phase"
+                                : noTargets
+                                  ? card.target_type === "intel"
+                                    ? "Every note you hold is confirmed already"
+                                    : "Nobody here has anything left to tell you"
                                 : tooExpensive ? `Costs ${card.token_cost}, you have ${tokens}`
                                 : undefined
                             }
@@ -875,13 +1151,66 @@ export default function PitchPhase({
                             </span>
                             <Icon icon={card.icon} className={styles.fanIcon} />
                             <span className={styles.fanTitle}>{card.title}</span>
-                            <span className={styles.fanDesc}>{card.description}</span>
-                            <span className={styles.fanTarget}>{targets}</span>
+                            <span className={styles.fanDesc}>
+                              {CARD_DESCRIPTION_OVERRIDES[card.id] || card.description}
+                            </span>
+                            <div className={styles.fanFooter}>
+                              <span className={styles.fanTarget}>{targets}</span>
+                            </div>
                             {exhausted && <span className={styles.fanStamp}>played</span>}
                           </button>
                         );
                       })}
+
+                      {/* Planned Engagement Cards Placeholder Preview */}
+                      {PLANNED_ENGAGEMENT_CARDS.map((plannedCard, pIndex) => {
+                        const totalCardsCount = cards.length + PLANNED_ENGAGEMENT_CARDS.length;
+                        const mid = (totalCardsCount - 1) / 2;
+                        const i = cards.length + pIndex;
+                        return (
+                          <button
+                            key={plannedCard.id}
+                            type="button"
+                            className={`${styles.fanCard} ${styles.fanCardPlanned}`}
+                            style={{
+                              transform: `rotate(${(i - mid) * 2.8}deg) translateY(${Math.abs(i - mid) * 5}px)`,
+                              zIndex: i + 1,
+                            }}
+                            onClick={() => {}}
+                            title="Planned card from docs/plans/engagement-cards-v2.md (In Design - Coming Soon)"
+                          >
+                            <span className={styles.fanCost}>
+                              <Icon icon="ph:coins-fill" />{plannedCard.token_cost}
+                            </span>
+                            <Icon icon={plannedCard.icon} className={styles.fanIcon} />
+                            <span className={styles.fanTitle}>{plannedCard.title}</span>
+                            <span className={styles.fanDesc}>{plannedCard.description}</span>
+                            <div className={styles.fanFooter}>
+                              <span className={styles.fanStampPlanned}>Planned</span>
+                              <span className={styles.fanTarget}>{plannedCard.targets}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
+
+                    {Object.keys(conversations).length > 0 && (
+                      <div className={styles.gatherConversations}>
+                        {Object.entries(conversations).map(([key, conversation]) => (
+                          <GatherConversationPanel
+                            key={key}
+                            conversation={conversation}
+                            itemLabel={itemLabel}
+                            archetypeLabel={archetypeLabel}
+                            avatar={stakeholders[conversation.stakeholder_id]?.avatar}
+                            stakeholderColor={stakeholders[conversation.stakeholder_id]?.stakeholder_color}
+                            onAsk={(option, extra) => handleGatherAsk(conversation, option, extra)}
+                            onClose={() => handleGatherClose(conversation)}
+                            onDismiss={() => dismissConversation(key)}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -977,14 +1306,15 @@ export default function PitchPhase({
                       })}
                     </div>
 
-                    {/* Framing: one decision, folded away until it is being made. */}
+                    {/* Opener (D48): one opening line per archetype tagged for this room, plus
+                        "any other" for the rest. Folded away until it is being made. */}
                     <div className={styles.convincerSection}>
                       <button className={styles.convincerTitle} onClick={() => setFramingOpen((v) => !v)}>
                         <Icon icon="ph:broadcast-bold" className="me-1" />
-                        Framing
+                        Opener
                         {main
                           ? <span className={styles.framingPick}>{convincerArchetypes[main]?.label || convincerArchetypes[main]?.name || main}</span>
-                          : <span className={styles.framingNone}>none picked, worth a few points of buy-in</span>}
+                          : <span className={styles.framingNone}>any other - worth a few points of buy-in to name one</span>}
                         {secondary && (
                           <span className={styles.framingBackup}>
                             second audience: {convincerArchetypes[secondary]?.label || convincerArchetypes[secondary]?.name || secondary}
@@ -996,10 +1326,12 @@ export default function PitchPhase({
                       {framingOpen && (
                         <>
                           <span className={styles.builderHint}>
-                            Pick the one that matches how most of this room thinks. It is worth a few points of buy-in.
+                            How you open. Pick the line that matches a profile you have tagged for this room, or
+                            speak to nobody in particular.
                           </span>
                           <div className={styles.profileRow}>
-                            {Object.entries(convincerArchetypes).map(([key, prof]) => {
+                            {(state.opener_archetypes || []).map((key) => {
+                              const prof = convincerArchetypes[key] || {};
                               const isMain = main === key;
                               return (
                                 <button
@@ -1013,29 +1345,44 @@ export default function PitchPhase({
                                     {prof.label || prof.name || key}
                                     {isMain && <span className={styles.roleMain}>picked</span>}
                                   </span>
-                                  {prof.strategy && <span className={styles.profileStrategy}>{prof.strategy}</span>}
+                                  {prof.strategy && <span className={styles.profileStrategy}>"{prof.strategy}"</span>}
                                 </button>
                               );
                             })}
+                            <button
+                              className={`${styles.profileCard} ${!main ? styles.profileMain : ""}`}
+                              onClick={() => { setMain(""); setSecondary(""); setFramingOpen(false); }}
+                            >
+                              <span className={styles.profileName}>
+                                Any other
+                                {!main && <span className={styles.roleMain}>picked</span>}
+                              </span>
+                              <span className={styles.profileStrategy}>
+                                Something for everyone else in the room - no lean either way.
+                              </span>
+                            </button>
                           </div>
 
-                          {main && (
+                          {main && (state.opener_archetypes || []).filter((key) => key !== main).length > 0 && (
                             <div className={styles.backupRow}>
                               <span className={styles.backupLabel}>
                                 Second audience (optional): a hedge for anyone the main framing does not reach
                               </span>
                               <div className={styles.backupChips}>
-                                {Object.entries(convincerArchetypes)
-                                  .filter(([key]) => key !== main)
-                                  .map(([key, prof]) => (
-                                    <button
-                                      key={key}
-                                      className={`${styles.backupChip} ${secondary === key ? styles.backupChipOn : ""}`}
-                                      onClick={() => setSecondary(secondary === key ? "" : key)}
-                                    >
-                                      {prof.label || prof.name || key}
-                                    </button>
-                                  ))}
+                                {(state.opener_archetypes || [])
+                                  .filter((key) => key !== main)
+                                  .map((key) => {
+                                    const prof = convincerArchetypes[key] || {};
+                                    return (
+                                      <button
+                                        key={key}
+                                        className={`${styles.backupChip} ${secondary === key ? styles.backupChipOn : ""}`}
+                                        onClick={() => setSecondary(secondary === key ? "" : key)}
+                                      >
+                                        {prof.label || prof.name || key}
+                                      </button>
+                                    );
+                                  })}
                               </div>
                             </div>
                           )}
@@ -1044,28 +1391,51 @@ export default function PitchPhase({
                     </div>
 
                     {/* What the card would break, and who pays for it. */}
-                    {(state.boundary_warnings.some((w) => w.violated || !w.checkable) ||
+                    {(crossed.length > 0 || unchecked.length > 0 ||
                       Object.entries(state.uncompensated_losses).some(([, v]) => v > 0)) && (
                       <div className={styles.warnGroups}>
-                        {state.boundary_warnings.some((w) => w.violated || !w.checkable) && (
+                        {crossed.length > 0 && (
                           <details className={styles.warnBlock} open>
                             <summary className={styles.warnSummary}>
                               <Icon icon="ph:hand-palm-bold" className={styles.warnRed} />
                               Lines this card crosses
-                              <span className={styles.warnCount}>
-                                {state.boundary_warnings.filter((w) => w.violated).length}
-                              </span>
+                              <span className={styles.warnCount}>{crossed.length}</span>
                             </summary>
-                            {state.boundary_warnings.filter((w) => w.violated || !w.checkable).map((w) => (
+                            {crossed.map((w) => (
                               <div key={w.item_id} className={styles.warnRow}>
-                                <Icon icon={w.checkable ? "ph:hand-palm-bold" : "ph:question-bold"} className={w.checkable ? styles.warnRed : styles.warnMuted} />
-                                <span>
-                                  {w.checkable
-                                    ? `${stakeholderName(w.stakeholder_id)} will block this: it crosses their line on ${w.target}`
-                                    : `${stakeholderName(w.stakeholder_id)}: cannot tell, you have never looked at ${w.target}`}
+                                <Icon icon="ph:hand-palm-bold" className={styles.warnRed} />
+                                <span className={styles.warnText}>
+                                  <span>
+                                    <strong>{stakeholderName(w.stakeholder_id)} will block this card.</strong>{" "}
+                                    It crosses their line on {w.target_name || w.target}.
+                                  </span>
+                                  {w.line && <span className={styles.warnLine}>{w.line}</span>}
                                 </span>
                               </div>
                             ))}
+                          </details>
+                        )}
+
+                        {unchecked.length > 0 && (
+                          <details className={styles.warnBlock}>
+                            <summary className={styles.warnSummary}>
+                              <Icon icon="ph:question-bold" className={styles.warnMuted} />
+                              Lines you can't check
+                              <span className={styles.warnCount}>{unchecked.length}</span>
+                            </summary>
+                            {unchecked.map((w) => (
+                              <div key={w.item_id} className={styles.warnRow}>
+                                <Icon icon="ph:question-bold" className={styles.warnMuted} />
+                                <span className={styles.warnText}>
+                                  {stakeholderName(w.stakeholder_id)} has a line on {w.target_name || w.target}, and
+                                  you have no reading of it, so this card might cross it.
+                                  {w.line && <span className={styles.warnLine}>{w.line}</span>}
+                                </span>
+                              </div>
+                            ))}
+                            <div className={styles.warnFoot}>
+                              Facts about a part of the system, or an action card played on it, show you where it stands.
+                            </div>
                           </details>
                         )}
 
@@ -1309,7 +1679,11 @@ export default function PitchPhase({
                 )}
               </div>
               <aside className={`${styles.chatSide} ${chatOpen ? styles.chatSideOpen : ""}`}>
-                <button className={styles.chatTab} onClick={() => setChatOpen((v) => !v)} title="The room's conversation">
+                <button
+                  className={styles.chatTab}
+                  onClick={() => setChatOpen((v) => !v)}
+                  title="The room's conversation"
+                >
                   <Icon icon={chatOpen ? "ph:caret-right-bold" : "ph:chat-circle-text-bold"} />
                   <span className={styles.chatTabLabel}>Conversation history</span>
                   {speaking && <span className={styles.chatTalking} title="Someone is talking" />}
@@ -1546,10 +1920,11 @@ export default function PitchPhase({
           stakeholders={stakeholders as any}
           availableStakeholderList={availableStakeholderList as any}
           isStakeholderActive={() => true}
+          exhaustedStakeholderIds={exhaustedStakeholderIds}
           cardTargetedStakeholdersMap={cardTargetedMap}
-          intelItems={[]}
+          intelItems={unconfirmedNotes}
           onConfirmStakeholders={handleConfirmPlayCardStakeholders}
-          onConfirmIntel={() => {}}
+          onConfirmIntel={handleConfirmPlayCardIntel}
           getStakeholderColor={(st: any) => st?.stakeholder_color || "#38bdf8"}
           getTagBadgeColor={() => "bg-secondary"}
         />
@@ -1558,6 +1933,12 @@ export default function PitchPhase({
         isOpen={Boolean(verificationModal)}
         onClose={() => setVerificationModal(null)}
         resultData={verificationModal}
+      />
+      <EventLogModal
+        isVisible={eventsOpen}
+        onClose={() => setEventsOpen(false)}
+        events={events}
+        onItemClick={jumpToIntelItem}
       />
     </div>
   );

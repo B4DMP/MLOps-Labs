@@ -83,6 +83,26 @@ def test_a_pure_boundary_with_no_suggested_still_gets_a_fog_target_from_holds(re
     assert (w.target, w.checkable, w.violated) == ("data.validation", False, False)
 
 
+def test_the_builder_only_names_boundaries_the_player_holds_and_filed_as_boundaries(real):
+    """A line the player never found, or filed as something else, must not be revealed by the
+    builder's warnings. The outcome still counts it; only the screen stays quiet."""
+    state = GraphState.from_config(real)
+    holds = {"component": "data.validation", "op": "gte", "level": 3, "on": "nominal"}
+    found = _item("b1", "reliability_ruth", "boundary", holds=holds)
+    unfound = _item("b2", "data_dave", "boundary", holds=holds)
+    misfiled = _item("b3", "reliability_ruth", "boundary", categorized_type="driver", holds=holds)
+    room = ["reliability_ruth", "data_dave"]
+
+    warnings = session.boundary_checks(real, state, [found, unfound, misfiled], [], room)
+    assert len(warnings) == 3  # ground truth is untouched
+
+    shown = session.player_boundary_warnings(real, warnings, held=[found, misfiled])
+
+    assert [w.item_id for w in shown] == ["b1"]
+    assert shown[0].target_name == real.component("data.validation").name
+    assert shown[0].line == "desc:b1"
+
+
 # ---------- objections ----------
 
 def test_objections_fire_for_uncovered_drivers_and_violated_boundaries(real):
@@ -272,7 +292,8 @@ def test_the_addendum_needs_an_escalation_point():
 def test_rebuild_costs_the_room_patience_and_reopens_the_card():
     room = ["data_dave", "reliability_ruth"]
     state = session.open_objection_round(session.start_pitch(room), [_objection()])
-    rebuilt, _ = session.rebuild(state, room)
+    rebuilt, _, events = session.rebuild(state, room)
+    assert [e.cause for e in events] == ["patience.rebuild", "patience.rebuild"]
 
     assert rebuilt.stage == "PREPARE" and rebuilt.objections == []
     assert set(rebuilt.patience.values()) == {session.DEFAULT_PATIENCE - 1}
@@ -307,10 +328,205 @@ def test_veto_breaker_pushes_the_card_through_at_a_price():
 def test_concede_lets_the_opposing_position_win_at_a_price():
     """D41 'Let them have it': the winning side gains, whoever's card was dropped loses, no cost paid."""
     state = session.start_pitch(["data_dave", "reliability_ruth"]).model_copy(update={"outcome": "VETO"})
-    updated = session.concede_pitch(state, winning_st_id="reliability_ruth", losing_st_ids=["data_dave"])
+    updated, events = session.concede_pitch(state, winning_st_id="reliability_ruth", losing_st_ids=["data_dave"])
     assert updated.stage == "DONE" and updated.outcome == "CONCEDED"
     assert updated.emotion_deltas["reliability_ruth"] == session.EMOTION_CONCEDE_WIN
     assert updated.emotion_deltas["data_dave"] == session.EMOTION_CONCEDE_LOSE
+    assert {e.cause for e in events} == {"emotion.concede_win", "emotion.concede_lose", "outcome.conceded"}
+
+
+def test_commit_pitch_veto_by_violated_boundary_includes_st_param():
+    """A high-power stakeholder whose boundary is violated vetoes the card even if their buy-in
+    is green/amber. The commit event must capture their name in params['st'] so render() succeeds."""
+    from mlops_serious_game.domain.event_causes import EventCauseFactory
+
+    state = session.start_pitch(["requirements_reuben"]).model_copy(update={"stage": "OBJECT"})
+    read = session.StakeholderRead(
+        stakeholder_id="requirements_reuben",
+        power="high",
+        coverage=1.0,
+        loss=0.0,
+        fit=1.0,
+        emotions=0.5,
+        buy_in=0.8,
+        band="green",
+        boundary_violated=True,
+    )
+    view = session.CardView(outcome="VETO", reads=[read])
+    names = {"requirements_reuben": "Requirements Ryan"}
+
+    updated, events = session.commit_pitch(state, view, names=names)
+    assert updated.stage == "COMMIT"
+    assert updated.outcome == "VETO"
+    assert len(events) == 1
+    assert events[0].cause == "outcome.veto"
+    assert events[0].params == {"st": "Requirements Ryan"}
+    rendered = EventCauseFactory.render(events[0].cause, events[0].params)
+    assert rendered == "Requirements Ryan would not have it"
+
+
+def test_commit_pitch_pass_and_soft_pass():
+    state = session.start_pitch(["data_dave"]).model_copy(update={"stage": "OBJECT"})
+    view_pass = session.CardView(outcome="PASS", reads=[])
+    updated_pass, events_pass = session.commit_pitch(state, view_pass)
+    assert updated_pass.stage == "DONE"
+    assert updated_pass.outcome == "PASS"
+    assert events_pass[0].cause == "outcome.pass"
+
+    view_soft = session.CardView(outcome="SOFT_PASS", reads=[])
+    updated_soft, events_soft = session.commit_pitch(state, view_soft)
+    assert updated_soft.stage == "DONE"
+    assert updated_soft.outcome == "SOFT_PASS"
+    assert events_soft[0].cause == "outcome.soft_pass"
+
+
+
+# ---------- Reframe: Hit / Partial / Miss and the room listening (D48, plan 11) ----------
+
+def test_reframe_hit_clears_a_stance_objection_and_warms_the_room():
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection("stance")])
+    close = _arch(2, 2, 2)
+    reframe = session.ReframeContext(chosen=close, stakeholder_archetype=close, room=[])
+
+    res = session.answer_objection(state, state.objections[0].id, "reframe", 3, {"reframe"}, reframe=reframe)
+
+    assert res.reframe_result == "hit"
+    assert res.cleared is True
+    assert res.state.emotion_deltas["data_dave"] > 0
+    assert res.state.hardened_item_ids == []
+    assert [e.cause for e in res.events] == ["emotion.reframe_hit"]
+
+
+def test_reframe_miss_hardens_the_item_so_only_amend_clears_it_next_time():
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection("stance", item_id="d1")])
+    far = _arch(0, 0, 0)
+    reframe = session.ReframeContext(chosen=_arch(5, 5, 5), stakeholder_archetype=far, room=[])
+
+    res = session.answer_objection(state, state.objections[0].id, "reframe", 3, {"reframe"}, reframe=reframe)
+
+    assert res.reframe_result == "miss"
+    assert res.cleared is False
+    assert res.state.emotion_deltas["data_dave"] < 0
+    assert res.state.hardened_item_ids == ["d1"]
+    assert [e.cause for e in res.events] == ["emotion.reframe_miss"]
+
+    # Hardened: even with a perfect archetype next time, Reframe is no longer on the menu.
+    reopened = session.open_objection_round(res.state, [_objection("stance", item_id="d1")])
+    opts = {
+        o.option: o for o in session.options_for(
+            reopened.objections[0], [], set(), 3, 3, frozenset(reopened.hardened_item_ids)
+        )
+    }
+    assert opts["reframe"].available is False
+
+
+def test_reframe_partial_clears_stance_with_no_emotion_change():
+    # distance = (2+2+2)/15 = 0.4 -> fit = 0.6, inside [reframe_partial=0.4, reframe_hit=0.7).
+    state = session.open_objection_round(session.start_pitch(["data_dave"]), [_objection("stance")])
+    reframe = session.ReframeContext(chosen=_arch(2, 2, 2), stakeholder_archetype=_arch(4, 4, 4), room=[])
+
+    res = session.answer_objection(state, state.objections[0].id, "reframe", 3, {"reframe"}, reframe=reframe)
+
+    assert res.reframe_result == "partial"
+    assert res.cleared is True
+    assert res.state.emotion_deltas == {}
+    assert res.events == []
+
+
+def test_reframe_room_listening_turns_other_high_power_seats_colder():
+    """Q37: a Reframe moves emotion by hit/partial/miss on every objection kind, and the room's
+    other high-power stakeholders react to the framing itself, even on a boundary objection."""
+    state = session.open_objection_round(session.start_pitch(["data_dave", "reliability_ruth"]), [_objection("boundary")])
+    chosen = _arch(5, 5, 5)
+    far = _arch(0, 0, 0)
+    reframe = session.ReframeContext(
+        chosen=chosen, stakeholder_archetype=chosen,
+        room=[("data_dave", "high", chosen), ("reliability_ruth", "high", far)],
+    )
+
+    res = session.answer_objection(state, state.objections[0].id, "reframe", 3, {"reframe"}, reframe=reframe)
+
+    assert res.cleared is False  # a boundary objection never clears via Reframe
+    assert res.reframe_result == "hit"
+    assert res.state.emotion_deltas["data_dave"] > 0
+    assert res.state.emotion_deltas["reliability_ruth"] < 0
+    causes = {e.cause for e in res.events}
+    assert causes == {"emotion.reframe_hit", "emotion.room_listening"}
+
+
+def test_opener_archetypes_dedupes_the_players_own_guesses_in_room_order():
+    assert session.opener_archetypes({}) == []
+    assert session.opener_archetypes({
+        "data_dave": "analyst", "reliability_ruth": "skeptic", "model_monica": "analyst",
+    }) == ["analyst", "skeptic"]
+    # A stakeholder with no guess yet just contributes nothing.
+    assert session.opener_archetypes({"data_dave": "analyst", "reliability_ruth": None}) == ["analyst"]
+
+
+def test_sound_out_available_only_above_the_last_point():
+    assert session.sound_out_available(3) is True
+    assert session.sound_out_available(2) is True
+    assert session.sound_out_available(1) is False
+    assert session.sound_out_available(0) is False
+
+
+def test_sound_out_reply_reads_off_band_and_boundary():
+    green = session.StakeholderRead(
+        stakeholder_id="d1", power="high", coverage=1, loss=0, fit=1, emotions=1, buy_in=0.9, band="green",
+    )
+    amber = green.model_copy(update={"band": "amber", "buy_in": 0.5})
+    red = green.model_copy(update={"band": "red", "buy_in": 0.1})
+    violated = green.model_copy(update={"boundary_violated": True})
+
+    assert session.sound_out_reply(green) == "on_board"
+    assert session.sound_out_reply(amber) == "lukewarm"
+    assert session.sound_out_reply(red) == "would_object"
+    assert session.sound_out_reply(violated) == "would_object"
+
+
+def test_sound_out_spends_one_patience_and_logs_both_the_cost_and_the_reply():
+    state = session.start_pitch(["data_dave"])
+    read = session.StakeholderRead(
+        stakeholder_id="data_dave", power="high", coverage=0.2, loss=0, fit=0.5, emotions=0.5,
+        buy_in=0.2, band="red",
+    )
+    updated, reply, events = session.sound_out(state, "data_dave", read, objection_kind="stance", names={"data_dave": "Data Dave"})
+
+    assert reply == "would_object"
+    assert updated.patience["data_dave"] == session.DEFAULT_PATIENCE - 1
+    assert [e.cause for e in events] == ["patience.sound_out", "objection.sound_out_would_object_kind"]
+    assert events[1].params == {"st": "Data Dave", "kind": "stance"}
+
+
+def test_sound_out_causes_all_render():
+    """The dict-keyed cause lookup in `session.sound_out` isn't caught by the `cause="..."`
+    literal scan `missing_causes` runs (test_event_log.py), so render each one directly here."""
+    from mlops_serious_game.domain.event_causes import EventCauseFactory
+
+    assert EventCauseFactory.render("patience.sound_out", {"st": "Data Dave"})
+    assert EventCauseFactory.render("objection.sound_out_on_board", {"st": "Data Dave"})
+    assert EventCauseFactory.render("objection.sound_out_lukewarm", {"st": "Data Dave"})
+    assert EventCauseFactory.render("objection.sound_out_would_object", {"st": "Data Dave"})
+    assert EventCauseFactory.render("objection.sound_out_would_object_kind", {"st": "Data Dave", "kind": "stance"})
+
+
+def test_sound_out_never_drops_patience_below_zero():
+    state = session.start_pitch(["data_dave"]).model_copy(update={"patience": {"data_dave": 0}})
+    read = session.StakeholderRead(
+        stakeholder_id="data_dave", power="high", coverage=1, loss=0, fit=1, emotions=1, buy_in=0.9, band="green",
+    )
+    updated, reply, _ = session.sound_out(state, "data_dave", read)
+    assert updated.patience["data_dave"] == 0
+    assert reply == "on_board"
+
+
+def test_default_patience_is_three():
+    assert session.DEFAULT_PATIENCE == 3
+    state = session.start_pitch(["data_dave"])
+    assert state.patience["data_dave"] == 3
+    assert state.patience_word("data_dave") == "full"
+    assert state.model_copy(update={"patience": {"data_dave": 1}}).patience_word("data_dave") == "impatient"
+    assert state.model_copy(update={"patience": {"data_dave": 0}}).patience_word("data_dave") == "at their limit"
 
 
 def test_a_rebuild_has_to_change_two_items(real):

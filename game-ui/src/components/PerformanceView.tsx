@@ -2,6 +2,8 @@ import { useContext, useState, useEffect, useCallback, useLayoutEffect, useRef }
 import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { MetricsContext } from "./MetricProvider";
+import HeaderModal from "./HeaderModal";
+import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,30 +104,15 @@ function statusColor(status?: string): string {
   return "#6c757d";
 }
 
-/** The player never sees the number, only where it sits. */
-function healthBucket(value?: number): "healthy" | "strained" | "failing" | "unknown" {
-  if (value === undefined) return "unknown";
-  if (value > 75) return "healthy";
-  if (value > 45) return "strained";
-  return "failing";
-}
-
-const BUCKET_WORD: Record<string, string> = {
-  healthy: "holding up",
-  strained: "strained",
-  failing: "failing",
-  unknown: "unclear",
-};
-
 function healthText(stage: StageData): string {
   if (stage.locked) return "not there yet";
   // Fog widens the band the player can infer. Show where its middle sits, as one word:
   // a range reads as a bug, and the exact number is never the player's to see.
   if (stage.health_band) {
     const [lo, hi] = stage.health_band;
-    return BUCKET_WORD[healthBucket((lo + hi) / 2)];
+    return HEALTH_BUCKET_WORD[healthBucket((lo + hi) / 2)];
   }
-  return BUCKET_WORD[healthBucket(stage.health)];
+  return HEALTH_BUCKET_WORD[healthBucket(stage.health)];
 }
 
 // Level pips: 5 circles (0 = broken/red, 1 = absent/grey, 2-4 = filled)
@@ -798,7 +785,8 @@ function PerformanceView({ currentPhase, isVisible, onToggle }: PerformanceViewP
     width: 0,
   });
 
-  // Escape closes the strip. Without it the overlay sits on top of the button that opened it.
+  // Own Escape handling instead of HeaderModal's default: the first Escape should back out of
+  // a drill-down stage, and only a second one should close the whole panel.
   useEffect(() => {
     if (!isVisible) return;
     const onKey = (e: KeyboardEvent) => {
@@ -856,42 +844,13 @@ function PerformanceView({ currentPhase, isVisible, onToggle }: PerformanceViewP
   return (
     <>
       <style>{PIPELINE_ANIM}</style>
-      {/* Strip */}
-      {isVisible && (
-        <div
-          onClick={onToggle}
-          style={{ position: "fixed", inset: 0, zIndex: 1039, background: "rgba(0, 0, 0, 0.35)" }}
-          aria-hidden
-        />
-      )}
-      {isVisible && (
-        <div
-          style={{
-            position: "fixed",
-            top: 12,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "min(1040px, 94vw)",
-            zIndex: 1040,
-            background: "rgba(9, 11, 20, 0.96)",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
-            borderRadius: 14,
-            boxShadow: "0 18px 45px rgba(0, 0, 0, 0.55)",
-            padding: "10px 18px 12px",
-            maxHeight: "88vh",
-            overflowY: "auto",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={onToggle}
-            title="Close performance (Esc)"
-            aria-label="Close performance"
-            style={{ position: "absolute", top: 8, right: 12, zIndex: 1 }}
-          />
-
+      <HeaderModal
+        isVisible={isVisible}
+        onClose={onToggle}
+        width="min(1040px, 94vw)"
+        closeLabel="performance"
+        closeOnEscape={false}
+      >
           <div className="d-flex align-items-center gap-2 mb-2" style={{ paddingRight: 28 }}>
             <Icon icon="ph:gauge-bold" style={{ color: "#7dd3fc", fontSize: "1.15rem" }} />
             <span style={{ color: "#fff", fontWeight: 700, fontSize: "0.95rem", letterSpacing: "0.02em" }}>
@@ -1052,7 +1011,7 @@ function PerformanceView({ currentPhase, isVisible, onToggle }: PerformanceViewP
                       marginTop: 2,
                     }}
                   >
-                    The system as a whole: {BUCKET_WORD[healthBucket(graphState.system_health)]}
+                    The system as a whole: {HEALTH_BUCKET_WORD[healthBucket(graphState.system_health)]}
                   </div>
                 )}
 
@@ -1092,9 +1051,7 @@ function PerformanceView({ currentPhase, isVisible, onToggle }: PerformanceViewP
               onClose={() => setSelectedStage(null)}
             />
           )}
-        </div>
-      )}
-
+      </HeaderModal>
     </>
   );
 }

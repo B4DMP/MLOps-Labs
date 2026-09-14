@@ -1,0 +1,919 @@
+{
+  "item_id": "items:ch_gateway_security_gap",
+  "stage": "items",
+  "input_hash": "db8a6b50442adae11fe6a03b87166be8379338764f23eea037289aa79201075e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 4,
+      "template_id": "ch_gateway_security_gap",
+      "name": "Exposed Model Endpoint",
+      "description": "A security audit revealed that the API gateway lacks proper authentication controls, exposing model endpoints to unauthorized access. #automation_alex# argues for keeping the gateway in a manual state to avoid disrupting the current deployment pipeline, while #requirements_reuben# insists on a fully governed state to ensure compliance and security.",
+      "roundIntroduction": "The security team flagged a critical vulnerability in the API gateway configuration. The current setup allows unauthenticated requests to reach the model serving endpoints.",
+      "metric_changes": {},
+      "attention_tokens": 8,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "deploy.api_gateway",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "edge": "e.iam_gateway",
+            "op": "eq",
+            "level": 2
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.api_gateway",
+          "value": 0,
+          "reason": "The gateway crashed during a security patch attempt"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.canary_ab",
+          "value": 0,
+          "reason": "The team paused canary testing to focus on the gateway crisis"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "deploy.api_gateway",
+        "positions": [
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 2
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "deploy"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "deploy",
+      "components": [
+        {
+          "id": "deploy.cicd",
+          "name": "CI/CD Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "jenkins",
+              "gitlab_ci",
+              "github_actions"
+            ]
+          }
+        },
+        {
+          "id": "deploy.serving",
+          "name": "Model Serving Endpoint",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "hosting": [
+              "none",
+              "on_prem",
+              "private_cloud",
+              "public_cloud"
+            ],
+            "tool": [
+              "none",
+              "fastapi",
+              "seldon",
+              "kserve",
+              "sagemaker"
+            ]
+          }
+        },
+        {
+          "id": "deploy.canary_ab",
+          "name": "Canary and A/B Testing",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.shadow",
+          "name": "Shadow Deployment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.containerization",
+          "name": "Containerization",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker",
+              "podman"
+            ]
+          }
+        },
+        {
+          "id": "deploy.orchestration",
+          "name": "Orchestration",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker_compose",
+              "nomad",
+              "kubernetes"
+            ]
+          }
+        },
+        {
+          "id": "deploy.api_gateway",
+          "name": "API Gateway",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_container",
+          "from": "deploy.cicd",
+          "to": "deploy.containerization",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.container_orch",
+          "from": "deploy.containerization",
+          "to": "deploy.orchestration",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.orch_serving",
+          "from": "deploy.orchestration",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_gateway",
+          "from": "deploy.serving",
+          "to": "deploy.api_gateway",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_canary",
+          "from": "deploy.cicd",
+          "to": "deploy.canary_ab",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.canary_serving",
+          "from": "deploy.canary_ab",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_shadow",
+          "from": "deploy.cicd",
+          "to": "deploy.shadow",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_observe",
+          "from": "deploy.serving",
+          "to": "ops.observability",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.rollback_serving",
+          "from": "ops.rollback",
+          "to": "deploy.serving",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.iam_gateway",
+          "from": "gov.iam",
+          "to": "deploy.api_gateway",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cost_serving",
+          "from": "gov.cost_monitoring",
+          "to": "deploy.serving",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.iac_orch",
+          "from": "gov.iac",
+          "to": "deploy.orchestration",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "endpoint:prediction_api",
+          "kind": "endpoint",
+          "on": "deploy.serving",
+          "props": {
+            "availability": "stable",
+            "latency": "acceptable",
+            "traffic": "low"
+          },
+          "property_values": {
+            "availability": [
+              "unstable",
+              "stable",
+              "high"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "traffic": [
+              "none",
+              "low",
+              "high"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "deploy.cicd": {
+        "level": 2
+      },
+      "deploy.serving": {
+        "level": 2
+      },
+      "deploy.canary_ab": {
+        "level": 1
+      },
+      "deploy.shadow": {
+        "level": 1
+      },
+      "deploy.containerization": {
+        "level": 2
+      },
+      "deploy.orchestration": {
+        "level": 1
+      },
+      "deploy.api_gateway": {
+        "level": 0
+      },
+      "e.registry_cicd": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.cicd_container": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.container_orch": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.orch_serving": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.serving_gateway": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cicd_canary": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.canary_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cicd_shadow": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.rollback_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iam_gateway": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.cost_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iac_orch": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "alex_gateway_stability",
+        "tag": "boundary",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} proposed keeping the API gateway in a manual state to avoid disrupting the current deployment pipeline.",
+        "readings": {
+          "driver": "He wants the gateway to be automated so that deployment frequency increases without manual intervention.",
+          "boundary": "He will not allow the gateway to be automated if it risks breaking the existing CI/CD pipeline stability.",
+          "trade_off": "He would accept a lower level of automation for the gateway if it means the deployment pipeline remains stable.",
+          "fact": "The gateway is currently configured to be managed manually by the operations team."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "deploy.api_gateway",
+          "op": "lte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.api_gateway",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_compliance_gap",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} asked for the API gateway to be fully governed to ensure compliance and security.",
+        "readings": {
+          "driver": "He wants the gateway to reach a governed state to satisfy external security audits and internal compliance standards.",
+          "boundary": "He will not sign off on the project if the gateway remains in a manual or automated state without governance controls.",
+          "trade_off": "He would accept a delay in other features if the gateway is not brought to a governed state.",
+          "fact": "The gateway currently lacks the governance hooks required by the security policy."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "deploy.api_gateway",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.api_gateway",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "alex_concession_gateway",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} noted that the deployment pipeline is currently stable with the manual gateway configuration.",
+        "readings": {
+          "driver": "He wants to improve the gateway automation to reduce the time spent on manual deployment steps.",
+          "boundary": "He refuses to change the gateway configuration because it is the only part of the pipeline he trusts.",
+          "trade_off": "He would accept a temporary reduction in deployment frequency if the gateway is upgraded to a governed state.",
+          "fact": "The manual gateway configuration is the current standard for this service."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.api_gateway",
+        "concedes_max_level": 4,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_serving_monitoring",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned that the model serving endpoint lacks automated feedback loops for performance monitoring.",
+        "readings": {
+          "driver": "She wants to automate the monitoring of the serving endpoint to catch performance regressions before users notice them.",
+          "boundary": "She will not deploy new model versions if the monitoring setup is not automated and reliable.",
+          "trade_off": "She would accept a slower release cadence if it ensures the monitoring data is accurate.",
+          "fact": "The monitoring pipeline is currently triggered manually and does not capture real-time metrics."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "deploy.serving",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.serving",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_cost_focus",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested that the cost of upgrading the API gateway should be weighed against the business value of the new model features.",
+        "readings": {
+          "driver": "She wants to reduce the operational costs associated with the deployment pipeline to improve the project ROI.",
+          "boundary": "She will not approve any budget increase for infrastructure upgrades without a clear business case.",
+          "trade_off": "She would accept a higher level of manual intervention in the gateway if it keeps the infrastructure costs low.",
+          "fact": "The current budget allocation does not include funds for a full governance upgrade of the gateway."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 3,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_canary_governance",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production.",
+        "readings": {
+          "driver": "He wants to automate the canary testing process to ensure faster and more reliable model releases.",
+          "boundary": "He will not allow any model to be promoted to production if the canary testing is not governed.",
+          "trade_off": "He would accept a longer testing period if it ensures the canary results are fully auditable.",
+          "fact": "The canary testing setup is currently missing the governance controls required for compliance."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "deploy.canary_ab",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.canary_ab",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "gateway_current_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The API gateway is currently in a broken state with no authentication controls in place.",
+        "readings": {
+          "driver": "The team wants to fix the gateway to enable secure access to the model endpoints.",
+          "boundary": "The security team will not allow the system to go live until the gateway is secured.",
+          "trade_off": "The project manager might accept a temporary workaround if the full fix is too expensive.",
+          "fact": "That is simply the current state of the API gateway configuration."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.api_gateway",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "serving_gateway_edge_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The connection between the model serving endpoint and the API gateway is currently absent.",
+        "readings": {
+          "driver": "The team wants to establish a secure link between the serving layer and the gateway.",
+          "boundary": "The architecture team requires a direct link for any traffic to pass through the gateway.",
+          "trade_off": "The operations team might bypass the gateway if the link is too difficult to implement.",
+          "fact": "That is simply how the routing is configured today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.serving_gateway",
+        "asserts_level": 1,
+        "asserts_trigger": "none"
+      },
+      {
+        "key": "iam_gateway_governance",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The identity and access management system governs the API gateway through a manual request trigger.",
+        "readings": {
+          "driver": "The security team wants to automate the IAM checks to reduce the risk of human error.",
+          "boundary": "The compliance officer requires that all IAM changes be manually approved to ensure auditability.",
+          "trade_off": "The operations team would accept automated IAM checks if it reduces the overhead of manual approvals.",
+          "fact": "That is simply how the governance link is set up in the current system."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.iam_gateway",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request"
+      },
+      {
+        "key": "cicd_pipeline_state",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The CI/CD pipeline is currently automated but triggered by manual requests.",
+        "readings": {
+          "driver": "The team wants to automate the pipeline triggers to reduce the time between code commits and deployments.",
+          "boundary": "The release manager requires manual approval for every deployment to ensure quality control.",
+          "trade_off": "The development team would accept automated triggers if it reduces the waiting time for deployments.",
+          "fact": "That is simply how the CI/CD pipeline is configured today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.registry_cicd",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request"
+      }
+    ]
+  }
+}

@@ -1,3 +1,5 @@
+import type { GraphDebugPayload } from "../../components/GraphDebug";
+
 const API_HOST =
   import.meta.env.VITE_API_HOST ||
   (import.meta.env.MODE === "development"
@@ -228,6 +230,26 @@ export async function saveAdminConfigFile(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData.detail || `Failed to save configuration file ${filename}.`);
+  }
+
+  return response.json();
+}
+
+export async function fetchGraphDebug(token: string, username: string): Promise<GraphDebugPayload> {
+  const response = await fetch(
+    `${BASE_URL}/api/admin/graph-debug?username=${encodeURIComponent(username)}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to fetch graph debug data.");
   }
 
   return response.json();

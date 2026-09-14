@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:req.data_contracts",
+  "stage": "objections",
+  "input_hash": "6ad56866fd8bc3f3ad5a252517dfb7d21d23658360cf5fc7b0aae5a731385e47",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "req.data_contracts",
+      "name": "Data Contracts"
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "line": "We cannot approve improving {target} while the {cause} upstream remains unreliable. The data governance risks are simply too high to proceed without a solid foundation."
+  }
+}

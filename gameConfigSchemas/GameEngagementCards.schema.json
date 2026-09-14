@@ -18,7 +18,7 @@
           "description",
           "stakeholder_selection_amount",
           "target_type",
-          "intel_reveal_count"
+          "turns"
         ],
         "properties": {
           "id": {
@@ -62,9 +62,9 @@
             "type": "integer",
             "title": "Max Plays Per Phase (-1 for unlimited, >0 for limit)"
           },
-          "intel_reveal_count": {
+          "turns": {
             "type": "integer",
-            "title": "Intel Items Reveal Count Per Stakeholder",
+            "title": "Turns Per Target (D49)",
             "minimum": 0,
             "default": 1
           },

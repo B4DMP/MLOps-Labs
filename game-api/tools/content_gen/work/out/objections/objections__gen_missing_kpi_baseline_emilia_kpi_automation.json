@@ -1,0 +1,38 @@
+{
+  "item_id": "objections:gen_missing_kpi_baseline_emilia_kpi_automation",
+  "stage": "objections",
+  "input_hash": "8363101afe00fd7eccf40ea94b76a2ec2768b6b3eb9c49e914ddeca239081999",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_missing_kpi_baseline_emilia_kpi_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals. The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
+      "fact": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals.",
+      "reading": "The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "I did not ask for a simple automation of the KPI definitions. I need a governed process that ties those metrics directly to our strategic roadmaps and cost targets.",
+    "correction": "You misread my feedback as a request for basic tooling. I am asking for governance that ensures our operational capability aligns with the organization's long term business goals."
+  }
+}

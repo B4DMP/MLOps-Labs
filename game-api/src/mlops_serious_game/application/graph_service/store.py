@@ -9,6 +9,7 @@ from mlops_serious_game.domain.graph import GraphOp, LoggedOp, SourceKind
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.infrastructure.database.connection import get_session
 from mlops_serious_game.infrastructure.database.models import GraphOpLog
+from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 # Ops inside a batch get seq = batch_seq * SEQ_STRIDE + index, so order survives within a batch.
 SEQ_STRIDE = 10_000
@@ -30,11 +31,13 @@ def append_ops(
     if len(ops) >= SEQ_STRIDE:
         raise ValueError(f"batch of {len(ops)} ops exceeds SEQ_STRIDE")
     with get_session() as session:
-        last = session.scalar(select(func.max(GraphOpLog.seq)).where(GraphOpLog.user_name == username))
+        user_id = get_user_id(session, username)
+        last = session.scalar(select(func.max(GraphOpLog.seq)).where(GraphOpLog.user_id == user_id))
         seq = (last or 0) + 1
         session.add(
             GraphOpLog(
                 user_name=username,
+                user_id=user_id,
                 seq=seq,
                 phase_index=phase_index,
                 challenge_template=challenge_template,
@@ -51,7 +54,7 @@ def append_ops(
 def _rows(username: str) -> list[GraphOpLog]:
     with get_session() as session:
         rows = session.scalars(
-            select(GraphOpLog).where(GraphOpLog.user_name == username).order_by(GraphOpLog.seq)
+            select(GraphOpLog).where(GraphOpLog.user_id == get_user_id(session, username)).order_by(GraphOpLog.seq)
         ).all()
         session.expunge_all()
         return list(rows)
@@ -88,7 +91,9 @@ def snapshot_at(username: str, phase_index: int, challenge_template: str) -> Opt
 
 def has_graph(username: str) -> bool:
     with get_session() as session:
-        return session.scalar(select(func.count(GraphOpLog.id)).where(GraphOpLog.user_name == username)) > 0
+        return session.scalar(
+            select(func.count(GraphOpLog.id)).where(GraphOpLog.user_id == get_user_id(session, username))
+        ) > 0
 
 
 def seed_if_empty(username: str, *, phase_index: int, challenge_template: str) -> bool:
@@ -107,13 +112,15 @@ def seed_if_empty(username: str, *, phase_index: int, challenge_template: str) -
 
 def clear_graph(username: str) -> None:
     with get_session() as session:
-        session.execute(delete(GraphOpLog).where(GraphOpLog.user_name == username))
+        session.execute(delete(GraphOpLog).where(GraphOpLog.user_id == get_user_id(session, username)))
 
 
 def has_batch(username: str, source_id: str) -> bool:
     with get_session() as session:
         found = session.scalar(
-            select(func.count(GraphOpLog.id)).where(GraphOpLog.user_name == username, GraphOpLog.source_id == source_id)
+            select(func.count(GraphOpLog.id)).where(
+                GraphOpLog.user_id == get_user_id(session, username), GraphOpLog.source_id == source_id
+            )
         )
         return found > 0
 
@@ -125,7 +132,7 @@ def load_report(username: str, source_id: str) -> Optional[dict]:
     with get_session() as session:
         row = session.scalar(
             select(GraphOpLog)
-            .where(GraphOpLog.user_name == username, GraphOpLog.source_id == source_id)
+            .where(GraphOpLog.user_id == get_user_id(session, username), GraphOpLog.source_id == source_id)
             .order_by(GraphOpLog.seq.desc())
         )
         return row.report if row else None

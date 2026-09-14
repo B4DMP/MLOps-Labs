@@ -92,6 +92,16 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
         if DASHES.search(text):
             report.errors.append(f"voice: {where} contains a dash")
 
+    # 9. Voiced Facts: a Fact is dealt under its narrator's name, so the narrator must be in the room.
+    phase_of = {c["id"]: c["phase_id"] for c in generated}
+    fact_ids = {r.id for r in reqs if r.type == "fact"}
+    for a in arts:
+        if a["requirement_id"] not in fact_ids or a["challenge_id"] not in phase_of:
+            continue
+        roster = {ps.stakeholder_id for ps in ctx.phase(phase_of[a["challenge_id"]]).stakeholders}
+        if a.get("narrator_id") not in roster:
+            report.errors.append(f"narrator: {a['id']} has no narrator from phase {phase_of[a['challenge_id']]}'s room")
+
     # 10. Selection: every generated template can actually be dealt.
     start = ctx.start_state()
     samples = [start]

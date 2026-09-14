@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_experiment_tracking_dispute_monica_automated",
+  "stage": "gists",
+  "input_hash": "ac98e3b25bcf4d60a95fd678dccf9d723a11691c668013ba45a78409141ecc5f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_experiment_tracking_dispute_monica_automated",
+    "fact": "{model_monica} proposed automated experiment tracking.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Tracking Reproducibility Lost"
+  },
+  "output": {
+    "gist": "The state of the model has been raised by {model_monica} regarding how experiments are tracked.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as the state of the model and experiment tracking but provides no directional stance or commitment to a specific reading."
+  }
+}

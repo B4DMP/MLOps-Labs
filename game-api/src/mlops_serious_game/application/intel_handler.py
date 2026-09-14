@@ -11,6 +11,7 @@ from mlops_serious_game.domain.requirement import (
     StakeholderIntelItem,
     StakeholderRequirement,
     item_target as _shared_item_target,
+    item_target_and_level,
 )
 from typing import List, Dict, Any, Optional
 import random
@@ -31,7 +32,8 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
     get_intel_artifact_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
-from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session
+from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session, get_user_id
+from mlops_serious_game.config import settings
 
 
 async def generate_intel_item_artifact_content(
@@ -142,14 +144,14 @@ async def tag_stakeholder_convincer_archetype(
         st = StakeholderFactory.get_stakeholder(stakeholder_id)
         real_arch = getattr(st, "convincer_archetype", "") if st else st_entry.get("real_archetype", "")
 
-        # Check if the archetype is already validated
-        current_cat = st_entry.get("categorized_archetype")
-        if current_cat and real_arch and current_cat == real_arch:
-            # Archetype is already validated; do not overwrite
+        # Only a verified archetype is locked. A correct guess stays open to re-tagging until the
+        # pitch confirms it, otherwise the lock itself would tell the player they got it right.
+        if st_entry.get("verified"):
             return st_entry
 
         st_entry["real_archetype"] = real_arch
         st_entry["categorized_archetype"] = categorized_archetype
+        st_entry["verified"] = False
         archs[stakeholder_id] = st_entry
         session_rec.stakeholder_archetypes = archs
         flag_modified(session_rec, "stakeholder_archetypes")
@@ -161,7 +163,7 @@ def correct_and_verify_convincer_archetype(
     username: str,
     stakeholder_id: str,
 ) -> dict:
-    """Corrects a misattributed convincer archetype to the true archetype in GameSession."""
+    """Sets the true archetype in GameSession and marks it verified, whether the tag was right or not."""
     from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
     with get_session() as session:
         session_rec = get_or_create_game_session(username, session)
@@ -172,6 +174,7 @@ def correct_and_verify_convincer_archetype(
         old_cat = st_entry.get("categorized_archetype")
         st_entry["real_archetype"] = real_arch
         st_entry["categorized_archetype"] = real_arch
+        st_entry["verified"] = True
         archs[stakeholder_id] = st_entry
         session_rec.stakeholder_archetypes = archs
         flag_modified(session_rec, "stakeholder_archetypes")
@@ -183,6 +186,71 @@ def correct_and_verify_convincer_archetype(
         }
 
 
+def rule_out_archetype(username: str, stakeholder_id: str, archetype_name: str) -> dict:
+    """Trial Balloon (D49, plan 11): a guessed archetype that did not land. Struck through in the
+    re-tag picker from then on. Never verifies anything - only a match does that."""
+    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
+    with get_session() as session:
+        session_rec = get_or_create_game_session(username, session)
+        archs = dict(session_rec.stakeholder_archetypes or {})
+        st_entry = dict(archs.get(stakeholder_id, {}))
+        ruled_out = list(st_entry.get("ruled_out", []))
+        if archetype_name not in ruled_out:
+            ruled_out.append(archetype_name)
+        st_entry["ruled_out"] = ruled_out
+        archs[stakeholder_id] = st_entry
+        session_rec.stakeholder_archetypes = archs
+        flag_modified(session_rec, "stakeholder_archetypes")
+        session.commit()
+        return st_entry
+
+
+def ruled_out_archetypes(username: str, stakeholder_id: str) -> list[str]:
+    """Archetypes a Trial Balloon has already ruled out for this stakeholder (D49)."""
+    with get_session() as session:
+        user_id = get_user_id(session, username)
+        row = session.scalars(
+            select(GameSession).where(GameSession.user_id == user_id).order_by(GameSession.id.desc())
+        ).first()
+        if row is None or not isinstance(row.stakeholder_archetypes, dict):
+            return []
+        entry = row.stakeholder_archetypes.get(stakeholder_id)
+        return list(entry.get("ruled_out", [])) if isinstance(entry, dict) else []
+
+
+# The deck stays short: a few stances, and at most a couple of Facts among them.
+MAX_STANCE_ARTIFACTS = 3
+MAX_FACT_ARTIFACTS = 2
+
+
+def deal_unconfirmed_artifacts(curr_challenge: Challenge, artifacts: list) -> list:
+    """The artifacts the player tags themselves: up to three stances and up to two Facts.
+
+    Facts about the conflict's own target go first, since those are what the pitch turns on;
+    config order breaks ties. A Fact nobody voices is left out, because a card with no name on it
+    would give its tag away.
+    """
+    conflict_target = getattr(getattr(curr_challenge, "conflict", None), "target", None)
+    stances, facts = [], []
+    for art in artifacts:
+        req = RequirementFactory.get_requirement(art.requirement_id)
+        if req is not None and req.type == IntelTag.FACT:
+            if art.narrator_id:
+                facts.append((item_target(req) != conflict_target, art))
+        else:
+            stances.append(art)
+    facts.sort(key=lambda pair: pair[0])
+    return stances[:MAX_STANCE_ARTIFACTS] + [art for _, art in facts[:MAX_FACT_ARTIFACTS]]
+
+
+def _deck_debug(requirement_id: str) -> Dict[str, Any]:
+    """Answer key for one card in the offline deck. Empty unless ENABLE_DOSSIER_DEBUG is on."""
+    if not settings.ENABLE_DOSSIER_DEBUG:
+        return {}
+    req = RequirementFactory.get_requirement(requirement_id)
+    return {"debug": _debug_requirement(req)} if req else {}
+
+
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
     """Loads offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders.
 
@@ -192,21 +260,25 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
     worked example of a correct tag before their first real call.
     """
     challenge_artifacts = OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
-    unconfirmed_artifacts = [art for art in challenge_artifacts if not art.is_known][:3]
+    unconfirmed_artifacts = deal_unconfirmed_artifacts(
+        curr_challenge, [art for art in challenge_artifacts if not art.is_known]
+    )
     known_artifacts = [art for art in challenge_artifacts if art.is_known]
 
     results = []
     for art in unconfirmed_artifacts:
-        stakeholder = StakeholderFactory.get_stakeholder(art.stakeholder_id)
+        # A Fact goes out under its narrator's name, with nothing in the payload that marks it as
+        # a Fact: telling it apart from a stance is the player's call.
         results.append({
             "id": art.id,
             "requirement_id": art.requirement_id,
-            "stakeholder_id": art.stakeholder_id,
-            "stakeholder_name": stakeholder.name if stakeholder else art.stakeholder_name,
-            "stakeholder_role": stakeholder.role_description if stakeholder else art.stakeholder_role,
+            "stakeholder_id": art.speaker_id,
+            "stakeholder_name": art.stakeholder_name,
+            "stakeholder_role": art.stakeholder_role,
             "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
             "content": art.content,
             "is_known": False,
+            **_deck_debug(art.requirement_id),
         })
 
 
@@ -274,6 +346,11 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
             "is_convincer_profile": True,
             "possible_archetypes": all_archetypes,
             "categorized_type": cat_type,
+            **({"debug": {
+                "id": f"convincer_{st.id}",
+                "correct_tag": real_arch_name,
+                "description": "Convincer archetype",
+            }} if settings.ENABLE_DOSSIER_DEBUG else {}),
         })
 
     # Shuffle the combined list so convincer and intel artifacts are mixed
@@ -286,19 +363,21 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
         req = RequirementFactory.get_requirement(art.requirement_id)
         if not req:
             continue
-        stakeholder = StakeholderFactory.get_stakeholder(art.stakeholder_id)
         known_results.append({
             "id": art.id,
             "requirement_id": art.requirement_id,
-            "stakeholder_id": art.stakeholder_id,
-            "stakeholder_name": stakeholder.name if stakeholder else art.stakeholder_name,
-            "stakeholder_role": stakeholder.role_description if stakeholder else art.stakeholder_role,
+            "stakeholder_id": art.speaker_id,
+            "stakeholder_name": art.stakeholder_name,
+            "stakeholder_role": art.stakeholder_role,
             "artifact_type": art.artifact_type.value if isinstance(art.artifact_type, ArtifactType) else str(art.artifact_type),
             "content": art.content,
             "is_known": True,
             "categorized_type": req.type.value if hasattr(req.type, "value") else str(req.type),
+            **_deck_debug(art.requirement_id),
         })
 
+    # The challenge itself leads: how the disputed component stands, then who wants what from it.
+    known_results.sort(key=lambda card: card["categorized_type"] != IntelTag.FACT.value)
     return known_results + results
 
 
@@ -325,8 +404,9 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
 
     loaded_items: List[StakeholderIntelItem] = []
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
         existing_ids = {
             r.intel_item_data.get("id")
@@ -352,6 +432,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                 new_item.discovered_challenge_template = curr_challenge.template_id
                 new_record = IntelItem(
                     user_name=username,
+                    user_id=user_id,
                     intel_item_data=new_item.model_dump(mode="json"),
                 )
                 session.add(new_record)
@@ -394,7 +475,7 @@ def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> 
     """
     with get_session() as session:
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
         ).all()
         items: List[StakeholderIntelItem] = []
         for r in records:
@@ -647,8 +728,10 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
         intel_item.discovered_phase_id = curr_challenge.phase_id
         intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
+        username = ws.query_params["username"]
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         target_record = None
@@ -665,7 +748,8 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
             flag_modified(target_record, "intel_item_data")
         else:
             new_record = IntelItem(
-                user_name=ws.query_params["username"],
+                user_name=username,
+                user_id=user_id,
                 intel_item_data=dict(item_dict)
             )
             session.add(new_record)
@@ -679,7 +763,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
 
     with get_session() as session:
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == ws.query_params["username"])
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, ws.query_params["username"]))
         ).all()
 
         for record in records:
@@ -894,7 +978,8 @@ async def handle_intel_verification(
     else:
         req = RequirementFactory.get_requirement(target_item.id)
 
-    stakeholder = StakeholderFactory.get_stakeholder(target_item.stakeholder_id) if target_item else None
+    # A Fact has no stakeholder of its own; the name shown is its narrator's.
+    stakeholder = _stakeholder_or_none(speaker_of(target_item))
 
     old_categorized_type = (
         target_item.categorized_type.value
@@ -940,8 +1025,9 @@ def correct_and_verify_intel_item(
         return None
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         target_record = None
@@ -975,6 +1061,7 @@ def correct_and_verify_intel_item(
             )
             new_record = IntelItem(
                 user_name=username,
+                user_id=user_id,
                 intel_item_data=new_item.model_dump(mode="json")
             )
             session.add(new_record)
@@ -982,7 +1069,35 @@ def correct_and_verify_intel_item(
             return new_item
 
 
-correct_and_infer_intel_item = correct_and_verify_intel_item
+def _set_intel_confidence(username: str, item_id: str, confidence: ConfidenceType) -> Optional[StakeholderIntelItem]:
+    """Flips a held item's confidence in place, keeping whatever tag the player already filed it
+    under - Gather's Test a hypothesis (D49) only ever settles a guess the player already made,
+    it never touches the tag itself (Refuted's "free re-tag" is a separate, explicit action)."""
+    with get_session() as session:
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
+        ).all()
+        for record in records:
+            if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == item_id:
+                data = dict(record.intel_item_data)
+                data["intel_type"] = confidence.value
+                record.intel_item_data = data
+                flag_modified(record, "intel_item_data")
+                session.commit()
+                return StakeholderIntelItem(**data)
+        return None
+
+
+def mark_intel_item_inferred(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
+    """Test a hypothesis, tag right (D49): tested, not just filed - counts toward pitch readiness
+    (Q36/D53) same as Verified."""
+    return _set_intel_confidence(username, item_id, ConfidenceType.INFERRED)
+
+
+def mark_intel_item_refuted(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
+    """Test a hypothesis, tag wrong (D49): the guess did not hold up. Never reveals the true tag -
+    the player has to re-tag and try again."""
+    return _set_intel_confidence(username, item_id, ConfidenceType.REFUTED)
 
 
 def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
@@ -1016,6 +1131,61 @@ def _artifact_type_for(item: StakeholderIntelItem) -> str:
     return art_type.value if hasattr(art_type, "value") else str(art_type)
 
 
+def speaker_of(item) -> Optional[str]:
+    """Whose page a note goes on when the player files it as a stance: its stakeholder, or the
+    narrator a Fact was voiced by. None for a Fact nobody voices."""
+    if item.stakeholder_id:
+        return item.stakeholder_id
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+    return artifact.narrator_id if artifact else None
+
+
+def _stakeholder_or_none(stakeholder_id: Optional[str]):
+    if not stakeholder_id:
+        return None
+    try:
+        return StakeholderFactory.get_stakeholder(stakeholder_id)
+    except Exception:
+        return None
+
+
+def _enum_value(value) -> Optional[str]:
+    return getattr(value, "value", value) if value is not None else None
+
+
+def _debug_artifact(requirement_id: str) -> Optional[Dict[str, Any]]:
+    """The artifact a note is read off, for the dossier answer key."""
+    artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(requirement_id)
+    if not artifact:
+        return None
+    return {
+        "id": artifact.id,
+        "artifact_type": _enum_value(artifact.artifact_type),
+        "speaker_id": artifact.speaker_id,
+        "is_known": artifact.is_known,
+        "content": artifact.content,
+    }
+
+
+def _debug_requirement(req: StakeholderRequirement) -> Dict[str, Any]:
+    """What an authored item really is. Only ever sent when ENABLE_DOSSIER_DEBUG is on."""
+    target, level = item_target_and_level(req)
+    return {
+        "id": req.id,
+        "correct_tag": _enum_value(req.type),
+        "description": req.description,
+        "target": target,
+        "level": level,
+        "stakeholder_id": req.stakeholder_id,
+        "refines_id": req.refines_id,
+        "artifact": _debug_artifact(req.id),
+    }
+
+
+def _debug_missing(requirements: List[StakeholderRequirement], held_ids: set) -> List[Dict[str, Any]]:
+    return [_debug_requirement(r) for r in requirements if r.id not in held_ids]
+
+
 async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> List[Dict[str, Any]]:
     """Retrieves full dossier summary data for all stakeholders in the current challenge.
 
@@ -1039,6 +1209,8 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     held_ids = set(items_by_id)
     conflict = getattr(curr_challenge, "conflict", None)
     focus_stage_ids = list(getattr(curr_challenge, "focus_stage_ids", None) or [])
+    # Read once per call so tests can flip the flag on the settings object.
+    debug_on = settings.ENABLE_DOSSIER_DEBUG
 
     def _entry(item: StakeholderIntelItem) -> Dict[str, Any]:
         intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
@@ -1049,7 +1221,9 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         chain = chains.get(item.id, {})
         target = item_target(item)
         stage_id, stage_name = stage_of_target(snapshot, target)
+        debug_fields = {"debug": _debug_requirement(item)} if debug_on else {}
         return {
+            **debug_fields,
             "id": item.id,
             "intel_type": intel_type_val,
             "categorized_type": cat_type_val,
@@ -1085,8 +1259,11 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     environment_entries: List[Dict[str, Any]] = []
     for item in all_items:
         filed_as_fact = item.categorized_type == IntelTag.FACT
-        if item.stakeholder_id and not filed_as_fact:
-            stakeholder_intel_map.setdefault(item.stakeholder_id, []).append(_entry(item))
+        # A Fact filed as a stance goes on its narrator's page. On the System page it would give
+        # the true tag away.
+        page = None if filed_as_fact else speaker_of(item)
+        if page:
+            stakeholder_intel_map.setdefault(page, []).append(_entry(item))
         else:
             environment_entries.append(_entry(item))
 
@@ -1114,10 +1291,26 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         st_arch_entry = session_archs.get(st_id, {})
         cat_arch = st_arch_entry.get("categorized_archetype")
         real_arch = st_arch_entry.get("real_archetype") or getattr(st, 'convincer_archetype', '')
-        is_val = bool(cat_arch and cat_arch == real_arch)
+        # Verified comes from the pitch, never from the tag matching: that would give the answer away.
+        is_val = bool(cat_arch and st_arch_entry.get("verified"))
         status = "validated" if is_val else ("unconfirmed" if cat_arch else "unknown")
+        st_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+
+        debug_fields = {}
+        if debug_on:
+            arch_artifact = ConvincerArchetypeArtifactFactory.get_artifact_for_archetype(real_arch)
+            debug_fields = {"debug": {
+                "real_archetype": real_arch or None,
+                "player_archetype": cat_arch,
+                "archetype_hint": (
+                    arch_artifact.convincer_archetype_artifact.replace("{stakeholder_name}", st.name)
+                    if arch_artifact else None
+                ),
+                "missing_intel": _debug_missing(st_pool, held_ids),
+            }}
 
         dossier_list.append({
+            **debug_fields,
             "stakeholder_id": st.id,
             "name": st.name,
             "responsibilities": st.responsibilities,
@@ -1134,10 +1327,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             # The whole pool for this challenge, found or not, so the dossier can show how much
             # is still out there. A count only: nothing about what the missing items say. Notes
             # carried over from earlier phases are already found, so they can only raise it.
-            "intel_total": max(
-                len(RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)),
-                len(intel_entries),
-            ),
+            "intel_total": max(len(st_pool), len(intel_entries)),
             "focus_stage_ids": focus_stage_ids,
         })
 
@@ -1146,7 +1336,9 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
             if r.type == IntelTag.FACT
         ]
+        debug_fields = {"debug": {"missing_intel": _debug_missing(fact_pool, held_ids)}} if debug_on else {}
         dossier_list.append({
+            **debug_fields,
             "stakeholder_id": ENVIRONMENT_ENTRY_ID,
             "is_environment": True,
             "name": "The System",
@@ -1259,17 +1451,23 @@ def fact_targets_to_observe(items: List[StakeholderIntelItem]) -> List[str]:
     return targets
 
 
-def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
+def observe_tagged_facts(curr_challenge: Challenge, username: str) -> list["GameEvent"]:
     """Lifts the fog on what correctly tagged Facts describe. Runs once when the player leaves
-    offline intel gathering, so the graph does not reveal which tags were right while tagging."""
+    offline intel gathering, so the graph does not reveal which tags were right while tagging.
+
+    Returns the event log's record of it (plan 11, step 10) - empty when there was nothing to
+    reveal, or when this challenge's facts were already observed on an earlier call."""
     from mlops_serious_game.application.graph_service import store as graph_store
+    from mlops_serious_game.domain.event import GameEvent
     from mlops_serious_game.domain.graph import GraphOp
 
     source_id = f"facts:{curr_challenge.template_id}"
     if graph_store.has_batch(username, source_id):
-        return 0
+        return []
     with get_session() as session:
-        records = session.scalars(select(IntelItem).where(IntelItem.user_name == username)).all()
+        records = session.scalars(
+            select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
+        ).all()
         items = []
         for r in records:
             if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("challenge_id") == curr_challenge.id:
@@ -1279,7 +1477,7 @@ def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
                     continue
     targets = fact_targets_to_observe(items)
     if not targets:
-        return 0
+        return []
     graph_store.append_ops(
         username,
         [GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id) for t in targets],
@@ -1288,4 +1486,7 @@ def observe_tagged_facts(curr_challenge: Challenge, username: str) -> int:
         source_kind="intel",
         source_id=source_id,
     )
-    return len(targets)
+    return [GameEvent(
+        step="offline", kind="graph", direction="none", cause="graph.facts_observed",
+        params={"n": str(len(targets))},
+    )]

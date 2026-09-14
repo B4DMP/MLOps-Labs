@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_the_missing_gate_reuben_gate_refusal",
+  "stage": "objections",
+  "input_hash": "8926e0a5774d17c3ba24ae934c741119a7dd52680eebcb91550829a61889293e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_the_missing_gate_reuben_gate_refusal",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards. He will not approve any model promotion unless the acceptance criteria are governed.",
+      "fact": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards.",
+      "reading": "He will not approve any model promotion unless the acceptance criteria are governed.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "I refuse to approve any model promotion until the acceptance criteria process is fully governed. Security standards are non-negotiable for me.",
+    "correction": "You are misreading my stance as a general preference rather than a hard architectural requirement. I am explicitly stating that governance is a prerequisite for my approval."
+  }
+}

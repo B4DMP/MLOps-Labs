@@ -1,8 +1,8 @@
 {
   "item_id": "artifacts:gen_registry_red_tape_registry_manual",
   "stage": "artifacts",
-  "input_hash": "3744a08ada4b0c50802c9127cd160406850757ecb760b9a690ca96bfe7427e7c",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "a0158366058803ce9e7a89ebd2451ce53e46f1611c3209361d3974077ff8d53f",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "requirement": {
@@ -22,10 +22,15 @@
         "target": "model.registry",
         "level": 0,
         "trigger": null
-      }
+      },
+      "refines_id": null
     },
-    "artifact_type": "architecture_note",
-    "author": null,
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
     "challenge": {
       "name": "Registry Red Tape",
       "description": ""
@@ -33,8 +38,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The model registry {data_dave} uses is currently nonfunctional. Today, models are stored directly in the cloud storage bucket {ml_models_bucket} without metadata tracking. Model versions are manually managed in a shared spreadsheet {model_versions_doc} updated by the team. There is no automated lineage tracking between models and their training pipelines. The current process relies on team members to remember and document model relationships verbally during standup meetings.",
+    "content": "I checked the deployment pipeline again this morning. The registry endpoint returned a connection refused error for the third time this week. I manually exported the latest model weights to a local directory and pushed them directly to the staging cluster. The version tag was omitted because the metadata service is down. I had to hardcode the configuration parameters into the deployment script since the registry cannot fetch them. The training logs show the model achieved a 94 percent accuracy, but the artifact itself is not registered anywhere central. I copied the file to the shared drive as a fallback. The monitoring dashboard still shows the previous production model as active because the new one never got a proper identifier. I am proceeding with the manual deployment steps as usual.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The artifact describes a current state without expressing any wishes, refusals, or acceptances."
+    "reclassify_reason": "The text is a chronological log of actions taken and system states observed (errors, manual workarounds, metrics) without expressing any wishes, refusals, or stated trade-offs."
   }
 }

@@ -51,7 +51,7 @@
   background: linear-gradient(180deg, #3d2d23 0%, #251b14 100%);
   color: #f5ebd9;
   padding: 8px 16px;
-  cursor: grab;
+  /*cursor: grab;*/
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -66,7 +66,7 @@
 }
 
 .binderTitle {
-  font-size: 1.05rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.6px;
   color: #f7eedc;
@@ -80,6 +80,55 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* Feature buttons (System / Performance / Briefing / Log): one tight group, no gaps between. */
+.headerButtonGroup {
+  display: flex;
+  align-items: center;
+}
+
+.headerButtonGroup .briefingButton {
+  margin-right: 0;
+  border-radius: 0;
+}
+
+.headerButtonGroup .briefingButton + .briefingButton {
+  border-left: none;
+}
+
+.headerButtonGroup .briefingButton:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.headerButtonGroup .briefingButton:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Prev/next arrows: their own tight group, separate from the feature buttons. */
+.headerArrowGroup {
+  display: flex;
+  align-items: center;
+}
+
+.headerArrowGroup .topNavArrow {
+  border-radius: 0;
+}
+
+.headerArrowGroup .topNavArrow + .topNavArrow {
+  border-left: none;
+}
+
+.headerArrowGroup .topNavArrow:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.headerArrowGroup .topNavArrow:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
 }
 
 .topNavArrow {
@@ -147,7 +196,7 @@
   z-index: 40;
   /* Higher than header and tabs so flipping page stays on top */
   /* A strip of binding under the page, so it still ends on a bound edge */
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-radius: 0 0 10px 10px;
 }
 
@@ -175,6 +224,7 @@
 .tabButton {
   flex: 1 1 0;
   min-width: 0;
+  max-width: 148px;
   background: color-mix(in srgb, var(--tab-color, #38bdf8) 12%, #d6c7b2);
   border: 1px solid color-mix(in srgb, var(--tab-color, #38bdf8) 35%, #8c7865);
   border-top: 3px solid var(--tab-color, #38bdf8);
@@ -215,20 +265,28 @@
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.55));
 }
 
+/* Two explicit lines - the name is still one name, just broken at the same word every time
+   instead of wherever the browser happens to wrap a narrow single line. Both lines share one
+   style: it's not a label over a name, just the name on two lines. Side padding keeps a long
+   line's text ellipsizing before it reaches the corner badges (change / intel count), which
+   overlap the tab's top corners rather than pushing content down out of their way. */
 .tabName {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  padding: 0 12px;
+}
+
+.tabNameLine {
   font-size: 0.74rem;
   font-weight: 700;
   line-height: 1.15;
   color: #1a120b;
-  text-align: center;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .tabEmotionRow {
@@ -281,13 +339,14 @@
 .flipBookWrapper {
   flex: 1;
   position: relative;
+  /* z-axis 3D positioning */
   perspective: 1400px;
   background: #eadecc;
   /* Desk background behind notebook */
   overflow: visible;
   /* Crucial: allow 3D page rotation without clipping! */
-  margin-left: 10px;
-  border-left: 4px solid #3d2d23;
+  margin-left: 2px;
+  margin-right: 2px;
   z-index: 40;
 }
 
@@ -313,8 +372,7 @@
   box-shadow:
     inset 25px 0 20px -15px rgba(0, 0, 0, 0.25),
     /* Spine shadow fold */
-    inset -5px 0 15px rgba(0, 0, 0, 0.05),
-    4px 0 10px rgba(0, 0, 0, 0.15);
+    inset -5px 0 15px rgba(0, 0, 0, 0.05);
   /* The frame itself does not scroll: it is a column holding the scrolling wall and, under
      it, the filter dock, which is how the dock lands on the page edge without sticky. */
   overflow: hidden;
@@ -769,6 +827,85 @@
 }
 
 /* Category Sticky Note Badges & Interactive Re-tagging UI */
+/* Answer key, only rendered when the API sends debug data (ENABLE_DOSSIER_DEBUG) */
+.debugToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  border-radius: 50%;
+  border: 1.5px dashed currentColor;
+  background: #ffffff;
+  font-size: 0.7rem;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.debugRight,
+.debugRightText {
+  color: #15803d;
+}
+
+.debugWrong,
+.debugWrongText {
+  color: #b91c1c;
+}
+
+.debugRightText,
+.debugWrongText {
+  font-weight: 700;
+}
+
+.debugPanel {
+  background: #fefce8;
+  border: 2px dashed #a16207;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 6px 0 10px 0;
+  font-size: 0.65rem;
+  color: #1e293b;
+  text-align: left;
+}
+
+.debugPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #a16207;
+  text-align: left;
+  cursor: pointer;
+}
+
+.debugRow {
+  margin-top: 3px;
+}
+
+.debugMissing {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dotted #a16207;
+}
+
+.debugArtifact {
+  margin: 2px 0 0 0;
+  padding: 4px 6px;
+  max-height: 160px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 0.6rem;
+}
+
 .noteTopBar {
   display: flex;
   align-items: center;
@@ -1075,6 +1212,18 @@
   --note-bg-alt: #86efac;
 }
 
+.noteInferred {
+  --note-bg: #ccfbf1;
+  /* Pastel Teal: tested, not spoken aloud (D49) */
+  --note-bg-alt: #99f6e4;
+}
+
+.noteRefuted {
+  --note-bg: #fecaca;
+  /* Pastel Red: a tested guess that missed (D49) */
+  --note-bg-alt: #fca5a5;
+}
+
 
 .stickyNote:hover {
   transform: translateY(-4deg) rotate(0deg) scale(1.01);
@@ -1212,6 +1361,25 @@
   border: 1.5px dotted #b91c1c;
   background: rgba(254, 226, 226, 0.65);
   transform: rotate(-3deg);
+}
+
+/* Gather's Test a hypothesis, tag right (D49): tested in conversation, not spoken aloud in
+   public - counts the same as Confirmed (Q36), reads a shade lighter so the two stay tellable
+   apart. */
+.stampInferred {
+  color: #0d9488;
+  border: 1.5px dashed #0d9488;
+  background: rgba(204, 251, 241, 0.65);
+  transform: rotate(2deg);
+}
+
+/* Test a hypothesis, tag wrong (D49): crossed out, an open invitation to re-tag. */
+.stampRefuted {
+  color: #b91c1c;
+  border: 1.5px solid #b91c1c;
+  background: rgba(254, 202, 202, 0.65);
+  transform: rotate(-2deg);
+  text-decoration: line-through;
 }
 
 /* Empty State Note */
@@ -1425,6 +1593,24 @@
   }
 }
 
+/* Found/total, opposite corner from the NEW/SHIFTED change badge so the two never collide. */
+.tabIntelCountBadge {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: 2;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  padding: 1px 3px;
+  border-radius: 3px;
+  pointer-events: none;
+  background: rgba(26, 18, 11, 0.72);
+  color: #f5ebd9;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* ==========================================================================
    INTEL PIPS
    One pip per note in a stakeholder's pool. On the page each pip is a tiny
@@ -1446,6 +1632,18 @@
 .pipUnconfirmed {
   --pip-paper: #fdba74;
   --pip-edge: #ea580c;
+}
+
+/* Gather's Test a hypothesis (D49): tested, not spoken aloud - a lighter green than Confirmed. */
+.pipInferred {
+  --pip-paper: #a7f3d0;
+  --pip-edge: #0d9488;
+}
+
+/* A tested guess that missed. Free re-tag, same as Unconfirmed, but its own colour. */
+.pipRefuted {
+  --pip-paper: #fecaca;
+  --pip-edge: #b91c1c;
 }
 
 .pipHidden {
@@ -1539,6 +1737,37 @@
 .briefingButtonActive:hover {
   background: rgba(56, 189, 248, 0.28);
   border-color: rgba(56, 189, 248, 0.75);
+}
+
+/* Found/total badge on a header button (System, Log): a small ink-on-parchment pill so it
+   reads as part of the same binder-header chrome as the button it sits inside. */
+.headerBadgeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.35);
+  color: #f5ebd9;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 14px;
+}
+
+.briefingButtonActive .headerBadgeCount {
+  background: rgba(56, 189, 248, 0.3);
+  color: #e0f4ff;
+}
+
+/* Performance button badge: a status dot, not a count - health is a state, not a tally. */
+.headerBadgeDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  flex-shrink: 0;
 }
 
 /* ==========================================================================

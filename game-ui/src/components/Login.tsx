@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
+import { motion } from "motion/react";
 import { ReadyState } from "../services/websocket/types";
 import styles from "./Login.module.css";
 
@@ -38,7 +39,12 @@ export function Login({
 
   return (
     <div className={styles.loginWrapper}>
-      <div className={styles.loginCard}>
+      <motion.div
+        className={styles.loginCard}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
 
         <h2 className={styles.cardTitle}>Login</h2>
         <p className={styles.cardSubtitle}>
@@ -109,7 +115,7 @@ export function Login({
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -1889,12 +1889,19 @@
   color: #fff;
 }
 
+/* Collapsed: the rail is a strip of vertical tabs (Conversation history, Event log) that share
+   the available height evenly, rather than each claiming the full strip. */
 .chatSide:not(.chatSideOpen) .chatTab {
+  flex: 1 1 0;
   flex-direction: column;
-  height: 100%;
+  height: auto;
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
+}
+
+.chatSide:not(.chatSideOpen) .chatTab + .chatTab {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .chatSide:not(.chatSideOpen) .chatTabLabel {
@@ -1922,7 +1929,7 @@
 }
 
 .chatBody {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
   padding: 6px;
@@ -2180,16 +2187,26 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 8px 0 22px;
-  min-height: 210px;
+  padding: 10px 24px 28px;
+  min-height: 224px;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Gather (D49): one panel per open card-play conversation, stacked below the fan. */
+.gatherConversations {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 4px 16px;
 }
 
 .fanCard {
   position: relative;
-  width: 168px;
-  min-height: 178px;
-  margin: 0 -18px;
-  padding: 10px 12px 12px;
+  width: 148px;
+  min-height: 192px;
+  margin: 0 -7px;
+  padding: 10px 11px 12px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -2205,7 +2222,7 @@
 }
 
 .fanCard:hover {
-  transform: translateY(-14px) rotate(0deg) scale(1.04) !important;
+  transform: translateY(-16px) rotate(0deg) scale(1.06) !important;
   z-index: 50 !important;
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.6);
   border-color: #38bdf8;
@@ -2242,21 +2259,30 @@
 }
 
 .fanDesc {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1.3;
-  color: rgba(232, 237, 247, 0.75);
+  color: rgba(232, 237, 247, 0.85);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.fanTarget {
+.fanFooter {
   margin-top: auto;
-  font-size: 0.66rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.fanTarget {
+  font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #7dd3fc;
+  line-height: 1.2;
 }
 
 .fanStamp {
@@ -2272,6 +2298,79 @@
   padding: 0 5px;
   transform: rotate(-8deg);
 }
+
+.fanStampPlanned {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.16);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.fanCardPlanned {
+  border-style: dashed;
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(180deg, rgba(24, 35, 59, 0.85) 0%, rgba(15, 22, 38, 0.95) 100%);
+  cursor: help;
+}
+
+.fanCardPlanned:hover {
+  border-color: #38bdf8 !important;
+  transform: translateY(-12px) rotate(0deg) scale(1.05) !important;
+}
+
+.pitchBody .planNoticeBanner,
+.planNoticeBanner {
+  margin: 6px 0 14px;
+  padding: 10px 16px;
+  background: #0d1527 !important;
+  border: 1px solid rgba(56, 189, 248, 0.5) !important;
+  border-left: 4px solid var(--primary-bg) !important;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #e2e8f0 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pitchBody .planNoticeBanner .planNoticeIcon,
+.planNoticeIcon {
+  font-size: 1.4rem;
+  color: #38bdf8 !important;
+  flex-shrink: 0;
+}
+
+.pitchBody .planNoticeBanner .planNoticeText,
+.planNoticeText {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+  color: #cbd5e1 !important;
+}
+
+.pitchBody .planNoticeBanner strong,
+.planNoticeBanner strong {
+  color: #ffffff !important;
+}
+
+.pitchBody .planNoticeBanner code,
+.planNoticeBanner code {
+  color: #38bdf8 !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
 
 /* ─── Stepper: clickable, hint on its own row ─────────────────────────────── */
 .stepperWrap {
@@ -2582,6 +2681,83 @@
   background: #b45309;
 }
 
+/* Patience in words (D50): stacks below the mood pill, only shown once it isn't "full". */
+.patienceTag {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  font-size: 0.56rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #fff;
+  background: #7c5a3a;
+  border-radius: 999px;
+  padding: 1px 7px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.patienceLimit {
+  background: #b91c1c;
+}
+
+/* Sound someone out (D50): a small button under the seat, only in Build your case. */
+.soundOutBtn {
+  align-self: center;
+  margin-top: 2px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.soundOutBtn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #fff;
+}
+
+.soundOutBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.soundOutReply {
+  align-self: center;
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.soundOut_on_board {
+  background: #16a34a;
+}
+
+.soundOut_lukewarm {
+  background: #b45309;
+}
+
+.soundOut_would_object {
+  background: #b91c1c;
+}
+
 @keyframes moodPop {
   from {
     opacity: 0;
@@ -2647,6 +2823,116 @@
 .pitchBody .warnRed { color: #dc2626; }
 .pitchBody .warnAmber { color: #b45309; }
 .pitchBody .warnMuted { color: #64748b; }
+
+.warnText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The line itself, in the words the player filed it under. */
+.pitchBody .warnLine {
+  display: block;
+  font-style: italic;
+  color: #475569;
+  padding-left: 8px;
+  border-left: 2px solid rgba(15, 23, 42, 0.18);
+}
+
+.pitchBody .warnFoot {
+  font-size: 0.7rem;
+  color: #52607a;
+  padding: 6px 0 2px;
+}
+
+
+/* ─── Paper contrast: everything on the light work surface reads dark ─────── */
+.pitchBody .optReason,
+.pitchBody .objProgress,
+.pitchBody .buyInVal,
+.pitchBody .choiceEffect {
+  color: #52607a;
+}
+
+.pitchBody .choiceCost,
+.pitchBody .framingPick,
+.pitchBody .chainDepth {
+  color: #0369a1;
+}
+
+.pitchBody .chainDepth {
+  background: rgba(2, 132, 199, 0.1);
+}
+
+.pitchBody .verifiedBadge {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(21, 128, 61, 0.35);
+}
+
+.pitchBody .onRecordBadge {
+  color: #1d4ed8;
+  border-color: rgba(29, 78, 216, 0.4);
+}
+
+.pitchBody .stepDone {
+  color: #15803d;
+}
+
+.pitchBody .objText {
+  background: rgba(15, 23, 42, 0.04);
+  border-left-color: rgba(15, 23, 42, 0.22);
+}
+
+.pitchBody .objDot {
+  border-color: rgba(15, 23, 42, 0.35);
+}
+
+.pitchBody .objDotHard {
+  border-color: #dc2626;
+}
+
+.pitchBody .objDotActive {
+  background: #0f172a;
+  border-color: #0f172a;
+}
+
+.pitchBody .btnSecondary {
+  background: #ffffff;
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.pitchBody .btnSecondary:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.3);
+}
+
+.pitchBody .profileMain {
+  border-color: var(--st-color, #0284c7);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* Tags and objection kinds: same hues, dark enough to read on white. */
+.pitchBody .tagDriver,
+.pitchBody .kindTechnical { color: #4338ca; background: rgba(99, 102, 241, 0.1); border-color: rgba(67, 56, 202, 0.3); }
+.pitchBody .tagBoundary,
+.pitchBody .kindBoundary { color: #b91c1c; background: rgba(239, 68, 68, 0.1); border-color: rgba(185, 28, 28, 0.3); }
+.pitchBody .tagTradeOff,
+.pitchBody .kindStance { color: #b45309; background: rgba(245, 158, 11, 0.12); border-color: rgba(180, 83, 9, 0.3); }
+.pitchBody .tagFact,
+.pitchBody .kindPrice { color: #0f766e; background: rgba(20, 184, 166, 0.1); border-color: rgba(15, 118, 110, 0.3); }
+.pitchBody .kindCorrection { color: #475569; background: rgba(15, 23, 42, 0.05); border-color: rgba(15, 23, 42, 0.18); }
+
+/* The paper override whitens the banner, so each outcome restates its tint and ink. */
+.pitchBody .outcomeBanner.outPASS { border-color: #16a34a; background: rgba(34, 197, 94, 0.1); color: #15803d; }
+.pitchBody .outcomeBanner.outSOFT_PASS { border-color: #d97706; background: rgba(245, 158, 11, 0.1); color: #b45309; }
+.pitchBody .outcomeBanner.outVETO { border-color: #dc2626; background: rgba(239, 68, 68, 0.08); color: #b91c1c; }
+.pitchBody .outcomeBanner.outCONCEDED { border-color: #7c3aed; background: rgba(167, 139, 250, 0.12); color: #6d28d9; }
+.pitchBody .outcomeBanner.outSTALEMATE { border-color: #64748b; background: rgba(148, 163, 184, 0.14); color: #475569; }
+
+.pitchBody .outcomeBanner .outcomeLabel { color: inherit; }
+.pitchBody .outcomeBanner .outcomeDesc { color: #0f172a; }
 
 
 /* Room keeps space for the warning banner above the seats. */

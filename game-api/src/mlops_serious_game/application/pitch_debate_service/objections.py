@@ -250,12 +250,16 @@ def dialogue_options_for(
     amendment_budget: int,
     card_size: int,
     max_card_size: int = 5,
+    hardened: bool = False,
 ) -> list[DialogueOptionSpec]:
     """Return the full dialogue option menu for one objection.
 
     answering_item_ids: player-held item ids that specifically answer this
     objection (Driver for stance, Boundary for boundary, upstream item for
     technical, Trade-off for price). Empty means Amend is unavailable.
+
+    hardened: a Reframe Miss on this same item earlier this challenge (D48/plan 11) - from then
+    on only Amend clears it, no matter the objection's kind.
     """
     opts: list[DialogueOptionSpec] = []
 
@@ -276,12 +280,18 @@ def dialogue_options_for(
         opts.append(DialogueOptionSpec(option="amend", available=True))
 
     # --- Reframe ---
-    opts.append(DialogueOptionSpec(
-        option="reframe",
-        available=True,
-        reason=None if objection.kind in _REFRAME_CLEARABLE
-        else f"Reframe cannot clear a {objection.kind} objection (emotion impact only)",
-    ))
+    if hardened:
+        opts.append(DialogueOptionSpec(
+            option="reframe", available=False,
+            reason="a missed Reframe hardened this - only Amend clears it now",
+        ))
+    else:
+        opts.append(DialogueOptionSpec(
+            option="reframe",
+            available=True,
+            reason=None if objection.kind in _REFRAME_CLEARABLE
+            else f"Reframe cannot clear a {objection.kind} objection (emotion impact only)",
+        ))
 
     # --- Stonewall ---
     opts.append(DialogueOptionSpec(option="stonewall", available=True))

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_registry_red_tape_emilia_registry",
+  "stage": "gists",
+  "input_hash": "fac3277be47dc391feecae916e8c13af1cc004d7960c7095fe32661834fd46ef",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_registry_red_tape_emilia_registry",
+    "fact": "{efficiency_emilia} brought up automating the model registry.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Registry Red Tape"
+  },
+  "output": {
+    "gist": "The efficiency of the model registry workflow has been raised as a topic by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that efficiency has been raised as a topic but does not specify a direction, commitment, or stance regarding it."
+  }
+}

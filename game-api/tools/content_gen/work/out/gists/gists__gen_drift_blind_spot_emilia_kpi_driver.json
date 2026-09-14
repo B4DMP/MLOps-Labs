@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_drift_blind_spot_emilia_kpi_driver",
+  "stage": "gists",
+  "input_hash": "47af068f930ef85c53e2c521c3144aed857ec8600c146e4189ab1f2413166a35",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_drift_blind_spot_emilia_kpi_driver",
+    "fact": "{efficiency_emilia} asked for a fully automated and governed drift monitoring system.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Drift"
+  },
+  "output": {
+    "gist": "Drift monitoring efficiency has come up in recent conversations with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that the topic of drift monitoring efficiency was discussed, without expressing any stance, preference, or commitment to a specific reading."
+  }
+}

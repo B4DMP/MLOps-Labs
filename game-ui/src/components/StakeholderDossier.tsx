@@ -8,12 +8,41 @@ import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProv
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import GlossaryText from "./glossary/GlossaryText";
-import { INTEL_TAGS } from "../types/IntelTag";
+import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
+import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
+import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
+
+/** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
+export interface IntelDebugInfo {
+  id: string;
+  correct_tag: string;
+  description: string;
+  target?: string | null;
+  level?: number | null;
+  stakeholder_id?: string | null;
+  refines_id?: string | null;
+  artifact?: {
+    id: string;
+    artifact_type: string;
+    speaker_id?: string | null;
+    is_known: boolean;
+    content: string;
+  } | null;
+}
+
+/** Answer key for a dossier page. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
+export interface StakeholderDebugInfo {
+  real_archetype?: string | null;
+  player_archetype?: string | null;
+  archetype_hint?: string | null;
+  missing_intel: IntelDebugInfo[];
+}
 
 export interface IntelEntry {
   id: string;
+  debug?: IntelDebugInfo;
   requirement_id?: string;
-  intel_type: string; // e.g. "unconfirmed", "verified"
+  intel_type: string; // "unconfirmed", "inferred", "refuted" or "verified" (D49/plan 11)
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
   /** Split wording: the part that holds still whatever the player tags it (bold). */
@@ -63,6 +92,7 @@ export interface StakeholderDossierEntry {
   is_environment?: boolean;
   /** Stages this challenge is about, which the stage filter starts on. */
   focus_stage_ids?: string[];
+  debug?: StakeholderDebugInfo;
 }
 
 export interface StakeholderBuyInInfo {
@@ -100,7 +130,50 @@ export interface StakeholderDossierProps {
   draggableIntel?: boolean;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  /** Opens/closes the event log. Button appears in the dossier header, next to Performance. */
+  onLogToggle?: () => void;
+  isLogOpen?: boolean;
+  /** Badges the Log button with how many events have been filed so far. */
+  logCount?: number;
 }
+
+/** One authored item's answer key: true tag, graph target and the artifact it is read off. */
+const DebugRequirement: React.FC<{ info: IntelDebugInfo; playerTag?: string }> = ({ info, playerTag }) => (
+  <>
+    <div className={styles.debugRow}>
+      <strong>True tag:</strong>{" "}
+      <span className={playerTag === undefined || playerTag === info.correct_tag ? styles.debugRightText : styles.debugWrongText}>
+        {info.correct_tag}
+      </span>
+      {playerTag !== undefined && playerTag !== info.correct_tag && <> (player tagged {playerTag})</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Target:</strong> {info.target ?? "none"}
+      {info.level != null && <> at level {info.level}</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Id:</strong> {info.id}
+      {info.refines_id && <> (refines {info.refines_id})</>}
+    </div>
+    <div className={styles.debugRow}>
+      <strong>Authored:</strong> {info.description}
+    </div>
+    {info.artifact ? (
+      <div className={styles.debugRow}>
+        <strong>
+          Hinted by {info.artifact.artifact_type} {info.artifact.id}
+          {info.artifact.speaker_id && <> from {info.artifact.speaker_id}</>}
+          {info.artifact.is_known && <> (on record at start)</>}:
+        </strong>
+        <pre className={styles.debugArtifact}>{info.artifact.content}</pre>
+      </div>
+    ) : (
+      <div className={styles.debugRow}>
+        <strong>Hinted by:</strong> no offline artifact (interview or debate only)
+      </div>
+    )}
+  </>
+);
 
 /** How long the markers keep pulsing when the player never opens their tab. */
 const CHANGE_BADGE_PULSE_TIMEOUT_MS = 15000;
@@ -164,22 +237,32 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   }
 };
 
-type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
+type IntelPipStatus = "on_record" | "confirmed" | "inferred" | "unconfirmed" | "refuted" | "hidden";
 
 /** Pips follow the stamps' colours, so they teach the player nothing new. */
 const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
   on_record: { label: "On record", styleClass: styles.pipOnRecord },
   confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
+  // Gather's Test a hypothesis (D49): tested, not spoken aloud - counts toward readiness (Q36)
+  // the same as Verified, but reads as a lighter stamp than a public confirmation.
+  inferred: { label: "Inferred", styleClass: styles.pipInferred },
   unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
+  // A tested guess that did not hold up. Free re-tag, same as Unconfirmed.
+  refuted: { label: "Refuted", styleClass: styles.pipRefuted },
   hidden: { label: "Not found yet", styleClass: styles.pipHidden },
 };
 
 /** Settled first, so the row fills up from the left like a progress bar. */
-const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
+const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "inferred", "unconfirmed", "refuted", "hidden"];
 
 const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
-  if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
-  return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+  const confidence = (item.intel_type || "unconfirmed").toLowerCase();
+  if (confidence === "verified") {
+    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
+  }
+  if (confidence === "inferred") return "inferred";
+  if (confidence === "refuted") return "refuted";
+  return "unconfirmed";
 };
 
 /**
@@ -198,7 +281,7 @@ const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
 /** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
 const describeIntelPips = (pips: IntelPipStatus[]): string => {
   const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
-  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
+  const breakdown = (["on_record", "confirmed", "inferred", "unconfirmed", "refuted"] as const)
     .filter((status) => countOf(status) > 0)
     .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
   const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
@@ -291,31 +374,6 @@ export const phaseShortLabel = (phase?: number | null, phases?: PhaseData[]): st
   return PHASE_SHORT_LABELS.find(([pattern]) => pattern.test(named))?.[1] || `P${phase + 1}`;
 };
 
-const getEmotionIcon = (emotionStr: string): string => {
-  const lower = (emotionStr || "neutral").toLowerCase();
-  if (
-    lower.includes("positive") ||
-    lower.includes("happy") ||
-    lower.includes("supportive") ||
-    lower.includes("enthusiastic") ||
-    lower.includes("relieved")
-  ) {
-    return "ph:smiley-bold";
-  }
-  if (
-    lower.includes("negative") ||
-    lower.includes("angry") ||
-    lower.includes("frustrated") ||
-    lower.includes("skeptical") ||
-    lower.includes("anxious") ||
-    lower.includes("overwhelmed")
-  ) {
-    return "ph:smiley-sad-bold";
-  }
-  return "ph:smiley-meh-bold";
-};
-
-
 export default function StakeholderDossier({
   isOpen,
   onClose,
@@ -334,8 +392,11 @@ export default function StakeholderDossier({
   draggableIntel = false,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onLogToggle,
+  isLogOpen = false,
+  logCount,
 }: StakeholderDossierProps) {
-  const { emit } = useGameWebSocket();
+  const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
@@ -351,16 +412,33 @@ export default function StakeholderDossier({
   const currentPhase = propPhase ?? contextPhase ?? 0;
   const currentChallenge = propChallenge;
 
+  // Badges the Performance button with the project graph's overall health, the same number
+  // PerformanceView itself shows. Only asked for when that button exists.
+  const [systemHealth, setSystemHealth] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!onPerformanceToggle) return;
+    emit("graph:state_request", { phase_id: currentPhase });
+    const unsub = subscribe("graph:state", (data: { system_health?: number }) => {
+      setSystemHealth(data?.system_health);
+    });
+    return unsub;
+  }, [onPerformanceToggle, currentPhase]);
+
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
   const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
   const [hoveredPolaroidStId, setHoveredPolaroidStId] = useState<string | null>(null);
+  /** Which answer-key panel is unfolded: a note id, or `page-<stakeholder id>`. Debug builds only. */
+  const [openDebugId, setOpenDebugId] = useState<string | null>(null);
+  const toggleDebug = (id: string) => setOpenDebugId((prev) => (prev === id ? null : id));
 
   // Dossier filters (plan 05). `null` means the player has not touched the stage row yet, so it
   // keeps following the challenge's focus stages as those change.
   const [phaseFilter, setPhaseFilter] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
-  const [confFilter, setConfFilter] = useState<"all" | "on_record" | "verified" | "unconfirmed">("all");
+  const [confFilter, setConfFilter] = useState<
+    "all" | "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted"
+  >("all");
   /** The page the player was on before opening the system, so the button toggles back. */
   const lastPersonPage = useRef(0);
 
@@ -585,13 +663,23 @@ export default function StakeholderDossier({
 
   // A note with no phase is never filtered out by phase: it predates the stamp, and filtering it
   // away would lose it entirely.
-  /** on record, verified or still unconfirmed: the three states a note can be in. */
-  const confidenceOf = (item: { intel_type?: string; source?: string }): "on_record" | "verified" | "unconfirmed" => {
-    if ((item.intel_type || "unconfirmed").toLowerCase() !== "verified") return "unconfirmed";
-    return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+  /** The states a note can be in (D49/plan 11 added inferred and refuted). */
+  const confidenceOf = (
+    item: { intel_type?: string; source?: string },
+  ): "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted" => {
+    const confidence = (item.intel_type || "unconfirmed").toLowerCase();
+    if (confidence === "verified") {
+      return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
+    }
+    if (confidence === "inferred") return "inferred";
+    if (confidence === "refuted") return "refuted";
+    return "unconfirmed";
   };
 
-  const CONF_ORDER: Record<string, number> = { unconfirmed: 0, verified: 1, on_record: 2 };
+  // Unconfirmed and Refuted sort first: those are the ones still worth doing something about.
+  const CONF_ORDER: Record<string, number> = {
+    unconfirmed: 0, refuted: 0, inferred: 1, verified: 1, on_record: 2,
+  };
 
   const visibleChains = (st: StakeholderDossierEntry): IntelChain[] => {
     const needle = search.trim().toLowerCase();
@@ -850,6 +938,26 @@ export default function StakeholderDossier({
         </div>
       );
     }
+    if (lower === "inferred") {
+      return (
+        <div
+          className={`${styles.rubberStamp} ${styles.stampInferred}`}
+          title="Inferred: your read on this held up when you tested it in conversation. Not spoken aloud, but it counts."
+        >
+          ✓ INFERRED
+        </div>
+      );
+    }
+    if (lower === "refuted") {
+      return (
+        <div
+          className={`${styles.rubberStamp} ${styles.stampRefuted}`}
+          title="Refuted: that guess did not hold up. Re-tag it and try again - this never shows the true tag."
+        >
+          ✗ REFUTED
+        </div>
+      );
+    }
     return (
       <div
         className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}
@@ -961,6 +1069,8 @@ export default function StakeholderDossier({
             {([
               ["all", "ph:stack-bold", "All", "Everything you have written down"],
               ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
+              ["inferred", "ph:check-bold", "Inferred", "Tested in conversation and it held up. Not spoken aloud, but it counts."],
+              ["refuted", "ph:x-bold", "Refuted", "A tested guess that missed. Free re-tag."],
               ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
               ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
             ] as const).map(([key, icon, label, hint]) => (
@@ -1022,7 +1132,7 @@ export default function StakeholderDossier({
         <div className={styles.pageScroll}>
         {st.is_environment ? (
           <div className={styles.environmentHeader}>
-            <Icon icon="ph:magnifying-glass-bold" className={styles.environmentIcon} />
+            <Icon icon={intelTagMeta("fact").icon} className={styles.environmentIcon} />
             <div>
               <div className={styles.environmentTitle}>The System</div>
               <div className={styles.environmentSubtitle}>
@@ -1044,6 +1154,7 @@ export default function StakeholderDossier({
             <div className={styles.avatarBox}>
               <StakeholderAvatarComponent
                 avatar={avatar}
+                emotion={faceForEmotionState(emotionDisplay)}
                 stakeholderColor={stakeholderColor}
                 stakeholderId={st.stakeholder_id}
                 isFramed={false}
@@ -1079,7 +1190,7 @@ export default function StakeholderDossier({
                 title={`Emotional State: "${emotionDisplay}"`}
               >
                 <Icon
-                  icon={getEmotionIcon(emotionDisplay)}
+                  icon={iconForEmotionState(emotionDisplay)}
                   className={styles.metricIcon}
                   style={{ color: emotionColor }}
                 />
@@ -1407,6 +1518,43 @@ export default function StakeholderDossier({
           </span>
         </div>
 
+        {st.debug && (
+          <div className={styles.debugPanel}>
+            <button className={styles.debugPanelTitle} onClick={() => toggleDebug(`page-${st.stakeholder_id}`)}>
+              <Icon icon="ph:bug-bold" /> Answer key (debug): {st.debug.missing_intel.length} not found yet
+              {!st.is_environment && (
+                <>
+                  , real archetype{" "}
+                  <span
+                    className={
+                      st.debug.real_archetype && st.debug.real_archetype === st.debug.player_archetype
+                        ? styles.debugRightText
+                        : styles.debugWrongText
+                    }
+                  >
+                    {st.debug.real_archetype || "none"}
+                  </span>
+                </>
+              )}
+            </button>
+            {openDebugId === `page-${st.stakeholder_id}` && (
+              <>
+                {st.debug.archetype_hint && (
+                  <div className={styles.debugRow}>
+                    <strong>Archetype hint:</strong>
+                    <pre className={styles.debugArtifact}>{st.debug.archetype_hint}</pre>
+                  </div>
+                )}
+                {st.debug.missing_intel.map((info) => (
+                  <div key={info.id} className={styles.debugMissing}>
+                    <DebugRequirement info={info} />
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
         {/* One card per refinement chain: the newest link is the headline (D24) */}
         {pageChains.length > 0 ? (
           <div className={styles.stickyNoteGrid}>
@@ -1429,7 +1577,12 @@ export default function StakeholderDossier({
               const typeKey = item.categorized_type || "driver";
               const catMeta = CATEGORY_META[typeKey] || CATEGORY_META.driver;
               const noteId = item.id || `note-${idx}`;
-              const isUnconfirmed = (item.intel_type || "unconfirmed").toLowerCase() === "unconfirmed";
+              const noteConfidence = (item.intel_type || "unconfirmed").toLowerCase();
+              const isUnconfirmed = noteConfidence === "unconfirmed";
+              const isInferred = noteConfidence === "inferred";
+              const isRefuted = noteConfidence === "refuted";
+              // Refuted (D49): a tested guess that missed. Free re-tag, same as an unconfirmed one.
+              const canRetag = isUnconfirmed || isRefuted;
               // Split items carry a fact that holds still and a reading that changes with the tag:
               // bold the fact, italicise the reading while it is unconfirmed. Legacy items only have
               // one sentence, and the only span that reliably survives a re-tag is the name.
@@ -1444,13 +1597,18 @@ export default function StakeholderDossier({
                 : noteDescription;
               const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
               const sourceCaption = getSourceCaption(item);
-              // Paper colour matches the stamp: orange still open, blue public, green earned.
-              const noteStatusClass = isUnconfirmed
-                ? ""
-                : isPublicRecord
-                  ? styles.noteOnRecord
-                  : styles.noteConfirmed;
-              const isRetagging = isUnconfirmed && activeRetagNoteId === noteId;
+              // Paper colour matches the stamp: orange still open, red refuted, blue public,
+              // green earned, teal inferred.
+              const noteStatusClass = isRefuted
+                ? styles.noteRefuted
+                : isUnconfirmed
+                  ? ""
+                  : isPublicRecord
+                    ? styles.noteOnRecord
+                    : isInferred
+                      ? styles.noteInferred
+                      : styles.noteConfirmed;
+              const isRetagging = canRetag && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
                 (noteId === highlightedIntelId ||
@@ -1504,14 +1662,14 @@ export default function StakeholderDossier({
 
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
-                    {isUnconfirmed ? (
+                    {canRetag ? (
                       <button
                         className={`${styles.noteCategoryTag} ${catMeta.styleClass}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveRetagNoteId(isRetagging ? null : noteId);
                         }}
-                        title="Click to re-tag this intel item's category"
+                        title={isRefuted ? "That guess was wrong - click to re-tag" : "Click to re-tag this intel item's category"}
                       >
                         <span>{catMeta.icon} {catMeta.label}</span>
                         <span className={styles.reTagIconBtn} aria-label="Re-tag">
@@ -1529,6 +1687,20 @@ export default function StakeholderDossier({
                       </div>
                     )}
                     <div className={styles.cardCornerStamp}>
+                      {item.debug && (
+                        <button
+                          className={`${styles.debugToggle} ${
+                            item.debug.correct_tag === item.categorized_type ? styles.debugRight : styles.debugWrong
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDebug(noteId);
+                          }}
+                          title={`Debug: true tag is ${item.debug.correct_tag}`}
+                        >
+                          <Icon icon="ph:bug-bold" />
+                        </button>
+                      )}
                       {item.contested && (
                         <span
                           className={`${styles.statusBadge} ${styles.contestedBadge}`}
@@ -1570,11 +1742,18 @@ export default function StakeholderDossier({
                     </div>
                   )}
 
+                  {item.debug && openDebugId === noteId && (
+                    <div className={styles.debugPanel} onClick={(e) => e.stopPropagation()}>
+                      <div className={styles.debugPanelTitle}>Answer key (debug)</div>
+                      <DebugRequirement info={item.debug} playerTag={typeKey} />
+                    </div>
+                  )}
+
                   <div className={styles.intelBody}>
                     <div className={styles.intelText}>
                       "
                       {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
-                      {isUnconfirmed ? (
+                      {isUnconfirmed || isRefuted ? (
                         <em className={styles.intelReading}>
                           <GlossaryText text={noteReading} surface="intel_notes" />
                         </em>
@@ -1671,6 +1850,15 @@ export default function StakeholderDossier({
 
   const activeStakeholder = effectiveDossierData[currentPageIndex] || effectiveDossierData[0];
 
+  // System button badge: how much of what you've worked out about the pipeline itself is
+  // actually found, the same found/total the page's own pip row shows.
+  const systemPips = environmentIndex >= 0 ? getIntelPips(effectiveDossierData[environmentIndex]) : [];
+  const systemFoundCount = systemPips.filter((status) => status !== "hidden").length;
+
+  // Performance button badge: the same overall health bucket PerformanceView shows, as a dot
+  // rather than a count - it's a state, not a tally.
+  const systemHealthBucket = healthBucket(systemHealth);
+
   if (!isOpen && !isEmbedded) return null;
 
   const windowContent = (
@@ -1699,52 +1887,84 @@ export default function StakeholderDossier({
           📓 STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
-          {environmentIndex >= 0 && (
+          <div className={styles.headerButtonGroup}>
+            {environmentIndex >= 0 && (
+              <button
+                className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+                onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+                title={`What you have worked out about the pipeline itself: facts, not anybody's wishes — ${describeIntelPips(systemPips)}`}
+              >
+                <Icon icon="ph:buildings-bold" />
+                <span>System</span>
+                {systemPips.length > 0 && (
+                  <span className={styles.headerBadgeCount}>
+                    {systemFoundCount}/{systemPips.length}
+                  </span>
+                )}
+              </button>
+            )}
+            {onPerformanceToggle && (
+              <button
+                className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
+                onClick={onPerformanceToggle}
+                title={
+                  isPerformanceOpen
+                    ? "Close performance"
+                    : `Open performance — gameplay metrics and the project pipeline. System health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}`
+                }
+              >
+                <Icon icon="ph:gauge-bold" />
+                <span>Performance</span>
+                {systemHealth !== undefined && (
+                  <span
+                    className={styles.headerBadgeDot}
+                    style={{ background: healthBucketColor(systemHealthBucket) }}
+                  />
+                )}
+              </button>
+            )}
+            {onOpenPhaseBriefing && (
+              <button
+                className={styles.briefingButton}
+                onClick={onOpenPhaseBriefing}
+                title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
+              >
+                <Icon icon="ph:projector-screen-chart-bold" />
+                <span>Briefing</span>
+              </button>
+            )}
+            {onLogToggle && (
+              <button
+                className={`${styles.briefingButton} ${isLogOpen ? styles.briefingButtonActive : ""}`}
+                onClick={onLogToggle}
+                title={isLogOpen ? "Close event log" : "Open the event log — what's been filed and verified so far"}
+              >
+                <Icon icon="ph:scroll-bold" />
+                <span>Log</span>
+                {Boolean(logCount) && (
+                  <span className={styles.headerBadgeCount}>{logCount}</span>
+                )}
+              </button>
+            )}
+          </div>
+          <div className={styles.headerArrowGroup}>
             <button
-              className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
-              onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
-              title="What you have worked out about the pipeline itself: facts, not anybody's wishes"
+              className={styles.topNavArrow}
+              disabled={currentPageIndex <= 0}
+              onClick={() => requestPageChange(currentPageIndex - 1)}
+              title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
             >
-              <Icon icon="ph:buildings-bold" />
-              <span>System</span>
+              <Icon icon="ph:caret-left-bold" />
             </button>
-          )}
-          {onPerformanceToggle && (
             <button
-              className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
-              onClick={onPerformanceToggle}
-              title={isPerformanceOpen ? "Close performance" : "Open performance — gameplay metrics and the project pipeline"}
+              className={styles.topNavArrow}
+              disabled={currentPageIndex >= totalPages - 1}
+              onClick={() => requestPageChange(currentPageIndex + 1)}
+              title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
             >
-              <Icon icon="ph:gauge-bold" />
-              <span>Performance</span>
+              <Icon icon="ph:caret-right-bold" />
             </button>
-          )}
-          {onOpenPhaseBriefing && (
-            <button
-              className={styles.briefingButton}
-              onClick={onOpenPhaseBriefing}
-              title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
-            >
-              <Icon icon="ph:projector-screen-chart-bold" />
-              <span>Briefing</span>
-            </button>
-          )}
-          <button
-            className={styles.topNavArrow}
-            disabled={currentPageIndex <= 0}
-            onClick={() => requestPageChange(currentPageIndex - 1)}
-            title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
-          >
-            <Icon icon="ph:caret-left-bold" />
-          </button>
-          <button
-            className={styles.topNavArrow}
-            disabled={currentPageIndex >= totalPages - 1}
-            onClick={() => requestPageChange(currentPageIndex + 1)}
-            title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
-          >
-            <Icon icon="ph:caret-right-bold" />
-          </button>
+          </div>
           {canClose && (
             <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
               ✕
@@ -1786,6 +2006,12 @@ export default function StakeholderDossier({
                 : `Shifted this phase${change.shiftText ? `: ${change.shiftText}` : ""}`
               : "";
             const tabPips = getIntelPips(st);
+            const tabFoundCount = tabPips.filter((status) => status !== "hidden").length;
+            // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
+            // Reuben"): split on the first space so the tab always breaks there, on its own two
+            // lines, rather than wherever the browser happens to wrap a too-narrow single line.
+            const [tabRoleWord, ...tabGivenNameWords] = st.name.split(" ");
+            const tabGivenName = tabGivenNameWords.join(" ");
 
             return (
               <button
@@ -1814,10 +2040,24 @@ export default function StakeholderDossier({
                     {change.isNew ? "NEW" : "SHIFTED"}
                   </span>
                 )}
-                <span className={styles.tabName}>{st.name}</span>
+                {tabPips.length > 0 && (
+                  <span className={styles.tabIntelCountBadge} title={describeIntelPips(tabPips)}>
+                    {tabFoundCount}/{tabPips.length}
+                  </span>
+                )}
+                <span className={styles.tabName}>
+                  {tabGivenName ? (
+                    <>
+                      <span className={styles.tabNameLine}>{tabRoleWord}</span>
+                      <span className={styles.tabNameLine}>{tabGivenName}</span>
+                    </>
+                  ) : (
+                    <span className={styles.tabNameLine}>{tabRoleWord}</span>
+                  )}
+                </span>
                 <div className={styles.tabEmotionRow}>
                   <Icon
-                    icon={getEmotionIcon(emotion)}
+                    icon={iconForEmotionState(emotion)}
                     className={styles.tabEmotionIcon}
                   />
                   <span className={styles.tabEmotionLabel} title={`Emotional State: ${emotion}`}>

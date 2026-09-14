@@ -1,0 +1,25 @@
+{
+  "item_id": "fragments:req.kpi_definition",
+  "stage": "fragments",
+  "input_hash": "267993ceed0924ce8c391c522c9937f6dca19cf7a9f53d27c6f983928c06c677",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "req.kpi_definition",
+    "kind": "component",
+    "name": "KPI Definition",
+    "levels": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "KPI definitions contradict each other, causing teams to report conflicting success metrics weekly.",
+    "level_1": "No one has written down what success means for this model in business terms.",
+    "level_2": "Engineers draft KPIs in spreadsheets and update them manually after each sprint review.",
+    "level_3": null,
+    "level_4": "KPIs are version controlled, audited, and linked to compliance requirements in the registry."
+  }
+}

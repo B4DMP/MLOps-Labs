@@ -1,9 +1,9 @@
 {
   "item_id": "artifacts:gen_data_quality_conflict_missing_feature_store",
   "stage": "artifacts",
-  "input_hash": "2560c3af08a9a1ea5b92b440f4b8c2d59b8c1dc6debd16596845d2d50e8108d2",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-  "attempts": 2,
+  "input_hash": "83ac9bca65dbf459cbdbbd9af56ac51ae98b4324e04c08efcb1f1e2db2eeb402",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
   "inputs": {
     "requirement": {
       "id": "gen_data_quality_conflict_missing_feature_store",
@@ -22,10 +22,15 @@
         "target": "data.feature_store",
         "level": 1,
         "trigger": null
-      }
+      },
+      "refines_id": null
     },
-    "artifact_type": "incident_ticket",
-    "author": null,
+    "artifact_type": "email",
+    "narrator": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
     "challenge": {
       "name": "The Inconsistent Checks",
       "description": ""
@@ -33,8 +38,8 @@
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The current pipeline does not include a feature store. Instead, features are recalculated for each model training run. This causes a full reprocessing of the dataset, taking approximately 3 hours per run. The data is pulled directly from the raw data lake, and the feature registry is not implemented. The pipeline produces 2 failed runs per week due to schema inconsistencies.",
+    "content": "I was checking the logs for the latest churn model training run. The feature extraction step pulls raw values directly from the warehouse tables every time a new job starts. There is no centralized repository holding precomputed features. When the team requests a specific historical slice for backtesting, I manually query the source data and export a flat file. The latency for these manual pulls averages forty minutes per request. The validation scripts check for null values in the raw input, but they do not verify consistency across different model versions because the features are not versioned or stored in a shared location. We have been running this manual workflow for the last three months of model iterations.",
     "reclassified_as": "fact",
-    "reclassify_reason": "This statement is an objective observation about the current state of the pipeline and its performance issues."
+    "reclassify_reason": "The artifact is a descriptive report of the current operational state, including manual workflows, latency metrics, and validation gaps, without expressing any wishes, refusals, or stated trade-offs."
   }
 }

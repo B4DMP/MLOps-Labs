@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.cicd_canary",
+  "stage": "fragments",
+  "input_hash": "f09f7c9c6b0d9a22dbec757361748e253f24e9b2687d373c7f187b6c34119f7e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.cicd_canary",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from CI/CD Pipeline to Canary and A/B Testing"
+  },
+  "output": {
+    "level_0": "Pipeline crashes before reaching canary, leaving production traffic completely uncontrolled and unpredictable.",
+    "level_1": "No handover exists; developers push directly to production without any staged rollout mechanism.",
+    "level_2": "Engineers manually trigger canary deployments via CLI scripts after pipeline completion, risking human error.",
+    "level_3": "Pipeline automatically triggers canary releases and A/B splits based on predefined success criteria.",
+    "level_4": "Governed handover enforces compliance checks, audit logs, and approval gates before canary traffic shifts."
+  }
+}

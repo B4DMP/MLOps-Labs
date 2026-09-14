@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_drift_blind_spot_monica_model_impact",
+  "stage": "gists",
+  "input_hash": "e9a077da787b740f8a722f81d55e348e4af107e9bc58241bd149f85782402860",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_drift_blind_spot_monica_model_impact",
+    "fact": "{model_monica} suggested that better drift detection would help model performance.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Drift"
+  },
+  "output": {
+    "gist": "Drift detection for the model has been raised by {model_monica} as a topic of interest.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist simply identifies drift detection as a topic of interest without indicating whether it is a driver, boundary, trade-off, or fact."
+  }
+}

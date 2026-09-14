@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:req.kpi_definition",
+  "stage": "objections",
+  "input_hash": "eb9391387b1cfd1639312438740dac183d5588f6de3c03f3e619cce429e25da5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "req.kpi_definition",
+      "name": "KPI Definition"
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "line": "I cannot approve this because the {cause} upstream is not good enough yet. We need that foundation solid before we touch {target}."
+  }
+}

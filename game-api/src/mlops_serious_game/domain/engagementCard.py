@@ -16,8 +16,11 @@ class EngagementCard(BaseModel):
         target_type (str): Target entity type ('stakeholder' or 'intel').
         response_snippet (str): Default response template/text generated when played.
         max_plays_per_phase (int): Maximum times this card can be played per phase (-1 for unlimited).
-        intel_reveal_count (int): Number of undiscovered intel items to reveal per stakeholder.
-        allowed_requirement_types (list[str]): Optional list of allowed requirement types to reveal.
+        turns (int): Turns per target the card buys (D49): each turn the player picks one Gather
+            option. Unconfirmed held notes are settled first if the player tests them, the rest
+            of the budget can reveal notes not found yet.
+        allowed_requirement_types (list[str]): Optional tag filter. Held notes match on the tag the
+            player filed, undiscovered ones on their true tag.
     """
 
     id: str = Field(description="Unique identifier for the engagement card")
@@ -41,9 +44,9 @@ class EngagementCard(BaseModel):
         default=-1,
         description="Maximum allowed plays per phase (-1 for unlimited, >0 for exact play limit)",
     )
-    intel_reveal_count: int = Field(
+    turns: int = Field(
         default=1,
-        description="Number of undiscovered intel items to reveal per stakeholder",
+        description="Turns per target this card buys (D49)",
     )
     allowed_requirement_types: list[str] = Field(
         default_factory=list,

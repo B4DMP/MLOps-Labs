@@ -1,0 +1,45 @@
+{
+  "item_id": "objections:gen_shadow_environment_dispute_ruth_shadow_governed",
+  "stage": "objections",
+  "input_hash": "941f527aa602d4efb5e72c7e59df3a25937bfc9ad4396fe01e84ab8bc77baa75",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_environment_dispute_ruth_shadow_governed",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release. She will not approve any release without a governed shadow deployment in place.",
+      "fact": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release.",
+      "reading": "She will not approve any release without a governed shadow deployment in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.shadow",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I am not signing off on any release without a governed shadow deployment in place. That is the non-negotiable standard for my team.",
+    "correction": "I am talking about a governed shadow deployment, not just any automated test. Do not conflate basic automation with the strict governance I require."
+  }
+}

@@ -1,11 +1,13 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
-import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import IntelArtifactViewer from "./IntelArtifactViewer";
-import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
+import StakeholderDossier, { type IntelDebugInfo, type StakeholderDossierEntry } from "./StakeholderDossier";
+import EventLogModal from "./EventLogModal";
+import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
-import { INTEL_TAGS } from "../types/IntelTag";
+import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -40,6 +42,8 @@ export interface IntelArtifact {
   possible_archetypes?: string[];
   /** Already on the public record: dealt in pre-tagged and locked, not the player's to call. */
   is_known?: boolean;
+  /** Answer key, only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
+  debug?: IntelDebugInfo;
 }
 
 // Stakeholder tags first, then the one tag that is about the system rather than a person.
@@ -51,6 +55,20 @@ const REQUIREMENT_TAGS = INTEL_TAGS.map((t) => ({
   description: t.description,
   about: t.about,
 }));
+
+// Matches ENVIRONMENT_ENTRY_ID on the backend (intel_handler.py): the dossier page id for
+// "The System", as opposed to any actual stakeholder_id.
+const SYSTEM_TAB_ID = "__environment__";
+
+/** Which dossier page an artifact should open: the System page once it's known to be a Fact
+ * (either pre-known, or just tagged that way by the player), otherwise its speaker's page.
+ * An unconfirmed artifact's true type isn't known client-side before the player tags it -
+ * revealing that early would give the answer away. */
+function dossierTargetFor(art: IntelArtifact, categorizedType?: string): string {
+  const catType = categorizedType ?? art.categorized_type;
+  if (catType === "fact") return SYSTEM_TAB_ID;
+  return art.stakeholder_id || art.stakeholder_name;
+}
 
 const CONVINCER_TAGS = [
   {
@@ -117,12 +135,25 @@ export default function OfflineIntelGathering({
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
+  const [events, setEvents] = useState<GameEventPayload[]>([]);
+  // Clicking an event log row that names an intel item jumps the dossier to it (D51's refs, made
+  // clickable): a brief highlight, then it fades so it doesn't linger as stray UI state.
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+  const highlightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const jumpToIntelItem = (itemId: string) => {
+    if (highlightTimeoutRef.current) clearTimeout(highlightTimeoutRef.current);
+    setHighlightedIntelId(itemId);
+    highlightTimeoutRef.current = setTimeout(() => setHighlightedIntelId(null), 2500);
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [taggedTypes, setTaggedTypes] = useState<Record<string, string>>({});
   const [, setHoveredTag] = useState<string | null>(null);
+  // Debug builds only: stays open across cards so the key can be read while flipping through the deck.
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [isLogOpen, setIsLogOpen] = useState(false);
   const [showIntroBanner, setShowIntroBanner] = useState(() => {
     try {
       return localStorage.getItem("mlops_offline_intel_intro_seen") !== "true";
@@ -155,6 +186,9 @@ export default function OfflineIntelGathering({
       if (resetConfirmTimeoutRef.current) {
         clearTimeout(resetConfirmTimeoutRef.current);
       }
+      if (highlightTimeoutRef.current) {
+        clearTimeout(highlightTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -184,18 +218,32 @@ export default function OfflineIntelGathering({
         phase_id: currentPhase,
         challenge_id: currentChallenge,
       });
+      emit("log:history", {});
     }
 
     return () => unsubscribe();
   }, [currentPhase, currentChallenge]);
 
+  // The event log (D51): what's been filed/verified so far, for this offline gathering pass.
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (payload) => {
+    setEvents(payload.events || []);
+  });
+  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (payload) => {
+    if (!payload.events?.length) return;
+    setEvents((prev) => {
+      const seen = new Set(prev.map((e) => e.seq));
+      return [...prev, ...payload.events.filter((e) => !seen.has(e.seq))];
+    });
+  });
+
   useEffect(() => {
     if (artifacts.length > 0 && currentIndex < artifacts.length) {
       const art = artifacts[currentIndex];
       if (art && onTagArtifact) {
-        onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+        onTagArtifact(dossierTargetFor(art, taggedTypes[art.id]));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, artifacts]);
 
   const handleTagArtifact = (categorizedType: string) => {
@@ -212,7 +260,7 @@ export default function OfflineIntelGathering({
     }));
 
     if (onTagArtifact) {
-      onTagArtifact(currentArtifact.stakeholder_id || currentArtifact.stakeholder_name);
+      onTagArtifact(dossierTargetFor(currentArtifact, categorizedType));
     }
 
     if (currentArtifact.is_convincer_profile) {
@@ -335,11 +383,16 @@ export default function OfflineIntelGathering({
   const firstPlayerIndex = artifacts.findIndex((art) => !art.is_known);
   const knownArtifactsCount = artifacts.length - playerArtifacts.length;
   const isOnKnownArtifact = Boolean(currentArtifact?.is_known);
+  // On record come the challenge itself, as a System item about the disputed component, and the
+  // two sides arguing over it, as stances. Only the stances make up the clash.
+  const isOnRecordFact = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type === "fact";
+  const isOnRecordStance = (art: IntelArtifact) => Boolean(art.is_known) && art.categorized_type !== "fact";
+  const isOnKnownFact = isOnKnownArtifact && currentArtifact.categorized_type === "fact";
   // The on-record pair is one argument seen from two sides. Name the other side so the
   // player reads the second card as a rebuttal instead of an unrelated statement.
-  const conflictPartnerIndex = isOnKnownArtifact
+  const conflictPartnerIndex = isOnKnownArtifact && !isOnKnownFact
     ? artifacts.findIndex(
-        (art) => art.is_known && art.stakeholder_id !== currentArtifact.stakeholder_id
+        (art) => isOnRecordStance(art) && art.stakeholder_id !== currentArtifact.stakeholder_id
       )
     : -1;
   const conflictPartner = conflictPartnerIndex !== -1 ? artifacts[conflictPartnerIndex] : undefined;
@@ -371,9 +424,13 @@ export default function OfflineIntelGathering({
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onLogToggle={() => setIsLogOpen((v) => !v)}
+                isLogOpen={isLogOpen}
+                logCount={events.length}
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
+                highlightedIntelId={highlightedIntelId}
               />
             </div>
           </div>
@@ -400,9 +457,9 @@ export default function OfflineIntelGathering({
                       <Icon icon="ph:info-bold" />
                     </button>
                     <span className={styles.infoTooltipContent} role="tooltip">
-                      Every artifact reveals something about a stakeholder. Read it, then tag it below.
-                      Your call is saved as <strong>unconfirmed</strong> intel on their page in the Stakeholder
-                      Dossier. You'll get to confirm or correct it later by talking to them directly during
+                      Every artifact reveals something, about a stakeholder or about the system itself. Whoever
+                      wrote it, read closely, then tag it below. Your call is saved as <strong>unconfirmed</strong>{" "}
+                      intel in the Stakeholder Dossier. You'll get to confirm or correct it later by talking to them directly during
                       the pitch phase. Not sure yet? Use ◀ ▶ or the numbered tabs above to jump around
                       before you lock everything in.
                     </span>
@@ -410,9 +467,6 @@ export default function OfflineIntelGathering({
                   {!isFinished && currentArtifact && (
                     <div className={styles.headerArtifactMeta}>
                       <span className={styles.headerDivider}>|</span>
-                      <span className={styles.headerArtifactCount}>
-                        Artifact {currentIndex + 1} of {artifacts.length}
-                      </span>
                       <span className={styles.headerArtifactBadge}>
                         {currentArtifact.artifact_type.toUpperCase()}
                       </span>
@@ -447,11 +501,13 @@ export default function OfflineIntelGathering({
                       const isTagged = !!taggedTypes[key];
                       const isCurrent = idx === currentIndex;
                       // Each challenge's on-record pair is a disagreement between two stakeholders,
-                      // and that disagreement is the challenge. Mark the seam between them.
+                      // and that disagreement is the challenge. Mark the seam between them - the
+                      // System item leads the deck but isn't itself a side of the argument.
                       const previous = idx > 0 ? artifacts[idx - 1] : undefined;
                       const opensConflictSeam = Boolean(
-                        art.is_known &&
-                        previous?.is_known &&
+                        isOnRecordStance(art) &&
+                        previous &&
+                        isOnRecordStance(previous) &&
                         previous.stakeholder_id !== art.stakeholder_id
                       );
                       const pill = (
@@ -465,21 +521,27 @@ export default function OfflineIntelGathering({
                             setDirection(idx >= currentIndex ? 1 : -1);
                             setCurrentIndex(idx);
                             if (onTagArtifact) {
-                              onTagArtifact(art.stakeholder_id || art.stakeholder_name);
+                              onTagArtifact(dossierTargetFor(art, taggedTypes[key]));
                             }
                           }}
                           className={`btn btn-xs fw-bold ${styles.navPill} ${
                             art.is_known
-                              ? styles.navPillOnRecord
+                              ? (isOnRecordFact(art) ? styles.navPillOnRecordFact : styles.navPillOnRecord)
                               : isTagged
                                 ? styles.navPillTagged
                                 : styles.navPillUntagged
                           } ${isCurrent ? styles.navPillCurrent : ""}`}
                           title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${
-                            art.is_known ? "On record, nothing to tag" : isTagged ? "Categorized" : "Uncategorized"
+                            art.is_known
+                              ? isOnRecordFact(art) ? "On record: about the system" : "On record, nothing to tag"
+                              : isTagged ? "Categorized" : "Uncategorized"
                           })`}
                         >
-                          {art.is_known ? <Icon icon="ph:megaphone-simple-bold" /> : idx + 1}
+                          {art.is_known ? (
+                            <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:megaphone-simple-bold"} />
+                          ) : (
+                            idx + 1
+                          )}
                         </button>
                       );
 
@@ -540,7 +602,7 @@ export default function OfflineIntelGathering({
                           </div>
                           <h4 className="fw-bold text-dark mb-2">Intel Artifacts Tagged!</h4>
                           <p className={`text-muted mb-4 fs-6 ${styles.completionDescription}`}>
-                            All {totalArtifactsCount} stakeholder requirement stances have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier. You'll be able to verify or correct each tag by talking to that stakeholder directly during the pitch phase.
+                            All {totalArtifactsCount} artifacts have been categorized and recorded as <strong className="text-dark">unconfirmed intel</strong> in your Stakeholder Dossier. You'll be able to verify or correct each tag by talking to the stakeholders directly during the pitch phase.
                             {knownArtifactsCount > 0 && (
                               <>
                                 {" "}The {knownArtifactsCount} item{knownArtifactsCount === 1 ? "" : "s"} you couldn't tag
@@ -625,15 +687,26 @@ export default function OfflineIntelGathering({
                         <div className={`${styles.introBanner} ${styles.onRecordBanner}`}>
                           <span className={styles.introBannerIcon}>📣</span>
                           <span className={styles.introBannerBody}>
-                            <strong>{currentArtifact.stakeholder_name} said this in the open.</strong> It went to a
-                            channel the whole team reads, so everyone already knows where they stand. It's filed in
-                            the Dossier as <strong>on record</strong> and there's nothing here for you to work out.
-                            Read it, then keep going.
+                            {isOnKnownFact ? (
+                              <>
+                                <strong>This is what the challenge is about.</strong> {currentArtifact.stakeholder_name}{" "}
+                                posted it in a channel the whole team reads, so everyone already knows how things stand.
+                                It's filed under <strong>The System</strong> in the Dossier as <strong>on record</strong>,
+                                and there's nothing here for you to work out. Read it, then keep going.
+                              </>
+                            ) : (
+                              <>
+                                <strong>{currentArtifact.stakeholder_name} said this in the open.</strong> It went to a
+                                channel the whole team reads, so everyone already knows where they stand. It's filed in
+                                the Dossier as <strong>on record</strong> and there's nothing here for you to work out.
+                                Read it, then keep going.
+                              </>
+                            )}
                             {conflictPartner && (
                               <span className={styles.conflictNote}>
                                 <Icon icon="ph:lightning-fill" className={styles.conflictNoteIcon} />
                                 {hasSeenConflictPartner
-                                  ? `That's the opposite of what ${conflictPartner.stakeholder_name} just said. Working out that clash is the job.`
+                                  ? `That's different than what ${conflictPartner.stakeholder_name} just said. Working out that clash is the job.`
                                   : `${conflictPartner.stakeholder_name} sees it differently, and you'll read their side next.`}
                               </span>
                             )}
@@ -717,6 +790,7 @@ export default function OfflineIntelGathering({
                         </button>
 
                         <div className={styles.taggingPanelHeaderText}>
+                          <div className={styles.taggingBadgeRow}>
                           <span
                             className={`${styles.taggingTypeBadge} ${
                               isOnKnownArtifact
@@ -732,9 +806,29 @@ export default function OfflineIntelGathering({
                                 ? "Convincer Profile"
                                 : "Stance"}
                           </span>
+                          {currentArtifact.debug && (
+                            <button
+                              type="button"
+                              className={`${styles.debugToggle} ${
+                                !currentTaggedType
+                                  ? ""
+                                  : currentTaggedType === currentArtifact.debug.correct_tag
+                                    ? styles.debugRight
+                                    : styles.debugWrong
+                              }`}
+                              onClick={() => setIsDebugOpen((open) => !open)}
+                              title={`Debug: true tag is ${currentArtifact.debug.correct_tag}`}
+                              aria-label="Toggle answer key (debug)"
+                            >
+                              <Icon icon="ph:bug-bold" />
+                            </button>
+                          )}
+                          </div>
                           <h6 className={styles.taggingTitle}>
                             {isOnKnownArtifact
-                              ? `${currentArtifact.stakeholder_name}'s stance, already filed:`
+                              ? isOnKnownFact
+                                ? "How the system stands, already filed:"
+                                : `${currentArtifact.stakeholder_name}'s stance, already filed:`
                               : currentArtifact.is_convincer_profile
                                 ? `Categorize ${currentArtifact.stakeholder_name}'s Convincer Archetype:`
                                 : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
@@ -760,6 +854,28 @@ export default function OfflineIntelGathering({
                           />
                         </button>
                       </div>
+
+                      {currentArtifact.debug && isDebugOpen && (
+                        <div className={styles.debugPanel}>
+                          <strong>True tag:</strong>{" "}
+                          <span
+                            className={
+                              !currentTaggedType || currentTaggedType === currentArtifact.debug.correct_tag
+                                ? styles.debugRightText
+                                : styles.debugWrongText
+                            }
+                          >
+                            {currentArtifact.debug.correct_tag}
+                          </span>
+                          {currentArtifact.debug.target && (
+                            <>
+                              {" "}· {currentArtifact.debug.target}
+                              {currentArtifact.debug.level != null && <> at level {currentArtifact.debug.level}</>}
+                            </>
+                          )}
+                          {" "}· <span className={styles.debugId}>{currentArtifact.debug.id}</span>
+                        </div>
+                      )}
 
                       <p className={styles.taggingHint}>
                         {isOnKnownArtifact
@@ -847,6 +963,13 @@ export default function OfflineIntelGathering({
           </div>
         </div>
       </div>
+
+      <EventLogModal
+        isVisible={isLogOpen}
+        onClose={() => setIsLogOpen(false)}
+        events={events}
+        onItemClick={jumpToIntelItem}
+      />
     </div>
   );
 }

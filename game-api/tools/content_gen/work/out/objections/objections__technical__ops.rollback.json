@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:ops.rollback",
+  "stage": "objections",
+  "input_hash": "d4d2081d168639dc11eeb6607f26bdca857a136b275f16d66c1e656b69a805bd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "ops.rollback",
+      "name": "Rollback Mechanism"
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "line": "I cannot approve this plan for {target} because the upstream {cause} is still too unstable for my integration layer. Until {cause} is solid, my rollback mechanism will just trigger endless false positives."
+  }
+}

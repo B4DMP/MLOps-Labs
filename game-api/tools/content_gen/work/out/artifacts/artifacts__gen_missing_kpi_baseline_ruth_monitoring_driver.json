@@ -1,0 +1,42 @@
+{
+  "item_id": "artifacts:gen_missing_kpi_baseline_ruth_monitoring_driver",
+  "stage": "artifacts",
+  "input_hash": "7bb1ea1a7a4b686a1a0840684a006447fe826e2ade98986c45f126d2c2f83221",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_missing_kpi_baseline_ruth_monitoring_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features. The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
+      "fact": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features.",
+      "reading": "The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "req.acceptance_criteria",
+        "level": 2
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "asserts": null,
+      "refines_id": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Missing Baseline",
+      "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control."
+    }
+  },
+  "output": {
+    "content": "I have been tracking the drift between our staging validation and live user experience. The gap is significant. I propose we link the acceptance criteria directly to our real-world performance monitoring dashboards. When we tie these definitions to live metrics, the reliability of our ML features improves substantially. The more tightly coupled the acceptance checks are to actual production behavior, the better the overall system stability becomes. I want this linkage to be as comprehensive as possible, covering every major service endpoint. This ensures we are not just testing for theoretical correctness but for actual operational robustness. I am eager to expand this coverage to include latency percentiles and error rate spikes. The more data points we integrate into the definition, the stronger the signal for reliability becomes.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that expanding the linkage to be 'as comprehensive as possible' and integrating 'the more data points' will make the outcome stronger, indicating that exceeding the minimum request aligns with their goal."
+  }
+}

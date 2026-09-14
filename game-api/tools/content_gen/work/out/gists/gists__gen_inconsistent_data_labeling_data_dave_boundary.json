@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_inconsistent_data_labeling_data_dave_boundary",
+  "stage": "gists",
+  "input_hash": "3917b2769be670100e27fdb1175dfbc302613dac1dad658c8245f988bc6f5c1e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_inconsistent_data_labeling_data_dave_boundary",
+    "fact": "{data_dave} brought up keeping data labeling done by hand.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Inconsistent Data Labeling"
+  },
+  "output": {
+    "gist": "Manual data labeling processes have been raised as a recurring topic in recent discussions.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies manual data labeling as a recurring discussion topic but does not express a preference for increasing it, refusing it, accepting a trade-off, or stating a specific operational fact beyond its presence in discussions."
+  }
+}

@@ -1,4 +1,5 @@
 import { Icon } from "@iconify/react";
+import { motion } from "motion/react";
 import styles from "./LoadingScreen.module.css";
 
 interface LoadingScreenProps {
@@ -8,7 +9,12 @@ interface LoadingScreenProps {
 export function LoadingScreen({ isConnected }: LoadingScreenProps) {
   return (
     <div className={styles.loadingWrapper}>
-      <div className={styles.loadingCard}>
+      <motion.div
+        className={styles.loadingCard}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
         <h3 className={styles.cardTitle}>
           <Icon icon="svg-spinners:pulse-2" className={styles.pulseIcon} />
           <span>Loading Game</span>
@@ -28,7 +34,7 @@ export function LoadingScreen({ isConnected }: LoadingScreenProps) {
             <span>{isConnected ? "Server Connected" : "Connecting to Server..."}</span>
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

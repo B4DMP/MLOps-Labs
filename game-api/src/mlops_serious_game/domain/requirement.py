@@ -67,7 +67,25 @@ class FactAssertion(BaseModel):
 
 class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
+    # Gather's "Test a hypothesis" turn (D49, plan 11): the player's own tag held up under
+    # questioning. Not a public confirmation like Verified, but tested - it counts toward pitch
+    # readiness (Q36/D53) and is shown with its own stamp in the dossier.
+    INFERRED = "inferred"
+    # The same turn, but the player's tag was wrong: a trust hit, a free re-tag, the conversation
+    # goes on. Never shows the true tag - Refuted only says the guess was wrong.
+    REFUTED = "refuted"
     VERIFIED = "verified"
+
+
+# Q36/D53: an Inferred note has been tested against the stakeholder, so it counts toward pitch
+# readiness the same as a Verified one - only Unconfirmed and Refuted do not.
+READINESS_CONFIDENCE = frozenset({ConfidenceType.VERIFIED, ConfidenceType.INFERRED})
+
+
+def counts_toward_readiness(intel_type) -> bool:
+    """Whether an item's confidence counts toward the pitch readiness threshold (Q36/D53)."""
+    value = str(getattr(intel_type, "value", intel_type)).lower()
+    return value in {c.value for c in READINESS_CONFIDENCE}
 
 class IntelSource(str, Enum):
     """How an intel item found its way into the player's dossier.
@@ -124,6 +142,12 @@ class StakeholderRequirement(BaseModel):
         default=None,
         description="Id of the earlier item this one refines (same target and stakeholder, earlier phase)",
     )
+    # Gists (D52, plan 11): what a Generic Question turn tells the player. Authored by the
+    # `gists` content stage on stance items only; a Fact or an ungenerated item carries none.
+    gist: Optional[str] = Field(
+        default=None,
+        description="8 to 25 words, third person, names the topic without saying how much they care",
+    )
 
     @model_validator(mode="after")
     def _join_split_wording(self):
@@ -163,6 +187,15 @@ def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str]
             return op.target, op.value if isinstance(op.value, int) else None
 
     return None, None
+
+
+def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metric_label: Optional[str]) -> str:
+    """What a Generic Question turn tells the player (D52): the authored gist when there is one,
+    a template from the metric name otherwise - the game runs before the content does."""
+    if item.gist:
+        return item.gist
+    label = metric_label or "their part of the project"
+    return f"{stakeholder_name} keeps bringing up {label}."
 
 
 def item_target(item: "StakeholderRequirement") -> Optional[str]:

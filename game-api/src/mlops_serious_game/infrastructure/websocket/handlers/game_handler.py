@@ -27,6 +27,7 @@ from mlops_serious_game.application.intel_handler import (
     get_default_stakeholder_archetypes,
     determine_dialogue_options,
 )
+from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
     get_checkpoint_dialogue_options,
@@ -41,6 +42,7 @@ from mlops_serious_game.infrastructure.database import (
     IntelItem,
     async_engine,
     get_session,
+    get_user_id,
 )
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -133,12 +135,14 @@ def get_or_create_game_session(player: str, db_session=None) -> GameSession:
     from mlops_serious_game.application.persona_service import sync_personas
 
     def _init_in_session(s):
-        stmt = select(GameSession).where(GameSession.player == player)
+        user_id = get_user_id(s, player)
+        stmt = select(GameSession).where(GameSession.user_id == user_id)
         session_rec = s.scalars(stmt).first()
         if not session_rec:
             st_archs = get_default_stakeholder_archetypes()
             session_rec = GameSession(
                 player=player,
+                user_id=user_id,
                 stakeholder_archetypes=st_archs,
                 stakeholder_personas=StakeholderFactory.choose_personas(player),
             )
@@ -169,8 +173,9 @@ def get_discovered_intel_items(
     intel_items: list[StakeholderIntelItem] = []
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
         records = session.scalars(
-            select(IntelItem).where(IntelItem.user_name == username)
+            select(IntelItem).where(IntelItem.user_id == user_id)
         ).all()
 
         for record in records:
@@ -244,7 +249,7 @@ async def handle_game_init(
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
-            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_questionnaire = camp.use_questionnaire
 
@@ -278,12 +283,14 @@ async def handle_game_init(
     }
 
     with get_session() as session:
+        user_id = get_user_id(session, username)
+
         # Initialize or retrieve persistent player GameSession
         get_or_create_game_session(username, session)
 
         # Fetch user progression index
         results = session.scalars(
-            select(GameProgression).where(GameProgression.user_name == username)
+            select(GameProgression).where(GameProgression.user_id == user_id)
         ).all()
         for r in results:
             if r.game_progress_index > game_progress_index:
@@ -296,6 +303,7 @@ async def handle_game_init(
                 session.add(
                     GameProgression(
                         user_name=username,
+                        user_id=user_id,
                         game_progress_index=1,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
@@ -306,6 +314,7 @@ async def handle_game_init(
                 session.add(
                     GameProgression(
                         user_name=username,
+                        user_id=user_id,
                         game_progress_index=4,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
@@ -315,7 +324,7 @@ async def handle_game_init(
         # Fetch latest game challenge state
         stmt = (
             select(GameChallenge)
-            .where(GameChallenge.user_name == username)
+            .where(GameChallenge.user_id == user_id)
             .order_by(GameChallenge.id.desc())
         )
         latest_session = session.scalars(stmt).first()
@@ -330,7 +339,7 @@ async def handle_game_init(
             else:
                 stmt_ev = (
                     select(GameChallenge)
-                    .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                    .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
                     .order_by(GameChallenge.id.desc())
                 )
                 session_with_ev = session.scalars(stmt_ev).first()
@@ -351,7 +360,7 @@ async def handle_game_init(
                 stmt_ac = (
                     select(GameChallenge)
                     .where(
-                        GameChallenge.user_name == username,
+                        GameChallenge.user_id == user_id,
                         GameChallenge.phase_index == latest_session.phase_index,
                         GameChallenge.challenge_index == latest_session.challenge_index,
                     )
@@ -361,18 +370,19 @@ async def handle_game_init(
                     if isinstance(rec.action_card, dict) and rec.action_card.get("title"):
                         saved_action_card = {**rec.action_card, "played_engagement_card_ids": saved_played_engagement_card_ids, "engagement_card_targets": saved_engagement_card_targets}
                         break
-        else:
-            #  DEBUG: Skip intro questions / challenge for fresh game sessions
-            if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0 and game_progress_index == 2:
-                last_gamestate_id[1] = 1
 
     await send_progress_index_payload(websocket, game_progress_index)
 
     if(game_progress_index==2):
-        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
-            challenge_index=last_gamestate_id[1],
-            phase_index=last_gamestate_id[0]
-        )
+        if latest_session is None:
+            # No challenge recorded yet for this player: deal one through the same scheduler
+            # every later challenge goes through, so retired/legacy templates are never dealt here.
+            curr_challenge: Challenge = select_first_challenge(username)
+        else:
+            curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
+                challenge_index=last_gamestate_id[1],
+                phase_index=last_gamestate_id[0]
+            )
         # The graph ships dark for now: a failure here must never block the game.
         try:
             graph_store.enter_challenge(username, curr_challenge)
@@ -471,7 +481,7 @@ async def handle_progress_update(
     with get_session() as session:
         user = session.scalar(select(User).where(User.user_name == username))
         if user:
-            camp = session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+            camp = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
             if camp is not None:
                 use_q = camp.use_questionnaire
 
@@ -486,6 +496,7 @@ async def handle_progress_update(
         session.add(
             GameProgression(
                 user_name=username,
+                user_id=get_user_id(session, username),
                 game_progress_index=game_progress_index,
                 time_stamp=datetime.datetime.utcnow(),
                 additional_data=additional_data
@@ -494,16 +505,28 @@ async def handle_progress_update(
 
     if game_progress_index == 2:
         last_gamestate_id = payload.get("last_gamestate_id", [0, 0, 0])
-        #DEBUG skip intro questions
-        if last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0:
-            last_gamestate_id[1] = 1
-            
+        is_fresh_start = last_gamestate_id[0] == 0 and last_gamestate_id[1] == 0
+
         initial_metric_values = payload.get("initial_metric_values", [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()])
-        curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
-            challenge_index=last_gamestate_id[1],
-            phase_index=last_gamestate_id[0]
-        )
+        if is_fresh_start:
+            # A brand-new player has no challenge yet: deal one through the same scheduler
+            # every later challenge goes through, so retired/legacy templates are skipped here too.
+            curr_challenge: Challenge = select_first_challenge(username)
+        else:
+            curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
+                challenge_index=last_gamestate_id[1],
+                phase_index=last_gamestate_id[0]
+            )
         if curr_challenge:
+            # Fires the challenge's on_enter_ops (e.g. "the KPI doc was deleted") so the graph
+            # actually matches what its on-record Facts describe. Without this, a Fact asserting
+            # the post-seed state reads as stale against a graph still sitting at its precondition
+            # state. The graph ships dark for now: a failure here must never block the game.
+            try:
+                graph_store.enter_challenge(username, curr_challenge)
+            except Exception as e:
+                print(f"[Graph seed error] {e}")
+
             await manager.send_event(
                 websocket=websocket,
                 event="game:state_update",
@@ -539,39 +562,55 @@ async def store_or_update_challenge(
     attention_tokens: int,
 ) -> None:
     with get_session() as session:
+        user_id = get_user_id(session, username)
+
         # Carry forward latest persisted emotion_values from user's history
         stmt_ev = (
             select(GameChallenge)
-            .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+            .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
             .order_by(GameChallenge.id.desc())
         )
         prev_session_ev = session.scalars(stmt_ev).first()
         carried_emotion_values = prev_session_ev.emotion_values if prev_session_ev else None
 
+        stmt = select(GameChallenge).where(
+            GameChallenge.user_id == user_id,
+            GameChallenge.phase_index == challenge.phase_id,
+            GameChallenge.challenge_index == challenge.id
+        ).order_by(GameChallenge.id.desc())
+
+        existing = session.scalars(stmt).first()
+
         if challenge_loop_id == 0:
-            session.add(
-                GameChallenge(
-                    user_name=username,
-                    phase_index=challenge.phase_id,
-                    challenge_index=challenge.id,
-                    challenge_loop_index=challenge_loop_id,
-                    action_card=action_card,
-                    metric_values=metric_values,
-                    time_stamp=datetime.datetime.utcnow(),
-                    pitch_debate_messages=[],
-                    online_intel_gathering_messages=[],
-                    attention_tokens=attention_tokens,
-                    emotion_values=carried_emotion_values,
+            # A repeated state_update for the same challenge's very first stage (e.g. a
+            # duplicate emit on reconnect) must not insert a second GameChallenge row for
+            # it - that would let `handle_game_init`'s "latest row" resume logic and this
+            # challenge's own row collide/duplicate for no reason.
+            if existing:
+                existing.action_card = action_card
+                existing.metric_values = metric_values
+                existing.attention_tokens = attention_tokens
+                existing.time_stamp = datetime.datetime.utcnow()
+                if not existing.emotion_values and carried_emotion_values:
+                    existing.emotion_values = carried_emotion_values
+            else:
+                session.add(
+                    GameChallenge(
+                        user_name=username,
+                        user_id=user_id,
+                        phase_index=challenge.phase_id,
+                        challenge_index=challenge.id,
+                        challenge_loop_index=challenge_loop_id,
+                        action_card=action_card,
+                        metric_values=metric_values,
+                        time_stamp=datetime.datetime.utcnow(),
+                        pitch_debate_messages=[],
+                        online_intel_gathering_messages=[],
+                        attention_tokens=attention_tokens,
+                        emotion_values=carried_emotion_values,
+                    )
                 )
-            )
         else:
-            stmt = select(GameChallenge).where(
-                GameChallenge.user_name == username,
-                GameChallenge.phase_index == challenge.phase_id,
-                GameChallenge.challenge_index == challenge.id
-            ).order_by(GameChallenge.id.desc())
-            
-            existing = session.scalars(stmt).first()
             if existing:
                 existing.challenge_loop_index = challenge_loop_id
                 existing.action_card = action_card
@@ -588,6 +627,7 @@ async def store_or_update_challenge(
                 session.add(
                     GameChallenge(
                         user_name=username,
+                        user_id=user_id,
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
                         challenge_loop_index=challenge_loop_id,
@@ -601,6 +641,35 @@ async def store_or_update_challenge(
                     )
                 )
 
+def _first_non_retired_challenge(start_phase_id: int) -> Challenge | None:
+    """Last-resort safety net for the fallback paths below: `translate_challenge_index`'s
+    positional lookup can land on a retired/legacy template, so when the scheduler itself
+    can't run, walk the phases directly instead and skip anything retired."""
+    for phase in PhaseFactory.get_phases():
+        if phase.id < start_phase_id:
+            continue
+        for challenge in phase.challenges:
+            if not challenge.retired:
+                return challenge
+    return None
+
+
+def select_first_challenge(username: str) -> Challenge | None:
+    """Picks a new player's very first challenge via the same scheduler as every later pick,
+    so a retired/legacy template is never dealt just because it's challenge #1.
+
+    Falls back to plain sequential order if the graph cannot be read, same as select_next_challenge.
+    """
+    try:
+        graph = GraphFactory.get_graph()
+        replayed = graph_store.load_state(username)
+        ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
+        return next_challenge(PhaseFactory.get_phases(), current_phase_id=1, played=set(), ctx=ctx, seed=username)
+    except Exception as e:
+        print(f"[Challenge selection error, falling back to sequential] {e}")
+        return _first_non_retired_challenge(1)
+
+
 def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Challenge | None:
     """Picks the next challenge from the player's graph state. None ends the game.
 
@@ -611,9 +680,10 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
         graph = GraphFactory.get_graph()
         current = PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id)
         with get_session() as session:
+            user_id = get_user_id(session, username)
             played_ids = set(
                 session.scalars(
-                    select(GameChallenge.challenge_index).where(GameChallenge.user_name == username)
+                    select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
                 ).all()
             )
         played = set()
@@ -628,7 +698,7 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
         return next_challenge(PhaseFactory.get_phases(), current_phase, played, ctx, seed=username)
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
-        return PhaseFactory.translate_challenge_index(challenge_index=challenge_id + 1, phase_index=phase_id)
+        return _first_non_retired_challenge(phase_id)
 
 
 async def handle_state_update_request(
@@ -660,7 +730,11 @@ async def handle_state_update_request(
                     attention_tokens = challenge.attention_tokens
                 if challenge_loop_index == 1 and challenge:
                     try:
-                        observe_tagged_facts(challenge, username)
+                        events = observe_tagged_facts(challenge, username)
+                        await send_events(
+                            websocket, username,
+                            [e.stamped(phase_id=phase_id, challenge_id=challenge_id) for e in events],
+                        )
                     except Exception as e:
                         print(f"[Graph fact observe error] {e}")
                 if challenge_loop_index == 2:
@@ -668,10 +742,11 @@ async def handle_state_update_request(
             case _:
                 # Update the completed challenge record with its ending metric_values
                 with get_session() as db_session:
+                    completed_user_id = get_user_id(db_session, username)
                     stmt = (
                         select(GameChallenge)
                         .where(
-                            GameChallenge.user_name == username,
+                            GameChallenge.user_id == completed_user_id,
                             GameChallenge.phase_index == phase_id,
                             GameChallenge.challenge_index == challenge_id,
                         )
@@ -685,6 +760,7 @@ async def handle_state_update_request(
                         db_session.add(
                             GameChallenge(
                                 user_name=username,
+                                user_id=completed_user_id,
                                 phase_index=phase_id,
                                 challenge_index=challenge_id,
                                 challenge_loop_index=3,
@@ -706,7 +782,7 @@ async def handle_state_update_request(
                     with get_session() as db_session:
                         user = db_session.scalar(select(User).where(User.user_name == username))
                         if user:
-                            camp = db_session.scalar(select(Campaign).where(Campaign.campaign_key == user.campaign_key))
+                            camp = db_session.scalar(select(Campaign).where(Campaign.id == user.campaign_id))
                             if camp is not None:
                                 use_q = camp.use_questionnaire
 
@@ -715,6 +791,7 @@ async def handle_state_update_request(
                             db_session.add(
                                 GameProgression(
                                     user_name=username,
+                                    user_id=get_user_id(db_session, username),
                                     game_progress_index=3,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -726,6 +803,7 @@ async def handle_state_update_request(
                             db_session.add(
                                 GameProgression(
                                     user_name=username,
+                                    user_id=get_user_id(db_session, username),
                                     game_progress_index=4,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -779,7 +857,7 @@ async def handle_state_update_request(
         with get_session() as session:
             stmt = (
                 select(GameChallenge)
-                .where(GameChallenge.user_name == username, GameChallenge.emotion_values.isnot(None))
+                .where(GameChallenge.user_id == get_user_id(session, username), GameChallenge.emotion_values.isnot(None))
                 .order_by(GameChallenge.id.desc())
             )
             latest = session.scalars(stmt).first()

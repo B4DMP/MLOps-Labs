@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.registry_cicd",
+  "stage": "fragments",
+  "input_hash": "9c56993910aa79aff7a9f9139f8993ff1200432e37ac438d8b1ff46d2739f9be",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.registry_cicd",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Model Registry to CI/CD Pipeline"
+  },
+  "output": {
+    "level_0": "Registry exports fail silently, leaving the pipeline with stale model artifacts and no clear error trace.",
+    "level_1": "No defined handoff exists, so developers copy model files manually without any version tracking or metadata.",
+    "level_2": "Engineers manually download models from the registry and upload them to the pipeline storage each time.",
+    "level_3": "The pipeline automatically pulls the latest approved model version from the registry during every build.",
+    "level_4": "Handoffs enforce compliance checks, ensuring only signed and audited models trigger the deployment pipeline."
+  }
+}

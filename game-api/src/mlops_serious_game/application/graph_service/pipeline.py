@@ -27,7 +27,8 @@ from pydantic import BaseModel, Field
 from mlops_serious_game.application.graph_service.apply import ApplyResult, apply_ops
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.graph_service.view import GraphEvaluation, evaluate_graph
-from mlops_serious_game.domain.graph import DebtEntry, GraphOp, GraphState, TechnicalGraph
+from mlops_serious_game.domain.event import GameEvent
+from mlops_serious_game.domain.graph import DebtEntry, GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.grudge import (
     GRUDGE_EFFECTS,
     GRUDGE_LIFETIME,
@@ -111,6 +112,7 @@ class SimulationResult(BaseModel):
     ops: list[GraphOp] = Field(default_factory=list, description="What to append to the log, in order")
     grudges: list[Grudge] = Field(default_factory=list, description="The grudge list after ageing and firing")
     pending_objections: list[PendingObjection] = Field(default_factory=list)
+    events: list[GameEvent] = Field(default_factory=list, description="The event log's record of this run (plan 11)")
 
 
 # ---------------------------------------------------------------------------
@@ -426,6 +428,108 @@ def _health(before: GraphEvaluation, after: GraphEvaluation) -> tuple[dict[str, 
 
 
 # ---------------------------------------------------------------------------
+# The event log (plan 11, D51): "what the world did" and "where you stand", fog aware. The
+# player's own card (`report.targets`) is not logged here - they already know what they built.
+# ---------------------------------------------------------------------------
+
+def _metric_magnitude(delta: int) -> str:
+    a = abs(delta)
+    if a >= 6:
+        return "large"
+    if a >= 2:
+        return "clear"
+    return "slight"
+
+
+def _target_label(graph: TechnicalGraph, state: GraphState, knowledge: Optional[Knowledge], target_id: str) -> Optional[str]:
+    """The target's name if the player has observed it, `None` if the fog still holds (D11/D51):
+    a graph event names a target only when the player would actually recognise it."""
+    if knowledge is not None and knowledge.state_of(target_id, state) == "unknown":
+        return None
+    if graph.is_component(target_id):
+        return graph.component(target_id).name
+    if graph.is_edge(target_id):
+        return getattr(graph.edge(target_id), "name", None) or target_id
+    return target_id
+
+
+def _stage_label(graph: TechnicalGraph, target_id: str) -> str:
+    try:
+        stage_id = graph.stage_of(target_id)
+    except Exception:
+        return "the pipeline"
+    stage = next((s for s in graph.stages if s.id == stage_id), None)
+    return stage.name if stage else "the pipeline"
+
+
+def simulation_events(
+    report: DeltaReport,
+    graph: TechnicalGraph,
+    state: GraphState,
+    knowledge: Optional[Knowledge] = None,
+    names: Optional[dict[str, str]] = None,
+) -> list[GameEvent]:
+    """What gets logged for the simulation step: graph changes the world made (fog aware),
+    metric moves, and grudges written or fired."""
+    names = names or {}
+    events: list[GameEvent] = []
+
+    for wd in report.world_events:
+        direction = "up" if wd.after > wd.before else "down" if wd.after < wd.before else "none"
+        if direction == "none":
+            continue
+        label = _target_label(graph, state, knowledge, wd.target)
+        if label:
+            events.append(GameEvent(
+                step="simulation", kind="graph", subject_id=wd.target, direction=direction, magnitude="clear",
+                cause="graph.moved", params={"name": label},
+            ))
+        else:
+            events.append(GameEvent(
+                step="simulation", kind="graph", direction=direction, magnitude="slight",
+                cause="graph.moved_unknown", params={"stage": _stage_label(graph, wd.target)},
+            ))
+
+    for prop in report.propagated:
+        direction = "up" if prop.effective.after > prop.effective.before else "down" if prop.effective.after < prop.effective.before else "none"
+        if direction == "none":
+            continue
+        label = _target_label(graph, state, knowledge, prop.target)
+        if label:
+            events.append(GameEvent(
+                step="simulation", kind="graph", subject_id=prop.target, direction=direction, magnitude="slight",
+                cause="graph.moved", params={"name": label},
+            ))
+        else:
+            events.append(GameEvent(
+                step="simulation", kind="graph", direction=direction, magnitude="slight",
+                cause="graph.moved_unknown", params={"stage": _stage_label(graph, prop.target)},
+            ))
+
+    for metric_id, delta in report.metric_deltas.items():
+        if delta == 0:
+            continue
+        events.append(GameEvent(
+            step="simulation", kind="metric", subject_id=metric_id,
+            direction="up" if delta > 0 else "down", magnitude=_metric_magnitude(delta),
+            cause="metric.moved", params={"metric": metric_id},
+        ))
+
+    for grudge in report.grudges.created:
+        events.append(GameEvent(
+            step="simulation", kind="grudge", subject_id=grudge.stakeholder_id, direction="none",
+            cause="grudge.written", params={"st": names.get(grudge.stakeholder_id, grudge.stakeholder_id)},
+        ))
+    for fired in report.grudges.fired:
+        events.append(GameEvent(
+            step="simulation", kind="grudge", subject_id=fired.stakeholder_id, direction="down", magnitude="clear",
+            cause="grudge.fired", params={"st": names.get(fired.stakeholder_id, fired.stakeholder_id)},
+        ))
+
+    return events
+
+
+# ---------------------------------------------------------------------------
 # The pipeline
 # ---------------------------------------------------------------------------
 
@@ -546,6 +650,7 @@ def run_simulation(
     upcoming_world_events: Sequence[GraphOp] = (),
     challenge_loop_index: int = 3,
     seed: Optional[str] = None,
+    names: Optional[dict[str, str]] = None,
 ) -> SimulationResult:
     """Step 1 and step 12: load the player's graph, simulate, append the batch.
 
@@ -577,7 +682,8 @@ def run_simulation(
         # A batch persisted before this column existed has no stored report - fall through and
         # compute one best-effort, but the append below still won't run a second time.
 
-    before = store.load_state(username).state
+    replay = store.load_state(username)
+    before = replay.state
     result = simulate(
         graph,
         before,
@@ -590,6 +696,9 @@ def run_simulation(
         upcoming_world_events=upcoming_world_events,
         seed=seed if seed is not None else username,
     )
+    result = result.model_copy(update={
+        "events": simulation_events(result.report, graph, result.state, replay.knowledge, names)
+    })
     if result.ops and not store.has_batch(username, source_id):
         store.append_ops(
             username,

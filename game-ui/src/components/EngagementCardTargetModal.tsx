@@ -32,6 +32,8 @@ export interface EngagementCardTargetModalProps {
   availableStakeholderList: any[];
   isStakeholderActive: (st: any) => boolean;
   cardTargetedStakeholdersMap: Record<string, string[]>;
+  /** Stakeholders whose intel counter is full: shown, but greyed out. */
+  exhaustedStakeholderIds?: string[];
   intelItems?: IntelItem[];
   onConfirmStakeholders: (stakeholderIds: string[]) => void;
   onConfirmIntel: (intelItem: IntelItem) => void;
@@ -48,6 +50,7 @@ export default function EngagementCardTargetModal({
   availableStakeholderList,
   isStakeholderActive,
   cardTargetedStakeholdersMap,
+  exhaustedStakeholderIds = [],
   intelItems = [],
   onConfirmStakeholders,
   onConfirmIntel,
@@ -62,9 +65,11 @@ export default function EngagementCardTargetModal({
   useEffect(() => {
     if (isOpen && card) {
       if (card.stakeholder_selection_amount === -1) {
+        const lockedIds = cardTargetedStakeholdersMap[card.id] || [];
         const activeIds = availableStakeholderList
           .filter(isStakeholderActive)
-          .map((st: any) => st.id);
+          .map((st: any) => st.id)
+          .filter((id: string) => !exhaustedStakeholderIds.includes(id) && !lockedIds.includes(id));
         setSelectedStakeholderIds(activeIds);
       } else {
         setSelectedStakeholderIds([]);
@@ -73,7 +78,10 @@ export default function EngagementCardTargetModal({
       setSelectedStakeholderFilter("ALL");
       setIsClosing(false);
     }
-  }, [isOpen, card?.id, availableStakeholderList, isStakeholderActive]);
+    // Only on open or on a card switch: the parent rebuilds these lists on every render, and
+    // listening to them would wipe the player's selection each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, card?.id]);
 
   const handleRequestClose = () => {
     if (isClosing) return;
@@ -89,11 +97,17 @@ export default function EngagementCardTargetModal({
   const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
   const isAllStakeholdersCard = card.stakeholder_selection_amount === -1;
   const activeStakeholders = availableStakeholderList.filter(isStakeholderActive);
+  const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
+  const isExhausted = (stId: string) => exhaustedStakeholderIds.includes(stId);
+  const selectableStakeholders = activeStakeholders.filter(
+    (st: any) => !isExhausted(st.id) && !targetedStakeholderIds.includes(st.id)
+  );
+  // A card asking for two targets still plays when only one has anything left to tell.
   const requiredAmount = isIntelCard
     ? 1
     : isAllStakeholdersCard
-    ? activeStakeholders.length
-    : card.stakeholder_selection_amount;
+    ? selectableStakeholders.length
+    : Math.min(card.stakeholder_selection_amount, selectableStakeholders.length);
 
   // Tag details come from the shared tag module; the class keeps each tag's colour consistent.
   const CATEGORY_CLASS = {
@@ -106,9 +120,6 @@ export default function EngagementCardTargetModal({
     const meta = intelTagMeta(type);
     return { label: meta.label, shortLabel: meta.shortLabel, icon: meta.icon, className: CATEGORY_CLASS[meta.styleKey] };
   };
-
-  // Filter out already targeted stakeholders for the card
-  const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
 
   // Stakeholder filter options for intel verification items
   const stakeholderOptions = Array.from(
@@ -129,7 +140,7 @@ export default function EngagementCardTargetModal({
   });
 
   const handleToggleStakeholder = (stId: string) => {
-    if (targetedStakeholderIds.includes(stId)) return;
+    if (targetedStakeholderIds.includes(stId) || isExhausted(stId)) return;
 
     if (selectedStakeholderIds.includes(stId)) {
       setSelectedStakeholderIds((prev) => prev.filter((id) => id !== stId));
@@ -151,7 +162,7 @@ export default function EngagementCardTargetModal({
 
   const isSelectionValid = isIntelCard
     ? Boolean(selectedIntelId)
-    : selectedStakeholderIds.length === requiredAmount;
+    : requiredAmount > 0 && selectedStakeholderIds.length === requiredAmount;
 
   const handleConfirm = () => {
     if (!isSelectionValid) return;
@@ -257,8 +268,8 @@ export default function EngagementCardTargetModal({
                     <span>
                       {isIntelCard
                         ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
-                        : card.intel_reveal_count !== undefined && card.intel_reveal_count > 0
-                          ? `Uncovers up to ${card.intel_reveal_count} challenge-specific stance${card.intel_reveal_count > 1 ? "s" : ""} per target that will be listed in your stakeholder dossier.`
+                        : card.turns !== undefined && card.turns > 0
+                          ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
                           : "Triggers targeted dialogue responses & steers engagement dynamics."}
                     </span>
                   </div>
@@ -350,7 +361,7 @@ export default function EngagementCardTargetModal({
                         type="button"
                         className="btn btn-sm btn-outline-info py-0 px-2"
                         style={{ fontSize: "0.75rem", borderRadius: "4px" }}
-                        onClick={() => setSelectedStakeholderIds(activeStakeholders.map((st: any) => st.id))}
+                        onClick={() => setSelectedStakeholderIds(selectableStakeholders.map((st: any) => st.id))}
                       >
                         Select All
                       </button>
@@ -383,21 +394,21 @@ export default function EngagementCardTargetModal({
                     intelItems.length === 0 ? (
                       <div className={styles.emptyState}>
                         <Icon icon="ph:magnifying-glass-bold" className={styles.emptyStateIcon} />
-                        <h6 className="fw-bold text-dark mb-1">No Intel Items Discovered Yet</h6>
-                        <p className="small text-muted mb-0">
+                        <h6 className={styles.emptyStateTitle}>No Intel Items Discovered Yet</h6>
+                        <p className={styles.emptyStateSubtitle}>
                           Play research engagement cards to uncover stakeholder stances first.
                         </p>
                       </div>
                     ) : filteredIntelItems.length === 0 ? (
                       <div className={styles.emptyState}>
                         <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
-                        <h6 className="fw-bold text-dark mb-1">No Intel for this Stakeholder</h6>
-                        <p className="small text-muted mb-2">
+                        <h6 className={styles.emptyStateTitle}>No Intel for this Stakeholder</h6>
+                        <p className={styles.emptyStateSubtitle}>
                           No discovered intel items match the selected stakeholder filter.
                         </p>
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-primary"
+                          className="btn btn-sm btn-outline-info mt-2"
                           onClick={() => setSelectedStakeholderFilter("ALL")}
                         >
                           Show All Intel Items
@@ -478,7 +489,8 @@ export default function EngagementCardTargetModal({
                       {activeStakeholders.map((st) => {
                         const isSelected = selectedStakeholderIds.includes(st.id);
                         const isAlreadyTargeted = targetedStakeholderIds.includes(st.id);
-                        const isSelectable = !isAlreadyTargeted;
+                        const nothingLeft = isExhausted(st.id);
+                        const isSelectable = !isAlreadyTargeted && !nothingLeft;
                         const stColor = getStakeholderColor(st);
                         const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
 
@@ -491,6 +503,8 @@ export default function EngagementCardTargetModal({
                             title={
                               isAlreadyTargeted
                                 ? `Already targeted by "${card.title}" in this phase.`
+                                : nothingLeft
+                                ? `Every note on ${st.name} is confirmed already.`
                                 : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`
                             }
                           >
@@ -547,6 +561,10 @@ export default function EngagementCardTargetModal({
                               {isAlreadyTargeted ? (
                                 <span className={styles.lockedBadge}>
                                   <Icon icon="ph:lock-key-fill" /> Already targeted in this challenge
+                                </span>
+                              ) : nothingLeft ? (
+                                <span className={styles.lockedBadge}>
+                                  <Icon icon="ph:seal-check-fill" /> Nothing left to learn here
                                 </span>
                               ) : (
                                 <div className={styles.tagRow}>

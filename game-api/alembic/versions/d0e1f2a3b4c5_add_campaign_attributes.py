@@ -1,7 +1,11 @@
 """Add is_active and use_questionnaire attributes to campaigns
 
-Revision ID: e5f6a7b8c9d0
-Revises: d4e5f6a7b8c9
+Came in from main with revision id e5f6a7b8c9d0, which graph-redesign already used for
+add_graph_op_log. Re-numbered and moved to the end of the chain so there is one head.
+Both statements are IF NOT EXISTS, so a database that already has the columns is fine.
+
+Revision ID: d0e1f2a3b4c5
+Revises: c9d0e1f2a3b4
 Create Date: 2026-09-11 16:10:00.000000
 
 """
@@ -12,8 +16,8 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e5f6a7b8c9d0'
-down_revision: Union[str, None] = 'd4e5f6a7b8c9'
+revision: str = 'd0e1f2a3b4c5'
+down_revision: Union[str, None] = 'c9d0e1f2a3b4'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

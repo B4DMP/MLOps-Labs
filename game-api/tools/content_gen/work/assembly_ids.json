@@ -2,5 +2,11 @@
   "ch_data_quality_conflict": 100,
   "ch_experiment_tracking_dispute": 101,
   "ch_inconsistent_data_labeling": 102,
-  "ch_registry_red_tape": 103
+  "ch_registry_red_tape": 103,
+  "ch_blind_spot_silence": 104,
+  "ch_drift_blind_spot": 105,
+  "ch_gateway_security_gap": 106,
+  "ch_missing_kpi_baseline": 107,
+  "ch_shadow_environment_dispute": 108,
+  "ch_the_missing_gate": 109
 }

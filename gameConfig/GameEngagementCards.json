@@ -5,12 +5,12 @@
       "title": "Verify Intel Item",
       "icon": "ph:seal-check-bold",
       "token_cost": 5,
-      "description": "Choose an unverified intel item and directly verify it.",
+      "description": "Fact-check an unconfirmed note so you don't pitch on false assumptions.",
       "stakeholder_selection_amount": 0,
       "target_type": "intel",
       "response_snippet": "Intel verified successfully.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 0,
+      "turns": 0,
       "allowed_requirement_types": []
     },
     {
@@ -18,12 +18,12 @@
       "title": "1-on-1 Deep Dive",
       "icon": "ph:user-focus-bold",
       "token_cost": 4,
-      "description": "Schedule a 1-on-1 meeting to uncover detailed information.",
+      "description": "Book dedicated face time with 1 stakeholder to ask 3 targeted questions.",
       "stakeholder_selection_amount": 1,
       "target_type": "stakeholder",
       "response_snippet": "In our 1-on-1 meeting, we discussed key technical and operational requirements in detail.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 3,
+      "turns": 3,
       "allowed_requirement_types": []
     },
     {
@@ -31,12 +31,12 @@
       "title": "Probe Requirements",
       "icon": "ph:magnifying-glass-bold",
       "token_cost": 3,
-      "description": "Ask questions regarding several stakeholder's requirements.",
+      "description": "Ask 2 stakeholders what they need. Uncovers hard red lines and trade-offs.",
       "stakeholder_selection_amount": 2,
       "target_type": "stakeholder",
       "response_snippet": "Probed requirements with selected stakeholders.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": [
         "boundary"
       ]
@@ -46,12 +46,12 @@
       "title": "Team Sync-up",
       "icon": "ph:users-bold",
       "token_cost": 2,
-      "description": "Inquire about the team's general perspective on the project.",
+      "description": "Call a quick all-hands to see where everyone in the room stands.",
       "stakeholder_selection_amount": -1,
       "target_type": "stakeholder",
       "response_snippet": "Synced up with all team members to align perspectives.",
       "max_plays_per_phase": 1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": []
     },
     {
@@ -64,7 +64,7 @@
       "target_type": "stakeholder",
       "response_snippet": "Gauged general sentiment and high-level priorities.",
       "max_plays_per_phase": -1,
-      "intel_reveal_count": 1,
+      "turns": 1,
       "allowed_requirement_types": [
         "driver"
       ]

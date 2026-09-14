@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_experiment_tracking_dispute_dave_cost",
+  "stage": "gists",
+  "input_hash": "8abd938c4e784edf18c2cd70a1ae633e47d033033d9e7d16ebe8ac56cd9778ef",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_experiment_tracking_dispute_dave_cost",
+    "fact": "{data_dave} asked for cost savings in the experiment tracking process.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "Tracking Reproducibility Lost"
+  },
+  "output": {
+    "gist": "Data management in the experiment tracking process has been raised by {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that data management was raised as a topic but does not specify whether it is a driver, boundary, trade-off, or fact."
+  }
+}

@@ -20,12 +20,13 @@ def eligible(challenge: Challenge, ctx: PredicateContext, played: set[str]) -> b
 
 
 def select_in_phase(phase: Phase, ctx: PredicateContext, played: set[str], seed: str) -> Optional[Challenge]:
-    """Highest priority eligible non-fallback template; the fallback when none qualifies."""
-    pool = [c for c in phase.challenges if not c.fallback and eligible(c, ctx, played)]
+    """Highest priority eligible non-fallback template; the fallback when none qualifies.
+    A retired challenge is never dealt, fallback or not; only kept in config for its data."""
+    pool = [c for c in phase.challenges if not c.fallback and not c.retired and eligible(c, ctx, played)]
     if pool:
         return max(pool, key=lambda c: (c.priority, stable_rank(seed, c.template_id)))
     for c in phase.challenges:
-        if c.fallback and (c.template_id not in played or c.repeatable):
+        if c.fallback and not c.retired and (c.template_id not in played or c.repeatable):
             return c
     return None
 

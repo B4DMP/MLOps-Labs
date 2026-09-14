@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:e.observe_drift",
+  "stage": "fragments",
+  "input_hash": "4a6f7518f5e91dc70324967963f98d7352eff1922607398e90f2308064f715bd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "e.observe_drift",
+    "kind": "edge",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "name": "hand over from Logging and Observability to Production Drift Monitoring"
+  },
+  "output": {
+    "level_0": "Production drift monitoring ignores logging data entirely, causing blind spots in anomaly detection.",
+    "level_1": "No data flows from logging to drift monitoring, leaving production behavior untracked.",
+    "level_2": "Engineers manually export logs to check for drift, a slow and error prone process.",
+    "level_3": "Logs stream automatically into drift monitoring, triggering alerts on distribution shifts instantly.",
+    "level_4": "Governed pipelines ensure log data integrity before feeding drift models, with full audit trails."
+  }
+}

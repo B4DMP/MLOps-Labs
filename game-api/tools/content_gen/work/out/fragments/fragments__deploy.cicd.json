@@ -1,0 +1,26 @@
+{
+  "item_id": "fragments:deploy.cicd",
+  "stage": "fragments",
+  "input_hash": "09c857805affba1a19e80989970cba907846e6e4cafcf0aa9a6d03e42d600067",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "target": "deploy.cicd",
+    "kind": "component",
+    "name": "CI/CD Pipeline",
+    "levels": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "output": {
+    "level_0": "Builds fail randomly, and nobody can explain why the pipeline crashes mid deployment.",
+    "level_1": "No pipeline exists, so engineers deploy models by copying files over SSH manually.",
+    "level_2": "Developers trigger builds via CLI, but every step requires human intervention and attention.",
+    "level_3": "Pushing code triggers automatic builds, tests, and deployments without any human involvement.",
+    "level_4": "Pipeline changes require approval, and all deployments are logged for full audit compliance."
+  }
+}

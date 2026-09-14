@@ -64,6 +64,8 @@ validate-game-content:
   script:
     - docker load < game-api-image.tar
     - docker run --rm $GAME_API_IMAGE sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier0 validate"
+    - docker run --rm $GAME_API_IMAGE sh -c "PYTHONPATH=/app/tools python -m content_gen --scope tier1 validate"
+    - docker run --rm $GAME_API_IMAGE sh -c "PYTHONPATH=/app/tools python -m content_gen --scope dialogue0 validate"
   needs:
     - job: build-game-api
       artifacts: true

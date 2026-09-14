@@ -1,0 +1,22 @@
+{
+  "item_id": "objections:technical:req.acceptance_criteria",
+  "stage": "objections",
+  "input_hash": "518ebec8882f142628613034baeb64f568ff4faf75d1fa4bdda5a551e810b71c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "technical",
+    "component": {
+      "id": "req.acceptance_criteria",
+      "name": "Acceptance Criteria"
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "line": "We cannot approve this change to {target} because the {cause} upstream does not meet our security and data governance standards. Until that foundation is solid, any downstream improvements will violate our acceptance criteria."
+  }
+}

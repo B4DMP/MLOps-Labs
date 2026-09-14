@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "@iconify/react";
+import { motion } from "motion/react";
 import { ReadyState } from "../services/websocket/types";
 import styles from "./Register.module.css";
 
@@ -39,7 +40,12 @@ export function Register({
 
   return (
     <div className={styles.registerWrapper}>
-      <div className={styles.registerCard}>
+      <motion.div
+        className={styles.registerCard}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+      >
 
         <h2 className={styles.cardTitle}>Register</h2>
         <p className={styles.cardSubtitle}>
@@ -141,7 +147,7 @@ export function Register({
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 }

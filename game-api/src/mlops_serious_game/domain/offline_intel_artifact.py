@@ -8,7 +8,12 @@ class OfflineIntelArtifact(BaseModel):
     id: str = Field(description="Unique identifier of the artifact")
     requirement_id: str = Field(description="Associated requirement ID")
     challenge_id: int = Field(description="Challenge ID this artifact belongs to")
-    stakeholder_id: Optional[str] = Field(default=None, description="Stakeholder who wrote it, None for a technical artifact carrying a Fact")
+    stakeholder_id: Optional[str] = Field(default=None, description="Stakeholder whose stance it carries, None for a Fact")
+    narrator_id: Optional[str] = Field(
+        default=None,
+        description="Stakeholder who voices a Fact. The Fact stays about the system; the voice is there so "
+        "telling it apart from a stance takes a careful read",
+    )
     stakeholder_name: str = Field(
         default="",
         description="Stakeholder name, filled in from the stakeholder config at read time",
@@ -24,3 +29,8 @@ class OfflineIntelArtifact(BaseModel):
         description="Map of wrong IntelTag values to the description a player with that read would see"
     )
     is_known: bool = Field(description="Describes if an intel item is known by the start of the round")
+
+    @property
+    def speaker_id(self) -> Optional[str]:
+        """Whose name is on the artifact: the stance holder, or the narrator of a Fact."""
+        return self.stakeholder_id or self.narrator_id

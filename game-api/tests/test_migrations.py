@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import sqlalchemy
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 
 from mlops_serious_game.config import settings
 
@@ -116,3 +116,141 @@ def test_upgrade_head_is_idempotent(throwaway_db):
     cfg = _alembic_config()
     command.upgrade(cfg, "head")
     command.upgrade(cfg, "head")  # must not raise
+
+
+def test_fk_constraints_exist_at_head(throwaway_db):
+    """docs/plans/pk-migration.md: after `enforce_fk_constraints`, every user_id/campaign_id
+    column must be NOT NULL, have a real FK with ON DELETE CASCADE, and be indexed."""
+    from alembic import command
+
+    cfg = _alembic_config()
+    command.upgrade(cfg, "head")
+
+    engine = create_engine(settings.POSTGRES_URI)
+    with engine.connect() as conn:
+        insp = inspect(conn)
+
+        campaign_cols = {c["name"]: c for c in insp.get_columns("user_data")}
+        assert campaign_cols["campaign_id"]["nullable"] is False
+        campaign_fks = insp.get_foreign_keys("user_data")
+        campaign_fk = next(fk for fk in campaign_fks if fk["constrained_columns"] == ["campaign_id"])
+        assert campaign_fk["referred_table"] == "campaign_data"
+        assert campaign_fk["options"].get("ondelete", "").upper() == "CASCADE"
+        assert any("campaign_id" in ix["column_names"] for ix in insp.get_indexes("user_data"))
+
+        child_tables = [
+            "game_progression_data",
+            "game_challenge_data",
+            "game_session_data",
+            "intel_data",
+            "graph_op_log",
+            "game_event",
+        ]
+        for table in child_tables:
+            cols = {c["name"]: c for c in insp.get_columns(table)}
+            assert cols["user_id"]["nullable"] is False, table
+            fks = insp.get_foreign_keys(table)
+            fk = next(fk for fk in fks if fk["constrained_columns"] == ["user_id"])
+            assert fk["referred_table"] == "user_data", table
+            assert fk["options"].get("ondelete", "").upper() == "CASCADE", table
+            assert any("user_id" in ix["column_names"] for ix in insp.get_indexes(table)), table
+    engine.dispose()
+
+
+def test_orphaned_row_aborts_enforce_fk_constraints(throwaway_db):
+    """A row whose legacy string column matches no user must abort the migration rather than be
+    silently dropped or left NULL (docs/plans/pk-migration.md: `_assert_no_orphans`)."""
+    from alembic import command
+
+    cfg = _alembic_config()
+    command.upgrade(cfg, "b3c4d5e6f7a8")
+
+    engine = create_engine(settings.POSTGRES_URI)
+    with engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO campaign_data (campaign_name, campaign_key) VALUES ('Camp', 'camp-key')"
+        ))
+        conn.execute(text(
+            "INSERT INTO user_data (user_name, campaign_key) VALUES ('valid_user', 'camp-key')"
+        ))
+        # A valid row: its user_name matches an existing user and must backfill cleanly.
+        conn.execute(text(
+            "INSERT INTO game_progression_data (user_name, game_progress_index, time_stamp, additional_data) "
+            "VALUES ('valid_user', 1, now(), '[]')"
+        ))
+        # An orphaned row: no user_data row has this user_name.
+        conn.execute(text(
+            "INSERT INTO game_progression_data (user_name, game_progress_index, time_stamp, additional_data) "
+            "VALUES ('ghost_user', 1, now(), '[]')"
+        ))
+    engine.dispose()
+
+    with pytest.raises(RuntimeError, match="orphaned rows"):
+        command.upgrade(cfg, "head")
+
+
+def test_valid_rows_backfill_correctly(throwaway_db):
+    """Rows written by old, string-only app code before `add_numeric_fk_columns` ran must end up
+    with the right `user_id`/`campaign_id` once `enforce_fk_constraints` lands."""
+    from alembic import command
+
+    cfg = _alembic_config()
+    command.upgrade(cfg, "b3c4d5e6f7a8")
+
+    engine = create_engine(settings.POSTGRES_URI)
+    with engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO campaign_data (campaign_name, campaign_key) VALUES ('Camp', 'camp-key')"
+        ))
+        conn.execute(text(
+            "INSERT INTO user_data (user_name, campaign_key) VALUES ('valid_user', 'camp-key')"
+        ))
+        conn.execute(text(
+            "INSERT INTO game_progression_data (user_name, game_progress_index, time_stamp, additional_data) "
+            "VALUES ('valid_user', 1, now(), '[]')"
+        ))
+
+    command.upgrade(cfg, "head")
+
+    with engine.connect() as conn:
+        user_id, campaign_id = conn.execute(
+            text("SELECT id, campaign_id FROM user_data WHERE user_name = 'valid_user'")
+        ).one()
+        expected_campaign_id = conn.execute(
+            text("SELECT id FROM campaign_data WHERE campaign_key = 'camp-key'")
+        ).scalar_one()
+        assert campaign_id == expected_campaign_id
+
+        prog_user_id = conn.execute(
+            text("SELECT user_id FROM game_progression_data WHERE user_name = 'valid_user'")
+        ).scalar_one()
+        assert prog_user_id == user_id
+    engine.dispose()
+
+
+def test_upgrade_head_from_a_database_migrated_on_main(throwaway_db):
+    """main's add_campaign_attributes shipped as `e5f6a7b8c9d0`, the id graph-redesign uses for
+    add_graph_op_log. A database migrated on main is stamped `e5f6a7b8c9d0` with the campaign
+    columns but no graph_op_log; alembic/env.py must notice and upgrade it without a manual stamp."""
+    from alembic import command
+
+    cfg = _alembic_config()
+    command.upgrade(cfg, "d4e5f6a7b8c9")
+    engine = create_engine(settings.POSTGRES_URI)
+    with engine.begin() as conn:
+        # What main's version of e5f6a7b8c9d0 did.
+        conn.execute(text(
+            "ALTER TABLE campaign_data "
+            "ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE, "
+            "ADD COLUMN IF NOT EXISTS use_questionnaire BOOLEAN NOT NULL DEFAULT TRUE"
+        ))
+        conn.execute(text("UPDATE alembic_version SET version_num = 'e5f6a7b8c9d0'"))
+
+    command.upgrade(cfg, "head")
+
+    with engine.connect() as conn:
+        tables = set(inspect(conn).get_table_names())
+        version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
+    engine.dispose()
+    assert "graph_op_log" in tables
+    assert version == "c4d5e6f7a8b9"

@@ -166,15 +166,22 @@ function App({ username: _username }: AppProps) {
     acCountRef.current = ac_count;
   }, [ac_count]);
 
-  const prevShownPhaseRef = useRef<number | null>(null);
+  // Composite key of the last challenge PrePhaseDialog was actually shown for. A phase
+  // change always changes this key too, so tracking it alone covers both "new phase" and
+  // "new challenge within the same phase" - the dialog reopens, tagged NEW, either way.
+  const prevShownChallengeKeyRef = useRef<string | null>(null);
+  const [isNewChallenge, setIsNewChallenge] = useState(false);
 
-  // Manage PrePhaseDialog (at the start of each phase)
+  // Manage PrePhaseDialog (at the start of each phase, and each new challenge within it)
   useEffect(() => {
     if (progressionIndex === 2 && phases.length > 0) {
-      // Check if a new phase has begun and we haven't shown PrePhaseDialog for it yet (only when challengeLoopId === 0)
-      if (prevShownPhaseRef.current !== currentPhase) {
-        if (challengeLoopId === 0) {
-          prevShownPhaseRef.current = currentPhase;
+      // Only when challengeLoopId === 0 (Offline Intel Gathering, the start of a challenge's loop)
+      if (challengeLoopId === 0) {
+        const challengeKey = `${currentPhase}:${currentChallenge}`;
+
+        if (prevShownChallengeKeyRef.current !== challengeKey) {
+          prevShownChallengeKeyRef.current = challengeKey;
+          setIsNewChallenge(true);
 
           // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
           if (currentPhase === 0 && !isIntro1StartedRef.current) {
@@ -194,15 +201,13 @@ function App({ username: _username }: AppProps) {
           } else {
             setIsPhaseDialogueOpen(true);
           }
-          return;
-        } else {
-          prevShownPhaseRef.current = currentPhase;
         }
       }
     }
   }, [
     progressionIndex,
     currentPhase,
+    currentChallenge,
     challengeLoopId,
     phases.length,
   ]);
@@ -815,6 +820,11 @@ function App({ username: _username }: AppProps) {
                     setConvincerArchetypes,
                   }}
                 >
+                  <PerformanceView
+                    currentPhase={currentPhase}
+                    isVisible={isPerformanceOpen}
+                    onToggle={() => setIsPerformanceOpen((v) => !v)}
+                  />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
                     setIsOpen={(open) => {
@@ -822,6 +832,8 @@ function App({ username: _username }: AppProps) {
                       if (!open) setIsBriefingReview(false);
                     }}
                     isReview={isBriefingReview}
+                    // Reviewing from the dossier just re-shows the existing briefing, never a "NEW" tag.
+                    isNewChallenge={!isBriefingReview && isNewChallenge}
                     challengeTitle={challengeTitle}
                     challengeDescription={challengeDescription}
                     challengeIntro={challengeIntro}
@@ -838,10 +850,10 @@ function App({ username: _username }: AppProps) {
                       onContinue={handleOfflineIntelGatheringContinue}
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
-                      showMetricValueChanges={showMetricValueChanges}
-                      last_ac={last_ac}
                       onTagArtifact={(stId) => setActiveStakeholderId(stId)}
                       onOpenPhaseBriefing={openBriefingForReview}
+                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                      isPerformanceOpen={isPerformanceOpen}
                       isDossierOpen={isDossierOpen}
                       setIsDossierOpen={setIsDossierOpen}
                       dossierData={dossierData}
@@ -852,49 +864,46 @@ function App({ username: _username }: AppProps) {
                       challengeAmount={challengeAmount}
                     />
                   )}
-                  {challengeLoopId === 1 && (
-                    <OnlineIntelGathering
-                      onOpenPhaseBriefing={openBriefingForReview}
-                      onContinue={handleOnlineIntelGatheringContinue}
+                  {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
+                      now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
+                  {(challengeLoopId === 1 || challengeLoopId === 2) && (
+                    <PitchPhase
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
-                      showMetricValueChanges={showMetricValueChanges}
-                      last_ac={last_ac}
                       challengeTitle={challengeTitle}
                       challengeDescription={challengeDescription}
                       challengeIntro={challengeIntro}
                       challengeAmount={challengeAmount}
-                      dossierData={dossierData}
-                      activeStakeholderId={activeStakeholderId}
-                      intelItems={intelItems}
-                      attentionTokens={attentionTokens}
-                      setAttentionTokens={setAttentionTokens}
-                      playedCardIdsInPhase={playedCardIdsInPhase}
-                      setPlayedCardIdsInPhase={setPlayedCardIdsInPhase}
-                      cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
-                      setCardTargetedStakeholdersMap={setCardTargetedStakeholdersMap}
-                      chatMsgs={onlineIntelChatMsgs}
-                      setChatMsgs={setOnlineIntelChatMsgs}
+                      convincerArchetypes={convincerArchetypes}
+                      onEndPitch={handlePitchDebateEnd}
                       engagementCards={engagementCards}
-                      pitchedActionCard={pitchedActionCard}
-                      onUpdatePitchedCard={(card) => setPitchedActionCard(card)}
+                      attentionTokens={attentionTokens}
+                      onAttentionTokensChange={setAttentionTokens}
+                      playedCardIdsInPhase={playedCardIdsInPhase}
+                      onPlayedCardIdsChange={setPlayedCardIdsInPhase}
+                      chatMsgs={onlineIntelChatMsgs}
+                      onChatMsgsChange={setOnlineIntelChatMsgs}
+                      cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                      onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
+                      dossierData={dossierData}
+                      onOpenPhaseBriefing={openBriefingForReview}
+                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                      isPerformanceOpen={isPerformanceOpen}
                       onUpdateIntelItems={(items) => {
-                        setIntelItems(items);
+                        setIntelItems(items as any);
                         setDossierData((prevDossier) => {
                           if (!prevDossier || prevDossier.length === 0) return prevDossier;
                           return prevDossier.map((st) => ({
                             ...st,
                             intel_items: (st.intel_items || []).map((item) => {
-                              const matchingUpdated = items.find(
-                                (u) => u.id === item.id
-                              );
+                              const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
                               if (matchingUpdated) {
                                 return {
                                   ...item,
                                   intel_type: matchingUpdated.intel_type,
                                   categorized_type: matchingUpdated.categorized_type,
                                   description: matchingUpdated.description,
-                                  source: (matchingUpdated as any).source || item.source,
+                                  source: matchingUpdated.source || item.source,
                                 };
                               }
                               return item;
@@ -909,51 +918,7 @@ function App({ username: _username }: AppProps) {
                       onContinue={handleAcSimulationContinue}
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
-                      showMetricValueChanges={showMetricValueChanges}
-                      last_ac={last_ac}
-                    />
-                  )}
-                  {challengeLoopId === 2 && (
-                    <PitchDebate
-                      onOpenPhaseBriefing={openBriefingForReview}
-                      currentPhase={currentPhase}
-                      setCurrentPhase={setCurrentPhase}
-                      phases={phases}
-                      setPhases={setPhases}
-                      metrics={metrics}
-                      setMetrics={setMetrics}
-                      stakeholders={stakeholders}
-                      setStakeholders={setStakeholders}
-                      lastError={lastError}
-                      isInErrorUi={isInErrorUi}
-                      setIsInErrorUi={setIsInErrorUi}
-                      isPhaseDialogueOpen={isPhaseDialogueOpen}
-                      setIsPhaseDialogueOpen={setIsPhaseDialogueOpen}
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      currentChallenge={currentChallenge}
-                      challengeNumber={challengeAmount}
-                      revealAc={revealAc}
-                      last_ac={last_ac}
-                      roundOverAnimActive={roundOverAnimActive}
-                      showMetricValueChanges={showMetricValueChanges}
-                      isChatEnabled={isChatEnabled}
-                      actionCards={actionCards}
-                      hoveredCardId={hoveredCardId}
-                      setHoveredCardId={setHoveredCardId}
-                      dialogueOptions={dialogueOptions}
-                      chat_msgs={chat_msgs}
-                      setChatMsgs={setChatMsgs}
-                      isExistingSave={isExistingDebateSave}
-                      onClearExistingSave={() => setIsExistingDebateSave(false)}
-                      playActionCard={playActionCard}
-                      getNextChallenge={getNextChallenge}
-                      onSelectDialogueOption={handleSelectDialogueOption}
-                      pitchedActionCard={pitchedActionCard}
-                      dossierData={dossierData}
-                      intelItems={intelItems}
-                      onEndPitch={handlePitchDebateEnd}
+                      playedCard={pitchedActionCard}
                     />
                   )}
                 </StakeholderContext.Provider>
