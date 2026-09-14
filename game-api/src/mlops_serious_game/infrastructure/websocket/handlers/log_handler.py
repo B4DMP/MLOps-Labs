@@ -17,7 +17,14 @@ from mlops_serious_game.infrastructure.websocket.manager import manager
 def _serialize(event: GameEvent) -> dict:
     """The event plus its rendered cause text - causes are config templates, never LLM text
     (plan 11, D51), so the frontend never needs its own copy of `EventCauses.json` to show them."""
-    return {**event.model_dump(mode="json"), "text": EventCauseFactory.render(event.cause, event.params)}
+    params = dict(event.params or {})
+    if event.cause == "outcome.veto" and not params.get("st"):
+        params["st"] = "the room"
+    try:
+        text = EventCauseFactory.render(event.cause, params)
+    except Exception:
+        text = event.cause
+    return {**event.model_dump(mode="json"), "text": text}
 
 
 async def send_events(websocket: WebSocket, username: str, events: list[GameEvent]) -> list[GameEvent]:
