@@ -68,6 +68,46 @@ const toChains = (items: PitchItem[]): PitchChain[] => {
   });
 };
 
+/** Planned engagement cards from docs/plans/engagement-cards-v2.md (Temporary UI preview) */
+const PLANNED_ENGAGEMENT_CARDS = [
+  {
+    id: "eng_planned_how_to_convince",
+    title: "How to Convince",
+    icon: "ph:lightbulb-bold",
+    token_cost: 2,
+    description: "Test your pitch angle on 1 stakeholder to see how they like to be persuaded.",
+    targets: "1 to convince",
+    isPlanned: true as const,
+  },
+  {
+    id: "eng_planned_colleague_intel",
+    title: "Colleague Intel",
+    icon: "ph:chats-teardrop-bold",
+    token_cost: 2,
+    description: "Ask a colleague for the inside scoop on another stakeholder's priorities.",
+    targets: "Source + Subject",
+    isPlanned: true as const,
+  },
+  {
+    id: "eng_planned_objection_discussion",
+    title: "Objection Discussion",
+    icon: "ph:shield-warning-bold",
+    token_cost: 3,
+    description: "Sit down with a skeptic to smoke out their pushback before the pitch.",
+    targets: "1 skeptic",
+    isPlanned: true as const,
+  },
+];
+
+/** Actionable human descriptions for existing cards (overrides stale session data) */
+const CARD_DESCRIPTION_OVERRIDES: Record<string, string> = {
+  eng_0: "Confirm unverified rumors directly with the stakeholder.",
+  eng_1: "Private sit-down to dig deep into one person's stance.",
+  eng_2: "Ask what trade-offs, hard boundaries, or goals matter to them.",
+  eng_3: "Gauge room mood and project sentiment before picking individuals.",
+  eng_4: "Lightweight icebreaker to get a read on someone's stance.",
+};
+
 interface OptionSpec {
   option: OptionName;
   available: boolean;
@@ -1060,6 +1100,15 @@ export default function PitchPhase({
                       </div>
                     </div>
 
+                    {/* Design Notice Banner */}
+                    <div className={styles.planNoticeBanner}>
+                      <Icon icon="ph:blueprint-bold" className={styles.planNoticeIcon} />
+                      <div className={styles.planNoticeText}>
+                        <strong>Planned Engagement Cards (In Design):</strong> Previewing upcoming cards from{" "}
+                        <code>docs/plans/engagement-cards-v2.md</code> (<em>How to Convince</em>, <em>Colleague Intel</em>, <em>Objection Discussion</em>).
+                      </div>
+                    </div>
+
                     <div className={styles.fan}>
                       {cards.map((card, i) => {
                         const exhausted =
@@ -1072,7 +1121,8 @@ export default function PitchPhase({
                             ? unconfirmedNotes.length === 0
                             : roomIds.every((id) => exhaustedStakeholderIds.includes(id) || targetedByCard.includes(id));
                         const off = exhausted || tooExpensive || noTargets || isWaiting;
-                        const mid = (cards.length - 1) / 2;
+                        const totalCardsCount = cards.length + PLANNED_ENGAGEMENT_CARDS.length;
+                        const mid = (totalCardsCount - 1) / 2;
                         const targets =
                           card.target_type === "intel" ? "one intel item"
                             : card.stakeholder_selection_amount === -1 ? "the whole room"
@@ -1082,7 +1132,7 @@ export default function PitchPhase({
                             key={card.id}
                             className={`${styles.fanCard} ${off ? styles.fanCardOff : ""}`}
                             style={{
-                              transform: `rotate(${(i - mid) * 3.2}deg) translateY(${Math.abs(i - mid) * 7}px)`,
+                              transform: `rotate(${(i - mid) * 2.8}deg) translateY(${Math.abs(i - mid) * 5}px)`,
                               zIndex: i + 1,
                             }}
                             onClick={() => !off && handleSelectEngagementCard(card)}
@@ -1101,9 +1151,44 @@ export default function PitchPhase({
                             </span>
                             <Icon icon={card.icon} className={styles.fanIcon} />
                             <span className={styles.fanTitle}>{card.title}</span>
-                            <span className={styles.fanDesc}>{card.description}</span>
-                            <span className={styles.fanTarget}>{targets}</span>
+                            <span className={styles.fanDesc}>
+                              {CARD_DESCRIPTION_OVERRIDES[card.id] || card.description}
+                            </span>
+                            <div className={styles.fanFooter}>
+                              <span className={styles.fanTarget}>{targets}</span>
+                            </div>
                             {exhausted && <span className={styles.fanStamp}>played</span>}
+                          </button>
+                        );
+                      })}
+
+                      {/* Planned Engagement Cards Placeholder Preview */}
+                      {PLANNED_ENGAGEMENT_CARDS.map((plannedCard, pIndex) => {
+                        const totalCardsCount = cards.length + PLANNED_ENGAGEMENT_CARDS.length;
+                        const mid = (totalCardsCount - 1) / 2;
+                        const i = cards.length + pIndex;
+                        return (
+                          <button
+                            key={plannedCard.id}
+                            type="button"
+                            className={`${styles.fanCard} ${styles.fanCardPlanned}`}
+                            style={{
+                              transform: `rotate(${(i - mid) * 2.8}deg) translateY(${Math.abs(i - mid) * 5}px)`,
+                              zIndex: i + 1,
+                            }}
+                            onClick={() => {}}
+                            title="Planned card from docs/plans/engagement-cards-v2.md (In Design - Coming Soon)"
+                          >
+                            <span className={styles.fanCost}>
+                              <Icon icon="ph:coins-fill" />{plannedCard.token_cost}
+                            </span>
+                            <Icon icon={plannedCard.icon} className={styles.fanIcon} />
+                            <span className={styles.fanTitle}>{plannedCard.title}</span>
+                            <span className={styles.fanDesc}>{plannedCard.description}</span>
+                            <div className={styles.fanFooter}>
+                              <span className={styles.fanStampPlanned}>Planned</span>
+                              <span className={styles.fanTarget}>{plannedCard.targets}</span>
+                            </div>
                           </button>
                         );
                       })}

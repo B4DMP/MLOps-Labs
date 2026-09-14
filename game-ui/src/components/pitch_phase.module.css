@@ -2187,8 +2187,10 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 8px 0 22px;
-  min-height: 210px;
+  padding: 10px 24px 28px;
+  min-height: 224px;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 /* Gather (D49): one panel per open card-play conversation, stacked below the fan. */
@@ -2201,10 +2203,10 @@
 
 .fanCard {
   position: relative;
-  width: 168px;
-  min-height: 178px;
-  margin: 0 -18px;
-  padding: 10px 12px 12px;
+  width: 148px;
+  min-height: 192px;
+  margin: 0 -7px;
+  padding: 10px 11px 12px;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -2220,7 +2222,7 @@
 }
 
 .fanCard:hover {
-  transform: translateY(-14px) rotate(0deg) scale(1.04) !important;
+  transform: translateY(-16px) rotate(0deg) scale(1.06) !important;
   z-index: 50 !important;
   box-shadow: 0 18px 34px rgba(0, 0, 0, 0.6);
   border-color: #38bdf8;
@@ -2257,21 +2259,30 @@
 }
 
 .fanDesc {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   line-height: 1.3;
-  color: rgba(232, 237, 247, 0.75);
+  color: rgba(232, 237, 247, 0.85);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.fanTarget {
+.fanFooter {
   margin-top: auto;
-  font-size: 0.66rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.fanTarget {
+  font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #7dd3fc;
+  line-height: 1.2;
 }
 
 .fanStamp {
@@ -2287,6 +2298,79 @@
   padding: 0 5px;
   transform: rotate(-8deg);
 }
+
+.fanStampPlanned {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  background: rgba(56, 189, 248, 0.16);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+.fanCardPlanned {
+  border-style: dashed;
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(180deg, rgba(24, 35, 59, 0.85) 0%, rgba(15, 22, 38, 0.95) 100%);
+  cursor: help;
+}
+
+.fanCardPlanned:hover {
+  border-color: #38bdf8 !important;
+  transform: translateY(-12px) rotate(0deg) scale(1.05) !important;
+}
+
+.pitchBody .planNoticeBanner,
+.planNoticeBanner {
+  margin: 6px 0 14px;
+  padding: 10px 16px;
+  background: #0d1527 !important;
+  border: 1px solid rgba(56, 189, 248, 0.5) !important;
+  border-left: 4px solid var(--primary-bg) !important;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #e2e8f0 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pitchBody .planNoticeBanner .planNoticeIcon,
+.planNoticeIcon {
+  font-size: 1.4rem;
+  color: #38bdf8 !important;
+  flex-shrink: 0;
+}
+
+.pitchBody .planNoticeBanner .planNoticeText,
+.planNoticeText {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.45;
+  color: #cbd5e1 !important;
+}
+
+.pitchBody .planNoticeBanner strong,
+.planNoticeBanner strong {
+  color: #ffffff !important;
+}
+
+.pitchBody .planNoticeBanner code,
+.planNoticeBanner code {
+  color: #38bdf8 !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.76rem;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
 
 /* ─── Stepper: clickable, hint on its own row ─────────────────────────────── */
 .stepperWrap {

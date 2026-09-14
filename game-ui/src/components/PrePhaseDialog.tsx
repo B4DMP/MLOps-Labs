@@ -18,12 +18,9 @@ interface PrePhaseDialogProps {
   challengeAmount?: number;
   /**
    * See `ChallengeDescriptionCard.isNew` — surfaces a "NEW" tag on the
-   * embedded challenge card. No caller sets this yet: nothing reopens
-   * PrePhaseDialog for a new challenge within the same phase, so it defaults
-   * to false. Once that flow exists, pass `true` when the challenge shown
-   * differs from the last one the player has already seen this phase. The
-   * card is tagged NEW on the first phase regardless, since every challenge
-   * is new at that point.
+   * embedded challenge card. Set by the caller (Game.tsx) to true when the
+   * challenge shown differs from the last one the player has already seen,
+   * whether or not the phase itself changed.
    */
   isNewChallenge?: boolean;
   /**
@@ -163,8 +160,7 @@ export default function PrePhaseDialog({
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
                     is_minimized={true}
-                    // The opening phase's challenge is new by definition
-                    isNew={isNewChallenge || isFirstPhase}
+                    isNew={isNewChallenge}
                   />
                 )}
               </div>
