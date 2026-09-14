@@ -394,21 +394,21 @@ export default function EngagementCardTargetModal({
                     intelItems.length === 0 ? (
                       <div className={styles.emptyState}>
                         <Icon icon="ph:magnifying-glass-bold" className={styles.emptyStateIcon} />
-                        <h6 className="fw-bold text-dark mb-1">No Intel Items Discovered Yet</h6>
-                        <p className="small text-muted mb-0">
+                        <h6 className={styles.emptyStateTitle}>No Intel Items Discovered Yet</h6>
+                        <p className={styles.emptyStateSubtitle}>
                           Play research engagement cards to uncover stakeholder stances first.
                         </p>
                       </div>
                     ) : filteredIntelItems.length === 0 ? (
                       <div className={styles.emptyState}>
                         <Icon icon="ph:user-circle-bold" className={styles.emptyStateIcon} />
-                        <h6 className="fw-bold text-dark mb-1">No Intel for this Stakeholder</h6>
-                        <p className="small text-muted mb-2">
+                        <h6 className={styles.emptyStateTitle}>No Intel for this Stakeholder</h6>
+                        <p className={styles.emptyStateSubtitle}>
                           No discovered intel items match the selected stakeholder filter.
                         </p>
                         <button
                           type="button"
-                          className="btn btn-sm btn-outline-primary"
+                          className="btn btn-sm btn-outline-info mt-2"
                           onClick={() => setSelectedStakeholderFilter("ALL")}
                         >
                           Show All Intel Items
