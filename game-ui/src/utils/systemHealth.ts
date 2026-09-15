@@ -1,5 +1,5 @@
 /**
- * Shared with PerformanceView and the dossier header's Performance badge, so "how is the
+ * Shared with PerformanceDashboard and the dossier header's Performance badge, so "how is the
  * system doing" always reads the same bucket boundaries and colour, whichever chrome shows it.
  * The player never sees the raw number, only where it sits.
  */

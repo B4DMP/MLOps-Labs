@@ -413,7 +413,7 @@ export default function StakeholderDossier({
   const currentChallenge = propChallenge;
 
   // Badges the Performance button with the project graph's overall health, the same number
-  // PerformanceView itself shows. Only asked for when that button exists.
+  // PerformanceDashboard itself shows. Only asked for when that button exists.
   const [systemHealth, setSystemHealth] = useState<number | undefined>(undefined);
   useEffect(() => {
     if (!onPerformanceToggle) return;
@@ -1855,7 +1855,7 @@ export default function StakeholderDossier({
   const systemPips = environmentIndex >= 0 ? getIntelPips(effectiveDossierData[environmentIndex]) : [];
   const systemFoundCount = systemPips.filter((status) => status !== "hidden").length;
 
-  // Performance button badge: the same overall health bucket PerformanceView shows, as a dot
+  // Performance button badge: the same overall health bucket PerformanceDashboard shows, as a dot
   // rather than a count - it's a state, not a tally.
   const systemHealthBucket = healthBucket(systemHealth);
 

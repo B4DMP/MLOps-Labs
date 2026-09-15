@@ -1,0 +1,364 @@
+/* PerformanceDashboard.module.css - Light Mode Styles */
+
+.helpOverlayLayer {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9500;
+  overflow: hidden;
+  padding: clamp(0.5rem, 1.5vh, 1.25rem) clamp(0.75rem, 2vw, 1.5rem);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.helpLayerVisible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.helpLayerHidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.dashboardPanel {
+  width: 100%;
+  max-width: 1400px;
+  height: calc(100vh - clamp(1rem, 3vh, 2.5rem));
+  background: var(--dialog-bg, #f8fafc);
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.header {
+  padding: clamp(0.4rem, 1.2vh, 0.75rem) clamp(1rem, 1.5vw, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  background-color: var(--primary-bg);
+  border-bottom: 2px solid var(--secondary-bg);
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: clamp(1.05rem, 1.5vh, 1.2rem);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+}
+
+.modalBody {
+  padding: clamp(0.45rem, 1.2vh, 0.9rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.8vh, 1.25rem);
+  overflow-y: auto;
+  color: var(--text-primary, #1e293b);
+  flex: 1;
+  min-height: 0;
+}
+
+/* Compact scoped styles for PhaseOverview & MetricTab */
+.modalBody :global(.stat-card) {
+  padding: clamp(0.35rem, 0.9vh, 0.6rem) clamp(0.5rem, 1vw, 0.85rem) !important;
+  min-width: 130px !important;
+}
+
+.modalBody :global(.stat-icon) {
+  width: clamp(22px, 2.8vh, 28px) !important;
+  height: clamp(22px, 2.8vh, 28px) !important;
+}
+
+.modalBody :global(.stat-icon span) {
+  font-size: clamp(0.75rem, 1.2vh, 0.95rem) !important;
+}
+
+.modalBody :global(.stat-card .fw-semibold) {
+  font-size: clamp(0.8rem, 1.2vh, 0.92rem) !important;
+}
+
+.modalBody :global(.stat-card small) {
+  font-size: clamp(0.68rem, 1vh, 0.78rem) !important;
+  line-height: 1.2 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.modalBody :global(.stat-card .mb-1) {
+  margin-bottom: 0.15rem !important;
+}
+
+.modalBody :global(.intro6.container-fluid) {
+  padding: 0 !important;
+}
+
+.modalBody :global(.intro6 .row) {
+  margin: 0 !important;
+}
+
+.modalBody :global(.intro6 .col-auto) {
+  padding: 0 !important;
+  width: 100% !important;
+}
+
+.modalBody :global(.intro6 .d-flex.flex-nowrap) {
+  width: 100% !important;
+  justify-content: flex-start !important;
+  gap: 0.5rem !important;
+}
+
+.modalBody :global(.stat-card .progress) {
+  height: 5px !important;
+  margin-top: 0.2rem !important;
+}
+
+.modalBody :global(.stat-card .mt-2) {
+  margin-top: 0.2rem !important;
+}
+
+.modalBody :global(.stat-card .fs-5) {
+  font-size: 0.95rem !important;
+}
+
+.sectionCard {
+  background: var(--dialog-surface, #ffffff);
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.6rem;
+  padding: clamp(0.45rem, 1.1vh, 0.85rem) clamp(0.65rem, 1.2vw, 1.1rem);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.graphSectionCard {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.graphContentWrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.3rem, 0.9vh, 0.65rem);
+}
+
+.sectionLabel {
+  font-size: clamp(0.7rem, 1vh, 0.82rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary-bg);
+  font-weight: 700;
+  margin-bottom: clamp(0.25rem, 0.8vh, 0.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Interactive Pipeline Stage Buttons */
+.stageButton {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: clamp(0.25rem, 0.7vh, 0.5rem) clamp(0.5rem, 0.8vw, 0.8rem);
+  cursor: pointer;
+  color: var(--text-primary, #1e293b);
+  min-width: 90px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition, 0.2s ease-in-out);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  font-size: clamp(0.75rem, 1.1vh, 0.85rem);
+  z-index: 1;
+}
+
+.stageButton:hover:not(:disabled) {
+  border-color: var(--primary-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(38, 102, 130, 0.15);
+  z-index: 2;
+}
+
+.stageButtonActive {
+  border-color: var(--primary-bg) !important;
+  background: rgba(38, 102, 130, 0.06) !important;
+  box-shadow: 0 2px 6px rgba(38, 102, 130, 0.18) !important;
+  z-index: 10 !important;
+}
+
+.stageButtonActive::after {
+  content: "ACTIVE";
+  position: absolute;
+  top: -8px;
+  right: -5px;
+  background: var(--primary-bg);
+  color: #ffffff;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  z-index: 20;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.stageButtonLocked {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7;
+}
+
+.stageClickHint {
+  font-size: 0.6rem;
+  color: var(--primary-bg);
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.85;
+}
+
+/* Two-column Layout for Graph + Node Details */
+.graphGrid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 380px);
+  gap: clamp(0.5rem, 1.4vw, 1.1rem);
+  margin-top: 0;
+}
+
+@media (max-width: 992px) {
+  .graphGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.graphColumn {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.25rem, 0.8vh, 0.5rem);
+  min-width: 0;
+}
+
+.graphCanvasBox {
+  background: #f8fafc;
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.6rem;
+  padding: clamp(0.35rem, 0.8vh, 0.75rem);
+  overflow: auto;
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailsColumn {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.detailsCard {
+  background: var(--dialog-surface, #ffffff);
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.detailsCardHeader {
+  background: var(--primary-bg);
+  color: #ffffff;
+  padding: clamp(0.35rem, 0.8vh, 0.6rem) clamp(0.65rem, 1vw, 0.9rem);
+  font-weight: 700;
+  font-size: clamp(0.82rem, 1.1vh, 0.92rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.detailsCardBody {
+  padding: clamp(0.45rem, 1vh, 0.85rem) clamp(0.65rem, 1vw, 0.9rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.35rem, 0.8vh, 0.65rem);
+  background: #ffffff;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.componentListItem {
+  padding: clamp(0.35rem, 0.8vh, 0.55rem) clamp(0.45rem, 0.8vw, 0.75rem);
+  border-radius: 0.45rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all var(--transition, 0.2s ease-in-out);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: clamp(0.75rem, 1vh, 0.82rem);
+}
+
+.componentListItem:hover {
+  border-color: var(--primary-bg);
+  background: rgba(38, 102, 130, 0.04);
+  transform: translateX(1px);
+}
+
+.componentListItemActive {
+  border-color: var(--primary-bg);
+  background: rgba(38, 102, 130, 0.08);
+  font-weight: 600;
+}
+
+@keyframes modalScaleIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

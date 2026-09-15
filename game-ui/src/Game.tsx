@@ -19,7 +19,7 @@ import { StakeholderContext, type ConvincerProfileConfig } from "./components/St
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
-import PerformanceView from "./components/PerformanceView";
+import PerformanceDashboard from "./components/PerformanceDashboard";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
@@ -820,10 +820,10 @@ function App({ username: _username }: AppProps) {
                     setConvincerArchetypes,
                   }}
                 >
-                  <PerformanceView
+                  <PerformanceDashboard
                     currentPhase={currentPhase}
-                    isVisible={isPerformanceOpen}
-                    onToggle={() => setIsPerformanceOpen((v) => !v)}
+                    isOpen={isPerformanceOpen}
+                    onClose={() => setIsPerformanceOpen(false)}
                   />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
