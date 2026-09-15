@@ -312,48 +312,90 @@ def calculate_finished_players(campaign_key: str | None = None) -> int:
 
 def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[float]:
     try:
-        sum_per_challenge = []
+        total_expected_challenges = 0
+        try:
+            total_expected_challenges = sum(
+                phase.challenge_quota for phase in PhaseFactory.phases if phase.id != 0
+            )
+        except Exception:
+            pass
+        if total_expected_challenges <= 0:
+            total_expected_challenges = 5
+
         with get_session() as session:
             valid_players = get_valid_players_set(session, campaign_key=campaign_key)
-
-            # Collect gameplay challenges in phase order (excluding intro phase 0)
-            challenges = []
-            for phase in PhaseFactory.phases:
-                if phase.id == 0:
-                    continue
-                for ch in phase.challenges:
-                    challenges.append(ch)
-
             if not valid_players:
-                return [0.0] * len(challenges)
+                return [0.0] * total_expected_challenges
 
             valid_user_ids = session.scalars(
                 select(User.id).where(User.user_name.in_(valid_players))
             ).all()
 
-            for ch in challenges:
-                sessions = session.scalars(
-                    select(GameChallenge)
-                    .where(
-                        GameChallenge.phase_index == ch.phase_id,
-                        GameChallenge.challenge_index == ch.id,
-                        GameChallenge.user_id.in_(valid_user_ids),
-                    )
-                    .order_by(GameChallenge.id.desc())
-                ).all()
+            if not valid_user_ids:
+                return [0.0] * total_expected_challenges
 
-                # Pick latest record per player
-                latest_by_player = {}
-                for gs in sessions:
-                    if gs.user_name not in latest_by_player:
-                        latest_by_player[gs.user_name] = gs
+            # Fetch all gameplay challenge records (excluding intro phase 0)
+            sessions = session.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.phase_index != 0,
+                    GameChallenge.user_id.in_(valid_user_ids),
+                )
+                .order_by(GameChallenge.id.asc())
+            ).all()
 
+            # Group records by player
+            player_records: dict[int, list[GameChallenge]] = {}
+            for gs in sessions:
+                player_records.setdefault(gs.user_id, []).append(gs)
+
+            # For each player, determine their sequence of played challenges
+            player_challenge_sums: list[list[float]] = []
+            for user_id, records in player_records.items():
+                challenges_by_key: dict[tuple[int, int], dict[str, Any]] = {}
+                for gs in records:
+                    ch_key = (gs.phase_index, gs.challenge_index)
+                    if ch_key not in challenges_by_key:
+                        challenges_by_key[ch_key] = {
+                            "first_id": gs.id,
+                            "records": [gs],
+                        }
+                    else:
+                        challenges_by_key[ch_key]["records"].append(gs)
+
+                user_played = []
+                for ch_key, ch_data in challenges_by_key.items():
+                    valid_rows = [
+                        r
+                        for r in ch_data["records"]
+                        if r.metric_values
+                        and isinstance(r.metric_values, list)
+                        and len(r.metric_values) >= 6
+                    ]
+                    if not valid_rows:
+                        continue
+                    latest_row = max(valid_rows, key=lambda r: r.id)
+                    metric_sum = sum(float(v) for v in latest_row.metric_values[:6])
+                    user_played.append({
+                        "first_id": ch_data["first_id"],
+                        "metric_sum": metric_sum,
+                    })
+
+                # Sort played challenges chronologically by first encounter
+                user_played.sort(key=lambda c: c["first_id"])
+                if user_played:
+                    player_challenge_sums.append([c["metric_sum"] for c in user_played])
+
+            max_played = max((len(p) for p in player_challenge_sums), default=0)
+            num_challenges = max(total_expected_challenges, max_played)
+
+            sum_per_challenge = []
+            for i in range(num_challenges):
                 total_metrics = 0.0
                 players_amount = 0
-                for gs in latest_by_player.values():
-                    metric_values = gs.metric_values
-                    if metric_values and isinstance(metric_values, list) and len(metric_values) >= 6:
-                        total_metrics += sum(float(v) for v in metric_values[:6])
+                for p_sums in player_challenge_sums:
+                    if i < len(p_sums):
+                        total_metrics += p_sums[i]
                         players_amount += 1
 
                 if players_amount > 0:
