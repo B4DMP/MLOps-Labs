@@ -6,7 +6,7 @@ export interface EngagementCard {
   token_cost: number;
   description: string;
   stakeholder_selection_amount: number; // -1 for all, 0 for intel, >0 for exact count
-  target_type: "stakeholder" | "intel";
+  target_type: "stakeholder" | "intel" | "component";
   response_snippet?: string;
   max_plays_per_phase?: number;
   turns?: number;

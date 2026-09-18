@@ -110,6 +110,15 @@ class ArtifactType(str, Enum):
     CI_LOG = "ci_log"
     ARCHITECTURE_NOTE = "architecture_note"
 
+class TradeOffBranch(BaseModel):
+    """One branch option of a Trade-Off requirement with its own description and graph changes."""
+    name: Optional[str] = None
+    description: str = ""
+    target: Optional[str] = None
+    level: Optional[int] = None
+    ops: list[dict] = Field(default_factory=list)
+    atoms: list[str] = Field(default_factory=list)
+
 class StakeholderRequirement(BaseModel):
     """One piece of intel in a challenge: a stakeholder stance or a fact about the environment.
 
@@ -134,6 +143,11 @@ class StakeholderRequirement(BaseModel):
     ops: list[dict] = Field(default_factory=list)
     # Trade-off: what the stakeholder gives up.
     concedes: Optional[Concession] = None
+    branch_x: Optional[TradeOffBranch] = None
+    branch_y: Optional[TradeOffBranch] = None
+    branch_x_atoms: list[str] = Field(default_factory=list)
+    branch_y_atoms: list[str] = Field(default_factory=list)
+    atoms: list[str] = Field(default_factory=list)
     # Fact: what is true about the graph.
     asserts: Optional[FactAssertion] = None
     # Refinement chains (plan 05) are authored: a later item on the same target and stakeholder
@@ -171,6 +185,13 @@ def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str]
     asserts = getattr(item, "asserts", None)
     if asserts is not None and getattr(asserts, "target", None):
         return asserts.target, getattr(asserts, "level", None)
+
+    holds = getattr(item, "holds", None)
+    if holds is not None:
+        if isinstance(holds, dict) and holds.get("component"):
+            return holds["component"], holds.get("level")
+        elif hasattr(holds, "component") and getattr(holds, "component", None):
+            return holds.component, getattr(holds, "level", None)
 
     suggested = getattr(item, "suggested", None)
     if suggested is not None and getattr(suggested, "target", None):

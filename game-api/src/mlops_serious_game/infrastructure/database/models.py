@@ -73,9 +73,8 @@ class GameChallenge(Base):
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
-    pitch_debate_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
-    online_intel_gathering_messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
-    attention_tokens: Mapped[int] = mapped_column(Integer, default=8, nullable=True)
+    messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
+    attention_tokens: Mapped[int] = mapped_column(Integer, default=20, nullable=True)
     emotion_values: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
 
 
@@ -90,7 +89,6 @@ class GameSession(Base):
         nullable=False,
         index=True,
     )
-    stakeholder_archetypes: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
     stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # 3 per game, never regenerated (D15): spent on a Veto Breaker or an Emergency Addendum

@@ -308,6 +308,25 @@
   box-shadow: none;
 }
 
+.componentSearchInput {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #f8fafc;
+  background-color: rgba(30, 41, 59, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.5rem;
+  padding: 0.28rem 0.65rem;
+  min-width: 170px;
+  max-width: 250px;
+  transition: border-color var(--transition);
+}
+
+.componentSearchInput:focus {
+  border-color: #38bdf8;
+  outline: none;
+  box-shadow: none;
+}
+
 .emptyState {
   display: flex;
   flex-direction: column;

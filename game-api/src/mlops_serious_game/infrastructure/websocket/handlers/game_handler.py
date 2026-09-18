@@ -24,7 +24,6 @@ from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
     observe_tagged_facts,
     load_known_intel_items_for_challenge,
-    get_default_stakeholder_archetypes,
     determine_dialogue_options,
 )
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
@@ -141,22 +140,14 @@ def get_or_create_game_session(player: str, db_session=None) -> GameSession:
         stmt = select(GameSession).where(GameSession.user_id == user_id)
         session_rec = s.scalars(stmt).first()
         if not session_rec:
-            st_archs = get_default_stakeholder_archetypes()
             session_rec = GameSession(
                 player=player,
                 user_id=user_id,
-                stakeholder_archetypes=st_archs,
                 stakeholder_personas=StakeholderFactory.choose_personas(player),
             )
             s.add(session_rec)
             s.commit()
         else:
-            archs = dict(session_rec.stakeholder_archetypes or {})
-            updated_archs = get_default_stakeholder_archetypes(archs)
-            if updated_archs != archs:
-                session_rec.stakeholder_archetypes = updated_archs
-                flag_modified(session_rec, "stakeholder_archetypes")
-                s.commit()
             sync_personas(player, session_rec)
             s.commit()
         return session_rec
@@ -265,7 +256,6 @@ async def handle_game_init(
             "stakeholders": get_stakeholders(),
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
-            "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             "use_questionnaire": use_questionnaire,
         }
     )
@@ -273,8 +263,7 @@ async def handle_game_init(
     game_progress_index = 0
     last_gamestate_id = [0, 0, 0]
     metric_values = [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
-    saved_pitch_debate_messages = []
-    saved_online_intel_messages = []
+    saved_messages = []
     saved_tokens = None
     saved_played_engagement_card_ids = []
     saved_engagement_card_targets = {}
@@ -330,13 +319,11 @@ async def handle_game_init(
             .order_by(GameChallenge.id.desc())
         )
         latest_session = session.scalars(stmt).first()
-        if latest_session:
-            last_gamestate_id = [
-                latest_session.phase_index,
-                latest_session.challenge_index,
-                latest_session.challenge_loop_index,
-            ]
-            if isinstance(latest_session.emotion_values, dict) and latest_session.emotion_values:
+        if latest_session is not None:
+            last_gamestate_id[0] = latest_session.phase_index
+            last_gamestate_id[1] = latest_session.challenge_index
+            last_gamestate_id[2] = latest_session.challenge_loop_index
+            if latest_session.emotion_values and isinstance(latest_session.emotion_values, dict):
                 emotion_values_dict = latest_session.emotion_values
             else:
                 stmt_ev = (
@@ -349,10 +336,8 @@ async def handle_game_init(
                     emotion_values_dict = session_with_ev.emotion_values
             if isinstance(latest_session.metric_values, list):
                 metric_values = latest_session.metric_values
-            if hasattr(latest_session, "pitch_debate_messages") and isinstance(latest_session.pitch_debate_messages, list):
-                saved_pitch_debate_messages = latest_session.pitch_debate_messages
-            if hasattr(latest_session, "online_intel_gathering_messages") and isinstance(latest_session.online_intel_gathering_messages, list):
-                saved_online_intel_messages = latest_session.online_intel_gathering_messages
+            if hasattr(latest_session, "messages") and isinstance(latest_session.messages, list):
+                saved_messages = latest_session.messages
             saved_tokens = latest_session.attention_tokens
             if isinstance(latest_session.action_card, dict):
                 saved_action_card = latest_session.action_card
@@ -408,8 +393,7 @@ async def handle_game_init(
                 "description": curr_challenge.description,
                 "roundIntroduction": curr_challenge.roundIntroduction,
                 "metric_values": metric_values,
-                "pitch_debate_messages": saved_pitch_debate_messages,
-                "online_intel_gathering_messages": saved_online_intel_messages,
+                "messages": saved_messages,
                 "attention_tokens": saved_tokens,
                 "action_card": saved_action_card,
                 "played_engagement_card_ids": saved_played_engagement_card_ids,
@@ -426,11 +410,10 @@ async def handle_game_init(
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(emotion_values_dict),
                 "emotional_states": EmotionFactory.get_emotion_states_dict(emotion_values_dict),
                 "emotion_values": emotion_values_dict,
-                "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
                 **({
                     "dialogue_options": await get_dialogue_options(
                         challenge=curr_challenge,
-                        messages=saved_pitch_debate_messages,
+                        messages=saved_messages,
                         username=username,
                     )
                 } if last_gamestate_id[2] == 2 else {}),
@@ -546,7 +529,6 @@ async def handle_progress_update(
                     "metric_values": initial_metric_values,
                     "attention_tokens": curr_challenge.attention_tokens,
                     "engagement_cards": get_engagement_cards(),
-                    "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
                 }
             )
     else:
@@ -606,8 +588,7 @@ async def store_or_update_challenge(
                         action_card=action_card,
                         metric_values=metric_values,
                         time_stamp=datetime.datetime.utcnow(),
-                        pitch_debate_messages=[],
-                        online_intel_gathering_messages=[],
+                        messages=[],
                         attention_tokens=attention_tokens,
                         emotion_values=carried_emotion_values,
                     )
@@ -617,10 +598,7 @@ async def store_or_update_challenge(
                 existing.challenge_loop_index = challenge_loop_id
                 existing.action_card = action_card
                 existing.metric_values = metric_values
-                if challenge_loop_id == 2:
-                    existing.pitch_debate_messages = messages
-                elif challenge_loop_id == 3 and messages:
-                    existing.pitch_debate_messages = messages
+                existing.messages = messages
                 existing.attention_tokens = attention_tokens
                 existing.time_stamp = datetime.datetime.utcnow()
                 if not existing.emotion_values and carried_emotion_values:
@@ -636,8 +614,7 @@ async def store_or_update_challenge(
                         action_card=action_card,
                         metric_values=metric_values,
                         time_stamp=datetime.datetime.utcnow(),
-                        pitch_debate_messages=messages if challenge_loop_id in (2, 3) else [],
-                        online_intel_gathering_messages=messages if challenge_loop_id == 1 else [],
+                        messages=messages,
                         attention_tokens=attention_tokens,
                         emotion_values=carried_emotion_values,
                     )
@@ -769,8 +746,7 @@ async def handle_state_update_request(
                                 metric_values=metric_values,
                                 time_stamp=datetime.datetime.utcnow(),
                                 action_card=action_card,
-                                pitch_debate_messages=[],
-                                online_intel_gathering_messages=[],
+                                messages=[],
                                 attention_tokens=attention_tokens,
                             )
                         )
@@ -883,7 +859,6 @@ async def handle_state_update_request(
                 "description": challenge.description,
                 "roundIntroduction": challenge.roundIntroduction,
                 "metric_values": metric_values,
-                "pitch_debate_messages": messages if challenge_loop_index == 2 else [],
                 "messages": messages,
                 "attention_tokens": attention_tokens,
                 "action_card": persisted_ac,
@@ -900,7 +875,6 @@ async def handle_state_update_request(
                 ],
                 "facial_expressions": EmotionFactory.get_facial_expressions_dict(ev_dict),
                 "emotional_states": EmotionFactory.get_emotion_states_dict(ev_dict),
-                "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             }
         )
 

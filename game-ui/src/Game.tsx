@@ -11,11 +11,11 @@ import "intro.js/introjs.css";
 import EndPage from "./EndPage";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
 import { type IntelItem } from "./components/ActionCardCardComponent";
-import PitchPhase from "./components/pitch_phase";
+import PitchDebate from "./components/pitch_debate";
 import AcSimulation from "./components/ac_simulation";
 import type { ChatMsg } from "./components/StakeholderInteractionArea";
 import { MetricsContext } from "./components/MetricProvider";
-import { StakeholderContext, type ConvincerProfileConfig } from "./components/StakeholderProvider";
+import { StakeholderContext } from "./components/StakeholderProvider";
 import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
@@ -23,7 +23,6 @@ import PerformanceDashboard from "./components/PerformanceDashboard";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
-import ConvincerVerificationDialog, { type ConvincerVerificationInfo } from "./components/ConvincerVerificationDialog";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import { colorForStakeholderId } from "./types/StakeholderAvatar";
@@ -82,11 +81,9 @@ function App({ username: _username }: AppProps) {
   >({});
   const [stakeholders, setStakeholders] = useState<Record<string, Stakeholder>>({});
   const [emotionColors, setEmotionColors] = useState<Record<string, string>>({});
-  const [ac_count, setac_count] = useState(-1);
   const [chat_msgs, setChatMsgs] = useState<ChatMsg[]>([]);
-  const [onlineIntelChatMsgs, setOnlineIntelChatMsgs] = useState<ChatMsg[]>([]);
   const [engagementCards, setEngagementCards] = useState<EngagementCard[]>([]);
-  const [attentionTokens, setAttentionTokens] = useState<number>(8);
+  const [attentionTokens, setAttentionTokens] = useState<number>(20);
   const [hasPitchDebateStarted, setHasPitchDebateStarted] = useState<boolean>(false);
   // Only the setter is used now: PitchDebate (the old reader of this flag) was
   // removed with the merged pitch phase (D37/D46).
@@ -114,7 +111,6 @@ function App({ username: _username }: AppProps) {
   const [lastError, setLastError] = useState("");
   const [challengeLoopId, setChallengeLoopId] = useState<number>(0);
   const [isDossierOpen, setIsDossierOpen] = useState(false);
-  const [convincerArchetypes, setConvincerArchetypes] = useState<Record<string, ConvincerProfileConfig>>({});
   const [dossierData, setDossierData] = useState<StakeholderDossierEntry[]>([]);
   // Only the setter is used now: rendering this list moved into PitchPhase's own
   // dossier-derived state, so Game.tsx just keeps it updated for the websocket handlers.
@@ -125,7 +121,6 @@ function App({ username: _username }: AppProps) {
   const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
 
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
-  const acCountRef = useRef<number>(-1);
   const metricsRef = useRef<Record<string, Metric>>({});
   const currentPhaseRef = useRef<number>(0);
   const currentChallengeRef = useRef<number>(0);
@@ -161,10 +156,6 @@ function App({ username: _username }: AppProps) {
   useEffect(() => {
     hasPitchDebateStartedRef.current = hasPitchDebateStarted;
   }, [hasPitchDebateStarted]);
-
-  useEffect(() => {
-    acCountRef.current = ac_count;
-  }, [ac_count]);
 
   // Composite key of the last challenge PrePhaseDialog was actually shown for. A phase
   // change always changes this key too, so tracking it alone covers both "new phase" and
@@ -236,7 +227,6 @@ function App({ username: _username }: AppProps) {
   const [answers, setAnswers] = useState<(Record<string, any> | null)[]>(
     Array(questions.length).fill(null),
   );
-  const [convincerVerificationInfo, setConvincerVerificationInfo] = useState<ConvincerVerificationInfo | null>(null);
   const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
 
   useEffect(() => {
@@ -264,9 +254,6 @@ function App({ username: _username }: AppProps) {
       if (data["emotion_colors"]) {
         setEmotionColors(data["emotion_colors"]);
         (window as any).__EMOTION_COLORS__ = data["emotion_colors"];
-      }
-      if (data["convincer_archetypes"]) {
-        setConvincerArchetypes(data["convincer_archetypes"]);
       }
     });
 
@@ -368,8 +355,8 @@ function App({ username: _username }: AppProps) {
         currentChallengeRef.current = data["challenge_id"];
         setCurrentPhase(data["phase_id"]);
         setCurrentChallenge(data["challenge_id"]);
-        if (data.pitch_debate_messages && Array.isArray(data.pitch_debate_messages) && data.pitch_debate_messages.length > 0) {
-          setChatMsgs(data.pitch_debate_messages);
+        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setChatMsgs(data.messages);
           setIsExistingDebateSave(true);
           if (loopId >= 2) {
             setHasPitchDebateStarted(true);
@@ -378,11 +365,6 @@ function App({ username: _username }: AppProps) {
         } else {
           setChatMsgs([]);
           setIsExistingDebateSave(false);
-        }
-        if (data.online_intel_gathering_messages && Array.isArray(data.online_intel_gathering_messages)) {
-          setOnlineIntelChatMsgs(data.online_intel_gathering_messages);
-        } else {
-          setOnlineIntelChatMsgs([]);
         }
         setAttentionTokens(data.attention_tokens);
         if (data.played_engagement_card_ids) setPlayedCardIdsInPhase(data.played_engagement_card_ids);
@@ -398,25 +380,20 @@ function App({ username: _username }: AppProps) {
         setCurrentChallenge(data["challenge_id"]);
         setChatMsgs([]);
         setIsExistingDebateSave(false);
-        setOnlineIntelChatMsgs([]);
         setAttentionTokens(data.attention_tokens);
         setPlayedCardIdsInPhase([]);
         setCardTargetedStakeholdersMap({});
         setPitchedActionCard(null);
-        setac_count(0);
         setHasPitchDebateStarted(false);
         hasPitchDebateStartedRef.current = false;
       } else {
         // Same challenge / loading: restore messages and attention tokens if available
-        if (data.pitch_debate_messages && Array.isArray(data.pitch_debate_messages) && data.pitch_debate_messages.length > 0) {
-          setChatMsgs(data.pitch_debate_messages);
+        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          setChatMsgs(data.messages);
           if (loopId >= 2) {
             setHasPitchDebateStarted(true);
             hasPitchDebateStartedRef.current = true;
           }
-        }
-        if (data.online_intel_gathering_messages && Array.isArray(data.online_intel_gathering_messages)) {
-          setOnlineIntelChatMsgs(data.online_intel_gathering_messages);
         }
         if (data.attention_tokens !== undefined) {
           setAttentionTokens(data.attention_tokens);
@@ -469,10 +446,6 @@ function App({ username: _username }: AppProps) {
         setDialogueOptions(data.dialogue_options);
       }
 
-      if (data.convincer_archetypes && typeof data.convincer_archetypes === "object") {
-        setConvincerArchetypes(data.convincer_archetypes);
-      }
-
       setChallengeAmount(data["phases_amount"] || data["challenges_amount"]);
       setChallengeMetricChanges(data["metric_changes"]);
       if (data.challenge_loop_id !== undefined) {
@@ -500,7 +473,9 @@ function App({ username: _username }: AppProps) {
         setChatMsgs((prevMsgs) => [
           ...prevMsgs,
           ...data.messages.map((msg: any) => ({
-            id: msg.stakeholder_id,
+            id: msg.stakeholder_id || msg.id,
+            stakeholder_id: msg.stakeholder_id || msg.id,
+            stakeholder_name: msg.stakeholder_name,
             message: msg.message,
             facial_expression: msg.facial_expression,
             ac_id: -1,
@@ -513,7 +488,8 @@ function App({ username: _username }: AppProps) {
           setDossierData((prevDossier) => {
             if (!prevDossier || prevDossier.length === 0) return prevDossier;
             return prevDossier.map((st) => {
-              const updatedItems = (st.intel_items || []).map((item) => {
+              const existingIds = new Set((st.intel_items || []).map((i) => i.id));
+              const updatedExisting = (st.intel_items || []).map((item) => {
                 const matchingRev = allRevealed.find((r) => r.id === item.id);
                 if (matchingRev) {
                   return {
@@ -529,12 +505,26 @@ function App({ username: _username }: AppProps) {
                 }
                 return item;
               });
-              return { ...st, intel_items: updatedItems };
+              const brandNewForSt = allRevealed.filter(
+                (r) =>
+                  (r.stakeholder_id === st.stakeholder_id || (!r.stakeholder_id && st.is_environment)) &&
+                  !existingIds.has(r.id)
+              ).map((r) => ({
+                id: r.id,
+                description: r.description,
+                intel_type: r.intel_type || "verified",
+                categorized_type: r.categorized_type,
+                is_correct: r.is_corrected !== undefined ? r.is_corrected : true,
+                source: "debate",
+                stakeholder_id: st.stakeholder_id,
+              }));
+              return { ...st, intel_items: [...updatedExisting, ...brandNewForSt] };
             });
           });
 
           setIntelItems((prevItems) => {
-            return prevItems.map((item) => {
+            const existingIds = new Set(prevItems.map((i) => i.id));
+            const updated = prevItems.map((item) => {
               const matchingRev = allRevealed.find((r) => r.id === item.id);
               if (matchingRev) {
                 return {
@@ -547,6 +537,8 @@ function App({ username: _username }: AppProps) {
               }
               return item;
             });
+            const brandNew = allRevealed.filter((r) => !existingIds.has(r.id));
+            return [...updated, ...brandNew];
           });
         }
       }
@@ -610,10 +602,6 @@ function App({ username: _username }: AppProps) {
         setDialogueOptions(data.dialogue_options);
       }
 
-      if (data && data.convincer_archetypes && typeof data.convincer_archetypes === "object") {
-        setConvincerArchetypes(data.convincer_archetypes);
-      }
-
       if (data && data.facial_expressions && typeof data.facial_expressions === "object") {
         setStakeholders((prev) => {
           const updated = { ...prev };
@@ -639,33 +627,6 @@ function App({ username: _username }: AppProps) {
       if (data && data.error === true) {
         setIsInErrorUi(true);
         setLastError(data.errorMsg);
-      }
-
-      const verifications: any[] = data.convincer_verifications || (data.convincer_verification ? [data.convincer_verification] : []);
-      if (verifications.length > 0) {
-        setConvincerVerificationInfo(verifications[0]);
-        setChatMsgs((prev) => {
-          if (prev.length === 0) return prev;
-          const updated = [...prev];
-          for (const verif of verifications) {
-            const targetStId = verif.stakeholder_id;
-            let targetIndex = -1;
-            for (let i = updated.length - 1; i >= 0; i--) {
-              if (updated[i].id === targetStId) {
-                targetIndex = i;
-                break;
-              }
-            }
-            if (targetIndex === -1) {
-              targetIndex = updated.length - 1;
-            }
-            updated[targetIndex] = {
-              ...updated[targetIndex],
-              convincer_verification: verif,
-            };
-          }
-          return updated;
-        });
       }
     });
 
@@ -816,8 +777,6 @@ function App({ username: _username }: AppProps) {
                     setStakeholders,
                     emotionColors,
                     setEmotionColors,
-                    convincerArchetypes,
-                    setConvincerArchetypes,
                   }}
                 >
                   <PerformanceDashboard
@@ -840,87 +799,116 @@ function App({ username: _username }: AppProps) {
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
                   />
-                  <ConvincerVerificationDialog
-                    info={convincerVerificationInfo}
-                    onClose={() => setConvincerVerificationInfo(null)}
-                  />
 
-                  {challengeLoopId === 0 && (
-                    <OfflineIntelGathering
-                      onContinue={handleOfflineIntelGatheringContinue}
-                      currentPhase={currentPhase}
-                      currentChallenge={currentChallenge}
-                      onTagArtifact={(stId) => setActiveStakeholderId(stId)}
-                      onOpenPhaseBriefing={openBriefingForReview}
-                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
-                      isPerformanceOpen={isPerformanceOpen}
-                      isDossierOpen={isDossierOpen}
-                      setIsDossierOpen={setIsDossierOpen}
-                      dossierData={dossierData}
-                      activeStakeholderId={activeStakeholderId}
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      challengeAmount={challengeAmount}
-                    />
-                  )}
-                  {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
-                      now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
-                  {(challengeLoopId === 1 || challengeLoopId === 2) && (
-                    <PitchPhase
-                      currentPhase={currentPhase}
-                      currentChallenge={currentChallenge}
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      challengeAmount={challengeAmount}
-                      convincerArchetypes={convincerArchetypes}
-                      onEndPitch={handlePitchDebateEnd}
-                      engagementCards={engagementCards}
-                      attentionTokens={attentionTokens}
-                      onAttentionTokensChange={setAttentionTokens}
-                      playedCardIdsInPhase={playedCardIdsInPhase}
-                      onPlayedCardIdsChange={setPlayedCardIdsInPhase}
-                      chatMsgs={onlineIntelChatMsgs}
-                      onChatMsgsChange={setOnlineIntelChatMsgs}
-                      cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
-                      onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
-                      dossierData={dossierData}
-                      onOpenPhaseBriefing={openBriefingForReview}
-                      onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
-                      isPerformanceOpen={isPerformanceOpen}
-                      onUpdateIntelItems={(items) => {
-                        setIntelItems(items as any);
-                        setDossierData((prevDossier) => {
-                          if (!prevDossier || prevDossier.length === 0) return prevDossier;
-                          return prevDossier.map((st) => ({
-                            ...st,
-                            intel_items: (st.intel_items || []).map((item) => {
-                              const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
-                              if (matchingUpdated) {
+                  <AnimatePresence mode="wait">
+                    {challengeLoopId === 0 && (
+                      <motion.div
+                        {...FADE_TRANSITION}
+                        key="offline-intel"
+                        style={{ width: "100%", height: "100%" }}
+                      >
+                        <OfflineIntelGathering
+                          onContinue={handleOfflineIntelGatheringContinue}
+                          currentPhase={currentPhase}
+                          currentChallenge={currentChallenge}
+                          onTagArtifact={(stId) => setActiveStakeholderId(stId)}
+                          onOpenPhaseBriefing={openBriefingForReview}
+                          onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                          isPerformanceOpen={isPerformanceOpen}
+                          isDossierOpen={isDossierOpen}
+                          setIsDossierOpen={setIsDossierOpen}
+                          dossierData={dossierData}
+                          activeStakeholderId={activeStakeholderId}
+                          challengeTitle={challengeTitle}
+                          challengeDescription={challengeDescription}
+                          challengeIntro={challengeIntro}
+                          challengeAmount={challengeAmount}
+                        />
+                      </motion.div>
+                    )}
+                    {/* Merged pitch phase (plan 06 step 1, D37): engagement cards and stakeholder chat
+                        now live inside PREPARE. Loop index 1 and 2 both render this screen. */}
+                    {(challengeLoopId === 1 || challengeLoopId === 2) && (
+                      <motion.div
+                        {...FADE_TRANSITION}
+                        key="pitch-debate"
+                        style={{ width: "100%", height: "100%" }}
+                      >
+                        <PitchDebate
+                          currentPhase={currentPhase}
+                          currentChallenge={currentChallenge}
+                          challengeTitle={challengeTitle}
+                          challengeDescription={challengeDescription}
+                          challengeIntro={challengeIntro}
+                          challengeAmount={challengeAmount}
+                          onEndPitch={handlePitchDebateEnd}
+                          engagementCards={engagementCards}
+                          attentionTokens={attentionTokens}
+                          onAttentionTokensChange={setAttentionTokens}
+                          playedCardIdsInPhase={playedCardIdsInPhase}
+                          onPlayedCardIdsChange={setPlayedCardIdsInPhase}
+                          chatMsgs={chat_msgs}
+                          onChatMsgsChange={setChatMsgs}
+                          cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
+                          onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
+                          dossierData={dossierData}
+                          onOpenPhaseBriefing={openBriefingForReview}
+                          onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                          isPerformanceOpen={isPerformanceOpen}
+                          onUpdateIntelItems={(items, fullDossier) => {
+                            if (fullDossier) {
+                              setDossierData(fullDossier);
+                              setIntelItems(items as any);
+                              return;
+                            }
+                            setIntelItems(items as any);
+                            setDossierData((prevDossier) => {
+                              if (!prevDossier || prevDossier.length === 0) return prevDossier;
+                              return prevDossier.map((st) => {
+                                const existingIds = new Set((st.intel_items || []).map((i) => i.id));
+                                const updatedExisting = (st.intel_items || []).map((item) => {
+                                  const matchingUpdated = (items as any[]).find((u) => u.id === item.id);
+                                  if (matchingUpdated) {
+                                    return {
+                                      ...item,
+                                      intel_type: matchingUpdated.intel_type,
+                                      categorized_type: matchingUpdated.categorized_type,
+                                      description: matchingUpdated.description,
+                                      source: matchingUpdated.source || item.source,
+                                    };
+                                  }
+                                  return item;
+                                });
+                                const brandNewForSt = (items as any[]).filter(
+                                  (u) =>
+                                    (u.stakeholder_id === st.stakeholder_id || (!u.stakeholder_id && st.is_environment)) &&
+                                    !existingIds.has(u.id)
+                                );
                                 return {
-                                  ...item,
-                                  intel_type: matchingUpdated.intel_type,
-                                  categorized_type: matchingUpdated.categorized_type,
-                                  description: matchingUpdated.description,
-                                  source: matchingUpdated.source || item.source,
+                                  ...st,
+                                  intel_items: [...updatedExisting, ...brandNewForSt],
                                 };
-                              }
-                              return item;
-                            }),
-                          }));
-                        });
-                      }}
-                    />
-                  )}
-                  {challengeLoopId === 3 && (
-                    <AcSimulation
-                      onContinue={handleAcSimulationContinue}
-                      currentPhase={currentPhase}
-                      currentChallenge={currentChallenge}
-                      playedCard={pitchedActionCard}
-                    />
-                  )}
+                              });
+                            });
+                          }}
+                        />
+                      </motion.div>
+                    )}
+                    {challengeLoopId === 3 && (
+                      <motion.div
+                        {...FADE_TRANSITION}
+                        key="ac-simulation"
+                        style={{ width: "100%", height: "100%" }}
+                      >
+                        <AcSimulation
+                          onContinue={handleAcSimulationContinue}
+                          currentPhase={currentPhase}
+                          currentChallenge={currentChallenge}
+                          playedCard={pitchedActionCard}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </StakeholderContext.Provider>
               </MetricsContext.Provider>
             </PhasesContext.Provider>

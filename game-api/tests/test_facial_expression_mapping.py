@@ -1,9 +1,6 @@
 import pytest
 from mlops_serious_game.domain.emotion import EmotionConfig, EmotionalStateRule
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
-from mlops_serious_game.application.pitch_debate_service import DialogueOption
-from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
-
 
 def test_emotion_config_facial_expressions():
     EmotionFactory.ensure_loaded()
@@ -70,28 +67,6 @@ def test_get_facial_expressions_dict():
     assert result["st_1"] == "smile"
     assert result["st_2"] == "veryAngry"
 
-
-def test_dialogue_option_serialization():
-    # Intel-based option
-    intel_opt = DialogueOption(
-        text="Alice, we should consider real-time inference latency.",
-        intel_item_id="req_101",
-    )
-    d_intel = intel_opt.model_dump()
-    assert d_intel["text"] == "Alice, we should consider real-time inference latency."
-    assert d_intel["intel_item_id"] == "req_101"
-    assert d_intel["archetype"] is None
-
-    # Corporate noise option
-    arch = ConvincerArchetype(name="Technical Excellence", strategy="Focus on data and technical details.")
-    noise_opt = DialogueOption(
-        text="We will ensure technical rigor and strict evaluation benchmarks.",
-        intel_item_id=None,
-        archetype=arch,
-    )
-    d_noise = noise_opt.model_dump()
-    assert d_noise["intel_item_id"] is None
-    assert d_noise["archetype"]["name"] == "Technical Excellence"
 
 
 @pytest.mark.anyio

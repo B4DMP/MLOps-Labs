@@ -99,7 +99,7 @@ export default function EngagementCardComponent({
               }}
             />
 
-            {/* Archetype Icon Watermark Pill */}
+            {/* Target Type Pill */}
             <div className={styles.artIconBadge}>
               <Icon icon={card.icon || "ph:cards-bold"} />
               <span>{card.target_type === "intel" ? "Intel" : "Dialogue"}</span>

@@ -31,9 +31,6 @@
   "emotion.refuted": { "text": "colder: {st} noticed the guess was wrong", "group": "emotion" },
   "emotion.one_on_one_miss": { "text": "colder: {st} says that's not quite it", "group": "emotion" },
 
-  "archetype.matched": { "text": "confirmed: {st} responded the way that read predicts", "group": "archetype" },
-  "archetype.ruled_out": { "text": "ruled out: {st} did not react the way {archetype} predicts", "group": "archetype" },
-
   "outcome.pass": { "text": "the room came around", "group": "outcome" },
   "outcome.soft_pass": { "text": "the room went along with it, reluctantly", "group": "outcome" },
   "outcome.veto": { "text": "{st} would not have it", "group": "outcome" },
@@ -51,7 +48,6 @@
   "grudge.fired": { "text": "{st}'s grudge came due", "group": "grudge" },
 
   "intel.artifact_filed": { "text": "an intel item was filed", "group": "intel" },
-  "archetype.tagged": { "text": "you tagged {st}'s profile", "group": "archetype" },
   "intel.verified_confirmed": { "text": "confirmed: {st} said it themselves", "group": "intel" },
   "intel.verified_corrected": { "text": "corrected: it wasn't what you filed it as", "group": "intel" },
   "graph.facts_observed": { "text": "{n} fact(s) about the system came into view as you left", "group": "graph" }

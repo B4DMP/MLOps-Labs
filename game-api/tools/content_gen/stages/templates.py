@@ -145,7 +145,7 @@ class TemplatesStage:
             "description": output["description"],
             "roundIntroduction": output["round_introduction"],
             "metric_changes": {},
-            "attention_tokens": 8,
+            "attention_tokens": 20,
             "priority": int(output["priority"]),
             "preconditions": preconditions,
             "fallback": False,

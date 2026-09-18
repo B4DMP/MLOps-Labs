@@ -1,14 +1,3 @@
-export interface DialogueOptionArchetype {
-  name: string;
-  label?: string;
-  icon?: string;
-  color?: string;
-  evidence_basis?: number;
-  risk_and_control?: number;
-  value_horizon?: number;
-  strategy?: string;
-}
-
 export interface DialogueOption {
   id: string;
   type: "intel" | "corporate_noise";
@@ -18,5 +7,4 @@ export interface DialogueOption {
   intel_stakeholder_id?: string | null;
   intel_stakeholder_name?: string | null;
   intel_type?: string | null;
-  archetype?: DialogueOptionArchetype | null;
 }

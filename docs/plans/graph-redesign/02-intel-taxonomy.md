@@ -118,7 +118,7 @@ Corrections surface in OBJECT as Concede Correction. The corrected item becomes 
 
 ## Artifact types
 
-All artifacts come as email, slack message, meeting notes or document. A Fact is voiced by a stakeholder in the room (`narrator_id` on the artifact, usually the owner of what it describes) and reports how the system is without taking a side, so person or system is a call the player makes from the content, not the format. The requirement itself keeps `stakeholder_id` null. The deck deals up to three stances and at most two Facts per challenge, Facts on the conflict's target first; a Fact without a narrator is never dealt. The technical types (runbook, dashboard snapshot, incident ticket, CI log, architecture note) stay in the enum for older content but are no longer generated.
+All artifacts come as email, slack message, meeting notes or document. A Fact is voiced by a stakeholder in the room (`narrator_id` on the artifact, usually the owner of what it describes) and reports how the system is without taking a side, so person or system is a call the player makes from the content, not the format. The requirement itself keeps `stakeholder_id` null. The deck deals up to three stances and at most one Fact per challenge (1 unconfirmed Fact + 1 on-record technical cause Fact), Facts on the conflict's target first; a Fact without a narrator is never dealt. The technical types (runbook, dashboard snapshot, incident ticket, CI log, architecture note) stay in the enum for older content but are no longer generated.
 
 ## Model changes
 

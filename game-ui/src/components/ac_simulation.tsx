@@ -302,10 +302,40 @@ export default function AcSimulation({
                   <EventLog events={events} />
                 </div>
 
+                {/* Simulation Debug Data View when VITE_SHOW_SIMULATION_DATA === 'true' */}
+                {(import.meta.env.VITE_SHOW_SIMULATION_DATA === "true" || import.meta.env.VITE_SHOW_SIMULATION_DATA === true) && (
+                  <details className="mt-4 p-3 bg-dark text-light rounded border border-info" style={{ fontSize: "0.8rem" }}>
+                    <summary className="fw-bold text-info mb-2" style={{ cursor: "pointer" }}>
+                      🛠️ Raw Simulation Debug Data (VITE_SHOW_SIMULATION_DATA)
+                    </summary>
+                    <div className="mb-2">
+                      <strong>Outcome:</strong> {report.outcome}
+                    </div>
+                    <div className="mb-2">
+                      <strong>Targets:</strong>
+                      <pre className="bg-secondary p-2 rounded text-light overflow-auto" style={{ maxHeight: 200 }}>
+                        {JSON.stringify(report.targets, null, 2)}
+                      </pre>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Technical Debt Created:</strong>
+                      <pre className="bg-secondary p-2 rounded text-light overflow-auto" style={{ maxHeight: 150 }}>
+                        {JSON.stringify(report.debt_created, null, 2)}
+                      </pre>
+                    </div>
+                    <div className="mb-2">
+                      <strong>Full Delta Report Payload:</strong>
+                      <pre className="bg-secondary p-2 rounded text-light overflow-auto" style={{ maxHeight: 250 }}>
+                        {JSON.stringify(payload, null, 2)}
+                      </pre>
+                    </div>
+                  </details>
+                )}
+
                 <button
                   onClick={handleClick}
                   disabled={loading}
-                  className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-sm mt-3"
+                  className="actionButton mt-3"
                 >
                   {loading ? "Advancing..." : "Continue ▶"}
                 </button>

@@ -5,6 +5,7 @@ import type { ActionCard } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
+import { formatLevel, formatLevelCap } from "./ComposeActionProposalModal";
 
 export interface IntelItem {
   id: string;
@@ -141,7 +142,9 @@ export default function ActionCardCardComponent({
               whiteSpace: "nowrap",
             }}
           >
-            {isMinimized && addendums && addendums.length > 0
+            {isMinimized && card.atomic_changes && card.atomic_changes.length > 0
+              ? `${card.atomic_changes.length}/3 Changes`
+              : isMinimized && addendums && addendums.length > 0
               ? `${addendums.filter((a) => a.status === "attached").length}/2 Addendums`
               : "Action Card"}
           </span>
@@ -169,21 +172,57 @@ export default function ActionCardCardComponent({
       >
         {isMinimized ? (
           <>
-            <p
-              className="card-text text-secondary mb-1 text-center"
-              style={{
-                fontSize: "0.72rem",
-                lineHeight: 1.3,
-                display: "-webkit-box",
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-              title={card.description}
-            >
-              {card.description}
-            </p>
+            {card.atomic_changes && card.atomic_changes.length > 0 ? (
+              <div className="d-flex flex-column gap-1 mb-1">
+                {card.atomic_changes.map((ac, idx) => {
+                  const name =
+                    card.target_names?.[ac.target] ||
+                    ac.target.split(".").pop()?.replace(/_/g, " ") ||
+                    ac.target;
+                  const pred = card.predictions?.find((p) => p.target === ac.target);
+                  return (
+                    <div
+                      key={idx}
+                      className="d-flex align-items-center justify-content-between px-2 py-1 rounded"
+                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: "0.68rem" }}
+                    >
+                      <span className="fw-bold text-truncate" style={{ maxWidth: "55%" }} title={name}>
+                        ⚡ {name}
+                      </span>
+                      {pred?.upstream_uncertain ? (
+                        <span className="badge bg-warning text-dark" style={{ fontSize: "0.55rem" }}>
+                          ❓ Uncertain
+                        </span>
+                      ) : pred?.capped_by ? (
+                        <span className="badge bg-secondary" style={{ fontSize: "0.55rem" }}>
+                          ⛓ Capped: {formatLevelCap(pred.effective_predicted)}
+                        </span>
+                      ) : (
+                        <span className="badge bg-success" style={{ fontSize: "0.55rem" }}>
+                          Advance to {formatLevelCap(pred?.predicted ?? ac.value)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p
+                className="card-text text-secondary mb-1 text-center"
+                style={{
+                  fontSize: "0.72rem",
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={card.description}
+              >
+                {card.description}
+              </p>
+            )}
 
             {addendums && addendums.length > 0 ? (
               <div
@@ -230,6 +269,48 @@ export default function ActionCardCardComponent({
           </>
         ) : (
           <>
+            {/* Atomic Changes Section in Maximized Card */}
+            {card.atomic_changes && card.atomic_changes.length > 0 && (
+              <div className="d-flex flex-column gap-2 p-2 rounded mb-2" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                <span className="fw-bold" style={{ fontSize: "0.78rem", color: "var(--primary-bg)" }}>
+                  <Icon icon="ph:git-merge-bold" className="me-1" />
+                  Configured Atomic Changes ({card.atomic_changes.length}/3):
+                </span>
+                {card.atomic_changes.map((ac, idx) => {
+                  const name =
+                    card.target_names?.[ac.target] ||
+                    ac.target.split(".").pop()?.replace(/_/g, " ") ||
+                    ac.target;
+                  const pred = card.predictions?.find((p) => p.target === ac.target);
+                  return (
+                    <div
+                      key={idx}
+                      className="d-flex flex-column gap-1 p-2 rounded bg-white border"
+                      style={{ fontSize: "0.75rem" }}
+                    >
+                      <div className="d-flex align-items-center justify-content-between">
+                        <span className="fw-bold text-dark">
+                          ⚡ {name}
+                        </span>
+                        <span className="badge bg-primary">
+                          Advance to {formatLevelCap(pred?.predicted ?? ac.value)}
+                        </span>
+                      </div>
+                      {pred?.upstream_uncertain && (
+                        <div className="text-warning fw-semibold" style={{ fontSize: "0.7rem" }}>
+                          ❓ Functional Status Uncertain: Upstream predecessor in Fog of War.
+                        </div>
+                      )}
+                      {pred?.capped_by && (
+                        <div className="text-danger fw-semibold" style={{ fontSize: "0.7rem" }}>
+                          ⛓ Bottlenecked: Functional throughput capped at "{formatLevel(pred.effective_predicted)}" by {pred.capped_by}.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {/* Contributing Stakeholders Section */}
             {contributingStakeholders.length > 0 && (
               <div className={styles.stakeholdersRow}>

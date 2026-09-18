@@ -128,7 +128,6 @@ class StakeholderFactory:
                 role_description=to_str(j.get("role_description", j.get("division_description", ""))),
                 introduction=to_str(j.get("introduction", "")),
                 metric_id=j.get("metric_id", ""),
-                convincer_archetype=str(j.get("convincer_archetype", "")),
                 avatar=j.get("avatar", {}),
                 personas=[
                     Persona(

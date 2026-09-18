@@ -9,7 +9,6 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
-from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 from mlops_serious_game.domain.glossary_factory import GlossaryFactory
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.story_factory import StoryFactory
@@ -45,11 +44,6 @@ class GameConfigLoader:
             offline_intel_path = (config_dir / "OfflineIntelArtifacts.json")
             OfflineIntelArtifactFactory.load_artifacts(offline_intel_path)
             print(f"loaded offline intel artifacts.")
-
-            convincer_artifacts_path = (config_dir / "ConvincerArchetypeArtifacts.json")
-            if convincer_artifacts_path.exists():
-                ConvincerArchetypeArtifactFactory.load_artifacts(convincer_artifacts_path)
-                print(f"loaded convincer archetype artifacts.")
 
             graph_path = (config_dir / "MlopsGraph.json")
             graph = GraphFactory.load_graph(graph_path)

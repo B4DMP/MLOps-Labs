@@ -19,6 +19,7 @@ from mlops_serious_game.application.graph_service.pipeline import (
 )
 from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
+from mlops_serious_game.domain.emotion import SIMULATION_OUTCOMES
 from mlops_serious_game.domain.grudge import Grudge
 from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
@@ -57,17 +58,57 @@ def _story(report: Any) -> dict[str, Any]:
     return data
 
 
+def _calculate_simulation_emotion_deltas(
+    report: Any,
+    card_items: list,
+    room_st_ids: list[str],
+) -> dict[str, dict[str, float]]:
+    deltas: dict[str, dict[str, float]] = {}
+    capped_targets = {
+        getattr(t, "id", None)
+        for t in getattr(report, "targets", [])
+        if getattr(t, "capped_by", None)
+    }
+    has_debt = bool(getattr(report, "debt_created", []))
+
+    for st_id in room_st_ids:
+        st_items = [i for i in card_items if getattr(i, "stakeholder_id", None) == st_id]
+        if not st_items:
+            if has_debt:
+                deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
+            continue
+
+        st_targets = set()
+        for item in st_items:
+            suggested = getattr(item, "suggested", None)
+            if suggested and getattr(suggested, "target", None):
+                st_targets.add(suggested.target)
+            for raw_op in getattr(item, "ops", None) or []:
+                if isinstance(raw_op, dict) and "target" in raw_op:
+                    st_targets.add(raw_op["target"])
+
+        if st_targets and any(t in capped_targets for t in st_targets):
+            deltas[st_id] = dict(SIMULATION_OUTCOMES["capped_delivery"])
+        elif has_debt:
+            deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
+        else:
+            deltas[st_id] = dict(SIMULATION_OUTCOMES["clean_delivery"])
+
+    return deltas
+
+
 async def handle_simulation_run(websocket: WebSocket, username: str, payload: dict) -> None:
     ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
     state = pitch_store.load_pitch(username, ctx.phase_id, ctx.challenge_id) or pitch.start_pitch(ctx.room_ids)
     view = ctx.view(state)
     grudges = [Grudge.model_validate(g) for g in pitch_store.load_grudges(username)]
+    c_items = pitch.card_items(list(ctx.all_intel), set(state.card_item_ids))
 
     result = run_simulation(
         username,
         challenge=ctx.challenge,
         outcome=_outcome_for(state),
-        card_items=pitch.card_items(list(ctx.all_intel), set(state.card_item_ids)),
+        card_items=c_items,
         reads=view.reads,
         grudges=grudges,
         overridden_stakeholder_id=_overridden(state),
@@ -76,6 +117,10 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     )
 
     pitch_store.replace_grudges(username, [g.model_dump(mode="json") for g in result.grudges])
+    sim_deltas = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids)
+    if sim_deltas:
+        pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
+
     next_challenge = _next_challenge_name(username, ctx)
     events = list(result.events) + [_gate_event(next_challenge)]
     await send_events(

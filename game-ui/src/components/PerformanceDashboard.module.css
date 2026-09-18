@@ -12,7 +12,7 @@
   padding: clamp(0.5rem, 1.5vh, 1.25rem) clamp(0.75rem, 2vw, 1.5rem);
   background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(5px);
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.1s ease-in-out, visibility 0.1s ease-in-out;
 }
 
 .helpLayerVisible {
@@ -38,7 +38,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation: modalScaleIn 0.125s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .header {

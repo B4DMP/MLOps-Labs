@@ -74,9 +74,13 @@ def _stage_band(
 
 def _stage_reached(stage: Stage, current_phase_id: Optional[int]) -> bool:
     """Governance band is always visible; everything else waits until its phase is current (D33)."""
-    return stage.band or (
-        current_phase_id is not None and (stage.phase_id is None or stage.phase_id <= current_phase_id)
-    )
+    if stage.band or stage.phase_id is None:
+        return True
+    if current_phase_id is None:
+        return True
+    # Phase 0 is the introduction phase; it is skipped for stage progression calculations (technical stages begin at Phase 1: 'req').
+    effective_phase = max(1, current_phase_id)
+    return stage.phase_id <= effective_phase
 
 
 def _patterns_by_stage(

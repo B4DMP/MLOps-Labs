@@ -27,6 +27,10 @@ interface OfflineIntelGatheringProps {
   /** Opens performance (gameplay metrics + the project pipeline) from the dossier, as in the pitch phase. */
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  /** When provided, renders in single-item / focus review mode with only this artifact */
+  singleArtifact?: IntelArtifact | null;
+  /** Callback for the "go back" button in bottom right */
+  onGoBack?: () => void;
 }
 
 export interface IntelArtifact {
@@ -38,8 +42,6 @@ export interface IntelArtifact {
   artifact_type: string;
   content: string;
   categorized_type?: string;
-  is_convincer_profile?: boolean;
-  possible_archetypes?: string[];
   /** Already on the public record: dealt in pre-tagged and locked, not the player's to call. */
   is_known?: boolean;
   /** Answer key, only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
@@ -70,58 +72,6 @@ function dossierTargetFor(art: IntelArtifact, categorizedType?: string): string 
   return art.stakeholder_id || art.stakeholder_name;
 }
 
-const CONVINCER_TAGS = [
-  {
-    type: "Technical Excellence",
-    label: "Technical Excellence",
-    icon: "⚙️",
-    color: "#2563eb",
-    description: "Values architectural rigor, precision, and state-of-the-art tooling.",
-  },
-  {
-    type: "Business Value",
-    label: "Business Value",
-    icon: "📈",
-    color: "#16a34a",
-    description: "Driven by ROI, time-to-market, and measurable business outcomes.",
-  },
-  {
-    type: "Safety & Reliability",
-    label: "Safety & Reliability",
-    icon: "🛡️",
-    color: "#dc2626",
-    description: "Prioritizes uptime, stability, rollback strategies, and risk mitigation.",
-  },
-  {
-    type: "Control & Governance",
-    label: "Control & Governance",
-    icon: "⚖️",
-    color: "#7c3aed",
-    description: "Focuses on regulatory compliance, auditability, and standardization.",
-  },
-  {
-    type: "People & Trust",
-    label: "People & Trust",
-    icon: "🤝",
-    color: "#ea580c",
-    description: "Prioritizes team morale, transparency, psychological safety, and culture.",
-  },
-  {
-    type: "Autonomy",
-    label: "Autonomy",
-    icon: "🚀",
-    color: "#0891b2",
-    description: "Values rapid iteration, developer freedom, and minimal friction.",
-  },
-  {
-    type: "Pragmatism",
-    label: "Pragmatism",
-    icon: "🛠️",
-    color: "#475569",
-    description: "Prefers simple, working solutions over perfection or complex frameworks.",
-  },
-];
-
 export default function OfflineIntelGathering({
   onContinue,
   currentPhase = 0,
@@ -132,9 +82,13 @@ export default function OfflineIntelGathering({
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  singleArtifact,
+  onGoBack,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
-  const [artifacts, setArtifacts] = useState<IntelArtifact[]>([]);
+  const [artifacts, setArtifacts] = useState<IntelArtifact[]>(() =>
+    singleArtifact ? [singleArtifact] : []
+  );
   const [events, setEvents] = useState<GameEventPayload[]>([]);
   // Clicking an event log row that names an intel item jumps the dossier to it (D51's refs, made
   // clickable): a brief highlight, then it fades so it doesn't linger as stray UI state.
@@ -147,9 +101,13 @@ export default function OfflineIntelGathering({
   };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!singleArtifact);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [taggedTypes, setTaggedTypes] = useState<Record<string, string>>({});
+  const [taggedTypes, setTaggedTypes] = useState<Record<string, string>>(() =>
+    singleArtifact && singleArtifact.categorized_type
+      ? { [singleArtifact.id]: singleArtifact.categorized_type }
+      : {}
+  );
   const [, setHoveredTag] = useState<string | null>(null);
   // Debug builds only: stays open across cards so the key can be read while flipping through the deck.
   const [isDebugOpen, setIsDebugOpen] = useState(false);
@@ -193,6 +151,21 @@ export default function OfflineIntelGathering({
   }, []);
 
   useEffect(() => {
+    if (singleArtifact) {
+      setArtifacts([singleArtifact]);
+      setTaggedTypes(
+        singleArtifact.categorized_type
+          ? { [singleArtifact.id]: singleArtifact.categorized_type }
+          : {}
+      );
+      setCurrentIndex(0);
+      setLoading(false);
+    }
+  }, [singleArtifact]);
+
+  useEffect(() => {
+    if (singleArtifact) return;
+
     const unsubscribe = subscribe("intel:offline_artifacts", (data: any) => {
       if (data && data.artifacts) {
         setArtifacts(data.artifacts);
@@ -222,7 +195,7 @@ export default function OfflineIntelGathering({
     }
 
     return () => unsubscribe();
-  }, [currentPhase, currentChallenge]);
+  }, [currentPhase, currentChallenge, singleArtifact]);
 
   // The event log (D51): what's been filed/verified so far, for this offline gathering pass.
   useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (payload) => {
@@ -246,6 +219,10 @@ export default function OfflineIntelGathering({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, artifacts]);
 
+  useEffect(() => {
+    setIsSubmitting(false);
+  }, [currentIndex]);
+
   const handleTagArtifact = (categorizedType: string) => {
     if (currentIndex >= artifacts.length) return;
     if (transitionTimeoutRef.current) return; // Prevent multiple rapid clicks while transitioning
@@ -263,24 +240,22 @@ export default function OfflineIntelGathering({
       onTagArtifact(dossierTargetFor(currentArtifact, categorizedType));
     }
 
-    if (currentArtifact.is_convincer_profile) {
-      emit("intel:tag_convincer", {
-        stakeholder_id: currentArtifact.stakeholder_id,
-        categorized_archetype: categorizedType,
-      });
-    } else {
-      emit("intel:tag_item", {
-        phase_id: currentPhase,
-        challenge_id: currentChallenge,
-        intel_id: currentArtifact.requirement_id || currentArtifact.id,
-        categorized_type: categorizedType,
-      });
-    }
+    emit("intel:tag_item", {
+      phase_id: currentPhase,
+      challenge_id: currentChallenge,
+      intel_id: currentArtifact.requirement_id || currentArtifact.id,
+      categorized_type: categorizedType,
+    });
 
     emit("intel:get_dossier", {
       phase_id: currentPhase,
       challenge_id: currentChallenge,
     });
+
+    if (singleArtifact) {
+      // In single-artifact review mode, do not auto-advance to next card or summary
+      return;
+    }
 
     transitionTimeoutRef.current = setTimeout(() => {
       transitionTimeoutRef.current = null;
@@ -361,6 +336,9 @@ export default function OfflineIntelGathering({
     }
     setIsSubmitting(true);
     onContinue();
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 5000);
   };
 
   const bgIndex = (currentChallenge + currentPhase) % 4;
@@ -420,7 +398,7 @@ export default function OfflineIntelGathering({
                 isEmbedded={true}
                 dossierData={dossierData || []}
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
-                showPhaseChangeBadges={true}
+                showPhaseChangeBadges={!singleArtifact}
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
@@ -430,7 +408,29 @@ export default function OfflineIntelGathering({
                 currentPhase={currentPhase}
                 currentChallenge={currentChallenge}
                 onClose={() => {}}
-                highlightedIntelId={highlightedIntelId}
+                highlightedIntelId={singleArtifact ? (singleArtifact.requirement_id || singleArtifact.id) : highlightedIntelId}
+                onOpenArtifact={(intelItem) => {
+                  if (singleArtifact) return;
+                  const targetIdx = artifacts.findIndex(
+                    (art) =>
+                      art.requirement_id === intelItem.id ||
+                      art.id === intelItem.id ||
+                      art.id === intelItem.artifact?.id ||
+                      art.requirement_id === intelItem.artifact?.requirement_id
+                  );
+                  if (targetIdx !== -1) {
+                    if (transitionTimeoutRef.current) {
+                      clearTimeout(transitionTimeoutRef.current);
+                      transitionTimeoutRef.current = null;
+                    }
+                    setDirection(targetIdx >= currentIndex ? 1 : -1);
+                    setCurrentIndex(targetIdx);
+                    const art = artifacts[targetIdx];
+                    if (art && onTagArtifact) {
+                      onTagArtifact(dossierTargetFor(art, taggedTypes[art.id]));
+                    }
+                  }
+                }}
               />
             </div>
           </div>
@@ -475,7 +475,7 @@ export default function OfflineIntelGathering({
                 </div>
 
                 {/* Quick direct item navigation pills */}
-                {artifacts.length > 0 && (
+                {artifacts.length > 0 && !singleArtifact && (
                   <div className={styles.navPillsContainer}>
                     <button
                       type="button"
@@ -559,6 +559,29 @@ export default function OfflineIntelGathering({
                         </span>
                       );
                     })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (transitionTimeoutRef.current) {
+                          clearTimeout(transitionTimeoutRef.current);
+                          transitionTimeoutRef.current = null;
+                        }
+                        setIsSubmitting(false);
+                        setDirection(1);
+                        setCurrentIndex(artifacts.length);
+                      }}
+                      className={`btn btn-xs fw-bold ${styles.navPill} ${
+                        isFinished
+                          ? styles.navPillCurrent
+                          : allTagged
+                            ? styles.navPillSummaryReady
+                            : styles.navPillSummary
+                      }`}
+                      title={allTagged ? "View Summary & Continue to Pitch" : "View Categorization Summary"}
+                    >
+                      <Icon icon={allTagged ? "ph:check-bold" : "ph:list-bullets-bold"} />
+                      <span>Summary</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -632,6 +655,7 @@ export default function OfflineIntelGathering({
                               clearTimeout(transitionTimeoutRef.current);
                               transitionTimeoutRef.current = null;
                             }
+                            setIsSubmitting(false);
                             setDirection(-1);
                             setCurrentIndex(0);
                           }}
@@ -774,20 +798,20 @@ export default function OfflineIntelGathering({
 
                     {/* Compact Tagging Prompt & Buttons Panel - flush against the card's own edges, no nested box */}
                     <div
-                      className={`${styles.taggingPanel} ${
-                        currentArtifact.is_convincer_profile ? styles.taggingPanelConvincer : styles.taggingPanelStance
-                      }`}
+                      className={`${styles.taggingPanel} ${styles.taggingPanelStance}`}
                     >
                       <div className={styles.taggingPanelHeader}>
-                        <button
-                          onClick={handlePrevItem}
-                          disabled={currentIndex <= 0}
-                          className={styles.navButton}
-                          title="Previous Intel Artifact"
-                          aria-label="Previous Intel Artifact"
-                        >
-                          <Icon icon="ph:caret-left-bold" className={styles.navButtonIcon} />
-                        </button>
+                        {!singleArtifact && (
+                          <button
+                            onClick={handlePrevItem}
+                            disabled={currentIndex <= 0}
+                            className={styles.navButton}
+                            title="Previous Intel Artifact"
+                            aria-label="Previous Intel Artifact"
+                          >
+                            <Icon icon="ph:caret-left-bold" className={styles.navButtonIcon} />
+                          </button>
+                        )}
 
                         <div className={styles.taggingPanelHeaderText}>
                           <div className={styles.taggingBadgeRow}>
@@ -795,16 +819,10 @@ export default function OfflineIntelGathering({
                             className={`${styles.taggingTypeBadge} ${
                               isOnKnownArtifact
                                 ? styles.taggingTypeBadgeOnRecord
-                                : currentArtifact.is_convincer_profile
-                                  ? styles.taggingTypeBadgeConvincer
-                                  : styles.taggingTypeBadgeStance
+                                : styles.taggingTypeBadgeStance
                             }`}
                           >
-                            {isOnKnownArtifact
-                              ? "On Record"
-                              : currentArtifact.is_convincer_profile
-                                ? "Convincer Profile"
-                                : "Stance"}
+                            {isOnKnownArtifact ? "On Record" : "Stance"}
                           </span>
                           {currentArtifact.debug && (
                             <button
@@ -829,30 +847,57 @@ export default function OfflineIntelGathering({
                               ? isOnKnownFact
                                 ? "How the system stands, already filed:"
                                 : `${currentArtifact.stakeholder_name}'s stance, already filed:`
-                              : currentArtifact.is_convincer_profile
-                                ? `Categorize ${currentArtifact.stakeholder_name}'s Convincer Archetype:`
-                                : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
+                              : `Categorize ${currentArtifact.stakeholder_name}'s stance:`}
                           </h6>
                         </div>
                         <small className={styles.taggingSubtitle}>
-                          {isOnKnownArtifact
-                            ? "Nothing to pick"
-                            : currentArtifact.is_convincer_profile
-                              ? "Select Archetype"
-                              : "Select Category"}
+                          {isOnKnownArtifact ? "Nothing to pick" : "Select Category"}
                         </small>
 
-                        <button
-                          onClick={handleNextItem}
-                          className={styles.navButton}
-                          title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
-                          aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
-                        >
-                          <Icon
-                            icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
-                            className={styles.navButtonIcon}
-                          />
-                        </button>
+                        {!singleArtifact ? (
+                          <div className="d-flex align-items-center gap-1">
+                            {allTagged && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (transitionTimeoutRef.current) {
+                                    clearTimeout(transitionTimeoutRef.current);
+                                    transitionTimeoutRef.current = null;
+                                  }
+                                  setIsSubmitting(false);
+                                  setDirection(1);
+                                  setCurrentIndex(artifacts.length);
+                                }}
+                                className={`${styles.actionButton} ${styles.returnHeaderButton}`}
+                                title="All intel categorized. Return to summary to continue to the pitch debate."
+                              >
+                                <span>Finish & Continue</span>
+                                <Icon icon="ph:arrow-right-bold" />
+                              </button>
+                            )}
+                            <button
+                              onClick={handleNextItem}
+                              className={styles.navButton}
+                              title={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                              aria-label={currentIndex < artifacts.length - 1 ? "Next Intel Artifact" : "Finish / View Summary"}
+                            >
+                              <Icon
+                                icon={currentIndex < artifacts.length - 1 ? "ph:caret-right-bold" : "ph:arrow-right-bold"}
+                                className={styles.navButtonIcon}
+                              />
+                            </button>
+                          </div>
+                        ) : onGoBack ? (
+                          <button
+                            type="button"
+                            onClick={onGoBack}
+                            className={`${styles.actionButton} ${styles.returnHeaderButton}`}
+                            title="Return to pitch debate"
+                          >
+                            <span>Return to pitch debate</span>
+                            <Icon icon="ph:arrow-right-bold" />
+                          </button>
+                        ) : null}
                       </div>
 
                       {currentArtifact.debug && isDebugOpen && (
@@ -880,23 +925,15 @@ export default function OfflineIntelGathering({
                       <p className={styles.taggingHint}>
                         {isOnKnownArtifact
                           ? "This one is already sorted, and the category below is the right one. It's here so you can see what a finished call looks like before you make your own."
-                          : currentArtifact.is_convincer_profile
-                          ? "A Convincer Archetype is what will actually change this stakeholder's mind later on: tag the driver behind what they just said."
                           : "First ask: is this about a person or about the system? If it is about a person, do they want it, refuse to cross it, or accept giving it up?"}
                       </p>
 
-                      <div className={`row ${currentArtifact.is_convincer_profile ? "g-1" : "g-2"} ${styles.tagGrid}`}>
-                        {(currentArtifact.is_convincer_profile ? CONVINCER_TAGS : REQUIREMENT_TAGS).map((tag) => {
+                      <div className={`row g-2 ${styles.tagGrid}`}>
+                        {REQUIREMENT_TAGS.map((tag) => {
                           const isSelected = currentTaggedType === tag.type;
                           const isSystemTag = (tag as { about?: string }).about === "system";
-                          const colClass = currentArtifact.is_convincer_profile
-                            ? "col-12 col-md-6 col-lg-4"
-                            : isSystemTag
-                            ? "col-12"
-                            : "col-12 col-md-4";
-                          const sizeClass = currentArtifact.is_convincer_profile
-                            ? styles.tagButtonConvincer
-                            : styles.tagButtonRequirement;
+                          const colClass = isSystemTag ? "col-12" : "col-12 col-md-4";
+                          const sizeClass = styles.tagButtonRequirement;
 
                           return (
                             <Fragment key={tag.type}>

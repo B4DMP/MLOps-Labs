@@ -1,9 +1,7 @@
 import json
-import math
 from pathlib import Path
 from typing import Any, Optional
 
-from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 from mlops_serious_game.domain.emotion import (
     EmotionConfig,
     EmotionDelta,
@@ -13,6 +11,7 @@ from mlops_serious_game.domain.emotion import (
     EmotionalStateRule,
     PitchTuning,
     apply_emotion_delta,
+    get_patience_malus,
 )
 
 
@@ -26,12 +25,6 @@ class EmotionFactory:
             data = json.load(f)
 
         cls.config = EmotionConfig(**data)
-        if cls.config and cls.config.convincer_archetypes:
-            for arch_name, arch in cls.config.convincer_archetypes.items():
-                if not arch.name:
-                    arch.name = arch_name
-                if not arch.label:
-                    arch.label = arch.name
         return cls.config
 
     @classmethod
@@ -90,6 +83,13 @@ class EmotionFactory:
         import with no gameConfig directory mounted)."""
         cls.ensure_loaded()
         return cls.config.pitch_tuning if cls.config else PitchTuning()
+
+    @classmethod
+    def get_patience_malus(cls) -> EmotionDelta:
+        """Returns the configured dimensional patience malus vector."""
+        tuning = cls.get_pitch_tuning()
+        return get_patience_malus(tuning.patience_malus)
+
 
     @classmethod
     def get_emotion_colors(cls) -> dict[str, str]:
@@ -208,44 +208,6 @@ class EmotionFactory:
         )
 
     @classmethod
-    def get_convincer_archetypes(cls) -> dict[str, ConvincerArchetype]:
-        """Returns dict of configured convincer archetypes (name -> archetype)."""
-        cls.ensure_loaded()
-        return cls.config.convincer_archetypes if cls.config else {}
-
-    @classmethod
-    def get_convincer_archetypes_dict(cls) -> dict[str, dict]:
-        """Returns dict of configured convincer archetypes serialized to dictionaries."""
-        cls.ensure_loaded()
-        archetypes = cls.get_convincer_archetypes()
-        return {k: v.model_dump(mode="json") for k, v in archetypes.items()}
-
-    @classmethod
-    def get_available_archetype_names(cls) -> list[str]:
-        """Returns list of names/keys of all configured convincer archetypes."""
-        return list(cls.get_convincer_archetypes().keys())
-
-    @classmethod
-    def get_archetype_by_name(cls, name: str) -> Optional[ConvincerArchetype]:
-        """Finds a convincer archetype by case-insensitive name or key."""
-        if not name:
-            return None
-        cls.ensure_loaded()
-        archetypes = cls.get_convincer_archetypes()
-        if name in archetypes:
-            arch = archetypes[name]
-            if not arch.name:
-                arch.name = name
-            return arch
-        target = name.strip().lower()
-        for key, arch in archetypes.items():
-            if key.strip().lower() == target or (arch.name and arch.name.strip().lower() == target):
-                if not arch.name:
-                    arch.name = arch.name or key
-                return arch
-        return None
-
-    @classmethod
     def calculate_emotion_deltas(
         cls,
         st_id: str,
@@ -254,18 +216,11 @@ class EmotionFactory:
     ) -> dict[str, float]:
         """Calculates algorithmic emotion deltas based on configuration in EmotionValueConfig.json."""
         cls.ensure_loaded()
-        rules = cls.config.emotion_delta_rules
+        rules = cls.config.emotion_delta_rules if cls.config else None
         dimensions = cls.get_available_dimensions()
         deltas: dict[str, float] = {f"{dim}_delta": 0.0 for dim in dimensions}
 
-        from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
-        st_obj = StakeholderFactory.get_stakeholder(st_id)
-        st_arch_name = getattr(st_obj, "convincer_archetype", "") if st_obj else ""
-        st_archetype = cls.get_archetype_by_name(st_arch_name) if st_arch_name else cls.get_archetype_by_name(st_id)
-
-        opt_arch = selected_option.archetype if selected_option else None
-
-        # 1. If an Intel Option was used
+        # If an Intel Option was used
         if last_intel and rules and rules.intel_rules:
             if st_id == getattr(last_intel, "stakeholder_id", None):
                 is_correct = last_intel.is_correct_intel() if hasattr(last_intel, "is_correct_intel") else True
@@ -274,57 +229,6 @@ class EmotionFactory:
                     key = f"{metric}_delta"
                     deltas[key] = round(deltas.get(key, 0.0) + val, 2)
 
-        # 2. If a Corporate Noise option with an Archetype was used
-        elif selected_option and opt_arch and st_archetype and rules and rules.corporate_noise_rules:
-            c_rules = rules.corporate_noise_rules
-
-            diff_evidence = abs(opt_arch.evidence_basis - st_archetype.evidence_basis)
-            diff_risk = abs(opt_arch.risk_and_control - st_archetype.risk_and_control)
-            diff_horizon = abs(opt_arch.value_horizon - st_archetype.value_horizon)
-
-            total_distance = math.sqrt(diff_evidence**2 + diff_risk**2 + diff_horizon**2)
-
-            # Trust delta based on total distance
-            threshold = c_rules.distance_threshold
-            slope = c_rules.distance_slope
-            if total_distance < threshold:
-                trust_val = c_rules.base_trust_bonus + (threshold - total_distance) * slope
-            else:
-                trust_val = c_rules.base_trust_penalty - (total_distance - threshold) * slope
-            deltas["trust_delta"] = round(deltas.get("trust_delta", 0.0) + trust_val, 2)
-
-            # Dimension alignments
-            dim_diffs = {
-                "risk_and_control": (diff_risk, opt_arch.risk_and_control, st_archetype.risk_and_control),
-                "value_horizon": (diff_horizon, opt_arch.value_horizon, st_archetype.value_horizon),
-                "evidence_basis": (diff_evidence, opt_arch.evidence_basis, st_archetype.evidence_basis),
-            }
-
-            for dim_rule in c_rules.dimension_alignments:
-                if dim_rule.dimension not in dim_diffs:
-                    continue
-                diff_val, opt_val, st_val = dim_diffs[dim_rule.dimension]
-
-                for cond in dim_rule.conditions:
-                    matched = False
-                    if cond.type == "option_min" and cond.min_value is not None:
-                        if opt_val >= cond.min_value:
-                            matched = True
-                    elif cond.type == "diff_bonus" and cond.max_diff is not None:
-                        if diff_val <= cond.max_diff:
-                            matched = True
-                    elif cond.type == "diff_penalty":
-                        if cond.target_min_value is not None and cond.min_diff is not None:
-                            if st_val >= cond.target_min_value and diff_val >= cond.min_diff:
-                                matched = True
-                        elif cond.min_diff is not None:
-                            if diff_val >= cond.min_diff:
-                                matched = True
-
-                    if matched:
-                        for metric, val in cond.deltas.items():
-                            key = f"{metric}_delta"
-                            deltas[key] = round(deltas.get(key, 0.0) + val, 2)
-
         return deltas
+
 

@@ -12,7 +12,6 @@ from .engagementCard import EngagementCard
 from .engagementCardFactory import EngagementCardFactory
 from .emotion import EmotionValues, EmotionDelta, EmotionDimension, EmotionConfig
 from .emotion_factory import EmotionFactory
-from .convincerArchetype import ConvincerArchetype
 
 __all__ = [
     "Prompt",
@@ -41,6 +40,5 @@ __all__ = [
     "EmotionDimension",
     "EmotionConfig",
     "EmotionFactory",
-    "ConvincerArchetype",
 ]
 

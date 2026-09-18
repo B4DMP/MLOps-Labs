@@ -30,7 +30,6 @@ class Stakeholder(BaseModel):
         default="", description="Short, friendly self-introduction spoken in the phase briefing"
     )
     metric_id: str = Field(description="associated metric")
-    convincer_archetype: str = Field(default="", description="Name of the convincer archetype")
     avatar: dict = Field(
         default_factory=dict,
         description="Open Peeps avatar configuration, role-level traits and identity colors",

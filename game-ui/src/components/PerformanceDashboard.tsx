@@ -19,6 +19,7 @@ interface StageData {
   name: string;
   band: boolean;
   locked: boolean;
+  phase_id?: number;
   health?: number;
   health_band?: [number, number];
   status?: "healthy" | "degraded" | "broken";
@@ -542,7 +543,11 @@ export default function PerformanceDashboard({
   useEffect(() => {
     if (!selectedStage && pipelineStages.length > 0) {
       const unlockedStages = pipelineStages.filter((s) => !s.locked);
-      const targetStage = unlockedStages[currentPhase] || unlockedStages[0] || pipelineStages[0];
+      const effectivePhase = currentPhase === 0 ? 1 : currentPhase;
+      const targetStage =
+        pipelineStages.find((s) => s.phase_id === effectivePhase && !s.locked) ||
+        unlockedStages[0] ||
+        pipelineStages[0];
       if (targetStage) {
         setSelectedStage(targetStage.id);
       }

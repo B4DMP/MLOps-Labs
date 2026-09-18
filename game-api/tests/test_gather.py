@@ -1,15 +1,17 @@
-"""Gather: engagement cards buy conversations, not batches (D49, plan 11)."""
+"""Gather: engagement cards buy conversations, not batches (Section 3, plan 01-intel-and-pitch-redesign)."""
 
 from types import SimpleNamespace
+from unittest.mock import patch
+import pytest
 
 from conftest import make_intel_item as _item
 
-from mlops_serious_game.application.pitch_debate_service import gather
+from mlops_serious_game.application.pitch_debate_service import chains, gather, prompts
 from mlops_serious_game.domain.requirement import ConfidenceType, IntelTag
 
 
-def _req(req_id, tag):
-    return SimpleNamespace(id=req_id, type=tag)
+def _req(req_id, tag, target="data.validation"):
+    return SimpleNamespace(id=req_id, type=tag, suggested=SimpleNamespace(target=target))
 
 
 def _conv(card_id="eng_1", stakeholder_id="dave", turns_left=3, **kw):
@@ -18,199 +20,488 @@ def _conv(card_id="eng_1", stakeholder_id="dave", turns_left=3, **kw):
 
 # ---------- gather_options_for ----------
 
-def test_open_question_unavailable_once_everything_in_scope_is_known():
-    conv = _conv()
-    pool = [_req("h1", IntelTag.DRIVER)]
-    held = [_item("h1", "dave", "driver", intel_type=ConfidenceType.VERIFIED)]
-    opts = gather.gather_options_for(conv, held, pool, [], True, [], [], seed="s")
-    open_q = next(o for o in opts if o.option == "open_question")
-    assert open_q.available is False
-    assert "nothing left" in open_q.reason
+def test_gather_options_for_one_to_one_meeting():
+    conv = _conv(card_id="eng_1", turns_left=3)
+    pool = [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria"), _req("r2", IntelTag.BOUNDARY, "req.kpi_definition")]
+    held = []
+    opts = gather.gather_options_for(conv, held, pool, [], seed="test-seed", phase_id=1)
+    # 1-to-1 meeting offers 4 options: 1 priority query + 3 component queries
+    assert len(opts) == 4
+    priority_opts = [o for o in opts if o.option == "priority_query"]
+    comp_opts = [o for o in opts if o.option == "component_query"]
+    assert len(priority_opts) == 1
+    assert priority_opts[0].available is True
+    assert priority_opts[0].label == "Most Important Requirement"
+    assert len(comp_opts) == 3
+    assert all(o.available for o in comp_opts)
 
 
-def test_test_hypothesis_fans_out_up_to_three_unconfirmed_items_in_stable_order():
-    conv = _conv()
-    held = [_item(f"h{i}", "dave", "driver", intel_type=ConfidenceType.UNCONFIRMED) for i in range(5)]
-    opts = gather.gather_options_for(conv, held, [], [], True, [], [], seed="fixed-seed")
-    tests = [o for o in opts if o.option == "test_hypothesis"]
-    assert len(tests) == 3
-    assert all(o.available for o in tests)
-    # Same seed, same items -> same picks and order every time (no randomness).
-    opts2 = gather.gather_options_for(conv, held, [], [], True, [], [], seed="fixed-seed")
-    assert [o.item_id for o in opts2 if o.option == "test_hypothesis"] == [o.item_id for o in tests]
+def test_gather_options_one_to_one_meeting_priority_only_once():
+    # Once priority_query is asked in the conversation, it cannot be asked again
+    conv = _conv(card_id="eng_1", turns_left=2, turns_used=1, asked_options=["priority_query"])
+    pool = [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")]
+    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
+    assert len(opts) == 4
+    priority_opts = [o for o in opts if o.option == "priority_query"]
+    assert len(priority_opts) == 1
+    assert priority_opts[0].available is False
+    assert "already asked" in (priority_opts[0].reason or "").lower()
 
 
-def test_test_hypothesis_reads_the_players_own_tag_not_the_true_one():
-    conv = _conv()
-    # Truly a Driver, but the player filed it as a Boundary - a Boundary-only card must still see it.
-    held = [_item("h1", "dave", "driver", categorized_type="boundary", intel_type=ConfidenceType.UNCONFIRMED)]
-    opts = gather.gather_options_for(conv, held, [], ["boundary"], True, [], [], seed="s")
-    tests = [o for o in opts if o.option == "test_hypothesis"]
-    assert [o.item_id for o in tests] == ["h1"]
+def test_resolve_priority_query_cannot_be_asked_twice():
+    conv = _conv(card_id="eng_1", turns_left=2, turns_used=1, asked_options=["priority_query"])
+    pool = [_req("r1", IntelTag.DRIVER, "c1")]
+    out = gather.resolve_priority_query(conv, pool, set(), seed="s", stakeholder_name="Dave")
+    assert out.result == "rejected"
+    assert "already asked" in (out.rejected or "").lower()
 
 
-def test_trial_balloon_offers_every_archetype_not_yet_ruled_out():
-    conv = _conv()
-    opts = gather.gather_options_for(
-        conv, [], [], [], False, ruled_out_archetypes=["skeptic"],
-        all_archetype_names=["skeptic", "analyst", "visionary"], seed="s",
+def test_gather_options_unavailable_when_conversation_not_open():
+    conv = _conv(card_id="eng_1", turns_left=0)
+    pool = [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")]
+    held = []
+    opts = gather.gather_options_for(conv, held, pool, [], seed="test-seed", phase_id=1)
+    assert all(o.available is False for o in opts)
+    assert all("No turns left" in (o.reason or "") for o in opts)
+
+
+def test_gather_options_for_team_sync_up():
+    conv = _conv(card_id="eng_3", turns_left=1)
+    room_pools = {
+        "reuben": [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")],
+        "emilia": [_req("r2", IntelTag.BOUNDARY, "gov.cost_monitoring")],
+    }
+    opts = gather.gather_options_for(conv, [], [], [], seed="test-seed", room_pools=room_pools, phase_id=1)
+    assert all(o.option == "component_query" for o in opts)
+    assert len(opts) == 4
+
+
+def test_gather_options_for_ask_generic_question():
+    conv = _conv(card_id="eng_4", turns_left=1)
+    pool = [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")]
+    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
+    assert len(opts) == 1
+    assert opts[0].option == "generic_query"
+    assert opts[0].available is True
+
+
+def test_gather_options_for_investigate_component():
+    conv = _conv(card_id="eng_5", stakeholder_id="requirements_reuben", component_id="req.kpi_definition", turns_left=1)
+    pool = [_req("f1", IntelTag.FACT, "req.kpi_definition")]
+    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
+    assert len(opts) == 1
+    assert opts[0].option == "investigate_component"
+    assert opts[0].component_id == "req.kpi_definition"
+
+
+def test_gather_options_prioritizes_undiscovered_over_discovered():
+    conv = _conv(card_id="eng_1", turns_left=3)
+    # Target stakeholder has 1 undiscovered item and 1 discovered item in Phase 2
+    pool = [
+        _req("r1", IntelTag.DRIVER, "data.validation"),
+        _req("r2", IntelTag.BOUNDARY, "data.feature_store"),
+    ]
+    held = [_req("r2", IntelTag.BOUNDARY, "data.feature_store")]  # r2 is discovered
+    opts = gather.gather_options_for(conv, held, pool, [], seed="test-seed", phase_id=2)
+
+    comp_opts = [o for o in opts if o.option == "component_query"]
+    comp_ids = [o.component_id for o in comp_opts]
+
+    # Both components are included
+    assert "data.validation" in comp_ids
+    assert "data.feature_store" in comp_ids
+
+    # Undiscovered item component comes first
+    assert comp_ids.index("data.validation") < comp_ids.index("data.feature_store")
+
+
+def test_gather_options_excludes_already_clicked():
+    # When a component was already asked, it should not appear in subsequent options
+    conv = _conv(card_id="eng_1", turns_left=2, turns_used=1, asked_options=["data.validation"])
+    pool = [
+        _req("r1", IntelTag.DRIVER, "data.validation"),
+        _req("r2", IntelTag.BOUNDARY, "data.feature_store"),
+        _req("r3", IntelTag.DRIVER, "data.ingestion"),
+    ]
+    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=2)
+    comp_ids = [o.component_id for o in opts if o.option == "component_query"]
+
+    assert "data.validation" not in comp_ids
+    assert "data.feature_store" in comp_ids
+    assert len(opts) == 4
+
+
+def test_gather_options_includes_stakeholder_items_across_domains():
+    # Stakeholder intel items across domains (e.g. data, model, gov, req) are included
+    conv = _conv(card_id="eng_2", turns_left=1)
+    pool = [
+        _req("r1", IntelTag.DRIVER, "req.acceptance_criteria"),
+        _req("r2", IntelTag.BOUNDARY, "data.validation"),
+        _req("r3", IntelTag.DRIVER, "model.training"),
+        _req("r4", IntelTag.DRIVER, "gov.cost_monitoring"),
+    ]
+    opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
+    comp_ids = [o.component_id for o in opts if o.option == "component_query"]
+
+    assert "data.validation" in comp_ids
+    assert "model.training" in comp_ids
+    assert "req.acceptance_criteria" in comp_ids
+    assert "gov.cost_monitoring" in comp_ids
+
+
+def test_gather_options_team_sync_ranks_by_frequency():
+    conv = _conv(card_id="eng_3", turns_left=1)
+    room_pools = {
+        "dave": [
+            _req("r1", IntelTag.DRIVER, "data.validation"),
+            _req("r2", IntelTag.DRIVER, "data.feature_store"),
+        ],
+        "monica": [
+            _req("m1", IntelTag.DRIVER, "data.validation"),  # data.validation has count 2
+        ],
+    }
+    opts = gather.gather_options_for(conv, [], [], [], seed="test-seed", room_pools=room_pools, phase_id=2)
+    comp_opts = [o for o in opts if o.option == "component_query"]
+    comp_ids = [o.component_id for o in comp_opts]
+
+    # data.validation has 2 references, should be ranked first
+    assert comp_ids[0] == "data.validation"
+    assert "data.feature_store" in comp_ids
+
+
+def test_gather_options_deterministic():
+    conv = _conv(card_id="eng_1", turns_left=3)
+    pool = [
+        _req("r1", IntelTag.DRIVER, "data.validation"),
+        _req("r2", IntelTag.BOUNDARY, "model.training_pipeline"),
+        _req("r3", IntelTag.DRIVER, "data.feature_store"),
+    ]
+    opts_1 = gather.gather_options_for(conv, [], pool, [], seed="fixed-seed")
+    opts_2 = gather.gather_options_for(conv, [], pool, [], seed="fixed-seed")
+
+    assert [o.component_id for o in opts_1] == [o.component_id for o in opts_2]
+    assert [o.prompt for o in opts_1] == [o.prompt for o in opts_2]
+
+
+# ---------- turn resolutions ----------
+
+def test_resolve_component_query_reveals_item():
+    conv = _conv(card_id="eng_1", turns_left=3)
+    pool = [_req("r1", IntelTag.DRIVER, "data.validation"), _req("r2", IntelTag.DRIVER, "model.training")]
+    out = gather.resolve_component_query(
+        conv, pool, set(), "data.validation", seed="s", stakeholder_name="Dave"
     )
-    balloons = [o for o in opts if o.option == "trial_balloon"]
-    assert sorted(o.archetype for o in balloons) == ["analyst", "visionary"]
-
-
-def test_trial_balloon_unavailable_once_verified_or_all_ruled_out():
-    conv = _conv()
-    verified = gather.gather_options_for(conv, [], [], [], True, [], ["a"], seed="s")
-    all_ruled_out = gather.gather_options_for(conv, [], [], [], False, ["a"], ["a"], seed="s")
-    assert next(o for o in verified if o.option == "trial_balloon").available is False
-    assert next(o for o in all_ruled_out if o.option == "trial_balloon").available is False
-
-
-def test_one_on_one_needs_a_boundary_and_a_trade_off_or_driver_and_only_deep_dive_offers_it():
-    conv = _conv()
-    boundary_only = [_item("b1", "dave", "boundary")]
-    pair = boundary_only + [_item("d1", "dave", "driver")]
-    assert gather.one_on_one_pair(boundary_only, "dave") is None
-    assert gather.one_on_one_pair(pair, "dave") == (boundary_only[0], pair[1])
-
-    opts = gather.gather_options_for(conv, pair, [], [], True, [], [], seed="s", one_on_one_eligible=True)
-    assert next(o for o in opts if o.option == "one_on_one").available is True
-
-    opts_used = gather.gather_options_for(
-        _conv(one_on_one_used=True), pair, [], [], True, [], [], seed="s", one_on_one_eligible=True,
-    )
-    used_spec = next(o for o in opts_used if o.option == "one_on_one")
-    assert used_spec.available is False and "already used" in used_spec.reason
-
-
-# ---------- turn resolution ----------
-
-def test_open_question_reveals_next_in_stable_order_and_spends_a_turn():
-    conv = _conv(turns_left=2)
-    pool = [_req("r1", IntelTag.DRIVER), _req("r2", IntelTag.DRIVER)]
-    out = gather.resolve_open_question(conv, pool, set(), [], seed="s", stakeholder_name="Dave")
     assert out.result == "revealed"
-    assert out.item_id in {"r1", "r2"}
-    assert out.conversation.turns_left == 1
-    assert out.conversation.discovered_item_ids == [out.item_id]
+    assert out.item_id == "r1"
+    assert out.conversation.turns_left == 2
+    assert out.conversation.discovered_item_ids == ["r1"]
+    assert len(out.events) == 1
     assert out.events[0].cause == "intel.revealed"
 
-    # Same seed, same pool -> same item every time.
-    out2 = gather.resolve_open_question(conv, pool, set(), [], seed="s", stakeholder_name="Dave")
-    assert out2.item_id == out.item_id
 
-
-def test_open_question_on_an_empty_pool_still_spends_the_turn():
-    conv = _conv(turns_left=1)
-    out = gather.resolve_open_question(conv, [], set(), [], seed="s", stakeholder_name="Dave")
-    assert out.result == "nothing_left"
+def test_resolve_team_sync_up_reveals_item_per_stakeholder():
+    conv = _conv(card_id="eng_3", turns_left=1)
+    room_pools = {
+        "dave": [_req("r1", IntelTag.DRIVER, "data.validation")],
+        "monica": [_req("r2", IntelTag.BOUNDARY, "data.validation")],
+    }
+    names = {"dave": "Dave", "monica": "Monica"}
+    out = gather.resolve_team_sync_up(
+        conv, room_pools, set(), "data.validation", seed="s", names_by_stakeholder=names
+    )
+    assert out.result == "revealed"
+    assert set(out.item_ids) == {"r1", "r2"}
+    assert len(out.events) == 2
     assert out.conversation.turns_left == 0
-    assert out.events == []
 
 
-def test_open_question_rejected_with_no_turns_left():
-    out = gather.resolve_open_question(_conv(turns_left=0), [_req("r1", IntelTag.DRIVER)], set(), [], "s", "Dave")
-    assert out.result == "rejected"
+def test_resolve_priority_query_prefers_boundary_over_driver():
+    conv = _conv(card_id="eng_1", turns_left=2)
+    pool = [_req("r1", IntelTag.DRIVER, "c1"), _req("r2", IntelTag.BOUNDARY, "c2")]
+    out = gather.resolve_priority_query(conv, pool, set(), seed="s", stakeholder_name="Dave")
+    assert out.result == "revealed"
+    assert out.item_id == "r2"  # Boundary has higher priority than Driver
+    assert out.conversation.turns_left == 1
 
 
-def test_hypothesis_right_tag_infers_wrong_tag_refutes():
-    conv = _conv(turns_left=2)
-    right = _item("h1", "dave", "driver", categorized_type="driver")
-    wrong = _item("h2", "dave", "driver", categorized_type="boundary")
-    held_by_id = {"h1": right, "h2": wrong}
-
-    hit = gather.resolve_test_hypothesis(conv, held_by_id, "h1", "Dave")
-    assert hit.result == "inferred" and hit.item_id == "h1"
-    assert hit.conversation.tested_item_ids == ["h1"]
-    assert hit.conversation.turns_left == 1
-    assert hit.events[0].cause == "intel.inferred"
-
-    miss = gather.resolve_test_hypothesis(conv, held_by_id, "h2", "Dave")
-    assert miss.result == "refuted" and miss.item_id == "h2"
-    assert miss.emotion_delta == gather.EMOTION_REFUTED
-    assert miss.events[0].cause == "intel.refuted"
-
-
-def test_hypothesis_cannot_retest_the_same_item_twice_in_one_conversation():
-    conv = _conv(tested_item_ids=["h1"])
-    held_by_id = {"h1": _item("h1", "dave", "driver", categorized_type="driver")}
-    out = gather.resolve_test_hypothesis(conv, held_by_id, "h1", "Dave")
-    assert out.result == "rejected"
-
-
-def test_generic_question_reveals_nothing_to_the_dossier():
-    conv = _conv(turns_left=1)
-    pool = [_req("r1", IntelTag.FACT)]
-    out = gather.resolve_generic_question(conv, pool, set(), "s", "Dave")
-    assert out.result == "gist"
+def test_resolve_generic_query_reveals_item():
+    conv = _conv(card_id="eng_4", turns_left=1)
+    pool = [_req("r1", IntelTag.DRIVER, "c1")]
+    out = gather.resolve_generic_query(conv, pool, set(), seed="s", stakeholder_name="Dave")
+    assert out.result == "revealed"
     assert out.item_id == "r1"
-    assert out.conversation.discovered_item_ids == []  # nothing enters the dossier
+    assert out.conversation.turns_left == 0
+    assert out.conversation.discovered_item_ids == ["r1"]
+
+
+def test_resolve_investigate_component_reveals_fact():
+    conv = _conv(card_id="eng_5", stakeholder_id="data.validation", turns_left=1)
+    pool = [_req("f1", IntelTag.FACT, "data.validation")]
+    out = gather.resolve_investigate_component(
+        conv, pool, set(), "data.validation", seed="s", component_name="Data Validation"
+    )
+    assert out.result == "revealed"
+    assert out.item_id == "f1"
     assert out.conversation.turns_left == 0
 
 
-def test_generic_question_uses_gist_of_to_fill_the_event_text():
-    """D52: the pure module never knows about gists content or metric names - it just calls
-    whatever `gist_of` the caller (gather_handler.py) hands it, on whichever item it picked."""
-    conv = _conv(turns_left=1)
-    pool = [_req("r1", IntelTag.FACT)]
-    out = gather.resolve_generic_question(conv, pool, set(), "s", "Dave", gist_of=lambda item: f"gist for {item.id}")
-    assert out.events[0].params["gist"] == "gist for r1"
+def test_close_conversation_logs_lost_turns():
+    conv = _conv(card_id="eng_1", turns_left=2)
+    out = gather.close_conversation(conv, "Dave")
+    assert out.conversation.closed is True
+    assert len(out.events) == 1
+    assert out.events[0].cause == "card.turn_lost"
+    assert out.events[0].params["n"] == "2"
 
-    # No gist_of given: defaults to an empty string rather than raising.
-    default_out = gather.resolve_generic_question(_conv(turns_left=1), pool, set(), "s", "Dave")
-    assert default_out.events[0].params["gist"] == ""
-
-
-def test_gist_or_fallback_prefers_the_authored_gist_then_the_metric_template():
-    from mlops_serious_game.domain.requirement import gist_or_fallback
-
-    with_gist = _item("h1", "dave", "driver")
-    with_gist.gist = "Data quality keeps coming up whenever you talk to him."
-    assert gist_or_fallback(with_gist, "Data Dave", "Data Quality") == with_gist.gist
-
-    without_gist = _item("h2", "dave", "driver")
-    without_gist.gist = None
-    assert gist_or_fallback(without_gist, "Data Dave", "Data Quality") == "Data Dave keeps bringing up Data Quality."
-    assert gist_or_fallback(without_gist, "Data Dave", None) == "Data Dave keeps bringing up their part of the project."
+    zero_turns = _conv(card_id="eng_1", turns_left=0)
+    out_zero = gather.close_conversation(zero_turns, "Dave")
+    assert out_zero.events == []
 
 
-def test_trial_balloon_match_verifies_miss_rules_out():
-    conv = _conv(turns_left=2)
-    match = gather.resolve_trial_balloon(conv, "analyst", "analyst", "Dave")
-    assert match.result == "archetype_matched"
-    assert match.emotion_delta == gather.EMOTION_TRIAL_BALLOON_MATCH
+# ---------- dialogue prompts & chains ----------
 
-    miss = gather.resolve_trial_balloon(conv, "skeptic", "analyst", "Dave")
-    assert miss.result == "archetype_ruled_out"
-    assert miss.archetype == "skeptic"
-    assert miss.emotion_delta == gather.EMOTION_TRIAL_BALLOON_MISS
-    # Never reveals the true tag.
-    assert "analyst" not in miss.events[0].params.values()
-
-
-def test_one_on_one_right_pair_hits_wrong_pair_misses_and_only_fires_once():
-    conv = _conv(turns_left=2)
-    boundary = _item("b1", "dave", "boundary", categorized_type="boundary")
-    driver = _item("d1", "dave", "driver", categorized_type="driver")
-    hit = gather.resolve_one_on_one(conv, boundary, driver, "Dave")
-    assert hit.result == "one_on_one_hit"
-    assert hit.conversation.one_on_one_used is True
-
-    again = gather.resolve_one_on_one(hit.conversation, boundary, driver, "Dave")
-    assert again.result == "rejected"
-
-    misfiled_driver = _item("d2", "dave", "driver", categorized_type="boundary")
-    miss = gather.resolve_one_on_one(conv, boundary, misfiled_driver, "Dave")
-    assert miss.result == "one_on_one_miss"
-    assert miss.emotion_delta == gather.EMOTION_ONE_ON_ONE_MISS
+def test_player_utterance_prompt_formats():
+    rendered = prompts.PLAYER_UTTERANCE_PROMPT.format(
+        challenge="Predictive Maintenance",
+        target_stakeholder_name="Data Dave",
+        target_stakeholder_role="Data Engineer",
+        dialogue_option_label="Inquire about data validation",
+        dialogue_option_prompt="Ask how data validation pipeline is monitored",
+        component_name="Data Validation",
+        history="Dave: We have pipeline alerts set up.",
+        latest_statement="Dave: We have pipeline alerts set up.",
+    )
+    assert "Data Dave" in rendered
+    assert "Inquire about data validation" in rendered
+    assert "Data Validation" in rendered
+    assert "Corporate Noise" not in rendered
 
 
-def test_close_conversation_logs_lost_turns_only_when_any_remain():
-    lost = gather.close_conversation(_conv(turns_left=2), "Dave")
-    assert lost.conversation.closed is True
-    assert lost.events[0].cause == "card.turn_lost"
-    assert lost.events[0].params["n"] == "2"
+def test_stakeholder_engagement_response_prompt_revealed():
+    rendered = prompts.STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT.format(
+        stakeholder_name="Data Dave",
+        stakeholder_role="Data Engineer",
+        challenge="Predictive Maintenance",
+        responsibilities="Maintains data quality and ingestion pipelines",
+        priorities="Data consistency, low drift",
+        emotion="Engaged",
+        option_type="component_query",
+        component_name="Data Validation",
+        revealed_intel_description="All incoming data must have schema tests",
+        revealed_intel_tag="Boundary",
+        is_revealed=True,
+        history="PM: Could you elaborate on data validation?",
+        player_utterance="How do you handle schema validation?",
+    )
+    assert "Data Dave" in rendered
+    assert "Boundary" in rendered
+    assert "All incoming data must have schema tests" in rendered
 
-    none_lost = gather.close_conversation(_conv(turns_left=0), "Dave")
-    assert none_lost.events == []
+
+def test_stakeholder_engagement_response_prompt_not_revealed():
+    rendered = prompts.STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT.format(
+        stakeholder_name="Data Dave",
+        stakeholder_role="Data Engineer",
+        challenge="Predictive Maintenance",
+        responsibilities="Data pipelines",
+        priorities="Consistency",
+        emotion="Neutral",
+        option_type="generic_query",
+        component_name="",
+        revealed_intel_description="",
+        revealed_intel_tag="",
+        is_revealed=False,
+        history="",
+        player_utterance="Do you have any other concerns?",
+    )
+    assert "Data Dave" in rendered
+    assert "do not have any specific concerns" in rendered
+
+
+@pytest.mark.anyio
+async def test_generate_player_utterance_fallback_on_error():
+    with patch("mlops_serious_game.application.pitch_debate_service.chains.get_player_utterance_chain") as mock_chain:
+        mock_chain.side_effect = RuntimeError("LLM unavailable")
+        utterance = await chains.generate_player_utterance(
+            challenge="Predictive Maintenance",
+            target_stakeholder_name="Data Dave",
+            dialogue_option_prompt="How do we validate schemas?",
+            default_prompt="How do we validate schemas?",
+        )
+        assert utterance == "How do we validate schemas?"
+
+
+@pytest.mark.anyio
+async def test_generate_stakeholder_response_fallback_on_error():
+    with patch("mlops_serious_game.application.pitch_debate_service.chains.get_stakeholder_engagement_response_chain") as mock_chain:
+        mock_chain.side_effect = RuntimeError("LLM unavailable")
+        resp_revealed = await chains.generate_stakeholder_response(
+            stakeholder_name="Data Dave",
+            is_revealed=True,
+            revealed_intel_description="Validation must run hourly.",
+        )
+        assert resp_revealed == "Validation must run hourly."
+
+        resp_unrevealed = await chains.generate_stakeholder_response(
+            stakeholder_name="Data Dave",
+            is_revealed=False,
+        )
+        assert "do not have any specific concerns" in resp_unrevealed
+
+
+def test_generate_component_fact_prompt_formats():
+    rendered = prompts.GENERATE_COMPONENT_FACT_PROMPT.format(
+        challenge="Predictive Maintenance",
+        component_name="Model Registry",
+        component_id="mlops.model_registry",
+    )
+    assert "Model Registry" in rendered
+    assert "mlops.model_registry" in rendered
+    assert "telemetry" in rendered.lower() or "factual" in rendered.lower()
+
+
+@pytest.mark.anyio
+async def test_generate_component_fact_fallback_on_error():
+    with patch("mlops_serious_game.application.pitch_debate_service.chains.get_component_fact_chain") as mock_chain:
+        mock_chain.side_effect = RuntimeError("LLM unavailable")
+        fact = await chains.generate_component_fact(
+            challenge="Predictive Maintenance",
+            component_id="data.validation",
+            component_name="Data Validation",
+        )
+        assert "validation" in fact.lower()
+        assert len(fact) > 10
+
+        # Also test non-predefined component ID falls back to generic template containing component_name
+        fact_generic = await chains.generate_component_fact(
+            challenge="Predictive Maintenance",
+            component_id="custom.unknown_comp",
+            component_name="Custom Unknown",
+        )
+        assert "Custom Unknown" in fact_generic
+
+
+def test_safe_stakeholder_lookups():
+    from mlops_serious_game.infrastructure.websocket.handlers.gather_handler import (
+        _stakeholder_name,
+        _stakeholder_obj,
+    )
+
+    # System and environment IDs should not throw StakeholderNameNotFound
+    for sys_id in ["system", "System", "__environment__"]:
+        assert _stakeholder_obj(sys_id) is None
+        assert _stakeholder_name(sys_id) == "System Telemetry"
+
+    assert _stakeholder_obj("all") is None
+    assert _stakeholder_name("all") == "Whole Team"
+
+    # Non-existent stakeholder ID should not throw exception
+    assert _stakeholder_obj("nonexistent_unknown_actor") is None
+    assert _stakeholder_name("nonexistent_unknown_actor") == "Nonexistent Unknown Actor"
+
+
+def test_resolve_component_query_reveals_all_matching_items():
+    conv = _conv(card_id="eng_1", turns_left=2)
+    pool = [
+        _req("r1", IntelTag.DRIVER, "data.validation"),
+        _req("r2", IntelTag.BOUNDARY, "data.validation"),
+        _req("r3", IntelTag.FACT, "data.ingestion"),
+    ]
+    out = gather.resolve_component_query(
+        conv, pool, set(), "data.validation", seed="s", stakeholder_name="Dave"
+    )
+    assert out.result == "revealed"
+    assert set(out.item_ids) == {"r1", "r2"}
+    assert len(out.events) == 2
+    assert set(out.conversation.discovered_item_ids) == {"r1", "r2"}
+    assert out.conversation.turns_left == 1
+
+
+def test_resolve_team_sync_up_reveals_all_matching_items_across_stakeholders():
+    conv = _conv(card_id="eng_3", turns_left=1)
+    room_pools = {
+        "dave": [
+            _req("r1", IntelTag.DRIVER, "data.validation"),
+            _req("r2", IntelTag.BOUNDARY, "data.validation"),
+        ],
+        "monica": [
+            _req("r3", IntelTag.FACT, "data.validation"),
+        ],
+    }
+    names = {"dave": "Dave", "monica": "Monica"}
+    out = gather.resolve_team_sync_up(
+        conv, room_pools, set(), "data.validation", seed="s", names_by_stakeholder=names
+    )
+    assert out.result == "revealed"
+    assert set(out.item_ids) == {"r1", "r2", "r3"}
+    assert len(out.events) == 3
+    assert out.conversation.turns_left == 0
+
+
+def test_select_single_stakeholder_components_undiscovered_returns_intel():
+    conv = _conv(card_id="eng_1", turns_left=3, stakeholder_id="dave")
+    pool = [
+        _req("r1", IntelTag.DRIVER, "data.validation"),
+        _req("r2", IntelTag.BOUNDARY, "data.ingestion"),
+        _req("r3", IntelTag.FACT, "data.feature_store"),
+        _req("r4", IntelTag.TRADE_OFF, "data.versioning"),
+    ]
+    opts = gather.gather_options_for(conv, held=[], pool=pool, allowed_types=[], seed="seed", phase_id=1)
+    comp_opts = [o for o in opts if o.option == "component_query"]
+    assert len(comp_opts) == 3
+    # All 3 selected components belong to undiscovered items of Dave
+    for opt in comp_opts:
+        out = gather.resolve_component_query(
+            conv, pool, set(), opt.component_id, seed="seed", stakeholder_name="Dave"
+        )
+        assert out.result == "revealed"
+        assert len(out.item_ids) >= 1
+
+
+# ---------- component_investigation_service tests ----------
+
+def test_resolve_component_owner():
+    from mlops_serious_game.application.component_investigation_service import resolve_component_owner
+    from mlops_serious_game.domain.graph_factory import GraphFactory
+
+    graph = None
+    try:
+        graph = GraphFactory.get_graph()
+    except Exception:
+        pass
+
+    assert resolve_component_owner("data.ingestion", graph) == "data_dave"
+    assert resolve_component_owner("model.training_pipeline", graph) == "model_monica"
+    assert resolve_component_owner("req.kpi_definition", graph) == "requirements_reuben"
+    assert resolve_component_owner("deploy.cicd", graph) == "automation_alex"
+    assert resolve_component_owner("ops.observability", graph) == "reliability_ruth"
+    assert resolve_component_owner("gov.cost_monitoring", graph) == "efficiency_emilia"
+
+
+@pytest.mark.anyio
+async def test_investigation_dialogue_chains_fallback():
+    from mlops_serious_game.application.component_investigation_service.chains import (
+        generate_investigation_player_utterance,
+        generate_investigation_stakeholder_response,
+    )
+
+    with patch("mlops_serious_game.application.component_investigation_service.chains.get_investigation_player_utterance_chain") as mock_player:
+        mock_player.side_effect = RuntimeError("LLM unavailable")
+        utterance = await generate_investigation_player_utterance(
+            challenge="Predictive Maintenance",
+            target_stakeholder_name="Data Dave",
+            component_id="data.ingestion",
+            component_name="Data Ingestion Pipeline",
+        )
+        assert "Data Dave" in utterance or "Data Ingestion Pipeline" in utterance
+
+    with patch("mlops_serious_game.application.component_investigation_service.chains.get_investigation_stakeholder_response_chain") as mock_st:
+        mock_st.side_effect = RuntimeError("LLM unavailable")
+        response = await generate_investigation_stakeholder_response(
+            stakeholder_name="Data Dave",
+            component_name="Data Ingestion Pipeline",
+            revealed_intel_description="Ingestion runs batch jobs without retries.",
+        )
+        assert "Ingestion runs batch jobs without retries." in response
+
+

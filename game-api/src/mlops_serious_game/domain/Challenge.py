@@ -26,7 +26,7 @@ class Challenge(BaseModel):
     description: str = Field(description="Description of the challenge")
     roundIntroduction: str = Field(description="introduction text of the challenge")
     metric_changes: dict[str, int] = Field(description="changes in game metrics when the challenge is started")
-    attention_tokens: int = Field(default=8, description="Number of attention tokens granted for this challenge")
+    attention_tokens: int = Field(default=20, description="Number of attention tokens granted for this challenge")
 
     # Template fields: the graph state picks which challenge runs next (plan 03).
     template_id: str = Field(default="", description="Stable content key; defaults to ch_<id>")

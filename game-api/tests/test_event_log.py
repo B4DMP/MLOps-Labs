@@ -35,9 +35,9 @@ def test_every_cause_used_in_code_exists_in_config():
 
 def test_causes_used_in_finds_the_literal_but_not_a_stray_word():
     codes = causes_used_in(*CAUSE_SOURCE_FILES)
-    assert "emotion.reframe_hit" in codes
-    assert "emotion.reframe_miss" in codes
-    assert "outcome.stalemate" in codes
+    assert "outcome.pass" in codes
+    assert "outcome.soft_pass" in codes
+    assert "outcome.veto" in codes
 
 
 def test_get_raises_on_an_unknown_code():

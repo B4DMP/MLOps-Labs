@@ -34,6 +34,259 @@ def apply_emotion_delta(
     return updated
 
 
+PITCH_SENSITIVITY_WEIGHTS = {
+    "trust": 0.25,
+    "fairness": 0.28,
+    "sense_of_control": 0.25,
+    "stress": -0.22,
+    "perceived_risk": -0.20,
+    "confidence": 0.18,
+    "interest": 0.10,
+}
+
+BOUNDARY_BREACH_DELTA = {
+    "perceived_risk": 0.25,
+    "stress": 0.20,
+    "trust": -0.20,
+    "sense_of_control": -0.15,
+}
+
+MISCLASSIFICATION_MALUS = {
+    "trade_off_as_driver": {
+        "fairness": -0.15,
+        "sense_of_control": -0.15,
+        "stress": 0.10,
+    },
+    "driver_as_boundary": {
+        "fairness": -0.20,
+        "trust": -0.15,
+        "stress": 0.15,
+    },
+    "boundary_as_driver": {
+        "perceived_risk": 0.25,
+        "stress": 0.20,
+        "trust": -0.20,
+        "fairness": -0.10,
+        "sense_of_control": -0.15,
+    },
+    "fact_as_stance": {
+        "confidence": -0.25,
+        "trust": -0.15,
+        "stress": 0.05,
+    },
+    "stance_as_fact": {
+        "fairness": -0.15,
+        "sense_of_control": -0.20,
+    },
+}
+
+VETO_MALUS = {
+    "boundary_veto": {
+        "perceived_risk": 0.35,
+        "stress": 0.30,
+        "trust": -0.30,
+        "sense_of_control": 0.05,
+    },
+    "low_buyin_stalemate": {
+        "fairness": -0.15,
+        "stress": 0.15,
+        "confidence": -0.20,
+        "trust": -0.10,
+    },
+}
+
+PATIENCE_MALUS = {
+    "trust": -0.05,
+    "fairness": -0.05,
+    "sense_of_control": -0.05,
+    "confidence": -0.05,
+    "interest": -0.05,
+    "stress": 0.05,
+    "perceived_risk": 0.05,
+}
+
+
+def get_patience_malus(magnitude: float = 0.05) -> dict[str, float]:
+    """Generates dimensional emotion deltas representing loss of patience."""
+    return {
+        "trust": -round(magnitude, 4),
+        "fairness": -round(magnitude, 4),
+        "sense_of_control": -round(magnitude, 4),
+        "confidence": -round(magnitude, 4),
+        "interest": -round(magnitude, 4),
+        "stress": round(magnitude, 4),
+        "perceived_risk": round(magnitude, 4),
+    }
+
+
+SIMULATION_OUTCOMES = {
+    "clean_delivery": {
+        "trust": 0.25,
+        "confidence": 0.20,
+        "stress": -0.20,
+        "fairness": 0.15,
+        "perceived_risk": -0.15,
+    },
+    "capped_delivery": {
+        "confidence": -0.25,
+        "stress": 0.20,
+        "trust": -0.15,
+        "sense_of_control": -0.15,
+    },
+    "technical_debt": {
+        "perceived_risk": 0.30,
+        "stress": 0.25,
+        "trust": -0.20,
+    },
+}
+
+ROLE_SENSITIVITIES = {
+    "reliability_ruth": {"stress": 0.35, "perceived_risk": 0.30},
+    "requirements_reuben": {"perceived_risk": 0.35, "fairness": 0.25},
+    "model_monica": {"confidence": 0.35, "sense_of_control": 0.30},
+    "data_dave": {"sense_of_control": 0.30, "stress": 0.20},
+    "efficiency_emilia": {"fairness": 0.35, "trust": 0.25},
+    "automation_alex": {"stress": -0.20, "sense_of_control": 0.25},
+}
+
+SUBSYSTEM_SENSITIVITIES = {
+    "gov": {"perceived_risk": 0.25, "trust": 0.20},
+    "ops": {"stress": 0.30, "perceived_risk": 0.20},
+    "deploy": {"stress": -0.20, "sense_of_control": 0.25},
+    "model": {"confidence": 0.30, "interest": 0.15},
+    "data": {"sense_of_control": 0.25, "stress": 0.15},
+}
+
+
+def calculate_demand_alignment(
+    stakeholder_reqs: list[dict | Any],
+    card_slotted_req_ids: set[str],
+    trade_off_fulfilled_branches: dict[str, bool] | None = None,
+    card_atoms: set[str] | None = None,
+) -> float:
+    """Calculates continuous stakeholder positive demand alignment ratio in [-1.0, 1.0] across Drivers and Trade-offs."""
+    trade_off_fulfilled_branches = trade_off_fulfilled_branches or {}
+    card_atoms = card_atoms or set()
+
+    stance_reqs = []
+    for r in stakeholder_reqs:
+        r_type = getattr(r, "type", None) or (r.get("type") if isinstance(r, dict) else None)
+        if hasattr(r_type, "value"):
+            r_type = r_type.value
+        if r_type in ("driver", "trade_off"):
+            stance_reqs.append(r)
+
+    if not stance_reqs:
+        return 0.0
+
+    score = 0.0
+    for req in stance_reqs:
+        r_type = getattr(req, "type", None) or (req.get("type") if isinstance(req, dict) else None)
+        if hasattr(r_type, "value"):
+            r_type = r_type.value
+        r_id = getattr(req, "id", None) or (req.get("id") if isinstance(req, dict) else "")
+        atoms = set(getattr(req, "atoms", None) or (req.get("atoms", []) if isinstance(req, dict) else []))
+
+        if r_type == "driver":
+            if atoms:
+                f = len(atoms & card_atoms) / len(atoms)
+            elif r_id in card_slotted_req_ids:
+                f = 1.0
+            else:
+                f = 0.0
+            score += (2.0 * f - 1.0)
+
+        elif r_type == "trade_off":
+            branch_x_atoms = set(getattr(req, "branch_x_atoms", None) or (req.get("branch_x_atoms", []) if isinstance(req, dict) else []))
+            branch_y_atoms = set(getattr(req, "branch_y_atoms", None) or (req.get("branch_y_atoms", []) if isinstance(req, dict) else []))
+
+            if branch_x_atoms or branch_y_atoms:
+                fx = (len(branch_x_atoms & card_atoms) / len(branch_x_atoms)) if branch_x_atoms else 0.0
+                fy = (len(branch_y_atoms & card_atoms) / len(branch_y_atoms)) if branch_y_atoms else 0.0
+                f = max(fx, fy)
+            elif r_id in card_slotted_req_ids or trade_off_fulfilled_branches.get(r_id, False):
+                f = 1.0
+            else:
+                f = 0.0
+            score += (2.0 * f - 1.0)
+
+    return max(-1.0, min(1.0, round(score / len(stance_reqs), 3)))
+
+
+def calculate_dynamic_weights(
+    st_id: str,
+    stakeholder_reqs: list[dict | Any],
+    room_demands: dict[str, int] | None = None,
+    card_slotted_counts: dict[str, int] | None = None,
+    role_sensitivities: dict[str, float] | None = None,
+) -> dict[str, float]:
+    """Computes bounded dimensional sensitivity weights w_k(st, C) clamped in [0.75, 1.50]."""
+    role_mods = {}
+    if role_sensitivities:
+        for dim, val in role_sensitivities.items():
+            role_mods[dim] = val - 1.0 if val >= 1.0 else val
+    else:
+        role_mods = ROLE_SENSITIVITIES.get(st_id, {})
+
+    subsystem_mods = {}
+    for req in stakeholder_reqs:
+        desc = (getattr(req, "description", None) or (req.get("description", "") if isinstance(req, dict) else "")).lower()
+        for sub, boosts in SUBSYSTEM_SENSITIVITIES.items():
+            if sub in desc:
+                for dim, val in boosts.items():
+                    subsystem_mods[dim] = max(subsystem_mods.get(dim, 0.0), val)
+
+    equity_mods = {}
+    if room_demands and card_slotted_counts:
+        total_demands = sum(room_demands.values())
+        total_slots = sum(card_slotted_counts.values())
+        if total_demands > 0 and total_slots > 0:
+            dem_share = room_demands.get(st_id, 0) / total_demands
+            slot_share = card_slotted_counts.get(st_id, 0) / total_slots
+            if dem_share > slot_share:
+                deficit = dem_share - slot_share
+                equity_mods["fairness"] = min(0.35, round(deficit * 1.2, 3))
+                equity_mods["trust"] = min(0.25, round(deficit * 0.8, 3))
+
+    dynamic_weights = {}
+    for dim, base_w in PITCH_SENSITIVITY_WEIGHTS.items():
+        delta_role = role_mods.get(dim, 0.0)
+        delta_sub = subsystem_mods.get(dim, 0.0)
+        delta_eq = equity_mods.get(dim, 0.0)
+
+        total_mod = 1.0 + delta_role + delta_sub + delta_eq
+        clamped_mod = max(0.75, min(1.50, total_mod))
+        dynamic_weights[dim] = round(base_w * clamped_mod, 4)
+
+    return dynamic_weights
+
+
+def calculate_reactivity(power: str | float, interest: str | float) -> float:
+    """Computes reactivity multiplier mu in [0.0, 1.0] from power and interest."""
+    p_val = 0.8 if power == "high" else (0.3 if power == "low" else float(power))
+    i_val = 0.8 if interest == "high" else (0.3 if interest == "low" else float(interest))
+    return round(0.5 * p_val + 0.5 * i_val, 3)
+
+
+def calculate_pitch_deltas(
+    alignment: float,
+    reactivity: float,
+    violated_boundary_count: int = 0,
+    weights: dict[str, float] | None = None,
+) -> dict[str, float]:
+    """Calculates non-uniform dimensional deltas for the 7 emotion dimensions."""
+    deltas = {}
+    w_vec = weights or PITCH_SENSITIVITY_WEIGHTS
+    for dim, weight in w_vec.items():
+        deltas[dim] = round(reactivity * alignment * weight, 4)
+
+    if violated_boundary_count > 0:
+        for dim, b_val in BOUNDARY_BREACH_DELTA.items():
+            deltas[dim] = round(deltas.get(dim, 0.0) + (b_val * violated_boundary_count * reactivity), 4)
+
+    return deltas
+
+
 class TriggerCondition(BaseModel):
     """Condition for triggering an emotional state."""
 
@@ -103,39 +356,10 @@ class IntelEmotionRules(BaseModel):
     correct_intel: dict[str, float] = Field(default_factory=dict, description="Rewards applied on correct intel")
 
 
-class AlignmentCondition(BaseModel):
-    """Condition for archetype alignment rules."""
-
-    type: Literal["option_min", "diff_bonus", "diff_penalty"] = Field(description="Condition rule type")
-    min_value: Optional[int] = Field(default=None, description="Minimum option value for option_min")
-    target_min_value: Optional[int] = Field(default=None, description="Minimum stakeholder target value for diff_penalty")
-    min_diff: Optional[int] = Field(default=None, description="Minimum difference threshold")
-    max_diff: Optional[int] = Field(default=None, description="Maximum difference threshold")
-    deltas: dict[str, float] = Field(default_factory=dict, description="Emotional deltas to apply")
-
-
-class DimensionAlignmentRule(BaseModel):
-    """Alignment rule for a specific archetype dimension."""
-
-    dimension: str = Field(description="Archetype dimension name")
-    conditions: list[AlignmentCondition] = Field(default_factory=list, description="Alignment conditions")
-
-
-class CorporateNoiseEmotionRules(BaseModel):
-    """Delta configurations for corporate noise and archetype alignment."""
-
-    distance_threshold: float = Field(default=3.5, description="Euclidean distance threshold for trust bonus/penalty")
-    distance_slope: float = Field(default=0.04, description="Slope per distance unit")
-    base_trust_bonus: float = Field(default=0.10, description="Base trust bonus for close distance")
-    base_trust_penalty: float = Field(default=-0.10, description="Base trust penalty for far distance")
-    dimension_alignments: list[DimensionAlignmentRule] = Field(default_factory=list, description="Dimension specific alignment rules")
-
-
 class EmotionDeltaRules(BaseModel):
     """Rules for algorithmic emotion delta calculations."""
 
     intel_rules: IntelEmotionRules = Field(default_factory=IntelEmotionRules, description="Intel delta rules")
-    corporate_noise_rules: CorporateNoiseEmotionRules = Field(default_factory=CorporateNoiseEmotionRules, description="Corporate noise delta rules")
 
 
 class PitchTuning(BaseModel):
@@ -168,15 +392,9 @@ class PitchTuning(BaseModel):
     default_patience: int = Field(default=3, description="Patience per stakeholder per challenge (D50, was 2)")
     sound_out_patience_cost: int = Field(default=1, description="Patience spent when sounding a stakeholder out in Build your case (D50)")
 
-    # Gather (D49, plan 11): Test a hypothesis and Trial Balloon are small trust moves, not the
-    # room deciding anything - kept an order of magnitude gentler than the OBJECT-round numbers.
+    # Gather (D49, plan 11): Test a hypothesis is a small trust move, not the room deciding anything.
     emotion_refuted: float = Field(default=-0.05, description="Test a hypothesis: trust hit when the player's tag was wrong (Refuted)")
-    emotion_trial_balloon_match: float = Field(default=0.05, description="Trial Balloon: gain when the guessed archetype matches")
-    emotion_trial_balloon_miss: float = Field(default=-0.03, description="Trial Balloon: small hit when the guessed archetype is ruled out")
-    emotion_one_on_one_miss: float = Field(default=-0.05, description="1-on-1 template: trust hit when the guessed pair is wrong")
-
-
-from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
+    patience_malus: float = Field(default=0.05, description="Patience malus magnitude applied to emotion values when an action card is presented more than once in a challenge")
 
 
 class EmotionConfig(BaseModel):
@@ -186,7 +404,6 @@ class EmotionConfig(BaseModel):
     emotion_prompts: dict[str, str] = Field(default_factory=dict, description="Prompts per emotional state")
     emotional_states: dict[str, EmotionalStateRule] = Field(default_factory=dict, description="State transition rules")
     emotion_colors: dict[str, str] = Field(default_factory=dict, description="Hex color codes for emotional states")
-    convincer_archetypes: dict[str, ConvincerArchetype] = Field(default_factory=dict, description="Configured convincer archetypes")
     emotion_delta_rules: Optional[EmotionDeltaRules] = Field(default=None, description="Algorithmic emotion delta rules")
     pitch_tuning: PitchTuning = Field(default_factory=PitchTuning, description="Pitch phase tuning numbers (D38)")
 

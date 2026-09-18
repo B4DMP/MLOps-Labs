@@ -17,18 +17,6 @@ export type Stakeholder = {
   emotion?: string;
   facial_expression?: string;
   emotional_state?: string;
-  convincer_archetype?: string;
-};
-
-export type ConvincerProfileConfig = {
-  name?: string;
-  label?: string;
-  icon?: string;
-  color?: string;
-  strategy?: string;
-  evidence_basis?: number;
-  risk_and_control?: number;
-  value_horizon?: number;
 };
 
 type StakeholderContextType = {
@@ -36,8 +24,6 @@ type StakeholderContextType = {
   setStakeholders: React.Dispatch<React.SetStateAction<any>>;
   emotionColors?: Record<string, string>;
   setEmotionColors?: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  convincerArchetypes?: Record<string, ConvincerProfileConfig>;
-  setConvincerArchetypes?: React.Dispatch<React.SetStateAction<Record<string, ConvincerProfileConfig>>>;
 };
 
 export const StakeholderContext = createContext<StakeholderContextType>({
@@ -45,6 +31,4 @@ export const StakeholderContext = createContext<StakeholderContextType>({
   setStakeholders: () => {},
   emotionColors: {},
   setEmotionColors: () => {},
-  convincerArchetypes: {},
-  setConvincerArchetypes: () => {},
 });

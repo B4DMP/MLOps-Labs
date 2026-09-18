@@ -19,7 +19,6 @@ from .handlers.game_handler import (
 from .handlers.intel_handler import (
     handle_get_offline_artifacts,
     handle_tag_item,
-    handle_tag_convincer_event,
     handle_get_dossier,
     handle_verify_item,
     handle_play_engagement_card,
@@ -29,15 +28,10 @@ from .handlers.gather_handler import handle_gather_ask, handle_gather_close, han
 from .handlers.graph_handler import handle_graph_state
 from .handlers.log_handler import handle_log_history
 from .handlers.pitch_handler import (
-    handle_pitch_answer,
     handle_pitch_commit,
-    handle_pitch_concede,
-    handle_pitch_object,
-    handle_pitch_rebuild,
+    handle_pitch_evaluate,
     handle_pitch_set_card,
-    handle_pitch_sound_out,
     handle_pitch_state,
-    handle_pitch_veto_breaker,
 )
 from .handlers.simulation_handler import handle_simulation_run
 from .handlers.system_handler import handle_ping
@@ -56,7 +50,6 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "system:ping": handle_ping,
     "intel:get_offline_artifacts": handle_get_offline_artifacts,
     "intel:tag_item": handle_tag_item,
-    "intel:tag_convincer": handle_tag_convincer_event,
     "intel:get_dossier": handle_get_dossier,
     "intel:verify_item": handle_verify_item,
     "intel:play_engagement_card": handle_play_engagement_card,
@@ -64,13 +57,9 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "graph:state_request": handle_graph_state,
     "pitch:state": handle_pitch_state,
     "pitch:set_card": handle_pitch_set_card,
-    "pitch:sound_out": handle_pitch_sound_out,
-    "pitch:object": handle_pitch_object,
-    "pitch:answer": handle_pitch_answer,
+    "pitch:evaluate": handle_pitch_evaluate,
+    "pitch:object": handle_pitch_evaluate,  # Alias for backward compatibility
     "pitch:commit": handle_pitch_commit,
-    "pitch:rebuild": handle_pitch_rebuild,
-    "pitch:veto_breaker": handle_pitch_veto_breaker,
-    "pitch:concede": handle_pitch_concede,
     "simulation:run": handle_simulation_run,
     "log:history": handle_log_history,
     "gather:open": handle_gather_open,

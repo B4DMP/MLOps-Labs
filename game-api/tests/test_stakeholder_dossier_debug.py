@@ -31,7 +31,6 @@ async def _dossier(debug_enabled: bool):
             requirements="Logs",
             role_description="SRE",
             metric_id="data",
-            convincer_archetype="Technical Excellence",
             avatar={},
         )
     )
@@ -72,5 +71,4 @@ async def test_dossier_sends_the_answer_key_when_debug_is_on():
     note = entry["intel_items"][0]
     assert note["categorized_type"] == "driver"
     assert note["debug"]["correct_tag"] == "boundary"
-    assert entry["debug"]["real_archetype"] == "Technical Excellence"
     assert [m["id"] for m in entry["debug"]["missing_intel"]] == ["debby_missing"]

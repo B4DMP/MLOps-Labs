@@ -114,8 +114,8 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     session.add(GameChallenge(
         user_name=username, user_id=user.id, phase_index=0, challenge_index=0,
         challenge_loop_index=0, action_card={}, metric_values=[],
-        time_stamp=datetime.datetime.utcnow(), pitch_debate_messages=[],
-        online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+        time_stamp=datetime.datetime.utcnow(), messages=[],
+        attention_tokens=20, emotion_values={},
     ))
     session.add(GameSession(
         player=username, user_id=user.id, stakeholder_archetypes={}, stakeholder_personas={},
@@ -290,48 +290,48 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
         session.add(GameChallenge(
             user_name="user1", user_id=u1.id, phase_index=0, challenge_index=0,
             challenge_loop_index=0, action_card={}, metric_values=[],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
 
         # user1 plays challenge 100 (has an initial loop 0 record, then a loop 3 record)
         session.add(GameChallenge(
             user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
             challenge_loop_index=0, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
             user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
             challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 12],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
             user_name="user1", user_id=u1.id, phase_index=2, challenge_index=105,
             challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 13],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
 
         # user2 plays challenge 101 first, challenge 102 second, challenge 104 third
         session.add(GameChallenge(
             user_name="user2", user_id=u2.id, phase_index=1, challenge_index=101,
             challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
             user_name="user2", user_id=u2.id, phase_index=2, challenge_index=102,
             challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 11],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
         session.add(GameChallenge(
             user_name="user2", user_id=u2.id, phase_index=3, challenge_index=104,
             challenge_loop_index=3, action_card={}, metric_values=[12, 10, 10, 10, 10, 14],
-            time_stamp=now, pitch_debate_messages=[],
-            online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
         ))
         session.commit()
 
