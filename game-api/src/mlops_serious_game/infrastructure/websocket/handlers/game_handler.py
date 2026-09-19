@@ -596,7 +596,13 @@ async def store_or_update_challenge(
         else:
             if existing:
                 existing.challenge_loop_index = challenge_loop_id
-                existing.action_card = action_card
+                merged_card = dict(existing.action_card) if isinstance(existing.action_card, dict) else {}
+                if isinstance(action_card, dict):
+                    merged_card.update(action_card)
+                    if "pitch" not in action_card and isinstance(existing.action_card, dict) and "pitch" in existing.action_card:
+                        merged_card["pitch"] = existing.action_card["pitch"]
+                existing.action_card = merged_card
+                flag_modified(existing, "action_card")
                 existing.metric_values = metric_values
                 existing.messages = messages
                 existing.attention_tokens = attention_tokens

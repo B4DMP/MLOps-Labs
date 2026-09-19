@@ -158,6 +158,32 @@ SUBSYSTEM_SENSITIVITIES = {
 }
 
 
+def get_misclassification_malus(true_type: str, categorized_type: str) -> dict[str, float]:
+    """Returns the constant malus vector for misclassified intel items (02-stakeholder-emotion-changes.md Section 3)."""
+    t_type = true_type.lower()
+    c_type = categorized_type.lower()
+
+    if t_type == c_type:
+        return {}
+    if t_type == "trade_off" and c_type == "driver":
+        return MISCLASSIFICATION_MALUS["trade_off_as_driver"]
+    if t_type == "driver" and c_type == "boundary":
+        return MISCLASSIFICATION_MALUS["driver_as_boundary"]
+    if t_type == "boundary" and c_type == "driver":
+        return MISCLASSIFICATION_MALUS["boundary_as_driver"]
+    if t_type == "fact" and c_type in ("driver", "boundary", "trade_off"):
+        return MISCLASSIFICATION_MALUS["fact_as_stance"]
+    if t_type in ("driver", "boundary", "trade_off") and c_type == "fact":
+        return MISCLASSIFICATION_MALUS["stance_as_fact"]
+    if t_type == "boundary" and c_type == "trade_off":
+        return MISCLASSIFICATION_MALUS["boundary_as_driver"]
+    if t_type == "trade_off" and c_type == "boundary":
+        return MISCLASSIFICATION_MALUS["driver_as_boundary"]
+    if t_type == "driver" and c_type == "trade_off":
+        return MISCLASSIFICATION_MALUS["trade_off_as_driver"]
+    return MISCLASSIFICATION_MALUS.get(f"{t_type}_as_{c_type}", {})
+
+
 def calculate_demand_alignment(
     stakeholder_reqs: list[dict | Any],
     card_slotted_req_ids: set[str],

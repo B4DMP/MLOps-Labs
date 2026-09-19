@@ -13,10 +13,14 @@ from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 from mlops_serious_game.application.action_card_pitch_service import run_action_card_pitch_workflow
+from mlops_serious_game.application.action_card_veto_service import run_action_card_veto_workflow
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.apply import apply_ops
 from mlops_serious_game.application.pitch_debate_service import session as pitch
 from mlops_serious_game.application.pitch_debate_service import store as pitch_store
+from mlops_serious_game.application.pitch_debate_service.scoring import VETO_THRESHOLD
+from mlops_serious_game.domain.emotion import VETO_MALUS
+from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.graph import GraphOp, TechnicalGraph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.persona_resolver import personalize
@@ -51,14 +55,14 @@ class PitchContext:
         self.knowledge = replay.knowledge
         self.all_intel = RequirementFactory.get_requirements_for_challenge(self.challenge_id)
         self.room = [
-            (ps.stakeholder_id, ps.power)
+            (ps.stakeholder_id, ps.power, ps.interest)
             for ps in PhaseFactory.get_phases()[self.phase_id].stakeholders
         ]
-        self.room_ids = [st_id for st_id, _ in self.room]
+        self.room_ids = [st_id for st_id, _, _ in self.room]
         self.emotions = pitch_store.emotion_values(username, self.room_ids)
         self.names = {
             st_id: (StakeholderFactory.get_stakeholder(st_id).name if StakeholderFactory.get_stakeholder(st_id) else st_id)
-            for st_id, _ in self.room
+            for st_id, _, _ in self.room
         }
 
     def held_items(self) -> list:
@@ -86,7 +90,7 @@ def get_allowed_targets(graph: TechnicalGraph, phase_id: int, challenge_id: int,
     """Governance and infra nodes are viewable/editable anytime; lifecycle nodes only in their phase and challenge."""
     allowed: list[str] = []
     for c in graph.components:
-        if c.stage_id == "gov":
+        if c.stage_id in ("gov", "infra"):
             allowed.append(c.id)
 
     # Phase 0 is the introduction phase; it is skipped for stage calculations (maps to Phase 1: 'req')
@@ -110,6 +114,11 @@ def get_allowed_targets(graph: TechnicalGraph, phase_id: int, challenge_id: int,
             allowed.extend(relevant)
         else:
             allowed.extend(stage_comps)
+
+    allowed_set = set(allowed)
+    for e in graph.edges:
+        if e.from_id in allowed_set and e.to_id in allowed_set:
+            allowed.append(e.id)
 
     return allowed
 
@@ -247,7 +256,20 @@ async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: di
                 error=f"Target '{target}' is not viewable or editable in this phase/challenge.",
             )
             return
-        valid_changes.append(pitch.AtomicChange(target=target, kind="raise_to"))
+        if ctx.knowledge.state_of(target, ctx.state) == "unknown":
+            await _send(
+                websocket,
+                ctx,
+                state,
+                ctx.view(state),
+                error=f"Target '{target}' is undiscovered and cannot be upgraded until intel is collected on it.",
+            )
+            return
+        kind = c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to")
+        val = c.get("value") if isinstance(c, dict) else getattr(c, "value", None)
+        trigger = c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None)
+        attr = c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None)
+        valid_changes.append(pitch.AtomicChange(target=target, kind=kind, value=val, trigger=trigger, attr=attr))
 
     state.atomic_changes = valid_changes
     state.stage = "PREPARE"
@@ -264,9 +286,19 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
         raw_changes = payload.get("atomic_changes", [])
         allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
         state.atomic_changes = [
-            pitch.AtomicChange(target=c["target"], kind="raise_to")
+            pitch.AtomicChange(
+                target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
+                kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
+                value=c.get("value") if isinstance(c, dict) else getattr(c, "value", None),
+                trigger=c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None),
+                attr=c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None),
+            )
             for c in raw_changes[:pitch.MAX_ATOMIC_CHANGES]
-            if (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
+            if (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) and (
+                (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
+                or ctx.graph.is_target(c.get("target") if isinstance(c, dict) else getattr(c, "target", None))
+            )
+            and ctx.knowledge.state_of(c.get("target") if isinstance(c, dict) else getattr(c, "target", None), ctx.state) != "unknown"
         ]
 
     if not state.atomic_changes:
@@ -326,9 +358,19 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     commitments = []
     for op in card_ops_list:
         target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
-        lvl_val = int(op.value) if op.value is not None else 1
-        lvl_str = level_names[lvl_val] if 0 <= lvl_val <= 4 else str(lvl_val)
-        commitments.append(f"- Raise {target_name} to {lvl_str} (Level {lvl_val})")
+        if op.kind in ("raise_to", "set_to"):
+            try:
+                lvl_val = int(op.value) if op.value is not None else 1
+                lvl_str = level_names[lvl_val] if 0 <= lvl_val <= 4 else str(lvl_val)
+                commitments.append(f"- Raise {target_name} to {lvl_str} (Level {lvl_val})")
+            except (ValueError, TypeError):
+                commitments.append(f"- Update {target_name}: {op.value}")
+        elif op.kind == "set_trigger":
+            commitments.append(f"- Set trigger for {target_name}: {op.value}")
+        elif op.kind == "set_attr":
+            commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
+        else:
+            commitments.append(f"- {op.kind} {target_name}: {op.value}")
     card_summary = "\n".join(commitments) if commitments else "No atomic changes configured in the proposed card."
 
     reads_by_st = {r.stakeholder_id: r for r in view.reads}
@@ -346,7 +388,9 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     held_map = {i.id: i for i in ctx.held_items()}
     newly_verified_or_stored = False
 
-    for st_id, power in ctx.room:
+    for room_entry in ctx.room:
+        st_id = room_entry[0]
+        power = room_entry[1]
         st = StakeholderFactory.get_stakeholder(st_id)
         st_name = ctx.names.get(st_id, st.name if st else st_id)
         st_intel = [i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == st_id]
@@ -459,6 +503,12 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
         st_name = resp.get("stakeholder_name") or ctx.names.get(st_id, st_id)
         msg_text = resp["message"]
         st_revealed = revealed_by_st.get(st_id, [])
+        read = reads_by_st.get(st_id)
+        emotional_state = read.emotional_state if read else "neutral"
+        emotion_values = read.emotion_values if read else {}
+        facial_expression = EmotionFactory.derive_facial_expression_for_state(emotional_state)
+        buy_in_val = read.buy_in if read and read.buy_in is not None else 0.5
+
         await manager.send_event(
             websocket=websocket,
             event="intel:message_received",
@@ -470,6 +520,10 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
                 "conversation_id": pitch_conv_id,
                 "revealed_intel": st_revealed,
                 "revealed_intel_items": st_revealed,
+                "emotional_state": emotional_state,
+                "facial_expression": facial_expression,
+                "emotion_values": emotion_values,
+                "buy_in": buy_in_val,
             },
         )
         new_db_entries.append({
@@ -479,6 +533,8 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
             "ac_id": -1,
             "revealed_intel": st_revealed,
             "revealed_intel_items": st_revealed,
+            "emotional_state": emotional_state,
+            "facial_expression": facial_expression,
         })
 
     with get_session() as db:
@@ -498,6 +554,8 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
             flag_modified(row, "messages")
             db.commit()
 
+    if new_state.emotion_deltas:
+        pitch_store.apply_emotion_deltas(username, new_state.emotion_deltas, ctx.room_ids)
     pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, new_state)
     await _send(websocket, ctx, new_state, view)
 
@@ -511,9 +569,19 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         raw_changes = payload.get("atomic_changes", [])
         allowed = set(get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)))
         state.atomic_changes = [
-            pitch.AtomicChange(target=c["target"], kind="raise_to")
+            pitch.AtomicChange(
+                target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
+                kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
+                value=c.get("value") if isinstance(c, dict) else getattr(c, "value", None),
+                trigger=c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None),
+                attr=c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None),
+            )
             for c in raw_changes[:pitch.MAX_ATOMIC_CHANGES]
-            if (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
+            if (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) and (
+                (c.get("target") if isinstance(c, dict) else getattr(c, "target", None)) in allowed
+                or ctx.graph.is_target(c.get("target") if isinstance(c, dict) else getattr(c, "target", None))
+            )
+            and ctx.knowledge.state_of(c.get("target") if isinstance(c, dict) else getattr(c, "target", None), ctx.state) != "unknown"
         ]
 
     if not state.atomic_changes:
@@ -523,32 +591,184 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
     view = ctx.view(state)
     committed_state, events = pitch.commit_pitch(state, view, names=ctx.names)
     applied: dict[str, Any] = {}
+    veto_info: Optional[dict[str, Any]] = None
+
     if view.outcome != "VETO":
         applied = _apply_card(ctx, committed_state, view)
         if committed_state.emotion_deltas:
             ctx.emotions = pitch_store.apply_emotion_deltas(username, committed_state.emotion_deltas, ctx.room_ids)
+    else:
+        # 1. Identify high-power vetoing stakeholders
+        veto_reads = [
+            r for r in view.reads
+            if r.power == "high" and (r.boundary_violated or r.buy_in < VETO_THRESHOLD)
+        ]
+        # Sort by boundary_violated first, then lowest buy_in
+        veto_reads.sort(key=lambda r: (not r.boundary_violated, r.buy_in))
+        primary_veto_read = veto_reads[0] if veto_reads else (
+            [r for r in view.reads if r.boundary_violated or r.buy_in < VETO_THRESHOLD] or view.reads
+        )[0]
+
+        veto_st_id = primary_veto_read.stakeholder_id
+        veto_st_name = ctx.names.get(veto_st_id, veto_st_id)
+        veto_st = StakeholderFactory.get_stakeholder(veto_st_id)
+
+        # 2. Apply emotion penalty for the stakeholder who vetoes
+        malus_key = "boundary_veto" if primary_veto_read.boundary_violated else "low_buyin_stalemate"
+        veto_malus_delta = VETO_MALUS.get(malus_key, {})
+        veto_deltas = {veto_st_id: veto_malus_delta}
+        ctx.emotions = pitch_store.apply_emotion_deltas(username, veto_deltas, ctx.room_ids)
+
+        # 3. Retrieve recent pitch chat history for this challenge
+        existing_messages = []
+        with get_session() as db:
+            row = db.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.user_id == get_user_id(db, username),
+                    GameChallenge.phase_index == ctx.phase_id,
+                    GameChallenge.challenge_index == ctx.challenge_id,
+                )
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if row:
+                existing_messages = list(row.messages or [])
+
+        relevant_chat_msgs = [
+            f"{m.get('stakeholder_name') or m.get('id')}: {m.get('message')}"
+            for m in existing_messages
+            if isinstance(m, dict) and (m.get("id") == veto_st_id or str(m.get("conversation_id", "")).startswith("pitch_"))
+        ]
+        pitch_chat_summary = "\n".join(relevant_chat_msgs[-6:]) if relevant_chat_msgs else ""
+
+        # 4. Compute primary objection details
+        card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
+        card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
+        level_names = ["Broken", "Absent", "Manual", "Automated", "Governed"]
+        commitments = []
+        for op in card_ops_list:
+            target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
+            if op.kind in ("raise_to", "set_to"):
+                try:
+                    lvl_val = int(op.value) if op.value is not None else 1
+                    lvl_str = level_names[lvl_val] if 0 <= lvl_val <= 4 else str(lvl_val)
+                    commitments.append(f"- Raise {target_name} to {lvl_str} (Level {lvl_val})")
+                except (ValueError, TypeError):
+                    commitments.append(f"- Update {target_name}: {op.value}")
+            elif op.kind == "set_trigger":
+                commitments.append(f"- Set trigger for {target_name}: {op.value}")
+            elif op.kind == "set_attr":
+                commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
+            else:
+                commitments.append(f"- {op.kind} {target_name}: {op.value}")
+        card_summary = "\n".join(commitments) if commitments else "No atomic changes configured."
+
+        st_intel = [i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == veto_st_id]
+        warnings = pitch.boundary_checks(
+            ctx.graph, ctx.state, ctx.all_intel, state.atomic_changes, [veto_st_id], knowledge=ctx.knowledge
+        )
+        violated_st_warnings = [w for w in warnings if w.violated and w.stakeholder_id == veto_st_id]
+
+        primary_obj = pitch.compute_stakeholder_primary_objection(
+            st_id=veto_st_id,
+            st_intel=st_intel,
+            changes=state.atomic_changes,
+            card_atoms=card_atoms,
+            violated_boundaries=violated_st_warnings,
+            graph=ctx.graph,
+            state=ctx.state,
+        )
+
+        challenge_context = (
+            f"{ctx.challenge.name}: {ctx.challenge.roundIntroduction} "
+            f"{personalize(ctx.challenge.description, resolve_markers=True)}"
+            if ctx.challenge
+            else "MLOps Project Resolution Meeting"
+        )
+
+        # 5. Run dedicated Action Card Veto LangGraph workflow
+        veto_message, _ = await run_action_card_veto_workflow(
+            username=username,
+            phase_id=ctx.phase_id,
+            challenge_id=ctx.challenge_id,
+            challenge_context=challenge_context,
+            action_card_summary=card_summary,
+            action_card_commitments=commitments,
+            stakeholder_id=veto_st_id,
+            stakeholder_name=veto_st_name,
+            stakeholder_role=getattr(veto_st, "role_description", "Key Decision Maker") if veto_st else "Key Decision Maker",
+            stakeholder_power=primary_veto_read.power,
+            stakeholder_responsibilities=veto_st.responsibilities if veto_st else "",
+            stakeholder_priorities=veto_st.priorities if veto_st else "",
+            stakeholder_constraints=getattr(veto_st, "constraints", getattr(veto_st, "requirements", "")) if veto_st else "",
+            emotional_state=primary_veto_read.emotional_state,
+            buy_in=primary_veto_read.buy_in,
+            boundary_violated=primary_veto_read.boundary_violated,
+            objection_kind=primary_obj["objection_kind"],
+            objection_detail=primary_obj["objection_detail"],
+            objection_target=primary_obj.get("objection_target"),
+            pitch_chat_summary=pitch_chat_summary,
+        )
+
+        veto_info = {
+            "stakeholder_id": veto_st_id,
+            "stakeholder_name": veto_st_name,
+            "power": primary_veto_read.power,
+            "message": veto_message,
+            "objection_kind": primary_obj["objection_kind"],
+            "objection_detail": primary_obj["objection_detail"],
+            "boundary_violated": primary_veto_read.boundary_violated,
+        }
+
+        # Send veto message event into the chat
+        await manager.send_event(
+            websocket=websocket,
+            event="intel:message_received",
+            payload={
+                "type": "stakeholder_message",
+                "stakeholder_id": veto_st_id,
+                "stakeholder_name": veto_st_name,
+                "message": f"🚫 [VETO] {veto_message}",
+                "conversation_id": f"veto_{ctx.challenge_id}",
+                "is_veto": True,
+            },
+        )
+
+        with get_session() as db:
+            row = db.scalars(
+                select(GameChallenge)
+                .where(
+                    GameChallenge.user_id == get_user_id(db, username),
+                    GameChallenge.phase_index == ctx.phase_id,
+                    GameChallenge.challenge_index == ctx.challenge_id,
+                )
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if row:
+                current_msgs = list(row.messages or [])
+                current_msgs.append({
+                    "id": veto_st_id,
+                    "message": f"🚫 [VETO] {veto_message}",
+                    "conversation_id": f"veto_{ctx.challenge_id}",
+                    "ac_id": -1,
+                    "is_veto": True,
+                })
+                row.messages = current_msgs
+                flag_modified(row, "messages")
+                db.commit()
 
     pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, committed_state)
     await send_events(websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
-    await _send(websocket, ctx, committed_state, view, applied=applied)
+    await _send(websocket, ctx, committed_state, view, applied=applied, veto_info=veto_info)
 
 
 def _apply_card(ctx: PitchContext, state: pitch.PitchState, view: pitch.CardView) -> dict[str, Any]:
-    """Writes the card to the graph from atomic changes."""
+    """Evaluates card operations in memory for the pitch result. The simulation phase persists the graph changes."""
     ops = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
     if not ops:
         return {"ops": 0, "outcome": state.outcome}
     buy_in = {r.stakeholder_id: r.buy_in for r in view.reads}
     result = apply_ops(ctx.graph, ctx.state, ops, owner_buyin=buy_in)
-    graph_store.append_ops(
-        ctx.username,
-        result.resolved_ops,
-        phase_index=ctx.phase_id,
-        challenge_template=ctx.challenge.template_id if ctx.challenge else "",
-        challenge_loop_index=2,
-        source_kind="action_card",
-        source_id=f"card:{ctx.challenge.template_id if ctx.challenge else ctx.challenge_id}",
-    )
     return {
         "ops": len(result.resolved_ops),
         "outcome": state.outcome,

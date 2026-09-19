@@ -25,11 +25,13 @@ import EngagementCardTargetModal from "./EngagementCardTargetModal";
 import GatherConversationPanel from "./GatherConversationPanel";
 import IntelVerificationDialog, { type IntelVerificationResultData } from "./IntelVerificationDialog";
 import EventLogModal from "./EventLogModal";
+import VetoDialog, { type VetoInfo } from "./VetoDialog";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import type { GatherOptionKind, GatherStatePayload } from "../types/Gather";
 import type { GameEventPayload } from "../types/GameEvent";
 import type { IntelTag } from "../types/IntelTag";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
+import { faceForEmotionState } from "../utils/emotionFace";
 import { FADE_TRANSITION } from "../utils/transitions";
 
 export interface PitchDebateProps {
@@ -39,7 +41,7 @@ export interface PitchDebateProps {
   challengeDescription?: string;
   challengeIntro?: string;
   challengeAmount?: number;
-  onEndPitch?: (passed: boolean) => void;
+  onEndPitch?: (passed: boolean, card?: ActionCard | null) => void;
   engagementCards?: EngagementCard[];
   attentionTokens?: number;
   onAttentionTokensChange?: (n: number) => void;
@@ -87,6 +89,7 @@ interface PitchStatePayload {
   intel_total?: number;
   intel_verified?: number;
   outcome?: string | null;
+  veto_info?: VetoInfo | null;
 }
 
 export default function PitchDebate({
@@ -118,6 +121,7 @@ export default function PitchDebate({
     string,
     { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string; emotional_state?: string; metric_id?: string; power?: string; interest?: string }
   >;
+  const setStakeholders = stakeholderCtx?.setStakeholders;
   const metricsCtx = useContext(MetricsContext);
   const metrics = metricsCtx?.metrics || {};
   const { phases } = useContext(PhasesContext);
@@ -155,6 +159,10 @@ export default function PitchDebate({
   const [selectedIntelIds, setSelectedIntelIds] = useState<string[]>([]);
   const [isPitchEvaluating, setIsPitchEvaluating] = useState(false);
   const [evaluatingPitchConvId, setEvaluatingPitchConvId] = useState<string | null>(null);
+  const [vetoInfo, setVetoInfo] = useState<VetoInfo | null>(null);
+  const [isVetoDialogOpen, setIsVetoDialogOpen] = useState(false);
+  const [isCommittedLocked, setIsCommittedLocked] = useState(false);
+  const hasAutoTransitionedRef = useRef(false);
 
   // ── Engagement Card & Tokens State ──
   const [localTokens, setLocalTokens] = useState(20);
@@ -191,6 +199,10 @@ export default function PitchDebate({
     stakeholderId?: string;
     message: string;
     chatMsg?: ChatMsg;
+    emotionalState?: string;
+    facialExpression?: string;
+    emotionValues?: Record<string, number>;
+    buyIn?: number;
   }
   const speechQueueRef = useRef<SpeechQueueItem[]>([]);
   const isProcessingQueueRef = useRef<boolean>(false);
@@ -270,6 +282,32 @@ export default function PitchDebate({
       if (nextItem.stakeholderId) {
         setSelectedStakeholderId(nextItem.stakeholderId);
       }
+
+      // Update that stakeholder's emotional state, facial expression, and avatar now that their message is displayed!
+      if (nextItem.stakeholderId && (nextItem.emotionalState || nextItem.facialExpression) && setStakeholders) {
+        setStakeholders((prev: Record<string, any>) => {
+          const stId = nextItem.stakeholderId!;
+          const current = prev[stId];
+          if (!current) return prev;
+          const newEmotionalState = nextItem.emotionalState || current.emotional_state || "neutral";
+          const newFace = nextItem.facialExpression || faceForEmotionState(newEmotionalState);
+          return {
+            ...prev,
+            [stId]: {
+              ...current,
+              emotional_state: newEmotionalState,
+              facial_expression: newFace,
+              emotion: newFace,
+              avatar: {
+                ...(current.avatar || {}),
+                face: newFace,
+                emotion: newFace,
+              },
+            },
+          };
+        });
+      }
+
       setActiveSpeakingState({
         stakeholderId: nextItem.stakeholderId || "",
         message: nextItem.message,
@@ -298,7 +336,17 @@ export default function PitchDebate({
     processSpeechQueue();
   };
 
-  const triggerStakeholderSpeech = (stakeholderId: string, message: string, chatMsg?: ChatMsg) => {
+  const triggerStakeholderSpeech = (
+    stakeholderId: string,
+    message: string,
+    chatMsg?: ChatMsg,
+    meta?: {
+      emotionalState?: string;
+      facialExpression?: string;
+      emotionValues?: Record<string, number>;
+      buyIn?: number;
+    }
+  ) => {
     if (!stakeholderId || !message) return;
     speechQueueRef.current.push({
       id: Math.random().toString(36).substring(2, 9),
@@ -306,6 +354,10 @@ export default function PitchDebate({
       stakeholderId,
       message,
       chatMsg,
+      emotionalState: meta?.emotionalState,
+      facialExpression: meta?.facialExpression,
+      emotionValues: meta?.emotionValues,
+      buyIn: meta?.buyIn,
     });
     processSpeechQueue();
   };
@@ -341,6 +393,40 @@ export default function PitchDebate({
     }
     if (payload.card_item_ids) {
       setSelectedIntelIds(payload.card_item_ids);
+    }
+
+    if (payload.stage === "DONE") {
+      if (payload.outcome === "VETO") {
+        setIsCommittedLocked(false);
+        if (payload.veto_info) {
+          setVetoInfo(payload.veto_info);
+          setIsVetoDialogOpen(true);
+        } else {
+          const vetoRead = payload.reads?.find((r) => r.power === "high" && (r.boundary_violated || (r.buy_in ?? 1) < 0.4)) || payload.reads?.[0];
+          if (vetoRead) {
+            const stObj = stakeholders[vetoRead.stakeholder_id];
+            setVetoInfo({
+              stakeholder_id: vetoRead.stakeholder_id,
+              stakeholder_name: stObj?.name || vetoRead.stakeholder_id,
+              power: vetoRead.power,
+              message: "I am using my executive authority to veto this action proposal as it violates critical requirements.",
+              boundary_violated: vetoRead.boundary_violated,
+            });
+            setIsVetoDialogOpen(true);
+          }
+        }
+      } else if (payload.outcome === "PASS" || payload.outcome === "SOFT_PASS") {
+        setIsCommittedLocked(true);
+        if (!hasAutoTransitionedRef.current && onEndPitch) {
+          hasAutoTransitionedRef.current = true;
+          setTimeout(() => {
+            onEndPitch(true);
+          }, 500);
+        }
+      }
+    } else {
+      setIsCommittedLocked(false);
+      hasAutoTransitionedRef.current = false;
     }
   });
 
@@ -441,8 +527,15 @@ export default function PitchDebate({
             ac_id: -1,
             revealed_intel: p.revealed_intel_items || [],
             conversation_id: convId,
+            emotional_state: p.emotional_state,
+            facial_expression: p.facial_expression,
           };
-          triggerStakeholderSpeech(p.stakeholder_id, p.message, msg);
+          triggerStakeholderSpeech(p.stakeholder_id, p.message, msg, {
+            emotionalState: p.emotional_state,
+            facialExpression: p.facial_expression,
+            emotionValues: p.emotion_values,
+            buyIn: p.buy_in,
+          });
         } else if (p.type === "player_message" && p.message) {
           const msg: ChatMsg = {
             id: "user",
@@ -553,7 +646,9 @@ export default function PitchDebate({
             emotionScore: emotionScore,
             total: total,
             isPersuaded: r.band === "green",
-            currentEmotion: r.emotional_state || stakeholders[r.stakeholder_id]?.emotional_state || "neutral",
+            currentEmotion: hasSpokenInPitch
+              ? (stakeholders[r.stakeholder_id]?.emotional_state || r.emotional_state || "neutral")
+              : (stakeholders[r.stakeholder_id]?.emotional_state || "neutral"),
             boundaryViolated: r.boundary_violated,
             isRevealed: hasSpokenInPitch,
           },
@@ -616,7 +711,11 @@ export default function PitchDebate({
         .map((ac) => {
           const pred = pitchState.predictions?.find((p: any) => p.target === ac.target);
           const next = pred?.predicted ?? ac.value;
-          const targetName = ac.target.split(".").pop()?.replace(/_/g, " ") || ac.target;
+          const isEdge = ac.target.startsWith("e.");
+          const targetName = isEdge
+            ? `Edge ${ac.target.replace(/^e\./, "").replace(/_/g, " ")}`
+            : ac.target.split(".").pop()?.replace(/_/g, " ") || ac.target;
+
           return `• Advance ${targetName} to ${formatLevelCap(next)}`;
         })
         .join(" ");
@@ -803,6 +902,7 @@ export default function PitchDebate({
   };
 
   const handlePitchCommit = () => {
+    setIsCommittedLocked(true);
     emit("pitch:commit", { ...base, atomic_changes: atomicChanges });
     triggerPlayerSpeech("⚖️ Calling for final decision and committing proposal.");
   };
@@ -810,7 +910,7 @@ export default function PitchDebate({
   const handleProceedToSimulation = () => {
     const passed = pitchState?.outcome === "PASS" || pitchState?.outcome === "SOFT_PASS";
     if (onEndPitch) {
-      onEndPitch(passed);
+      onEndPitch(passed, pitchedActionCard);
     }
   };
 
@@ -950,63 +1050,57 @@ export default function PitchDebate({
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Boardroom Table Scene + Conversation History + Lower Shelf */}
+            {/* RIGHT COLUMN: Boardroom Table Scene + Conversation History + Lower Shelf OR Compose Action Proposal */}
             <div
-              className={`col-12 col-lg-8 d-flex flex-column gap-2 h-100 rounded transition-all position-relative ${
+              className={`col-12 col-lg-8 d-flex flex-column h-100 rounded transition-all position-relative ${
                 isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
               }`}
               style={{ minHeight: 0, zIndex: isAnySpeechActive ? 3000 : 1 }}
             >
-              {/* Upper Section: Challenge & Boardroom Scene (Left) + Chat History (Right) */}
-              <div
-                className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
-                  isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
-                } ${isDraggingCard ? styles.singleDropZoneActive : ""}`}
-                style={{ minHeight: 0, zIndex: isAnySpeechActive ? 3100 : 1 }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = "copy";
-                }}
-                onDrop={(e) => {
-                  setIsDraggingCard(false);
-                  handleDropEngagementCard(e);
-                }}
-              >
-                {/* Left Sub-Column: Challenge Card + Boardroom Oval Table */}
-                <div
-                  className={`${styles.boardCol} ${
-                    isChatMaximized ? styles.boardColCollapsed : ""
-                  } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
-                  style={{ minHeight: 0, zIndex: isChatMaximized ? 0 : (isAnySpeechActive ? 3200 : 1) }}
-                >
-                  {/* 1. Challenge Description Card above the Table */}
-                  <div className="w-100 flex-shrink-0 mb-1">
-                    <ChallengeDescriptionCard
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      currentChallenge={currentChallenge}
-                      challengeAmount={challengeAmount}
-                    />
-                  </div>
-
-                  {/* 2. Boardroom Pitch Deck Table Scene */}
-                  <div
-                    className="w-100 d-flex flex-column align-items-center justify-content-center flex-grow-1 pt-2 position-relative"
-                    style={{ zIndex: isAnySpeechActive ? 3300 : 2, overflow: isAnySpeechActive ? "visible" : undefined }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = "copy";
-                    }}
-                    onDrop={(e) => {
-                      setIsDraggingCard(false);
-                      handleDropEngagementCard(e);
-                    }}
+              <AnimatePresence mode="wait" initial={false}>
+                {isPitchModalOpen ? (
+                  <motion.div
+                    key="compose-action-proposal-view"
+                    className="w-100 h-100 d-flex flex-column overflow-hidden"
+                    initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 12, scale: 0.985 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
                   >
+                    <ComposeActionProposalModal
+                      isOpen={isPitchModalOpen}
+                      onClose={() => setIsPitchModalOpen(false)}
+                      currentPhase={currentPhase}
+                      currentChallenge={currentChallenge}
+                      initialAtomicChanges={atomicChanges}
+                      onConfirmProposal={handleConfirmMergeProposal}
+                      allowedTargets={pitchState?.allowed_targets || []}
+                      upstreamMap={pitchState?.upstream_map || {}}
+                      predictions={pitchState?.predictions || []}
+                      boundaryWarnings={pitchState?.boundary_warnings || []}
+                      intelItems={allIntelItems}
+                      stakeholders={stakeholders as any}
+                      getStakeholderColor={getStakeholderColor}
+                      graphState={graphState}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="boardroom-view"
+                    className={`w-100 h-100 d-flex flex-column gap-2 ${
+                      isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+                    }`}
+                    initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 12, scale: 0.985 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    {/* Upper Section: Challenge & Boardroom Scene (Left) + Chat History (Right) */}
                     <div
-                      className={`${styles.pitchDeckTable} ${isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""} ${
-                        isDraggingCard ? styles.pitchDeckTableDragging : ""
-                      }`}
+                      className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
+                        isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
+                      } ${isDraggingCard ? styles.singleDropZoneActive : ""}`}
+                      style={{ minHeight: 0, zIndex: isAnySpeechActive ? 3100 : 1 }}
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.dataTransfer.dropEffect = "copy";
@@ -1016,351 +1110,417 @@ export default function PitchDebate({
                         handleDropEngagementCard(e);
                       }}
                     >
-                      {/* Top Row: Stakeholders seated behind the table */}
-                      {topStakeholders.length > 0 && (
-                        <div
-                          className={`${styles.tableTopSeating} ${
-                            topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
-                        >
-                          {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, false, true, idx))}
-                        </div>
-                      )}
-
-                      {/* Middle Section: Left Seat, Central Pitched Action Card, Right Seat */}
+                      {/* Left Sub-Column: Challenge Card + Boardroom Oval Table */}
                       <div
-                        className={`${styles.tableCenterSurface} ${
-                          [...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
-                            ? styles.tableCenterSurfaceSpeaking
-                            : ""
-                        }`}
+                        className={`${styles.boardCol} ${
+                          isChatMaximized ? styles.boardColCollapsed : ""
+                        } ${isAnySpeechActive ? styles.boardColSpeaking : ""} d-flex flex-column justify-content-between h-100 position-relative`}
+                        style={{ minHeight: 0, zIndex: isChatMaximized ? 0 : (isAnySpeechActive ? 3200 : 1) }}
                       >
-                        {/* Left Seat */}
+                        {/* 1. Challenge Description Card above the Table */}
+                        <div className="w-100 flex-shrink-0 mb-1">
+                          <ChallengeDescriptionCard
+                            challengeTitle={challengeTitle}
+                            challengeDescription={challengeDescription}
+                            challengeIntro={challengeIntro}
+                            currentChallenge={currentChallenge}
+                            challengeAmount={challengeAmount}
+                          />
+                        </div>
+
+                        {/* 2. Boardroom Pitch Deck Table Scene */}
                         <div
-                          className={`${styles.tableSideSeating} ${
-                            leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
+                          className="w-100 d-flex flex-column align-items-center justify-content-center flex-grow-1 pt-2 position-relative"
+                          style={{ zIndex: isAnySpeechActive ? 3300 : 2, overflow: isAnySpeechActive ? "visible" : undefined }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "copy";
+                          }}
+                          onDrop={(e) => {
+                            setIsDraggingCard(false);
+                            handleDropEngagementCard(e);
+                          }}
                         >
-                          {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
-                        </div>
+                          <div
+                            className={`${styles.pitchDeckTable} ${isAnySpeechActive ? styles.pitchDeckTableSpeaking : ""} ${
+                              isDraggingCard ? styles.pitchDeckTableDragging : ""
+                            }`}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = "copy";
+                            }}
+                            onDrop={(e) => {
+                              setIsDraggingCard(false);
+                              handleDropEngagementCard(e);
+                            }}
+                          >
+                            {/* Top Row: Stakeholders seated behind the table */}
+                            {topStakeholders.length > 0 && (
+                              <div
+                                className={`${styles.tableTopSeating} ${
+                                  topStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                                    ? styles.seatingSpeaking
+                                    : ""
+                                }`}
+                              >
+                                {topStakeholders.map((st, idx) => renderSeatedStakeholder(st, false, true, idx))}
+                              </div>
+                            )}
 
-                        {/* Center Tabletop: Pitched Action Card or Clickable Pitch Deck Plaque */}
-                        <div className={styles.tabletopCenterArea}>
-                          {isCardComposed && pitchedActionCard ? (
-                            <ActionCardCardComponent
-                              card={pitchedActionCard}
-                              intelItems={allIntelItems}
-                              stakeholders={stakeholders as any}
-                              getStakeholderColor={getStakeholderColor}
-                              isMinimized={true}
-                              isInteractive={true}
-                              onClick={() => setIsPitchModalOpen(true)}
-                            />
-                          ) : (
+                            {/* Middle Section: Left Seat, Central Pitched Action Card, Right Seat */}
                             <div
-                              className={`${styles.tableCenterPlaque} ${styles.tableCenterPlaqueActive}`}
-                              onClick={() => setIsPitchModalOpen(true)}
-                              title="Pitch Deck Table - Configure up to 3 graph changes"
-                            >
-                              <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
-                              <span>PITCH DECK</span>
-                              <span className={styles.tableCenterPlaqueSub}>Click to compose action proposal</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Right Seat */}
-                        <div
-                          className={`${styles.tableSideSeating} ${
-                            rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
-                              ? styles.seatingSpeaking
-                              : ""
-                          }`}
-                        >
-                          {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
-                        </div>
-                      </div>
-
-                      {/* Lower Border Interaction Area: Status Chips & Control Buttons */}
-                      <div className={styles.tableLowerInteractionArea}>
-                        {/* Status Chips */}
-                        <div className={styles.statChipsRowCentered}>
-                          <div className={styles.statChipToken} title={`${tokens} Attention Tokens available`}>
-                            <Icon icon="ph:coin-fill" className={styles.tokenStatIcon} />
-                            <span className={styles.statNumber}>{tokens}</span>
-                            <span className={styles.statLabel}>Tokens</span>
-                          </div>
-
-                          <div className={styles.statChipIntel} title={`${allIntelItems.length} Intel items collected`}>
-                            <Icon icon="ph:files-bold" className={styles.intelStatIcon} />
-                            <span className={styles.statNumber}>{allIntelItems.length}</span>
-                            <span className={styles.statLabel}>Intel</span>
-                          </div>
-
-                        </div>
-
-                        {/* Proposal State Controls */}
-                        {stage === "DONE" ? (
-                          <div className="w-100 d-flex flex-column align-items-center gap-1">
-                            <div
-                              className={`${styles.outcomeBanner} ${
-                                styles[`out${pitchState?.outcome || "PASS"}`] || styles.outPASS
+                              className={`${styles.tableCenterSurface} ${
+                                [...leftStakeholders, ...rightStakeholders].some((st) => activeSpeakingState?.stakeholderId === st.id)
+                                  ? styles.tableCenterSurfaceSpeaking
+                                  : ""
                               }`}
                             >
-                              <Icon
-                                icon={
-                                  pitchState?.outcome === "PASS"
-                                    ? "ph:check-circle-fill"
-                                    : pitchState?.outcome === "SOFT_PASS"
-                                    ? "ph:warning-circle-fill"
-                                    : "ph:prohibit-bold"
-                                }
-                                className={styles.outcomeIcon}
-                              />
-                              <div>
-                                <div className={styles.outcomeLabel}>
-                                  {pitchState?.outcome === "PASS"
-                                    ? "Proposal Approved"
-                                    : pitchState?.outcome === "SOFT_PASS"
-                                    ? "Approved with Soft Pass Friction"
-                                    : "Proposal Vetoed"}
-                                </div>
-                                <div className={styles.outcomeDesc}>
-                                  {pitchState?.outcome === "PASS" || pitchState?.outcome === "SOFT_PASS"
-                                    ? "The room has concluded debate. Proceed to simulation phase."
-                                    : "A critical constraint was violated. Revise your action card to address objections."}
-                                </div>
+                              {/* Left Seat */}
+                              <div
+                                className={`${styles.tableSideSeating} ${
+                                  leftStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                                    ? styles.seatingSpeaking
+                                    : ""
+                                }`}
+                              >
+                                {leftStakeholders.map((st) => renderSeatedStakeholder(st))}
+                              </div>
+
+                              {/* Center Tabletop: Pitched Action Card or Clickable Pitch Deck Plaque */}
+                              <div className={styles.tabletopCenterArea}>
+                                {isCardComposed && pitchedActionCard ? (
+                                  <ActionCardCardComponent
+                                    card={pitchedActionCard}
+                                    intelItems={allIntelItems}
+                                    stakeholders={stakeholders as any}
+                                    getStakeholderColor={getStakeholderColor}
+                                    isMinimized={true}
+                                    isInteractive={!isCommittedLocked || pitchState?.outcome === "VETO"}
+                                    onClick={() => {
+                                      if (!isCommittedLocked || pitchState?.outcome === "VETO") {
+                                        setIsPitchModalOpen(true);
+                                      }
+                                    }}
+                                  />
+                                ) : (
+                                  <div
+                                    className={`${styles.tableCenterPlaque} ${
+                                      !isCommittedLocked || pitchState?.outcome === "VETO"
+                                        ? styles.tableCenterPlaqueActive
+                                        : ""
+                                    }`}
+                                    onClick={() => {
+                                      if (!isCommittedLocked || pitchState?.outcome === "VETO") {
+                                        setIsPitchModalOpen(true);
+                                      }
+                                    }}
+                                    title={
+                                      isCommittedLocked && pitchState?.outcome !== "VETO"
+                                        ? "Action card committed"
+                                        : "Pitch Deck Table - Configure up to 3 graph changes"
+                                    }
+                                  >
+                                    <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
+                                    <span>PITCH DECK</span>
+                                    <span className={styles.tableCenterPlaqueSub}>Click to compose action proposal</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Right Seat */}
+                              <div
+                                className={`${styles.tableSideSeating} ${
+                                  rightStakeholders.some((st) => activeSpeakingState?.stakeholderId === st.id)
+                                    ? styles.seatingSpeaking
+                                    : ""
+                                }`}
+                              >
+                                {rightStakeholders.map((st) => renderSeatedStakeholder(st, true))}
                               </div>
                             </div>
 
-                            {pitchState?.outcome === "VETO" ? (
-                              <button
-                                type="button"
-                                className={styles.actionButton}
-                                onClick={() => setIsPitchModalOpen(true)}
+                            {/* Lower Border Interaction Area: Status Chips & Control Buttons */}
+                            <div className={styles.tableLowerInteractionArea}>
+                              {/* Status Chips */}
+                              <div className={styles.statChipsRowCentered}>
+                                <div className={styles.statChipToken} title={`${tokens} Attention Tokens available`}>
+                                  <Icon icon="ph:coin-fill" className={styles.tokenStatIcon} />
+                                  <span className={styles.statNumber}>{tokens}</span>
+                                  <span className={styles.statLabel}>Tokens</span>
+                                </div>
+
+                                <div className={styles.statChipIntel} title={`${allIntelItems.length} Intel items collected`}>
+                                  <Icon icon="ph:files-bold" className={styles.intelStatIcon} />
+                                  <span className={styles.statNumber}>{allIntelItems.length}</span>
+                                  <span className={styles.statLabel}>Intel</span>
+                                </div>
+
+                              </div>
+
+                              {/* Proposal State Controls */}
+                              {stage === "DONE" ? (
+                                <div className="w-100 d-flex flex-column align-items-center gap-1">
+                                  <div
+                                    className={`${styles.outcomeBanner} ${
+                                      styles[`out${pitchState?.outcome || "PASS"}`] || styles.outPASS
+                                    }`}
+                                  >
+                                    <Icon
+                                      icon={
+                                        pitchState?.outcome === "PASS"
+                                          ? "ph:check-circle-fill"
+                                          : pitchState?.outcome === "SOFT_PASS"
+                                          ? "ph:warning-circle-fill"
+                                          : "ph:prohibit-bold"
+                                      }
+                                      className={styles.outcomeIcon}
+                                    />
+                                    <div>
+                                      <div className={styles.outcomeLabel}>
+                                        {pitchState?.outcome === "PASS"
+                                          ? "Proposal Approved"
+                                          : pitchState?.outcome === "SOFT_PASS"
+                                          ? "Approved with Soft Pass Friction"
+                                          : "Proposal Vetoed"}
+                                      </div>
+                                      <div className={styles.outcomeDesc}>
+                                        {pitchState?.outcome === "PASS" || pitchState?.outcome === "SOFT_PASS"
+                                          ? "Action plan locked in. Transitioning to simulation..."
+                                          : "A high-power stakeholder blocked the proposal. Revise your card to address their objection."}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {pitchState?.outcome === "VETO" ? (
+                                    <button
+                                      type="button"
+                                      className={styles.actionButton}
+                                      onClick={() => {
+                                        setIsVetoDialogOpen(false);
+                                        setIsPitchModalOpen(true);
+                                      }}
+                                    >
+                                      <Icon icon="ph:arrow-counter-clockwise-bold" />
+                                      <span>Revise Action Card & Re-Pitch</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className={styles.actionButton}
+                                      onClick={handleProceedToSimulation}
+                                    >
+                                      <span>Proceeding to Simulation...</span>
+                                    </button>
+                                  )}
+                                </div>
+                              ) : stage === "PITCHED" ? (
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                  <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    style={{ flex: 1 }}
+                                    onClick={() => setIsPitchModalOpen(true)}
+                                    title="Modify card items or trade-off branches"
+                                  >
+                                    <Icon icon="ph:pencil-simple-bold" />
+                                    <span>Revise Card</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    style={{ flex: 1.5 }}
+                                    onClick={handlePitchCommit}
+                                    title="Commit action proposal to lock in final outcome"
+                                  >
+                                    <Icon icon="ph:check-bold" />
+                                    <span>Commit Proposal ➔</span>
+                                  </button>
+                                </div>
+                              ) : isCardComposed ? (
+                                <div className="d-flex align-items-center gap-2 w-100">
+                                  <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    style={{ flex: 1 }}
+                                    onClick={() => setIsPitchModalOpen(true)}
+                                    title="Edit proposal items"
+                                  >
+                                    <Icon icon="ph:pencil-simple-bold" />
+                                    <span>Edit Card</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.actionButton}
+                                    style={{ flex: 1.5 }}
+                                    onClick={handlePitchEvaluate}
+                                    title="Present proposal to stakeholders for feedback"
+                                  >
+                                    <Icon icon="ph:paper-plane-tilt-bold" />
+                                    <span>Present Pitch Proposal ➔</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={`${styles.actionButton} ${
+                                    isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""
+                                  }`}
+                                  disabled={isSpeechBubbleCoveringButton}
+                                  onClick={() => setIsPitchModalOpen(true)}
+                                  title="Configure up to 3 graph improvements for action proposal"
+                                >
+                                  <Icon icon="ph:git-merge-bold" />
+                                  <span>Assemble Action Proposal (Up to 3 Changes)</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Active Player Speech Bubble on Pitch Deck */}
+                            {activePlayerSpeakingState && (
+                              <div
+                                className={`${styles.playerTableSpeechBubble} ${
+                                  activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  skipCurrentSpeech();
+                                }}
                               >
-                                <Icon icon="ph:arrow-counter-clockwise-bold" />
-                                <span>Revise Action Card & Re-Pitch</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className={styles.actionButton}
-                                onClick={handleProceedToSimulation}
-                              >
-                                <span>Proceed to Simulation ➔</span>
-                              </button>
+                                <div className={styles.playerSpeechHeader}>
+                                  <div className="d-flex align-items-center gap-1">
+                                    <Icon icon="ph:user-circle-bold" />
+                                    <span>Player</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className={styles.speechSkipBtn}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      skipCurrentSpeech();
+                                    }}
+                                    title="Skip message"
+                                  >
+                                    <Icon icon="ph:skip-forward-fill" />
+                                  </button>
+                                </div>
+                                <div className={styles.playerSpeechContent}>{activePlayerSpeakingState.message}</div>
+                              </div>
                             )}
                           </div>
-                        ) : stage === "PITCHED" ? (
-                          <div className="d-flex align-items-center gap-2 w-100">
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              style={{ flex: 1 }}
-                              onClick={() => setIsPitchModalOpen(true)}
-                              title="Modify card items or trade-off branches"
-                            >
-                              <Icon icon="ph:pencil-simple-bold" />
-                              <span>Revise Card</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              style={{ flex: 1.5 }}
-                              onClick={handlePitchCommit}
-                              title="Commit action proposal to lock in final outcome"
-                            >
-                              <Icon icon="ph:check-bold" />
-                              <span>Commit Proposal ➔</span>
-                            </button>
-                          </div>
-                        ) : isCardComposed ? (
-                          <div className="d-flex align-items-center gap-2 w-100">
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              style={{ flex: 1 }}
-                              onClick={() => setIsPitchModalOpen(true)}
-                              title="Edit proposal items"
-                            >
-                              <Icon icon="ph:pencil-simple-bold" />
-                              <span>Edit Card</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              style={{ flex: 1.5 }}
-                              onClick={handlePitchEvaluate}
-                              title="Present proposal to stakeholders for feedback"
-                            >
-                              <Icon icon="ph:paper-plane-tilt-bold" />
-                              <span>Present Pitch Proposal ➔</span>
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            className={`${styles.actionButton} ${
-                              isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""
-                            }`}
-                            disabled={isSpeechBubbleCoveringButton}
-                            onClick={() => setIsPitchModalOpen(true)}
-                            title="Configure up to 3 graph improvements for action proposal"
-                          >
-                            <Icon icon="ph:git-merge-bold" />
-                            <span>Assemble Action Proposal (Up to 3 Changes)</span>
-                          </button>
-                        )}
+                        </div>
                       </div>
 
-                      {/* Active Player Speech Bubble on Pitch Deck */}
-                      {activePlayerSpeakingState && (
+                      {/* Right Sub-Column: Conversation History (Spans Full Height) */}
+                      <div
+                        className={`${styles.chatCol} ${
+                          isChatMaximized ? styles.chatColMaximized : ""
+                        } d-flex flex-column h-100 overflow-hidden position-relative`}
+                        style={{ minHeight: 0, zIndex: isChatMaximized ? 2000 : 1 }}
+                      >
+                        {/* Maximized Challenge Card Wrapper */}
                         <div
-                          className={`${styles.playerTableSpeechBubble} ${
-                            activePlayerSpeakingState.isClosing ? styles.playerTableSpeechBubbleClosing : ""
+                          className={`${styles.maximizedChallengeWrapper} ${
+                            isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
                           }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            skipCurrentSpeech();
-                          }}
                         >
-                          <div className={styles.playerSpeechHeader}>
-                            <div className="d-flex align-items-center gap-1">
-                              <Icon icon="ph:user-circle-bold" />
-                              <span>Player</span>
-                            </div>
-                            <button
-                              type="button"
-                              className={styles.speechSkipBtn}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                skipCurrentSpeech();
-                              }}
-                              title="Skip message"
-                            >
-                              <Icon icon="ph:skip-forward-fill" />
-                            </button>
-                          </div>
-                          <div className={styles.playerSpeechContent}>{activePlayerSpeakingState.message}</div>
+                          <ChallengeDescriptionCard
+                            challengeTitle={challengeTitle}
+                            challengeDescription={challengeDescription}
+                            challengeIntro={challengeIntro}
+                            currentChallenge={currentChallenge}
+                            challengeAmount={challengeAmount}
+                          />
                         </div>
-                      )}
+
+                        <div
+                          className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
+                          style={{ minHeight: 0 }}
+                        >
+                          <StakeholderInteractionArea
+                            className="w-100 h-100"
+                            chatMsgs={chatMsgsState}
+                            engagementCards={cards}
+                            current_phase={currentPhase}
+                            current_challenge={currentChallenge}
+                            isEnabled={true}
+                            isTyping={busyConversationKeys.size > 0 || isPitchEvaluating}
+                            typingText={isPitchEvaluating ? "Stakeholders are reviewing the action proposal..." : "A stakeholder is typing..."}
+                            isPitchEvaluating={isPitchEvaluating}
+                            evaluatingConversationId={evaluatingPitchConvId}
+                            actionCards={[]}
+                            onHoverCard={() => {}}
+                            showStakeholderList={false}
+                            showDialogueOptions={false}
+                            onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
+                          />
+
+
+                          {/* Maximize / Minimize button */}
+                          <button
+                            type="button"
+                            className={styles.chatMaximizeBtn}
+                            onClick={() => setIsChatMaximized(!isChatMaximized)}
+                            title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                          >
+                            <Icon
+                              icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
+                              className={styles.chatMaximizeBtnIcon}
+                            />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Right Sub-Column: Conversation History (Spans Full Height) */}
-                <div
-                  className={`${styles.chatCol} ${
-                    isChatMaximized ? styles.chatColMaximized : ""
-                  } d-flex flex-column h-100 overflow-hidden position-relative`}
-                  style={{ minHeight: 0, zIndex: isChatMaximized ? 2000 : 1 }}
-                >
-                  {/* Maximized Challenge Card Wrapper */}
-                  <div
-                    className={`${styles.maximizedChallengeWrapper} ${
-                      isChatMaximized ? styles.maximizedChallengeWrapperVisible : ""
-                    }`}
-                  >
-                    <ChallengeDescriptionCard
-                      challengeTitle={challengeTitle}
-                      challengeDescription={challengeDescription}
-                      challengeIntro={challengeIntro}
-                      currentChallenge={currentChallenge}
-                      challengeAmount={challengeAmount}
-                    />
-                  </div>
-
-                  <div
-                    className={`flex-grow-1 ${styles.chatWrapper} ${isChatMaximized ? styles.chatWrapperMaximized : ""}`}
-                    style={{ minHeight: 0 }}
-                  >
-                    <StakeholderInteractionArea
-                      className="w-100 h-100"
-                      chatMsgs={chatMsgsState}
-                      engagementCards={cards}
-                      current_phase={currentPhase}
-                      current_challenge={currentChallenge}
-                      isEnabled={true}
-                      isTyping={busyConversationKeys.size > 0 || isPitchEvaluating}
-                      typingText={isPitchEvaluating ? "Stakeholders are reviewing the action proposal..." : "A stakeholder is typing..."}
-                      isPitchEvaluating={isPitchEvaluating}
-                      evaluatingConversationId={evaluatingPitchConvId}
-                      actionCards={[]}
-                      onHoverCard={() => {}}
-                      showStakeholderList={false}
-                      showDialogueOptions={false}
-                      onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
-                    />
-
-
-                    {/* Maximize / Minimize button */}
-                    <button
-                      type="button"
-                      className={styles.chatMaximizeBtn}
-                      onClick={() => setIsChatMaximized(!isChatMaximized)}
-                      title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
-                    >
-                      <Icon
-                        icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
-                        className={styles.chatMaximizeBtnIcon}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lower Section: Engagement Cards Shelf OR Replaced by Active Dialogue Options */}
-              <div className={`flex-shrink-0 position-relative ${styles.lowerInteractionShelf}`}>
-                <AnimatePresence mode="wait" initial={false}>
-                  {hasActiveConversations ? (
-                    /* Dialogue Options Area replacing engagement cards while dialogue is active */
-                    <motion.div
-                      key="dialogue-options-shelf"
-                      className={styles.gatherConversationWrapper}
-                      initial={{ opacity: 0, y: 14, scale: 0.985 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.985 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                    >
-                      {Object.entries(conversations).map(([key, conv]) => (
-                        <GatherConversationPanel
-                          key={key}
-                          conversation={conv}
-                          avatar={stakeholders[conv.stakeholder_id]?.avatar}
-                          stakeholderColor={stakeholders[conv.stakeholder_id]?.stakeholder_color || "#38bdf8"}
-                          busy={busyConversationKeys.has(key)}
-                          onAsk={(opt, extra) => handleGatherAsk(conv, opt, extra)}
-                          onClose={() => handleGatherClose(conv)}
-                        />
-                      ))}
-                    </motion.div>
-                  ) : (
-                    /* Default Engagement Cards Deck Shelf */
-                    <motion.div
-                      key="engagement-cards-shelf"
-                      className={styles.engagementCardsWrapper}
-                      initial={{ opacity: 0, y: 14, scale: 0.985 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.985 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                    >
-                      <EngagementCards
-                        cards={cards}
-                        attentionTokens={tokens}
-                        playedCardIds={playedIds}
-                        onSelectCard={handleSelectEngagementCard}
-                        onDragCardStart={() => setIsDraggingCard(true)}
-                        onDragCardEnd={() => setIsDraggingCard(false)}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                    {/* Lower Section: Engagement Cards Shelf OR Replaced by Active Dialogue Options */}
+                    <div className={`flex-shrink-0 position-relative ${styles.lowerInteractionShelf}`}>
+                      <AnimatePresence mode="wait" initial={false}>
+                        {hasActiveConversations ? (
+                          /* Dialogue Options Area replacing engagement cards while dialogue is active */
+                          <motion.div
+                            key="dialogue-options-shelf"
+                            className={styles.gatherConversationWrapper}
+                            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 12, scale: 0.985 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                          >
+                            {Object.entries(conversations).map(([key, conv]) => (
+                              <GatherConversationPanel
+                                key={key}
+                                conversation={conv}
+                                avatar={stakeholders[conv.stakeholder_id]?.avatar}
+                                stakeholderColor={stakeholders[conv.stakeholder_id]?.stakeholder_color || "#38bdf8"}
+                                busy={busyConversationKeys.has(key)}
+                                onAsk={(opt, extra) => handleGatherAsk(conv, opt, extra)}
+                                onClose={() => handleGatherClose(conv)}
+                              />
+                            ))}
+                          </motion.div>
+                        ) : (
+                          /* Default Engagement Cards Deck Shelf */
+                          <motion.div
+                            key="engagement-cards-shelf"
+                            className={styles.engagementCardsWrapper}
+                            initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 12, scale: 0.985 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                          >
+                            <EngagementCards
+                              cards={cards}
+                              attentionTokens={tokens}
+                              playedCardIds={playedIds}
+                              onSelectCard={handleSelectEngagementCard}
+                              onDragCardStart={() => setIsDraggingCard(true)}
+                              onDragCardEnd={() => setIsDraggingCard(false)}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -1379,24 +1539,6 @@ export default function PitchDebate({
           />
         )}
       </div>
-
-      {/* Compose Action Proposal Modal */}
-      <ComposeActionProposalModal
-        isOpen={isPitchModalOpen}
-        onClose={() => setIsPitchModalOpen(false)}
-        currentPhase={currentPhase}
-        currentChallenge={currentChallenge}
-        initialAtomicChanges={atomicChanges}
-        onConfirmProposal={handleConfirmMergeProposal}
-        allowedTargets={pitchState?.allowed_targets || []}
-        upstreamMap={pitchState?.upstream_map || {}}
-        predictions={pitchState?.predictions || []}
-        boundaryWarnings={pitchState?.boundary_warnings || []}
-        intelItems={allIntelItems}
-        stakeholders={stakeholders as any}
-        getStakeholderColor={getStakeholderColor}
-        graphState={graphState}
-      />
 
       {/* Engagement Card Target Modal */}
       {playingCard && (
@@ -1430,6 +1572,19 @@ export default function PitchDebate({
         onClose={() => setEventsOpen(false)}
         events={events}
         onItemClick={(itemId) => setHighlightedIntelId(itemId)}
+      />
+
+      {/* Stakeholder Veto Dialog */}
+      <VetoDialog
+        isOpen={isVetoDialogOpen}
+        onClose={() => setIsVetoDialogOpen(false)}
+        onReviseProposal={() => {
+          setIsVetoDialogOpen(false);
+          setIsPitchModalOpen(true);
+        }}
+        vetoInfo={vetoInfo}
+        stakeholders={stakeholders as any}
+        getStakeholderColor={getStakeholderColor}
       />
 
       {/* Full Page Offline Intel Gathering View for Single Artifact Review */}

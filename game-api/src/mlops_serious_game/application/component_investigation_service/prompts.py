@@ -11,13 +11,15 @@ INVESTIGATION_PLAYER_UTTERANCE_PROMPT = ChatPromptTemplate.from_messages(
             "1. Generate a concise, natural, professional question or statement (1-2 sentences maximum) addressed to {{target_stakeholder_name}}.\n"
             "2. Inquire specifically about the architecture, current implementation status, operational telemetry, or known constraints of {{component_name}}.\n"
             "3. Sound like a pragmatic, collaborative technical leader.\n"
-            "4. Strictly output ONLY the spoken sentence. Do NOT include quotes, speaker labels, greetings like 'Hello Dave:' or markdown formatting.",
+            "4. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention game elements like 'action cards', 'engagement cards', 'cards', 'dialogue options', 'game turns', or other mechanics.\n"
+            "5. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity by index/number (e.g. 'level 1', 'level 2'). Refer to it by description (e.g. 'absent', 'manual', 'automated', 'governed') or operational status.\n"
+            "6. Strictly output ONLY the spoken sentence. Do NOT include quotes, speaker labels, greetings like 'Hello Dave:' or markdown formatting.",
         ),
         (
             "human",
             "Recent dialogue context:\n{{history}}\n\n"
             "Target Component: {{component_name}}\n"
-            "Dialogue option selected: {{dialogue_option_prompt}}\n\n"
+            "Discussion inquiry focus: {{dialogue_option_prompt}}\n\n"
             "Please generate the Project Manager's spoken inquiry to {{target_stakeholder_name}}:",
         ),
     ],
@@ -44,7 +46,9 @@ INVESTIGATION_STAKEHOLDER_RESPONSE_PROMPT = ChatPromptTemplate.from_messages(
             "1. Respond in character with your persona, tone, and emotional state.\n"
             "2. Directly incorporate and explain the technical finding/requirement about {{component_name}} in a natural, conversational way (2-3 sentences).\n"
             "3. Speak naturally as a teammate sharing real operational realities, technical constraints, or architectural facts.\n"
-            "4. Strictly output ONLY your spoken response. Do NOT include quotes, speaker prefixes (e.g., 'Dave:'), or meta commentary.",
+            "4. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention out-of-universe game elements like 'engagement cards', 'action cards', 'cards', 'dialogue options', or game mechanics.\n"
+            "5. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity or status by number/index (e.g. 'level 0', 'level 1', 'level 2'). Always describe component maturity using descriptive terms (e.g. 'absent', 'manual', 'automated', 'governed') or operational realities.\n"
+            "6. Strictly output ONLY your spoken response. Do NOT include quotes, speaker prefixes (e.g., 'Dave:'), or meta commentary.",
         ),
         (
             "human",
@@ -70,7 +74,8 @@ GENERATE_COMPONENT_FACT_PROMPT = ChatPromptTemplate.from_messages(
             "1. Output exactly ONE concise, technical, factual sentence (15-25 words).\n"
             "2. Describe an objective observation about the pipeline configuration, telemetry, validation rules, or automation status.\n"
             "3. Must be factual and neutral in tone (e.g., 'Telemetry logs show...', 'Diagnostic audit confirms...', 'Interface telemetry indicates...').\n"
-            "4. Strictly NO introductory text, quotes, bullet points, or markdown formatting.",
+            "4. NO OUT-OF-UNIVERSE GAME TERMINOLOGY OR MATURITY INDICES: Never use game terms ('cards', 'levels') or numerical maturity indices ('level 1', 'level 2'). Use descriptive maturity terms ('absent', 'manual', 'automated', 'governed') or operational descriptions.\n"
+            "5. Strictly NO introductory text, quotes, bullet points, or markdown formatting.",
         ),
         (
             "human",

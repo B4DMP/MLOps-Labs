@@ -114,7 +114,13 @@ def build_graph_state(
     for s in graph.stages:
         reached = _stage_reached(s, current_phase_id)
         if not reached:
-            stages.append({"id": s.id, "name": s.name, "band": s.band, "locked": True})
+            stages.append({
+                "id": s.id,
+                "name": s.name,
+                "phase_id": s.phase_id,
+                "band": s.band,
+                "locked": True,
+            })
             continue
 
         sv = sv_by_id[s.id]
@@ -125,6 +131,7 @@ def build_graph_state(
         stages.append({
             "id": s.id,
             "name": s.name,
+            "phase_id": s.phase_id,
             "band": s.band,
             "locked": False,
             "health": sv.health,
@@ -164,7 +171,14 @@ def build_graph_state(
             ks = knowledge.state_of(c.id, state)
 
             if ks == "unknown":
-                base = {"id": c.id, "name": c.name, "owner_id": owner, "knowledge": "unknown"}
+                base = {
+                    "id": c.id,
+                    "name": c.name,
+                    "stage_id": c.stage_id,
+                    "owner_id": owner,
+                    "knowledge": "unknown",
+                    "allowed_levels": c.allowed_levels,
+                }
                 if c.layout:
                     base["layout"] = c.layout
                 components.append(base)
@@ -182,10 +196,12 @@ def build_graph_state(
             comp: dict = {
                 "id": c.id,
                 "name": c.name,
+                "stage_id": c.stage_id,
                 "owner_id": owner,
                 "knowledge": ks,
                 "nominal": nominal,
                 "effective": eff_val,
+                "allowed_levels": c.allowed_levels,
                 "story": story_for(graph, state, c.id, nominal),
                 **extra,
             }
@@ -216,7 +232,16 @@ def build_graph_state(
             ks = knowledge.state_of(e.id, state)
 
             if ks == "unknown":
-                edges.append({"id": e.id, "from_id": e.from_id, "to_id": e.to_id, "kind": e.kind, "knowledge": "unknown"})
+                edges.append({
+                    "id": e.id,
+                    "from_id": e.from_id,
+                    "to_id": e.to_id,
+                    "kind": e.kind,
+                    "slack": e.slack,
+                    "knowledge": "unknown",
+                    "allowed_levels": e.allowed_levels,
+                    "allowed_triggers": e.allowed_triggers,
+                })
                 continue
 
             if ks == "stale":
@@ -234,9 +259,12 @@ def build_graph_state(
                 "from_id": e.from_id,
                 "to_id": e.to_id,
                 "kind": e.kind,
+                "slack": e.slack,
                 "knowledge": ks,
                 "level": lv,
                 "trigger": trigger,
+                "allowed_levels": e.allowed_levels,
+                "allowed_triggers": e.allowed_triggers,
                 "story": story_for(graph, state, e.id, lv),
                 **extra,
             }

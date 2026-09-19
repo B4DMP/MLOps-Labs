@@ -727,18 +727,18 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "req.kpi_definition",
-        "level": 2
+        "level": 1
       },
       "holds": {
         "component": "req.kpi_definition",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.kpi_definition",
-          "value": 2
+          "value": 1
         }
       ],
       "gist": "The governance and manual review requirements for KPI definitions have been raised by {requirements_reuben}."
@@ -853,13 +853,13 @@
       "holds": {
         "component": "req.acceptance_criteria",
         "op": "gte",
-        "level": 4
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.acceptance_criteria",
-          "value": 4
+          "value": 1
         }
       ],
       "gist": "The acceptance criteria process and its alignment with security standards has been raised by {requirements_reuben}."
@@ -1411,13 +1411,13 @@
       "holds": {
         "component": "data.labeling",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.labeling",
-          "value": 3
+          "value": 1
         }
       ]
     },
@@ -1534,13 +1534,13 @@
       "holds": {
         "component": "data.validation",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 4
+          "value": 1
         }
       ],
       "gist": "Consistency in reliability checks keeps coming up whenever you talk to {reliability_ruth}."
@@ -2185,13 +2185,13 @@
       "holds": {
         "component": "model.registry",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.registry",
-          "value": 4
+          "value": 1
         }
       ],
       "gist": "Governing the model registry has been raised as a topic during discussions about operational efficiency."
@@ -2851,13 +2851,13 @@
       "holds": {
         "component": "ops.performance_monitoring",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "ops.production_drift_monitoring",
-          "value": 3
+          "target": "ops.performance_monitoring",
+          "value": 1
         }
       ],
       "gist": "Drift monitoring in the model workflow keeps coming up in conversations with {model_monica}."
@@ -2873,13 +2873,13 @@
       "holds": {
         "component": "ops.observability",
         "op": "gte",
-        "level": 4
+        "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.observability",
-          "value": 4
+          "value": 3
         }
       ],
       "gist": "Governance of the observability logs has been proposed by {requirements_reuben}."
@@ -2888,16 +2888,58 @@
       "id": "gen_blind_spot_silence_emilia_cost_concession",
       "challenge_id": 104,
       "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} asked for an automated retraining trigger to maintain model operational efficiency.",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} would compromise automated alerting for an automated retraining trigger.",
       "fact": "{efficiency_emilia} suggested that the alerting system remain manual.",
       "reading": "She would accept losing automated alerts if it saves the budget for the retraining pipeline.",
       "ops": [],
-      "gist": "The current state of the alerting system keeps coming up whenever you talk to {efficiency_emilia}.",
-      "suggested": {
+      "concedes": {
+        "target": "ops.alerting",
+        "accepts_max_level": 1
+      },
+      "branch_x": {
+        "name": "Automated Retraining Trigger",
+        "description": "an automated retraining trigger to maintain efficiency",
         "target": "ops.retraining_trigger",
-        "level": 3
-      }
+        "level": 2,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.retraining_trigger",
+            "value": 2
+          }
+        ],
+        "atoms": [
+          "raise_to(ops.retraining_trigger, 2)"
+        ]
+      },
+      "branch_y": {
+        "name": "Manual Alerting Review",
+        "description": "manual alerting to save operational budget",
+        "target": "ops.alerting",
+        "level": 1,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.alerting",
+            "value": 1
+          }
+        ],
+        "atoms": [
+          "raise_to(ops.alerting, 1)"
+        ]
+      },
+      "branch_x_atoms": [
+        "raise_to(ops.retraining_trigger, 2)"
+      ],
+      "branch_y_atoms": [
+        "raise_to(ops.alerting, 1)"
+      ],
+      "atoms": [
+        "raise_to(ops.retraining_trigger, 2)",
+        "raise_to(ops.alerting, 1)"
+      ],
+      "gist": "The current state of the alerting system keeps coming up whenever you talk to {efficiency_emilia}."
     },
     {
       "id": "gen_blind_spot_silence_fact_perf_monitoring_state",
@@ -3096,13 +3138,13 @@
       "holds": {
         "component": "ops.production_drift_monitoring",
         "op": "gte",
-        "level": 2
+        "level": 1
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 3
+          "value": 1
         }
       ],
       "gist": "Drift monitoring and compliance standards have been raised as a topic in discussions with {requirements_reuben}."

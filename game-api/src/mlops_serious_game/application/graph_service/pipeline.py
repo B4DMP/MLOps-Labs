@@ -57,11 +57,15 @@ class LevelPair(BaseModel):
 
 class TargetDelta(BaseModel):
     id: str
+    name: str = ""
     stage: str
     nominal: LevelPair
     effective: LevelPair
     capped_by: Optional[dict] = Field(default=None, description="{id, level} of the binding constraint")
     degraded_by: Optional[str] = Field(default=None, description="Owner who made the raise land lower")
+    owner_id: Optional[str] = None
+    owner_name: Optional[str] = None
+    status: str = "flawless"  # "flawless", "capped", "delayed", "degraded"
     story: str = ""
 
 
@@ -92,6 +96,17 @@ class GrudgeReport(BaseModel):
     fired: list[FiredGrudge] = Field(default_factory=list)
 
 
+class StakeholderExecutionDelta(BaseModel):
+    stakeholder_id: str
+    name: str = ""
+    power: str = "low"
+    interest: str = "low"
+    status: str = "committed"  # "committed", "resistant", "overridden"
+    delivery_sentiment: Optional[str] = None  # "clean_delivery", "capped_delivery", "technical_debt"
+    emotion_deltas: dict[str, float] = Field(default_factory=dict)
+    story: str = ""
+
+
 class DeltaReport(BaseModel):
     outcome: str
     targets: list[TargetDelta] = Field(default_factory=list)
@@ -104,6 +119,7 @@ class DeltaReport(BaseModel):
     patterns: PatternDiff = Field(default_factory=PatternDiff)
     grudges: GrudgeReport = Field(default_factory=GrudgeReport)
     metric_deltas: dict[str, int] = Field(default_factory=dict)
+    stakeholders: list[StakeholderExecutionDelta] = Field(default_factory=list)
 
 
 class SimulationResult(BaseModel):
@@ -309,6 +325,48 @@ def grudges_created(
     return []
 
 
+def _stakeholder_execution(
+    reads: Sequence[Any],
+    outcome: str,
+    overridden_stakeholder_id: Optional[str] = None,
+    names: Optional[dict[str, str]] = None,
+) -> list[StakeholderExecutionDelta]:
+    from mlops_serious_game.application.pitch_debate_service.scoring import OBJECTION_THRESHOLD
+
+    names = names or {}
+    results: list[StakeholderExecutionDelta] = []
+    for r in reads:
+        st_id = getattr(r, "stakeholder_id", None)
+        if not st_id:
+            continue
+        power = getattr(r, "power", "low")
+        interest = getattr(r, "interest", "low")
+        is_overridden = outcome == VETO_BROKEN and st_id == overridden_stakeholder_id
+        is_resistant = power == "low" and (getattr(r, "boundary_violated", False) or getattr(r, "buy_in", 1.0) < OBJECTION_THRESHOLD)
+
+        status = "overridden" if is_overridden else ("resistant" if is_resistant else "committed")
+
+        story = ""
+        if status == "committed":
+            story = "Fully backed the proposal and completed all assigned implementation work flawlessly."
+        elif status == "resistant":
+            story = "Disagreed with the proposal and lacked commitment, causing delays, missing metadata, or partial implementation shortcuts."
+        elif status == "overridden":
+            story = "Overruled by an escalation. Backed down reluctantly, reducing support on owned systems."
+
+        results.append(
+            StakeholderExecutionDelta(
+                stakeholder_id=st_id,
+                name=names.get(st_id, st_id),
+                power=power,
+                interest=interest,
+                status=status,
+                story=story,
+            )
+        )
+    return results
+
+
 # ---------------------------------------------------------------------------
 # Step 10: metrics
 # ---------------------------------------------------------------------------
@@ -370,18 +428,46 @@ def _target_deltas(
     before: GraphEvaluation,
     after: GraphEvaluation,
     degraded_by: dict[str, Optional[str]],
+    debt_created: Optional[Sequence[Any]] = None,
+    names: Optional[dict[str, str]] = None,
 ) -> list[TargetDelta]:
+    names = names or {}
+    debt_targets = {getattr(d, "target_id", None) for d in (debt_created or []) if getattr(d, "target_id", None)}
     deltas: list[TargetDelta] = []
     for target in targets:
         if not graph.is_target(target):
             continue
+        capped = _capped_by(graph, after, target)
+        degraded = degraded_by.get(target)
+        owner_id = graph.owner_of(target)
+        owner_name = names.get(owner_id, owner_id) if owner_id else None
+
+        if degraded:
+            status = "degraded"
+        elif capped:
+            status = "capped"
+        elif target in debt_targets:
+            status = "delayed"
+        else:
+            status = "flawless"
+
+        target_name = (
+            graph.component(target).name
+            if graph.is_component(target)
+            else (getattr(graph.edge(target), "name", None) or target)
+        )
+
         deltas.append(TargetDelta(
             id=target,
+            name=target_name,
             stage=graph.stage_of(target),
             nominal=LevelPair(before=before_state.level(target), after=after_state.level(target)),
             effective=LevelPair(before=_effective(before, target), after=_effective(after, target)),
-            capped_by=_capped_by(graph, after, target),
-            degraded_by=degraded_by.get(target),
+            capped_by=capped,
+            degraded_by=degraded,
+            owner_id=owner_id,
+            owner_name=owner_name,
+            status=status,
             story=_story(graph, after_state, target),
         ))
     return deltas
@@ -548,6 +634,7 @@ def simulate(
     patterns: Optional[list[Pattern]] = None,
     pattern_order: Optional[list[str]] = None,
     metrics: Optional[Sequence[Any]] = None,
+    names: Optional[dict[str, str]] = None,
 ) -> SimulationResult:
     """The whole simulation phase for one committed card. Pure: nothing here reads or writes."""
     patterns = patterns if patterns is not None else PatternFactory.patterns
@@ -564,7 +651,7 @@ def simulate(
         # Lazily imported: the pure graph modules stay usable without the pitch service.
         from mlops_serious_game.application.pitch_debate_service.session import card_ops
 
-        card = card_ops(list(card_items))
+        card = card_ops(list(card_items), graph=graph, state=before_state)
 
     applied: ApplyResult = apply_ops(graph, before_state, card, owner_buyin)   # 4
     state = applied.state
@@ -611,6 +698,7 @@ def simulate(
     touched = set(card_targets) | set(world_targets)
     stage_health, system_health = _health(before, after)
     created = grudges_created(outcome, reads, getattr(challenge, "template_id", None), overridden_stakeholder_id)
+    stakeholders = _stakeholder_execution(reads, outcome, overridden_stakeholder_id, names)
 
     observe = [                                                                # 11
         GraphOp(kind="observe", target=target, source_kind="action_card") for target in card_targets
@@ -618,7 +706,17 @@ def simulate(
 
     report = DeltaReport(
         outcome=outcome,
-        targets=_target_deltas(graph, card_targets, before_state, state, before, after, degraded_by),
+        targets=_target_deltas(
+            graph,
+            card_targets,
+            before_state,
+            state,
+            before,
+            after,
+            degraded_by,
+            applied.debt_created,
+            names,
+        ),
         debt_created=applied.debt_created,
         debt_cleared=applied.debt_cleared,
         world_events=events,
@@ -628,6 +726,7 @@ def simulate(
         patterns=_pattern_diff(before, after),
         grudges=GrudgeReport(created=created, fired=fired),
         metric_deltas=metric_deltas(before, after, metrics),                   # 10
+        stakeholders=stakeholders,
     )
     return SimulationResult(
         report=report,
@@ -695,6 +794,7 @@ def run_simulation(
         overridden_stakeholder_id=overridden_stakeholder_id,
         upcoming_world_events=upcoming_world_events,
         seed=seed if seed is not None else username,
+        names=names,
     )
     result = result.model_copy(update={
         "events": simulation_events(result.report, graph, result.state, replay.knowledge, names)

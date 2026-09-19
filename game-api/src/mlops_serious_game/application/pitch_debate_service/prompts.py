@@ -5,7 +5,7 @@ You generate what the player (MLOps Project Manager) says aloud in an ongoing en
 
 Challenge Context: {{challenge}}
 {% if card_title %}
-Engagement Card: {{card_title}} ({{card_description}})
+Meeting / Discussion Topic: {{card_title}} ({{card_description}})
 {% endif %}
 Addressed Stakeholder: {{target_stakeholder_name}} ({{target_stakeholder_role}})
 Dialogue Option Label: {{dialogue_option_label}}
@@ -24,9 +24,11 @@ CRITICAL INSTRUCTIONS:
 {% else %}
    - Ongoing interaction: Smoothly continue the conversation and connect with previous discussion points.
 {% endif %}
-3. BREVITY & SENTENCE LIMIT: Strictly 1-2 sentences (maximum 2 sentences). Never write more than 2 sentences under any circumstances.
-4. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
-5. NO STAGE DIRECTIONS OR QUOTES: Do not include stage directions, parentheticals, or quotation marks around your speech. Output ONLY the exact spoken utterance."""
+3. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention game elements like "engagement cards", "action cards", "cards", "dialogue options", "tokens", or game mechanics. Refer naturally to meetings, discussions, sync-ups, or action proposals.
+4. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity or graph status by numbers or indices (e.g., never say "level 1", "level 2", "index 0"). Always describe component maturity using qualitative terms like "absent", "broken", "manual", "automated", "governed", or by describing the component's operational reality.
+5. BREVITY & SENTENCE LIMIT: Strictly 1-2 sentences (maximum 2 sentences). Never write more than 2 sentences under any circumstances.
+6. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
+7. NO STAGE DIRECTIONS OR QUOTES: Do not include stage directions, parentheticals, or quotation marks around your speech. Output ONLY the exact spoken utterance."""
 
 PLAYER_UTTERANCE_HUMAN_PROMPT = """Recent Conversation History:
 {{history}}
@@ -51,7 +53,7 @@ Context:
 - Stakeholder Responsibilities: {{responsibilities or stakeholder_responsibilities}}
 - Stakeholder Priorities: {{priorities or stakeholder_priorities}}
 - Current Emotion: {{emotion or current_emotion}}
-- Dialogue Option Type: {{option_type or dialogue_option_type}}
+- Discussion Topic / Focus: {{option_type or dialogue_option_type}}
 {% if component_name %}
 - Component: {{component_name}}
 {% endif %}
@@ -71,9 +73,11 @@ CRITICAL INSTRUCTIONS:
 1. State naturally in character that you do not have any specific concerns or additional requirements on this topic at the moment, or state a brief vague observation aligned with your general role and priorities (e.g. keeping things stable, within budget, or automated).
 {% endif %}
 2. Directly respond to what the MLOps Project Manager just asked or brought up.
-3. BREVITY: Strictly 1-2 sentences (maximum 2 sentences).
-4. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
-5. NO STAGE DIRECTIONS OR QUOTES: Do not include stage directions, emotions in brackets, or quotes around the speech. Output ONLY the exact spoken utterance."""
+3. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention game elements like "engagement cards", "action cards", "cards", "dialogue options", "turns", or game mechanics. Speak naturally as a teammate in a professional workplace discussion.
+4. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity or graph status by numbers or indices (e.g. "level 0", "level 1", "level 2"). Always refer to maturity using descriptions (e.g. "absent", "broken", "manual", "automated", "governed") or functional state.
+5. BREVITY: Strictly 1-2 sentences (maximum 2 sentences).
+6. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
+7. NO STAGE DIRECTIONS OR QUOTES: Do not include stage directions, emotions in brackets, or quotes around the speech. Output ONLY the exact spoken utterance."""
 
 STAKEHOLDER_ENGAGEMENT_RESPONSE_HUMAN_PROMPT = """Recent Conversation History:
 {{history}}
@@ -103,10 +107,12 @@ Proposed Action Plan:
 CRITICAL INSTRUCTIONS:
 1. Speak in 1st person ('I' or 'We').
 2. Welcome the stakeholders to the meeting, and briefly introduce the proposed action plan in one clear, concise sentence.
-3. BREVITY & SENTENCE LIMIT: Keep the entire opening strictly to at most 2 sentences total (maximum 2 sentences: e.g. a brief welcome + 1 concise sentence introducing the proposed action plan). Never exceed 2 sentences under any circumstances.
-4. Do NOT include stage directions, meta-commentary, or quotes around the output.
-5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
-6. Output ONLY the exact spoken opening utterance."""
+3. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention words like "action card", "card", or game mechanics. Refer to it as the action plan, proposal, or mitigation strategy.
+4. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity by number or index (e.g. "level 1"). Always use descriptive terms (e.g. "absent", "manual", "automated", "governed").
+5. BREVITY & SENTENCE LIMIT: Keep the entire opening strictly to at most 2 sentences total (maximum 2 sentences: e.g. a brief welcome + 1 concise sentence introducing the proposed action plan). Never exceed 2 sentences under any circumstances.
+6. Do NOT include stage directions, meta-commentary, or quotes around the output.
+7. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
+8. Output ONLY the exact spoken opening utterance."""
 
 PLAYER_KICKOFF_HUMAN_PROMPT = """Open the meeting and present the proposed action plan now."""
 
@@ -135,9 +141,10 @@ CRITICAL INSTRUCTIONS:
    - "Diagnostic traces reveal the model registry is operating with manual version promotion flags and lacks automated regression gate checks."
    - "System metrics show inference service latency spikes under load due to missing batching queues in the serving container."
 2. Do NOT frame it as a stakeholder demand or personal opinion. This is a technical system observation, not a personal stance.
-3. BREVITY: Strictly 1 sentence (maximum 2 sentences).
-4. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
-5. NO STAGE DIRECTIONS OR QUOTES: Output ONLY the exact factual observation."""
+3. NO OUT-OF-UNIVERSE GAME TERMINOLOGY & NO MATURITY INDICES: Never mention game elements ("cards", "levels", "scores") or numeric maturity indices ("level 1", "level 2"). Use descriptive maturity terms ("absent", "manual", "automated", "governed") or operational findings.
+4. BREVITY: Strictly 1 sentence (maximum 2 sentences).
+5. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods for pauses instead.
+6. NO STAGE DIRECTIONS OR QUOTES: Output ONLY the exact factual observation."""
 
 GENERATE_COMPONENT_FACT_HUMAN_PROMPT = """Generate the diagnostic technical observation for {{component_name}} now:"""
 

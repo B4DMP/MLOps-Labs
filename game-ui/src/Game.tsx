@@ -698,7 +698,12 @@ function App({ username: _username }: AppProps) {
     });
   };
 
-  const handlePitchDebateEnd = (_passed: boolean) => {
+  const handlePitchDebateEnd = (_passed: boolean, card?: ActionCard | null) => {
+    if (card) {
+      setPitchedActionCard(card);
+    }
+    const finalCard = card || pitchedActionCard || {};
+
     let _metric_values: any = [];
     Object.values(metrics).forEach((x) => {
       _metric_values.push(x.value ?? 0);
@@ -710,7 +715,7 @@ function App({ username: _username }: AppProps) {
       phase_id: currentPhase,
       challenge_loop_index: 2,
       metric_values: _metric_values,
-      action_card: pitchedActionCard || {},
+      action_card: finalCard,
       messages: chat_msgs,
       attention_tokens: attentionTokens,
     });

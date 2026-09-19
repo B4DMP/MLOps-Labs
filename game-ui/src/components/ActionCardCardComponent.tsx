@@ -298,7 +298,7 @@ export default function ActionCardCardComponent({
                       </div>
                       {pred?.upstream_uncertain && (
                         <div className="text-warning fw-semibold" style={{ fontSize: "0.7rem" }}>
-                          ❓ Functional Status Uncertain: Upstream predecessor in Fog of War.
+                          ❓ Functional Status Uncertain: Upstream predecessor is undiscovered.
                         </div>
                       )}
                       {pred?.capped_by && (

@@ -100,11 +100,8 @@ def buy_in(
     """Per-stakeholder buy-in score in [0.0, 1.0].
     
     Maps alignment_val [-1.0, 1.0] -> [0.0, 1.0] and combines with emotions_norm.
-    Boundary violation drops the card demand alignment contribution to 0.0,
-    leaving only the emotion value component.
+    Boundaries are treated as requirements directly within demand alignment.
     """
-    if boundary_violated:
-        return max(0.0, min(1.0, round(0.4 * emotions_val, 3)))
     norm_align = max(0.0, min(1.0, 0.5 * (alignment_val + 1.0)))
     raw = 0.6 * norm_align + 0.4 * emotions_val
     return max(0.0, min(1.0, round(raw, 3)))

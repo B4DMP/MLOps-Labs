@@ -38,6 +38,10 @@ class Stakeholder(BaseModel):
         default_factory=list,
         description="Interchangeable names and looks, one of which each player is dealt",
     )
+    emotion_sensitivities: dict[str, float] = Field(
+        default_factory=dict,
+        description="Dimensional sensitivity multipliers for pitch evaluation",
+    )
 
     def with_persona(
         self, persona: Optional[Persona], personas: Optional[PersonaMap] = None

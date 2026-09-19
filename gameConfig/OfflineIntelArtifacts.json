@@ -1632,8 +1632,8 @@
       "artifact_type": "email",
       "content": "Email from Emilia:\n'When models degrade, retraining them manually is slow and resource-intensive. Implementing an automated retraining trigger will save operational effort and keep models fresh.'",
       "wrong_descriptions": {
+        "driver": "She wants an automated retraining trigger to maintain operational efficiency.",
         "boundary": "She will freeze production if retraining is done by hand.",
-        "trade_off": "She will trade retraining triggers for manual alerting.",
         "fact": "That is simply how model retraining is executed today."
       },
       "is_known": false

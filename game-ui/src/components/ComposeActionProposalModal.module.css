@@ -1,37 +1,16 @@
 /* ComposeActionProposalModal.module.css */
 
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(4px);
-  z-index: 2100;
-}
-
-.dialogWrapper {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  z-index: 2101;
-  pointer-events: none;
-}
-
-.modalContainer {
-  pointer-events: auto;
-  width: 95vw;
-  max-width: 1400px;
-  height: 90vh;
-  max-height: 900px;
+.proposalContainer {
+  width: 100%;
+  height: 100%;
   background: #ffffff;
   border-radius: 0.75rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.15);
-  border: 1px solid #cbd5e1;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Modal Header */
@@ -87,22 +66,24 @@
 }
 
 .closeBtn {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 1.25rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0.2rem;
+  padding: 0.35rem 0.75rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 0.375rem;
+  gap: 0.4rem;
+  border-radius: 0.5rem;
   transition: all var(--transition);
 }
 
 .closeBtn:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Stage Navigation Tabs */
@@ -169,6 +150,16 @@
   border: 1px solid #cbd5e1;
   padding: 0.1rem 0.4rem;
   border-radius: 9999px;
+}
+
+.stageBadgeOtherPhase {
+  font-size: 0.65rem;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-weight: 600;
 }
 
 /* Main Split Body */
@@ -293,7 +284,7 @@
   font-weight: 600;
 }
 
-/* Fog of War Banner */
+/* Undiscovered Banner */
 .fogBanner {
   background: #f8fafc;
   border: 1.5px dashed #94a3b8;
@@ -347,6 +338,69 @@
   color: #166534;
   font-size: 0.78rem;
   line-height: 1.35;
+}
+
+/* Phase Locked Banner */
+.lockedPhaseBanner {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: #475569;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+/* Form Controls */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.formLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.selectInput {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.8rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.selectInput:focus {
+  border-color: var(--primary-bg);
+}
+
+.selectInput:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.edgeBadgeKind {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: #e2e8f0;
+  color: #334155;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
 }
 
 /* Empty Inspector State */

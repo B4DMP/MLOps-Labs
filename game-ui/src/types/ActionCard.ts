@@ -1,7 +1,9 @@
 export interface AtomicChange {
   target: string;
-  kind: "raise_to";
-  value?: number;
+  kind?: "raise_to" | "set_trigger" | "set_attr" | string;
+  value?: any;
+  trigger?: string;
+  attr?: string;
 }
 
 export type ActionCard = {

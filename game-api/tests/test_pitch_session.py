@@ -162,3 +162,58 @@ def test_commit_pitch_locks_stage_and_events():
     assert committed.outcome == "PASS"
     assert len(events) == 1
     assert events[0].cause == "outcome.pass"
+
+
+def test_agreeing_stakeholder_receives_positive_emotions(real):
+    state = GraphState.from_config(real)
+    driver = _item(
+        "d1", "data_dave", "driver",
+        categorized_type="driver",
+        suggested=_target("data.validation", 3),
+    )
+    room = [("data_dave", "high")]
+    emotions = {"data_dave": {"fairness": 0.5, "trust": 0.5, "stress": 0.5, "confidence": 0.5, "perceived_risk": 0.5, "interest": 0.5, "sense_of_control": 0.5}}
+
+    pitch_state, view, to_correct = session.evaluate_pitch(
+        graph=real,
+        state=state,
+        all_intel=[driver],
+        card_item_ids={"d1"},
+        room=room,
+        current_emotions=emotions,
+        held_items=[driver],
+        names={"data_dave": "Dave"},
+    )
+
+    # Must have approval feedback message
+    assert any(m.kind == "approval" for m in pitch_state.feedback_messages)
+    assert not pitch_state.objections
+    assert view.outcome == "PASS"
+
+    # Must receive positive emotion changes
+    deltas = pitch_state.emotion_deltas.get("data_dave", {})
+    assert deltas["fairness"] > 0
+    assert deltas["trust"] > 0
+    assert deltas["confidence"] > 0
+    assert deltas["sense_of_control"] > 0
+    assert deltas["stress"] < 0  # stress relieved
+    assert deltas["perceived_risk"] < 0  # perceived risk lowered
+
+
+def test_edge_editing_and_trigger_in_atomic_changes(real):
+    state = GraphState.from_config(real)
+    edge_change = session.AtomicChange(
+        target="e.ingest_validate",
+        kind="raise_to",
+        value=3,
+        trigger="on_data_arrival",
+    )
+    ops = session.atomic_changes_to_ops(real, state, [edge_change])
+    assert len(ops) == 2
+    assert ops[0].kind == "raise_to" and ops[0].target == "e.ingest_validate" and ops[0].value == 3
+    assert ops[1].kind == "set_trigger" and ops[1].target == "e.ingest_validate" and ops[1].value == "on_data_arrival"
+
+    after = session.predicted_state(real, state, [edge_change])
+    assert after.level("e.ingest_validate") == 3
+    assert after.edge_triggers.get("e.ingest_validate") == "on_data_arrival"
+

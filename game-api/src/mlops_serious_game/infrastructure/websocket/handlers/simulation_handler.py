@@ -23,6 +23,7 @@ from mlops_serious_game.domain.emotion import SIMULATION_OUTCOMES
 from mlops_serious_game.domain.grudge import Grudge
 from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
+from mlops_serious_game.domain.requirement import item_target_and_level
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import PitchContext
 
@@ -37,24 +38,35 @@ OUTCOME_MAP = {
 
 
 def _outcome_for(state: "pitch.PitchState") -> str:
-    if state.outcome == "PASS" and state.patience and any(p <= 0 for p in state.patience.values()):
+    patience = getattr(state, "patience", None)
+    if state.outcome == "PASS" and patience and any(p <= 0 for p in patience.values()):
         # Patience at zero with the card through means it was pushed through (D7).
         return VETO_BROKEN
     return OUTCOME_MAP.get(state.outcome or "PASS", PASS)
 
 
 def _overridden(state: "pitch.PitchState") -> Optional[str]:
-    spent = [st_id for st_id, left in (state.patience or {}).items() if left <= 0]
+    spent = [st_id for st_id, left in (getattr(state, "patience", None) or {}).items() if left <= 0]
     return spent[0] if spent else None
 
 
-def _story(report: Any) -> dict[str, Any]:
+def _story(report: Any, sim_deltas: Optional[dict] = None) -> dict[str, Any]:
     """The report as the screen reads it, with persona names rendered."""
     data = report.model_dump(mode="json")
     for target in data.get("targets", []):
         target["story"] = personalize(target.get("story") or "")
+        if target.get("name"):
+            target["name"] = personalize(target["name"])
+        if target.get("owner_name"):
+            target["owner_name"] = personalize(target["owner_name"])
     for event in data.get("world_events", []):
         event["reason"] = personalize(event.get("reason") or "")
+    for st in data.get("stakeholders", []):
+        st["story"] = personalize(st.get("story") or "")
+        st["name"] = personalize(st.get("name") or "")
+        st_id = st.get("stakeholder_id")
+        if sim_deltas and st_id in sim_deltas:
+            st["emotion_deltas"] = sim_deltas[st_id]
     return data
 
 
@@ -62,6 +74,7 @@ def _calculate_simulation_emotion_deltas(
     report: Any,
     card_items: list,
     room_st_ids: list[str],
+    all_intel: Optional[list] = None,
 ) -> dict[str, dict[str, float]]:
     deltas: dict[str, dict[str, float]] = {}
     capped_targets = {
@@ -71,13 +84,21 @@ def _calculate_simulation_emotion_deltas(
     }
     has_debt = bool(getattr(report, "debt_created", []))
 
+    card_targets = set()
+    for item in card_items:
+        if isinstance(item, pitch.AtomicChange) or hasattr(item, "target"):
+            t = getattr(item, "target", None)
+            if t:
+                card_targets.add(t)
+        suggested = getattr(item, "suggested", None)
+        if suggested and getattr(suggested, "target", None):
+            card_targets.add(suggested.target)
+        for raw_op in getattr(item, "ops", None) or []:
+            if isinstance(raw_op, dict) and "target" in raw_op:
+                card_targets.add(raw_op["target"])
+
     for st_id in room_st_ids:
         st_items = [i for i in card_items if getattr(i, "stakeholder_id", None) == st_id]
-        if not st_items:
-            if has_debt:
-                deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
-            continue
-
         st_targets = set()
         for item in st_items:
             suggested = getattr(item, "suggested", None)
@@ -86,6 +107,18 @@ def _calculate_simulation_emotion_deltas(
             for raw_op in getattr(item, "ops", None) or []:
                 if isinstance(raw_op, dict) and "target" in raw_op:
                     st_targets.add(raw_op["target"])
+
+        if not st_targets and all_intel:
+            for item in all_intel:
+                if getattr(item, "stakeholder_id", None) == st_id:
+                    t, _ = item_target_and_level(item)
+                    if t and t in card_targets:
+                        st_targets.add(t)
+
+        if not st_targets:
+            if has_debt:
+                deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
+            continue
 
         if st_targets and any(t in capped_targets for t in st_targets):
             deltas[st_id] = dict(SIMULATION_OUTCOMES["capped_delivery"])
@@ -102,7 +135,11 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     state = pitch_store.load_pitch(username, ctx.phase_id, ctx.challenge_id) or pitch.start_pitch(ctx.room_ids)
     view = ctx.view(state)
     grudges = [Grudge.model_validate(g) for g in pitch_store.load_grudges(username)]
-    c_items = pitch.card_items(list(ctx.all_intel), set(state.card_item_ids))
+    c_items = state.atomic_changes if getattr(state, "atomic_changes", None) else (
+        pitch.card_items(list(ctx.all_intel), set(getattr(state, "card_item_ids", [])))
+        if getattr(state, "card_item_ids", None)
+        else []
+    )
 
     result = run_simulation(
         username,
@@ -117,7 +154,7 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     )
 
     pitch_store.replace_grudges(username, [g.model_dump(mode="json") for g in result.grudges])
-    sim_deltas = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids)
+    sim_deltas = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids, list(ctx.all_intel))
     if sim_deltas:
         pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
 
@@ -132,7 +169,7 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
         payload={
             "phase_id": ctx.phase_id,
             "challenge_id": ctx.challenge_id,
-            "report": _story(result.report),
+            "report": _story(result.report, sim_deltas),
             "pending_objections": [p.model_dump(mode="json") for p in result.pending_objections],
             "next_challenge": next_challenge,
         },

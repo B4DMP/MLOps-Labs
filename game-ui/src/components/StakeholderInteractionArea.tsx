@@ -42,6 +42,7 @@ export type ChatMsg = {
   id: string;
   message: string;
   ac_id: number;
+  emotional_state?: string;
   facial_expression?: string;
   revealed_intel?: RevealedIntel[];
   conversation_id?: string;

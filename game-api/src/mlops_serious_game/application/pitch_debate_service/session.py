@@ -26,6 +26,7 @@ from mlops_serious_game.domain.emotion import (
     calculate_dynamic_weights,
     calculate_pitch_deltas,
     calculate_reactivity,
+    get_misclassification_malus,
     get_patience_malus,
 )
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
@@ -33,6 +34,7 @@ from mlops_serious_game.domain.event import GameEvent
 from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
 from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
+from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 MAX_ATOMIC_CHANGES = 3
 RISK_GREEN = 0.6
@@ -42,11 +44,13 @@ RISK_AMBER = 0.4
 class AtomicChange(BaseModel):
     """An atomic mutation in the MLOps graph.
     
-    Players can only raise maturity levels by one (strictly raise_to, no set_to or jumps).
+    Can raise maturity levels or set edge triggers/attributes.
     """
     target: str
     kind: str = "raise_to"
-    value: Optional[int] = None
+    value: Optional[Any] = None
+    trigger: Optional[str] = None
+    attr: Optional[str] = None
 
 
 class ItemPrediction(BaseModel):
@@ -142,7 +146,12 @@ def risk_band(value: float) -> str:
 def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
     """Returns all ancestor components in the pipeline graph feeding into target."""
     preds: set[str] = set()
-    queue = [target]
+    if graph.is_edge(target):
+        edge = graph.edge(target)
+        queue = [edge.from_id]
+        preds.add(edge.from_id)
+    else:
+        queue = [target]
     while queue:
         curr = queue.pop(0)
         for e in graph.pipeline_edges():
@@ -152,38 +161,215 @@ def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
     return list(preds)
 
 
+def _extract_target_and_level(item: Any, graph: TechnicalGraph, state: GraphState) -> tuple[Optional[str], Optional[int]]:
+    target = None
+    asked = None
+    if isinstance(item, AtomicChange):
+        target = item.target
+        asked = item.value
+    elif isinstance(item, dict):
+        target = item.get("target")
+        asked = item.get("value")
+        if not target:
+            sugg = item.get("suggested")
+            if isinstance(sugg, dict):
+                target = sugg.get("target")
+                asked = sugg.get("level")
+        if not target:
+            bx = item.get("branch_x")
+            if isinstance(bx, dict):
+                target = bx.get("target")
+                asked = bx.get("level")
+    else:
+        target = getattr(item, "target", None)
+        asked = getattr(item, "value", None)
+        if not target:
+            sugg = getattr(item, "suggested", None)
+            if sugg:
+                target = getattr(sugg, "target", None) or (sugg.get("target") if isinstance(sugg, dict) else None)
+                asked = getattr(sugg, "level", None) or (sugg.get("level") if isinstance(sugg, dict) else None)
+        if not target:
+            bx = getattr(item, "branch_x", None) or (item.get("branch_x") if isinstance(item, dict) else None)
+            if bx:
+                target = getattr(bx, "target", None) or (bx.get("target") if isinstance(bx, dict) else None)
+                asked = getattr(bx, "level", None) or (bx.get("level") if isinstance(bx, dict) else None)
+
+    if target and graph.is_target(target):
+        if asked is None:
+            allowed = graph.allowed_levels(target)
+            current = state.level(target)
+            next_levels = [a for a in allowed if a > current]
+            asked = min(next_levels) if next_levels else current
+        else:
+            try:
+                asked = int(asked)
+            except (ValueError, TypeError):
+                pass
+        return target, asked
+    return None, None
+
+
 def atomic_changes_to_ops(
     graph: TechnicalGraph,
     state: GraphState,
-    changes: list[AtomicChange],
+    changes: list[Any],
 ) -> list[GraphOp]:
-    """Derives GraphOps from atomic changes.
-    
-    Players can only raise the maturity level by one (strictly raise_to next allowed level).
-    """
+    """Derives GraphOps from atomic changes or slotted items."""
     ops: list[GraphOp] = []
     for c in changes[:MAX_ATOMIC_CHANGES]:
-        if not graph.is_target(c.target):
+        target = getattr(c, "target", None) or (c.get("target") if isinstance(c, dict) else None)
+        kind = getattr(c, "kind", None) or (c.get("kind") if isinstance(c, dict) else "raise_to")
+        val = getattr(c, "value", None) if hasattr(c, "value") else (c.get("value") if isinstance(c, dict) else None)
+        trigger = getattr(c, "trigger", None) if hasattr(c, "trigger") else (c.get("trigger") if isinstance(c, dict) else None)
+        attr = getattr(c, "attr", None) if hasattr(c, "attr") else (c.get("attr") if isinstance(c, dict) else None)
+
+        if not target:
+            target, val = _extract_target_and_level(c, graph, state)
+
+        if not target or not graph.is_target(target):
             continue
-        allowed = graph.allowed_levels(c.target)
-        current = state.level(c.target)
-        next_levels = [a for a in allowed if a > current]
-        target_level = min(next_levels) if next_levels else current
-        ops.append(
-            GraphOp(
-                kind="raise_to",
-                target=c.target,
-                value=target_level,
-                source_kind="action_card",
+
+        if kind == "raise_to":
+            target_level = None
+            if val is not None:
+                try:
+                    target_level = int(val)
+                except (ValueError, TypeError):
+                    target_level = None
+            if target_level is None:
+                allowed = graph.allowed_levels(target)
+                current = state.level(target)
+                next_levels = [a for a in allowed if a > current]
+                target_level = min(next_levels) if next_levels else current
+
+            ops.append(
+                GraphOp(
+                    kind="raise_to",
+                    target=target,
+                    value=target_level,
+                    source_kind="action_card",
+                )
             )
-        )
+            if graph.is_edge(target) and trigger:
+                ops.append(
+                    GraphOp(
+                        kind="set_trigger",
+                        target=target,
+                        value=trigger,
+                        source_kind="action_card",
+                    )
+                )
+        elif kind == "set_trigger" and graph.is_edge(target):
+            trigger_val = trigger or val
+            if trigger_val:
+                ops.append(
+                    GraphOp(
+                        kind="set_trigger",
+                        target=target,
+                        value=trigger_val,
+                        source_kind="action_card",
+                    )
+                )
+        elif kind == "set_attr":
+            if attr and val is not None:
+                ops.append(
+                    GraphOp(
+                        kind="set_attr",
+                        target=target,
+                        attr=attr,
+                        value=val,
+                        source_kind="action_card",
+                    )
+                )
+        else:
+            tgt, lvl = _extract_target_and_level(c, graph, state)
+            if tgt and lvl is not None:
+                ops.append(
+                    GraphOp(
+                        kind="raise_to",
+                        target=tgt,
+                        value=lvl,
+                        source_kind="action_card",
+                    )
+                )
     return ops
+
+
+def card_items(all_intel: list, card_item_ids: set[str]) -> list:
+    """Filter all_intel by matching ids."""
+    return [i for i in all_intel if (getattr(i, "id", None) in card_item_ids or (isinstance(i, dict) and i.get("id") in card_item_ids))]
+
+
+def card_ops(
+    items: list,
+    trade_off_branches: Optional[dict[str, str]] = None,
+    graph: Optional[TechnicalGraph] = None,
+    state: Optional[GraphState] = None,
+) -> list[GraphOp]:
+    """Derives GraphOps from items (AtomicChange, GraphOp, or intel items)."""
+    ops: list[GraphOp] = []
+    for item in items:
+        if isinstance(item, GraphOp):
+            ops.append(item)
+            continue
+        if isinstance(item, AtomicChange):
+            if graph and state:
+                derived = atomic_changes_to_ops(graph, state, [item])
+                ops.extend(derived)
+            else:
+                ops.append(GraphOp(kind=item.kind or "raise_to", target=item.target, value=item.value, source_kind="action_card"))
+            continue
+        if isinstance(item, dict) and "target" in item:
+            ac = AtomicChange.model_validate(item)
+            if graph and state:
+                derived = atomic_changes_to_ops(graph, state, [ac])
+                ops.extend(derived)
+            else:
+                ops.append(GraphOp(kind=ac.kind or "raise_to", target=ac.target, value=ac.value, source_kind="action_card"))
+            continue
+
+        item_id = getattr(item, "id", None) or (item.get("id") if isinstance(item, dict) else None)
+        branch_key = (trade_off_branches or {}).get(item_id)
+        if branch_key == "X" and (getattr(item, "branch_x", None) or (isinstance(item, dict) and "branch_x" in item)):
+            branch = getattr(item, "branch_x", None) or item.get("branch_x")
+            target = getattr(branch, "target", None) or (branch.get("target") if isinstance(branch, dict) else None)
+            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else 3)
+            if target:
+                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            continue
+        elif branch_key == "Y" and (getattr(item, "branch_y", None) or (isinstance(item, dict) and "branch_y" in item)):
+            branch = getattr(item, "branch_y", None) or item.get("branch_y")
+            target = getattr(branch, "target", None) or (branch.get("target") if isinstance(branch, dict) else None)
+            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else 3)
+            if target:
+                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            continue
+
+        raw_ops = getattr(item, "ops", None) or (item.get("ops") if isinstance(item, dict) else None)
+        if raw_ops:
+            for raw in raw_ops:
+                ops.append(GraphOp.model_validate({**raw, "source_kind": "action_card"}))
+            continue
+
+        suggested = getattr(item, "suggested", None) or (item.get("suggested") if isinstance(item, dict) else None)
+        if suggested:
+            target = getattr(suggested, "target", None) or (suggested.get("target") if isinstance(suggested, dict) else None)
+            level = getattr(suggested, "level", None) or (suggested.get("level") if isinstance(suggested, dict) else None)
+            if target:
+                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            continue
+
+        if isinstance(item, dict) and "target" in item:
+            ops.append(GraphOp(kind=item.get("kind", "raise_to"), target=item["target"], value=item.get("value"), source_kind="action_card"))
+
+    return ops
+
 
 
 def predicted_state(
     graph: TechnicalGraph,
     state: GraphState,
-    changes: list[AtomicChange],
+    changes: list[Any],
 ) -> GraphState:
     """The graph as it would be right after this card, without writing anything."""
     ops = atomic_changes_to_ops(graph, state, changes)
@@ -207,7 +393,7 @@ def _boundary_target(item) -> Optional[str]:
 def predictions_for(
     graph: TechnicalGraph,
     state: GraphState,
-    changes: list[AtomicChange],
+    changes: list[Any],
     knowledge: Optional[Knowledge] = None,
 ) -> list[ItemPrediction]:
     ops = atomic_changes_to_ops(graph, state, changes)
@@ -216,32 +402,39 @@ def predictions_for(
     out: list[ItemPrediction] = []
 
     for c in changes[:MAX_ATOMIC_CHANGES]:
-        target = c.target
-        target_known = knowledge is None or knowledge.state_of(target, after) != "unknown"
+        target, target_lvl = _extract_target_and_level(c, graph, state)
+        if not target:
+            continue
+        item_id = getattr(c, "id", None) or (c.get("id") if isinstance(c, dict) else None) or target
+        target_known = knowledge is None or knowledge.state_of(target, state) != "unknown"
         preds = find_pipeline_predecessors(graph, target)
         uncertain_nodes = [
             p for p in preds
-            if knowledge is not None and knowledge.state_of(p, after) == "unknown"
+            if knowledge is not None and knowledge.state_of(p, state) == "unknown"
         ]
-        is_uncertain = len(uncertain_nodes) > 0 or not target_known
+        is_upstream_uncertain = len(uncertain_nodes) > 0
         eff = _effective_of(effective, target)
 
-        current_lvl = state.level(target)
-        allowed = graph.allowed_levels(target)
-        next_levels = [a for a in allowed if a > current_lvl]
-        target_lvl = min(next_levels) if next_levels else current_lvl
-
         out.append(ItemPrediction(
-            item_id=target,
+            item_id=item_id,
             target=target,
             asked=target_lvl,
-            predicted=None if is_uncertain else eff,
-            capped_by=None if is_uncertain else effective.capped_by.get(target),
+            predicted=None if not target_known else eff,
+            capped_by=None if not target_known else effective.capped_by.get(target),
             known=target_known,
-            upstream_uncertain=is_uncertain,
+            upstream_uncertain=is_upstream_uncertain,
             upstream_uncertain_nodes=uncertain_nodes,
         ))
     return out
+
+
+def capped_item_ids(
+    graph: TechnicalGraph,
+    state: GraphState,
+    items: list,
+) -> set[str]:
+    preds = predictions_for(graph, state, items)
+    return {p.item_id for p in preds if p.capped_by is not None}
 
 
 def boundary_checks(
@@ -343,6 +536,7 @@ def calculate_demand_alignment_for_changes(
     stakeholder_reqs: list,
     card_atoms: set[str],
     target_levels: dict[str, int],
+    violated_map: Optional[dict[str, bool]] = None,
 ) -> float:
     stance_reqs = []
     for r in stakeholder_reqs:
@@ -353,7 +547,12 @@ def calculate_demand_alignment_for_changes(
             stance_reqs.append(r)
 
     if not stance_reqs:
-        return 0.0
+        if violated_map:
+            for r in stakeholder_reqs:
+                r_id = getattr(r, "id", None) or (r.get("id") if isinstance(r, dict) else "")
+                if violated_map.get(r_id, False):
+                    return -1.0
+        return 1.0
 
     score = 0.0
     for req in stance_reqs:
@@ -375,30 +574,37 @@ def stakeholder_reads(
     state: GraphState,
     all_intel: list,
     changes: list[AtomicChange],
-    room: list[tuple[str, str]],
+    room: list[tuple],
     emotion_values: dict[str, dict[str, float]],
     knowledge: Optional[Knowledge] = None,
 ) -> list[StakeholderRead]:
     """Evaluates continuous demand alignment, emotions, and buy-in for every stakeholder in the room."""
     ops = atomic_changes_to_ops(graph, state, changes)
-    room_ids = [st_id for st_id, _ in room]
+    room_ids = [st_entry[0] for st_entry in room]
 
+    warnings = boundary_checks(graph, state, all_intel, changes, room_ids, knowledge=knowledge)
     violated_by_st: dict[str, bool] = {}
-    for w in boundary_checks(graph, state, all_intel, changes, room_ids, knowledge=knowledge):
-        if w.violated and w.stakeholder_id:
-            violated_by_st[w.stakeholder_id] = True
+    violated_by_item: dict[str, bool] = {}
+    for w in warnings:
+        if w.violated:
+            violated_by_item[w.item_id] = True
+            if w.stakeholder_id:
+                violated_by_st[w.stakeholder_id] = True
 
     card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
     target_levels = {op.target: int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
 
     reads: list[StakeholderRead] = []
-    for st_id, power in room:
+    for room_entry in room:
+        st_id = room_entry[0]
+        power = room_entry[1]
         st_intel = [i for i in all_intel if getattr(i, "stakeholder_id", None) == st_id]
         
         align = calculate_demand_alignment_for_changes(
             stakeholder_reqs=st_intel,
             card_atoms=card_atoms,
             target_levels=target_levels,
+            violated_map=violated_by_item,
         )
         ev = emotion_values.get(st_id, EmotionFactory.create_default_emotion_values(0.5))
         em_norm = emotions_norm(ev)
@@ -425,13 +631,12 @@ def card_view(
     state: GraphState,
     all_intel: list,
     changes: list[AtomicChange],
-    room: list[tuple[str, str]],
+    room: list[tuple],
     emotion_values: Optional[dict[str, dict[str, float]]] = None,
     knowledge: Optional[Knowledge] = None,
 ) -> CardView:
     """One call for the builder and commit screen: predictions, warnings, reads, outcome."""
-    ops = atomic_changes_to_ops(graph, state, changes)
-    room_ids = [st_id for st_id, _ in room]
+    room_ids = [st_entry[0] for st_entry in room]
 
     reads = stakeholder_reads(
         graph=graph,
@@ -458,13 +663,14 @@ def evaluate_pitch(
     graph: TechnicalGraph,
     state: GraphState,
     all_intel: list,
-    changes: list[AtomicChange],
-    room: list[tuple[str, str]],
-    current_emotions: dict[str, dict[str, float]],
+    changes: Optional[list[Any]] = None,
+    room: Optional[list[tuple]] = None,
+    current_emotions: Optional[dict[str, dict[str, float]]] = None,
     held_items: Optional[list] = None,
     names: Optional[dict[str, str]] = None,
     knowledge: Optional[Knowledge] = None,
     presentation_count: int = 1,
+    **kwargs,
 ) -> tuple[PitchState, CardView, list[str]]:
     """Evaluates the pitched Action Card once against all room stakeholders.
     
@@ -472,12 +678,23 @@ def evaluate_pitch(
     - Drivers: calls out missing upgrades.
     - Trade-offs: notes dissatisfaction only if neither branch is met.
     - Boundaries: warns of crossed red lines.
+    - Misclassifications: refutes player categorization errors and applies constant malus.
     Calculates dynamic pitch emotion deltas and commits updated emotions.
     Applies a small patience malus to all stakeholders if presented more than once in the challenge.
     """
+    room = room or []
+    current_emotions = current_emotions or {}
+    if changes is None:
+        card_item_ids = kwargs.get("card_item_ids", set())
+        trade_off_branches = kwargs.get("trade_off_branches", {})
+        if card_item_ids:
+            slotted_items = card_items(all_intel, card_item_ids)
+            changes = card_ops(slotted_items, trade_off_branches=trade_off_branches, graph=graph, state=state)
+        else:
+            changes = []
+
     names = names or {}
-    room_ids = [st_id for st_id, _ in room]
-    powers = {st_id: p for st_id, p in room}
+    room_ids = [st_entry[0] for st_entry in room]
 
     repeat_count = max(0, presentation_count - 1)
     patience_malus_magnitude = EmotionFactory.get_pitch_tuning().patience_malus if EmotionFactory.get_config() else 0.05
@@ -497,8 +714,19 @@ def evaluate_pitch(
     objections: list[Objection] = []
     feedback: list[PitchFeedbackMessage] = []
     accumulated_deltas: dict[str, dict[str, float]] = {}
+    items_to_correct: list[str] = []
 
-    for st_id, power in room:
+    # Map held items by stakeholder
+    held_by_st: dict[str, list] = {}
+    for h_item in (held_items or []):
+        st_owner = getattr(h_item, "stakeholder_id", None) or (h_item.get("stakeholder_id") if isinstance(h_item, dict) else None)
+        if st_owner:
+            held_by_st.setdefault(st_owner, []).append(h_item)
+
+    for room_entry in room:
+        st_id = room_entry[0]
+        power = room_entry[1]
+        interest = room_entry[2] if len(room_entry) > 2 else "high"
         st_intel = [i for i in all_intel if getattr(i, "stakeholder_id", None) == st_id]
         
         # 1. Check violated boundaries
@@ -564,8 +792,45 @@ def evaluate_pitch(
                 kind="feedback",
             ))
 
-        # Positive approval message if no objections
-        if not st_violations and not unaddressed_drivers and not unaddressed_trade_offs:
+        # 4. Check misclassified items held by player for this stakeholder
+        st_held = held_by_st.get(st_id, [])
+        st_misclass_malus: dict[str, float] = {}
+        for h_item in st_held:
+            h_id = getattr(h_item, "id", None) or (h_item.get("id") if isinstance(h_item, dict) else "")
+            true_item = next((i for i in st_intel if getattr(i, "id", None) == h_id), None)
+            if true_item:
+                true_type = getattr(true_item, "type", None)
+                if hasattr(true_type, "value"):
+                    true_type = true_type.value
+                cat_type = getattr(h_item, "categorized_type", getattr(h_item, "type", None)) or (h_item.get("categorized_type") if isinstance(h_item, dict) else None)
+                if hasattr(cat_type, "value"):
+                    cat_type = cat_type.value
+                intel_type = getattr(h_item, "intel_type", None) or (h_item.get("intel_type") if isinstance(h_item, dict) else None)
+                if hasattr(intel_type, "value"):
+                    intel_type = intel_type.value
+
+                if cat_type and true_type and str(cat_type).lower() != str(true_type).lower():
+                    malus = get_misclassification_malus(str(true_type), str(cat_type))
+                    for dim, m_val in malus.items():
+                        st_misclass_malus[dim] = round(st_misclass_malus.get(dim, 0.0) + m_val, 4)
+                    items_to_correct.append(h_id)
+                    desc = getattr(h_item, "description", "") or (h_item.get("description", "") if isinstance(h_item, dict) else "")
+                    feedback.append(PitchFeedbackMessage(
+                        stakeholder_id=st_id,
+                        text=f"You completely misjudged my stance on '{desc}'! That is a {true_type}, not a {cat_type}.",
+                        kind="refutation",
+                    ))
+                    objections.append(Objection(
+                        kind="misclassification",
+                        stakeholder_id=st_id,
+                        item_id=h_id,
+                        text=f"Misclassification refutation: '{desc}' is a {true_type}, not a {cat_type}.",
+                        hard=False,
+                    ))
+
+        # Positive approval message if no objections or misclassifications
+        is_agreeing = not st_violations and not unaddressed_drivers and not unaddressed_trade_offs and not st_misclass_malus
+        if is_agreeing:
             feedback.append(PitchFeedbackMessage(
                 stakeholder_id=st_id,
                 text="The proposal looks aligned with my priorities. I'm on board.",
@@ -578,8 +843,12 @@ def evaluate_pitch(
             card_atoms=card_atoms,
             target_levels=target_levels,
         )
-        react = calculate_reactivity(power, interest="high")
-        weights = calculate_dynamic_weights(st_id, st_intel)
+        if is_agreeing:
+            align = 1.0
+        react = calculate_reactivity(power, interest=interest)
+        st_obj = StakeholderFactory.get_stakeholder(st_id)
+        role_sens = getattr(st_obj, "emotion_sensitivities", {}) if st_obj else {}
+        weights = calculate_dynamic_weights(st_id, st_intel, role_sensitivities=role_sens)
         deltas = calculate_pitch_deltas(
             alignment=align,
             reactivity=react,
@@ -587,6 +856,11 @@ def evaluate_pitch(
             weights=weights,
         )
 
+        # Apply misclassification malus
+        for dim, m_val in st_misclass_malus.items():
+            deltas[dim] = round(deltas.get(dim, 0.0) + m_val, 4)
+
+        # Apply patience malus on repeat presentations
         if repeat_count > 0:
             for dim, p_val in patience_delta.items():
                 deltas[dim] = round(deltas.get(dim, 0.0) + (p_val * repeat_count), 4)
@@ -595,7 +869,8 @@ def evaluate_pitch(
 
     # Update emotions with deltas
     updated_emotions: dict[str, dict[str, float]] = {}
-    for st_id, ev in current_emotions.items():
+    for st_id in room_ids:
+        ev = current_emotions.get(st_id, EmotionFactory.create_default_emotion_values(0.5))
         delta_vec = accumulated_deltas.get(st_id, {})
         updated_emotions[st_id] = apply_emotion_delta(ev, delta_vec)
 
@@ -609,16 +884,35 @@ def evaluate_pitch(
         knowledge=knowledge,
     )
 
+    valid_atomic_changes: list[AtomicChange] = []
+    for c in changes:
+        if isinstance(c, AtomicChange):
+            valid_atomic_changes.append(c)
+        elif isinstance(c, GraphOp):
+            valid_atomic_changes.append(AtomicChange(target=c.target, kind=c.kind, value=c.value, attr=c.attr))
+        elif isinstance(c, dict) and "target" in c:
+            valid_atomic_changes.append(AtomicChange(
+                target=c["target"],
+                kind=c.get("kind", "raise_to"),
+                value=c.get("value"),
+                trigger=c.get("trigger"),
+                attr=c.get("attr"),
+            ))
+        else:
+            tgt, lvl = _extract_target_and_level(c, graph, state)
+            if tgt:
+                valid_atomic_changes.append(AtomicChange(target=tgt, kind="raise_to", value=lvl))
+
     new_pitch_state = PitchState(
         stage="PITCHED",
-        atomic_changes=changes,
+        atomic_changes=valid_atomic_changes,
         objections=objections,
         feedback_messages=feedback,
         emotion_deltas=accumulated_deltas,
         outcome=view.outcome,
         presentation_count=presentation_count,
     )
-    return new_pitch_state, view, []
+    return new_pitch_state, view, items_to_correct
 
 
 def commit_pitch(

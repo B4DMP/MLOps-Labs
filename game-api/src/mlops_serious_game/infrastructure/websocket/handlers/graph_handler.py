@@ -12,10 +12,8 @@ from mlops_serious_game.domain.pattern import PatternFactory
 from ..manager import manager
 
 
-async def handle_graph_state(websocket: WebSocket, username: str, payload: dict) -> None:
-    """Loads ground truth + knowledge, evaluates, and pushes graph:state to the requesting client."""
-    phase_id: Optional[int] = payload.get("phase_id")
-
+async def push_graph_state(websocket: WebSocket, username: str, phase_id: Optional[int] = None) -> None:
+    """Loads ground truth + knowledge, evaluates, and pushes graph:state to the client."""
     graph = GraphFactory.get_graph()
     replay = graph_store.load_state(username)
     evaluation = evaluate_graph(graph, replay.state, PatternFactory.patterns, PatternFactory.order)
@@ -32,3 +30,9 @@ async def handle_graph_state(websocket: WebSocket, username: str, payload: dict)
     )
 
     await manager.send_event(websocket, "graph:state", view)
+
+
+async def handle_graph_state(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Loads ground truth + knowledge, evaluates, and pushes graph:state to the requesting client."""
+    phase_id: Optional[int] = payload.get("phase_id")
+    await push_graph_state(websocket, username, phase_id)

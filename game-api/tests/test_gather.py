@@ -505,3 +505,85 @@ async def test_investigation_dialogue_chains_fallback():
         assert "Ingestion runs batch jobs without retries." in response
 
 
+@pytest.mark.anyio
+async def test_conduct_component_investigation_turn_lifts_fog_of_war():
+    from mlops_serious_game.application.component_investigation_service.service import (
+        conduct_component_investigation_turn,
+    )
+    from mlops_serious_game.application.graph_service.apply import replay, seed_ops
+    from mlops_serious_game.domain.graph import LoggedOp
+    from mlops_serious_game.domain.graph_factory import GraphFactory
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_ws = MagicMock()
+    mock_ws.query_params = {"username": "test_investigate_user"}
+    username = "test_investigate_user"
+
+    challenge = SimpleNamespace(
+        id=1,
+        name="Test Challenge",
+        description="A test challenge",
+        phase_id=1,
+        template_id="t_test",
+    )
+    conv = gather.GatherConversation(
+        card_id="eng_5",
+        stakeholder_id="data_dave",
+        component_id="data.validation",
+        turns_left=1,
+    )
+
+    with patch("mlops_serious_game.application.component_investigation_service.service.manager") as mock_manager, \
+         patch("mlops_serious_game.application.component_investigation_service.service.graph_store.seed_if_empty") as mock_seed, \
+         patch("mlops_serious_game.application.component_investigation_service.service.graph_store.append_ops") as mock_append_ops, \
+         patch("mlops_serious_game.application.component_investigation_service.service.push_graph_state", new_callable=AsyncMock) as mock_push_graph, \
+         patch("mlops_serious_game.application.component_investigation_service.service.generate_investigation_player_utterance", new_callable=AsyncMock) as mock_player_msg, \
+         patch("mlops_serious_game.application.component_investigation_service.service.generate_investigation_stakeholder_response", new_callable=AsyncMock) as mock_st_msg, \
+         patch("mlops_serious_game.application.component_investigation_service.service.store_intel_item", new_callable=AsyncMock):
+
+        mock_player_msg.return_value = "What is the status of Data Validation?"
+        mock_st_msg.return_value = "Here is the Data Validation fact."
+        mock_manager.send_event = AsyncMock()
+
+        res = await conduct_component_investigation_turn(
+            websocket=mock_ws,
+            username=username,
+            challenge=challenge,
+            conversation=conv,
+            component_id="data.validation",
+            history_str="",
+            emotion_values_map={},
+        )
+
+        assert res.intel_item is not None
+        # Check that seed_if_empty was called
+        mock_seed.assert_called_once_with(username, phase_index=1, challenge_template="t_test")
+
+        # Check that append_ops was called with observe op on data.validation
+        assert mock_append_ops.called
+        call_kwargs = mock_append_ops.call_args.kwargs
+        call_args = mock_append_ops.call_args.args
+        ops = call_kwargs.get("ops") or (call_args[1] if len(call_args) > 1 else None)
+        assert ops is not None
+        observe_targets = [op.target for op in ops if op.kind == "observe"]
+        assert "data.validation" in observe_targets
+
+        # Check that push_graph_state was called
+        mock_push_graph.assert_called_once_with(websocket=mock_ws, username=username, phase_id=1)
+
+        # Verify through replay that the observe op transitions knowledge from unknown to current
+        graph = GraphFactory.get_graph()
+        initial_log = [LoggedOp(seq=i, op=op) for i, op in enumerate(seed_ops(graph))]
+        init_replay = replay(graph, initial_log)
+        # Verify initially data.validation is unknown (shrouded in fog of war)
+        assert init_replay.knowledge.state_of("data.validation", init_replay.state) == "unknown"
+
+        # Apply observe op
+        appended_log = initial_log + [LoggedOp(seq=len(initial_log) + 1, op=ops[0])]
+        after_replay = replay(graph, appended_log)
+        # Verify knowledge is now current (fog of war lifted)
+        assert after_replay.knowledge.state_of("data.validation", after_replay.state) == "current"
+
+
+
+

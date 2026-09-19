@@ -27,9 +27,11 @@ class TestEmotionsNorm:
 
 
 class TestBuyIn:
-    def test_boundary_violation_drops_card_alignment_to_zero(self):
-        assert buy_in(alignment_val=1.0, emotions_val=1.0, boundary_violated=True) == pytest.approx(0.4)
-        assert buy_in(alignment_val=1.0, emotions_val=0.5, boundary_violated=True) == pytest.approx(0.2)
+    def test_alignment_and_emotions_combine(self):
+        # norm_align = 1.0 (from alignment_val = 1.0), emotions_val = 1.0 -> 0.6 * 1.0 + 0.4 * 1.0 = 1.0
+        assert buy_in(alignment_val=1.0, emotions_val=1.0, boundary_violated=True) == pytest.approx(1.0)
+        # norm_align = 1.0, emotions_val = 0.5 -> 0.6 * 1.0 + 0.4 * 0.5 = 0.8
+        assert buy_in(alignment_val=1.0, emotions_val=0.5, boundary_violated=True) == pytest.approx(0.8)
 
     def test_max_alignment_and_emotions(self):
         # norm_align = 1.0, emotions_val = 1.0 -> 0.6 * 1.0 + 0.4 * 1.0 = 1.0

@@ -8,11 +8,12 @@ from mlops_serious_game.application.component_investigation_service.chains impor
     generate_investigation_player_utterance,
     generate_investigation_stakeholder_response,
 )
+from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.intel_handler import store_intel_item
 from mlops_serious_game.application.pitch_debate_service import gather
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.graph import TechnicalGraph
+from mlops_serious_game.domain.graph import GraphOp, TechnicalGraph
 from mlops_serious_game.domain.requirement import (
     ConfidenceType,
     FactAssertion,
@@ -22,6 +23,7 @@ from mlops_serious_game.domain.requirement import (
 )
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.infrastructure.websocket.handlers.graph_handler import push_graph_state
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
 
@@ -68,23 +70,28 @@ async def resolve_or_generate_component_intel(
     """Finds an existing requirement for this component or dynamically generates a Verified Fact."""
     comp_name = gather.component_display_name(component_id, graph)
 
-    # 1. Check for pre-authored requirements assigned to this stakeholder for this component
+    # 1. Check for pre-authored Fact requirements assigned to this stakeholder for this component.
+    # Investigate Component always reveals a system Fact, never a stakeholder stance.
     stakeholder_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(
         challenge.id, stakeholder_id
     )
     matching = [
         r
         for r in stakeholder_pool
-        if r.id not in known_ids and gather.component_for_item(r, graph) == component_id
+        if r.id not in known_ids
+        and r.type == IntelTag.FACT
+        and gather.component_for_item(r, graph) == component_id
     ]
 
-    # 2. If not found, check all challenge requirements for this component
+    # 2. If not found, check all challenge Fact requirements for this component
     if not matching:
         challenge_pool = RequirementFactory.get_requirements_for_challenge(challenge.id)
         matching = [
             r
             for r in challenge_pool
-            if r.id not in known_ids and gather.component_for_item(r, graph) == component_id
+            if r.id not in known_ids
+            and r.type == IntelTag.FACT
+            and gather.component_for_item(r, graph) == component_id
         ]
 
     # 3. If matching requirement exists, use it
@@ -213,6 +220,37 @@ async def conduct_component_investigation_turn(
 
     # 3. Store the verified intel item in dossier
     await store_intel_item(challenge, websocket, intel_item)
+
+    # 3b. Record observation in graph store and broadcast updated graph state (lift fog of war)
+    try:
+        graph_store.seed_if_empty(
+            username,
+            phase_index=challenge.phase_id,
+            challenge_template=getattr(challenge, "template_id", ""),
+        )
+        targets_to_observe = [component_id]
+        if (
+            intel_item.asserts
+            and getattr(intel_item.asserts, "target", None)
+            and intel_item.asserts.target not in targets_to_observe
+        ):
+            targets_to_observe.append(intel_item.asserts.target)
+
+        source_id = f"investigate:{getattr(challenge, 'template_id', challenge.id)}:{component_id}"
+        graph_store.append_ops(
+            username=username,
+            ops=[
+                GraphOp(kind="observe", target=t, source_kind="intel", source_id=source_id)
+                for t in targets_to_observe
+            ],
+            phase_index=challenge.phase_id,
+            challenge_template=getattr(challenge, "template_id", ""),
+            source_kind="intel",
+            source_id=source_id,
+        )
+        await push_graph_state(websocket=websocket, username=username, phase_id=challenge.phase_id)
+    except Exception as e:
+        logger.error(f"[component_investigation_service] Error updating graph observation: {e}")
 
     # 4. Generate and emit stakeholder response
     tag_str = (
