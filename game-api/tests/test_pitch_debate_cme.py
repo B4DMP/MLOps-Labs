@@ -19,6 +19,26 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
 
+def _postgres_reachable() -> bool:
+    import sqlalchemy
+    from mlops_serious_game.config import settings
+
+    try:
+        url = sqlalchemy.engine.make_url(settings.POSTGRES_URI)
+        with sqlalchemy.create_engine(url).connect():
+            return True
+    except Exception:
+        return False
+
+
+@pytest.fixture(autouse=True)
+def skip_if_no_postgres(request):
+    # Only test_pitch_debate_graph_structure is a pure graph structure test without DB
+    if request.node.name != "test_pitch_debate_graph_structure":
+        if not _postgres_reachable():
+            pytest.skip("Postgres is not reachable")
+
+
 @pytest.mark.anyio
 async def test_pitch_debate_graph_structure():
     graph_builder = create_pitch_debate_graph()
@@ -33,6 +53,16 @@ async def test_pitch_debate_graph_structure():
 
 @pytest.mark.anyio
 async def test_pitch_debate_initial_turn_and_option_selection():
+    import sqlalchemy
+    from mlops_serious_game.config import settings
+
+    try:
+        url = sqlalchemy.engine.make_url(settings.POSTGRES_URI)
+        with sqlalchemy.create_engine(url).connect():
+            pass
+    except Exception:
+        pytest.skip("Postgres is not reachable")
+
     thread_id = f"test_cme_{uuid.uuid4()}"
     phase_id = 0
     challenge_id = 0

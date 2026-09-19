@@ -1,0 +1,710 @@
+/* pitch_debate.module.css */
+
+.container {
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--primary-bg, #1a1a2e);
+  color: #ffffff;
+  overflow: hidden;
+}
+
+
+/* Left Column: Embedded Stakeholder Dossier Container */
+.dossierContainer {
+  min-height: 450px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Animated Columns for Board vs Conversation History ── */
+.boardCol {
+  flex: 7 1 0%;
+  width: 58%;
+  max-width: 58%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: flex 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease,
+              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.15s ease,
+              margin 0.15s ease;
+  overflow: hidden;
+  will-change: flex, width, max-width, opacity, transform;
+}
+
+.boardColCollapsed {
+  flex: 0 0 0% !important;
+  width: 0% !important;
+  max-width: 0% !important;
+  opacity: 0 !important;
+  transform: translateX(-20px);
+  pointer-events: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.boardColSpeaking {
+  overflow: visible !important;
+  z-index: 3200 !important;
+}
+
+.overflowVisibleSpeech {
+  overflow: visible !important;
+}
+
+.chatCol {
+  flex: 5 1 0%;
+  width: 42%;
+  max-width: 42%;
+  transition: flex 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: flex, width, max-width;
+}
+
+.chatColMaximized {
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  z-index: 2000 !important;
+}
+
+.chatCol .chatWrapper {
+  height: auto;
+  flex: 1 1 0%;
+}
+
+/* ── Chat wrapper: subtle and transparent by default, reveals on hover ── */
+.chatWrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: rgba(15, 18, 26, 0.25);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  opacity: 0.85;
+  transition: all var(--transition, 0.25s ease);
+}
+
+.chatWrapper:hover,
+.chatWrapper:focus-within,
+.chatWrapperMaximized {
+  background: rgba(18, 22, 32, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  opacity: 1;
+}
+
+/* Circular maximize / minimize button inside the chat wrapper */
+.chatMaximizeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-bg, #266682);
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 20;
+  padding: 0;
+  opacity: 0.7;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.chatWrapper:hover .chatMaximizeBtn,
+.chatWrapper:focus-within .chatMaximizeBtn,
+.chatWrapperMaximized .chatMaximizeBtn {
+  opacity: 1;
+}
+
+.chatMaximizeBtn:hover {
+  transform: scale(1.1) translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+  filter: brightness(1.18);
+}
+
+.chatMaximizeBtn:active {
+  transform: scale(0.94);
+}
+
+.chatMaximizeBtnIcon {
+  font-size: 1.15rem;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chatWrapperMaximized .chatMaximizeBtnIcon {
+  transform: rotate(180deg);
+}
+
+/* Wrapper for challenge card when conversation history is maximized */
+.maximizedChallengeWrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  pointer-events: none;
+  transition: max-height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.15s ease,
+              margin-bottom 0.2s ease;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.maximizedChallengeWrapperVisible {
+  max-height: 240px;
+  opacity: 1;
+  overflow: visible;
+  margin-bottom: 0.35rem;
+  pointer-events: auto;
+}
+
+/* ── The Pitch Deck Conference Table Surface (Authentic Oval Boardroom Table) ── */
+.pitchDeckTable {
+  position: relative;
+  width: 100%;
+  max-width: 590px;
+  min-height: 190px;
+  background: radial-gradient(ellipse 90% 70% at 50% 50%, #2b3035 0%, var(--engagement-bg, #212529) 70%, #14171a 100%);
+  border: 3px solid var(--primary-bg, #266682);
+  border-radius: 50% / 34%;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.8rem 0.35rem 0.8rem;
+  z-index: 10;
+  transition: transform var(--transition, 0.2s ease-in-out), border var(--transition, 0.2s ease-in-out), background var(--transition, 0.2s ease-in-out);
+}
+
+.pitchDeckTableDragging {
+  border: 3px dashed var(--token-color, #ffc107) !important;
+  background: radial-gradient(ellipse 90% 70% at 50% 50%, #343a40 0%, rgba(38, 102, 130, 0.4) 70%, #14171a 100%) !important;
+  transform: scale(1.015);
+}
+
+/* Single Unified Drop Zone Active Highlight (Triggers immediately on drag start) */
+.singleDropZoneActive {
+  border: 2px dashed var(--engagement-accent, #266682) !important;
+  background: rgba(38, 102, 130, 0.1) !important;
+  border-radius: 16px;
+  transition: all var(--transition, 0.2s ease-in-out);
+}
+
+.pitchDeckTableSpeaking {
+  z-index: 3300 !important;
+  overflow: visible !important;
+}
+
+/* Top Seating: Avatars seated behind the table looking forward */
+.tableTopSeating {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2rem;
+  width: 100%;
+  margin-top: -24px;
+  margin-bottom: 2px;
+  position: relative;
+  z-index: 20;
+}
+
+.seatingSpeaking {
+  z-index: 3400 !important;
+  overflow: visible !important;
+}
+
+/* Center Table Surface: Lateral Seats + Central Action Card */
+.tableCenterSurface {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  flex: 1;
+  position: relative;
+  z-index: 25;
+}
+
+.tableCenterSurfaceSpeaking {
+  z-index: 3400 !important;
+  overflow: visible !important;
+}
+
+.tableSideSeating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  z-index: 20;
+  position: relative;
+}
+
+.tabletopCenterArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 250px;
+  margin: 0 auto;
+  min-height: 90px;
+  position: relative;
+}
+
+/* Center Plaque when no card is assembled */
+.tableCenterPlaque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 0.75rem;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.tableCenterPlaque:hover {
+  background: rgba(38, 102, 130, 0.3);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.tableCenterPlaqueActive {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.tableCenterPlaqueIcon {
+  font-size: 1.5rem;
+  color: #38bdf8;
+}
+
+.tableCenterPlaqueSub {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: normal;
+}
+
+/* Lower Border Interaction Area */
+.tableLowerInteractionArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+  gap: 0.3rem;
+  margin-top: 2px;
+  position: relative;
+  z-index: 30;
+}
+
+.statChipsRowCentered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.statChipToken,
+.statChipIntel,
+.statChipAddendum,
+.statChipConsensus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.statChipToken {
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid #eab308;
+  color: #facc15;
+}
+
+.tokenStatIcon {
+  font-size: 0.85rem;
+  color: #facc15;
+}
+
+.statChipIntel {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid #38bdf8;
+  color: #7dd3fc;
+}
+
+.intelStatIcon {
+  font-size: 0.85rem;
+  color: #7dd3fc;
+}
+
+.statChipConsensus {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid #22c55e;
+  color: #4ade80;
+}
+
+.consensusStatIcon {
+  font-size: 0.85rem;
+  color: #4ade80;
+}
+
+.statNumber {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.statLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.pitchExplainerText {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.explainerToken { color: #facc15; }
+.explainerIntel { color: #7dd3fc; }
+.explainerPitch { color: #60a5fa; }
+.explainerPass { color: #4ade80; }
+.explainerVeto { color: #f87171; }
+
+/* Action Buttons */
+.actionButton {
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--secondary-bg, #334155);
+  background: var(--primary-bg, #1a1a2e);
+  color: white;
+  font-weight: 600;
+  font-size: 0.78rem;
+  transition: all var(--transition, 0.2s);
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.actionButton:hover:not(:disabled) {
+  background: var(--secondary-bg, #334155);
+}
+
+.actionButtonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionButtonBlocked {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* ── Seated Stakeholder Presentation ── */
+.seatedStakeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.seatedStakeholder:hover {
+  transform: translateY(-2px);
+}
+
+.seatedSpeaking {
+  z-index: 3500 !important;
+  position: relative;
+}
+
+.seatedSelected .deskNameplate {
+  border-color: #ffc107 !important;
+  color: #ffc107 !important;
+}
+
+.seatedAvatarViewport {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.deskNameplate {
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid var(--st-color, #38bdf8);
+  color: var(--st-color, #38bdf8);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activeDeskNameplate {
+  border-color: #ffc107 !important;
+  color: #ffc107 !important;
+}
+
+/* ── Speech Bubble Over Seated Stakeholder ── */
+.tableSpeechBubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid var(--st-color, #38bdf8);
+  border-radius: 0.75rem;
+  padding: 0.55rem 2rem 0.55rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  z-index: 3600;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(520px, 85vw);
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: normal;
+  word-break: break-word;
+  animation: bubblePopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+}
+
+.tableSpeechBubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px;
+  border-style: solid;
+  border-color: var(--st-color, #38bdf8) transparent transparent transparent;
+}
+
+.tableSpeechBubbleTopLeft {
+  left: 50%;
+}
+
+.tableSpeechBubbleTopRight {
+  left: 50%;
+}
+
+.tableSpeechBubbleTopCenter {
+  left: 50%;
+}
+
+.tableSpeechBubbleClosing {
+  animation: bubblePopOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.speechSkipBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.speechSkipBtn:hover {
+  color: #1e293b;
+}
+
+/* Player Speech Bubble */
+.playerTableSpeechBubble {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1.5px solid #38bdf8;
+  border-radius: 0.65rem;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  z-index: 3600;
+  width: max-content;
+  min-width: 240px;
+  max-width: min(520px, 85vw);
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  animation: bubblePopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+}
+
+.playerTableSpeechBubbleClosing {
+  animation: bubblePopOut 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.playerSpeechHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 0.15rem;
+}
+
+.playerSpeechContent {
+  color: #f1f5f9;
+}
+
+/* ── Lower Area (Engagement Cards or Dialogue Options replacement) ── */
+.lowerInteractionShelf {
+  position: relative;
+  z-index: 100;
+  min-height: 155px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.gatherConversationWrapper {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  width: 100%;
+}
+
+.engagementCardsWrapper {
+  width: 100%;
+}
+
+/* ── Outcome Banners ── */
+.outcomeBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  border: 1.5px solid;
+  margin-top: 0.4rem;
+  width: 100%;
+}
+
+.outPASS {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.outSOFT_PASS {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+.outVETO {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.outcomeIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.outcomeLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.outcomeDesc {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  line-height: 1.25;
+}
+
+/* Animations */
+@keyframes bubblePopIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes bubblePopOut {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.95);
+  }
+}

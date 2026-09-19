@@ -182,17 +182,13 @@ async def get_response(
                         )
                     except Exception as parse_err:
                         logger.warning(f"[get_response dialogue_option parse warning] {parse_err}")
-
                 # Structural fallback by ID prefix
                 if not selected_opt:
                     if option_id.startswith("opt_noise_"):
-                        all_archetypes = list(EmotionFactory.get_convincer_archetypes().values())
-                        matched_arch = all_archetypes[0] if all_archetypes else None
                         selected_opt = DialogueOption(
                             id=option_id,
                             type="corporate_noise",
                             text=None,
-                            archetype=matched_arch,
                         )
                     elif option_id.startswith("opt_intel_"):
                         available_intels = (

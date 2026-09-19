@@ -67,15 +67,15 @@ def test_deck_deals_facts_next_to_the_stances_instead_of_cutting_them():
     facts = [_fact(f"f{i}") for i in range(3)]
     dealt = _deal(stances + facts, [_artifact(r) for r in stances] + [_artifact(r, "tess_tester") for r in facts])
 
-    assert dealt == ["s0", "s1", "s2", "f0", "f1"]
-    assert MAX_STANCE_ARTIFACTS == 3 and MAX_FACT_ARTIFACTS == 2
+    assert dealt == ["s0", "s1", "s2", "f0"]
+    assert MAX_STANCE_ARTIFACTS == 3 and MAX_FACT_ARTIFACTS == 1
 
 
 def test_facts_about_the_conflict_target_are_dealt_first():
     facts = [_fact("elsewhere"), _fact("on_conflict", CONFLICT_TARGET), _fact("also_elsewhere")]
     dealt = _deal(facts, [_artifact(r, "tess_tester") for r in facts])
 
-    assert dealt == ["on_conflict", "elsewhere"]
+    assert dealt == ["on_conflict"]
 
 
 def test_a_fact_nobody_voices_is_not_dealt():

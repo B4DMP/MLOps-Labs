@@ -24,7 +24,6 @@ const KIND_ICON: Record<GameEventKind, string> = {
   emotion: "ph:heart-bold",
   patience: "ph:hourglass-medium-bold",
   intel: "ph:file-text-bold",
-  archetype: "ph:broadcast-bold",
   tokens: "ph:coins-bold",
   escalation: "ph:lightning-bold",
   card: "ph:cards-bold",

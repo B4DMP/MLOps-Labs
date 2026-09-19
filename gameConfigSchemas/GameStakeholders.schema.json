@@ -71,6 +71,20 @@
             "type": "string",
             "title": "Requirements Summary"
           },
+          "emotion_sensitivities": {
+            "type": "object",
+            "title": "Emotion Sensitivities",
+            "description": "Dimensional sensitivity multipliers for pitch evaluation (defaults to 1.0)",
+            "properties": {
+              "trust": { "type": "number" },
+              "fairness": { "type": "number" },
+              "sense_of_control": { "type": "number" },
+              "stress": { "type": "number" },
+              "perceived_risk": { "type": "number" },
+              "confidence": { "type": "number" },
+              "interest": { "type": "number" }
+            }
+          },
           "avatar": {
             "type": "object",
             "title": "Stakeholder Avatar (Open Peeps)",

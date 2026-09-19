@@ -1,11 +1,12 @@
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
-import { useContext, useState } from "react";
+import { useContext, useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { FADE_TRANSITION } from "../utils/transitions";
 import PowerInterestMatrix from "./PowerInterestMatrix";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
-import HeaderModal from "./HeaderModal";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -47,8 +48,28 @@ export default function PrePhaseDialog({
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
+  const wasReviewRef = useRef(false);
+  if (isOpen) {
+    wasReviewRef.current = isReview;
+  }
 
-  if (!isOpen) return null;
+  const handleClose = () => {
+    setIsOpen(false);
+    // Reviewing mid-phase just returns the player to where they were; only the
+    // briefing shown on entering a phase starts the round.
+    if (!isReview && setIsRoundOpen) {
+      setIsRoundOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen || !isReview) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, isReview]);
 
   const currentPhaseData = phases[currentPhase];
   
@@ -65,17 +86,8 @@ export default function PrePhaseDialog({
   const displayPhaseNumber = hasIntroPhase ? Math.max(1, currentPhase) : currentPhase + 1;
   const totalPlayablePhases = hasIntroPhase ? Math.max(1, phases.length - 1) : phases.length;
 
-  const handleClose = () => {
-    setIsOpen(false);
-    // Reviewing mid-phase just returns the player to where they were; only the
-    // briefing shown on entering a phase starts the round.
-    if (!isReview && setIsRoundOpen) {
-      setIsRoundOpen(true);
-    }
-  };
-
   const panelContent = (
-      <div className={styles.panel}>
+      <div className={wasReviewRef.current ? styles.dashboardPanel : styles.panel}>
           {/* Header */}
           <div className={styles.header}>
             <div>
@@ -87,11 +99,23 @@ export default function PrePhaseDialog({
                 Project Milestone Overview • Align technical decisions with stakeholder priorities
               </p>
             </div>
-            {phases && phases.length > 0 && (
-              <span className={styles.phaseBadge}>
-                Phase {displayPhaseNumber} of {totalPlayablePhases}
-              </span>
-            )}
+            <div className="d-flex align-items-center gap-2">
+              {phases && phases.length > 0 && (
+                <span className={styles.phaseBadge}>
+                  Phase {displayPhaseNumber} of {totalPlayablePhases}
+                </span>
+              )}
+              {isReview && (
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={handleClose}
+                  aria-label="Close Phase Briefing"
+                  title="Close Phase Briefing (Esc)"
+                  style={{ cursor: "pointer" }}
+                />
+              )}
+            </div>
           </div>
 
           {/* Modal Body */}
@@ -212,38 +236,38 @@ export default function PrePhaseDialog({
       </div>
   );
 
-  // Reopened from the dossier mid-phase: a modal, anchored at the top of the screen like
-  // Performance and the event log, so the header's pop-open panels read as one family. The
-  // shared close (X) stays off since the phase badge already sits in that corner, and the
-  // footer's "Back to the Phase" button is the dismiss action players already know.
-  if (isReview) {
+  // Reopened from the dossier mid-phase: a modal matching Performance and Event Log overlays
+  if (wasReviewRef.current) {
     return (
-      <HeaderModal
-        isVisible={isOpen}
-        onClose={handleClose}
-        width="min(1400px, 98vw)"
-        height="min(920px, 94vh)"
-        maxHeight="94vh"
-        padding="0"
-        overflowY="hidden"
-        showCloseButton={false}
-        closeLabel="phase briefing"
+      <div
+        className={`${styles.helpOverlayLayer} ${
+          isOpen ? styles.helpLayerVisible : styles.helpLayerHidden
+        }`}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleClose();
+        }}
       >
         {panelContent}
-      </HeaderModal>
+      </div>
     );
   }
 
   // Shown on entering a phase: its own full-screen page, not an overlay over the phase behind it.
   return (
-    <div
-      className={`${styles.pageWrapper} intro2`}
-      data-intro-group="intro2"
-      data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
-      data-step="1"
-      data-position="middle-aligned"
-    >
-      {panelContent}
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          {...FADE_TRANSITION}
+          key="prephase-dialog-page"
+          className={`${styles.pageWrapper} intro2`}
+          data-intro-group="intro2"
+          data-intro="This phase overview appears when a new phase begins. Here you can see the phase objectives and how stakeholders' power and interest dynamics evolve."
+          data-step="1"
+          data-position="middle-aligned"
+        >
+          {panelContent}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

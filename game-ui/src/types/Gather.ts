@@ -1,24 +1,26 @@
-/** Gather: engagement cards buy conversations, not batches (D49, plan 11). */
+/** Gather: component-driven dialogue and engagement options (Plan 01, Section 3). */
 
 export type GatherOptionKind =
-  | "open_question"
-  | "test_hypothesis"
-  | "generic_question"
-  | "trial_balloon"
-  | "one_on_one";
+  | "component_query"
+  | "priority_query"
+  | "generic_query"
+  | "investigate_component";
 
 export interface GatherOptionSpec {
   option: GatherOptionKind;
   available: boolean;
   reason?: string | null;
+  component_id?: string | null;
+  prompt?: string | null;
+  label?: string | null;
   item_id?: string | null;
-  archetype?: string | null;
 }
 
 export interface GatherStatePayload {
   phase_id: number;
   challenge_id: number;
   card_id: string;
+  conversation_id?: string;
   stakeholder_id: string;
   stakeholder_name: string;
   turns_left: number;

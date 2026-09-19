@@ -8,6 +8,114 @@
     margin-bottom: 0;
 }
 
+.tabBarContainer {
+    margin-top: 4px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.tabBarScroll {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding-bottom: 2px;
+}
+
+.tabBarScroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tabBarScroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.tabItemWrapper {
+    display: inline-flex;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    flex-shrink: 0;
+}
+
+.tabItemWrapper:active {
+    cursor: grabbing;
+}
+
+.tabDragHandle {
+    font-size: 0.8rem;
+    opacity: 0.4;
+    margin-right: -2px;
+    margin-left: -3px;
+    cursor: grab;
+    transition: opacity 0.15s ease;
+}
+
+.tabBtn:hover .tabDragHandle {
+    opacity: 0.85;
+}
+
+.tabBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.25);
+    color: #cbd5e1;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+}
+
+.tabBtn:hover:not(.tabBtnActive) {
+    background: var(--secondary-bg);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.tabBtnActive {
+    background: var(--primary-bg);
+    border: 1px solid var(--secondary-bg);
+    color: #ffffff;
+}
+
+.tabIcon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.tabLabel {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.tabBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #e2e8f0;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+.tabBadgeActive {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
 .maximizeToggleBtn {
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -283,4 +391,50 @@
 
 .revealedIntelLabel {
     color: #ffffff;
+}
+
+.evaluatingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 2.5rem 1.5rem;
+    margin: auto;
+    text-align: center;
+    border-radius: 0.75rem;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.evaluatingSpinner {
+    font-size: 2.2rem;
+    color: var(--primary-bg, #38bdf8);
+    animation: evaluatingSpin 1s linear infinite;
+}
+
+@keyframes evaluatingSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.evaluatingTextContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.evaluatingTitle {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.evaluatingSubtitle {
+    font-size: 0.8rem;
+    color: #94a3b8;
 }

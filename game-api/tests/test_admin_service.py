@@ -114,8 +114,8 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     session.add(GameChallenge(
         user_name=username, user_id=user.id, phase_index=0, challenge_index=0,
         challenge_loop_index=0, action_card={}, metric_values=[],
-        time_stamp=datetime.datetime.utcnow(), pitch_debate_messages=[],
-        online_intel_gathering_messages=[], attention_tokens=8, emotion_values={},
+        time_stamp=datetime.datetime.utcnow(), messages=[],
+        attention_tokens=20, emotion_values={},
     ))
     session.add(GameSession(
         player=username, user_id=user.id, stakeholder_archetypes={}, stakeholder_personas={},
@@ -246,3 +246,115 @@ def test_remove_campaign_clears_every_table_for_every_user(migrated_db):
         assert session.scalar(
             sqlalchemy.select(Campaign).where(Campaign.campaign_key == "camp-multi")
         ) is None
+
+
+@pytest.fixture
+def sqlite_db(monkeypatch):
+    from sqlalchemy.pool import StaticPool
+    from sqlalchemy.orm import sessionmaker
+    from mlops_serious_game.infrastructure.database import connection as db_connection
+    from mlops_serious_game.infrastructure.database.models import Base
+
+    sqlite_engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(bind=sqlite_engine)
+    session_factory = sessionmaker(autocommit=False, autoflush=False, bind=sqlite_engine)
+    monkeypatch.setattr(db_connection, "engine", sqlite_engine)
+    monkeypatch.setattr(db_connection, "SessionLocal", session_factory)
+    yield
+    sqlite_engine.dispose()
+
+
+def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import Campaign, User, GameChallenge
+    from mlops_serious_game.application.services import admin_service
+    import datetime
+
+    with get_session() as session:
+        c1 = Campaign(campaign_name="camp-alpha", campaign_key="camp-alpha")
+        c2 = Campaign(campaign_name="camp-beta", campaign_key="camp-beta")
+        session.add_all([c1, c2])
+        session.flush()
+
+        u1 = User(user_name="user1", campaign_key="camp-alpha", campaign_id=c1.id)
+        u2 = User(user_name="user2", campaign_key="camp-beta", campaign_id=c2.id)
+        session.add_all([u1, u2])
+        session.flush()
+
+        now = datetime.datetime.utcnow()
+        # Intro challenge for user1 (phase_index=0) should be ignored
+        session.add(GameChallenge(
+            user_name="user1", user_id=u1.id, phase_index=0, challenge_index=0,
+            challenge_loop_index=0, action_card={}, metric_values=[],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+
+        # user1 plays challenge 100 (has an initial loop 0 record, then a loop 3 record)
+        session.add(GameChallenge(
+            user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
+            challenge_loop_index=0, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+        session.add(GameChallenge(
+            user_name="user1", user_id=u1.id, phase_index=1, challenge_index=100,
+            challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 12],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+        session.add(GameChallenge(
+            user_name="user1", user_id=u1.id, phase_index=2, challenge_index=105,
+            challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 13],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+
+        # user2 plays challenge 101 first, challenge 102 second, challenge 104 third
+        session.add(GameChallenge(
+            user_name="user2", user_id=u2.id, phase_index=1, challenge_index=101,
+            challenge_loop_index=3, action_card={}, metric_values=[10, 10, 10, 10, 10, 10],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+        session.add(GameChallenge(
+            user_name="user2", user_id=u2.id, phase_index=2, challenge_index=102,
+            challenge_loop_index=3, action_card={}, metric_values=[11, 10, 10, 10, 10, 11],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+        session.add(GameChallenge(
+            user_name="user2", user_id=u2.id, phase_index=3, challenge_index=104,
+            challenge_loop_index=3, action_card={}, metric_values=[12, 10, 10, 10, 10, 14],
+            time_stamp=now, messages=[],
+            attention_tokens=20, emotion_values={},
+        ))
+        session.commit()
+
+    # Global aggregate
+    sums = admin_service.calculate_metric_sum_per_challenge()
+    assert len(sums) >= 5
+    assert sums[0] == 61.0  # (62.0 + 60.0) / 2
+    assert sums[1] == 63.0  # (64.0 + 62.0) / 2
+    assert sums[2] == 66.0  # 66.0 / 1
+    assert sums[3] == 0.0
+    assert sums[4] == 0.0
+
+    increases = admin_service.calculate_metric_sum_per_challenge_increase(sums)
+    assert len(increases) == len(sums)
+    assert increases[0] == 1.0  # 61.0 - 60.0
+    assert increases[1] == 2.0  # 63.0 - 61.0
+    assert increases[2] == 3.0  # 66.0 - 63.0
+    assert increases[3] == 0.0
+    assert increases[4] == 0.0
+
+    # Filtered by campaign
+    alpha_sums = admin_service.calculate_metric_sum_per_challenge(campaign_key="camp-alpha")
+    assert alpha_sums[0] == 62.0
+    assert alpha_sums[1] == 64.0
+    assert alpha_sums[2] == 0.0
+

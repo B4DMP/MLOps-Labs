@@ -131,3 +131,46 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
     environment = next(e for e in dossier if e["stakeholder_id"] == ENVIRONMENT_ENTRY_ID)
     assert environment["is_environment"] is True
     assert [i["id"] for i in environment["intel_items"]] == ["sys_1"]
+
+
+@pytest.mark.anyio
+async def test_dossier_does_not_leak_trade_off_branches_for_boundary_item():
+    from mlops_serious_game.domain.requirement import TradeOffBranch, ConfidenceType, IntelTag
+
+    # A boundary requirement that accidentally still carries trade-off branches
+    boundary_req = _requirement("reuben_boundary", type="boundary", stakeholder_id="tess_tester")
+    item = StakeholderIntelItem.from_requirement(
+        boundary_req,
+        intel_type=ConfidenceType.VERIFIED,
+        categorized_type=IntelTag.BOUNDARY,
+    )
+    # Simulate leftover branch_x and branch_y from prior trade-off miscategorization
+    item.branch_x = TradeOffBranch(name="X", description="automating kpi definitions")
+    item.branch_y = TradeOffBranch(name="Y", description="maintaining basic data contracts")
+
+    challenge = MagicMock()
+    challenge.id = 7
+    challenge.phase_id = 0
+    challenge.conflict = None
+    challenge.focus_stage_ids = ["model"]
+    ws = AsyncMock()
+    ws.query_params = {"username": f"test_boundary_branches_{uuid.uuid4()}"}
+
+    with patch.object(RequirementFactory, "requirements", [boundary_req]), \
+         patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve, \
+         patch("mlops_serious_game.application.intel_handler._archived_items", return_value=[]), \
+         patch("mlops_serious_game.application.intel_handler.get_session", MagicMock()), \
+         patch(
+             "mlops_serious_game.infrastructure.websocket.handlers.game_handler.get_or_create_game_session",
+             return_value=MagicMock(stakeholder_archetypes={}),
+         ), \
+         patch("mlops_serious_game.domain.stakeholder_factory.StakeholderFactory.get_active_stakeholders", return_value=["tess_tester"]):
+        mock_retrieve.return_value = [item]
+        dossier = await retrieve_dossier_data(challenge, ws)
+
+    tess = next(e for e in dossier if e["stakeholder_id"] == "tess_tester")
+    boundary_entry = next(i for i in tess["intel_items"] if i["id"] == "reuben_boundary")
+    assert boundary_entry["categorized_type"] == "boundary"
+    assert boundary_entry["branch_x"] is None
+    assert boundary_entry["branch_y"] is None
+

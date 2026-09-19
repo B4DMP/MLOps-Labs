@@ -51,7 +51,8 @@
             "title": "Target Type",
             "enum": [
               "stakeholder",
-              "intel"
+              "intel",
+              "component"
             ]
           },
           "response_snippet": {

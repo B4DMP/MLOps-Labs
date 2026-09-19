@@ -19,7 +19,6 @@ from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session, get_user_id
 from mlops_serious_game.application.intel_handler import (
     correct_and_verify_intel_item,
-    correct_and_verify_convincer_archetype,
     retrieve_dossier_data,
 )
 from mlops_serious_game.infrastructure.websocket.handlers.game_handler import (
@@ -306,89 +305,6 @@ async def handle_chat_message(
                 payload={"dossier": dossier_data},
             )
 
-        # Check if a Corporate Noise option was played and validate/refute convincer archetype
-        convincer_verification = None
-        last_option = output_state.get("last_selected_option")
-        opt_arch = last_option.archetype if last_option else None
-        opt_arch_name = opt_arch.name if opt_arch else ""
-        opt_arch_strategy = opt_arch.strategy if opt_arch else ""
-
-        convincer_verifications: list[dict] = []
-        if opt_arch_name and not last_intel:
-            # Determine candidate stakeholders involved in this exchange
-            # Includes stakeholders who spoke in this turn (both 1st and 2nd routed) and the prior speaker
-            candidate_ids = []
-            for m in output_state.get("messages", []):
-                if isinstance(m, AIMessage) or getattr(m, "type", "") == "ai":
-                    content = getattr(m, "content", str(m))
-                    match = re.match(r"^\[(.*?)\]", content)
-                    if match:
-                        st_id = match.group(1).strip()
-                        if st_id not in candidate_ids:
-                            candidate_ids.append(st_id)
-
-            with get_session() as db_session:
-                stmt = select(GameChallenge).where(
-                    GameChallenge.user_id == get_user_id(db_session, username)
-                ).order_by(GameChallenge.id.desc())
-                existing_rec = db_session.scalars(stmt).first()
-                if existing_rec and existing_rec.pitch_debate_messages:
-                    for msg_item in reversed(existing_rec.pitch_debate_messages):
-                        msg_id = msg_item.get("id")
-                        if msg_id and msg_id not in candidate_ids:
-                            candidate_ids.append(msg_id)
-
-            if not candidate_ids:
-                candidate_ids = StakeholderFactory.get_active_stakeholders(phase_id) or StakeholderFactory.get_available_stakeholders()
-
-            with get_session() as db_session:
-                sess_rec = get_or_create_game_session(username, db_session)
-                archs = dict(sess_rec.stakeholder_archetypes or {})
-
-                for s_id in candidate_ids:
-                    st_entry = archs.get(s_id, {})
-                    cat_arch = st_entry.get("categorized_archetype")
-                    st_obj = StakeholderFactory.get_stakeholder(s_id)
-                    st_name = st_obj.name if st_obj else s_id
-                    real_arch = st_entry.get("real_archetype") or (getattr(st_obj, "convincer_archetype", "") if st_obj else "")
-
-                    if cat_arch and cat_arch.lower().strip() == opt_arch_name.lower().strip():
-                        if cat_arch.lower().strip() == real_arch.lower().strip():
-                            # Validated! The pitch confirmed the tag, so the dossier may stamp it.
-                            if not st_entry.get("verified"):
-                                correct_and_verify_convincer_archetype(username, s_id)
-                            verif = {
-                                "was_correct": True,
-                                "stakeholder_id": s_id,
-                                "stakeholder_name": st_name,
-                                "categorized_archetype": cat_arch,
-                                "true_archetype": real_arch,
-                                "strategy": opt_arch_strategy,
-                            }
-                            convincer_verifications.append(verif)
-                        else:
-                            # Misattributed! Correct and mark validated
-                            corr_res = correct_and_verify_convincer_archetype(username, s_id)
-                            true_arch_cfg = EmotionFactory.get_archetype_by_name(real_arch)
-                            verif = {
-                                "was_correct": False,
-                                "stakeholder_id": s_id,
-                                "stakeholder_name": st_name,
-                                "old_archetype": cat_arch,
-                                "true_archetype": real_arch,
-                                "strategy": true_arch_cfg.strategy if true_arch_cfg else "",
-                                "explanation": f"{st_name}'s actual convincer archetype is '{real_arch}', not '{cat_arch}'. The archetype has been corrected in your dossier.",
-                            }
-                            convincer_verifications.append(verif)
-
-        if convincer_verifications:
-            dossier_data = await retrieve_dossier_data(curr_challenge, websocket)
-            await manager.send_event(
-                websocket=websocket,
-                event="intel:dossier_data",
-                payload={"dossier": dossier_data},
-            )
-
         # Serialize dialogue options for the next turn (excluding prompt text)
         raw_options = output_state.get("dialogue_options", [])
         dialogue_options = [
@@ -412,13 +328,9 @@ async def handle_chat_message(
             "emotional_states": emotional_states,
             "emotion_values": serialized_emotion_values,
             "emotion_deltas": serialized_deltas,
-            "convincer_archetypes": EmotionFactory.get_convincer_archetypes_dict(),
             "error": False,
             "errorMsg": None,
         }
-        if convincer_verifications:
-            graph_completed_payload["convincer_verifications"] = convincer_verifications
-            graph_completed_payload["convincer_verification"] = convincer_verifications[0]
 
         await manager.send_event(
             websocket=websocket,

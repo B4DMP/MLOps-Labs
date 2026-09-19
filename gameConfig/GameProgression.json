@@ -176,7 +176,7 @@
         "efficiency_intro": 0
       },
       "Source": "-",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_introduction",
       "priority": 0,
       "fallback": true
@@ -194,7 +194,7 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_platform_choice",
       "priority": 0,
       "fallback": true,
@@ -213,7 +213,7 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_data_instability",
       "priority": 0,
       "fallback": true,
@@ -232,7 +232,7 @@
         "efficiency": 0
       },
       "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_entanglement",
       "priority": 0,
       "fallback": true,
@@ -251,7 +251,7 @@
         "efficiency": 0
       },
       "Source": "Eken",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_automation_risk",
       "priority": 0,
       "fallback": true,
@@ -270,7 +270,7 @@
         "efficiency": 0
       },
       "Source": "Learning in Nonstationary Environments: A Survey.",
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "template_id": "ch_accuracy_drop",
       "priority": 0,
       "fallback": true,
@@ -284,7 +284,7 @@
       "description": "#data_dave# insists on keeping the quality checks manually done to control costs. #reliability_ruth# argues for full automation to ensure consistent results.",
       "roundIntroduction": "The data quality checks have become inconsistent, causing delays in the pipeline. #data_dave# and #reliability_ruth# disagree on how to fix the situation.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 50,
       "preconditions": {
         "edge": "e.ingest_validate",
@@ -335,7 +335,7 @@
       "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
       "roundIntroduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 50,
       "preconditions": {
         "component": "model.experiment_tracking",
@@ -392,7 +392,7 @@
       "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance.",
       "roundIntroduction": "The data labeling pipeline has been inconsistent, causing issues in model training. The team needs to decide on the right approach to ensure reliable data quality.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 50,
       "preconditions": {
         "component": "data.labeling",
@@ -443,7 +443,7 @@
       "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter.",
       "roundIntroduction": "The team is arguing about the model registry. The registry is still just a spreadsheet, but #model_monica# says it's getting too hard to manage. #requirements_reuben# worries about compliance risks.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 50,
       "preconditions": {
         "component": "model.registry",
@@ -494,7 +494,7 @@
       "description": "Production metrics have stopped flowing to the team. #efficiency_emilia# argues that a manual monthly audit is sufficient to keep costs down and maintain control over the business KPIs. #reliability_ruth# insists on automated and governed monitoring to catch real-time degradation and ensure the system remains reliable for users.",
       "roundIntroduction": "The nightly data pipeline failed to ingest the latest batch of inference logs. The dashboard now shows a flat line for the last 48 hours, leaving the team blind to current model performance.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 70,
       "preconditions": {
         "component": "ops.performance_monitoring",
@@ -545,7 +545,7 @@
       "description": "The production drift monitoring pipeline is broken, leaving the model's input quality unchecked. #efficiency_emilia# insists on a fully automated and governed drift monitoring system to protect business KPIs, while #reliability_ruth# argues that manual weekly reviews are sufficient and cheaper. #efficiency_emilia# has set a red line requiring automated governance for any future drift detection.",
       "roundIntroduction": "A recent data shift went unnoticed for three days, causing a spike in user complaints. The incident exposed that the drift monitoring workflow is currently non-functional and needs immediate repair.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 80,
       "preconditions": {
         "all": [
@@ -605,7 +605,7 @@
       "description": "A security audit revealed that the API gateway lacks proper authentication controls, exposing model endpoints to unauthorized access. #automation_alex# argues for keeping the gateway in a manual state to avoid disrupting the current deployment pipeline, while #requirements_reuben# insists on a fully governed state to ensure compliance and security.",
       "roundIntroduction": "The security team flagged a critical vulnerability in the API gateway configuration. The current setup allows unauthenticated requests to reach the model serving endpoints.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 75,
       "preconditions": {
         "all": [
@@ -665,7 +665,7 @@
       "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control.",
       "roundIntroduction": "A recent audit revealed that the KPI definitions were lost during a team transition. The team is now scrambling to redefine the success metrics before the next sprint planning session.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 85,
       "preconditions": {
         "all": [
@@ -725,7 +725,7 @@
       "description": "#reliability_ruth# insists on a fully automated and governed shadow deployment to validate model behavior before release, while #automation_alex# argues that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. #automation_alex# has a red line against maintaining any shadow infrastructure and will not move on this point.",
       "roundIntroduction": "A recent model update caused unexpected latency spikes in production, and the team realized there was no safe way to test the new version against live traffic without risking user experience. The shadow deployment environment, which was previously manual, has now broken completely, leaving the team without a safety net for future releases.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 65,
       "preconditions": {
         "component": "deploy.shadow",
@@ -776,7 +776,7 @@
       "description": "A critical compliance audit has revealed that our model promotion process lacks a formal quality gate. #requirements_reuben# insists that acceptance criteria must be fully automated and governed to meet security standards, and he will not compromise on this. #automation_alex# argues that the current manual checks are sufficient for now and that building an automated gate will delay the release of new features.",
       "roundIntroduction": "The compliance team has flagged a gap in our production pipeline where models are deployed without verified acceptance criteria. This has left the team scrambling to decide how to handle the validation step immediately.",
       "metric_changes": {},
-      "attention_tokens": 8,
+      "attention_tokens": 20,
       "priority": 80,
       "preconditions": {
         "all": [

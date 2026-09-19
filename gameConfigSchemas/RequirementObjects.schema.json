@@ -109,6 +109,51 @@
               }
             }
           },
+          "branch_x": {
+            "type": "object",
+            "title": "Trade-off Branch X (Demand X)",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "target": { "type": "string" },
+              "level": { "type": ["integer", "string"] },
+              "ops": {
+                "type": "array",
+                "items": { "type": "object" }
+              },
+              "atoms": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "branch_y": {
+            "type": "object",
+            "title": "Trade-off Branch Y (Demand Y)",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "target": { "type": "string" },
+              "level": { "type": ["integer", "string"] },
+              "ops": {
+                "type": "array",
+                "items": { "type": "object" }
+              },
+              "atoms": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "branch_x_atoms": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Trade-off Branch X constituent atoms"
+          },
+          "branch_y_atoms": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Trade-off Branch Y constituent atoms"
+          },
+          "atoms": {
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Constituent atomic operations"
+          },
           "concedes": {
             "type": "object",
             "title": "Trade-off: what it costs the stakeholder",

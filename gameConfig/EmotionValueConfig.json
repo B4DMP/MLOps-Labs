@@ -224,78 +224,6 @@
       "veryAngry": "#dc2626",
       "rage": "#b91c1c"
    },
-   "convincer_archetypes": {
-      "Technical Excellence": {
-         "name": "Technical Excellence",
-         "label": "Technical Excellence",
-         "icon": "⚙️",
-         "color": "#2563eb",
-         "evidence_basis": 0,
-         "risk_and_control": 2,
-         "value_horizon": 3,
-         "strategy": "Explain how the solution works using technical details, data, trade-offs, and objective evidence rather than promises or business rhetoric."
-      },
-      "Business Value": {
-         "name": "Business Value",
-         "label": "Business Value",
-         "icon": "📈",
-         "color": "#16a34a",
-         "evidence_basis": 1,
-         "risk_and_control": 3,
-         "value_horizon": 5,
-         "strategy": "Frame every proposal in terms of business impact, quantifiable benefits, strategic goals, and return on investment."
-      },
-      "Safety & Reliability": {
-         "name": "Safety & Reliability",
-         "label": "Safety & Reliability",
-         "icon": "🛡️",
-         "color": "#dc2626",
-         "evidence_basis": 0,
-         "risk_and_control": 5,
-         "value_horizon": 4,
-         "strategy": "Emphasize risk mitigation, safeguards, testing, compliance, SLAs, monitoring, and fallback plans to build confidence."
-      },
-      "Control & Governance": {
-         "name": "Control & Governance",
-         "label": "Control & Governance",
-         "icon": "🏛️",
-         "color": "#9333ea",
-         "evidence_basis": 2,
-         "risk_and_control": 5,
-         "value_horizon": 3,
-         "strategy": "Highlight governance structures, approval gates, reporting mechanisms, and how stakeholders retain visibility and control over the project."
-      },
-      "People & Trust": {
-         "name": "People & Trust",
-         "label": "People & Trust",
-         "icon": "🤝",
-         "color": "#ea580c",
-         "evidence_basis": 5,
-         "risk_and_control": 1,
-         "value_horizon": 2,
-         "strategy": "Communicate openly, acknowledge concerns, demonstrate empathy, and build trust through transparency and collaboration rather than hard facts alone."
-      },
-      "Autonomy": {
-         "name": "Autonomy",
-         "label": "Autonomy",
-         "icon": "🚀",
-         "color": "#0284c7",
-         "evidence_basis": 3,
-         "risk_and_control": 0,
-         "value_horizon": 2,
-         "strategy": "Present the proposal as empowering rather than restricting, emphasizing flexibility, delegated ownership, and local decision-making."
-      },
-      "Pragmatism": {
-         "name": "Pragmatism",
-         "label": "Pragmatism",
-         "icon": "⚡",
-         "color": "#d97706",
-         "evidence_basis": 1,
-         "risk_and_control": 1,
-         "value_horizon": 0,
-         "strategy": "Focus on simple, actionable solutions with clear implementation steps, avoiding unnecessary complexity or overengineering."
-      }
-   },
    "emotion_delta_rules": {
       "intel_rules": {
          "misattributed_intel": {
@@ -312,60 +240,6 @@
             "fairness": 0.15,
             "confidence": 0.15
          }
-      },
-      "corporate_noise_rules": {
-         "distance_threshold": 3.5,
-         "distance_slope": 0.04,
-         "base_trust_bonus": 0.10,
-         "base_trust_penalty": -0.10,
-         "dimension_alignments": [
-            {
-               "dimension": "risk_and_control",
-               "conditions": [
-                  {
-                     "type": "option_min",
-                     "min_value": 4,
-                     "deltas": { "perceived_risk": -0.20, "stress": -0.15 }
-                  },
-                  {
-                     "type": "diff_penalty",
-                     "target_min_value": 4,
-                     "min_diff": 3,
-                     "deltas": { "perceived_risk": 0.25, "stress": 0.20, "sense_of_control": -0.20 }
-                  }
-               ]
-            },
-            {
-               "dimension": "value_horizon",
-               "conditions": [
-                  {
-                     "type": "diff_bonus",
-                     "max_diff": 1,
-                     "deltas": { "interest": 0.20 }
-                  },
-                  {
-                     "type": "diff_penalty",
-                     "min_diff": 3,
-                     "deltas": { "interest": -0.15 }
-                  }
-               ]
-            },
-            {
-               "dimension": "evidence_basis",
-               "conditions": [
-                  {
-                     "type": "diff_bonus",
-                     "max_diff": 1,
-                     "deltas": { "fairness": 0.15, "confidence": 0.15 }
-                  },
-                  {
-                     "type": "diff_penalty",
-                     "min_diff": 3,
-                     "deltas": { "fairness": -0.15 }
-                  }
-               ]
-            }
-         ]
       }
    },
    "pitch_tuning": {
@@ -390,8 +264,6 @@
       "default_patience": 3,
       "sound_out_patience_cost": 1,
       "emotion_refuted": -0.05,
-      "emotion_trial_balloon_match": 0.05,
-      "emotion_trial_balloon_miss": -0.03,
-      "emotion_one_on_one_miss": -0.05
+      "patience_malus": 0.05
    }
 }

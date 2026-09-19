@@ -2,7 +2,6 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field, create_model
 from langgraph.graph import MessagesState
 
-from mlops_serious_game.domain.convincerArchetype import ConvincerArchetype
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.requirement import StakeholderIntelItem
 
@@ -18,7 +17,6 @@ class DialogueOption(BaseModel):
     intel_stakeholder_id: Optional[str] = None
     intel_stakeholder_name: Optional[str] = None
     intel_type: Optional[str] = None
-    archetype: Optional[ConvincerArchetype] = None
 
     def is_correct(self, discovered_intel_items: Optional[list[StakeholderIntelItem]] = None) -> bool:
         """Derives whether this dialogue option is based on a correctly classified intel item."""
@@ -81,7 +79,6 @@ class PitchDebateState(MessagesState):
     emotion_deltas: dict[str, EmotionDelta]
     intel_items: list[StakeholderIntelItem]
     dialogue_options: list[DialogueOption]
-    stakeholder_convincer_profile: dict[str, list[StakeholderIntelItem]]
     last_selected_intel: Optional[StakeholderIntelItem]
     last_selected_option: Optional[DialogueOption]
     addressed_stakeholder_id: Optional[str]

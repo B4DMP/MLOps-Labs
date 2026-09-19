@@ -62,13 +62,6 @@
         "type": "string"
       }
     },
-    "convincer_archetypes": {
-      "type": "object",
-      "title": "Convincer Archetypes",
-      "additionalProperties": {
-        "$ref": "#/definitions/convincerArchetype"
-      }
-    },
     "emotion_delta_rules": {
       "$ref": "#/definitions/emotionDeltaRules"
     },
@@ -90,7 +83,7 @@
         "emotion_veto_breaker": { "type": "number", "title": "Veto Breaker: hit to the overridden stakeholder", "default": -0.40 },
         "emotion_concede_win": { "type": "number", "title": "Let Them Have It (D41): gain to the side that gets its way", "default": 0.30 },
         "emotion_concede_lose": { "type": "number", "title": "Let Them Have It (D41): hit to the side whose card was dropped", "default": -0.20 },
-        "secondary_malus": { "type": "number", "title": "Fit penalty vs. a stakeholder's secondary archetype", "default": 0.15 },
+        "secondary_malus": { "type": "number", "title": "Fit penalty vs. a stakeholder's secondary priority", "default": 0.15 },
         "veto_threshold": { "type": "number", "title": "Buy-in floor below which a high-power stakeholder vetoes", "default": 0.4 },
         "objection_threshold": { "type": "number", "title": "Buy-in floor below which a low-power stakeholder objects", "default": 0.3 },
         "loss_w": { "type": "number", "title": "Weight of accumulated loss in the buy-in formula", "default": 0.3 },
@@ -103,9 +96,7 @@
         "default_patience": { "type": "integer", "title": "Patience per stakeholder per challenge (D50)", "default": 3 },
         "sound_out_patience_cost": { "type": "integer", "title": "Patience spent sounding a stakeholder out in Build your case (D50)", "default": 1 },
         "emotion_refuted": { "type": "number", "title": "Gather Test a hypothesis: trust hit on Refuted (D49)", "default": -0.05 },
-        "emotion_trial_balloon_match": { "type": "number", "title": "Gather Trial Balloon: gain on a match (D49)", "default": 0.05 },
-        "emotion_trial_balloon_miss": { "type": "number", "title": "Gather Trial Balloon: hit on a ruled-out guess (D49)", "default": -0.03 },
-        "emotion_one_on_one_miss": { "type": "number", "title": "Gather 1-on-1 template: hit on a wrong pair (D49)", "default": -0.05 }
+        "patience_malus": { "type": "number", "title": "Patience malus to emotion values for repeated presentations", "default": 0.05 }
       }
     },
     "emotionDeltaRules": {
@@ -128,94 +119,6 @@
               "title": "Correct Intel Rewards",
               "additionalProperties": {
                 "type": "number"
-              }
-            }
-          }
-        },
-        "corporate_noise_rules": {
-          "type": "object",
-          "title": "Corporate Noise Delta Rules",
-          "properties": {
-            "distance_threshold": {
-              "type": "number",
-              "title": "Distance Threshold",
-              "default": 3.5
-            },
-            "distance_slope": {
-              "type": "number",
-              "title": "Distance Slope",
-              "default": 0.04
-            },
-            "base_trust_bonus": {
-              "type": "number",
-              "title": "Base Trust Bonus",
-              "default": 0.10
-            },
-            "base_trust_penalty": {
-              "type": "number",
-              "title": "Base Trust Penalty",
-              "default": -0.10
-            },
-            "dimension_alignments": {
-              "type": "array",
-              "title": "Dimension Alignments",
-              "items": {
-                "type": "object",
-                "required": [
-                  "dimension",
-                  "conditions"
-                ],
-                "properties": {
-                  "dimension": {
-                    "type": "string",
-                    "title": "Dimension Name"
-                  },
-                  "conditions": {
-                    "type": "array",
-                    "title": "Conditions",
-                    "items": {
-                      "type": "object",
-                      "required": [
-                        "type",
-                        "deltas"
-                      ],
-                      "properties": {
-                        "type": {
-                          "type": "string",
-                          "title": "Condition Type",
-                          "enum": [
-                            "option_min",
-                            "diff_bonus",
-                            "diff_penalty"
-                          ]
-                        },
-                        "min_value": {
-                          "type": "integer",
-                          "title": "Minimum Value"
-                        },
-                        "target_min_value": {
-                          "type": "integer",
-                          "title": "Target Minimum Value"
-                        },
-                        "min_diff": {
-                          "type": "integer",
-                          "title": "Minimum Difference"
-                        },
-                        "max_diff": {
-                          "type": "integer",
-                          "title": "Maximum Difference"
-                        },
-                        "deltas": {
-                          "type": "object",
-                          "title": "Emotional Deltas",
-                          "additionalProperties": {
-                            "type": "number"
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
               }
             }
           }
@@ -318,59 +221,6 @@
               }
             }
           }
-        }
-      }
-    },
-    "convincerArchetype": {
-      "type": "object",
-      "title": "Convincer Archetype",
-      "required": [
-        "evidence_basis",
-        "risk_and_control",
-        "value_horizon",
-        "strategy"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "title": "Archetype Name"
-        },
-        "label": {
-          "type": "string",
-          "title": "Archetype Display Label"
-        },
-        "icon": {
-          "type": "string",
-          "title": "Archetype Icon/Emoji"
-        },
-        "color": {
-          "type": "string",
-          "title": "Archetype Color (Hex)"
-        },
-        "evidence_basis": {
-          "type": "integer",
-          "title": "Evidence Basis (0=Rational -> 5=Relational)",
-          "minimum": 0,
-          "maximum": 5,
-          "default": 0
-        },
-        "risk_and_control": {
-          "type": "integer",
-          "title": "Risk & Control (0=Autonomy/Risk-tolerant -> 5=Control/Risk-averse)",
-          "minimum": 0,
-          "maximum": 5,
-          "default": 0
-        },
-        "value_horizon": {
-          "type": "integer",
-          "title": "Value Horizon (0=Short-term Practical -> 5=Long-term Strategic)",
-          "minimum": 0,
-          "maximum": 5,
-          "default": 0
-        },
-        "strategy": {
-          "type": "string",
-          "title": "Persuasion Strategy"
         }
       }
     }

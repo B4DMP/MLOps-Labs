@@ -12,6 +12,8 @@ from typing import Optional
 
 from sqlalchemy import select
 
+from sqlalchemy.orm.attributes import flag_modified
+
 from mlops_serious_game.application.pitch_debate_service.gather import GatherConversation
 from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
 
@@ -61,4 +63,5 @@ def save_conversation(username: str, phase_id: int, challenge_id: int, conversat
         conversations[_key(conversation.card_id, conversation.stakeholder_id)] = conversation.model_dump(mode="json")
         card[GATHER_KEY] = conversations
         row.action_card = card
+        flag_modified(row, "action_card")
         db.commit()

@@ -23,6 +23,266 @@ export interface IntelItem {
   stakeholder_name?: string;
 }
 
+export interface MLOpsComponentInfo {
+  id: string;
+  name: string;
+  group: "Requirements" | "Data" | "Model" | "Deployment" | "Operations" | "Governance";
+  icon: string;
+  description: string;
+}
+
+export const MLOPS_COMPONENTS: MLOpsComponentInfo[] = [
+  // Requirements
+  {
+    id: "req.kpi_definition",
+    name: "KPI Definition",
+    group: "Requirements",
+    icon: "ph:chart-line-up-bold",
+    description: "Align business objectives and technical performance metrics with stakeholders.",
+  },
+  {
+    id: "req.acceptance_criteria",
+    name: "Acceptance Criteria",
+    group: "Requirements",
+    icon: "ph:checks-bold",
+    description: "Define rigorous quality benchmarks and sign-off criteria for release candidates.",
+  },
+  {
+    id: "req.data_contracts",
+    name: "Data Contracts",
+    group: "Requirements",
+    icon: "ph:file-lock-bold",
+    description: "Establish formal schema and semantic guarantees between upstream producers and models.",
+  },
+  {
+    id: "req.risk_assessment",
+    name: "Risk Assessment",
+    group: "Requirements",
+    icon: "ph:shield-warning-bold",
+    description: "Assess operational, regulatory, and technical risks prior to automated deployment.",
+  },
+
+  // Data
+  {
+    id: "data.ingestion",
+    name: "Data Ingestion Pipeline",
+    group: "Data",
+    icon: "ph:database-bold",
+    description: "Automate continuous streaming and batch ingestion of raw data from sources.",
+  },
+  {
+    id: "data.validation",
+    name: "Data Validation",
+    group: "Data",
+    icon: "ph:check-square-offset-bold",
+    description: "Automate schema validation, missingness checks, and integrity constraints on incoming data.",
+  },
+  {
+    id: "data.feature_store",
+    name: "Feature Store",
+    group: "Data",
+    icon: "ph:squares-four-bold",
+    description: "Centralize feature transformation, online serving, and offline training consistency.",
+  },
+  {
+    id: "data.versioning",
+    name: "Data Versioning",
+    group: "Data",
+    icon: "ph:git-branch-bold",
+    description: "Track immutable snapshots and provenance of dataset splits across training experiments.",
+  },
+  {
+    id: "data.labeling",
+    name: "Data Labeling Pipeline",
+    group: "Data",
+    icon: "ph:tag-bold",
+    description: "Manage human-in-the-loop and active learning workflows for ground truth dataset labeling.",
+  },
+  {
+    id: "data.training_drift_check",
+    name: "Training Data Drift Check",
+    group: "Data",
+    icon: "ph:chart-bar-horizontal-bold",
+    description: "Detect distribution shifts between historical training baselines and newly acquired data.",
+  },
+
+  // Model
+  {
+    id: "model.experiment_tracking",
+    name: "Experiment Tracking",
+    group: "Model",
+    icon: "ph:flask-bold",
+    description: "Log hyperparameters, loss curves, code versions, and evaluation metrics across training runs.",
+  },
+  {
+    id: "model.registry",
+    name: "Model Registry",
+    group: "Model",
+    icon: "ph:archive-box-bold",
+    description: "Store versioned model artifacts, staging promotions, approval status, and governance metadata.",
+  },
+  {
+    id: "model.training_pipeline",
+    name: "Training Pipeline",
+    group: "Model",
+    icon: "ph:gear-six-bold",
+    description: "Orchestrate reproducible training scripts, data preprocessing, and model checkpoints.",
+  },
+  {
+    id: "model.hpo",
+    name: "Hyperparameter Tuning",
+    group: "Model",
+    icon: "ph:sliders-horizontal-bold",
+    description: "Automate parameter search strategies and Bayesian optimization for architecture efficiency.",
+  },
+  {
+    id: "model.evaluation",
+    name: "Model Evaluation Harness",
+    group: "Model",
+    icon: "ph:medal-bold",
+    description: "Run automated benchmark suites against fairness, robustness, and validation test sets.",
+  },
+
+  // Deployment
+  {
+    id: "deploy.cicd",
+    name: "CI/CD Pipeline",
+    group: "Deployment",
+    icon: "ph:arrows-clockwise-bold",
+    description: "Automate build, unit testing, integration tests, and deployment packaging of models and code.",
+  },
+  {
+    id: "deploy.serving",
+    name: "Model Serving Endpoint",
+    group: "Deployment",
+    icon: "ph:cloud-arrow-up-bold",
+    description: "Host real-time low-latency REST/gRPC inference endpoints or high-throughput batch predictors.",
+  },
+  {
+    id: "deploy.canary_ab",
+    name: "Canary and A/B Testing",
+    group: "Deployment",
+    icon: "ph:split-horizontal-bold",
+    description: "Route a fraction of live production traffic to candidate models to evaluate performance safely.",
+  },
+  {
+    id: "deploy.shadow",
+    name: "Shadow Deployment",
+    group: "Deployment",
+    icon: "ph:ghost-bold",
+    description: "Mirror live production inference requests to test candidate models without user-facing impact.",
+  },
+  {
+    id: "deploy.containerization",
+    name: "Containerization",
+    group: "Deployment",
+    icon: "ph:package-bold",
+    description: "Standardize execution environments via Docker images and reproducible dependency containers.",
+  },
+  {
+    id: "deploy.orchestration",
+    name: "Orchestration",
+    group: "Deployment",
+    icon: "ph:tree-structure-bold",
+    description: "Manage distributed workloads, cluster scheduling, and container lifecycle across clusters.",
+  },
+  {
+    id: "deploy.api_gateway",
+    name: "API Gateway",
+    group: "Deployment",
+    icon: "ph:door-bold",
+    description: "Handle authentication, SSL termination, rate-limiting, and routing for external model APIs.",
+  },
+
+  // Operations
+  {
+    id: "ops.performance_monitoring",
+    name: "Model Performance Monitoring",
+    group: "Operations",
+    icon: "ph:gauge-bold",
+    description: "Continuously track inference latency, error rates, throughput, and hardware utilization.",
+  },
+  {
+    id: "ops.production_drift_monitoring",
+    name: "Production Drift Monitoring",
+    group: "Operations",
+    icon: "ph:wave-sine-bold",
+    description: "Monitor real-time concept drift, covariate feature shifts, and prediction distribution changes.",
+  },
+  {
+    id: "ops.alerting",
+    name: "Alerting System",
+    group: "Operations",
+    icon: "ph:bell-ringing-bold",
+    description: "Trigger incident alerts to on-call engineers when latency spikes or accuracy drops below SLA.",
+  },
+  {
+    id: "ops.observability",
+    name: "Logging and Observability",
+    group: "Operations",
+    icon: "ph:binoculars-bold",
+    description: "Collect structured distributed tracing, input/output payload logs, and audit trails.",
+  },
+  {
+    id: "ops.retraining_trigger",
+    name: "Retraining Trigger",
+    group: "Operations",
+    icon: "ph:arrow-counter-clockwise-bold",
+    description: "Automatically initiate upstream retraining pipelines upon detected data drift or degradation.",
+  },
+  {
+    id: "ops.rollback",
+    name: "Rollback Mechanism",
+    group: "Operations",
+    icon: "ph:arrow-u-up-left-bold",
+    description: "Quickly revert traffic to the previous stable model version when production incidents occur.",
+  },
+
+  // Governance
+  {
+    id: "gov.iam",
+    name: "Access Control and IAM",
+    group: "Governance",
+    icon: "ph:key-bold",
+    description: "Enforce least-privilege role-based access to training datasets, models, and secret credentials.",
+  },
+  {
+    id: "gov.audit",
+    name: "Audit Logging and Compliance",
+    group: "Governance",
+    icon: "ph:clipboard-text-bold",
+    description: "Maintain tamper-evident compliance logs of model training, approvals, and deployments.",
+  },
+  {
+    id: "gov.model_cards",
+    name: "Model Documentation and Cards",
+    group: "Governance",
+    icon: "ph:article-bold",
+    description: "Document intended use cases, known limitations, training procedures, and bias evaluations.",
+  },
+  {
+    id: "gov.cost_monitoring",
+    name: "Cost Monitoring",
+    group: "Governance",
+    icon: "ph:currency-dollar-bold",
+    description: "Track cloud compute, GPU allocation, inference spending, and budget utilization per model.",
+  },
+  {
+    id: "gov.iac",
+    name: "Infrastructure as Code",
+    group: "Governance",
+    icon: "ph:code-block-bold",
+    description: "Manage reproducible cloud infrastructure and MLOps clusters using declarative templates.",
+  },
+  {
+    id: "gov.compute_scheduling",
+    name: "Compute Scheduling",
+    group: "Governance",
+    icon: "ph:calendar-check-bold",
+    description: "Optimize batch GPU cluster scheduling, spot instance management, and job preemption.",
+  },
+];
+
 export interface EngagementCardTargetModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,8 +292,6 @@ export interface EngagementCardTargetModalProps {
   availableStakeholderList: any[];
   isStakeholderActive: (st: any) => boolean;
   cardTargetedStakeholdersMap: Record<string, string[]>;
-  /** Stakeholders whose intel counter is full: shown, but greyed out. */
-  exhaustedStakeholderIds?: string[];
   intelItems?: IntelItem[];
   onConfirmStakeholders: (stakeholderIds: string[]) => void;
   onConfirmIntel: (intelItem: IntelItem) => void;
@@ -50,7 +308,6 @@ export default function EngagementCardTargetModal({
   availableStakeholderList,
   isStakeholderActive,
   cardTargetedStakeholdersMap,
-  exhaustedStakeholderIds = [],
   intelItems = [],
   onConfirmStakeholders,
   onConfirmIntel,
@@ -58,7 +315,10 @@ export default function EngagementCardTargetModal({
 }: EngagementCardTargetModalProps) {
   const [selectedStakeholderIds, setSelectedStakeholderIds] = useState<string[]>([]);
   const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
+  const [selectedComponentFilter, setSelectedComponentFilter] = useState<string>("ALL");
+  const [componentSearchQuery, setComponentSearchQuery] = useState<string>("");
   const [isClosing, setIsClosing] = useState(false);
 
   // Reset selections upon modal opening or card switch
@@ -69,13 +329,16 @@ export default function EngagementCardTargetModal({
         const activeIds = availableStakeholderList
           .filter(isStakeholderActive)
           .map((st: any) => st.id)
-          .filter((id: string) => !exhaustedStakeholderIds.includes(id) && !lockedIds.includes(id));
+          .filter((id: string) => !lockedIds.includes(id));
         setSelectedStakeholderIds(activeIds);
       } else {
         setSelectedStakeholderIds([]);
       }
       setSelectedIntelId(null);
+      setSelectedComponentId(null);
       setSelectedStakeholderFilter("ALL");
+      setSelectedComponentFilter("ALL");
+      setComponentSearchQuery("");
       setIsClosing(false);
     }
     // Only on open or on a card switch: the parent rebuilds these lists on every render, and
@@ -95,15 +358,14 @@ export default function EngagementCardTargetModal({
   if (!isOpen || !card) return null;
 
   const isIntelCard = card.target_type === "intel" || card.id === "eng_0";
+  const isComponentCard = card.target_type === "component" || card.id === "eng_5";
   const isAllStakeholdersCard = card.stakeholder_selection_amount === -1;
   const activeStakeholders = availableStakeholderList.filter(isStakeholderActive);
   const targetedStakeholderIds = cardTargetedStakeholdersMap[card.id] || [];
-  const isExhausted = (stId: string) => exhaustedStakeholderIds.includes(stId);
   const selectableStakeholders = activeStakeholders.filter(
-    (st: any) => !isExhausted(st.id) && !targetedStakeholderIds.includes(st.id)
+    (st: any) => !targetedStakeholderIds.includes(st.id)
   );
-  // A card asking for two targets still plays when only one has anything left to tell.
-  const requiredAmount = isIntelCard
+  const requiredAmount = isIntelCard || isComponentCard
     ? 1
     : isAllStakeholdersCard
     ? selectableStakeholders.length
@@ -139,8 +401,48 @@ export default function EngagementCardTargetModal({
     return item.stakeholder_id === selectedStakeholderFilter;
   });
 
+  // Component subsystem filter options
+  const componentGroups = Array.from(
+    new Set(MLOPS_COMPONENTS.map((c) => c.group))
+  ).map((grp) => ({
+    id: grp,
+    name: grp,
+    count: MLOPS_COMPONENTS.filter((c) => c.group === grp).length,
+  }));
+
+  const filteredComponents = MLOPS_COMPONENTS.filter((comp) => {
+    const matchesFilter =
+      selectedComponentFilter === "ALL" || comp.group.toUpperCase() === selectedComponentFilter.toUpperCase();
+    const q = componentSearchQuery.trim().toLowerCase();
+    const matchesQuery =
+      !q ||
+      comp.name.toLowerCase().includes(q) ||
+      comp.id.toLowerCase().includes(q) ||
+      comp.description.toLowerCase().includes(q);
+    return matchesFilter && matchesQuery;
+  });
+
+  const getGroupCategoryClass = (group: string) => {
+    switch (group) {
+      case "Requirements":
+        return styles.categoryTagRequirement;
+      case "Data":
+        return styles.categoryTagRequirement;
+      case "Model":
+        return styles.categoryTagPreference;
+      case "Deployment":
+        return styles.categoryTagDefault;
+      case "Operations":
+        return styles.categoryTagFriction;
+      case "Governance":
+        return styles.categoryTagRequirement;
+      default:
+        return styles.categoryTagDefault;
+    }
+  };
+
   const handleToggleStakeholder = (stId: string) => {
-    if (targetedStakeholderIds.includes(stId) || isExhausted(stId)) return;
+    if (targetedStakeholderIds.includes(stId)) return;
 
     if (selectedStakeholderIds.includes(stId)) {
       setSelectedStakeholderIds((prev) => prev.filter((id) => id !== stId));
@@ -153,15 +455,21 @@ export default function EngagementCardTargetModal({
     }
   };
 
+  const isIntelConfirmed = (item: IntelItem) => {
+    const conf = (item.intel_type || "").toLowerCase();
+    return conf === "verified" || conf === "confirmed" || conf === "on_record" || conf === "inferred";
+  };
+
   const handleToggleIntel = (item: IntelItem) => {
-    const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
-    if (isVerified) return;
+    if (isIntelConfirmed(item)) return;
 
     setSelectedIntelId((prev) => (prev === item.id ? null : item.id));
   };
 
   const isSelectionValid = isIntelCard
     ? Boolean(selectedIntelId)
+    : isComponentCard
+    ? Boolean(selectedComponentId)
     : requiredAmount > 0 && selectedStakeholderIds.length === requiredAmount;
 
   const handleConfirm = () => {
@@ -171,6 +479,10 @@ export default function EngagementCardTargetModal({
       const selectedItem = intelItems.find((item) => item.id === selectedIntelId);
       if (selectedItem) {
         onConfirmIntel(selectedItem);
+      }
+    } else if (isComponentCard) {
+      if (selectedComponentId) {
+        onConfirmStakeholders([selectedComponentId]);
       }
     } else {
       onConfirmStakeholders(selectedStakeholderIds);
@@ -183,6 +495,11 @@ export default function EngagementCardTargetModal({
     footerHint = selectedIntelId
       ? "Ready to verify the selected intel item."
       : "Click an unverified intel finding from the list to select it for verification.";
+  } else if (isComponentCard) {
+    const compName = MLOPS_COMPONENTS.find((c) => c.id === selectedComponentId)?.name || selectedComponentId;
+    footerHint = selectedComponentId
+      ? `Ready to investigate ${compName}.`
+      : "Select 1 MLOps graph component from the list to inspect.";
   } else {
     const remaining = requiredAmount - selectedStakeholderIds.length;
     if (remaining === 0) {
@@ -215,6 +532,8 @@ export default function EngagementCardTargetModal({
               <p className={styles.headerSubtitle}>
                 {isIntelCard
                   ? "Select an unverified dossier finding to authenticate with this engagement card"
+                  : isComponentCard
+                  ? "Select 1 MLOps graph component to inspect its architecture, state, and dependencies"
                   : isAllStakeholdersCard
                   ? `All ${requiredAmount} active team stakeholders are selected by default. Confirm below to initiate the sync.`
                   : `Choose ${requiredAmount} stakeholder${requiredAmount > 1 ? "s" : ""} to initiate direct dialogue and uncover requirements`}
@@ -254,6 +573,8 @@ export default function EngagementCardTargetModal({
                     <span>
                       {isIntelCard
                         ? "Select 1 unverified dossier finding to upgrade."
+                        : isComponentCard
+                        ? "Select 1 MLOps graph component to investigate."
                         : isAllStakeholdersCard
                         ? `All ${requiredAmount} active team stakeholders are included in this sync.`
                         : `Select exactly ${requiredAmount} active stakeholder${requiredAmount > 1 ? "s" : ""}.`}
@@ -264,10 +585,18 @@ export default function EngagementCardTargetModal({
                 <div className={styles.directiveStepItem}>
                   <span className={styles.stepBadge}>2</span>
                   <div className={styles.directiveStepContent}>
-                    <strong>{isIntelCard ? "Direct Verification:" : "Dialogue & Intel:"}</strong>{" "}
+                    <strong>
+                      {isIntelCard
+                        ? "Direct Verification:"
+                        : isComponentCard
+                        ? "Deep Inspection:"
+                        : "Dialogue & Intel:"}
+                    </strong>{" "}
                     <span>
                       {isIntelCard
                         ? "Elevates finding certainty to Verified in the Stakeholder Dossier."
+                        : isComponentCard
+                        ? "Inspects technical architecture and uncovers 1 factual finding regarding state, telemetry, or dependencies."
                         : card.turns !== undefined && card.turns > 0
                           ? `Buys ${card.turns} turn${card.turns > 1 ? "s" : ""} per target: unconfirmed notes you hold are checked first, then new ones come up. Results land in your dossier.`
                           : "Triggers targeted dialogue responses & steers engagement dynamics."}
@@ -278,11 +607,13 @@ export default function EngagementCardTargetModal({
                 <div className={styles.directiveStepItem}>
                   <span className={styles.stepBadge}>3</span>
                   <div className={styles.directiveStepContent}>
-                    <strong>Phase Limit:</strong>{" "}
+                    <strong>Challenge Limit:</strong>{" "}
                     <span>
                       {isIntelCard
                         ? "Already verified intel items cannot be verified again."
-                        : "Stakeholders already targeted by this card in this phase are locked."}
+                        : isComponentCard
+                        ? "Discovered Facts unlock bundled prerequisite upgrades during Action Card drafting."
+                        : "Stakeholders already targeted by this card in this challenge are locked."}
                     </span>
                   </div>
                 </div>
@@ -307,14 +638,25 @@ export default function EngagementCardTargetModal({
                   <div className="d-flex align-items-center gap-2">
                     <h6 className={styles.sectionTitle}>
                       <Icon
-                        icon={isIntelCard ? "ph:files-bold" : "ph:users-three-bold"}
+                        icon={isIntelCard ? "ph:files-bold" : isComponentCard ? "ph:cpu-bold" : "ph:users-three-bold"}
                         className={styles.sectionIcon}
                       />
-                      <span>{isIntelCard ? "Select Intel Item to Verify" : "Available Stakeholders"}</span>
+                      <span>
+                        {isIntelCard
+                          ? "Select Intel Item to Verify"
+                          : isComponentCard
+                          ? "Available MLOps Components"
+                          : "Available Stakeholders"}
+                      </span>
                     </h6>
                     {isIntelCard && stakeholderOptions.length > 0 && (
                       <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
                         {filteredIntelItems.length} of {intelItems.length}
+                      </span>
+                    )}
+                    {isComponentCard && (
+                      <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
+                        {filteredComponents.length} of {MLOPS_COMPONENTS.length}
                       </span>
                     )}
                   </div>
@@ -356,6 +698,54 @@ export default function EngagementCardTargetModal({
                       </div>
                     )}
 
+                    {isComponentCard && (
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex align-items-center gap-1">
+                          <label htmlFor="target-component-filter" className={styles.filterLabel}>
+                            <Icon icon="ph:funnel-bold" className="me-1" />
+                            Subsystem:
+                          </label>
+                          <select
+                            id="target-component-filter"
+                            className={`form-select form-select-sm ${styles.stakeholderFilterSelect}`}
+                            value={selectedComponentFilter}
+                            onChange={(e) => setSelectedComponentFilter(e.target.value)}
+                          >
+                            <option value="ALL">All Subsystems ({MLOPS_COMPONENTS.length})</option>
+                            {componentGroups.map((grp) => (
+                              <option key={grp.id} value={grp.id}>
+                                {grp.name} ({grp.count})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="d-flex align-items-center gap-1">
+                          <input
+                            type="text"
+                            placeholder="Filter by name or ID..."
+                            className={`form-control form-control-sm ${styles.componentSearchInput}`}
+                            value={componentSearchQuery}
+                            onChange={(e) => setComponentSearchQuery(e.target.value)}
+                          />
+                          {(selectedComponentFilter !== "ALL" || componentSearchQuery.trim() !== "") && (
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-secondary py-1 px-2"
+                              style={{ fontSize: "0.72rem" }}
+                              onClick={() => {
+                                setSelectedComponentFilter("ALL");
+                                setComponentSearchQuery("");
+                              }}
+                              title="Reset component filters"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {isAllStakeholdersCard && selectedStakeholderIds.length < requiredAmount && (
                       <button
                         type="button"
@@ -378,6 +768,10 @@ export default function EngagementCardTargetModal({
                       <span>
                         {isIntelCard
                           ? selectedIntelId
+                            ? "1 / 1 Selected"
+                            : "0 / 1 Selected"
+                          : isComponentCard
+                          ? selectedComponentId
                             ? "1 / 1 Selected"
                             : "0 / 1 Selected"
                           : isAllStakeholdersCard
@@ -418,9 +812,9 @@ export default function EngagementCardTargetModal({
                       /* Intel Items Grid */
                       <div className={styles.intelGrid}>
                         {filteredIntelItems.map((item) => {
-                          const isVerified = (item.intel_type || "").toLowerCase().includes("verified");
+                          const isConfirmed = isIntelConfirmed(item);
                           const isSelected = selectedIntelId === item.id;
-                          const isSelectable = !isVerified;
+                          const isSelectable = !isConfirmed;
                           const catType = item.categorized_type || "driver";
                           const catDetails = getCategoryDetails(catType);
 
@@ -441,14 +835,14 @@ export default function EngagementCardTargetModal({
 
                                     <span
                                       className={`${styles.confirmationPill} ${
-                                        isVerified ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
+                                        isConfirmed ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
                                       }`}
                                     >
                                       <Icon
-                                        icon={isVerified ? "ph:seal-check-fill" : "ph:question-fill"}
+                                        icon={isConfirmed ? "ph:seal-check-fill" : "ph:question-fill"}
                                         style={{ fontSize: "0.85rem" }}
                                       />
-                                      <span>{isVerified ? "Verified" : "Unconfirmed"}</span>
+                                      <span>{isConfirmed ? "Confirmed" : "Unconfirmed"}</span>
                                     </span>
                                   </div>
                                 </div>
@@ -483,14 +877,91 @@ export default function EngagementCardTargetModal({
                         })}
                       </div>
                     )
+                  ) : isComponentCard ? (
+                    filteredComponents.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <Icon icon="ph:cpu-bold" className={styles.emptyStateIcon} />
+                        <h6 className={styles.emptyStateTitle}>No MLOps Components Found</h6>
+                        <p className={styles.emptyStateSubtitle}>
+                          No component matches the selected subsystem filter or search &ldquo;{componentSearchQuery}&rdquo;.
+                        </p>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-info mt-2"
+                          onClick={() => {
+                            setSelectedComponentFilter("ALL");
+                            setComponentSearchQuery("");
+                          }}
+                        >
+                          Show All Components
+                        </button>
+                      </div>
+                    ) : (
+                      /* Component Cards Grid - Oriented at Verify Intel Item UI */
+                      <div className={styles.intelGrid}>
+                        {filteredComponents.map((comp) => {
+                          const isSelected = selectedComponentId === comp.id;
+                          const catClass = getGroupCategoryClass(comp.group);
+
+                          return (
+                            <div
+                              key={comp.id}
+                              className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""}`}
+                              onClick={() => setSelectedComponentId(isSelected ? null : comp.id)}
+                            >
+                              <div>
+                                <div className={styles.intelHeader}>
+                                  <div className={styles.intelBadges}>
+                                    <span className={`${styles.categoryTag} ${catClass}`}>
+                                      <Icon icon={comp.icon} />
+                                      <span>{comp.group}</span>
+                                    </span>
+
+                                    <span
+                                      className={`${styles.confirmationPill} ${styles.confirmationPillVerified}`}
+                                    >
+                                      <Icon
+                                        icon="ph:cpu-bold"
+                                        style={{ fontSize: "0.85rem" }}
+                                      />
+                                      <span>MLOps Subsystem</span>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <h6 style={{ margin: "0.6rem 0 0.25rem 0", color: "#f1f5f9", fontWeight: 700, fontSize: "0.92rem" }}>
+                                  {comp.name}
+                                </h6>
+
+                                <p className={styles.intelDescription} style={{ fontSize: "0.78rem", color: "#cbd5e1", fontWeight: 400 }}>
+                                  {comp.description}
+                                </p>
+                              </div>
+
+                              <div className="d-flex justify-content-between align-items-center mt-3 pt-2" style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
+                                <p className={styles.intelSource} style={{ fontFamily: "monospace", fontSize: "0.74rem", color: "#38bdf8" }}>
+                                  <Icon icon="ph:code-bold" />
+                                  <span>{comp.id}</span>
+                                </p>
+
+                                {isSelected ? (
+                                  <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
+                                ) : (
+                                  <span className={styles.uncheckCircle} />
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
                   ) : (
                     /* Stakeholder Cards Grid with prominent Avatars */
                     <div className={styles.stakeholderGrid}>
                       {activeStakeholders.map((st) => {
                         const isSelected = selectedStakeholderIds.includes(st.id);
                         const isAlreadyTargeted = targetedStakeholderIds.includes(st.id);
-                        const nothingLeft = isExhausted(st.id);
-                        const isSelectable = !isAlreadyTargeted && !nothingLeft;
+                        const isSelectable = !isAlreadyTargeted;
                         const stColor = getStakeholderColor(st);
                         const stAvatar = stakeholders[st.id]?.avatar || st.avatar;
 
@@ -502,9 +973,7 @@ export default function EngagementCardTargetModal({
                             onClick={() => isSelectable && handleToggleStakeholder(st.id)}
                             title={
                               isAlreadyTargeted
-                                ? `Already targeted by "${card.title}" in this phase.`
-                                : nothingLeft
-                                ? `Every note on ${st.name} is confirmed already.`
+                                ? `This stakeholder was already targeted by this card in this challenge.`
                                 : `Click to ${isSelected ? "deselect" : "select"} ${st.name}`
                             }
                           >
@@ -541,7 +1010,7 @@ export default function EngagementCardTargetModal({
                                     />
                                   )}
                                   {isAlreadyTargeted && (
-                                    <span title="Already targeted" style={{ display: "inline-flex" }}>
+                                    <span title="Already targeted by this card in this challenge" style={{ display: "inline-flex" }}>
                                       <Icon
                                         icon="ph:lock-key-fill"
                                         className={styles.lockedIcon}
@@ -554,17 +1023,9 @@ export default function EngagementCardTargetModal({
                                 </div>
                               </div>
 
-                              <p className={styles.stakeholderRole} title={st.role_description || st.responsibilities}>
-                                {st.role_description || st.responsibilities || "Key Project Stakeholder"}
-                              </p>
-
                               {isAlreadyTargeted ? (
                                 <span className={styles.lockedBadge}>
-                                  <Icon icon="ph:lock-key-fill" /> Already targeted in this challenge
-                                </span>
-                              ) : nothingLeft ? (
-                                <span className={styles.lockedBadge}>
-                                  <Icon icon="ph:seal-check-fill" /> Nothing left to learn here
+                                  <Icon icon="ph:lock-key-fill" /> This stakeholder was already targeted by this card in this challenge
                                 </span>
                               ) : (
                                 <div className={styles.tagRow}>

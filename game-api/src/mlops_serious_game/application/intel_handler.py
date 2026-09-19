@@ -10,6 +10,7 @@ from mlops_serious_game.domain.requirement import (
     join_wording,
     StakeholderIntelItem,
     StakeholderRequirement,
+    TradeOffBranch,
     item_target as _shared_item_target,
     item_target_and_level,
 )
@@ -26,7 +27,6 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
-from mlops_serious_game.domain.convincer_archetype_artifact_factory import ConvincerArchetypeArtifactFactory
 from mlops_serious_game.application.pitch_debate_service.chains import (
     get_wrong_intel_chain,
     get_intel_artifact_chain,
@@ -104,127 +104,13 @@ async def _generate_single_artifact(curr_challenge: Challenge, req: StakeholderR
     }
 
 
-def get_default_stakeholder_archetypes(existing_archs: Optional[dict] = None) -> dict:
-    """Helper function to build or update default stakeholder convincer archetypes."""
-    archs = dict(existing_archs or {})
-    stakeholder_list = (
-        StakeholderFactory.stakeholders
-        if isinstance(StakeholderFactory.stakeholders, list)
-        else list(StakeholderFactory.stakeholders.values())
-    )
-    for st in stakeholder_list:
-        s_id = getattr(st, "id", None) or (st.get("id") if isinstance(st, dict) else str(st))
-        real_arch = getattr(st, "convincer_archetype", "") if hasattr(st, "convincer_archetype") else (st.get("convincer_archetype", "") if isinstance(st, dict) else "")
-        if s_id not in archs:
-            archs[s_id] = {
-                "real_archetype": real_arch,
-                "categorized_archetype": None,
-            }
-        else:
-            archs[s_id]["real_archetype"] = real_arch
-    return archs
-
-
-async def tag_stakeholder_convincer_archetype(
-    player: str,
-    stakeholder_id: str,
-    categorized_archetype: str,
-) -> dict:
-    """Processes tagging or re-tagging of a stakeholder's convincer archetype."""
-    if stakeholder_id not in StakeholderFactory.get_available_stakeholders():
-        raise ValueError(f"Invalid stakeholder_id: {stakeholder_id}")
-    if categorized_archetype not in EmotionFactory.get_available_archetype_names():
-        raise ValueError(f"Invalid categorized_archetype: {categorized_archetype}")
-
-    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
-    with get_session() as db_session:
-        session_rec = get_or_create_game_session(player, db_session)
-        archs = dict(session_rec.stakeholder_archetypes or {})
-        st_entry = dict(archs.get(stakeholder_id, {}))
-        st = StakeholderFactory.get_stakeholder(stakeholder_id)
-        real_arch = getattr(st, "convincer_archetype", "") if st else st_entry.get("real_archetype", "")
-
-        # Only a verified archetype is locked. A correct guess stays open to re-tagging until the
-        # pitch confirms it, otherwise the lock itself would tell the player they got it right.
-        if st_entry.get("verified"):
-            return st_entry
-
-        st_entry["real_archetype"] = real_arch
-        st_entry["categorized_archetype"] = categorized_archetype
-        st_entry["verified"] = False
-        archs[stakeholder_id] = st_entry
-        session_rec.stakeholder_archetypes = archs
-        flag_modified(session_rec, "stakeholder_archetypes")
-        db_session.commit()
-        return st_entry
-
-
-def correct_and_verify_convincer_archetype(
-    username: str,
-    stakeholder_id: str,
-) -> dict:
-    """Sets the true archetype in GameSession and marks it verified, whether the tag was right or not."""
-    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
-    with get_session() as session:
-        session_rec = get_or_create_game_session(username, session)
-        archs = dict(session_rec.stakeholder_archetypes or {})
-        st_entry = dict(archs.get(stakeholder_id, {}))
-        st = StakeholderFactory.get_stakeholder(stakeholder_id)
-        real_arch = getattr(st, "convincer_archetype", "") if st else st_entry.get("real_archetype", "")
-        old_cat = st_entry.get("categorized_archetype")
-        st_entry["real_archetype"] = real_arch
-        st_entry["categorized_archetype"] = real_arch
-        st_entry["verified"] = True
-        archs[stakeholder_id] = st_entry
-        session_rec.stakeholder_archetypes = archs
-        flag_modified(session_rec, "stakeholder_archetypes")
-        session.commit()
-        return {
-            "stakeholder_id": stakeholder_id,
-            "old_archetype": old_cat,
-            "true_archetype": real_arch,
-        }
-
-
-def rule_out_archetype(username: str, stakeholder_id: str, archetype_name: str) -> dict:
-    """Trial Balloon (D49, plan 11): a guessed archetype that did not land. Struck through in the
-    re-tag picker from then on. Never verifies anything - only a match does that."""
-    from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
-    with get_session() as session:
-        session_rec = get_or_create_game_session(username, session)
-        archs = dict(session_rec.stakeholder_archetypes or {})
-        st_entry = dict(archs.get(stakeholder_id, {}))
-        ruled_out = list(st_entry.get("ruled_out", []))
-        if archetype_name not in ruled_out:
-            ruled_out.append(archetype_name)
-        st_entry["ruled_out"] = ruled_out
-        archs[stakeholder_id] = st_entry
-        session_rec.stakeholder_archetypes = archs
-        flag_modified(session_rec, "stakeholder_archetypes")
-        session.commit()
-        return st_entry
-
-
-def ruled_out_archetypes(username: str, stakeholder_id: str) -> list[str]:
-    """Archetypes a Trial Balloon has already ruled out for this stakeholder (D49)."""
-    with get_session() as session:
-        user_id = get_user_id(session, username)
-        row = session.scalars(
-            select(GameSession).where(GameSession.user_id == user_id).order_by(GameSession.id.desc())
-        ).first()
-        if row is None or not isinstance(row.stakeholder_archetypes, dict):
-            return []
-        entry = row.stakeholder_archetypes.get(stakeholder_id)
-        return list(entry.get("ruled_out", [])) if isinstance(entry, dict) else []
-
-
-# The deck stays short: a few stances, and at most a couple of Facts among them.
+# The deck stays short: a few stances, and at most one Fact among them.
 MAX_STANCE_ARTIFACTS = 3
-MAX_FACT_ARTIFACTS = 2
+MAX_FACT_ARTIFACTS = 1
 
 
 def deal_unconfirmed_artifacts(curr_challenge: Challenge, artifacts: list) -> list:
-    """The artifacts the player tags themselves: up to three stances and up to two Facts.
+    """The artifacts the player tags themselves: up to three stances and one Fact.
 
     Facts about the conflict's own target go first, since those are what the pitch turns on;
     config order breaks ties. A Fact nobody voices is left out, because a card with no name on it
@@ -252,7 +138,7 @@ def _deck_debug(requirement_id: str) -> Dict[str, Any]:
 
 
 async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: str = None) -> List[Dict[str, Any]]:
-    """Loads offline intel artifacts and additional convincer profile artifacts for newly introduced stakeholders.
+    """Loads offline intel artifacts for the current challenge.
 
     Known artifacts are dealt into the deck too, already tagged and locked. They used to be seeded
     straight into the dossier without ever being shown, which left players staring at verified intel
@@ -282,78 +168,6 @@ async def generate_offline_intel_artifacts(curr_challenge: Challenge, username: 
         })
 
 
-    # Append convincer profile artifacts for stakeholders newly introduced in this phase
-    # Append convincer profile artifacts for stakeholders active in this phase that need introduction/categorization
-    active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id)
-    phases = PhaseFactory.get_phases()
-    if not active_st_ids and 0 <= curr_challenge.phase_id < len(phases):
-        active_st_ids = [ps.stakeholder_id for ps in phases[curr_challenge.phase_id].stakeholders]
-    
-    session_archs = {}
-    if username:
-        from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
-        with get_session() as db_session:
-            sess_rec = get_or_create_game_session(username, db_session)
-            session_archs = dict(sess_rec.stakeholder_archetypes or {})
-
-    previous_st_ids = set()
-    for p_idx in range(curr_challenge.phase_id):
-        if p_idx < len(phases):
-            for ps in phases[p_idx].stakeholders:
-                previous_st_ids.add(ps.stakeholder_id)
-
-    # Include any active stakeholder who is either newly introduced in this phase or not yet categorized
-    st_ids_to_introduce = []
-    for s_id in active_st_ids:
-        st_cat = session_archs.get(s_id, {}).get("categorized_archetype")
-        if st_cat is None or s_id not in previous_st_ids:
-            if s_id not in st_ids_to_introduce:
-                st_ids_to_introduce.append(s_id)
-        
-    all_archetypes = EmotionFactory.get_available_archetype_names()
-
-    for s_id in st_ids_to_introduce:
-        st = StakeholderFactory.get_stakeholder(s_id)
-        if not st:
-            continue
-        real_arch_name = getattr(st, "convincer_archetype", "")
-        art_def = ConvincerArchetypeArtifactFactory.get_artifact_for_archetype(real_arch_name)
-        
-        if art_def:
-            template = art_def.convincer_archetype_artifact
-            artifact_type_val = (
-                art_def.artifact_type.value
-                if hasattr(art_def.artifact_type, "value")
-                else str(art_def.artifact_type)
-            )
-        else:
-            # The viewer draws the channel header and the speaker's name, so the body is body only.
-            template = "Let's make sure our approach is aligned with our priorities."
-            artifact_type_val = "slack_message"
-
-        content = template.replace("{stakeholder_name}", st.name)
-        
-        cat_type = session_archs.get(s_id, {}).get("categorized_archetype") if session_archs else None
-
-        results.append({
-            "id": f"convincer_{st.id}",
-            "requirement_id": f"convincer_{st.id}",
-            "stakeholder_id": st.id,
-            "stakeholder_name": st.name,
-            "stakeholder_role": getattr(st, "role_description", ""),
-            "artifact_type": artifact_type_val,
-            "content": content,
-            "is_convincer_profile": True,
-            "possible_archetypes": all_archetypes,
-            "categorized_type": cat_type,
-            **({"debug": {
-                "id": f"convincer_{st.id}",
-                "correct_tag": real_arch_name,
-                "description": "Convincer archetype",
-            }} if settings.ENABLE_DOSSIER_DEBUG else {}),
-        })
-
-    # Shuffle the combined list so convincer and intel artifacts are mixed
     random.shuffle(results)
 
     # Known artifacts go in front, unshuffled: they are the briefing the player reads before
@@ -478,6 +292,7 @@ def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> 
             select(IntelItem).where(IntelItem.user_id == get_user_id(session, username))
         ).all()
         items: List[StakeholderIntelItem] = []
+        dirty = False
         for r in records:
             if not isinstance(r.intel_item_data, dict):
                 continue
@@ -485,10 +300,45 @@ def load_known_intel_items(username: str, up_to_phase: Optional[int] = None) -> 
                 item = StakeholderIntelItem(**r.intel_item_data)
             except Exception:
                 continue
+            # Heal items where branch_x/branch_y are set but the categorized_type is not trade_off.
+            if item.categorized_type != IntelTag.TRADE_OFF and (item.branch_x or item.branch_y):
+                item.branch_x = None
+                item.branch_y = None
+                data = dict(r.intel_item_data)
+                data.pop("branch_x", None)
+                data.pop("branch_y", None)
+                r.intel_item_data = data
+                flag_modified(r, "intel_item_data")
+                dirty = True
+            # Heal items that are verified-and-tagged-trade_off but whose true type is not trade_off.
+            # This can happen when verification set intel_type=verified without correcting categorized_type.
+            elif (
+                item.categorized_type == IntelTag.TRADE_OFF
+                and str(getattr(item.intel_type, "value", item.intel_type)).lower() == "verified"
+            ):
+                req = RequirementFactory.get_requirement(item.id)
+                if req and req.type != IntelTag.TRADE_OFF:
+                    data = dict(r.intel_item_data)
+                    true_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
+                    data["categorized_type"] = true_type_str
+                    data["description"] = req.description
+                    data["categorized_description"] = req.description
+                    data.pop("branch_x", None)
+                    data.pop("branch_y", None)
+                    r.intel_item_data = data
+                    flag_modified(r, "intel_item_data")
+                    item.categorized_type = req.type
+                    item.description = req.description
+                    item.categorized_description = req.description
+                    item.branch_x = None
+                    item.branch_y = None
+                    dirty = True
             if up_to_phase is not None and item.discovered_phase_id is not None:
                 if item.discovered_phase_id > up_to_phase:
                     continue
             items.append(item)
+        if dirty:
+            session.commit()
         return items
 
 
@@ -673,16 +523,10 @@ def stage_of_target(snapshot, target: Optional[str]) -> tuple[Optional[str], Opt
 
 
 def item_status(item, snapshot) -> str:
-    """open, addressed, violated or stale: read off the graph every time, never stored."""
+    """open, addressed or stale: read off the graph every time, never stored."""
     if snapshot is None:
         return "open"
-    graph, state, evaluation = snapshot
     try:
-        if item.type == IntelTag.BOUNDARY and item.holds is not None:
-            from mlops_serious_game.domain.graph_predicates import evaluate
-
-            holds = evaluate(item.holds, evaluation.context(graph, state)).value
-            return "open" if holds else "violated"
         if item.type == IntelTag.FACT and item.asserts is not None and item.asserts.level is not None:
             level = _effective_level(snapshot, item.asserts.target)
             return "stale" if level is not None and level != item.asserts.level else "open"
@@ -692,14 +536,6 @@ def item_status(item, snapshot) -> str:
     except Exception:
         return "open"
     return "open"
-
-
-def is_contested(item, conflict) -> bool:
-    """True when this challenge's conflict puts somebody on the other side of this very target."""
-    if conflict is None or not item.stakeholder_id:
-        return False
-    sides = {p.stakeholder_id for p in conflict.positions}
-    return item.stakeholder_id in sides and item_target(item) == conflict.target
 
 
 def _archived_items(username: str, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
@@ -766,35 +602,147 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
             select(IntelItem).where(IntelItem.user_id == get_user_id(session, ws.query_params["username"]))
         ).all()
 
+        dirty = False
         for record in records:
             data = record.intel_item_data
             if isinstance(data, dict):
                 item = StakeholderIntelItem(**data)
+                # Heal items where branch_x/branch_y are set but categorized_type is not trade_off.
+                if item.categorized_type != IntelTag.TRADE_OFF and (item.branch_x or item.branch_y):
+                    item.branch_x = None
+                    item.branch_y = None
+                    clean_data = dict(data)
+                    clean_data.pop("branch_x", None)
+                    clean_data.pop("branch_y", None)
+                    record.intel_item_data = clean_data
+                    flag_modified(record, "intel_item_data")
+                    dirty = True
+                # Heal verified items still tagged as trade_off when true type is not trade_off.
+                elif (
+                    item.categorized_type == IntelTag.TRADE_OFF
+                    and str(getattr(item.intel_type, "value", item.intel_type)).lower() == "verified"
+                ):
+                    req = RequirementFactory.get_requirement(item.id)
+                    if req and req.type != IntelTag.TRADE_OFF:
+                        true_type_str = req.type.value if hasattr(req.type, "value") else str(req.type)
+                        clean_data = dict(data)
+                        clean_data["categorized_type"] = true_type_str
+                        clean_data["description"] = req.description
+                        clean_data["categorized_description"] = req.description
+                        clean_data.pop("branch_x", None)
+                        clean_data.pop("branch_y", None)
+                        record.intel_item_data = clean_data
+                        flag_modified(record, "intel_item_data")
+                        item.categorized_type = req.type
+                        item.description = req.description
+                        item.categorized_description = req.description
+                        item.branch_x = None
+                        item.branch_y = None
+                        dirty = True
                 if item.challenge_id == curr_challenge.id:
                     intel_items.append(item)
+        if dirty:
+            session.commit()
 
     return intel_items
 
+
+
+def invent_trade_off_branches(
+    curr_challenge: Challenge,
+    intel_item: StakeholderIntelItem,
+    req: Optional[StakeholderRequirement] = None,
+) -> tuple[TradeOffBranch, TradeOffBranch, str]:
+    """Invents two believable commitment branches when an item is miscategorized as a trade-off."""
+    stakeholder = StakeholderFactory.get_stakeholder(intel_item.stakeholder_id) if intel_item.stakeholder_id else None
+    st_name = stakeholder.name if stakeholder else "The team"
+
+    primary_target, primary_level = item_target_and_level(req or intel_item)
+    if not primary_target:
+        primary_target = "data.validation"
+        primary_level = 3
+    else:
+        primary_level = primary_level if primary_level is not None else 3
+
+    # Find an alternative component target in the challenge
+    all_challenge_reqs = RequirementFactory.get_requirements_for_challenge(curr_challenge.id) if curr_challenge else []
+    alt_target = None
+    alt_level = 2
+    for r in all_challenge_reqs:
+        t, l = item_target_and_level(r)
+        if t and t != primary_target:
+            alt_target = t
+            alt_level = l if l is not None else 2
+            break
+
+    if not alt_target:
+        alt_target = "ops.alerting" if primary_target != "ops.alerting" else "gov.audit"
+        alt_level = 2
+
+    def _pretty_name(target_str: str) -> str:
+        parts = target_str.split(".")
+        return parts[-1].replace("_", " ").title()
+
+    t1_name = _pretty_name(primary_target)
+    t2_name = _pretty_name(alt_target)
+
+    branch_x_desc = f"automating {t1_name.lower()}"
+    branch_y_desc = f"maintaining basic {t2_name.lower()}"
+
+    branch_x = TradeOffBranch(
+        name=f"Automate {t1_name}",
+        description=branch_x_desc,
+        target=primary_target,
+        level=primary_level,
+        ops=[{"kind": "raise_to", "target": primary_target, "value": primary_level}],
+        atoms=[f"raise_to({primary_target}, {primary_level})"],
+    )
+
+    branch_y = TradeOffBranch(
+        name=f"Basic {t2_name}",
+        description=branch_y_desc,
+        target=alt_target,
+        level=alt_level,
+        ops=[{"kind": "raise_to", "target": alt_target, "value": alt_level}],
+        atoms=[f"raise_to({alt_target}, {alt_level})"],
+    )
+
+    description = f"{st_name} would compromise {branch_x_desc} for {branch_y_desc}."
+    return branch_x, branch_y, description
 
 
 async def handle_intel_item_categorization(curr_challenge: Challenge, ws: WebSocket, intel_item: StakeholderIntelItem) -> None:
     """Handles the categorization of intel items using pre-generated descriptions when available."""
     cat_type = intel_item.categorized_type.value if hasattr(intel_item.categorized_type, "value") else str(intel_item.categorized_type)
     true_type = intel_item.type.value if hasattr(intel_item.type, "value") else str(intel_item.type)
-    if cat_type == true_type:
-        intel_item.categorized_description = intel_item.description
-    else:
-        wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(
-            intel_item.id,
-            cat_type,
-        )
-        if wrong_desc and intel_item.fact:
-            # Split wording: only the reading changes with the tag, the fact holds still.
-            intel_item.categorized_description = join_wording(intel_item.fact, wrong_desc)
-        elif wrong_desc:
-            intel_item.categorized_description = wrong_desc
+    req = RequirementFactory.get_requirement(intel_item.id)
+
+    if cat_type == "trade_off":
+        if true_type == "trade_off" and req and req.branch_x and req.branch_y:
+            intel_item.branch_x = req.branch_x
+            intel_item.branch_y = req.branch_y
+            intel_item.categorized_description = req.description
         else:
-            intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
+            intel_item.branch_x, intel_item.branch_y, intel_item.categorized_description = invent_trade_off_branches(
+                curr_challenge, intel_item, req
+            )
+    else:
+        intel_item.branch_x = None
+        intel_item.branch_y = None
+        if cat_type == true_type:
+            intel_item.categorized_description = intel_item.description
+        else:
+            wrong_desc = OfflineIntelArtifactFactory.get_wrong_description(
+                intel_item.id,
+                cat_type,
+            )
+            if wrong_desc and intel_item.fact:
+                # Split wording: only the reading changes with the tag, the fact holds still.
+                intel_item.categorized_description = join_wording(intel_item.fact, wrong_desc)
+            elif wrong_desc:
+                intel_item.categorized_description = wrong_desc
+            else:
+                intel_item.categorized_description = await create_wrong_intel_item_description(curr_challenge, intel_item)
     await store_intel_item(curr_challenge, ws, intel_item)
 
 async def create_wrong_intel_item_description(curr_challenge: Challenge, intel_item: StakeholderIntelItem) -> str:
@@ -1000,6 +948,15 @@ async def handle_intel_verification(
         target_item.categorized_type = req.type
         target_item.description = req.description
         target_item.categorized_description = req.description
+        if req.type == IntelTag.TRADE_OFF:
+            target_item.branch_x = req.branch_x
+            target_item.branch_y = req.branch_y
+        else:
+            target_item.branch_x = None
+            target_item.branch_y = None
+    elif target_item.categorized_type != IntelTag.TRADE_OFF:
+        target_item.branch_x = None
+        target_item.branch_y = None
 
     await store_intel_item(curr_challenge, ws, target_item)
 
@@ -1044,6 +1001,14 @@ def correct_and_verify_intel_item(
             data["categorized_type"] = cat_type_str
             data["description"] = req.description
             data["categorized_description"] = req.description
+            if cat_type_str == "trade_off":
+                if req.branch_x:
+                    data["branch_x"] = req.branch_x.model_dump(mode="json") if hasattr(req.branch_x, "model_dump") else req.branch_x
+                if req.branch_y:
+                    data["branch_y"] = req.branch_y.model_dump(mode="json") if hasattr(req.branch_y, "model_dump") else req.branch_y
+            else:
+                data.pop("branch_x", None)
+                data.pop("branch_y", None)
             if data.get("source") != IntelSource.PUBLIC_RECORD.value:
                 data.pop("is_public_record", None)
                 data["source"] = IntelSource.DEBATE.value
@@ -1207,7 +1172,6 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     chains = chain_index(all_items)
     successors = authored_successors()
     held_ids = set(items_by_id)
-    conflict = getattr(curr_challenge, "conflict", None)
     focus_stage_ids = list(getattr(curr_challenge, "focus_stage_ids", None) or [])
     # Read once per call so tests can flip the flag on the settings object.
     debug_on = settings.ENABLE_DOSSIER_DEBUG
@@ -1222,6 +1186,19 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         target = item_target(item)
         stage_id, stage_name = stage_of_target(snapshot, target)
         debug_fields = {"debug": _debug_requirement(item)} if debug_on else {}
+        artifact = OfflineIntelArtifactFactory.get_artifact_for_requirement(item.id)
+        artifact_dict = None
+        if artifact:
+            artifact_dict = {
+                "id": artifact.id,
+                "requirement_id": artifact.requirement_id,
+                "stakeholder_id": artifact.speaker_id,
+                "stakeholder_name": artifact.stakeholder_name,
+                "stakeholder_role": artifact.stakeholder_role,
+                "artifact_type": artifact.artifact_type.value if hasattr(artifact.artifact_type, "value") else str(artifact.artifact_type),
+                "content": artifact.content,
+                "is_known": artifact.is_known,
+            }
         return {
             **debug_fields,
             "id": item.id,
@@ -1233,6 +1210,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "is_correct": item.is_correct_intel(),
             "source": _resolve_source(item).value,
             "artifact_type": _artifact_type_for(item),
+            "artifact": artifact_dict,
             "refines_id": item.refines_id,
             "chain_id": chain.get("chain_id", item.id),
             "chain_position": chain.get("chain_position", 0),
@@ -1252,7 +1230,16 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "stage_id": stage_id,
             "stage_name": stage_name,
             "status": item_status(item, snapshot),
-            "contested": is_contested(item, conflict),
+            "branch_x": (
+                getattr(item, "branch_x", None).model_dump(mode="json")
+                if hasattr(getattr(item, "branch_x", None), "model_dump")
+                else getattr(item, "branch_x", None)
+            ) if cat_type_val == "trade_off" else None,
+            "branch_y": (
+                getattr(item, "branch_y", None).model_dump(mode="json")
+                if hasattr(getattr(item, "branch_y", None), "model_dump")
+                else getattr(item, "branch_y", None)
+            ) if cat_type_val == "trade_off" else None,
         }
 
     stakeholder_intel_map: Dict[str, List[Dict[str, Any]]] = {}
@@ -1269,13 +1256,6 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
 
 
 
-    session_archs = {}
-    if username:
-        from mlops_serious_game.infrastructure.websocket.handlers.game_handler import get_or_create_game_session
-        with get_session() as db_session:
-            sess_rec = get_or_create_game_session(username, db_session)
-            session_archs = dict(sess_rec.stakeholder_archetypes or {})
-
     phase = PhaseFactory.get_phases()[curr_challenge.phase_id]
     ph_st_map = {ps.stakeholder_id: ps for ps in phase.stakeholders}
     active_st_ids = StakeholderFactory.get_active_stakeholders(curr_challenge.phase_id) or StakeholderFactory.get_available_stakeholders()
@@ -1287,25 +1267,11 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             continue
         ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
-
-        st_arch_entry = session_archs.get(st_id, {})
-        cat_arch = st_arch_entry.get("categorized_archetype")
-        real_arch = st_arch_entry.get("real_archetype") or getattr(st, 'convincer_archetype', '')
-        # Verified comes from the pitch, never from the tag matching: that would give the answer away.
-        is_val = bool(cat_arch and st_arch_entry.get("verified"))
-        status = "validated" if is_val else ("unconfirmed" if cat_arch else "unknown")
         st_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
 
         debug_fields = {}
         if debug_on:
-            arch_artifact = ConvincerArchetypeArtifactFactory.get_artifact_for_archetype(real_arch)
             debug_fields = {"debug": {
-                "real_archetype": real_arch or None,
-                "player_archetype": cat_arch,
-                "archetype_hint": (
-                    arch_artifact.convincer_archetype_artifact.replace("{stakeholder_name}", st.name)
-                    if arch_artifact else None
-                ),
                 "missing_intel": _debug_missing(st_pool, held_ids),
             }}
 
@@ -1318,9 +1284,6 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "constraints": getattr(st, 'constraints', getattr(st, 'requirements', "")),
             "role_description": st.role_description,
             "metric_id": st.metric_id,
-            "convincer_archetype": cat_arch or "",
-            "is_validated": is_val,
-            "convincer_status": status,
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
@@ -1421,19 +1384,13 @@ def determine_dialogue_options(
                 )
             )
 
-    all_archetypes = list(EmotionFactory.get_convincer_archetypes().values())
     needed_noise = 4 - len(selected_intels)
-    assigned_archetypes = random.sample(
-        all_archetypes, min(needed_noise, len(all_archetypes))
-    )
-
-    for idx, arch in enumerate(assigned_archetypes, 1):
+    for idx in range(1, needed_noise + 1):
         options.append(
             DialogueOption(
                 id=f"opt_noise_{idx}_{uuid.uuid4().hex[:6]}",
                 type="corporate_noise",
                 text=None,
-                archetype=arch,
             )
         )
 

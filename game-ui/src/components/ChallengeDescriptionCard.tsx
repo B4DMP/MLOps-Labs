@@ -14,11 +14,37 @@ export function parseChallengeDescription(description?: string) {
         (part.startsWith("#") && part.endsWith("#")) ||
         (part.startsWith("{") && part.endsWith("}"))
       ) {
-        return { type: "id", value: part.slice(1, -1) };
+        return { type: "id" as const, value: part.slice(1, -1).trim() };
       }
-      return { type: "text", value: part };
+      return { type: "text" as const, value: part };
     })
     .filter((part) => part.value !== "");
+}
+
+/**
+ * Tracks how many distinct challenges the player has traversed for a given phase
+ * in this playthrough session.
+ */
+function getTraversedChallengesCount(phase: number, challengeId: number | string): number {
+  if (typeof window === "undefined" || !window.sessionStorage) return 1;
+  try {
+    if (phase === 0) {
+      for (let i = 1; i <= 10; i++) {
+        window.sessionStorage.removeItem(`mlops_phase_${i}_challenges`);
+      }
+    }
+    const key = `mlops_phase_${phase}_challenges`;
+    const raw = window.sessionStorage.getItem(key);
+    const list: string[] = raw ? JSON.parse(raw) : [];
+    const idStr = String(challengeId);
+    if (!list.includes(idStr)) {
+      list.push(idStr);
+      window.sessionStorage.setItem(key, JSON.stringify(list));
+    }
+    return list.length;
+  } catch {
+    return 1;
+  }
 }
 
 export interface ChallengeDescriptionCardProps {
@@ -27,6 +53,7 @@ export interface ChallengeDescriptionCardProps {
   challengeIntro?: string;
   currentChallenge?: number;
   challengeAmount?: number;
+  traversedChallenges?: number;
   is_minimized?: boolean;
   /**
    * Marks this challenge as newly introduced so the card can draw the player's
@@ -50,14 +77,87 @@ export default function ChallengeDescriptionCard({
   challengeIntro = "",
   currentChallenge = 0,
   challengeAmount = 1,
+  traversedChallenges,
   is_minimized = true,
   isNew = false,
 }: ChallengeDescriptionCardProps) {
   const { stakeholders } = useContext(StakeholderContext);
-  const { phases } = useContext(PhasesContext);
+  const { phases, currentPhase } = useContext(PhasesContext);
+
+  const currentPhaseData =
+    phases?.find((p) => p.id === currentPhase) || phases?.[currentPhase];
+
   const totalChallengeCount =
-    phases && phases.length > 0 ? phases.length : challengeAmount;
-  const challenge_desc_cutted = parseChallengeDescription(challengeDescription);
+    currentPhaseData?.challenge_quota ??
+    currentPhaseData?.challenges_per_phase ??
+    (challengeAmount && challengeAmount > 0 && challengeAmount < 20 ? challengeAmount : 1);
+
+  const traversedCount =
+    traversedChallenges ??
+    getTraversedChallengesCount(currentPhase, currentChallenge);
+
+  const displayChallengeNumber = Math.min(
+    Math.max(1, traversedCount),
+    totalChallengeCount
+  );
+
+  const renderFormattedText = (text: string) => {
+    const tokens = parseChallengeDescription(text);
+    return tokens.map((item, index) => {
+      if (item.type === "text") {
+        return (
+          <GlossaryText
+            key={index}
+            as="span"
+            text={item.value}
+            surface="challenge_briefing"
+          />
+        );
+      } else if (item.type === "id") {
+        const st =
+          stakeholders[item.value] ||
+          Object.values(stakeholders || {}).find(
+            (s: any) => s.id === item.value || s.name === item.value
+          );
+
+        if (!st) {
+          return <span key={index}>{item.value}</span>;
+        }
+
+        const stColor =
+          st.stakeholder_color?.startsWith("#")
+            ? st.stakeholder_color
+            : st.stakeholder_color
+            ? `#${st.stakeholder_color}`
+            : "#38bdf8";
+
+        const highlightSpan = (
+          <span
+            className={styles.stakeholderHighlight}
+            style={
+              {
+                color: stColor,
+                "--stakeholder-color": stColor,
+              } as React.CSSProperties
+            }
+          >
+            {st.name}
+          </span>
+        );
+
+        if (st.role_description) {
+          return (
+            <HoverTooltip key={index} description={st.role_description}>
+              {highlightSpan}
+            </HoverTooltip>
+          );
+        }
+
+        return <span key={index}>{highlightSpan}</span>;
+      }
+      return null;
+    });
+  };
 
   return (
     <div
@@ -75,7 +175,7 @@ export default function ChallengeDescriptionCard({
           {challengeTitle}
         </span>
         <span className={`badge ${styles.counterBadge}`}>
-          Challenge {currentChallenge + 1}/{totalChallengeCount}
+          Challenge {displayChallengeNumber}/{totalChallengeCount}
         </span>
       </div>
       <div className="card-body bg-white text-dark py-2 px-3">
@@ -87,38 +187,12 @@ export default function ChallengeDescriptionCard({
                 : `text-secondary mb-1 ${styles.introExpanded}`
             }`}
           >
-            <GlossaryText text={challengeIntro} surface="challenge_briefing" />
+            {renderFormattedText(challengeIntro)}
           </p>
         )}
-        {!is_minimized && (
+        {!is_minimized && challengeDescription && (
           <p className={`card-text text-center text-dark mb-0 ${styles.descriptionText}`}>
-            {challenge_desc_cutted.map((item, index) => {
-              if (item.type === "text") {
-                return (
-                  <GlossaryText key={index} as="span" text={item.value} surface="challenge_briefing" />
-                );
-              } else if (item.type === "id") {
-                const st = Object.values(stakeholders || {}).find(
-                  (s: any) => s.id === item.value || s.name === item.value
-                );
-                if (!st) return <span key={index}>{item.value}</span>;
-                return (
-                  <HoverTooltip key={index} description={st.role_description}>
-                    <span
-                      className={styles.stakeholderHighlight}
-                      style={
-                        {
-                          "--stakeholder-color": st.stakeholder_color,
-                        } as React.CSSProperties
-                      }
-                    >
-                      {st.name}
-                    </span>
-                  </HoverTooltip>
-                );
-              }
-              return null;
-            })}
+            {renderFormattedText(challengeDescription)}
           </p>
         )}
       </div>

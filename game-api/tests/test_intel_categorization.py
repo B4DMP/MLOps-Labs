@@ -88,6 +88,15 @@ async def test_retag_challenge_specific_stance_updates_description():
     if not target_req:
         target_req = all_reqs[0]
     challenge = PhaseFactory.get_challenge_by_id(target_req.challenge_id)
+    import sqlalchemy
+    from mlops_serious_game.config import settings
+
+    try:
+        url = sqlalchemy.engine.make_url(settings.POSTGRES_URI)
+        with sqlalchemy.create_engine(url).connect():
+            pass
+    except Exception:
+        pytest.skip("Postgres is not reachable")
 
     from conftest import ensure_test_user
 

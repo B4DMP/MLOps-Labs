@@ -1,21 +1,36 @@
 /**
- * The simulation phase as the four beat delta report (plan 07).
+ * Deployment Execution & Rollout Debrief (Simulation Phase).
  *
- * What you built, what the world did, which patterns moved, where you stand. Everything comes from
- * the `graph:delta_report` payload; this screen only reads it, so the numbers on screen are the
- * numbers the server applied.
+ * Implements the deterministic simulation report:
+ * 1. Executive Rollout Banner: Clear communication of proposal outcome.
+ * 2. Component Implementation Log: Details which components were implemented by whom,
+ *    how successfully (Flawless, Capped by upstream, Degraded by owner pushback, or Delayed),
+ *    and real-world narrative story fragments.
+ * 3. Project Dimensions Shift: Qualitative shifts in the 6 MLOps metrics without raw numerical
+ *    developer health stats.
+ * 4. Human Realities: Stakeholder execution dynamics, emotional impacts, and future grudges.
+ * 5. Environmental Ripple Effects & Architectural Patterns.
  */
 
-import { useEffect, useState } from "react";
-import PhaseOverview from "./PhaseOverview";
-import MetricTab from "./MetricTab";
-import ActionCardComponent from "./ActionCardComponent";
-import EventLog from "./EventLog";
+import { useEffect, useState, useContext } from "react";
+import { Icon } from "@iconify/react";
+import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import ActionCardCardComponent from "./ActionCardCardComponent";
+import { MetricsContext } from "./MetricProvider";
+import { StakeholderContext } from "./StakeholderProvider";
+import { PhasesContext } from "./PhaseProvider";
 import type { ActionCard } from "../types/ActionCard";
-import type { GameEventPayload } from "../types/GameEvent";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
+import styles from "./ac_simulation.module.css";
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
+const LEVEL_CLASS = [
+  styles.levelBroken,
+  styles.levelAbsent,
+  styles.levelManual,
+  styles.levelAutomated,
+  styles.levelGoverned,
+];
 
 interface LevelPair {
   before: number;
@@ -24,11 +39,26 @@ interface LevelPair {
 
 interface TargetDelta {
   id: string;
+  name?: string;
   stage: string;
   nominal: LevelPair;
   effective: LevelPair;
   capped_by?: { id: string; level: number } | null;
   degraded_by?: string | null;
+  owner_id?: string | null;
+  owner_name?: string | null;
+  status?: "flawless" | "capped" | "delayed" | "degraded" | string;
+  story?: string;
+}
+
+interface StakeholderExecutionDelta {
+  stakeholder_id: string;
+  name: string;
+  power?: string;
+  interest?: string;
+  status: "committed" | "resistant" | "overridden" | string;
+  delivery_sentiment?: string | null;
+  emotion_deltas?: Record<string, number>;
   story?: string;
 }
 
@@ -47,6 +77,7 @@ interface DeltaReport {
     fired: Array<{ stakeholder_id: string; effect: string; detail?: string; target?: string | null }>;
   };
   metric_deltas: Record<string, number>;
+  stakeholders?: StakeholderExecutionDelta[];
 }
 
 interface DeltaReportPayload {
@@ -58,27 +89,49 @@ interface AcSimulationProps {
   onContinue: () => void;
   currentPhase?: number;
   currentChallenge?: number;
-  /** The card just committed, for the "what you played" reveal (merged from the old
-   * AcRevealPanel, plan 07/D46: the reveal and the delta report are one screen now, not two). */
   playedCard?: ActionCard | null;
 }
 
-const OUTCOME_TEXT: Record<string, string> = {
-  PASS: "The room backed the card and it went in as pitched.",
-  SOFT_PASS: "It went in, but the people you passed over will remember it.",
-  VETO_BROKEN: "You pushed it through over a veto. It landed, and it cost you.",
-  STALEMATE: "Nobody agreed. Your card never happened, and the world moved on without you.",
+const OUTCOME_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string; icon: string; headline: string; description: string }
+> = {
+  PASS: {
+    label: "Full Alignment",
+    badgeClass: styles.outcomePass,
+    icon: "ph:check-circle-bold",
+    headline: "Proposal Approved & Deployed with Consensus",
+    description:
+      "The stakeholder room backed your action proposal. Implementation proceeds cleanly across designated components, with full organizational buy-in.",
+  },
+  SOFT_PASS: {
+    label: "Soft Pass (Friction)",
+    badgeClass: styles.outcomeSoftPass,
+    icon: "ph:warning-circle-bold",
+    headline: "Proposal Passed with Unresolved Friction",
+    description:
+      "The card passed, but low-power stakeholder resistance resulted in corner-cutting, partial implementation, or technical debt left behind in production.",
+  },
+  VETO_BROKEN: {
+    label: "Overruled via Escalation",
+    badgeClass: styles.outcomeVetoBroken,
+    icon: "ph:lightning-bold",
+    headline: "Executive Escalation Overrode Resistance",
+    description:
+      "You forced the proposal through over serious stakeholder objections. The changes are deployed, but alienated owners have degraded operational support on owned systems.",
+  },
+  STALEMATE: {
+    label: "Stalemate",
+    badgeClass: styles.outcomeStalemate,
+    icon: "ph:x-circle-bold",
+    headline: "Negotiations Stalled • Proposal Dropped",
+    description:
+      "Deadlock in the meeting prevented agreement. The proposal was not enacted, and external environmental shifts proceeded without intervention.",
+  },
 };
 
-function levelArrow(pair: LevelPair) {
-  if (pair.before === pair.after) return LEVEL_LABELS[pair.after] ?? String(pair.after);
-  return `${LEVEL_LABELS[pair.before] ?? pair.before} → ${LEVEL_LABELS[pair.after] ?? pair.after}`;
-}
-
-function healthArrow(pair: LevelPair) {
-  const diff = Math.round(pair.after - pair.before);
-  const sign = diff > 0 ? "+" : "";
-  return `${Math.round(pair.before)} → ${Math.round(pair.after)} (${sign}${diff})`;
+function formatLevel(level: number): string {
+  return LEVEL_LABELS[level] ?? String(level);
 }
 
 export default function AcSimulation({
@@ -88,230 +141,523 @@ export default function AcSimulation({
   playedCard,
 }: AcSimulationProps) {
   const { emit } = useGameWebSocket();
+  const { metrics } = useContext(MetricsContext);
+  const { stakeholders } = useContext(StakeholderContext);
+  const { phases } = useContext(PhasesContext);
+
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
-  const [events, setEvents] = useState<GameEventPayload[]>([]);
 
   useWebSocketEvent<DeltaReportPayload>("graph:delta_report", (data) => setPayload(data));
 
-  // The event log (D51): the gate decision and everything the simulation just moved.
-  useWebSocketEvent<{ events: GameEventPayload[] }>("log:history", (data) => {
-    setEvents(data.events || []);
-  });
-  useWebSocketEvent<{ events: GameEventPayload[] }>("log:events", (data) => {
-    if (!data.events?.length) return;
-    setEvents((prev) => {
-      const seen = new Set(prev.map((e) => e.seq));
-      return [...prev, ...data.events.filter((e) => !seen.has(e.seq))];
-    });
-  });
-
   useEffect(() => {
     emit("simulation:run", { phase_id: currentPhase, challenge_id: currentChallenge });
-    emit("log:history", {});
   }, [emit, currentPhase, currentChallenge]);
 
-  const handleClick = () => {
+  const handleContinueClick = () => {
     setLoading(true);
     onContinue();
   };
 
   const report = payload?.report;
-  const bgIndex = (currentChallenge + currentPhase) % 4;
+  const outcomeInfo = report
+    ? OUTCOME_CONFIG[report.outcome] || OUTCOME_CONFIG.PASS
+    : OUTCOME_CONFIG.PASS;
+
+  const displayPhaseNumber = currentPhase + 1;
+  const totalPhases = phases?.length || 1;
 
   return (
-    <div className="game-container">
-      <nav className="navbar navbar-expand-lg flex-shrink-0" style={{ backgroundColor: "var(--primary-bg)" }}>
-        <div className="container-fluid d-flex align-items-stretch py-1" style={{ gap: "1rem" }} data-bs-theme="dark">
-          <div className="transparent-div" style={{ flex: "0 0 50%" }}>
-            <span className="transparent-div-label">📋 Phase Overview</span>
-            <PhaseOverview />
-          </div>
-          <div className="transparent-div" style={{ flex: "1 1 0" }}>
-            <span className="transparent-div-label">📊 Performance Metrics</span>
-            <MetricTab current_phase={currentPhase} />
-          </div>
+    <div className={styles.pageWrapper}>
+      {/* ── Top Header Strip ── */}
+      <div className={styles.header}>
+        <div>
+          <h1 className={styles.headerTitle}>
+            <Icon icon="ph:rocket-launch-bold" className={styles.headerIcon} />
+            <span>Deployment Execution & Rollout Debrief</span>
+          </h1>
+          <p className={styles.headerSubtitle}>
+            Engineering Rollout Log • Stakeholder Implementation & System Evolution
+          </p>
         </div>
-      </nav>
-
-      <div
-        className="container-fluid flex-grow-1 d-flex align-items-start justify-content-center overflow-auto p-4"
-        style={{
-          backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="transparent-div p-3 p-md-4 shadow-lg" style={{ maxWidth: 900, width: "100%", borderRadius: 16 }}>
-          <span className="transparent-div-label fs-6 mb-3 d-flex align-items-center gap-2">
-            🚀 What happened
+        <div className="d-flex align-items-center gap-2">
+          <span className={styles.phaseBadge}>
+            <Icon icon="ph:projector-screen-chart-bold" />
+            Phase {displayPhaseNumber} of {totalPhases} • Milestone {currentChallenge + 1}
           </span>
+        </div>
+      </div>
 
-          {!report && (
-            <div className="card border-secondary shadow-sm">
-              <div className="card-body bg-light p-4 d-flex align-items-center gap-3">
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                Running the change through the system...
-              </div>
+      {/* ── Body Area ── */}
+      <div className={styles.modalBody}>
+        {/* Loading Indicator */}
+        {!report && (
+          <div className="card border-secondary shadow-sm p-4">
+            <div className="d-flex align-items-center gap-3">
+              <span className="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true" />
+              <span className="fw-semibold text-muted">
+                Executing deployment, resolving upstream bottlenecks, and logging stakeholder realities...
+              </span>
             </div>
-          )}
+          </div>
+        )}
 
-          {report && (
-            <div className="card border-secondary shadow-sm text-start w-100" style={{ borderRadius: 12, overflow: "hidden" }}>
-              <div className="card-header bg-dark text-white py-3 px-4">
-                <h4 className="mb-1 fw-bold text-white">{report.outcome.replace("_", " ")}</h4>
-                <div className="small">{OUTCOME_TEXT[report.outcome] ?? ""}</div>
+        {report && (
+          <>
+            {/* 1. Executive Directive Banner */}
+            <div className={styles.directiveBanner}>
+              <div className={styles.directiveBannerHeader}>
+                <div className={styles.directiveTitleArea}>
+                  <Icon icon={outcomeInfo.icon} className={styles.directiveIcon} />
+                  <span>{outcomeInfo.headline}</span>
+                </div>
+                <span className={`${styles.outcomeBadge} ${outcomeInfo.badgeClass}`}>
+                  <Icon icon={outcomeInfo.icon} />
+                  {outcomeInfo.label}
+                </span>
               </div>
+              <p className={styles.directiveText}>{outcomeInfo.description}</p>
+            </div>
 
-              <div className="card-body bg-light p-4">
-                {/* 0. The card you played (merged from AcRevealPanel) */}
+            {/* 2. Main Two-Column Layout */}
+            <div className={styles.mainGrid}>
+              {/* Left Column: Committed Proposal & Project Dimensions */}
+              <div className={styles.leftCol}>
+                {/* Committed Proposal Summary */}
                 {playedCard && (
-                  <div className="mb-4 d-flex flex-column align-items-center text-center">
-                    <div className="text-muted small mb-2">You played</div>
-                    <div style={{ maxWidth: 340, width: "100%" }}>
-                      <ActionCardComponent
-                        ac={playedCard}
-                        current_phase={currentPhase}
-                        highlight={false}
-                        id="revealCard"
-                        showValues={true}
-                        displayMetrics={true}
-                        interactable={false}
-                        hasDropIndicator={false}
+                  <div className={styles.surfaceCard}>
+                    <div className={styles.cardHeader}>
+                      <h3 className={styles.cardTitle}>
+                        <Icon icon="ph:cards-bold" />
+                        <span>Pitched Action Proposal</span>
+                      </h3>
+                    </div>
+                    <div className={styles.cardBody}>
+                      <ActionCardCardComponent
+                        card={playedCard}
+                        stakeholders={stakeholders as any}
+                        isMinimized={true}
+                        isInteractive={false}
                       />
                     </div>
                   </div>
                 )}
 
-                {/* 1. What you built */}
-                <h5 className="fw-bold">What you built</h5>
-                {report.targets.length === 0 && <p className="text-muted">Nothing of yours reached the system.</p>}
-                <ul className="list-unstyled">
-                  {report.targets.map((t) => (
-                    <li key={t.id} className="mb-2">
-                      <strong>{t.id}</strong>: {levelArrow(t.nominal)}
-                      {t.effective.after !== t.nominal.after && (
-                        <span className="text-warning">
-                          {" "}
-                          but it runs at {LEVEL_LABELS[t.effective.after] ?? t.effective.after}
-                          {t.capped_by && `, held back by ${t.capped_by.id}`}
-                        </span>
-                      )}
-                      {t.degraded_by && (
-                        <span className="text-danger"> {`${t.degraded_by} was not behind this, so it landed lower`}</span>
-                      )}
-                      {t.story && <div className="text-muted small">{t.story}</div>}
-                    </li>
-                  ))}
-                </ul>
-                {report.debt_created.length > 0 && (
-                  <div className="alert alert-danger py-2">
-                    {report.debt_created.length} shortcut left behind, and it will keep costing you.
+                {/* Project Dimensions Shift (6 MLOps Metrics) */}
+                <div className={styles.surfaceCard}>
+                  <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>
+                      <Icon icon="ph:compass-tool-bold" />
+                      <span>Project Dimensions Shift</span>
+                    </h3>
+                    <span className="text-muted small">6 MLOps Metrics</span>
                   </div>
-                )}
-                {report.debt_cleared.length > 0 && (
-                  <div className="alert alert-success py-2">{report.debt_cleared.length} old shortcut cleaned up.</div>
-                )}
-
-                {/* 2. What the world did */}
-                <h5 className="fw-bold mt-4">What the world did</h5>
-                {report.world_events.length === 0 && <p className="text-muted">The system stayed as it was.</p>}
-                <ul className="list-unstyled">
-                  {report.world_events.map((e, i) => (
-                    <li key={`${e.target}-${i}`} className="mb-1">
-                      <strong>{e.target}</strong>: {levelArrow({ before: e.before, after: e.after })}
-                      {e.reason && <span className="text-muted"> ({e.reason})</span>}
-                    </li>
-                  ))}
-                </ul>
-                {report.propagated.length > 0 && (
-                  <>
-                    <div className="small fw-bold">It carried on to</div>
-                    <ul className="list-unstyled">
-                      {report.propagated.map((p) => (
-                        <li key={p.target} className="small text-muted">
-                          {p.target}: {levelArrow(p.effective)}
-                          {p.via && ` through ${p.via}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                {report.grudges.fired.length > 0 && (
-                  <ul className="list-unstyled">
-                    {report.grudges.fired.map((g, i) => (
-                      <li key={`${g.stakeholder_id}-${i}`} className="small text-warning">
-                        {g.stakeholder_id}: {g.detail || g.effect}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {/* 3. Patterns */}
-                <h5 className="fw-bold mt-4">Patterns</h5>
-                {[
-                  ["Gained", report.patterns.gained, "text-success"],
-                  ["Lost", report.patterns.lost, "text-warning"],
-                  ["New trouble", report.patterns.anti_created, "text-danger"],
-                  ["Cleared", report.patterns.anti_resolved, "text-success"],
-                ].map(([label, list, cls]) =>
-                  (list as string[]).length === 0 ? null : (
-                    <div key={label as string} className={cls as string}>
-                      {label as string}: {(list as string[]).join(", ")}
+                  <div className={styles.cardBody}>
+                    <div className={styles.metricsGrid}>
+                      {Object.entries(metrics).map(([mId, mObj]) => {
+                        const delta = report.metric_deltas[mId] || 0;
+                        const deltaClass =
+                          delta > 0
+                            ? styles.metricUp
+                            : delta < 0
+                            ? styles.metricDown
+                            : styles.metricNeutral;
+                        return (
+                          <div key={mId} className={styles.metricCard}>
+                            <div className={styles.metricHeader}>
+                              <span className={styles.metricName} title={mObj.name || mId}>
+                                {mObj.name || mId}
+                              </span>
+                              <span className={`${styles.metricDelta} ${deltaClass}`}>
+                                {delta > 0 ? `+${delta}` : delta === 0 ? "±0" : delta}
+                              </span>
+                            </div>
+                            <span className={styles.metricValue}>
+                              Current Level: {mObj.value ?? mObj.start_value}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ),
-                )}
-                {Object.values(report.patterns).every((l) => (l as string[]).length === 0) && (
-                  <p className="text-muted">Nothing changed shape.</p>
-                )}
-
-                {/* 4. Where you stand */}
-                <h5 className="fw-bold mt-4">Where you stand</h5>
-                <div>System health: {healthArrow(report.system_health)}</div>
-                <ul className="list-unstyled">
-                  {Object.entries(report.stage_health)
-                    .filter(([, pair]) => pair.before !== pair.after)
-                    .map(([stage, pair]) => (
-                      <li key={stage}>
-                        {stage}: {healthArrow(pair)}
-                      </li>
-                    ))}
-                </ul>
-                {Object.keys(report.metric_deltas).length > 0 && (
-                  <div className="small">
-                    Metrics:{" "}
-                    {Object.entries(report.metric_deltas)
-                      .map(([m, d]) => `${m} ${d > 0 ? "+" : ""}${d}`)
-                      .join(", ")}
                   </div>
-                )}
-                {report.grudges.created.length > 0 && (
-                  <div className="small text-warning mt-2">
-                    {report.grudges.created.map((g) => g.stakeholder_id).join(", ")} will remember this.
-                  </div>
-                )}
-
-                {payload?.next_challenge && (
-                  <div className="mt-3 small text-muted">
-                    Next: {payload.next_challenge.phase_name} · {payload.next_challenge.name}
-                  </div>
-                )}
-
-                <div className="mt-3 p-2" style={{ background: "rgba(15, 23, 42, 0.92)", borderRadius: 8 }}>
-                  <EventLog events={events} />
                 </div>
 
-                <button
-                  onClick={handleClick}
-                  disabled={loading}
-                  className="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-sm mt-3"
-                >
-                  {loading ? "Advancing..." : "Continue ▶"}
-                </button>
+                {/* Architectural Patterns & Technical Shortcuts */}
+                <div className={styles.surfaceCard}>
+                  <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>
+                      <Icon icon="ph:tree-structure-bold" />
+                      <span>Architecture & Technical Shortcuts</span>
+                    </h3>
+                  </div>
+                  <div className={styles.cardBody}>
+                    {/* Shortcuts / Debt Incurred */}
+                    {report.debt_created.length > 0 && (
+                      <div className={`${styles.alertNote} ${styles.alertWarning}`}>
+                        <Icon icon="ph:warning-octagon-bold" style={{ fontSize: "1.1rem", flexShrink: 0 }} />
+                        <div>
+                          <strong>{report.debt_created.length} Technical Shortcut(s) Left Behind:</strong> Unfinished
+                          handoffs and rushed compromises create latent friction in future phases.
+                        </div>
+                      </div>
+                    )}
+                    {report.debt_cleared.length > 0 && (
+                      <div className={`${styles.alertNote} ${styles.alertSuccess}`}>
+                        <Icon icon="ph:check-circle-bold" style={{ fontSize: "1.1rem", flexShrink: 0 }} />
+                        <div>
+                          <strong>{report.debt_cleared.length} Shortcut(s) Cleaned Up:</strong> Proper governance
+                          resolved outstanding debt!
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Patterns Gained / Cleared */}
+                    <div className="d-flex flex-wrap gap-2 mt-1">
+                      {report.patterns.gained.map((p) => (
+                        <span key={p} className="badge bg-success text-light p-2 d-flex align-items-center gap-1">
+                          <Icon icon="ph:sparkle-bold" />
+                          Pattern: {p}
+                        </span>
+                      ))}
+                      {report.patterns.anti_resolved.map((p) => (
+                        <span key={p} className="badge bg-info text-dark p-2 d-flex align-items-center gap-1">
+                          <Icon icon="ph:wrench-bold" />
+                          Antipattern Cleared: {p}
+                        </span>
+                      ))}
+                      {report.patterns.anti_created.map((p) => (
+                        <span key={p} className="badge bg-danger text-light p-2 d-flex align-items-center gap-1">
+                          <Icon icon="ph:bug-beetle-bold" />
+                          Antipattern: {p}
+                        </span>
+                      ))}
+                      {report.patterns.lost.map((p) => (
+                        <span key={p} className="badge bg-warning text-dark p-2 d-flex align-items-center gap-1">
+                          <Icon icon="ph:warning-bold" />
+                          Pattern Lost: {p}
+                        </span>
+                      ))}
+                      {Object.values(report.patterns).every((l) => l.length === 0) &&
+                        report.debt_created.length === 0 &&
+                        report.debt_cleared.length === 0 && (
+                          <span className="text-muted small">
+                            No architectural changes or technical shortcuts occurred this turn.
+                          </span>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Component Implementation Log & Human Sentiments */}
+              <div className={styles.rightCol}>
+                {/* ── Component Implementation Log (Core Focus) ── */}
+                <div className={styles.surfaceCard}>
+                  <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>
+                      <Icon icon="ph:list-checks-bold" />
+                      <span>Component Implementation Log</span>
+                    </h3>
+                    <span className="text-muted small">
+                      {report.targets.length} Component{report.targets.length === 1 ? "" : "s"} Targeted
+                    </span>
+                  </div>
+                  <div className={styles.cardBody}>
+                    {report.targets.length === 0 ? (
+                      <div className="text-muted p-3 text-center">
+                        <Icon icon="ph:info-bold" className="fs-4 mb-2 d-block mx-auto text-secondary" />
+                        No components were modified in the environment graph. If the proposal was dropped or no
+                        changes were scheduled, the pipeline remains at its previous baseline.
+                      </div>
+                    ) : (
+                      <div className={styles.rolloutList}>
+                        {report.targets.map((target) => {
+                          const ownerId = target.owner_id || "";
+                          const stCtx = stakeholders[ownerId] || {};
+                          const ownerName = target.owner_name || stCtx.name || ownerId || "System Lead";
+                          const ownerRole = stCtx.role_description || "Component Owner";
+
+                          const isCapped = target.status === "capped" || (target.capped_by && target.nominal.after !== target.effective.after);
+                          const isDegraded = target.status === "degraded" || Boolean(target.degraded_by);
+                          const isDelayed = target.status === "delayed";
+
+                          let statusCalloutClass = styles.statusFlawless;
+                          let statusIcon = "ph:check-circle-bold";
+                          let statusTitle = "Flawless Implementation";
+                          let statusDescription =
+                            "Successfully delivered at target maturity with full stakeholder support and zero friction.";
+
+                          if (isDegraded) {
+                            statusCalloutClass = styles.statusDegraded;
+                            statusIcon = "ph:hand-palm-bold";
+                            statusTitle = `Degraded Rollout • Owner Pushback (${target.degraded_by || ownerName})`;
+                            statusDescription =
+                              "The responsible stakeholder resisted execution, taking shortcuts or reducing effective operational quality.";
+                          } else if (isCapped) {
+                            statusCalloutClass = styles.statusCapped;
+                            statusIcon = "ph:lock-key-bold";
+                            statusTitle = `Upstream Bottleneck Constraint (Capped by ${target.capped_by?.id || "predecessor"})`;
+                            statusDescription = `Component reached nominal ${formatLevel(
+                              target.nominal.after
+                            )}, but operates throttled at ${formatLevel(
+                              target.effective.after
+                            )} because upstream dependencies lag behind.`;
+                          } else if (isDelayed) {
+                            statusCalloutClass = styles.statusDelayed;
+                            statusIcon = "ph:clock-countdown-bold";
+                            statusTitle = "Partial Delivery / Technical Shortcut Left Behind";
+                            statusDescription =
+                              "Component landed, but missing metadata, partial scripts, or handoff delays created technical debt.";
+                          }
+
+                          return (
+                            <div key={target.id} className={styles.rolloutItem}>
+                              {/* Header: Component Name, Stage, Level Transition */}
+                              <div className={styles.rolloutItemHeader}>
+                                <div className={styles.componentMeta}>
+                                  <div className={styles.componentName}>
+                                    <Icon icon="ph:cpu-bold" className="text-primary" />
+                                    <span>{target.name || target.id}</span>
+                                  </div>
+                                  <div className={styles.componentTags}>
+                                    <span className={styles.stageTag}>{target.stage}</span>
+                                    <span className={styles.idTag}>{target.id}</span>
+                                  </div>
+                                </div>
+
+                                <div className={styles.levelTransition}>
+                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.nominal.before] || ""}`}>
+                                    {formatLevel(target.nominal.before)}
+                                  </span>
+                                  <Icon icon="ph:arrow-right-bold" className="text-muted" />
+                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.nominal.after] || ""}`}>
+                                    {formatLevel(target.nominal.after)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Responsible Stakeholder Row */}
+                              <div className={styles.ownerRow}>
+                                <div className={styles.ownerAvatarWrap}>
+                                  <StakeholderAvatarComponent
+                                    avatar={stCtx.avatar}
+                                    stakeholderId={ownerId}
+                                    stakeholderColor={stCtx.stakeholder_color}
+                                    size="100%"
+                                  />
+                                </div>
+                                <div className={styles.ownerInfo}>
+                                  <div className={styles.ownerName}>
+                                    <span>{ownerName}</span>
+                                    {stCtx.power && (
+                                      <span className="badge bg-light text-dark border px-2 py-0" style={{ fontSize: "0.68rem" }}>
+                                        {stCtx.power} power
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className={styles.ownerRole}>{ownerRole}</span>
+                                </div>
+                              </div>
+
+                              {/* Implementation Status Callout */}
+                              <div className={`${styles.statusCallout} ${statusCalloutClass}`}>
+                                <Icon icon={statusIcon} style={{ fontSize: "1.2rem", flexShrink: 0 }} />
+                                <div>
+                                  <strong>{statusTitle}: </strong>
+                                  <span>{statusDescription}</span>
+                                </div>
+                              </div>
+
+                              {/* Narrative Story Fragment */}
+                              {target.story && (
+                                <div className={styles.rolloutStory}>
+                                  "{target.story}"
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Stakeholder Sentiments & Human Realities ── */}
+                <div className={styles.surfaceCard}>
+                  <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>
+                      <Icon icon="ph:users-three-bold" />
+                      <span>Stakeholder Realities & Social Alignment</span>
+                    </h3>
+                    <span className="text-muted small">Human Reactions</span>
+                  </div>
+                  <div className={styles.cardBody}>
+                    {(!report.stakeholders || report.stakeholders.length === 0) ? (
+                      <p className="text-muted small mb-0">No stakeholder friction recorded this cycle.</p>
+                    ) : (
+                      <div className={styles.stakeholderGrid}>
+                        {report.stakeholders.map((st) => {
+                          const stCtx = stakeholders[st.stakeholder_id] || {};
+                          const stName = st.name || stCtx.name || st.stakeholder_id;
+                          const stRole = stCtx.role_description || `${st.power || "low"} power`;
+
+                          const statusBadgeClass =
+                            st.status === "committed"
+                              ? styles.outcomePass
+                              : st.status === "resistant"
+                              ? styles.outcomeSoftPass
+                              : styles.outcomeVetoBroken;
+
+                          const statusLabel =
+                            st.status === "committed"
+                              ? "🟢 Committed"
+                              : st.status === "resistant"
+                              ? "🟡 Resistant (Friction)"
+                              : "🔴 Overruled (Escalation)";
+
+                          return (
+                            <div key={st.stakeholder_id} className={styles.stakeholderCard}>
+                              <div className="d-flex align-items-center gap-2">
+                                <div style={{ width: 36, height: 36, flexShrink: 0 }}>
+                                  <StakeholderAvatarComponent
+                                    avatar={stCtx.avatar}
+                                    stakeholderId={st.stakeholder_id}
+                                    stakeholderColor={stCtx.stakeholder_color}
+                                    size="100%"
+                                  />
+                                </div>
+                                <div className="d-flex flex-column min-width-0 flex-grow-1">
+                                  <strong className="text-truncate" style={{ fontSize: "0.82rem" }}>
+                                    {stName}
+                                  </strong>
+                                  <span className="text-muted text-truncate" style={{ fontSize: "0.7rem" }}>
+                                    {stRole}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="d-flex align-items-center justify-content-between">
+                                <span className={`${styles.outcomeBadge} ${statusBadgeClass}`} style={{ fontSize: "0.7rem" }}>
+                                  {statusLabel}
+                                </span>
+                              </div>
+
+                              {st.emotion_deltas && Object.keys(st.emotion_deltas).length > 0 && (
+                                <div className={styles.emotionPills}>
+                                  {Object.entries(st.emotion_deltas).map(([dim, val]) => (
+                                    <span
+                                      key={dim}
+                                      className={`${styles.emotionPill} ${
+                                        val >= 0 ? styles.emotionPositive : styles.emotionNegative
+                                      }`}
+                                    >
+                                      {dim}: {val > 0 ? `+${val}` : val}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+
+                              {st.story && (
+                                <div className="text-muted small" style={{ fontSize: "0.74rem", fontStyle: "italic" }}>
+                                  "{st.story}"
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Grudges Alert */}
+                    {report.grudges.created.length > 0 && (
+                      <div className={`${styles.alertNote} ${styles.alertWarning} mt-2`}>
+                        <Icon icon="ph:bookmark-simple-bold" style={{ fontSize: "1.1rem", flexShrink: 0 }} />
+                        <div>
+                          <strong>Grudge Recorded:</strong>{" "}
+                          {report.grudges.created.map((g) => g.stakeholder_id).join(", ")} will remember this
+                          compromise and bring heightened skepticism into future debates.
+                        </div>
+                      </div>
+                    )}
+                    {report.grudges.fired.length > 0 && (
+                      <div className={`${styles.alertNote} ${styles.alertInfo} mt-1`}>
+                        <Icon icon="ph:clock-countdown-bold" style={{ fontSize: "1.1rem", flexShrink: 0 }} />
+                        <div>
+                          <strong>Prior Grudge Triggered:</strong>{" "}
+                          {report.grudges.fired.map((g) => `${g.stakeholder_id} (${g.detail || g.effect})`).join(", ")}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Environmental Events & Ripple Effects ── */}
+                {(report.world_events.length > 0 || report.propagated.length > 0) && (
+                  <div className={styles.surfaceCard}>
+                    <div className={styles.cardHeader}>
+                      <h3 className={styles.cardTitle}>
+                        <Icon icon="ph:globe-hemisphere-east-bold" />
+                        <span>Environmental Events & Ripple Effects</span>
+                      </h3>
+                    </div>
+                    <div className={styles.cardBody}>
+                      {report.world_events.length > 0 && (
+                        <div>
+                          <span className="small fw-bold text-muted d-block mb-1">External Incidents</span>
+                          <ul className="list-group list-group-flush small">
+                            {report.world_events.map((e, i) => (
+                              <li key={`${e.target}-${i}`} className="list-group-item px-0 py-1 bg-transparent">
+                                <strong>{e.target}</strong> moved from {formatLevel(e.before)} to {formatLevel(e.after)}
+                                {e.reason && <span className="text-muted"> ({e.reason})</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {report.propagated.length > 0 && (
+                        <div className="mt-2">
+                          <span className="small fw-bold text-muted d-block mb-1">Downstream Ripple Flow</span>
+                          <ul className="list-group list-group-flush small">
+                            {report.propagated.map((p) => (
+                              <li key={p.target} className="list-group-item px-0 py-1 bg-transparent text-muted">
+                                <Icon icon="ph:flow-arrow-bold" className="me-1 text-primary" />
+                                <strong>{p.target}</strong> adapted from {formatLevel(p.effective.before)} to{" "}
+                                {formatLevel(p.effective.after)}
+                                {p.via && ` (via upstream link ${p.via})`}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </>
+        )}
+      </div>
+
+      {/* ── Footer Strip ── */}
+      <div className={styles.footer}>
+        <div className={styles.footerHint}>
+          <Icon icon="ph:info-bold" />
+          <span>
+            {payload?.next_challenge
+              ? `Next Milestone: ${payload.next_challenge.phase_name || "Next Phase"} • ${payload.next_challenge.name}`
+              : "Ready to proceed to the next milestone."}
+          </span>
+        </div>
+        <div className={styles.actions}>
+          <button
+            onClick={handleContinueClick}
+            disabled={loading || !report}
+            className={styles.actionButton}
+          >
+            <span>{loading ? "Advancing..." : "Proceed to Next Milestone"}</span>
+            <Icon icon="ph:arrow-right-bold" />
+          </button>
         </div>
       </div>
     </div>

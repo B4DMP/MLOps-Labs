@@ -11,6 +11,8 @@ export type PhaseData = {
   phase_name: string;
   phase_desc?: string;
   phase_introduction?: string;
+  challenges_per_phase?: number;
+  challenge_quota?: number;
   stakeholder_power_interest?: PhaseStakeholderEntry[];
 };
 

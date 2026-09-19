@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./StakeholderDossier.module.css";
 import { StakeholderContext } from "./StakeholderProvider";
-export type { ConvincerProfileConfig } from "./StakeholderProvider";
+
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
@@ -32,10 +32,26 @@ export interface IntelDebugInfo {
 
 /** Answer key for a dossier page. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface StakeholderDebugInfo {
-  real_archetype?: string | null;
-  player_archetype?: string | null;
-  archetype_hint?: string | null;
   missing_intel: IntelDebugInfo[];
+}
+
+export interface IntelArtifactData {
+  id: string;
+  requirement_id: string;
+  stakeholder_id?: string | null;
+  stakeholder_name?: string;
+  stakeholder_role?: string;
+  artifact_type: string;
+  content: string;
+  is_known?: boolean;
+}
+
+export interface TradeOffBranch {
+  name?: string;
+  description: string;
+  target?: string;
+  level?: number;
+  ops?: Array<{ kind: string; target: string; value: number }>;
 }
 
 export interface IntelEntry {
@@ -54,6 +70,8 @@ export interface IntelEntry {
   source?: string;
   /** For offline artifacts: which kind of document the player read it off. */
   artifact_type?: string;
+  /** Resolved source artifact payload if this note was read off an artifact. */
+  artifact?: IntelArtifactData | null;
   /** Refinement chain (plan 05): every link of one chain carries the same id. */
   chain_id?: string;
   chain_position?: number;
@@ -66,10 +84,10 @@ export interface IntelEntry {
   target?: string | null;
   stage_id?: string | null;
   stage_name?: string | null;
-  /** Read off the graph every time: "open", "addressed", "violated" or "stale". */
+  /** Read off the graph every time: "open", "addressed" or "stale". */
   status?: string;
-  /** This challenge's conflict puts somebody on the other side of this very target. */
-  contested?: boolean;
+  branch_x?: TradeOffBranch | null;
+  branch_y?: TradeOffBranch | null;
 }
 
 export interface StakeholderDossierEntry {
@@ -82,8 +100,6 @@ export interface StakeholderDossierEntry {
   metric_id?: string;
   power?: string;
   interest?: string;
-  convincer_archetype?: string;
-  convincer_status?: "validated" | "unconfirmed" | "unknown";
   is_validated?: boolean;
   intel_items: IntelEntry[];
   /** How many notes this stakeholder has in the challenge, found or not. */
@@ -98,11 +114,13 @@ export interface StakeholderDossierEntry {
 export interface StakeholderBuyInInfo {
   threshold: number;
   actionCardScore: number;
-  dialogueScore: number;
+  dialogueScore?: number;
   emotionScore: number;
   total: number;
   isPersuaded: boolean;
   currentEmotion?: string;
+  boundaryViolated?: boolean;
+  isRevealed?: boolean;
 }
 
 export interface StakeholderDossierProps {
@@ -116,7 +134,6 @@ export interface StakeholderDossierProps {
   canClose?: boolean;
   isEmbedded?: boolean;
   emotionColors?: Record<string, string>;
-  convincerArchetypes?: Record<string, any>;
   buyInInfoMap?: Record<string, StakeholderBuyInInfo>;
   /**
    * Carries the phase briefing's NEW / SHIFTED markers onto the stakeholder
@@ -135,6 +152,8 @@ export interface StakeholderDossierProps {
   isLogOpen?: boolean;
   /** Badges the Log button with how many events have been filed so far. */
   logCount?: number;
+  /** Opens the associated offline artifact for an intel item */
+  onOpenArtifact?: (item: IntelEntry) => void;
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -311,11 +330,6 @@ const STATUS_META: Record<string, { label: string; title: string; styleClass: st
     title: "Somebody already took this as far as they asked for.",
     styleClass: "statusAddressed",
   },
-  violated: {
-    label: "CROSSED",
-    title: "The pipeline as it stands is over this line of theirs.",
-    styleClass: "statusViolated",
-  },
   stale: {
     label: "OUT OF DATE",
     title: "The system has moved since you wrote this down.",
@@ -385,7 +399,6 @@ export default function StakeholderDossier({
   canClose = true,
   isEmbedded = false,
   emotionColors: propEmotionColors,
-  convincerArchetypes: propConvincerArchetypes,
   buyInInfoMap,
   showPhaseChangeBadges = false,
   onOpenPhaseBriefing,
@@ -395,15 +408,14 @@ export default function StakeholderDossier({
   onLogToggle,
   isLogOpen = false,
   logCount,
+  onOpenArtifact,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
-  const { stakeholders, emotionColors: contextEmotionColors, convincerArchetypes: contextConvincerArchetypes } = useContext(StakeholderContext) || {
+  const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
     stakeholders: {},
     emotionColors: {},
-    convincerArchetypes: {},
   };
   const activeEmotionColors = propEmotionColors || contextEmotionColors || {};
-  const activeConvincerArchetypes = propConvincerArchetypes || contextConvincerArchetypes || {};
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
   const { currentPhase: contextPhase, phases } = useContext(PhasesContext) || {
     currentPhase: 0,
@@ -413,7 +425,7 @@ export default function StakeholderDossier({
   const currentChallenge = propChallenge;
 
   // Badges the Performance button with the project graph's overall health, the same number
-  // PerformanceView itself shows. Only asked for when that button exists.
+  // PerformanceDashboard itself shows. Only asked for when that button exists.
   const [systemHealth, setSystemHealth] = useState<number | undefined>(undefined);
   useEffect(() => {
     if (!onPerformanceToggle) return;
@@ -425,7 +437,6 @@ export default function StakeholderDossier({
   }, [onPerformanceToggle, currentPhase]);
 
   const [activeRetagNoteId, setActiveRetagNoteId] = useState<string | null>(null);
-  const [isRetaggingConvincer, setIsRetaggingConvincer] = useState<boolean>(false);
   const [hoveredPolaroidStId, setHoveredPolaroidStId] = useState<string | null>(null);
   /** Which answer-key panel is unfolded: a note id, or `page-<stakeholder id>`. Debug builds only. */
   const [openDebugId, setOpenDebugId] = useState<string | null>(null);
@@ -475,7 +486,7 @@ export default function StakeholderDossier({
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
 
   // Dossier entries that arrived but have not yet played their "appear" animation.
-  // Keys are `intel-<stakeholder>-<intel id>` and `convincer-<stakeholder>-<archetype>`.
+  // Keys are `intel-<stakeholder>-<intel id>`.
   const [pendingAppearKeys, setPendingAppearKeys] = useState<Set<string>>(new Set());
   const seenAppearKeysRef = useRef<Set<string> | null>(null);
   const prevIsOpenRef = useRef<boolean>(isOpen);
@@ -515,7 +526,6 @@ export default function StakeholderDossier({
       metric_id: st.metric_id || "",
       power: st.power || "low",
       interest: st.interest || "low",
-      convincer_archetype: st.convincer_archetype || "",
       intel_items: [],
     }));
 
@@ -534,7 +544,6 @@ export default function StakeholderDossier({
         metric_id: st.metric_id || "",
         power: st.power || "low",
         interest: st.interest || "low",
-        convincer_archetype: st.convincer_archetype || "",
         intel_items: [],
       }));
     }
@@ -700,7 +709,6 @@ export default function StakeholderDossier({
   const requestPageChange = (targetIndex: number) => {
     if (targetIndex < 0 || targetIndex >= totalPages) return;
     if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
-    setIsRetaggingConvincer(false);
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
   };
@@ -809,20 +817,16 @@ export default function StakeholderDossier({
     prevDossierRef.current = dossierData;
   }, [dossierData, effectiveDossierData]);
 
-  // All animatable keys a stakeholder page currently holds. The convincer key carries the
-  // archetype itself so re-tagging to a different archetype counts as a new appearance.
+  // All animatable keys a stakeholder page currently holds.
   // On-record notes are left out: the game deals them at the start of a challenge, so they
   // are never something the player added.
   const appearKeysForStakeholder = (st: StakeholderDossierEntry): string[] => {
-    const keys = (st.intel_items || [])
+    return (st.intel_items || [])
       .filter((item) => item.id && (item.source || "").toLowerCase() !== "public_record")
       .map((item) => `intel-${st.stakeholder_id}-${item.id}`);
-    const archetype = st.convincer_archetype || stakeholders[st.stakeholder_id]?.convincer_archetype;
-    if (archetype) keys.push(`convincer-${st.stakeholder_id}-${archetype}`);
-    return keys;
   };
 
-  // Flag intel items and convincer archetypes that the previous dossier payload did not have
+  // Flag intel items that the previous dossier payload did not have
   useEffect(() => {
     // The placeholder pages built from context are not a payload. Taking the baseline from
     // them would make everything in the first real payload look freshly added.
@@ -968,6 +972,51 @@ export default function StakeholderDossier({
     );
   };
 
+  const renderHighlightedTradeOffText = (item: IntelEntry, isItalic = false, speakerName?: string) => {
+    if (item.branch_x?.description && item.branch_y?.description) {
+      const speaker = speakerName || "Stakeholder";
+      const inner = (
+        <>
+          {speaker} would compromise{" "}
+          <span className={styles.tradeOffBadgeA}>
+            <GlossaryText text={item.branch_x.description} surface="intel_notes" />
+          </span>{" "}
+          for{" "}
+          <span className={styles.tradeOffBadgeB}>
+            <GlossaryText text={item.branch_y.description} surface="intel_notes" />
+          </span>
+          .
+        </>
+      );
+      return isItalic ? <em className={styles.intelReading}>{inner}</em> : inner;
+    }
+
+    const text = item.description || "";
+    const match = text.match(/^(.*?\b(?:would compromise|would trade|compromise|trade|compromised|traded)\s+)(.+?)(\s+for\s+)(.+?)(\.?)$/i);
+    if (!match) {
+      return isItalic ? (
+        <em className={styles.intelReading}><GlossaryText text={text} surface="intel_notes" /></em>
+      ) : (
+        <GlossaryText text={text} surface="intel_notes" />
+      );
+    }
+    const [, prefix, partA, connector, partB, suffix] = match;
+    const inner = (
+      <>
+        {prefix}
+        <span className={styles.tradeOffBadgeA}>
+          <GlossaryText text={partA} surface="intel_notes" />
+        </span>
+        {connector}
+        <span className={styles.tradeOffBadgeB}>
+          <GlossaryText text={partB} surface="intel_notes" />
+        </span>
+        {suffix}
+      </>
+    );
+    return isItalic ? <em className={styles.intelReading}>{inner}</em> : inner;
+  };
+
   const handleReTagIntel = (intelId: string, newType: string) => {
     setActiveRetagNoteId(null);
     emit("intel:tag_item", {
@@ -982,17 +1031,6 @@ export default function StakeholderDossier({
     });
   };
 
-  const handleReTagConvincer = (stakeholderId: string, newArchetype: string) => {
-    setIsRetaggingConvincer(false);
-    emit("intel:tag_convincer", {
-      stakeholder_id: stakeholderId,
-      categorized_archetype: newArchetype,
-    });
-    emit("intel:get_dossier", {
-      phase_id: currentPhase,
-      challenge_id: currentChallenge,
-    });
-  };
 
   const getStakeholderColor = (st: any): string => {
     if (!st) return "#38bdf8";
@@ -1117,13 +1155,6 @@ export default function StakeholderDossier({
       activeEmotionColors[emotionDisplay] ||
       activeEmotionColors[emotionDisplay.toLowerCase()] ||
       "#64748b";
-
-    const convincerArchetypeName = st.convincer_archetype || stObj?.convincer_archetype;
-    const convincerProfileConfig = convincerArchetypeName ? activeConvincerArchetypes[convincerArchetypeName] : null;
-    const isNewConvincer = Boolean(
-      convincerArchetypeName &&
-      pendingAppearKeys.has(`convincer-${st.stakeholder_id}-${convincerArchetypeName}`)
-    );
 
     return (
       <>
@@ -1267,158 +1298,23 @@ export default function StakeholderDossier({
           </div>
         </div>
 
-        {/* Convincer Profile & Persuasion Strategy Card */}
-        {convincerArchetypeName ? (
-          <div
-            className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""} ${isNewConvincer ? styles.newConvincerCard : ""}`}
-          >
-            <div className={styles.convincerVerticalSpine}>
-              <span className={styles.convincerVerticalText}>Convincer</span>
-            </div>
-            <div className={styles.convincerMainBody}>
-              <div className={styles.convincerTopRow}>
-                <div className={styles.convincerTagArea}>
-                  {!(st.is_validated || st.convincer_status === "validated") ? (
-                    <button
-                      className={styles.archetypeChip}
-                      style={{
-                        borderColor: convincerProfileConfig?.color || "#2563eb",
-                        color: convincerProfileConfig?.color || "#2563eb",
-                        backgroundColor: `${convincerProfileConfig?.color || "#2563eb"}14`,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsRetaggingConvincer(!isRetaggingConvincer);
-                      }}
-                      title="Click to re-tag this stakeholder's convincer archetype"
-                    >
-                      <span>
-                        {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
-                      </span>
-                      <span className={styles.reTagIconBtn} aria-label="Re-tag">
-                        <Icon icon="ph:pencil-simple-bold" />
-                      </span>
-                    </button>
-                  ) : (
-                    <span
-                      className={styles.archetypeChipStatic}
-                      style={{
-                        borderColor: convincerProfileConfig?.color || "#2563eb",
-                        color: convincerProfileConfig?.color || "#2563eb",
-                        backgroundColor: `${convincerProfileConfig?.color || "#2563eb"}14`,
-                      }}
-                    >
-                      <span>
-                        {convincerProfileConfig?.icon || "🎯"} {convincerProfileConfig?.label || convincerProfileConfig?.name || convincerArchetypeName}
-                      </span>
-                    </span>
-                  )}
-                </div>
-                <div className={styles.cardCornerStamp}>
-                  {renderRubberStamp(st.is_validated || st.convincer_status === "validated" ? "verified" : "unconfirmed")}
-                </div>
-              </div>
-
-              {/* Interactive Re-tag Picker Popover for Convincer Archetype */}
-              {isRetaggingConvincer && (
-                <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
-                  <div className={styles.retagPopoverTitle}>Re-tag Convincer Archetype:</div>
-                  <div className={styles.retagOptionsGrid}>
-                    {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
-                      <button
-                        key={archName}
-                        className={`${styles.retagOptionBtn} ${archName === convincerArchetypeName ? styles.activeOptionBtn : ""}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReTagConvincer(st.stakeholder_id, archName);
-                        }}
-                      >
-                        {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {convincerProfileConfig?.strategy && (
-                <div className={styles.convincerStrategyText}>
-                  <span className={styles.strategyBulb}>💡</span>
-                  <span>
-                    <strong>Strategy:</strong>{" "}
-                    <GlossaryText text={convincerProfileConfig.strategy} surface="dossier_profile" />
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className={`${styles.convincerCard} ${isRetaggingConvincer ? styles.retagActive : ""}`} style={{ opacity: 0.85, background: "rgba(241, 245, 249, 0.7)" }}>
-            <div className={styles.convincerVerticalSpine}>
-              <span className={styles.convincerVerticalText}>Convincer</span>
-            </div>
-            <div className={styles.convincerMainBody}>
-              <div className={styles.convincerTopRow}>
-                <div className={styles.convincerTagArea}>
-                  <button
-                    className={styles.archetypeChip}
-                    style={{ borderColor: "#94a3b8", color: "#64748b", backgroundColor: "#f1f5f9" }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsRetaggingConvincer(!isRetaggingConvincer);
-                    }}
-                    title="Click to categorize this stakeholder's convincer archetype"
-                  >
-                    <em>Uncategorized Archetype</em>
-                    <span className={styles.reTagIconBtn} aria-label="Set Archetype">
-                      <Icon icon="ph:pencil-simple-bold" />
-                    </span>
-                  </button>
-                </div>
-                <div className={styles.cardCornerStamp}>
-                  {renderRubberStamp("unconfirmed")}
-                </div>
-              </div>
-
-              {/* Interactive Re-tag Picker Popover for Uncategorized Convincer */}
-              {isRetaggingConvincer && (
-                <div className={styles.retagPopover} onClick={(e) => e.stopPropagation()}>
-                  <div className={styles.retagPopoverTitle}>Select Convincer Archetype:</div>
-                  <div className={styles.retagOptionsGrid}>
-                    {Object.entries(activeConvincerArchetypes).map(([archName, archConfig]) => (
-                      <button
-                        key={archName}
-                        className={styles.retagOptionBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReTagConvincer(st.stakeholder_id, archName);
-                        }}
-                      >
-                        {archConfig.icon || "🎯"} {archConfig.label || archConfig.name || archName}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className={styles.convincerStrategyText} style={{ color: "#94a3b8", fontStyle: "italic" }}>
-                <span className={styles.strategyBulb}>💡</span>
-                <span>Categorize this stakeholder's archetype to reveal their effective communication strategy.</span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Buy-In / Persuasion Breakdown Bar Card (Rendered during Pitch Debate when buyInInfoMap prop is provided) */}
         {(() => {
           const buyInInfo = buyInInfoMap ? (buyInInfoMap[st.stakeholder_id] || buyInInfoMap[st.name]) : undefined;
           if (!buyInInfo) return null;
 
+          const totalPercent = Math.min(100, Math.max(0, Math.round(buyInInfo.total * 100)));
+          const cardPercent = Math.min(60, Math.max(0, Math.round(buyInInfo.actionCardScore * 100)));
+          const emotionPercent = Math.min(40, Math.max(0, Math.round(buyInInfo.emotionScore * 100)));
+          const isBoundaryViolated = Boolean(buyInInfo.boundaryViolated);
+          const isRevealed = buyInInfo.isRevealed ?? false;
+
           return (
-            <div className={styles.buyInCard}>
+            <div className={`${styles.buyInCard} ${!isRevealed ? styles.buyInCardBlurred : ""}`}>
               <div className={styles.buyInVerticalSpine}>
                 <span className={styles.buyInVerticalText}>Buy-In</span>
               </div>
-              <div className={styles.buyInMainBody}>
+              <div className={`${styles.buyInMainBody} ${!isRevealed ? styles.buyInBlurredContent : ""}`}>
                 {/* Top row: Label, Target & Status badge */}
                 <div className={styles.buyInTopRow}>
                   <div className="d-flex align-items-center gap-2">
@@ -1426,10 +1322,14 @@ export default function StakeholderDossier({
                       ⚖️ Buy-In Progress
                     </span>
                     <span
-                      className={`badge ${buyInInfo.isPersuaded ? "bg-success" : "bg-danger"}`}
+                      className={`badge ${isBoundaryViolated ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-danger"}`}
                       style={{ fontSize: "0.62rem" }}
                     >
-                      {buyInInfo.isPersuaded ? "✅ Persuaded" : "⚠️ Resistant"} ({Math.round(buyInInfo.total * 100)}%)
+                      {isBoundaryViolated
+                        ? `⛔ Boundary Violated (${totalPercent}%)`
+                        : buyInInfo.isPersuaded
+                        ? `✅ Persuaded (${totalPercent}%)`
+                        : `⚠️ Resistant (${totalPercent}%)`}
                     </span>
                   </div>
                   <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
@@ -1454,45 +1354,41 @@ export default function StakeholderDossier({
                     title={`Required Threshold: ${Math.round(buyInInfo.threshold * 100)}%`}
                   />
 
-                  {buyInInfo.actionCardScore > 0 && (
+                  {cardPercent > 0 && (
                     <div
                       className="progress-bar bg-primary"
                       role="progressbar"
-                      style={{ width: `${Math.min(100, buyInInfo.actionCardScore * 100)}%` }}
-                      title={`Action Card Intel: +${Math.round(buyInInfo.actionCardScore * 100)}%`}
+                      style={{ width: `${cardPercent}%` }}
+                      title={`Action Card Alignment: +${cardPercent}% (max 60%)`}
                     >
-                      {buyInInfo.actionCardScore >= 0.12 && `+${Math.round(buyInInfo.actionCardScore * 100)}%`}
+                      {cardPercent >= 10 && `+${cardPercent}%`}
                     </div>
                   )}
-                  {buyInInfo.dialogueScore > 0 && (
-                    <div
-                      className="progress-bar bg-info text-dark"
-                      role="progressbar"
-                      style={{ width: `${Math.min(100, buyInInfo.dialogueScore * 100)}%` }}
-                      title={`Dialogue Engagement: +${Math.round(buyInInfo.dialogueScore * 100)}%`}
-                    >
-                      {buyInInfo.dialogueScore >= 0.12 && `+${Math.round(buyInInfo.dialogueScore * 100)}%`}
-                    </div>
-                  )}
-                  {buyInInfo.emotionScore > 0 && (
+                  {emotionPercent > 0 && (
                     <div
                       className="progress-bar bg-success"
                       role="progressbar"
-                      style={{ width: `${Math.min(100, buyInInfo.emotionScore * 100)}%` }}
-                      title={`Emotional State (${buyInInfo.currentEmotion || "neutral"}): +${Math.round(buyInInfo.emotionScore * 100)}%`}
+                      style={{ width: `${emotionPercent}%` }}
+                      title={`Emotional State (${buyInInfo.currentEmotion || "neutral"}): +${emotionPercent}% (max 40%)`}
                     >
-                      {buyInInfo.emotionScore >= 0.12 && `+${Math.round(buyInInfo.emotionScore * 100)}%`}
+                      {emotionPercent >= 10 && `+${emotionPercent}%`}
                     </div>
                   )}
                 </div>
 
                 {/* Breakdown Legend Row */}
                 <div className={styles.buyInLegendRow}>
-                  <span>🃏 Card: <b>+{Math.round(buyInInfo.actionCardScore * 100)}%</b></span>
-                  <span>💬 Dialogue: <b>+{Math.round(buyInInfo.dialogueScore * 100)}%</b></span>
-                  <span>🎭 Emotion: <b>+{Math.round(buyInInfo.emotionScore * 100)}%</b></span>
+                  <span>🃏 Card: <b>{isBoundaryViolated ? "0% (Boundary Violated)" : `+${cardPercent}%`}</b></span>
+                  <span>🎭 Emotion: <b>+{emotionPercent}%</b></span>
                 </div>
               </div>
+
+              {!isRevealed && (
+                <div className={styles.buyInLockOverlay}>
+                  <Icon icon="ph:lock-simple-bold" style={{ fontSize: "0.85rem", color: "#475569" }} />
+                  <span>Revealed when you assemble an action card</span>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -1522,29 +1418,9 @@ export default function StakeholderDossier({
           <div className={styles.debugPanel}>
             <button className={styles.debugPanelTitle} onClick={() => toggleDebug(`page-${st.stakeholder_id}`)}>
               <Icon icon="ph:bug-bold" /> Answer key (debug): {st.debug.missing_intel.length} not found yet
-              {!st.is_environment && (
-                <>
-                  , real archetype{" "}
-                  <span
-                    className={
-                      st.debug.real_archetype && st.debug.real_archetype === st.debug.player_archetype
-                        ? styles.debugRightText
-                        : styles.debugWrongText
-                    }
-                  >
-                    {st.debug.real_archetype || "none"}
-                  </span>
-                </>
-              )}
             </button>
             {openDebugId === `page-${st.stakeholder_id}` && (
               <>
-                {st.debug.archetype_hint && (
-                  <div className={styles.debugRow}>
-                    <strong>Archetype hint:</strong>
-                    <pre className={styles.debugArtifact}>{st.debug.archetype_hint}</pre>
-                  </div>
-                )}
                 {st.debug.missing_intel.map((info) => (
                   <div key={info.id} className={styles.debugMissing}>
                     <DebugRequirement info={info} />
@@ -1596,6 +1472,9 @@ export default function StakeholderDossier({
                 ? noteDescription.slice(st.name.length)
                 : noteDescription;
               const isPublicRecord = (item.source || "").toLowerCase() === "public_record";
+              const hasArtifact = Boolean(
+                item.artifact || (item.artifact_type && (item.source === "offline_artifact" || item.source === "public_record"))
+              );
               const sourceCaption = getSourceCaption(item);
               // Paper colour matches the stamp: orange still open, red refuted, blue public,
               // green earned, teal inferred.
@@ -1662,30 +1541,44 @@ export default function StakeholderDossier({
 
                   {/* Header Row: Intel Type Badge on sticky note (Clickable to Re-tag only if unconfirmed) */}
                   <div className={styles.noteTopBar}>
-                    {canRetag ? (
-                      <button
-                        className={`${styles.noteCategoryTag} ${catMeta.styleClass}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveRetagNoteId(isRetagging ? null : noteId);
-                        }}
-                        title={isRefuted ? "That guess was wrong - click to re-tag" : "Click to re-tag this intel item's category"}
-                      >
-                        <span>{catMeta.icon} {catMeta.label}</span>
-                        <span className={styles.reTagIconBtn} aria-label="Re-tag">
-                          <Icon icon="ph:pencil-simple-bold" />
-                        </span>
-                      </button>
-                    ) : (
-                      <div className="d-flex align-items-center">
+                    <div className="d-flex align-items-center gap-1">
+                      {canRetag ? (
+                        <button
+                          className={`${styles.noteCategoryTag} ${catMeta.styleClass}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveRetagNoteId(isRetagging ? null : noteId);
+                          }}
+                          title={isRefuted ? "That guess was wrong - click to re-tag" : "Click to re-tag this intel item's category"}
+                        >
+                          <span>{catMeta.icon} {catMeta.label}</span>
+                          <span className={styles.reTagIconBtn} aria-label="Re-tag">
+                            <Icon icon="ph:pencil-simple-bold" />
+                          </span>
+                        </button>
+                      ) : (
                         <div
                           className={`${styles.categoryBadgeStatic} ${catMeta.styleClass}`}
                           title="Category is locked once intel is confirmed/verified"
                         >
                           <span>{catMeta.icon} {catMeta.label}</span>
                         </div>
-                      </div>
-                    )}
+                      )}
+                      {hasArtifact && onOpenArtifact && (
+                        <button
+                          type="button"
+                          className={styles.artifactLinkBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenArtifact(item);
+                          }}
+                          title="View associated artifact in Offline Intel Gathering"
+                          aria-label="View associated artifact in Offline Intel Gathering"
+                        >
+                          <Icon icon="ph:link-bold" />
+                        </button>
+                      )}
+                    </div>
                     <div className={styles.cardCornerStamp}>
                       {item.debug && (
                         <button
@@ -1700,14 +1593,6 @@ export default function StakeholderDossier({
                         >
                           <Icon icon="ph:bug-bold" />
                         </button>
-                      )}
-                      {item.contested && (
-                        <span
-                          className={`${styles.statusBadge} ${styles.contestedBadge}`}
-                          title="Somebody else in this room wants the opposite on this very target."
-                        >
-                          CONTESTED
-                        </span>
                       )}
                       {item.status && STATUS_META[item.status] && (
                         <span
@@ -1752,20 +1637,36 @@ export default function StakeholderDossier({
                   <div className={styles.intelBody}>
                     <div className={styles.intelText}>
                       "
-                      {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
-                      {isUnconfirmed || isRefuted ? (
-                        <em className={styles.intelReading}>
-                          <GlossaryText text={noteReading} surface="intel_notes" />
-                        </em>
+                      {typeKey === "trade_off" ? (
+                        renderHighlightedTradeOffText(item, isUnconfirmed || isRefuted, st.name)
                       ) : (
-                        <GlossaryText text={noteReading} surface="intel_notes" />
+                        <>
+                          {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
+                          {isUnconfirmed || isRefuted ? (
+                            <em className={styles.intelReading}>
+                              <GlossaryText text={noteReading} surface="intel_notes" />
+                            </em>
+                          ) : (
+                            <GlossaryText text={noteReading} surface="intel_notes" />
+                          )}
+                        </>
                       )}
                       "
                     </div>
                     {sourceCaption && (
-                      <div className={styles.intelSourceCaption} title={sourceCaption.title}>
+                      <div
+                        className={`${styles.intelSourceCaption} ${hasArtifact && onOpenArtifact ? styles.intelSourceCaptionClickable : ""}`}
+                        title={hasArtifact && onOpenArtifact ? `${sourceCaption.title} (Click to view artifact)` : sourceCaption.title}
+                        onClick={hasArtifact && onOpenArtifact ? (e) => {
+                          e.stopPropagation();
+                          onOpenArtifact(item);
+                        } : undefined}
+                      >
                         <Icon icon={sourceCaption.icon} className={styles.intelSourceIcon} />
                         <span>{sourceCaption.text}</span>
+                        {hasArtifact && onOpenArtifact && (
+                          <Icon icon="ph:arrow-square-out-bold" className={styles.intelSourceLinkIcon} />
+                        )}
                       </div>
                     )}
                     {/* The layers this reading grew out of, newest first, so the card gets taller
@@ -1855,7 +1756,7 @@ export default function StakeholderDossier({
   const systemPips = environmentIndex >= 0 ? getIntelPips(effectiveDossierData[environmentIndex]) : [];
   const systemFoundCount = systemPips.filter((status) => status !== "hidden").length;
 
-  // Performance button badge: the same overall health bucket PerformanceView shows, as a dot
+  // Performance button badge: the same overall health bucket PerformanceDashboard shows, as a dot
   // rather than a count - it's a state, not a tally.
   const systemHealthBucket = healthBucket(systemHealth);
 

@@ -19,11 +19,6 @@ if TYPE_CHECKING:
     from mlops_serious_game.domain.requirement import StakeholderIntelItem
 
 ObjectionKind = Literal["boundary", "technical", "stance", "price", "correction"]
-DialogueOptionKind = Literal["amend", "reframe", "stonewall", "emergency_addendum", "concede_correction"]
-
-# Reframe can only clear stance objections (soft Drivers). Boundary/technical/price are hard.
-_REFRAME_CLEARABLE: frozenset[ObjectionKind] = frozenset({"stance"})
-_HARD_KINDS: frozenset[ObjectionKind] = frozenset({"boundary", "technical"})
 
 
 class Objection(BaseModel):
@@ -36,14 +31,6 @@ class Objection(BaseModel):
     target: Optional[str] = None
     text: str
     hard: bool = False
-
-
-class DialogueOptionSpec(BaseModel):
-    """Availability of one dialogue option for a given objection."""
-
-    option: DialogueOptionKind
-    available: bool
-    reason: Optional[str] = None  # non-None when available=False
 
 
 # ---------------------------------------------------------------------------
@@ -242,83 +229,3 @@ def fire_objections(
             counts[obj.stakeholder_id] = n + 1
     return capped
 
-
-def dialogue_options_for(
-    objection: Objection,
-    answering_item_ids: set[str],
-    escalation_points: int,
-    amendment_budget: int,
-    card_size: int,
-    max_card_size: int = 5,
-    hardened: bool = False,
-) -> list[DialogueOptionSpec]:
-    """Return the full dialogue option menu for one objection.
-
-    answering_item_ids: player-held item ids that specifically answer this
-    objection (Driver for stance, Boundary for boundary, upstream item for
-    technical, Trade-off for price). Empty means Amend is unavailable.
-
-    hardened: a Reframe Miss on this same item earlier this challenge (D48/plan 11) - from then
-    on only Amend clears it, no matter the objection's kind.
-    """
-    opts: list[DialogueOptionSpec] = []
-
-    # --- Amend ---
-    at_capacity = card_size >= max_card_size
-    budget_gone = amendment_budget <= 0
-    no_answer = not answering_item_ids
-    if no_answer or budget_gone or at_capacity:
-        reasons = []
-        if no_answer:
-            reasons.append("no matching intel item in hand")
-        if budget_gone:
-            reasons.append("amendment budget exhausted")
-        if at_capacity:
-            reasons.append("card is full (5 items)")
-        opts.append(DialogueOptionSpec(option="amend", available=False, reason="; ".join(reasons)))
-    else:
-        opts.append(DialogueOptionSpec(option="amend", available=True))
-
-    # --- Reframe ---
-    if hardened:
-        opts.append(DialogueOptionSpec(
-            option="reframe", available=False,
-            reason="a missed Reframe hardened this - only Amend clears it now",
-        ))
-    else:
-        opts.append(DialogueOptionSpec(
-            option="reframe",
-            available=True,
-            reason=None if objection.kind in _REFRAME_CLEARABLE
-            else f"Reframe cannot clear a {objection.kind} objection (emotion impact only)",
-        ))
-
-    # --- Stonewall ---
-    opts.append(DialogueOptionSpec(option="stonewall", available=True))
-
-    # --- Emergency Addendum ---
-    ea_reasons = []
-    if escalation_points <= 0:
-        ea_reasons.append("no Escalation Points remaining")
-    if budget_gone:
-        ea_reasons.append("amendment budget exhausted")
-    if at_capacity:
-        ea_reasons.append("card is full (5 items)")
-    if ea_reasons:
-        opts.append(DialogueOptionSpec(
-            option="emergency_addendum", available=False, reason="; ".join(ea_reasons)
-        ))
-    else:
-        opts.append(DialogueOptionSpec(option="emergency_addendum", available=True))
-
-    # --- Concede Correction ---
-    if objection.kind == "correction":
-        opts.append(DialogueOptionSpec(option="concede_correction", available=True))
-    else:
-        opts.append(DialogueOptionSpec(
-            option="concede_correction",
-            available=False,
-            reason="only available for mis-tagged item objections",
-        ))
-
-    return opts

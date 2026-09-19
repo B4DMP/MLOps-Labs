@@ -37,7 +37,7 @@ Note: I did not read any docs before playing.
 ### Offline Intel Gathering
 - The challenge being an artifact is a good idea.
 - There are too many intel items in the first challenge to read through (12). Possibly not all convincer archetypes should be categorizable in the first challenge.
-- There seems to be a hardcoded number of 2+1 system artifacts per challenge. But sometimes there just isn't enough information, so multiple artifacts display the same information.
+- [x] There seems to be a hardcoded number of 2+1 system artifacts per challenge. But sometimes there just isn't enough information, so multiple artifacts display the same information. (Reduced to 1+1: MAX_FACT_ARTIFACTS = 1)
 - If I miscategorize a system fact, the miscategorized description is very obviously wrong.
 - Trade-Off Intel Artifacts are weirdly framed: "I am willing to drop my request for x. In exchange, I need y." Is x the trade-off, and do we have y hardcoded in the system or is it just a hallucination? This also makes trade-offs very easy to detect.
 - How are unconfirmed system intel items confirmed?

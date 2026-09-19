@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import StakeholdersList from "./StakeholderList";
-import React, { useState, useEffect, useRef, useContext } from "react";
+import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
+import { Reorder } from "motion/react";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
@@ -23,6 +24,8 @@ import styles from "./StakeholderInteractionArea.module.css";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import { useGlossary } from "./glossary/GlossaryProvider";
 
+import type { EngagementCard } from "../types/EngagementCard";
+
 export type RevealedIntel = {
   id?: string;
   requirement_id?: string;
@@ -32,35 +35,95 @@ export type RevealedIntel = {
   stakeholder_id?: string;
   stakeholder_name?: string;
   is_corrected?: boolean;
-};
-
-export type ConvincerVerification = {
-  was_correct: boolean;
-  stakeholder_id: string;
-  stakeholder_name?: string;
-  categorized_archetype?: string;
-  old_archetype?: string;
-  true_archetype?: string;
-  strategy?: string;
-  explanation?: string;
+  is_verified?: boolean;
 };
 
 export type ChatMsg = {
   id: string;
   message: string;
   ac_id: number;
+  emotional_state?: string;
   facial_expression?: string;
   revealed_intel?: RevealedIntel[];
-  convincer_verification?: ConvincerVerification;
+  conversation_id?: string;
+  stakeholder_id?: string;
+  stakeholder_name?: string;
 };
+
+export function getTabInfo(
+  conversationId: string,
+  engagementCards: EngagementCard[] = []
+): { title: string; icon: string } {
+  if (!conversationId || conversationId === "default") {
+    return { title: "Conversation", icon: "ph:chats-circle-bold" };
+  }
+  if (conversationId === "conv_legacy") {
+    return { title: "Archived Debate", icon: "ph:archive-box-bold" };
+  }
+  if (conversationId.startsWith("pitch_")) {
+    const num = conversationId.replace("pitch_", "");
+    return {
+      title: num ? `Action Pitch #${num}` : "Action Pitch",
+      icon: "ph:presentation-chart-bold",
+    };
+  }
+  if (conversationId.startsWith("eng_")) {
+    const lastUnderscore = conversationId.lastIndexOf("_");
+    if (lastUnderscore > 4) {
+      const cardId = conversationId.substring(4, lastUnderscore);
+      const playCount = conversationId.substring(lastUnderscore + 1);
+      const card = engagementCards.find((c) => c.id === cardId || c.id === conversationId.slice(4));
+      const countNum = parseInt(playCount, 10);
+      const suffix = !isNaN(countNum) && countNum > 1 ? ` #${countNum}` : "";
+      if (card) {
+        return {
+          title: `${card.title}${suffix}`,
+          icon: card.icon ? `ph:${card.icon}` : "ph:chat-teardrop-text-bold",
+        };
+      }
+      const formattedName = cardId
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      return {
+        title: `${formattedName}${suffix}`,
+        icon: "ph:chat-teardrop-text-bold",
+      };
+    } else {
+      const cardId = conversationId.slice(4);
+      const card = engagementCards.find((c) => c.id === cardId);
+      return {
+        title: card ? card.title : cardId.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+        icon: card?.icon ? `ph:${card.icon}` : "ph:chat-teardrop-text-bold",
+      };
+    }
+  }
+  if (conversationId.startsWith("verify_")) {
+    const num = conversationId.replace("verify_", "");
+    return {
+      title: num ? `Intel Verification #${num}` : "Intel Verification",
+      icon: "ph:shield-check-bold",
+    };
+  }
+
+  return {
+    title: conversationId.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    icon: "ph:chats-bold",
+  };
+}
 
 interface StakeholderInteractionAreaProps {
   onSelectDialogueOption?: (index: number) => void;
   dialogueOptions?: DialogueOption[];
   chatMsgs: ChatMsg[];
+  engagementCards?: EngagementCard[];
   current_phase: number;
   current_challenge: number;
   isEnabled: boolean;
+  isTyping?: boolean;
+  typingText?: string;
+  isPitchEvaluating?: boolean;
+  evaluatingConversationId?: string | null;
+  evaluatingText?: string;
   actionCards: ActionCard[];
   onHoverCard: (id: number | null) => void;
   className?: string;
@@ -77,9 +140,15 @@ export default function StakeholderInteractionArea({
   onSelectDialogueOption,
   dialogueOptions = [],
   chatMsgs,
+  engagementCards = [],
   current_phase,
   current_challenge,
   isEnabled,
+  isTyping = false,
+  typingText,
+  isPitchEvaluating = false,
+  evaluatingConversationId,
+  evaluatingText,
   actionCards,
   onHoverCard,
   className = "col-5",
@@ -95,6 +164,67 @@ export default function StakeholderInteractionArea({
   const [_isintro4Done, setIsintro4Done] = useState(false);
   const isintro4DoneRef = useRef(false);
   const [hoveredMsgAvatarIndex, setHoveredMsgAvatarIndex] = useState<number | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [tabOrder, setTabOrder] = useState<string[]>([]);
+
+  const conversationIds = useMemo(() => {
+    const ids: string[] = [];
+    chatMsgs.forEach((msg) => {
+      const cid = msg.conversation_id || "default";
+      if (!ids.includes(cid)) {
+        ids.push(cid);
+      }
+    });
+    if (evaluatingConversationId && !ids.includes(evaluatingConversationId)) {
+      ids.push(evaluatingConversationId);
+    }
+    return ids;
+  }, [chatMsgs, evaluatingConversationId]);
+
+  // When evaluatingConversationId is set, immediately switch active tab to it
+  useEffect(() => {
+    if (evaluatingConversationId) {
+      setActiveConversationId(evaluatingConversationId);
+    }
+  }, [evaluatingConversationId]);
+
+  // Keep tabOrder in sync with conversationIds while preserving user drag-and-drop order
+  useEffect(() => {
+    setTabOrder((prev) => {
+      const existing = prev.filter((id) => conversationIds.includes(id));
+      const added = conversationIds.filter((id) => !existing.includes(id));
+      const combined = [...existing, ...added];
+      if (
+        combined.length === prev.length &&
+        combined.every((id, i) => id === prev[i])
+      ) {
+        return prev;
+      }
+      return combined;
+    });
+  }, [conversationIds]);
+
+  const lastMsgConvId = chatMsgs.length > 0 ? (chatMsgs[chatMsgs.length - 1].conversation_id || "default") : null;
+  const prevLastMsgConvIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (conversationIds.length > 0) {
+      if (!activeConversationId || !conversationIds.includes(activeConversationId)) {
+        setActiveConversationId(evaluatingConversationId || conversationIds[conversationIds.length - 1]);
+      } else if (lastMsgConvId && lastMsgConvId !== prevLastMsgConvIdRef.current) {
+        setActiveConversationId(lastMsgConvId);
+      }
+    } else {
+      setActiveConversationId(null);
+    }
+    prevLastMsgConvIdRef.current = lastMsgConvId;
+  }, [conversationIds, activeConversationId, lastMsgConvId, evaluatingConversationId]);
+
+  const displayedMsgs = useMemo(() => {
+    if (!activeConversationId) return chatMsgs;
+    return chatMsgs.filter((msg) => (msg.conversation_id || "default") === activeConversationId);
+  }, [chatMsgs, activeConversationId]);
+
 
   const getStakeholderColor = (st: any, stakeholderId?: string): string => {
     if (st?.stakeholder_color && st.stakeholder_color !== "#888888" && st.stakeholder_color !== "#ffffff") {
@@ -158,6 +288,47 @@ export default function StakeholderInteractionArea({
         <StakeholdersList current_phase={current_phase} />
       )}
 
+      {tabOrder.length > 0 && (
+        <div className={styles.tabBarContainer}>
+          <Reorder.Group
+            axis="x"
+            values={tabOrder}
+            onReorder={setTabOrder}
+            className={styles.tabBarScroll}
+            as="div"
+          >
+            {tabOrder.map((cid: string) => {
+              const info = getTabInfo(cid, engagementCards);
+              const isActive = cid === activeConversationId;
+              const count = chatMsgs.filter((m) => (m.conversation_id || "default") === cid).length;
+              return (
+                <Reorder.Item
+                  key={cid}
+                  value={cid}
+                  as="div"
+                  className={styles.tabItemWrapper}
+                  whileDrag={{ scale: 1.04, zIndex: 10 }}
+                >
+                  <button
+                    type="button"
+                    className={`${styles.tabBtn} ${isActive ? styles.tabBtnActive : ""}`}
+                    onClick={() => setActiveConversationId(cid)}
+                    title={info.title}
+                  >
+                    <Icon icon="ph:dots-six-vertical-bold" className={styles.tabDragHandle} />
+                    <Icon icon={info.icon} className={styles.tabIcon} />
+                    <span className={styles.tabLabel}>{info.title}</span>
+                    <span className={`${styles.tabBadge} ${isActive ? styles.tabBadgeActive : ""}`}>
+                      {count}
+                    </span>
+                  </button>
+                </Reorder.Item>
+              );
+            })}
+          </Reorder.Group>
+        </div>
+      )}
+
       <div className={`${styles.messageAreaWrapper} ${showDialogueOptions ? "mt-3" : "mt-1"}`}>
         <div className={styles.innerChatScroll}>
           <MainContainer
@@ -168,47 +339,65 @@ export default function StakeholderInteractionArea({
               <MessageList
                 className={styles.ChatContainer}
                 typingIndicator={
-                  !isEnabled && (
+                  (isTyping || !isEnabled) && (
                     <TypingIndicator
                       data-intro-group="intro4"
                       data-intro="This tells you that a stakeholder is currently typing a response."
                       data-position="bottom"
-                      content="Stakeholders are discussing..."
+                      content={typingText || "A stakeholder is typing..."}
                     />
                   )
                 }
               >
-                {chatMsgs.length === 0 && (
-                  <div className={styles.emptyStateContainer}>
-                    <Icon icon="ph:chats-circle-bold" className={styles.emptyStateIcon} />
-                    <span className={styles.emptyStatePrimary}>No messages yet</span>
-                    <span className={styles.emptyStateSecondary}>Play an Action Card below to consult with stakeholders</span>
-                  </div>
+                {displayedMsgs.length === 0 && (
+                  isPitchEvaluating && activeConversationId === evaluatingConversationId ? (
+                    <div className={styles.evaluatingContainer}>
+                      <Icon icon="ph:spinner-gap-bold" className={styles.evaluatingSpinner} />
+                      <div className={styles.evaluatingTextContainer}>
+                        <span className={styles.evaluatingTitle}>Presenting Action Proposal...</span>
+                        <span className={styles.evaluatingSubtitle}>
+                          {evaluatingText || "Stakeholders are reviewing the commitments and assessing system impact"}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.emptyStateContainer}>
+                      <Icon icon="ph:chats-circle-bold" className={styles.emptyStateIcon} />
+                      <span className={styles.emptyStatePrimary}>No messages in this conversation</span>
+                      <span className={styles.emptyStateSecondary}>Play an Engagement Card or Action Card to consult with stakeholders</span>
+                    </div>
+                  )
                 )}
-                {chatMsgs.map((item, index) => {
+
+                {displayedMsgs.map((item: ChatMsg, index: number) => {
                   const isUser = !item.id || item.id === "user";
-                  const st = isUser ? null : stakeholders[item.id];
-                  const senderName = isUser ? "Me" : (st ? st.name : "Stakeholder");
-                  const stColor = getStakeholderColor(st, isUser ? undefined : item.id);
+                  const isSystem = item.id === "system" || item.id === "__environment__";
+                  const st = isUser || isSystem ? null : (stakeholders[item.id] || (item.stakeholder_id ? stakeholders[item.stakeholder_id] : null));
+                  const senderName = isUser ? "Me" : isSystem ? "System Telemetry" : st ? st.name : (item.stakeholder_name || "Stakeholder");
+                  const stColor = isSystem ? "#38bdf8" : getStakeholderColor(st, isUser ? undefined : item.id);
 
                   let avatarSrc = "";
                   if (!isUser) {
-                    const av = st?.avatar;
-                    const isHovered = hoveredMsgAvatarIndex === index;
-                    const messageFace = (isHovered ? "suspicious" : (item.facial_expression || av?.face || av?.emotion || "smile")) as AvatarEmotion;
-                    avatarSrc = generateOpenPeepsDataUri({
-                      head: av?.head || "short1",
-                      face: messageFace,
-                      facialHair: av?.facialHair,
-                      facialHairProbability: av?.facialHairProbability,
-                      accessories: av?.accessories,
-                      accessoriesProbability: av?.accessoriesProbability,
-                      skinColor: av?.skinColor || "ffdbb4",
-                      clothingColor: stColor,
-                      headContrastColor: av?.headContrastColor || "2c1b18",
-                      backgroundColor: stColor,
-                      flip: av?.flip,
-                    });
+                    if (isSystem) {
+                      avatarSrc = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%2338bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>`;
+                    } else {
+                      const av = st?.avatar;
+                      const isHovered = hoveredMsgAvatarIndex === index;
+                      const messageFace = (isHovered ? "suspicious" : (item.facial_expression || av?.face || av?.emotion || "smile")) as AvatarEmotion;
+                      avatarSrc = generateOpenPeepsDataUri({
+                        head: av?.head || "short1",
+                        face: messageFace,
+                        facialHair: av?.facialHair,
+                        facialHairProbability: av?.facialHairProbability,
+                        accessories: av?.accessories,
+                        accessoriesProbability: av?.accessoriesProbability,
+                        skinColor: av?.skinColor || "ffdbb4",
+                        clothingColor: stColor,
+                        headContrastColor: av?.headContrastColor || "2c1b18",
+                        backgroundColor: stColor,
+                        flip: av?.flip,
+                      });
+                    }
                   }
 
                   return (
@@ -247,7 +436,7 @@ export default function StakeholderInteractionArea({
                         <div
                           className={`d-flex flex-column justify-content-center align-items-center ${styles.revealedIntelContainer} gap-2`}
                         >
-                          {item.revealed_intel.map((intel, idx) => {
+                          {item.revealed_intel.map((intel: RevealedIntel, idx: number) => {
                             const isClickable = Boolean(onInspectIntel);
                             return (
                               <div
@@ -274,7 +463,11 @@ export default function StakeholderInteractionArea({
                               >
                                 <div className={styles.indicationText}>
                                   <span className={styles.revealedIntelLabel}>
-                                    {intel.is_corrected ? "corrected intel item: " : "revealed intel item: "}
+                                    {intel.is_corrected
+                                      ? "corrected intel item: "
+                                      : intel.is_verified
+                                      ? "verified intel item: "
+                                      : "revealed intel item: "}
                                   </span>
                                   <span
                                     style={{ fontWeight: "bold", color: "#60a5fa" }}
@@ -293,58 +486,6 @@ export default function StakeholderInteractionArea({
                               </div>
                             );
                           })}
-                        </div>
-                      )}
-                      {item.convincer_verification && (
-                        <div
-                          className={`d-flex flex-column justify-content-center align-items-center ${styles.revealedIntelContainer} gap-2`}
-                        >
-                          <div
-                            className={`transparent-div ${styles.indicationPill}`}
-                          >
-                            <div
-                              className={styles.indicationText}
-                            >
-                              {item.convincer_verification.was_correct ? (
-                                <>
-                                  <span>validated convincer archetype for </span>
-                                  <strong style={{ color: "#ffffff" }}>
-                                    {item.convincer_verification.stakeholder_name || item.convincer_verification.stakeholder_id}
-                                  </strong>
-                                  <span>: </span>
-                                  <span style={{ fontWeight: "bold", color: "#60a5fa" }}>
-                                    {item.convincer_verification.true_archetype || item.convincer_verification.categorized_archetype}
-                                  </span>{" "}
-                                  <span
-                                    className="badge bg-success ms-1"
-                                    style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
-                                  >
-                                    verified
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>refuted convincer archetype for </span>
-                                  <strong style={{ color: "#ffffff" }}>
-                                    {item.convincer_verification.stakeholder_name || item.convincer_verification.stakeholder_id}
-                                  </strong>
-                                  <span> (was </span>
-                                  <em>{item.convincer_verification.old_archetype}</em>
-                                  <span> ➔ corrected to </span>
-                                  <span style={{ fontWeight: "bold", color: "#60a5fa" }}>
-                                    {item.convincer_verification.true_archetype}
-                                  </span>
-                                  <span>) </span>
-                                  <span
-                                    className="badge bg-warning text-dark ms-1"
-                                    style={{ fontSize: "0.7rem", verticalAlign: "middle" }}
-                                  >
-                                    corrected
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
                         </div>
                       )}
                       {item.ac_id !== -1 && actionCards[item.ac_id] && (
@@ -387,7 +528,7 @@ export default function StakeholderInteractionArea({
           <div
             className={`card border-secondary shadow-sm ${styles.journalDialogueCard}`}
             data-intro-group="intro5"
-            data-intro="Choose a dialogue option to respond to the stakeholders. Options are based on either discovered intel items or convincer archetypes."
+            data-intro="Choose a dialogue option to respond to the stakeholders. Options are based on discovered intel items."
             data-step="5"
             data-position="top"
           >
@@ -446,19 +587,6 @@ export default function StakeholderInteractionArea({
                       }
                     }
 
-                    // Resolve archetype name with fallbacks
-                    let archetypeName = "";
-                    if (!isIntel) {
-                      if (typeof opt.archetype === "string") {
-                        archetypeName = opt.archetype;
-                      } else if (opt.archetype?.name) {
-                        archetypeName = opt.archetype.name;
-                      } else if ((opt as any)?.archetype_name) {
-                        archetypeName = (opt as any).archetype_name;
-                      } else {
-                        archetypeName = "General Alignment";
-                      }
-                    }
 
                     return (
                       <button
@@ -487,17 +615,9 @@ export default function StakeholderInteractionArea({
                               </span>
                             </>
                           ) : (
-                            <>
-                              <span className="badge bg-secondary text-white fw-bold text-uppercase" style={{ fontSize: "0.7rem" }}>
-                                Corporate Noise
-                              </span>
-                              <span
-                                className="badge bg-dark text-white fw-bold"
-                                style={{ fontSize: "0.7rem" }}
-                              >
-                                {archetypeName}
-                              </span>
-                            </>
+                            <span className="badge bg-secondary text-white fw-bold text-uppercase" style={{ fontSize: "0.7rem" }}>
+                              Corporate Noise
+                            </span>
                           )}
                         </div>
 

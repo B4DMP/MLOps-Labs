@@ -411,14 +411,32 @@
     opacity: 1 !important;
 }
 
+.navPillSummary {
+    background-color: #475569;
+    border: 1px solid #475569;
+    opacity: 0.85;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.navPillSummaryReady {
+    background-color: #059669;
+    border: 1px solid #059669;
+    opacity: 0.9;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
 /* ==========================================================================
    Active Tagging View
    ========================================================================== */
 /* Active tagging state: a two-row grid inside the journal card - the
    artifact area takes all remaining space, the tagging panel is pinned to a
    fixed proportion of the card's height so it never jumps in size when
-   switching between the Stance (1 row) and Convincer (up to 3 rows) grids.
-   A minmax() floor keeps the Convincer grid comfortably usable even on
+   switching between different tagging views.
+   A minmax() floor keeps the tagging panel comfortably usable even on
    short viewports; the cap keeps the panel from ballooning on tall ones. */
 .activeStateGrid {
     flex: 1 1 auto;
@@ -471,10 +489,6 @@
     border-top-color: #2563eb;
 }
 
-.taggingPanelConvincer {
-    border-top-color: #7c3aed;
-}
-
 .taggingPanelHeader {
     display: flex;
     align-items: center;
@@ -503,10 +517,6 @@
 
 .taggingTypeBadgeStance {
     background: #2563eb;
-}
-
-.taggingTypeBadgeConvincer {
-    background: #7c3aed;
 }
 
 .taggingTypeBadgeOnRecord {
@@ -539,10 +549,9 @@
     overflow-y: auto;
     /* align-content: flex-start keeps each row at its natural, comfortable
        height instead of stretching to fill the panel - this is what keeps a
-       single row of Stance buttons from ballooning to fill the same space
-       reserved for three rows of Convincer buttons. Any leftover space below
-       the buttons is just empty panel, which reads better than oversized
-       buttons with dead space inside them. */
+       single row of buttons from ballooning to fill extra space. Any leftover
+       space below the buttons is just empty panel, which reads better than
+       oversized buttons with dead space inside them. */
     align-content: flex-start;
 }
 
@@ -595,9 +604,6 @@
     opacity: 1 !important;
 }
 
-.tagButtonConvincer {
-    min-height: 62px;
-}
 
 .tagButtonRequirement {
     min-height: 58px;
@@ -843,3 +849,20 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     color: #64748b;
 }
+
+.returnHeaderButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: auto;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+
+

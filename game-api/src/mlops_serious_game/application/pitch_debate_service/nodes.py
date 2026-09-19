@@ -227,16 +227,11 @@ async def player_prompt_node(
                 "target_stakeholder_role": target_st_role,
                 "option_type": "intel",
                 "intel_context": intel_context,
-                "archetype_name": "",
-                "archetype_strategy": "",
                 "history": history_str,
                 "latest_statement": latest_statement,
             }
         )
     else:
-        arch = last_selected_option.archetype
-        arch_name = arch.name if arch else "General Alignment"
-        arch_strat = arch.strategy if arch else "Align on general project goals"
         player_text = await utterance_chain.ainvoke(
             {
                 "challenge": challenge,
@@ -244,8 +239,6 @@ async def player_prompt_node(
                 "target_stakeholder_role": target_st_role,
                 "option_type": "corporate_noise",
                 "intel_context": "",
-                "archetype_name": arch_name,
-                "archetype_strategy": arch_strat,
                 "history": history_str,
                 "latest_statement": latest_statement,
             }
@@ -478,8 +471,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             cat_type = wrong_item.type.value if hasattr(wrong_item.type, "value") else str(wrong_item.type)
 
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION IN PROPOSED ACTION CARD]:\n"
-                f"The Project Manager's proposed action card is built upon a MISUNDERSTANDING of your stance!\n"
+                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION IN PROPOSED MITIGATION PLAN]:\n"
+                f"The Project Manager's proposed action plan is built upon a MISUNDERSTANDING of your stance!\n"
                 f"The proposal falsely assumes: '{wrong_item.categorized_description}'\n"
                 f"Your ACTUAL stance is: [{intel_intent_val}] '{wrong_item.description}'\n"
                 f"In this initial response to the proposal, you MUST explicitly refute this misconception, object to this aspect of the proposed plan, and reveal your actual stance following its true category ({intel_intent_val})!"
@@ -518,7 +511,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         else:
             intel_instruction = (
                 f"[GAME MASTER SPECIAL INSTRUCTION - PROPOSAL EVALUATION & WHAT COULD GO WRONG]:\n"
-                f"The Project Manager has opened the meeting and pitched their proposed action card.\n"
+                f"The Project Manager has opened the meeting and pitched their proposed action plan.\n"
                 f"Critically evaluate the proposed action plan from your specific MLOps perspective and responsibilities. Voice what could go wrong, pointing out realistic risks, potential bottlenecks, or failure modes from your domain before simulation.\n"
                 f"Remember to keep your specific underlying requirements hidden unless addressed or corrected:\n{private_intel_context}"
             )
@@ -532,8 +525,8 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
         )
         if not last_selected_intel.is_correct_intel():
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The player's latest response expressed a MISCATEGORIZED intel assumption!\n"
-                f"The player falsely assumed: '{last_selected_intel.categorized_description}'\n"
+                f"[GAME MASTER SPECIAL INSTRUCTION - MISCONCEPTION DETECTED]: The Project Manager's latest statement expressed a MISCATEGORIZED assumption!\n"
+                f"The Project Manager falsely assumed: '{last_selected_intel.categorized_description}'\n"
                 f"Your ACTUAL stance is: [{intel_intent_val}] '{last_selected_intel.description}'\n"
                 f"You MUST explicitly correct their misunderstanding and reveal your actual stance following its true category."
             )
@@ -548,38 +541,20 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             }]
         else:
             intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - STANCE ADDRESSED]: The player's dialogue option correctly addressed your stance: "
+                f"[GAME MASTER SPECIAL INSTRUCTION - STANCE ADDRESSED]: The Project Manager's statement correctly addressed your stance: "
                 f"[{intel_intent_val}] '{last_selected_intel.description}'.\n"
                 f"Acknowledge their understanding positively and confirm that your stance has been addressed!"
             )
 
     # Case C: Corporate noise or addressing another stakeholder
     else:
-        opt_arch = last_selected_option.archetype if last_selected_option else None
-        opt_name = opt_arch.name if opt_arch else ""
-
-        st_real_arch = getattr(st, "convincer_archetype", "")
-
-        if opt_name and st_real_arch and opt_name.lower().strip() != st_real_arch.lower().strip():
-            intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - MISMATCHED PERSUASION STYLE]: The player addressed the room attempting to persuade using the '{opt_name}' approach.\n"
-                f"However, your core decision-making style is '{st_real_arch}'!\n"
-                f"You MUST react with skepticism, pushback, or irritation toward this mismatched reasoning! Make it clear to the Project Manager that '{opt_name}' thinking does not address your mindset or priorities.\n"
-                f"Your private underlying requirements are:\n{private_intel_context}"
-            )
-        elif opt_name and st_real_arch and opt_name.lower().strip() == st_real_arch.lower().strip():
-            intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - MATCHED PERSUASION STYLE]: The player addressed the room using your ideal communication style: '{st_real_arch}'.\n"
-                f"Acknowledge their perspective favorably and express alignment with their framing!"
-            )
-        else:
-            intel_instruction = (
-                f"[GAME MASTER SPECIAL INSTRUCTION - SECRECY RULE ACTIVE]:\n"
-                f"Your private underlying requirements and preferences are:\n{private_intel_context}\n"
-                f"DO NOT directly state, list, or blurt out what your specific requirements/solutions are yet! "
-                f"Voice your general concerns, emotional anxieties, or technical skepticism regarding the situation, but keep your specific requirements hidden "
-                f"until the Project Manager plays a dialogue option that satisfies them or addresses a misconception."
-            )
+        intel_instruction = (
+            f"[GAME MASTER SPECIAL INSTRUCTION - SECRECY RULE ACTIVE]:\n"
+            f"Your private underlying requirements and preferences are:\n{private_intel_context}\n"
+            f"DO NOT directly state, list, or blurt out what your specific requirements/solutions are yet! "
+            f"Voice your general concerns, emotional anxieties, or technical skepticism regarding the situation, but keep your specific requirements hidden "
+            f"until the Project Manager addresses them or resolves a misconception."
+        )
 
     conversation_chain = get_stakeholder_response_chain()
     raw_messages = state.get("messages", [])

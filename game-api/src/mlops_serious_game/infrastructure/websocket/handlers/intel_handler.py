@@ -18,7 +18,6 @@ from mlops_serious_game.application.intel_handler import (
     load_known_intel_items_for_challenge,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
-    tag_stakeholder_convincer_archetype,
     handle_intel_verification,
     retrieve_dossier_data,
     retrieve_intel_items,
@@ -66,12 +65,11 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
 
 
 async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) -> None:
-    """Handles tagging an intel artifact (requirement or convincer) and updating user dossier."""
+    """Handles tagging an intel artifact and updating user dossier."""
     phase_id = payload.get("phase_id", 0)
     challenge_id = payload.get("challenge_id", 0)
     intel_id = payload.get("intel_id") or payload.get("id") or payload.get("requirement_id")
     categorized_type = payload.get("categorized_type")
-    is_convincer = payload.get("is_convincer", False) or (intel_id and str(intel_id).startswith("convincer_"))
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,
@@ -81,19 +79,7 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
         phases = PhaseFactory.get_phases()
         curr_challenge = phases[0].challenges[0]
 
-    if is_convincer and categorized_type:
-        st_id = payload.get("stakeholder_id") or (str(intel_id).replace("convincer_", "") if intel_id else "")
-        if st_id:
-            await tag_stakeholder_convincer_archetype(username, st_id, categorized_type)
-            st = StakeholderFactory.get_stakeholder(st_id)
-            # No tag leaks (plan 11): logs that a profile was tagged, never whether it was right.
-            # There is no separate intel item here - the convincer profile artifact is filed under
-            # the stakeholder itself, so subject_id is the only ref the log can offer.
-            await send_events(websocket, username, [GameEvent(
-                step="offline", kind="archetype", subject_id=st_id, direction="none",
-                cause="archetype.tagged", params={"st": st.name if st else st_id},
-            ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
-    elif intel_id and categorized_type:
+    if intel_id and categorized_type:
         intel_item = await handle_intel_tagging(curr_challenge, websocket, intel_id, categorized_type)
         item_dict = intel_item.model_dump() if hasattr(intel_item, "model_dump") else dict(intel_item)
         if getattr(intel_item, "categorized_description", None):
@@ -124,34 +110,6 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
             "dossier": dossier_data
         }
     )
-
-
-async def handle_tag_convincer_event(websocket: WebSocket, username: str, payload: dict) -> None:
-    """Handles tagging a stakeholder's convincer archetype."""
-    stakeholder_id = payload.get("stakeholder_id")
-    categorized_archetype = payload.get("categorized_archetype")
-    phase_id = payload.get("phase_id", 0)
-    challenge_id = payload.get("challenge_id", 0)
-
-    if stakeholder_id and categorized_archetype:
-        try:
-            await tag_stakeholder_convincer_archetype(username, stakeholder_id, categorized_archetype)
-            await manager.send_event(
-                websocket=websocket,
-                event="intel:convincer_tagged_ack",
-                payload={
-                    "stakeholder_id": stakeholder_id,
-                    "categorized_archetype": categorized_archetype,
-                }
-            )
-            st = StakeholderFactory.get_stakeholder(stakeholder_id)
-            # No tag leaks (plan 11): logs that a profile was tagged, never whether it was right.
-            await send_events(websocket, username, [GameEvent(
-                step="offline", kind="archetype", subject_id=stakeholder_id, direction="none",
-                cause="archetype.tagged", params={"st": st.name if st else stakeholder_id},
-            ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
-        except ValueError as e:
-            print(f"[Convincer Tagging Error] Invalid payload: {e}")
 
 
 async def handle_get_dossier(websocket: WebSocket, username: str, payload: dict) -> None:
@@ -230,19 +188,31 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
                     st_id = req.stakeholder_id if req else "system"
                     desc = result.get("description", "")
                     
-                    current_msgs = list(existing.online_intel_gathering_messages or [])
+                    current_msgs = list(existing.messages or [])
+                    matching_verify_ids = {
+                        m.get("conversation_id")
+                        for m in current_msgs
+                        if isinstance(m, dict) and str(m.get("conversation_id", "")).startswith("verify_")
+                    }
+                    verify_index = len(matching_verify_ids) + 1
+                    verify_conv_id = f"verify_{verify_index}"
+
+                    p_msg = f" Played Card: Verify Intel Item on \"{desc}\""
+                    st_msg = f" Submitted \"{desc}\" for direct verification."
                     current_msgs.append({
                         "id": "user",
-                        "message": f" Played Card: Verify Intel Item on \"{desc}\"",
+                        "message": p_msg,
+                        "conversation_id": verify_conv_id,
                         "ac_id": -1
                     })
                     current_msgs.append({
                         "id": st_id,
-                        "message": f" Submitted \"{desc}\" for direct verification.",
+                        "message": st_msg,
+                        "conversation_id": verify_conv_id,
                         "ac_id": -1
                     })
-                    existing.online_intel_gathering_messages = current_msgs
-                    flag_modified(existing, "online_intel_gathering_messages")
+                    existing.messages = current_msgs
+                    flag_modified(existing, "messages")
     except Exception as e:
         print(f"[IntelHandler DB Error] {e}")
     
@@ -404,21 +374,32 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
             if existing:
-                current_msgs = list(existing.online_intel_gathering_messages or [])
+                current_msgs = list(existing.messages or [])
+                prefix = f"eng_{card_id}_"
+                matching_conv_ids = {
+                    m.get("conversation_id")
+                    for m in current_msgs
+                    if isinstance(m, dict) and str(m.get("conversation_id", "")).startswith(prefix)
+                }
+                play_index = len(matching_conv_ids) + 1
+                eng_conv_id = f"{prefix}{play_index}"
+
                 current_msgs.append({
                     "id": "user",
                     "message": player_msg,
+                    "conversation_id": eng_conv_id,
                     "ac_id": -1
                 })
                 for resp in stakeholder_responses:
                     current_msgs.append({
                         "id": resp.get("stakeholder_id", ""),
                         "message": resp.get("message", ""),
+                        "conversation_id": eng_conv_id,
                         "ac_id": -1,
                         "revealed_intel": resp.get("revealed_intel_items", [])
                     })
-                existing.online_intel_gathering_messages = current_msgs
-                flag_modified(existing, "online_intel_gathering_messages")
+                existing.messages = current_msgs
+                flag_modified(existing, "messages")
     except Exception as e:
         print(f"[IntelHandler DB Error in handle_play_engagement_card] {e}")
 
@@ -551,9 +532,8 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
                     action_card=action_card,
                     metric_values=[],
                     time_stamp=datetime.datetime.utcnow(),
-                    pitch_debate_messages=[],
-                    online_intel_gathering_messages=[],
-                    attention_tokens=8,
+                    messages=[],
+                    attention_tokens=20,
                     emotion_values={},
                 )
                 db_session.add(new_record)
