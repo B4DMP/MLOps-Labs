@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:deploy.shadow",
   "stage": "fragments",
-  "input_hash": "cf622d7e1baa922b55ebc14cfb7871d226271715837ac0a34f79e07d5df62d47",
+  "input_hash": "7272caebe50360ff9b5295f0d9f0e40a00796ec7df42f1669a7e6b567b2da17a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Shadow logs are corrupted and no one can verify if the new model ever ran.",
-    "level_1": "No shadow deployment exists, so new models go live without any parallel validation.",
-    "level_2": "An engineer manually duplicates production requests to the new model for offline comparison.",
-    "level_3": "A pipeline automatically mirrors live traffic to the shadow model and logs output differences.",
-    "level_4": "Governed shadow deployments enforce audit trails and alert on metric drift before promotion."
+    "level_0": "The new model crashes when it tries to read the till data feed at night.",
+    "level_1": "No parallel run exists, so you cannot compare the new model against the live forecast.",
+    "level_2": "A script manually copies last night's production traffic to the new model for offline comparison.",
+    "level_3": "Production traffic mirrors automatically to the new model, and diffs log to a dashboard.",
+    "level_4": "Mirrored runs trigger alerts on drift, with audit trails proving the new model is safe."
   }
 }

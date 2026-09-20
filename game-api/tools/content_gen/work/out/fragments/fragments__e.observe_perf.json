@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.observe_perf",
   "stage": "fragments",
-  "input_hash": "722aacfa6eaf6d83ba4f6f5b14f80bb3844a7db22b41a0646b5abdacb8f1767d",
+  "input_hash": "6d5322c1eef41d0d58fd1e8651beaeff78501e42d3dcaad043cd46c37c891620",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Logging and Observability to Model Performance Monitoring"
   },
   "output": {
-    "level_0": "Logs crash unpredictably, so nobody sees model drift until customers complain loudly.",
-    "level_1": "No connection exists between logging and monitoring, leaving performance blind spots unaddressed.",
-    "level_2": "Engineers manually copy log excerpts into monitoring dashboards weekly to spot degradation.",
-    "level_3": "Logs stream directly into the monitoring pipeline, triggering alerts on performance shifts.",
-    "level_4": "Governed data contracts ensure log formats match monitoring requirements for compliance audits."
+    "level_0": "Logs crash before reaching monitoring, so forecast drift goes unnoticed until shelves empty.",
+    "level_1": "No logs exist, so performance monitoring has no input to evaluate model accuracy.",
+    "level_2": "Manually copied logs feed monitoring, but delays hide drift until residual stock spikes.",
+    "level_3": "Automated log streaming feeds monitoring, detecting drift before store managers override orders.",
+    "level_4": "Governed log pipelines ensure monitoring data integrity, satisfying audit requirements for automated orders."
   }
 }

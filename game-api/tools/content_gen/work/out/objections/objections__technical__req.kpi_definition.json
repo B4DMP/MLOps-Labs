@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:req.kpi_definition",
   "stage": "objections",
-  "input_hash": "eb9391387b1cfd1639312438740dac183d5588f6de3c03f3e619cce429e25da5",
+  "input_hash": "c6a0fd2ff042765f034d6e32a21b89e64865c5782d028116275c50a388a373ab",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot approve this because the {cause} upstream is not good enough yet. We need that foundation solid before we touch {target}."
+    "line": "I cannot sign off on improving {target} until the {cause} pipeline meets our governance standards. The data lineage is too fragile to guarantee the privacy and auditability we require for production."
   }
 }

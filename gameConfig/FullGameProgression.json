@@ -3,7 +3,7 @@
     {
       "phase_name": "Introduction",
       "phase_description": "Introduction to the serious game mechanics and environment",
-      "phase_introduction": "The AI initiative has officially kicked off across the organization. The project stakeholders have convened to establish working relationships and review initial expectations.",
+      "phase_introduction": "The board has approved a forecasting programme for the whole chain. Buyers, store operations and the data team sit down together for the first time to work out what the new system is actually supposed to decide.",
       "challenges": [
         {
           "challenge_title": "The Introduction",
@@ -20,7 +20,7 @@
     {
       "phase_name": "Requirement Engineering",
       "phase_description": "Business goal definition and stakeholder alignment",
-      "phase_introduction": "Following the kickoff, management formally greenlit the project budget and timeline. The core team has now reconvened to hammer out concrete business goals and system constraints.",
+      "phase_introduction": "Management has signed off the budget and the first release date. The team now has to turn better availability and less waste into numbers the system can be measured against.",
       "challenges": [
         {
           "challenge_title": "The Platform Choice",
@@ -63,7 +63,7 @@
     {
       "phase_name": "Data Engineering",
       "phase_description": " Dataset preparation, addressing data quality, accessibility, and privacy.",
-      "phase_introduction": "With initial requirements signed off, access was granted to internal databases and legacy systems. The engineering team has begun extracting raw records and investigating data quality across sources.",
+      "phase_introduction": "With the goals agreed, the team has access to the till scan lines, the promotion calendar and the supplier master data. The first extracts have landed, and what came back is not as clean as the kickoff slides promised.",
       "challenges": [
         {
           "challenge_title": "The Legacy Dataset",
@@ -106,7 +106,7 @@
     {
       "phase_name": "Model Engineering",
       "phase_description": "Design, training, and evaluation of ML models.",
-      "phase_introduction": "Data ingestion and cleaning pipelines have delivered the first unified training sets. The data science team has taken over the environment to begin model experimentation and architecture evaluation.",
+      "phase_introduction": "The first labelled demand snapshots are ready. The data science side has taken over the environment to find a model that can forecast fourteen days ahead for every article in every store.",
       "challenges": [
         {
           "challenge_title": "The Entanglement Problem",
@@ -137,7 +137,7 @@
     {
       "phase_name": "Model Deployment",
       "phase_description": "Integration of models into production systems.",
-      "phase_introduction": "The candidate model successfully passed offline benchmarks and validation suites. The DevOps and engineering teams have stepped in to build the production release pipelines and integrate system services.",
+      "phase_introduction": "The forecast model beat the old planning rules on last season's numbers. Engineering now has to get it into the nightly run and in front of store managers before the next promotion week.",
       "challenges": [
         {
           "challenge_title": "The Automation Risk",
@@ -168,7 +168,7 @@
     {
       "phase_name": "Monitoring/ Usage",
       "phase_description": "Production monitoring and infrastructure management.",
-      "phase_introduction": "The ML model has been running in production, processing live user transactions. Telemetry dashboards and customer feedback loops have started streaming operational performance data.",
+      "phase_introduction": "The forecast has been driving order suggestions for several weeks. Availability, waste and how often store managers override the suggestion are now the numbers everyone watches.",
       "challenges": [
         {
           "challenge_title": "Model Accuracy Drops",

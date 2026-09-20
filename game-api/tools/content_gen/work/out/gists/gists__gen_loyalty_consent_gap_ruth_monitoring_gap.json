@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_ruth_monitoring_gap",
+  "stage": "gists",
+  "input_hash": "446839b3402df35025d693a8753ba62eaa8af5a71564fc045b3ef2e02f801e84",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_ruth_monitoring_gap",
+    "fact": "{reliability_ruth} proposed improving monitoring of data contract execution to catch violations.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "Data contract execution monitoring has been raised as a topic in the reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that data contract monitoring was raised in reliability discussions, which is a factual observation about the meeting agenda rather than a commitment to a specific stance like a driver, boundary, or trade-off."
+  }
+}

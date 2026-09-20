@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.risk_acceptance",
   "stage": "fragments",
-  "input_hash": "a4af99eaf2be37262962a0bc9163255de9bb1c43538ba9e11b76bf935a6e8d03",
+  "input_hash": "8f923439d3a479ca3728408174d8281622e8be66f5a1fad00f5e7190bbbd702f",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Risk Assessment to Acceptance Criteria"
   },
   "output": {
-    "level_0": "Risk findings contradict the acceptance criteria, causing rework and stakeholder disputes.",
-    "level_1": "No explicit link exists between risk assessment outputs and the final acceptance criteria.",
-    "level_2": "A team member manually maps risk items to acceptance criteria in a shared spreadsheet.",
-    "level_3": "The pipeline automatically validates that all high risks have corresponding acceptance criteria.",
-    "level_4": "Governed workflows enforce traceability, ensuring every risk is addressed by a specific criterion."
+    "level_0": "Risk flags are ignored and acceptance criteria are written without any documented safety checks.",
+    "level_1": "No one connects risk findings to acceptance criteria, so dangerous gaps slip into the release.",
+    "level_2": "A senior engineer manually checks if risks are addressed before approving the acceptance criteria.",
+    "level_3": "The system automatically blocks acceptance criteria approval until all high risk items are resolved.",
+    "level_4": "Governance logs verify that every acceptance criterion explicitly cites its corresponding risk assessment."
   }
 }

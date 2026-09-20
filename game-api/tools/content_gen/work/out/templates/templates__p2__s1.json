@@ -1,9 +1,9 @@
 {
   "item_id": "templates:p2:s1",
   "stage": "templates",
-  "input_hash": "d9290d90fa5c54b30d7b2972809c98fc17dfd25af2b24180132b951779c24f8b",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-  "attempts": 2,
+  "input_hash": "402eeb5d4b4338773776cde88c285f287a195c432e03c0c9428e3d94b85699b9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
   "inputs": {
     "phase_id": 2,
     "phase_name": "Data Engineering",
@@ -377,7 +377,7 @@
       ],
       "instances": [
         {
-          "id": "dataset:customer_records",
+          "id": "dataset:till_scan_lines",
           "kind": "dataset",
           "on": "data.ingestion",
           "props": {
@@ -405,7 +405,7 @@
           }
         },
         {
-          "id": "dataset:training_snapshot",
+          "id": "dataset:demand_snapshot",
           "kind": "dataset",
           "on": "data.labeling",
           "props": {
@@ -433,7 +433,7 @@
           }
         },
         {
-          "id": "pipeline:nightly_export",
+          "id": "pipeline:nightly_store_export",
           "kind": "pipeline",
           "on": "data.ingestion",
           "props": {
@@ -591,48 +591,67 @@
       "data.training_drift_check"
     ],
     "existing_challenges": [
-      "The Data Instability"
-    ]
+      "The Inconsistent Checks",
+      "Inconsistent Data Labeling"
+    ],
+    "angle": "cost, infrastructure, or the narrow time window the job has to finish inside",
+    "is_intro": false
   },
   "output": {
-    "slug": "data_quality_conflict",
-    "name": "The Inconsistent Checks",
-    "description": "#data_dave# insists on keeping the quality checks manually done to control costs. #reliability_ruth# argues for full automation to ensure consistent results.",
-    "round_introduction": "The data quality checks have become inconsistent, causing delays in the pipeline. #data_dave# and #reliability_ruth# disagree on how to fix the situation.",
+    "slug": "nightly_window_miss",
+    "name": "The Midnight Deadline",
+    "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk.",
+    "round_introduction": "Last night, the till scan lines arrived late and the validation step was skipped to save time. The forecast job started with incomplete data, causing the morning order suggestions to be wrong for hundreds of stores.",
     "preconditions": {
-      "edge": "e.ingest_validate",
-      "op": "gte",
-      "level": 2
+      "all": [
+        {
+          "component": "data.validation",
+          "op": "eq",
+          "level": 1
+        },
+        {
+          "instance": {
+            "kind": "pipeline",
+            "op": "exists",
+            "where": {
+              "runtime": {
+                "op": "eq",
+                "value": "slow"
+              }
+            }
+          }
+        }
+      ]
     },
-    "priority": 50,
+    "priority": 80,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "data.validation",
-        "value": "0",
+        "value": 0,
         "attr": null,
-        "reason": "quality checks failed unexpectedly"
+        "reason": "The validation service crashed due to resource contention during the peak ingestion window."
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
         "target": "e.ingest_validate",
-        "value": "0",
+        "value": 0,
         "attr": null,
-        "reason": "data validation steps are not aligned"
+        "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store."
       }
     ],
     "conflict": {
       "target": "data.validation",
       "positions": [
         {
-          "stakeholder_id": "data_dave",
-          "wants": 2
+          "stakeholder_id": "reliability_ruth",
+          "wants": 3
         },
         {
-          "stakeholder_id": "reliability_ruth",
-          "wants": 4
+          "stakeholder_id": "data_dave",
+          "wants": 1
         }
       ]
     }

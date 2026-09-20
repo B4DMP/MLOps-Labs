@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_fact_hpo_manual",
+  "stage": "artifacts",
+  "input_hash": "18c27a91c06f111e957e1a74470e92e6c98f9519c47d683b46515daee9031108",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_fact_hpo_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "Hyperparameter tuning is done by hand for each model run. That is simply how the evaluation setup works today.",
+      "fact": "Hyperparameter tuning is done by hand for each model run.",
+      "reading": "That is simply how the evaluation setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.hpo",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I handle the hyperparameter tuning for the weekly retraining cycle by hand. I pick the learning rate and batch size values myself, then run each configuration on the cluster one by one. I check the validation loss in a spreadsheet to see which setup works best. There is no script that loops through a grid of options automatically. I adjust the parameters for each specific article and store group based on what I have seen in previous runs. The evaluation setup works this way right now, with me making every choice manually before the model is ready for the next night's forecast job.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current manual workflow and tools used for hyperparameter tuning without expressing any wishes, refusals, trade-offs, or specific needs."
+  }
+}

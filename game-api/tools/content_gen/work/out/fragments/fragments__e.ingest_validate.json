@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.ingest_validate",
   "stage": "fragments",
-  "input_hash": "cc30508e4918116ba2822f894eb4f26e1edf3b8d46b59b0e7e98581772c32e17",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "97f700365a0a12fda09a20feac524de80f6e0611a754a8d57500045ffc70b861",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.ingest_validate",
@@ -17,10 +17,10 @@
     "name": "hand over from Data Ingestion Pipeline to Data Validation"
   },
   "output": {
-    "level_0": "Data Validation fails with errors because the ingested data is corrupt",
-    "level_1": "No process exists to validate the ingested data",
-    "level_2": "Data Validation checks are performed by a data engineer manually",
-    "level_3": "Data Validation runs automatically after each Data Ingestion Pipeline execution",
-    "level_4": "Data Validation enforces predefined rules and logs results for compliance audits"
+    "level_0": "Scan lines arrive corrupted, and validation crashes, blocking the nightly forecast job.",
+    "level_1": "No validation step exists, so bad data flows straight into the model training.",
+    "level_2": "A planner manually checks a sample of scan lines before approving the data load.",
+    "level_3": "The pipeline automatically rejects batches with missing store identifiers or negative quantities.",
+    "level_4": "Validation enforces schema rules and logs every rejection for the data quality audit."
   }
 }

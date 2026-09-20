@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.performance_monitoring",
   "stage": "fragments",
-  "input_hash": "17e337f3b89bc3271512a3c45718865fb15203f83617d93d13346b01fd8a6722",
+  "input_hash": "cdb9a95a4e4337b7cda9047aaeb06c587f894ad8ae21cd841b80e839aa33f9fe",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Performance metrics are missing or corrupted, making it impossible to assess current model health.",
-    "level_1": "No performance monitoring exists, so you rely on user complaints to detect model degradation.",
-    "level_2": "You manually query production logs weekly to calculate accuracy and latency metrics.",
-    "level_3": "Automated pipelines continuously compute key performance metrics and update real time dashboards.",
-    "level_4": "Governed monitoring enforces SLA thresholds and logs all metric calculations for audit compliance."
+    "level_0": "Monitoring crashes nightly, leaving the team blind to forecast accuracy during the morning order window.",
+    "level_1": "No one tracks forecast accuracy, so errors only surface as empty shelves or unsold pallets later.",
+    "level_2": "A data analyst manually calculates weekly accuracy scores and shares them in a static report.",
+    "level_3": "Dashboards automatically update daily to track forecast accuracy against actual till sales without human input.",
+    "level_4": "Automated metric pipelines validate data quality and log every accuracy calculation for audit and compliance."
   }
 }

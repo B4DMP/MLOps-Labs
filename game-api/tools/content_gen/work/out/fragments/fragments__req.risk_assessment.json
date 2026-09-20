@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:req.risk_assessment",
   "stage": "fragments",
-  "input_hash": "5da4e7b18b9343eb246d9648c3906d295965b9db96e2e2a9bbb8ed4fde88de87",
+  "input_hash": "6b22d0249fb58ba7207d73ac4cc48ec383187bf5bc456e3c1f16eca9e00ef308",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -16,10 +16,10 @@
     ]
   },
   "output": {
-    "level_0": "Risk assessments are ignored, leading to repeated model failures in production environments.",
-    "level_1": "No risk assessment process exists, leaving critical model vulnerabilities completely unaddressed.",
-    "level_2": "Engineers manually review risks in spreadsheets, but documentation is often incomplete or outdated.",
+    "level_0": "Risk assessments crash during promotion lock, leaving buyers without any documented safety checks.",
+    "level_1": "No risk assessment exists, so buyers guess allocation sizes without any formal safety review.",
+    "level_2": "Buyers manually review risk flags in spreadsheets before locking middle aisle promotion quantities.",
     "level_3": null,
-    "level_4": "Risk assessments are governed by policy, with automated checks ensuring compliance and audit trails."
+    "level_4": "Automated risk assessments trigger governance gates, requiring sign off before allocation commits to suppliers."
   }
 }

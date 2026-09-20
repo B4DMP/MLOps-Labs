@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.contracts_ingest",
   "stage": "fragments",
-  "input_hash": "32ebb91edee0acd329d89c4ca6131cd6e549e8f1824a50878373af826a7d23cb",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "498738f85475b05101b754bc36324e1b0d6714e19b59bf7006921996057aa581",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.contracts_ingest",
@@ -17,10 +17,10 @@
     "name": "hand over from Data Contracts to Data Ingestion Pipeline"
   },
   "output": {
-    "level_0": "Data ingestion pipeline fails because data contracts are not respected.",
-    "level_1": "No data ingestion pipeline exists to process data contracts.",
-    "level_2": "The team manually checks data contracts before feeding them to the data ingestion pipeline.",
-    "level_3": "A script automatically validates data contracts before passing them to the data ingestion pipeline.",
-    "level_4": "A governed process validates data contracts before ingestion, with audit logs for compliance."
+    "level_0": "Till data arrives in wrong formats, so the nightly forecast job crashes before it starts.",
+    "level_1": "No pipeline exists, so analysts copy raw scan lines into spreadsheets by hand every night.",
+    "level_2": "A script moves data nightly, but buyers must email fixes when store formats change unexpectedly.",
+    "level_3": "The pipeline ingests all store data automatically, flagging schema mismatches without human intervention.",
+    "level_4": "Ingestion validates data against contracts, blocking bad feeds and alerting data owners immediately."
   }
 }

@@ -14,6 +14,16 @@ LEVEL_NAMES = ["broken", "absent", "manual", "automated", "governed"]
 # identically-named but subtly different, copy of this - templates.py's also matched decimals
 # like "2.5", items.py's didn't). One shared, more inclusive pattern for both.
 LEVEL_TALK = re.compile(r"\blevels?\b|\b[0-4](\.\d)?\b")
+# The pattern above suits short fields, where "level" is all but certain to be the scale. In a
+# sentence of prose it rejects good writing: "feature level drift tracking", "that level of detail",
+# "service level". This one catches the scale itself and lets ordinary English through. It started
+# in the artifacts stage, which hit the problem first; the objections stage then hit it too.
+LEVEL_LEAK = re.compile(
+    r"\b((maturity |component |automation )?levels? ([0-4]\b|zero|one|two|three|four)"
+    r"|(broken|absent|missing|manual|automated|governed) level\b"
+    r"|levels? of (automation|maturity) [0-4]\b)",
+    re.I,
+)
 # Players never see the graph, so no text they read may talk about its parts.
 GAME_WORDS = re.compile(r"\b(components?|stages?)\b", re.I)
 
@@ -23,6 +33,43 @@ workflows (edges) between them. Levels: 0 broken, 1 absent, 2 manual, 3 automate
 Use only ids that appear in the lists you are given. Never invent ids.
 Never use dashes of any kind (no em dash, no en dash, no double hyphen). Use commas or periods.
 No markdown, no headings, no bullet lists inside text fields."""
+
+# Content used to drift between machine learning domains: one snippet about fraud detection, the
+# next about churn, a third about customer records. Everything is set in one world now (Setting.json),
+# so a stray example from somewhere else is a bug the gates catch rather than something a reviewer
+# has to spot by eye.
+OFF_DOMAIN = re.compile(
+    r"\b(fraud|fraudulent|chargebacks?|churn|credit scor\w*|creditworth\w*|loans?|mortgages?|"
+    r"insurance|patients?|clinical|subscribers?|click.?through|recommendation engines?|"
+    r"ad impressions?|ride hailing|taxi)\b", re.I)
+# Real companies must never appear. The ones a model reaches for in this domain; a smoke alarm,
+# not a trademark database. Words that are also ordinary English (spar, coop, penny, target) stay
+# out on purpose: an alarm on every second snippet would teach reviewers to ignore it.
+REAL_BRANDS = re.compile(
+    r"\b(aldi|lidl|walmart|tesco|carrefour|kroger|rewe|edeka|amazon|costco|sainsbury\w*|"
+    r"asda|migros|walgreens|ikea)\b", re.I)
+
+
+def system_for(ctx, base: str) -> str:
+    """A stage's system prompt plus the world it writes in. Empty setting leaves the prompt as it was."""
+    block = getattr(ctx, "setting_block", "")
+    return f"{base}\n\n{block}" if block else base
+
+
+def domain_errors(label: str, text: Optional[str]) -> list[str]:
+    """Text that wandered out of the game's setting, or named a real company."""
+    if not text:
+        return []
+    errors = []
+    off = OFF_DOMAIN.search(text)
+    if off:
+        errors.append(f"{label} says '{off.group(0)}', which belongs to a different machine learning "
+                      "domain; write it in the setting you were given")
+    brand = REAL_BRANDS.search(text)
+    if brand:
+        errors.append(f"{label} names the real company '{brand.group(0)}'; only the fictional company "
+                      "in the setting exists")
+    return errors
 
 
 def text_errors(label: str, text: Optional[str], min_words: int = 0, max_words: int = 10_000) -> list[str]:
@@ -45,9 +92,10 @@ def player_text_errors(label: str, text: Optional[str]) -> list[str]:
     """A line the player reads never talks about the game model: no levels, no components or stages."""
     if not text:
         return []
-    errors = []
-    if LEVEL_TALK.search(text):
-        errors.append(f"{label} mentions levels or numbers; say broken, missing, manual, automated or governed")
+    errors = domain_errors(label, text)
+    if leak := LEVEL_LEAK.search(text):
+        errors.append(f"{label} says '{leak.group(0)}', which is the game's level scale; say broken, "
+                      "missing, manual, automated or governed")
     if GAME_WORDS.search(text):
         errors.append(f"{label} says '{GAME_WORDS.search(text).group(0)}'; name the thing itself, "
                       "never a component or stage")

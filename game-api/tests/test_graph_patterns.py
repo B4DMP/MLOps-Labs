@@ -62,12 +62,12 @@ def test_silent_failure_fires_and_drags_ops_health(real):
 
 def test_instance_properties_drive_patterns(real):
     state = apply_ops(real, _maxed(real), [
-        GraphOp(kind="set_instance_prop", target="model:prediction_v1.performance", value="fair"),
+        GraphOp(kind="set_instance_prop", target="model:demand_forecast_v1.performance", value="fair"),
     ]).state
     active = evaluate_graph(real, state).active_patterns
     assert "ap_underperforming_model_live" in active
     state = apply_ops(real, _maxed(real), [
-        GraphOp(kind="set_instance_prop", target="dataset:customer_records.quality", value="poor"),
+        GraphOp(kind="set_instance_prop", target="dataset:till_scan_lines.quality", value="poor"),
     ]).state
     assert "dp_trusted_data" not in evaluate_graph(real, state).active_patterns
 

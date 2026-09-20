@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.retraining_trigger",
   "stage": "fragments",
-  "input_hash": "435717b5c46700bc9973ac2e6600fca1bc5adb0cbbe90b059dfc32934b2a8fbc",
+  "input_hash": "090ef8150572527f89241c16e867e11a13aff400337d8eab188f3b269c7fc61a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The retraining trigger crashes on every attempt, blocking all model updates.",
-    "level_1": "No retraining trigger exists, so models never update after initial deployment.",
-    "level_2": "Engineers manually check metrics and decide when to start retraining runs.",
-    "level_3": "The system automatically triggers retraining when performance drops below a threshold.",
-    "level_4": "Governed retraining triggers enforce audit logs and approval workflows before execution."
+    "level_0": "The retraining job crashes every Sunday, leaving stale models serving the next promotion week.",
+    "level_1": "No retraining exists; the initial model from launch still forecasts every store and article.",
+    "level_2": "A data scientist manually restarts the weekly retraining job after checking the drift dashboard.",
+    "level_3": "The system automatically triggers retraining when forecast error exceeds a predefined threshold for any region.",
+    "level_4": "Retraining is governed, logging every model version and drift metric for audit and compliance review."
   }
 }

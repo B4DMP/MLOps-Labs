@@ -1,0 +1,51 @@
+{
+  "item_id": "objections:gen_override_blind_spot_manual_review_red_line",
+  "stage": "objections",
+  "input_hash": "fa1e7d015a9a17dfa576d0cdfef8388a70259d0000f258fd337660de7886c63b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_override_blind_spot_manual_review_red_line",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed keeping the model registry review process manual. {requirements_reuben.first} will not allow a model to enter the registry without a manual, documented review of its evaluation metrics.",
+      "fact": "{requirements_reuben} proposed keeping the model registry review process manual.",
+      "reading": "{requirements_reuben.first} will not allow a model to enter the registry without a manual, documented review of its evaluation metrics.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "model.registry",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    }
+  },
+  "output": {
+    "objection": "No, we are not automating the registry gate. Every model must pass a manual, documented review of its evaluation metrics before it can be promoted to production.",
+    "correction": "I am not talking about the nightly forecast job or the store manager app. I am talking about the model registry, which is where we enforce privacy and quality controls before anything touches the live data."
+  }
+}

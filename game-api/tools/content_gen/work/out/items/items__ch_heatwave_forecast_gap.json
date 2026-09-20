@@ -1,0 +1,855 @@
+{
+  "item_id": "items:ch_heatwave_forecast_gap",
+  "stage": "items",
+  "input_hash": "c3290ac2b9ce179fc4cf5d5cdc21d645a82e9fc4cac796354a384d07c7c2109e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "challenge": {
+      "phase_id": 3,
+      "template_id": "ch_heatwave_forecast_gap",
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered.",
+      "roundIntroduction": "The nightly forecast job completed, but store managers in the northern region reported significant overstock of cold weather items and stockouts of iced tea. The team needs to decide how to handle the evaluation of a potential model update that incorporates the new weather data.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "model.evaluation",
+            "op": "eq",
+            "level": 2
+          },
+          {
+            "component": "model.training_pipeline",
+            "op": "gte",
+            "level": 2
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.evaluation",
+          "value": 0,
+          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.train_eval",
+          "value": 0,
+          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "model.evaluation",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 3
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "model_monica",
+        "name": "Model Monica",
+        "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
+        "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
+        "metric_id": "model",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "model",
+      "components": [
+        {
+          "id": "model.experiment_tracking",
+          "name": "Experiment Tracking",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "spreadsheet",
+              "mlflow",
+              "wandb"
+            ]
+          }
+        },
+        {
+          "id": "model.registry",
+          "name": "Model Registry",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "mlflow",
+              "sagemaker",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "model.training_pipeline",
+          "name": "Training Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "notebooks",
+              "airflow",
+              "kubeflow"
+            ]
+          }
+        },
+        {
+          "id": "model.hpo",
+          "name": "Hyperparameter Tuning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {
+            "tool": [
+              "none",
+              "grid_search",
+              "optuna",
+              "ray_tune"
+            ]
+          }
+        },
+        {
+          "id": "model.evaluation",
+          "name": "Model Evaluation Harness",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "model_monica",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.hpo_train",
+          "from": "model.hpo",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_tracking",
+          "from": "model.training_pipeline",
+          "to": "model.experiment_tracking",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.train_eval",
+          "from": "model.training_pipeline",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.eval_registry",
+          "from": "model.evaluation",
+          "to": "model.registry",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.retrain_train",
+          "from": "ops.retraining_trigger",
+          "to": "model.training_pipeline",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.audit_registry",
+          "from": "gov.audit",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cards_registry",
+          "from": "gov.model_cards",
+          "to": "model.registry",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.compute_train",
+          "from": "gov.compute_scheduling",
+          "to": "model.training_pipeline",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "model:demand_forecast_v1",
+          "kind": "model",
+          "on": "model.training_pipeline",
+          "props": {
+            "performance": "fair",
+            "latency": "acceptable",
+            "fairness": "unchecked"
+          },
+          "property_values": {
+            "performance": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "fairness": [
+              "biased",
+              "unchecked",
+              "balanced"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "model.experiment_tracking": {
+        "level": 2
+      },
+      "model.registry": {
+        "level": 1
+      },
+      "model.training_pipeline": {
+        "level": 2
+      },
+      "model.hpo": {
+        "level": 1
+      },
+      "model.evaluation": {
+        "level": 0
+      },
+      "e.acceptance_eval": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.fs_train": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.driftcheck_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.hpo_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.train_tracking": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.train_eval": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.eval_registry": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.retrain_train": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.audit_registry": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cards_registry": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.compute_train": {
+        "level": 2,
+        "trigger": "manual_request"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "monica_driver_eval",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
+        "readings": {
+          "driver": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+          "boundary": "She will not approve a model change if the evaluation process requires manual sign-off for every feature addition.",
+          "trade_off": "She would accept a slower rollout of the new weather model if the evaluation harness remains fully automated.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "model",
+        "suggested_target": "model.evaluation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.evaluation",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_boundary_doc",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed keeping the evaluation harness manual to document every test case.",
+        "readings": {
+          "driver": "More documentation per test case improves the audit trail for the model's compliance with data governance rules.",
+          "boundary": "He will not allow the evaluation harness to be automated without a complete, manually verified test case log for each scenario.",
+          "trade_off": "He would accept a slower evaluation cycle if the documentation requirements remain strict.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "model.evaluation",
+        "suggested_level": 1,
+        "holds": {
+          "component": "model.evaluation",
+          "op": "lte",
+          "level": 1
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.evaluation",
+            "value": 1,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_tradeoff_data",
+        "tag": "trade_off",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} suggested pausing the integration of the new weather feed into the training pipeline.",
+        "readings": {
+          "driver": "Integrating the weather feed improves the data quality for the model's seasonal demand predictions.",
+          "boundary": "He will not allow the weather feed to be used if the data lineage is not fully documented.",
+          "trade_off": "He would accept a delay in the weather feature rollout if the data pipeline stability is maintained during the heatwave.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "data",
+        "suggested_target": "model.training_pipeline",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "data",
+        "concedes_loss": 3,
+        "concedes_target": "model.training_pipeline",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_driver_eff",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
+        "readings": {
+          "driver": "Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
+          "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
+          "trade_off": "She would accept a lower accuracy threshold for the new model if the evaluation is completed within the morning order window.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "model.evaluation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.evaluation",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "monica_tradeoff_eval",
+        "tag": "trade_off",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} mentioned accepting a manual review step for the final model approval.",
+        "readings": {
+          "driver": "Adding a manual review step improves the trust in the model's decisions for the store managers.",
+          "boundary": "She will not accept a manual review step if it delays the deployment of the weather feature by more than one week.",
+          "trade_off": "She would give up the full automation of the evaluation harness if it ensures the model passes the compliance checks.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "model",
+        "suggested_target": "model.evaluation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "model.evaluation",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_tradeoff_time",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} suggested accepting a shorter documentation window for the heatwave model update.",
+        "readings": {
+          "driver": "Shortening the documentation window allows the model to be deployed before the next promotion week.",
+          "boundary": "He will not accept a shorter documentation window if the test cases are not fully verified.",
+          "trade_off": "He would accept a reduced scope of documentation if the core compliance checks are still performed.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "model.evaluation",
+        "suggested_level": 1,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "requirements",
+        "concedes_loss": 2,
+        "concedes_target": "model.evaluation",
+        "concedes_max_level": 1,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_eval_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model evaluation harness is currently broken and cannot run any tests.",
+        "readings": {
+          "driver": "Fixing the harness is essential for testing the new weather features.",
+          "boundary": "The harness must be fixed before any model changes are considered.",
+          "trade_off": "The team could accept a temporary manual evaluation if the harness is not fixed quickly.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.evaluation",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_train_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The training pipeline has no active trigger configured for the current model update cycle.",
+        "readings": {
+          "driver": "Setting a scheduled trigger would speed up the model update process.",
+          "boundary": "The absence of a trigger ensures that only approved models are trained.",
+          "trade_off": "The team could accept an automated trigger if the approval process is streamlined.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.training_pipeline",
+        "asserts_level": 2,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_registry_absent",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model registry is absent and models are not versioned.",
+        "readings": {
+          "driver": "Implementing a registry would improve the tracking of model versions.",
+          "boundary": "The registry must be in place before any model is deployed to production.",
+          "trade_off": "The team could accept a temporary manual versioning system if the registry is not available.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.registry",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_hpo_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Hyperparameter tuning is done by hand for each model run.",
+        "readings": {
+          "driver": "Automating the tuning would improve the model's performance.",
+          "boundary": "The manual tuning ensures that the model parameters are carefully selected.",
+          "trade_off": "The team could accept an automated tuning process if the results are validated.",
+          "fact": "That is simply how the evaluation setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "model.hpo",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

@@ -7,7 +7,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, LEVEL_NAMES, player_text_errors, render, text_errors
+from content_gen.stages.common import GAME_RULES, LEVEL_NAMES, player_text_errors, render, system_for, text_errors
 
 
 class FragmentsOut(BaseModel):
@@ -53,7 +53,7 @@ class FragmentsStage:
             "Write lines for these levels only: " + render({lv: LEVEL_NAMES[lv] for lv in i["levels"]}),
             *feedback,
         ])
-        out, usage = await llm.structured(FragmentsOut, SYSTEM, user, tags={"item_id": item.item_id})
+        out, usage = await llm.structured(FragmentsOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         return out.model_dump(), usage
 
     def check(self, output: dict, item, ctx) -> list[str]:

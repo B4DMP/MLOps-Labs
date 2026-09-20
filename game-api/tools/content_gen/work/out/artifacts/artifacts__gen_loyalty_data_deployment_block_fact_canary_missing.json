@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_loyalty_data_deployment_block_fact_canary_missing",
+  "stage": "artifacts",
+  "input_hash": "97c13fb201a7f71324750893804d6afb7a0fd328f9a2a518ea7a4419a10161ff",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_loyalty_data_deployment_block_fact_canary_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The canary and A/B testing capability is currently absent from the deployment process. The deployment process does not currently include a mechanism for gradual traffic shifting or comparative testing.",
+      "fact": "The canary and A/B testing capability is currently absent from the deployment process.",
+      "reading": "The deployment process does not currently include a mechanism for gradual traffic shifting or comparative testing.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.canary_ab",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "The Consent Gap",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I checked the deployment logs for the last three weekly model retraining cycles. Every run pushed the new forecast binary to all store nodes simultaneously. There is no flag to route a percentage of traffic to a shadow instance, and no mechanism to split store groups for comparative evaluation. The pipeline moves from build to production in a single atomic step. I observed no intermediate state where a subset of stores received the updated logic while others retained the previous version. The process simply swaps the active model version across the entire cluster at the scheduled maintenance window.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text is a purely observational report of the current deployment architecture and logs, containing no expressed wishes, refusals, or stated needs."
+  }
+}

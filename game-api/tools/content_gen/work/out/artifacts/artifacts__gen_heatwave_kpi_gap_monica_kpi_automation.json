@@ -1,0 +1,48 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_monica_kpi_automation",
+  "stage": "artifacts",
+  "input_hash": "a7b9a4a99d5d74217809367ec4f1c2e77be3c2db7b5b3f8d4fdc80c912f25f02",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_monica_kpi_automation",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} proposed automating the KPI definition. Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
+      "fact": "{model_monica} proposed automating the KPI definition.",
+      "reading": "Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "The heatwave last week completely broke our current monitoring. We are still manually reconciling the KPI definitions to see if the forecast actually captured the demand spike for seasonal goods. This is too slow. I want the KPI tracking automated so we can validate those shifts in real time. The more immediate visibility we have on these weather driven spikes, the better we can tune the models before the next event hits. I am not asking for a full overhaul, just the ability to see the drift as it happens so we can act on it quickly.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that having more immediate visibility on weather-driven spikes would make them better able to tune models, indicating that exceeding the baseline request for real-time tracking would increase their satisfaction."
+  }
+}

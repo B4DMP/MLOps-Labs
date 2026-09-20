@@ -1,6 +1,7 @@
 from langchain_core.output_parsers import StrOutputParser
 from loguru import logger
 
+from mlops_serious_game.domain.prompts import with_setting
 from mlops_serious_game.application.message_parser import sanitize_dashes
 from mlops_serious_game.application.pitch_debate_service.chains import get_chat_model
 from mlops_serious_game.application.component_investigation_service.prompts import (
@@ -43,17 +44,17 @@ COMPONENT_FACT_FALLBACKS: dict[str, str] = {
 
 def get_investigation_player_utterance_chain():
     model = get_chat_model(temperature=0.7)
-    return INVESTIGATION_PLAYER_UTTERANCE_PROMPT | model | StrOutputParser()
+    return with_setting(INVESTIGATION_PLAYER_UTTERANCE_PROMPT) | model | StrOutputParser()
 
 
 def get_investigation_stakeholder_response_chain():
     model = get_chat_model(temperature=0.7)
-    return INVESTIGATION_STAKEHOLDER_RESPONSE_PROMPT | model | StrOutputParser()
+    return with_setting(INVESTIGATION_STAKEHOLDER_RESPONSE_PROMPT) | model | StrOutputParser()
 
 
 def get_component_fact_chain():
     model = get_chat_model(temperature=0.4)
-    return GENERATE_COMPONENT_FACT_PROMPT | model | StrOutputParser()
+    return with_setting(GENERATE_COMPONENT_FACT_PROMPT) | model | StrOutputParser()
 
 
 async def generate_investigation_player_utterance(

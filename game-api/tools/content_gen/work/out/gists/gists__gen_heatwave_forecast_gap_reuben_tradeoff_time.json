@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_reuben_tradeoff_time",
+  "stage": "gists",
+  "input_hash": "57eeb8b1d050037a8ad872194c63897edc978fc7fc231197ff2735e1c1b22e43",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_reuben_tradeoff_time",
+    "fact": "{requirements_reuben} suggested accepting a shorter documentation window for the heatwave model update.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The documentation window for the heatwave model update keeps coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the documentation window is a recurring topic in discussions with a stakeholder, but it does not specify whether the stakeholder wants to extend it, refuses to change it, accepts a trade-off, or is simply stating a fact about the current state."
+  }
+}

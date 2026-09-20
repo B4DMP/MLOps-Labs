@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_reuben_kpi_baseline",
+  "stage": "gists",
+  "input_hash": "c1fbd931eb82b49a524be2d98fa7fa5b24decfcc863b4fc9b1ea46dc8d636c71",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_reuben_kpi_baseline",
+    "fact": "{requirements_reuben} noted that the KPI definitions for the next promotion cycle were not agreed.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "KPI definitions for the next promotion cycle keep coming up in discussions with {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that KPI definitions for promotions are a recurring topic in discussions with a requirements stakeholder, but it does not express a stance on whether these requirements are a driver, boundary, trade-off, or mere fact."
+  }
+}

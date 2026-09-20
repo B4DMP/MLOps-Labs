@@ -1,0 +1,552 @@
+{
+  "item_id": "items:ch_committed_pallets",
+  "stage": "items",
+  "input_hash": "a04df85f30e962446a3b2b81b2a82c5e5691aa866bb488e2dff9a149c373dc68",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 1,
+      "template_id": "ch_committed_pallets",
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.",
+      "roundIntroduction": "The middle aisle category team locked the promotion calendar for the upcoming week, and the supplier confirmed the pallets are on the dock. The nightly forecast job is running, but the allocation module has no formal sign off for this specific high risk scenario.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "req.acceptance_criteria",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "component": "req.risk_assessment",
+            "op": "eq",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.acceptance_criteria",
+          "value": 0,
+          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.risk_assessment",
+          "value": 0,
+          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "req.acceptance_criteria",
+        "positions": [
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "req",
+      "components": [
+        {
+          "id": "req.kpi_definition",
+          "name": "KPI Definition",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.acceptance_criteria",
+          "name": "Acceptance Criteria",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.data_contracts",
+          "name": "Data Contracts",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.risk_assessment",
+          "name": "Risk Assessment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_acceptance",
+          "from": "req.risk_assessment",
+          "to": "req.acceptance_criteria",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_audit",
+          "from": "req.risk_assessment",
+          "to": "gov.audit",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_cards",
+          "from": "req.risk_assessment",
+          "to": "gov.model_cards",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": []
+    },
+    "current": {
+      "req.kpi_definition": {
+        "level": 1
+      },
+      "req.acceptance_criteria": {
+        "level": 0
+      },
+      "req.data_contracts": {
+        "level": 1
+      },
+      "req.risk_assessment": {
+        "level": 1
+      },
+      "e.risk_acceptance": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "reuben_governance_wall",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable.",
+        "readings": {
+          "driver": "He wants the audit trail to be as detailed as possible for every promotion week.",
+          "boundary": "He will not approve the release if the acceptance criteria remain below the governed level.",
+          "trade_off": "He would drop the audit requirement if the supplier delays the shipment by a week.",
+          "fact": "The current workflow does not include a governance step for the acceptance criteria."
+        },
+        "metric_id": "requirements",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "req.acceptance_criteria",
+          "op": "gte",
+          "level": 4
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.acceptance_criteria",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_speed_trade",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed keeping the acceptance criteria as manual checks to ship the feature immediately.",
+        "readings": {
+          "driver": "She wants the deployment pipeline to run without any human intervention.",
+          "boundary": "She refuses to delay the release for any governance review.",
+          "trade_off": "She will accept a lower level of governance if it allows the feature to ship before the trucks leave.",
+          "fact": "The current deployment process relies on manual verification steps."
+        },
+        "metric_id": "reliability",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "requirements",
+        "concedes_loss": 5,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_kpi_driver",
+        "tag": "driver",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin.",
+        "readings": {
+          "driver": "She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
+          "boundary": "She will not approve the project if the KPIs are not defined.",
+          "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
+          "fact": "The KPI definition is currently missing."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": "req.kpi_definition",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.kpi_definition",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "alex_pipeline_trade",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} mentioned that the data contracts are currently manual and would take time to automate.",
+        "readings": {
+          "driver": "He wants the data contracts to be fully automated to reduce manual errors.",
+          "boundary": "He will not deploy if the data contracts are not automated.",
+          "trade_off": "He would accept keeping the data contracts manual for this release to meet the deadline.",
+          "fact": "The data contracts are currently managed by hand."
+        },
+        "metric_id": "automation",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "automation",
+        "concedes_loss": 3,
+        "concedes_target": "req.data_contracts",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_monitoring_driver",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} suggested adding a monitoring check for the allocation module to catch errors before the trucks leave.",
+        "readings": {
+          "driver": "She wants the monitoring to be automated so it runs continuously without manual intervention.",
+          "boundary": "She will not ship the feature without a monitoring check.",
+          "trade_off": "She would accept a manual monitoring check if the automated one is not ready.",
+          "fact": "The allocation module currently has no monitoring check."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "req.acceptance_criteria",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.acceptance_criteria",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_cost_trade",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted that the cost of the promotion week is a key factor in the decision.",
+        "readings": {
+          "driver": "She wants the cost tracking to be as detailed as possible to optimize the margin.",
+          "boundary": "She will not approve the project if the cost exceeds the budget.",
+          "trade_off": "She would accept a lower level of cost tracking if it saves money on the project.",
+          "fact": "The cost tracking is currently done manually."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 2,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_acceptance_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The acceptance criteria for the allocation module are currently missing.",
+        "readings": {
+          "driver": "The team wants to add acceptance criteria to ensure quality.",
+          "boundary": "The team will not ship without acceptance criteria.",
+          "trade_off": "The team would accept missing acceptance criteria if it speeds up the release.",
+          "fact": "That is simply how the acceptance criteria setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.acceptance_criteria",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_kpi_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The KPI definition for the promotion week is currently missing.",
+        "readings": {
+          "driver": "The team wants to define KPIs to measure success.",
+          "boundary": "The team will not start the project without KPIs.",
+          "trade_off": "The team would accept missing KPIs if it saves time.",
+          "fact": "That is simply how the KPI definition works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.kpi_definition",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_risk_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The risk assessment for the allocation module is currently done by hand.",
+        "readings": {
+          "driver": "The team wants to automate the risk assessment.",
+          "boundary": "The team will not proceed without a risk assessment.",
+          "trade_off": "The team would accept a manual risk assessment if it is faster.",
+          "fact": "That is simply how the risk assessment works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.risk_assessment",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

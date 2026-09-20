@@ -1,0 +1,54 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_emilia_driver_eff",
+  "stage": "artifacts",
+  "input_hash": "773f7537c44d378a0bafe23451a4d463e4695e42eb82389416e8a08b06f49c4b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_emilia_driver_eff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue. Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
+      "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
+      "reading": "Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "model.evaluation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "The stockout incidents during the heatwave are eroding our margin on the promotion week. We need to reduce the time spent on manual evaluation to lower the operational cost of these misses. Faster iteration on weather features will help us catch demand shifts before they become empty shelves. The current process is too slow to keep up with the volatility in seasonal articles. We should prioritize reducing this turnaround time to improve availability and reduce residual stock. A quicker evaluation cycle is directly linked to better financial performance and less waste in the distribution centres. We need to move away from the slow, manual checks to get a more responsive forecasting system.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text states a need to reduce manual evaluation time and faster iteration, and doing more than just the minimum (e.g., fully automating or significantly speeding up the cycle beyond a basic fix) would make the stakeholders happier by directly improving financial performance and availability."
+  }
+}

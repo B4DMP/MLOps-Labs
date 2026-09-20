@@ -1,9 +1,9 @@
 {
   "item_id": "objections:technical:ops.rollback",
   "stage": "objections",
-  "input_hash": "d4d2081d168639dc11eeb6607f26bdca857a136b275f16d66c1e656b69a805bd",
+  "input_hash": "3b2147df73ac9f35f34895342b90e10c50f94c2aa805cdd9d28dfa78ebc2cdc1",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "kind": "technical",
     "component": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot approve this plan for {target} because the upstream {cause} is still too unstable for my integration layer. Until {cause} is solid, my rollback mechanism will just trigger endless false positives."
+    "line": "I cannot support automating {target} because the data quality at {cause} is still too unstable for our serving layer to handle. Until we fix the upstream noise, any rollback mechanism will just be masking the real failures."
   }
 }

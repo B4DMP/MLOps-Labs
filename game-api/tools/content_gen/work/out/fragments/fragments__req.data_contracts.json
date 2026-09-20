@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:req.data_contracts",
   "stage": "fragments",
-  "input_hash": "60aa8bf05482ba52273b2946944b7d44ae7d27221d90a56427d792771f521dcf",
+  "input_hash": "61dc664977eabe4d7f0878b7f9b9d887e1084f98caf3079b49c1e8fa3de019a2",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Schema mismatches cause pipeline failures that nobody can trace to the source system.",
-    "level_1": "No one documents expected data formats, so downstream teams guess at column meanings.",
-    "level_2": "Engineers exchange spreadsheets to agree on data fields before every model training run.",
-    "level_3": "Automated validation rejects bad data at ingestion before it reaches the training pipeline.",
-    "level_4": "Data contracts are versioned, audited, and enforced across all teams by policy."
+    "level_0": "Point of sale feeds arrive with missing store identifiers, breaking every nightly forecast run.",
+    "level_1": "No formal schema exists for supplier lead time data, so models guess minimum order quantities.",
+    "level_2": "Buyers manually check promotion calendar fields against leaflet deadlines before locking weekly allocations.",
+    "level_3": "Automated validators reject loyalty basket records that violate consent or retention rules before ingestion.",
+    "level_4": "Governed contracts enforce data lineage, ensuring every order suggestion traces back to verified source data."
   }
 }

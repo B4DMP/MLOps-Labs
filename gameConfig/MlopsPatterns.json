@@ -767,7 +767,7 @@
         "ops": 10,
         "deploy": 3
       },
-      "story": "When something degrades, the dashboard shows it before a customer does.",
+      "story": "When something degrades, the dashboard shows it before a shopper finds an empty shelf.",
       "tags": [
         "monitoring"
       ]
@@ -975,7 +975,7 @@
         "req": 8,
         "ops": 4
       },
-      "story": "The dashboard shows the number the business actually cares about.",
+      "story": "The dashboard shows availability and waste, not only the model's error.",
       "tags": [
         "requirements",
         "monitoring"
@@ -1129,7 +1129,7 @@
         "model": -8,
         "deploy": -4
       },
-      "story": "Customers get answers from a model that everyone knows has slipped.",
+      "story": "Stores keep ordering against a model that everyone knows has slipped.",
       "tags": [
         "model",
         "reliability"
@@ -1166,7 +1166,7 @@
         "data": -6,
         "model": -4
       },
-      "story": "Every retrain faithfully learns last year's world.",
+      "story": "Every retrain faithfully learns last season's demand.",
       "tags": [
         "data"
       ]

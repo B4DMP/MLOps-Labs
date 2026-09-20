@@ -2081,10 +2081,10 @@
   ],
   "initial_instances": [
     {
-      "id": "dataset:customer_records",
+      "id": "dataset:till_scan_lines",
       "kind": "dataset",
       "component_id": "data.ingestion",
-      "name": "Customer records",
+      "name": "Till scan lines",
       "state": "active",
       "props": {
         "quality": "fair",
@@ -2093,10 +2093,10 @@
       }
     },
     {
-      "id": "dataset:training_snapshot",
+      "id": "dataset:demand_snapshot",
       "kind": "dataset",
       "component_id": "data.labeling",
-      "name": "Labelled training snapshot",
+      "name": "Labelled demand snapshot",
       "state": "active",
       "props": {
         "quality": "fair",
@@ -2104,14 +2104,14 @@
         "documentation": "none"
       },
       "links": [
-        "dataset:customer_records"
+        "dataset:till_scan_lines"
       ]
     },
     {
-      "id": "pipeline:nightly_export",
+      "id": "pipeline:nightly_store_export",
       "kind": "pipeline",
       "component_id": "data.ingestion",
-      "name": "Nightly export job",
+      "name": "Nightly store export job",
       "state": "active",
       "props": {
         "reliability": "flaky",
@@ -2119,10 +2119,10 @@
       }
     },
     {
-      "id": "model:prediction_v1",
+      "id": "model:demand_forecast_v1",
       "kind": "model",
       "component_id": "model.training_pipeline",
-      "name": "Prediction model v1",
+      "name": "Demand forecast model v1",
       "state": "active",
       "props": {
         "performance": "fair",
@@ -2130,14 +2130,14 @@
         "fairness": "unchecked"
       },
       "links": [
-        "dataset:training_snapshot"
+        "dataset:demand_snapshot"
       ]
     },
     {
-      "id": "endpoint:prediction_api",
+      "id": "endpoint:forecast_service",
       "kind": "endpoint",
       "component_id": "deploy.serving",
-      "name": "Prediction API",
+      "name": "Forecast service",
       "state": "active",
       "props": {
         "availability": "stable",
@@ -2145,7 +2145,7 @@
         "traffic": "low"
       },
       "links": [
-        "model:prediction_v1"
+        "model:demand_forecast_v1"
       ]
     }
   ]

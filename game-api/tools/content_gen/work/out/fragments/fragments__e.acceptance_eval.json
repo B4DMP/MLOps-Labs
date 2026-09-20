@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.acceptance_eval",
   "stage": "fragments",
-  "input_hash": "4f0949f21a966accaecf347c52fc0723caeee3c8e6afaff9afc389cd73b73aec",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "91c31024de6242ffc53f13b52468f802eaf8dab1a59137d31ddc865c70cb09a8",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.acceptance_eval",
@@ -17,10 +17,10 @@
     "name": "hand over from Acceptance Criteria to Model Evaluation Harness"
   },
   "output": {
-    "level_0": "The model evaluation harness crashes when trying to evaluate the model.",
-    "level_1": "The team does not have a model evaluation harness.",
-    "level_2": "The team manually evaluates the model against the acceptance criteria.",
-    "level_3": "The team runs automated tests for the acceptance criteria in the model evaluation harness.",
-    "level_4": "The model evaluation harness automatically validates the model against governance policies and acceptance criteria."
+    "level_0": "Acceptance criteria contradict the evaluation harness, so no model ever passes the handover check.",
+    "level_1": "There is no defined handover, so developers guess when a model is ready for the harness.",
+    "level_2": "A project manager manually copies acceptance criteria into the evaluation harness configuration each week.",
+    "level_3": "The system automatically validates acceptance criteria against the harness before triggering the evaluation run.",
+    "level_4": "Governed handover ensures criteria and harness align, with audit logs for every model transition."
   }
 }

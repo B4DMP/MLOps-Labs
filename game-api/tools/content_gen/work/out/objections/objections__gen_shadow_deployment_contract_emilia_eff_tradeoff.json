@@ -1,0 +1,46 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_emilia_eff_tradeoff",
+  "stage": "objections",
+  "input_hash": "529148be91c7f7ae30f32ebeef0ac53c9622a5b7882c37c470f6967e34c5237d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_emilia_eff_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} mentioned that the cost of running an automated shadow environment should be weighed against the risk of a stockout during the promotion week. She would accept a manual shadow run if the automated setup exceeds the budget allocated for the promotion week.",
+      "fact": "{efficiency_emilia} mentioned that the cost of running an automated shadow environment should be weighed against the risk of a stockout during the promotion week.",
+      "reading": "She would accept a manual shadow run if the automated setup exceeds the budget allocated for the promotion week.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 2,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are not just adding a shadow environment, you are quietly shifting the cost of promotion week risk onto our operational budget without a clear trade off. I need you to acknowledge that accepting a manual run is a concession on our side, not a neutral technical choice.",
+    "correction": "I did not say we cannot afford the automated setup, I said we will not let it eat into the margin we promised for the leaflet week. The decision is about protecting the business goal, not about whether the engineering is possible."
+  }
+}

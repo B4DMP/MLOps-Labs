@@ -1,9 +1,9 @@
 {
   "item_id": "objections:technical:deploy.serving",
   "stage": "objections",
-  "input_hash": "b9d53e1e30b14c6bea8ea349ca133691c43a54c90b401092b50d01c19e5be726",
+  "input_hash": "fa1cca370598ca5e389b222617c67b19365c9c65143d9c1ee9106d75e154f79c",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "kind": "technical",
     "component": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot approve improving {target} because the upstream {cause} is not stable enough to support it. The {cause} needs to reach a reliable automated state before we can handle the increased load."
+    "line": "We cannot automate {target} when the {cause} upstream is still failing its health checks. The serving endpoint will just crash under the load if we do not fix that dependency first."
   }
 }

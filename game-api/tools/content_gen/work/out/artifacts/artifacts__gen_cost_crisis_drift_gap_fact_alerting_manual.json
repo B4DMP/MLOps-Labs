@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_alerting_manual",
+  "stage": "artifacts",
+  "input_hash": "2ff70d68e7f7bdd33657896d0bb7a0c90a9eb3ac15373ae17b8c1391628ec25b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_alerting_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The alerting system is done by hand. That is simply the state of the system today.",
+      "fact": "The alerting system is done by hand.",
+      "reading": "That is simply the state of the system today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.alerting",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the morning order window, I open the monitoring dashboard every fifteen minutes to check the status of the forecast service. The last entry in the shared log shows a manual refresh at 06:45. When a batch job fails, the error appears in the console only after I click the refresh button. I record the timestamp of each manual check in a spreadsheet. There is no automated page sent to the on call engineer when latency increases. The system does not send a notification to the distribution centres if the service is down. I observe the screen to confirm the job completed. The logs show the exact time of my last manual interaction with the interface.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text consists entirely of objective observations regarding monitoring procedures, log entries, and current system limitations, without expressing any subjective wishes, refusals, or accepted trade-offs."
+  }
+}

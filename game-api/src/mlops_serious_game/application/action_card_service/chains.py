@@ -1,6 +1,7 @@
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 
+from mlops_serious_game.domain.prompts import with_setting
 from mlops_serious_game.application.action_card_service.prompts import ACTION_CARD_PROMPT
 from mlops_serious_game.application.action_card_service.state import ActionCardGenerationOutput
 from mlops_serious_game.config import settings
@@ -37,4 +38,4 @@ def get_action_card_generator_chain():
     """Builds and returns the LCEL chain with structured output for generating Action Cards."""
     model = get_action_card_model()
     structured_model = model.with_structured_output(ActionCardGenerationOutput)
-    return ACTION_CARD_PROMPT | structured_model
+    return with_setting(ACTION_CARD_PROMPT) | structured_model

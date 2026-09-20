@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:req.kpi_definition",
   "stage": "fragments",
-  "input_hash": "267993ceed0924ce8c391c522c9937f6dca19cf7a9f53d27c6f983928c06c677",
+  "input_hash": "44445cfecfa1ce95ca78030503a293e1e8035b7d0036434ed19f9e54fed0cc0e",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -16,10 +16,10 @@
     ]
   },
   "output": {
-    "level_0": "KPI definitions contradict each other, causing teams to report conflicting success metrics weekly.",
-    "level_1": "No one has written down what success means for this model in business terms.",
-    "level_2": "Engineers draft KPIs in spreadsheets and update them manually after each sprint review.",
+    "level_0": "KPI definitions are contradictory, so the team argues about availability versus waste every Monday.",
+    "level_1": "No formal KPI definitions exist, so buyers and planners guess what success looks like.",
+    "level_2": "The project manager manually updates KPI definitions in a shared spreadsheet before each review.",
     "level_3": null,
-    "level_4": "KPIs are version controlled, audited, and linked to compliance requirements in the registry."
+    "level_4": "KPI definitions are versioned and approved, ensuring all teams measure availability and waste identically."
   }
 }

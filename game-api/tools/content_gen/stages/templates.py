@@ -1,17 +1,34 @@
 """Stage 1: challenge templates. A problem that appears in the graph, the world event that starts it,
 the two stakeholders who disagree about the fix, and what happens if the meeting stalls."""
 
+import json
 import re
 from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, LEVEL_TALK, op_dict, ops_errors, parse_json_field, render, text_errors, tokenize_names
+from content_gen.stages.common import (
+    GAME_RULES, LEVEL_TALK, domain_errors, op_dict, ops_errors, parse_json_field, render, system_for,
+    text_errors, tokenize_names,
+)
 
 SLUG = re.compile(r"^[a-z][a-z0-9_]{2,40}$")
 BLAND_NAME = re.compile(r"\b(conflict|debate|dispute|compromise|discussion|disagreement)\b", re.I)
 MARKER = re.compile(r"#([a-z_]+)#")
+
+# Where a challenge's trouble comes from. Phrased for any setting, not just the current one, so a
+# later change of world keeps the spread. One per slot, so a phase's challenges are not all the
+# same story told twice.
+ANGLES = [
+    "something happening out in the world the product serves: weather, a season, a holiday, a "
+    "sudden run on one article",
+    "the people who use the system's output not trusting it, working around it or overriding it",
+    "personal data, consent, retention or another legal obligation",
+    "suppliers, contracts, or money that is already committed and cannot be taken back",
+    "a technical failure nobody noticed until its effects showed up in the real world",
+    "cost, infrastructure, or the narrow time window the job has to finish inside",
+]
 
 
 class WorldOp(BaseModel):
@@ -74,7 +91,10 @@ class TemplatesStage:
         for phase_id in ctx.scope["phases"]:
             phase = ctx.phase(phase_id)
             stage_id = ctx.stage_for_phase(phase_id)
-            slots = ctx.scope["conflict_types"][: ctx.scope["templates_per_phase"]]
+            # The introduction is the player's first meeting and teaches the mechanics, so it gets
+            # one challenge with room to bargain rather than the usual pair with a red line in it.
+            is_intro = phase_id == ctx.scope.get("intro_phase")
+            slots = ["soft"] if is_intro else ctx.scope["conflict_types"][: ctx.templates_for_phase(phase_id)]
             components = [c.id for c in ctx.graph.components if c.stage_id == stage_id]
             for slot, conflict_type in enumerate(slots):
                 items.append(WorkItem(
@@ -94,6 +114,12 @@ class TemplatesStage:
                         # Templates of one phase argue about different things.
                         "conflict_candidates": components[slot:: len(slots)],
                         "existing_challenges": [c.name for c in phase.challenges],
+                        # Slots are written in parallel and cannot see each other, so left alone they
+                        # cluster: a first run of the supermarket setting produced four consecutive
+                        # challenges about loyalty data consent. Each slot gets its own trouble
+                        # source instead.
+                        "angle": ANGLES[(phase_id * len(slots) + slot) % len(ANGLES)],
+                        "is_intro": is_intro,
                     },
                 ))
         return items
@@ -109,6 +135,12 @@ class TemplatesStage:
             f"Phase: {i['phase_name']}. {i['phase_description']}",
             f"Focus stage: {i['focus_stage']}. Conflict type {conflict_rule}",
             f"Template slot {i['slot']}; do not repeat these existing challenges: {i['existing_challenges']}",
+            f"The trouble in this challenge comes from {i.get('angle', 'the project itself')}. Build the world "
+            "event and the disagreement out of that, and leave the other kinds of trouble to other challenges.",
+            *(["This is the player's very first meeting in the game, so it has to teach the job rather than "
+               "test it. Keep the disagreement small, concrete and easy to picture, keep the damage to the "
+               "project mild, and make the round_introduction welcome the player into the project."]
+              if i.get("is_intro") else []),
             "Stakeholders in the room (use their ids):", render(i["roster"]),
             "Focus stage graph:", render(i["graph"]),
             "Patterns you may reference:", render(i["patterns"]),
@@ -126,7 +158,7 @@ class TemplatesStage:
             "The precondition must be true in the starting graph shown above (use the start_level values).",
             *feedback,
         ])
-        out, usage = await llm.structured(TemplateOut, SYSTEM, user, tags={"item_id": item.item_id})
+        out, usage = await llm.structured(TemplateOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         data = out.model_dump()
         for field in ("description", "round_introduction"):
             data[field] = tokenize_names(data[field], ctx.stakeholders, style="marker")
@@ -169,10 +201,12 @@ class TemplatesStage:
         errors: list[str] = []
         if not SLUG.match(output["slug"] or ""):
             errors.append("slug must be snake_case, 3 to 41 characters")
+        errors += sibling_collisions(output, item, ctx)
         errors += text_errors("name", output["name"], 2, 6)
         errors += text_errors("description", output["description"], 15, 90)
         errors += text_errors("round_introduction", output["round_introduction"], 10, 70)
         for label in ("name", "description", "round_introduction"):
+            errors += domain_errors(label, output[label])
             if LEVEL_TALK.search(output[label] or ""):
                 errors.append(f"{label} mentions levels or numbers; describe it in plain words instead")
         if BLAND_NAME.search(output["name"] or ""):
@@ -288,3 +322,33 @@ def damage_menu(ctx, stage_id: str, limit: int = 10) -> list[dict]:
     options = [o for o in options if o["health_drop"] > 0]
     options.sort(key=lambda o: (-o["health_drop"], o["target"]))
     return options[:limit]
+
+
+def sibling_collisions(output: dict, item, ctx) -> list[str]:
+    """Slugs and names that another template already took.
+
+    Slots are generated in parallel and never see each other, so two of them can land on the same
+    story. A duplicate slug is not only dull: assembly keys the items stage by template_id, so the
+    second challenge would quietly inherit the first one's intel. Whoever is checked second is
+    asked to write something else."""
+    errors = []
+    slug = (output.get("slug") or "").strip().lower()
+    name = (output.get("name") or "").strip().lower()
+    out_dir = ctx.work_dir / "out" / "templates"
+    if not out_dir.exists():
+        return errors
+    for path in sorted(out_dir.glob("*.json")):
+        try:
+            record = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):  # a run writing the file right now
+            continue
+        if record.get("item_id") == item.item_id:
+            continue
+        other = record.get("output") or {}
+        if slug and (other.get("slug") or "").strip().lower() == slug:
+            errors.append(f"slug '{output['slug']}' is already used by {record.get('item_id')}; "
+                          "this challenge needs its own story, not a second telling of that one")
+        if name and (other.get("name") or "").strip().lower() == name:
+            errors.append(f"the name '{output['name']}' is already used by {record.get('item_id')}; "
+                          "pick a different problem to name")
+    return errors

@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:req.data_contracts",
   "stage": "objections",
-  "input_hash": "6ad56866fd8bc3f3ad5a252517dfb7d21d23658360cf5fc7b0aae5a731385e47",
+  "input_hash": "506ccccec6a12a618346264207910d9d8fb615b506f6d43fda21a38f41b672c1",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "We cannot approve improving {target} while the {cause} upstream remains unreliable. The data governance risks are simply too high to proceed without a solid foundation."
+    "line": "We cannot approve the {target} changes because the data contracts for {cause} are still missing required schema validations. We need those upstream definitions locked before we can guarantee the forecast job will not fail on bad input."
   }
 }

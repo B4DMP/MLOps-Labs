@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:data.validation",
   "stage": "objections",
-  "input_hash": "38da401e2dde5bd7711542d61df23dcff301f1a829192b58b2bfc1aee15a939e",
+  "input_hash": "b3658261775ebd84bc43efcc15c4d796990ae524687f21a53f2dbd9a05efea6c",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "As the owner of Data Validation, I can't approve improving {target} right now, because {cause} upstream is not good enough yet."
+    "line": "I cannot sign off on improving {target} because the {cause} upstream is still feeding us dirty scan lines and missing stock records. We need to fix that data quality gap before we spend a single hour on the new feature."
   }
 }

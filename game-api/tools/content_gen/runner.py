@@ -92,7 +92,7 @@ async def run_stage(stage, ctx, ledger: Ledger, llm: LLM, opts: RunOptions, stop
     if opts.only:
         items = [i for i in items if fnmatch.fnmatch(i.item_id, opts.only)]
     report = RunReport(planned=len(items))
-    ledger.sync(items, stage.prompt_version, llm.model_id)
+    ledger.sync(items, ctx.stage_version(stage), llm.model_id)
     todo_ids = ledger.todo([i.item_id for i in items], opts.max_attempts, force=opts.force)
     if opts.limit is not None:
         todo_ids = todo_ids[: opts.limit]

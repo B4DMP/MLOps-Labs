@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_fact_risk_manual",
+  "stage": "artifacts",
+  "input_hash": "39e55870b41f1677240dd81d25bfcff967bc986cf08cf4a2f249313abc3c5c11",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_fact_risk_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The risk assessment is done by hand. That is simply how the risk assessment setup works today.",
+      "fact": "The risk assessment is done by hand.",
+      "reading": "That is simply how the risk assessment setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.risk_assessment",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I spent the morning tracing the risk assessment workflow with the operations team. A planner opens a shared spreadsheet and types the risk score for each article by hand. They then copy those scores into the deployment checklist. I timed the process for the last three promotion weeks. It takes roughly four hours per week. The spreadsheet is the only record of the assessment. No logs are generated when a score is changed. The data moves from the spreadsheet to the deployment system via a manual copy and paste action.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text consists entirely of objective observations and measurements regarding the current workflow, such as timing and data handling methods, without expressing any wishes, refusals, or stated needs."
+  }
+}

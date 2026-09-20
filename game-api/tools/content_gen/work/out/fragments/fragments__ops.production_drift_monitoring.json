@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.production_drift_monitoring",
   "stage": "fragments",
-  "input_hash": "e5859d52564c9c07f653fbc1e2c36a0222be980315facba84d1f096777fd6095",
+  "input_hash": "af1255a985dcf9f36a51f5cae7846e3f9be0a1b9cac000ac3b552065e84949f8",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Drift alerts fire randomly, blocking deployment without any clear cause or resolution path.",
-    "level_1": "No drift detection exists, so model degradation goes unnoticed until users report failures.",
-    "level_2": "Data scientists manually check drift dashboards weekly, creating inconsistent and delayed responses.",
-    "level_3": "Automated pipelines detect drift in real time and trigger alerts to relevant teams.",
-    "level_4": "Drift thresholds are governed by policy, with automated remediation and full audit trails."
+    "level_0": "Drift alerts fire randomly, drowning the team in false positives while real heatwave shifts go unnoticed.",
+    "level_1": "No one checks if the forecast still matches reality, so heatwaves silently break every order suggestion.",
+    "level_2": "A data scientist manually compares last week's errors to today's, flagging only obvious mismatches in a spreadsheet.",
+    "level_3": "Automated checks compare forecast accuracy against historical baselines, triggering alerts when drift exceeds defined thresholds.",
+    "level_4": "Drift monitoring is governed, with documented thresholds, audit trails, and automatic escalation to the category team."
   }
 }

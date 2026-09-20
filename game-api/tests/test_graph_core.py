@@ -87,7 +87,7 @@ def test_real_config_every_component_has_an_owner_and_instances_are_seeded(confi
     graph = GraphFactory.load_graph(config_dir / "MlopsGraph.json")
     assert all(graph.owner_of(c.id) for c in graph.components)
     state = GraphState.from_config(graph)
-    assert state.instances["model:prediction_v1"].props["performance"] == "fair"
+    assert state.instances["model:demand_forecast_v1"].props["performance"] == "fair"
 
 
 def test_cycle_in_pipeline_edges_is_rejected():

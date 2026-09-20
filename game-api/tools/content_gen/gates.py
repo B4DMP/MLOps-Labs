@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass, field
 
 from content_gen.context import Context
-from content_gen.stages.common import DASHES
+from content_gen.stages.common import DASHES, domain_errors
 
 
 @dataclass
@@ -91,6 +91,34 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
     for where, text in texts:
         if DASHES.search(text):
             report.errors.append(f"voice: {where} contains a dash")
+        report.errors += [f"setting: {e}" for e in domain_errors(where, text)]
+
+    # 8b. Stance mix: the player needs more to bargain with than to work around, so trade-offs
+    #     outnumber red lines across the generated content.
+    from content_gen.stages.items import DEFAULT_STANCE_MIX
+
+    mix = ctx.scope.get("stance_mix", DEFAULT_STANCE_MIX)
+    stance_reqs = [r for r in reqs if r.type != "fact"]
+    if stance_reqs:
+        share = {tag: sum(1 for r in stance_reqs if r.type == tag) / len(stance_reqs)
+                 for tag in ("driver", "boundary", "trade_off")}
+        n = len(stance_reqs)
+        if share["trade_off"] < mix.get("trade_off_min_share", 0):
+            report.errors.append(
+                f"stance mix: only {share['trade_off']:.0%} of the {n} generated stances are trade_offs, "
+                f"the scope asks for at least {mix.get('trade_off_min_share', 0):.0%}")
+        if share["trade_off"] > mix.get("trade_off_max_share", 1):
+            report.errors.append(
+                f"stance mix: {share['trade_off']:.0%} of the {n} generated stances are trade_offs, the scope "
+                f"allows at most {mix.get('trade_off_max_share', 1):.0%}; the rooms need people pushing too")
+        if share["driver"] < mix.get("driver_min_share", 0):
+            report.errors.append(
+                f"stance mix: only {share['driver']:.0%} of the {n} generated stances are drivers, the scope "
+                f"asks for at least {mix.get('driver_min_share', 0):.0%}; drivers are what proposals are built from")
+        if share["boundary"] > mix.get("boundary_max_share", 1):
+            report.errors.append(
+                f"stance mix: {share['boundary']:.0%} of the {n} generated stances are boundaries, "
+                f"the scope allows at most {mix.get('boundary_max_share', 1):.0%}")
 
     # 9. Voiced Facts: a Fact is dealt under its narrator's name, so the narrator must be in the room.
     phase_of = {c["id"]: c["phase_id"] for c in generated}

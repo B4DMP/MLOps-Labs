@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_fact_kpi_missing",
+  "stage": "artifacts",
+  "input_hash": "9afe5ce899ceb2a0d1b57e3176f8401e6caf825ca86b91daa3022c24504a510a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_fact_kpi_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definition is missing from the system. That is simply how the KPI setup works today.",
+      "fact": "The KPI definition is missing from the system.",
+      "reading": "That is simply how the KPI setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the weekly model review, I checked the configuration files for the nightly forecast job. The parameter block that defines how the accuracy metric is calculated is empty. The system currently runs the retraining cycle without a defined target for the error calculation. I observed the job log for the last seven nights. The process completes successfully, but it does not output a single numeric value for the primary performance indicator. The dashboard displays a blank field where the score should appear. No threshold is set to trigger an alert if the model degrades. The pipeline executes the same steps every night, processing the till data and stock levels, but it does not measure the result against any standard. The code simply finishes and hands the suggestions to the ordering system without recording a quality check.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the observed state of the system (empty configuration, lack of metrics, successful execution without quality checks) without expressing any wishes, refusals, or stated needs that imply a preference for additional work or a specific limit."
+  }
+}

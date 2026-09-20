@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_emilia_kpi_driver",
+  "stage": "gists",
+  "input_hash": "66b3e8a72c1e971ddb53a856023d738066069e82f7cfb93db9fa21265eb3420d",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_emilia_kpi_driver",
+    "fact": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Residual stock and margin on the promotion week keep coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a recurring topic (residual stock and margin) discussed with a stakeholder tagged as efficiency, but it does not specify whether this is a goal, a constraint, a trade-off, or merely a factual observation."
+  }
+}

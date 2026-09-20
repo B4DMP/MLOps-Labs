@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:data.versioning",
   "stage": "objections",
-  "input_hash": "fb8dc413c03b6b10909cebbee10fed0f189fcdd76bbb8e505470094d3003159e",
+  "input_hash": "18354735925375c3033ea62c55205e1c5f9ca88c3e54338e9a06fda2590de04a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot sign off on improving {target} because the {cause} upstream is not good enough yet. Data Versioning needs that foundation before we can deliver."
+    "line": "I cannot support improving {target} because the data quality upstream in {cause} is still inconsistent. We need to stabilize the pipeline and version the data before we trust any downstream changes."
   }
 }

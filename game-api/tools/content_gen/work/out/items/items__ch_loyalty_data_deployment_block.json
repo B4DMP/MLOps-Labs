@@ -1,0 +1,907 @@
+{
+  "item_id": "items:ch_loyalty_data_deployment_block",
+  "stage": "items",
+  "input_hash": "df02d99adadb787bfb04d3aa428f25dfaa743ee58faa6139597bcfc7f1573d30",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "challenge": {
+      "phase_id": 4,
+      "template_id": "ch_loyalty_data_deployment_block",
+      "name": "The Consent Gap",
+      "description": "A new model version requires loyalty basket data, but the deployment pipeline lacks the governance controls to verify consent. #automation_alex# wants to push the automated deployment forward immediately to meet the promotion deadline, while #requirements_reuben# insists on a manual review process to ensure legal compliance. #automation_alex# is open to adding a manual approval step if it keeps the pipeline moving, but #requirements_reuben# will not accept any automated path without full audit trails.",
+      "roundIntroduction": "The nightly forecast job failed to deploy because the new model version was rejected during the pre-deployment check. The rejection was triggered by a missing consent validation flag for the loyalty data features used in the model.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 80,
+      "preconditions": {
+        "component": "deploy.cicd",
+        "op": "gte",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.cicd",
+          "value": 0,
+          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.canary_ab",
+          "value": 0,
+          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "deploy.cicd",
+        "positions": [
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "deploy"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "deploy",
+      "components": [
+        {
+          "id": "deploy.cicd",
+          "name": "CI/CD Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "jenkins",
+              "gitlab_ci",
+              "github_actions"
+            ]
+          }
+        },
+        {
+          "id": "deploy.serving",
+          "name": "Model Serving Endpoint",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "hosting": [
+              "none",
+              "on_prem",
+              "private_cloud",
+              "public_cloud"
+            ],
+            "tool": [
+              "none",
+              "fastapi",
+              "seldon",
+              "kserve",
+              "sagemaker"
+            ]
+          }
+        },
+        {
+          "id": "deploy.canary_ab",
+          "name": "Canary and A/B Testing",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.shadow",
+          "name": "Shadow Deployment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {}
+        },
+        {
+          "id": "deploy.containerization",
+          "name": "Containerization",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker",
+              "podman"
+            ]
+          }
+        },
+        {
+          "id": "deploy.orchestration",
+          "name": "Orchestration",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "tool": [
+              "none",
+              "docker_compose",
+              "nomad",
+              "kubernetes"
+            ]
+          }
+        },
+        {
+          "id": "deploy.api_gateway",
+          "name": "API Gateway",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "automation_alex",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.registry_cicd",
+          "from": "model.registry",
+          "to": "deploy.cicd",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_container",
+          "from": "deploy.cicd",
+          "to": "deploy.containerization",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.container_orch",
+          "from": "deploy.containerization",
+          "to": "deploy.orchestration",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.orch_serving",
+          "from": "deploy.orchestration",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_gateway",
+          "from": "deploy.serving",
+          "to": "deploy.api_gateway",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_canary",
+          "from": "deploy.cicd",
+          "to": "deploy.canary_ab",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.canary_serving",
+          "from": "deploy.canary_ab",
+          "to": "deploy.serving",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cicd_shadow",
+          "from": "deploy.cicd",
+          "to": "deploy.shadow",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_commit",
+            "on_new_version",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.serving_observe",
+          "from": "deploy.serving",
+          "to": "ops.observability",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.rollback_serving",
+          "from": "ops.rollback",
+          "to": "deploy.serving",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.iam_gateway",
+          "from": "gov.iam",
+          "to": "deploy.api_gateway",
+          "kind": "governs",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.cost_serving",
+          "from": "gov.cost_monitoring",
+          "to": "deploy.serving",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.iac_orch",
+          "from": "gov.iac",
+          "to": "deploy.orchestration",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "endpoint:forecast_service",
+          "kind": "endpoint",
+          "on": "deploy.serving",
+          "props": {
+            "availability": "stable",
+            "latency": "acceptable",
+            "traffic": "low"
+          },
+          "property_values": {
+            "availability": [
+              "unstable",
+              "stable",
+              "high"
+            ],
+            "latency": [
+              "slow",
+              "acceptable",
+              "fast"
+            ],
+            "traffic": [
+              "none",
+              "low",
+              "high"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "deploy.cicd": {
+        "level": 0
+      },
+      "deploy.serving": {
+        "level": 2
+      },
+      "deploy.canary_ab": {
+        "level": 1
+      },
+      "deploy.shadow": {
+        "level": 1
+      },
+      "deploy.containerization": {
+        "level": 2
+      },
+      "deploy.orchestration": {
+        "level": 1
+      },
+      "deploy.api_gateway": {
+        "level": 1
+      },
+      "e.registry_cicd": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.cicd_container": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.container_orch": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.orch_serving": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.serving_gateway": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cicd_canary": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.canary_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.cicd_shadow": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.rollback_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iam_gateway": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.cost_serving": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iac_orch": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "alex_promotion_deadline",
+        "tag": "driver",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} proposed accelerating the deployment of the loyalty data model to meet the promotion deadline.",
+        "readings": {
+          "driver": "The promotion deadline is fixed, and a faster deployment path ensures the new model is live before the leaflet prints.",
+          "boundary": "The promotion deadline is a hard constraint that cannot be moved, so the deployment must be finished by a specific date.",
+          "trade_off": "The promotion deadline is flexible if the model quality is not verified, so the team can delay the launch.",
+          "fact": "The promotion deadline is part of the business calendar and is not controlled by the deployment team."
+        },
+        "metric_id": "automation",
+        "suggested_target": "deploy.cicd",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_audit_trail",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} brought up the requirement for full audit trails on all automated deployment steps.",
+        "readings": {
+          "driver": "The audit trails improve the visibility of the deployment process and help with future investigations.",
+          "boundary": "The audit trails are a legal requirement for handling loyalty data, and no automated path is acceptable without them.",
+          "trade_off": "The audit trails are a nice to have feature that can be added later if the deployment is urgent.",
+          "fact": "The audit trails are currently missing from the deployment pipeline configuration."
+        },
+        "metric_id": "requirements",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "deploy.cicd",
+          "op": "gte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "deploy.cicd",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "alex_manual_approval",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} suggested adding a manual approval step to the deployment pipeline.",
+        "readings": {
+          "driver": "The manual approval step ensures that only approved models are deployed, improving safety.",
+          "boundary": "The manual approval step is a mandatory control that cannot be removed from the pipeline.",
+          "trade_off": "The manual approval step slows down the deployment process, but it is acceptable if it keeps the pipeline moving toward automation.",
+          "fact": "The manual approval step is currently not present in the deployment pipeline."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "set_trigger",
+            "target": "e.registry_cicd",
+            "value": "on_approval",
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "deploy.cicd",
+        "concedes_max_level": 3,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_compliance_check",
+        "tag": "trade_off",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} asked for a compliance check to be integrated into the pre-deployment validation.",
+        "readings": {
+          "driver": "The compliance check ensures that all data governance rules are met before the model is deployed, reducing legal risk.",
+          "boundary": "The compliance check is a mandatory step that cannot be skipped, even for urgent deployments.",
+          "trade_off": "The compliance check adds time to the deployment process, but it is worth it to avoid legal issues.",
+          "fact": "The compliance check is currently not part of the pre-deployment validation process."
+        },
+        "metric_id": "requirements",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "requirements",
+        "concedes_loss": 2,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_feedback_loop",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed connecting the serving endpoint to the monitoring system for real time feedback.",
+        "readings": {
+          "driver": "The feedback loop helps identify issues with the deployed model in real time, improving reliability.",
+          "boundary": "The real time feedback signals are essential for catching silent forecast failures before they reach store managers.",
+          "trade_off": "The feedback loop adds complexity to the system, but it is necessary for long term reliability.",
+          "fact": "The feedback loop is currently not connected between the serving endpoint and the monitoring system."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "deploy.serving",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_cost_control",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted the cost implications of running the new model version in the production environment.",
+        "readings": {
+          "driver": "The cost control ensures that the project stays within budget, which is important for the business case.",
+          "boundary": "The cost control is a hard limit that cannot be exceeded, regardless of the model performance.",
+          "trade_off": "The cost control can be relaxed if the model provides significant business value, but it needs to be monitored closely.",
+          "fact": "The cost control is currently not integrated into the deployment pipeline."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "e.cost_serving",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 3,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_pipeline_broken",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The deployment pipeline is currently broken due to a missing consent validation flag.",
+        "readings": {
+          "driver": "The broken pipeline needs to be fixed to allow the new model to be deployed.",
+          "boundary": "The broken pipeline is a critical issue that must be resolved before any further deployments.",
+          "trade_off": "The broken pipeline can be worked around if the deployment is urgent, but it is not a long term solution.",
+          "fact": "The deployment pipeline is currently in a broken state because the consent validation flag is missing."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.cicd",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_manual_trigger",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The pipeline from the model registry to the CI/CD pipeline is triggered manually.",
+        "readings": {
+          "driver": "The manual trigger allows for more control over when the pipeline is run.",
+          "boundary": "The manual trigger is a safety measure that prevents accidental deployments.",
+          "trade_off": "The manual trigger slows down the deployment process, but it is necessary for compliance.",
+          "fact": "The pipeline from the model registry to the CI/CD pipeline is currently triggered manually."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.registry_cicd",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request"
+      },
+      {
+        "key": "fact_serving_stable",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The model serving endpoint is currently stable and has acceptable latency.",
+        "readings": {
+          "driver": "The stable serving endpoint ensures that the model is available to users without interruption.",
+          "boundary": "The stable serving endpoint is a requirement that must be maintained at all times.",
+          "trade_off": "The stable serving endpoint can be compromised if the new model is deployed without proper testing.",
+          "fact": "The current serving infrastructure handles the nightly forecast load without reported failures."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.serving",
+        "asserts_level": 2,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_canary_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The canary and A/B testing capability is currently absent from the deployment process.",
+        "readings": {
+          "driver": "The canary testing would allow for a gradual rollout of the new model, reducing risk.",
+          "boundary": "The canary testing is a mandatory step that must be in place before any new model is deployed.",
+          "trade_off": "The canary testing can be skipped if the deployment is urgent, but it increases the risk of issues.",
+          "fact": "The deployment process does not currently include a mechanism for gradual traffic shifting or comparative testing."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "deploy.canary_ab",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

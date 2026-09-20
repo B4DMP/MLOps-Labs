@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_ruth_governed_drift",
+  "stage": "gists",
+  "input_hash": "81faccfd6c49e8f9c69b46607a6b4835074f50445e993f874587d55dc74ec422",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_ruth_governed_drift",
+    "fact": "{reliability_ruth} asked for governed drift monitoring on the production forecast.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "Drift monitoring on the production forecast keeps coming up in conversations with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that drift monitoring is a frequent topic in conversations but does not indicate a specific stance such as demanding more, setting a boundary, accepting a trade-off, or stating a definitive fact about the system's state."
+  }
+}

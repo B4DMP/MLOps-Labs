@@ -1,8 +1,8 @@
 {
   "item_id": "templates:p2:s0",
   "stage": "templates",
-  "input_hash": "e1decbb08777e79958a81f6a5c4074b247a296716a161f9ce0baadb3258692d0",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "c7c564fc270062279eda2415005441671b9c4cd436f796289c08515247944919",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
     "phase_id": 2,
@@ -377,7 +377,7 @@
       ],
       "instances": [
         {
-          "id": "dataset:customer_records",
+          "id": "dataset:till_scan_lines",
           "kind": "dataset",
           "on": "data.ingestion",
           "props": {
@@ -405,7 +405,7 @@
           }
         },
         {
-          "id": "dataset:training_snapshot",
+          "id": "dataset:demand_snapshot",
           "kind": "dataset",
           "on": "data.labeling",
           "props": {
@@ -433,7 +433,7 @@
           }
         },
         {
-          "id": "pipeline:nightly_export",
+          "id": "pipeline:nightly_store_export",
           "kind": "pipeline",
           "on": "data.ingestion",
           "props": {
@@ -591,40 +591,43 @@
       "data.labeling"
     ],
     "existing_challenges": [
-      "The Data Instability"
-    ]
+      "The Inconsistent Checks",
+      "Inconsistent Data Labeling"
+    ],
+    "angle": "a technical failure nobody noticed until its effects showed up in the real world",
+    "is_intro": false
   },
   "output": {
-    "slug": "inconsistent_data_labeling",
-    "name": "Inconsistent Data Labeling",
-    "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance.",
-    "round_introduction": "The data labeling pipeline has been inconsistent, causing issues in model training. The team needs to decide on the right approach to ensure reliable data quality.",
+    "slug": "silent_ingestion_failure",
+    "name": "The Silent Store Gap",
+    "description": "A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce. #reliability_ruth# argues that the ingestion pipeline must be fully automated to guarantee every store's data arrives on time, while #data_dave# is willing to accept a manual verification step to ensure data quality before it reaches the feature store.",
+    "round_introduction": "The nightly store export pipeline failed for a subset of stores without triggering any alerts. The forecast job ran on incomplete data, leading to empty shelves for high demand articles in the affected regions this morning.",
     "preconditions": {
-      "component": "data.labeling",
-      "op": "eq",
+      "component": "data.ingestion",
+      "op": "gte",
       "level": 2
     },
-    "priority": 50,
+    "priority": 80,
     "on_enter_ops": [
       {
         "kind": "set_to",
-        "target": "data.labeling",
-        "value": "0",
+        "target": "data.ingestion",
+        "value": 0,
         "attr": null,
-        "reason": "the labeling pipeline produced inconsistent results"
+        "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data."
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
-        "target": "e.label_version",
-        "value": "0",
+        "target": "e.ingest_validate",
+        "value": 0,
         "attr": null,
-        "reason": "the labeling pipeline breaks due to unresolved conflicts"
+        "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating."
       }
     ],
     "conflict": {
-      "target": "data.labeling",
+      "target": "data.ingestion",
       "positions": [
         {
           "stakeholder_id": "reliability_ruth",

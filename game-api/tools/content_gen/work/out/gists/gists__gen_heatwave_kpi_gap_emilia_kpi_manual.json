@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_kpi_gap_emilia_kpi_manual",
+  "stage": "gists",
+  "input_hash": "ae28b9b0d1d5b701633e3626df6a49523739bbd8b4230e69a5d110683ea7d222",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_kpi_gap_emilia_kpi_manual",
+    "fact": "{efficiency_emilia} suggested keeping the KPI definition manual.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Summer Forecast Gap"
+  },
+  "output": {
+    "gist": "The definition of the efficiency KPI has been raised as a topic for discussion.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the definition of the efficiency KPI is a topic for discussion, which names the metric and its current status without committing to a specific stance such as demanding more, refusing, accepting a loss, or stating a neutral fact about its value."
+  }
+}

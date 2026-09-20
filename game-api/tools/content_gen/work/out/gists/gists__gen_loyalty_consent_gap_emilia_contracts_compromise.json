@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_emilia_contracts_compromise",
+  "stage": "gists",
+  "input_hash": "290d3697374720607b49f73c17723477429c726ab7968ff7959409da14f7d34e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_emilia_contracts_compromise",
+    "fact": "{efficiency_emilia} suggested that manual review of data contracts is sufficient for now.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "The effort required to manually review data contracts keeps coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the effort of manual data contract reviews is a recurring topic in conversations, but it does not explicitly state whether this is a desired improvement, a refusal, an accepted trade-off, or a neutral fact about the current state."
+  }
+}

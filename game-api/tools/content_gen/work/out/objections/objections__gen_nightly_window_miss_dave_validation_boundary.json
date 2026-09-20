@@ -1,0 +1,51 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_dave_validation_boundary",
+  "stage": "objections",
+  "input_hash": "3196d40d5f08dcd74624ffa2dffe4d10697dd08b97530c7204086e4f975f08cd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_nightly_window_miss_dave_validation_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "boundary",
+      "description": "{data_dave} proposed keeping the data validation process manual. He will not move to automated validation until the infrastructure costs are reduced.",
+      "fact": "{data_dave} proposed keeping the data validation process manual.",
+      "reading": "He will not move to automated validation until the infrastructure costs are reduced.",
+      "metric_id": "data",
+      "suggested": null,
+      "holds": {
+        "component": "data.validation",
+        "op": "lte",
+        "level": 1
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 1
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "I am not signing off on automated validation while our infrastructure bill is this high. I will keep the checks manual until we have cut those costs.",
+    "correction": "I am not saying we cannot automate it, I am saying we will not fund it yet. Do not report that I rejected the technology, I rejected the timing."
+  }
+}

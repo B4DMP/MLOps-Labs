@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.fs_train",
   "stage": "fragments",
-  "input_hash": "04fcce331b91659bc3000e705dddea68ec8cae9f7f48ce516da9b7cd8384bac3",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "47fe92b95bf0bb8ca464225b5d73909d8147af0a0410905472990a888d54802e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.fs_train",
@@ -17,10 +17,10 @@
     "name": "hand over from Feature Store to Training Pipeline"
   },
   "output": {
-    "level_0": "Training Pipeline crashes when trying to read from Feature Store.",
-    "level_1": "No connection exists between Feature Store and Training Pipeline.",
-    "level_2": "The team manually exports data from Feature Store and imports it into Training Pipeline.",
-    "level_3": "The Training Pipeline automatically pulls data from Feature Store without user intervention.",
-    "level_4": "The Training Pipeline fetches data from Feature Store following predefined governance policies."
+    "level_0": "Training crashes nightly because feature values are null, and no one knows why.",
+    "level_1": "The team copies raw till data into notebooks, skipping the feature store entirely.",
+    "level_2": "Engineers manually export feature tables and paste them into the training script each week.",
+    "level_3": "The pipeline pulls versioned features from the store automatically before every retraining run.",
+    "level_4": "Access to loyalty features is logged, and training only starts after consent checks pass."
   }
 }

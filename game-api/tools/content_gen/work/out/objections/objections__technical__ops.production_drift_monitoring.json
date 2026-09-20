@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:ops.production_drift_monitoring",
   "stage": "objections",
-  "input_hash": "5f7ba146b7dc68ef5d5fc3020cf66f5325161edd8cbd6f5016e5add2c5d0181e",
+  "input_hash": "606747fc2866859d047af6792294f2b4802110b7680f618b4af7597e5e9694f7",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "You cannot expect me to fix {target} when the {cause} upstream is still failing. I need that dependency stabilized before we can talk about reliability."
+    "line": "We cannot trust the drift alerts for {target} because the upstream {cause} is still too noisy to separate real demand shifts from data gaps."
   }
 }

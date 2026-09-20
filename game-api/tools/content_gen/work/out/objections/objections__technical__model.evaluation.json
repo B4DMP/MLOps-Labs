@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:model.evaluation",
   "stage": "objections",
-  "input_hash": "801409004b881385f423b2f2041875d8002c8c9ae545fd88f9fe147052931072",
+  "input_hash": "a8fe49642959e4d66a3f619a361e33c8e44c31281c2e6dad70ac99581adea4b6",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot support improving {target} yet, because {cause} upstream is not good enough. The Model Evaluation Harness will still fail if we build on that."
+    "line": "We cannot validate {target} until the {cause} is stable, because the evaluation harness is currently feeding on noisy upstream signals. I need that dependency resolved before we commit to any new model iteration."
   }
 }

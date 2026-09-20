@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_fact_criteria_manual",
+  "stage": "artifacts",
+  "input_hash": "d119bb196a1f6e6547522125bdcfccf7b6b5ff58d9b64e0b428fe26c925bf559",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_fact_criteria_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The acceptance criteria are done by hand. That is simply how the acceptance criteria setup works today.",
+      "fact": "The acceptance criteria are done by hand.",
+      "reading": "That is simply how the acceptance criteria setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.acceptance_criteria",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I checked the repository and the pipeline logs for the current forecasting cycle. The acceptance criteria for model validation are not stored in the configuration files. Instead, I observed the team manually copying threshold values from a shared document into the test scripts before every weekly retraining run. This manual step happens every Friday evening. I noted that the values change occasionally based on recent performance discussions, but there is no automated check that verifies these numbers against a central source. The process relies entirely on the person running the job to input the correct figures each time.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text objectively describes the current manual workflow for updating validation thresholds and the absence of automated checks, without expressing any wishes, refusals, or stated trade-offs."
+  }
+}

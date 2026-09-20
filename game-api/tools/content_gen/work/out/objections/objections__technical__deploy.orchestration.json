@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:deploy.orchestration",
   "stage": "objections",
-  "input_hash": "31c7f41a786d084a1c85931db3a8d5421fadee0a03f6634d418f7122e624bd15",
+  "input_hash": "08170bc55b87e1d05f3f980f1dc574e4090319e3ae140f798ca0c54b240e0aa7",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot support improving {target} right now. The upstream {cause} is still too unstable to handle the load of our automated deployments."
+    "line": "We cannot automate {target} because the data from {cause} is still inconsistent. We need a stable upstream signal before we can trust the pipeline."
   }
 }

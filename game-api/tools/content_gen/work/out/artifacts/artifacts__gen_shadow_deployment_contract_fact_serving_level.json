@@ -1,0 +1,50 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_fact_serving_level",
+  "stage": "artifacts",
+  "input_hash": "d12187bf57212098cdc54912d273203bd2071cb2ddf1dd7c263ee36ee057bec3",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_fact_serving_level",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model serving endpoint is manual and runs on a manual request trigger for the forecast service. That is simply the current state of the serving endpoint, with no automatic scaling or triggering in place.",
+      "fact": "The model serving endpoint is manual and runs on a manual request trigger for the forecast service.",
+      "reading": "That is simply the current state of the serving endpoint, with no automatic scaling or triggering in place.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.serving",
+        "level": 2,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I checked the serving layer for the forecast service this morning. The endpoint is currently running on a manual request trigger. There is no automatic scaling or automated triggering in place. When the nightly job finishes, a human has to manually invoke the service to push the new predictions to the ordering system. If that step is missed, the stores fall back to last week's numbers. The infrastructure is stable, but the deployment path for the serving work remains entirely manual.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current operational state and workflow without expressing any wishes, refusals, or trade-offs, serving purely as an informational status update."
+  }
+}

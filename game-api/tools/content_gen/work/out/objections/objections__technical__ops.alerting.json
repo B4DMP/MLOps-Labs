@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:ops.alerting",
   "stage": "objections",
-  "input_hash": "51abdaf5baf093dd668ea452ac356c8e72493b8c17e2a5a2a389a4360260d2a4",
+  "input_hash": "1157b7bdfe53c5187e8a37ba6cfecca751befb2abb32e4ca3f4538cdb501dca3",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot sign off on improving {target} because the upstream {cause} is still unreliable. My alerting system will just drown in false positives until that foundation is solid."
+    "line": "I cannot sign off on improving {target} while the {cause} upstream is still unreliable. My alerting system needs stable inputs to keep the morning order window from failing."
   }
 }

@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:data.ingestion",
   "stage": "objections",
-  "input_hash": "ea6786d0a78cf8f75e6561459c4cf62e73e680f81c97c5e84a198634cc74d5d5",
+  "input_hash": "575ffdd798d57b9a353c2360509205fa1baf52dc18574a4aa74336641a43123b",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I can support improving {target}, but it will not deliver because {cause} upstream is not good enough yet."
+    "line": "I cannot guarantee {target} because the {cause} upstream is still failing basic quality checks. We need to stabilize that ingestion layer before we can trust the downstream logic."
   }
 }

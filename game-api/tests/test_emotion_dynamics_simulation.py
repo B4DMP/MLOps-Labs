@@ -282,11 +282,28 @@ class TestEmotionDynamicsSimulation:
         cls.progression = load_game_progression()
         cls.requirements = load_requirements()
 
+    @classmethod
+    def stance_reqs_for(cls, stakeholder_id: str) -> list[dict]:
+        """One challenge's Drivers and Trade-offs for this stakeholder, as data for the maths below.
+
+        These tests used to name challenge ids 0 and 1, the hand written challenges that no longer
+        exist. Generated challenge ids are reassigned whenever the content is regenerated, so the
+        fixture picks by who the intel belongs to instead of by a number that moves."""
+        by_challenge: dict = {}
+        for r in cls.requirements:
+            if r.get("stakeholder_id") == stakeholder_id and r.get("type") in ("driver", "trade_off"):
+                by_challenge.setdefault(r["challenge_id"], []).append(r)
+        for _, reqs in sorted(by_challenge.items()):
+            if any(r["type"] == "driver" for r in reqs):
+                return reqs
+        raise AssertionError(f"no challenge in gameConfig has stance intel for {stakeholder_id}")
+
     def test_positive_pitch_produces_happiness_and_enthusiasm(self):
         """When a high-interest stakeholder's demands are fully met, they shift to Enthusiastic."""
         # Monica in Phase 0 (power: low, interest: high)
-        p0_reqs = [r for r in self.requirements if r.get("challenge_id") == 0 and r["stakeholder_id"] == "model_monica"]
-        slotted = {r["id"] for r in p0_reqs if r["type"] == "driver"}
+        p0_reqs = self.stance_reqs_for("model_monica")
+        # "Fully met" means every demand answered, Trade-offs included: alignment averages over both.
+        slotted = {r["id"] for r in p0_reqs}
 
         align = calculate_demand_alignment(p0_reqs, slotted)
         react = calculate_reactivity(power="low", interest="high")  # 0.5 * 0.3 + 0.5 * 0.8 = 0.55
@@ -367,7 +384,7 @@ class TestEmotionDynamicsSimulation:
 
     def test_neglect_generates_frustration_or_skepticism(self):
         """When an invested stakeholder's drivers are completely ignored, they become frustrated or skeptical."""
-        p1_reqs = [r for r in self.requirements if r.get("challenge_id") == 1 and r["stakeholder_id"] == "efficiency_emilia"]
+        p1_reqs = self.stance_reqs_for("efficiency_emilia")
 
         # Player slots 0 of Emilia's items
         align = calculate_demand_alignment(p1_reqs, card_slotted_req_ids=set())
@@ -387,7 +404,7 @@ class TestEmotionDynamicsSimulation:
 
     def test_boundary_violation_triggers_anxiety(self):
         """Violating a red line / boundary causes acute risk and stress, triggering Anxious."""
-        p0_emilia_reqs = [r for r in self.requirements if r.get("challenge_id") == 0 and r["stakeholder_id"] == "efficiency_emilia"]
+        p0_emilia_reqs = self.stance_reqs_for("efficiency_emilia")
 
         # Card violates Emilia's latency constraint (1 boundary breach)
         align = calculate_demand_alignment(p0_emilia_reqs, card_slotted_req_ids=set())
@@ -499,8 +516,8 @@ class TestEmotionDynamicsSimulation:
         Round 2: Player amends card addressing Reuben's drivers -> Reuben warms up, emotional state turns positive.
         Round 3: Card commits and simulation delivers cleanly -> Reuben becomes enthusiastic/relieved.
         """
-        p1_reuben_reqs = [r for r in self.requirements if r.get("challenge_id") == 1 and r["stakeholder_id"] == "requirements_reuben"]
-        reuben_driver_ids = {r["id"] for r in p1_reuben_reqs if r["type"] == "driver"}
+        p1_reuben_reqs = self.stance_reqs_for("requirements_reuben")
+        reuben_driver_ids = {r["id"] for r in p1_reuben_reqs}
 
         ev_reuben_base = get_initial_emotion_values("high")
         react = calculate_reactivity(power="high", interest="high")  # 0.8

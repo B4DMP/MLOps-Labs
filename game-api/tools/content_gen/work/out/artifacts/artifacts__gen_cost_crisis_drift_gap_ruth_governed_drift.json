@@ -1,0 +1,54 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_ruth_governed_drift",
+  "stage": "artifacts",
+  "input_hash": "88091dbde19e9ffacdea8881df7c7b92f28522f21c58c2292f4d4616c30eefa7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_ruth_governed_drift",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "driver",
+      "description": "{reliability_ruth} asked for governed drift monitoring on the production forecast. She believes that governed drift checks are essential to catch silent failures before they impact store availability.",
+      "fact": "{reliability_ruth} asked for governed drift monitoring on the production forecast.",
+      "reading": "She believes that governed drift checks are essential to catch silent failures before they impact store availability.",
+      "metric_id": "reliability",
+      "suggested": {
+        "target": "ops.production_drift_monitoring",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "author": {
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "I need governed drift monitoring on the production forecast. The current setup leaves us blind during promotion weeks, and silent failures directly hurt store availability. I want the checks to be automated and fully governed so we catch issues before they reach the shelf. More coverage and stricter governance make the system safer. I am not asking for a manual workaround; I am asking for a reliable signal that proves the model is still tracking reality. The more we can verify, the better, because trust in the order suggestion depends on it. I will keep pushing for this until it is in place.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text explicitly states that 'more coverage and stricter governance' make the system safer and that 'the more we can verify, the better,' indicating that exceeding the baseline request would increase the author's satisfaction."
+  }
+}

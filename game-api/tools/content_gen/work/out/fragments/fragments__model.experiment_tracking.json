@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:model.experiment_tracking",
   "stage": "fragments",
-  "input_hash": "4d6e6c0ba53ec3fb066846aa1df958b4294141ed18f7b21dc138a5e327791418",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "01941c75b6b236221fba761036e11588e727d702c0535862be4addbc8f6edaba",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "model.experiment_tracking",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The team logs experiments in a shared spreadsheet with no version control.",
-    "level_1": "The team does not track experiments at all.",
-    "level_2": "The team manually logs experiments in a shared document.",
-    "level_3": "The team uses an experiment tracking tool with automatic logging.",
-    "level_4": "The team uses a governed experiment tracking tool with audit logs."
+    "level_0": "The experiment log is corrupted and no one can tell which model version produced last night's forecast.",
+    "level_1": "No record exists of which model parameters were tested during the last weekly retraining cycle.",
+    "level_2": "Buyers manually copy model performance metrics from terminal output into a shared spreadsheet after each run.",
+    "level_3": "Every retraining run automatically logs hyperparameters and accuracy scores to a central experiment database.",
+    "level_4": "Experiment records are immutable, access controlled, and linked to compliance audits for loyalty data usage."
   }
 }

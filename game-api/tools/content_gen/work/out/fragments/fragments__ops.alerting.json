@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.alerting",
   "stage": "fragments",
-  "input_hash": "0381bf1fc34760d9500e4276acd70e949ae9afaf5d1b84c3879afbceedc1ef8b",
+  "input_hash": "5d0d7ebc14e7bf7139a5de99c9f46e9af85a7ae14236d6b6bc937a55570d3a2c",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Alerts fire randomly, blocking the on-call rotation and causing unnecessary panic.",
-    "level_1": "No alerting exists, so model drift goes unnoticed until customers complain.",
-    "level_2": "Engineers manually check dashboards, missing critical spikes between scheduled inspections.",
-    "level_3": "Automated alerts trigger instantly on threshold breaches, routing tickets to the right team.",
-    "level_4": "Alerts are governed by policy, with audit trails and SLA compliance enforced."
+    "level_0": "Alerts fire randomly during the morning window, causing unnecessary panic and ignored warnings.",
+    "level_1": "No alerts exist, so forecast failures are only discovered when shelves are empty.",
+    "level_2": "A human checks the dashboard every morning and calls the team if something looks wrong.",
+    "level_3": "The system sends automated alerts to the on call engineer when forecast latency spikes.",
+    "level_4": "Alerts are governed by severity rules, with audit logs and automatic escalation to leadership."
   }
 }

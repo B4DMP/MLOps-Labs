@@ -1,9 +1,9 @@
 {
   "item_id": "fragments:e.cicd_canary",
   "stage": "fragments",
-  "input_hash": "f09f7c9c6b0d9a22dbec757361748e253f24e9b2687d373c7f187b6c34119f7e",
+  "input_hash": "4b74d447c066f606b44d3f5e245f4ae4da865e2f47a230df20b6ac6d1637ab1c",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "target": "e.cicd_canary",
     "kind": "edge",
@@ -17,10 +17,10 @@
     "name": "hand over from CI/CD Pipeline to Canary and A/B Testing"
   },
   "output": {
-    "level_0": "Pipeline crashes before reaching canary, leaving production traffic completely uncontrolled and unpredictable.",
-    "level_1": "No handover exists; developers push directly to production without any staged rollout mechanism.",
-    "level_2": "Engineers manually trigger canary deployments via CLI scripts after pipeline completion, risking human error.",
-    "level_3": "Pipeline automatically triggers canary releases and A/B splits based on predefined success criteria.",
-    "level_4": "Governed handover enforces compliance checks, audit logs, and approval gates before canary traffic shifts."
+    "level_0": "The pipeline crashes before the canary step, leaving the old model serving stale forecasts.",
+    "level_1": "No canary testing exists, so new models deploy to all stores without preliminary validation.",
+    "level_2": "Buyers manually compare test and control store availability to decide if a new model is safe.",
+    "level_3": "The system automatically splits traffic and halts deployment if the new model underperforms the baseline.",
+    "level_4": "Governed canary tests verify compliance with loyalty data rules before promoting the model to production."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_kpi_gap_emilia_kpi_boundary",
+  "stage": "gists",
+  "input_hash": "e99864256017db4bf9ccf25e311b346b490976850905ca012111ccd47ecb78e5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
+    "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Summer Forecast Gap"
+  },
+  "output": {
+    "gist": "The definition of margin on the promotion week keeps coming up in efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a specific definition keeps appearing in efficiency discussions, which is a descriptive observation about the conversation context rather than a commitment to a stance, refusal, or trade-off."
+  }
+}

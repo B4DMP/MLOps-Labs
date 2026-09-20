@@ -13,7 +13,8 @@ from pydantic import BaseModel, Field
 from content_gen.ledger import WorkItem
 from content_gen.llm import Usage
 from content_gen.stages.common import (
-    GAME_RULES, WISH_WORDS, bare_stakeholder_id_errors, render, text_errors, tokenize_names,
+    GAME_RULES, LEVEL_LEAK, WISH_WORDS, bare_stakeholder_id_errors, domain_errors, render, system_for,
+    text_errors, tokenize_names,
 )
 
 # Facts come in the same formats as stances. A runbook or a CI log would give the tag away before
@@ -104,16 +105,6 @@ GAME_META = re.compile(
     re.I,
 )
 
-# GAME_RULES hands every stage the level scale, and 22 assembled artifacts repeated it to the player
-# ("ingestion must remain stable at or above level 2"). Only the scale itself, never the plain word:
-# these artifacts are 150 words of prose where "that level of maturity" and "at the gateway level"
-# are ordinary English, so the shared `player_text_errors` gate would reject good writing.
-LEVEL_LEAK = re.compile(
-    r"\b((maturity |component |automation )?levels? ([0-4]\b|zero|one|two|three|four)"
-    r"|(broken|absent|missing|manual|automated|governed) level\b"
-    r"|levels? of (automation|maturity) [0-4]\b)",
-    re.I,
-)
 # IntelArtifactViewer draws the channel, the sender, the date and a signature around the body, so
 # an envelope line inside it doubles the chrome ("Slack from Dave:" under a header already naming
 # Data Dave) and reads like a forwarded screenshot. Header keys first, then the transport lines the
@@ -257,7 +248,7 @@ class ArtifactsStage:
             *([i["hint"]] if i.get("hint") else []),
             *feedback,
         ])
-        art, u1 = await llm.structured(ArtifactOut, SYSTEM, user, tags={"item_id": item.item_id})
+        art, u1 = await llm.structured(ArtifactOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         art.content = tokenize_names(art.content, ctx.stakeholders)
         verdict, u2 = await llm.structured(Classification, CLASSIFY, art.content, tags={"item_id": item.item_id, "gate": "reclassify"})
         out = art.model_dump()
@@ -290,6 +281,7 @@ class ArtifactsStage:
                 f"rewrite it so it clearly reads as a {tag}"
             )
         errors += bare_stakeholder_id_errors("content", output["content"], ctx.stakeholders)
+        errors += domain_errors("content", output["content"])
         return errors
 
     def summary(self, output: dict) -> str:

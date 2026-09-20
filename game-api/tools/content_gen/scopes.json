@@ -18,7 +18,15 @@
       3,
       6
     ],
-    "orphans_block": false
+    "orphans_block": false,
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
   },
   "dialogue0": {
     "description": "Plan 11 D52: gists for the frozen tier 0 templates only. Reuses tier 0's already-approved templates and items; only the gists stage runs new work here.",
@@ -39,11 +47,20 @@
       3,
       6
     ],
-    "orphans_block": false
+    "orphans_block": false,
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
   },
   "tier1": {
-    "description": "Tier 0 plus Requirements, Deployment and Monitoring: two templates in every phase after the introduction, plus each phase's existing fallback.",
+    "description": "The introduction phase plus Requirements, Data, Modeling, Deployment and Monitoring: one challenge for the introduction and two in every other phase. Each phase's fallback is picked from these at assembly.",
     "phases": [
+      0,
       1,
       2,
       3,
@@ -63,11 +80,21 @@
       3,
       6
     ],
-    "orphans_block": false
+    "orphans_block": false,
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    },
+    "intro_phase": 0
   },
   "full": {
-    "description": "The whole game.",
+    "description": "The whole game, introduction included.",
     "phases": [
+      0,
       1,
       2,
       3,
@@ -89,6 +116,15 @@
       3,
       6
     ],
-    "orphans_block": true
+    "orphans_block": true,
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    },
+    "intro_phase": 0
   }
 }

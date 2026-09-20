@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.orch_serving",
   "stage": "fragments",
-  "input_hash": "2ec298fa3d6257064f805c02eec9dbb6f9922bc7787269ba7be780a9c619995d",
+  "input_hash": "180ce74faa838958d1bf9107e7b907f32bfdd303725f1d3c9c8a43fb3db0459d",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Orchestration to Model Serving Endpoint"
   },
   "output": {
-    "level_0": "Orchestration crashes before reaching the endpoint, leaving the model completely unavailable to users.",
-    "level_1": "No connection exists between orchestration and serving, so the model never reaches production.",
-    "level_2": "Engineers manually copy model artifacts to the serving endpoint after each orchestration run.",
-    "level_3": "Orchestration automatically triggers deployment to the model serving endpoint upon successful training.",
-    "level_4": "Governed pipelines validate and log every handover to the serving endpoint for compliance."
+    "level_0": "The handover crashes, so the morning order window opens with stale or missing numbers.",
+    "level_1": "No handover exists; the serving endpoint waits for a signal that never arrives from orchestration.",
+    "level_2": "A technician manually copies the model artifact to the serving endpoint before the morning window.",
+    "level_3": "Orchestration automatically pushes the trained model to the serving endpoint after each weekly retraining.",
+    "level_4": "The automated handover verifies model signatures and logs the transfer for audit before serving begins."
   }
 }

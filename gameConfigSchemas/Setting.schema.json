@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Setting",
+  "description": "The fictional company and ML product every piece of game content is set in. Written into the content generation prompts and into the live stakeholder prompts so the whole game tells one story.",
+  "required": ["setting"],
+  "properties": {
+    "setting": {
+      "type": "object",
+      "required": [
+        "company",
+        "company_description",
+        "system",
+        "system_description",
+        "player_role"
+      ],
+      "properties": {
+        "company": { "type": "string", "title": "Company name" },
+        "company_description": { "type": "string", "title": "What the company is" },
+        "system": { "type": "string", "title": "Name of the ML system" },
+        "system_description": { "type": "string", "title": "What the ML system does" },
+        "player_role": { "type": "string", "title": "Who the player is in this world" },
+        "product_users": {
+          "type": "array",
+          "title": "People who use the ML system's output",
+          "items": { "type": "string" }
+        },
+        "data_sources": {
+          "type": "array",
+          "title": "Data the system runs on",
+          "items": { "type": "string" }
+        },
+        "business_metrics": {
+          "type": "array",
+          "title": "What the business measures",
+          "items": { "type": "string" }
+        },
+        "cadence": { "type": "string", "title": "How often the system runs and retrains" },
+        "current_pain": { "type": "string", "title": "What hurts today" },
+        "governance_hooks": {
+          "type": "array",
+          "title": "Why governance components have teeth in this domain",
+          "items": { "type": "string" }
+        },
+        "vocabulary": {
+          "type": "object",
+          "title": "Words to use and words to keep out",
+          "properties": {
+            "use": { "type": "array", "items": { "type": "string" } },
+            "avoid": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "examples": {
+          "type": "object",
+          "title": "How the recurring MLOps ideas look in this domain",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
+  }
+}

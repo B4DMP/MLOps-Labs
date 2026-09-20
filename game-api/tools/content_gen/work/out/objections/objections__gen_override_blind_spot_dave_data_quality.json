@@ -1,0 +1,50 @@
+{
+  "item_id": "objections:gen_override_blind_spot_dave_data_quality",
+  "stage": "objections",
+  "input_hash": "07308be9774e15d56e2b4383486adde23df46bb072ca6de8ba2ea7441f4553d6",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_dave_data_quality",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed improving the data quality in the model training pipeline. {data_dave.first} wants higher data quality to ensure the model learns from accurate signals.",
+      "fact": "{data_dave} proposed improving the data quality in the model training pipeline.",
+      "reading": "{data_dave.first} wants higher data quality to ensure the model learns from accurate signals.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.training_pipeline",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "data_dave",
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    }
+  },
+  "output": {
+    "objection": "You are reading too much into my request for cleaner training data. I am not asking you to rebuild the entire warehouse, just to stop feeding the model broken point of sale scan lines.",
+    "correction": "I am not proposing a new governance framework for loyalty consent, which is a separate legal track. I am simply asking that the nightly stock on hand feeds be validated before they reach the retraining job."
+  }
+}

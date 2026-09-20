@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.rollback",
   "stage": "fragments",
-  "input_hash": "980b6491637bfa3af9d8e0167afa62cde330d3aa389c2ab19e88f2a74a00969e",
+  "input_hash": "de586870bcd1baacf66054286575d48f953ad7778443bcbf38af4867b1ffd697",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Rollback fails silently, leaving production in an inconsistent state with no recovery path.",
-    "level_1": "No rollback process exists, so bad deployments require a full manual redeploy from scratch.",
-    "level_2": "Engineers manually revert code and data, but the process is slow and error-prone.",
-    "level_3": "One-click rollback restores the previous model version automatically within minutes of detection.",
-    "level_4": "Rollback triggers are governed by policy, with full audit trails and stakeholder notifications."
+    "level_0": "A bad model version corrupts the nightly forecast, and no one can revert to the previous stable build.",
+    "level_1": "There is no way to undo a bad deployment, so a failed retrain keeps serving wrong numbers for days.",
+    "level_2": "The team manually redeploys the last known good model version after noticing store managers complaining about errors.",
+    "level_3": "The system automatically detects forecast degradation and rolls back to the previous validated model version within minutes.",
+    "level_4": "Rollbacks are governed by strict audit logs, requiring finance sign off before reverting automated replenishment logic."
   }
 }

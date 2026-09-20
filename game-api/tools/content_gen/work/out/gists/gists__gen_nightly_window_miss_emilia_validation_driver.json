@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_emilia_validation_driver",
+  "stage": "gists",
+  "input_hash": "2f72c19c8904a25a5deabc2da5809c3709f952285e0133706023ab4ebaceab2f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_emilia_validation_driver",
+    "fact": "{efficiency_emilia} suggested optimizing the cost of data validation.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The cost of data validation keeps coming up whenever you talk to {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that cost is a recurring topic in discussions with the efficiency stakeholder but does not explicitly state a commitment to drive, bound, trade, or describe a fact about the metric itself."
+  }
+}

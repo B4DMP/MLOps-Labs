@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_shadow_tradeoff",
+  "stage": "gists",
+  "input_hash": "ce24f2b687e225184369b5e633cc01ba100d338ddc0f59f1e68074249cb2458b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_shadow_tradeoff",
+    "fact": "{automation_alex} suggested keeping the shadow deployment setup done by hand to avoid adding complexity to the existing CI/CD pipeline.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual shadow deployment process keeps coming up whenever the team discusses changes to the CI/CD pipeline.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the manual process is a recurring topic of discussion, but it does not explicitly state whether the stakeholder wants to automate it (driver), refuses to change it (boundary), accepts the manual effort (trade_off), or is merely describing the current state (fact)."
+  }
+}

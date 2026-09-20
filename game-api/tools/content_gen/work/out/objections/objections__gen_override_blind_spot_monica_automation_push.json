@@ -1,0 +1,50 @@
+{
+  "item_id": "objections:gen_override_blind_spot_monica_automation_push",
+  "stage": "objections",
+  "input_hash": "90603a32ce1b73f04eed6fde9a4fe3990026778ca0a01ab2a06e3817bd0e8ff8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_override_blind_spot_monica_automation_push",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for a fully automated model registry. {model_monica.first} wants the registry to be automated to ensure every deployment is traceable and reproducible.",
+      "fact": "{model_monica} asked for a fully automated model registry.",
+      "reading": "{model_monica.first} wants the registry to be automated to ensure every deployment is traceable and reproducible.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.registry",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I did not ask for a simple log of which version ran last week. I need the registry to automatically capture the exact data slice, feature store state, and training hyperparameters so I can reproduce any forecast failure without guessing.",
+    "correction": "You are treating this as a documentation gap, but it is a reproducibility requirement. If I cannot prove that a specific set of inputs produced the current model weights, we cannot trust the audit trail when a promotion week goes wrong."
+  }
+}

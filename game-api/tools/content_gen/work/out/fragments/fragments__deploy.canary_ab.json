@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:deploy.canary_ab",
   "stage": "fragments",
-  "input_hash": "7357b967fc4639bd10bb0937730b498597472943de20d22bcd998f1ca314321e",
+  "input_hash": "76d6297b398295448db74f5b6dd7af97be0eba572325f2a06ff6b1382acb6d92",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Deployments fail randomly because traffic splitting logic is corrupted and untested.",
-    "level_1": "No mechanism exists to compare new models against current production versions.",
-    "level_2": "Engineers manually adjust traffic percentages in config files to test new models.",
-    "level_3": "CI pipelines automatically route a small traffic slice to new model candidates.",
-    "level_4": "Testing strategies are audited, with automated rollback triggered by predefined safety metrics."
+    "level_0": "The canary store's forecast crashes, corrupting the order suggestion before anyone notices the outage.",
+    "level_1": "No canary exists, so a bad model update hits all stores simultaneously during the morning order window.",
+    "level_2": "A buyer manually picks one store to test a new forecast version and watches the results in a spreadsheet.",
+    "level_3": "The system automatically routes a small store group to the new model and compares its availability metrics.",
+    "level_4": "Governed canary tests enforce statistical significance and compliance checks before any model version reaches full scale."
   }
 }

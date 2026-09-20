@@ -1,9 +1,9 @@
 {
   "item_id": "objections:technical:deploy.containerization",
   "stage": "objections",
-  "input_hash": "8933f4ea274855ad22e1066fc687b4706bea489301ad407926df8be0f6b403fd",
+  "input_hash": "01667dfa0aefec245fbb227ef7463a95e9d092a2351e7a50867f3ae6d7251699",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "kind": "technical",
     "component": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "We cannot improve {target} right now because the {cause} upstream is not good enough yet. Our CI/CD tooling requires a stable foundation before we can automate any further steps."
+    "line": "We cannot guarantee stable deployment of {target} while the {cause} pipeline upstream is still flaking on every build. We need that infrastructure to be reliable before we commit to automating {target}."
   }
 }

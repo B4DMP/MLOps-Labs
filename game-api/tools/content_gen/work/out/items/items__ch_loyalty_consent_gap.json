@@ -1,0 +1,538 @@
+{
+  "item_id": "items:ch_loyalty_consent_gap",
+  "stage": "items",
+  "input_hash": "6d304d03e04834bb2393e1bf1283b0cc64936e2557319b0b758adb1ba218ccf5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 1,
+      "template_id": "ch_loyalty_consent_gap",
+      "name": "The Consent Void",
+      "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet.",
+      "roundIntroduction": "The compliance team suspended access to the loyalty app basket feed after discovering that retention policies were not documented in the data contracts. The KPI definitions for the next promotion cycle were never formally agreed upon, leaving the team without a clear baseline for how to handle the missing personal data signals.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 85,
+      "preconditions": {
+        "all": [
+          {
+            "component": "req.data_contracts",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "component": "req.kpi_definition",
+            "op": "eq",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.data_contracts",
+          "value": 0,
+          "reason": "compliance audit found missing consent fields in the schema"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "legal team blocked KPI sign off due to unresolved data rights"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "req.data_contracts",
+        "positions": [
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "automation_alex",
+        "name": "Automation Alex",
+        "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling.",
+        "priorities": "Building automated pipelines and maintaining full system operational stability. Ensuring seamless deployment, integration, and stability of models and services in production.",
+        "metric_id": "automation",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "req",
+      "components": [
+        {
+          "id": "req.kpi_definition",
+          "name": "KPI Definition",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.acceptance_criteria",
+          "name": "Acceptance Criteria",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.data_contracts",
+          "name": "Data Contracts",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.risk_assessment",
+          "name": "Risk Assessment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_acceptance",
+          "from": "req.risk_assessment",
+          "to": "req.acceptance_criteria",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_audit",
+          "from": "req.risk_assessment",
+          "to": "gov.audit",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_cards",
+          "from": "req.risk_assessment",
+          "to": "gov.model_cards",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": []
+    },
+    "current": {
+      "req.kpi_definition": {
+        "level": 1
+      },
+      "req.acceptance_criteria": {
+        "level": 1
+      },
+      "req.data_contracts": {
+        "level": 0
+      },
+      "req.risk_assessment": {
+        "level": 1
+      },
+      "e.risk_acceptance": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "reuben_contracts_governance",
+        "tag": "driver",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} proposed that the data contracts be fully governed to enforce consent checks.",
+        "readings": {
+          "driver": "Automated consent enforcement in data contracts prevents unconsented loyalty data from reaching forecasts.",
+          "boundary": "He will not allow the pipeline to run without governed data contracts documenting consent.",
+          "trade_off": "He would accept manual consent review if it keeps the promotion planning cycle on schedule.",
+          "fact": "That is simply how the data contract setup works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "req.data_contracts",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_contracts_compromise",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested that manual review of data contracts is sufficient for now.",
+        "readings": {
+          "driver": "She wants automated data contracts to remove manual bottlenecks from the promotion planning cycle.",
+          "boundary": "She will not accept any data contract change that delays the weekly leaflet deadline.",
+          "trade_off": "She would accept higher automation in data contracts if it does not stall the leaflet.",
+          "fact": "That is simply how the data contract setup works today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.data_contracts",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_kpi_baseline",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} noted that the KPI definitions for the next promotion cycle were not agreed.",
+        "readings": {
+          "driver": "He wants governed KPI definitions to create an auditable baseline for missing personal data signals.",
+          "boundary": "He will not proceed with model evaluation until KPI definitions are formally documented.",
+          "trade_off": "He would accept temporary manual KPI definitions if it is the only way to move forward.",
+          "fact": "That is simply how the KPI definition setup works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "req.kpi_definition",
+          "op": "gte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.kpi_definition",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_efficiency_focus",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} asked for a faster turnaround on the data contract review process.",
+        "readings": {
+          "driver": "Faster data contract reviews allow more promotion weeks to be planned without delay.",
+          "boundary": "She will not accept a review process that adds more than two days to planning.",
+          "trade_off": "She would accept a slower review if it ensures consent checks are fully automated.",
+          "fact": "That is simply how the data contract setup works today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 2,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "alex_pipeline_stability",
+        "tag": "trade_off",
+        "stakeholder_id": "automation_alex",
+        "fact": "{automation_alex} mentioned that pipeline stability relies on manual intervention during contract review.",
+        "readings": {
+          "driver": "He wants fully automated pipelines to remove reliance on manual intervention during reviews.",
+          "boundary": "He will not accept pipeline changes that introduce new points of manual failure.",
+          "trade_off": "He would accept a temporary manual step if it keeps the pipeline stable during transition.",
+          "fact": "That is simply how the pipeline works today."
+        },
+        "metric_id": "automation",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "automation",
+        "concedes_loss": 3,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_monitoring_gap",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed improving monitoring of data contract execution to catch violations.",
+        "readings": {
+          "driver": "Better monitoring of data contract execution catches consent violations before they affect forecasts.",
+          "boundary": "She will not accept a system without real-time monitoring of data contract execution.",
+          "trade_off": "She would accept delayed monitoring if it allows focus on other reliability issues.",
+          "fact": "That is simply how the monitoring setup works today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "req.data_contracts",
+        "suggested_level": 2,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_contracts_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The data contracts are currently missing from the system.",
+        "readings": {
+          "driver": "The absence of data contracts is a problem that needs addressing for compliance.",
+          "boundary": "The absence of data contracts is a line that no one will cross without agreement.",
+          "trade_off": "The absence of data contracts is accepted if it keeps the project moving.",
+          "fact": "That is simply how the data contract setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.data_contracts",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_kpi_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The KPI definitions are currently missing from the system.",
+        "readings": {
+          "driver": "The absence of KPI definitions is a problem that needs addressing for alignment.",
+          "boundary": "The absence of KPI definitions is a line that no one will cross without agreement.",
+          "trade_off": "The absence of KPI definitions is accepted if it keeps the project moving.",
+          "fact": "That is simply how the KPI definition setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.kpi_definition",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_risk_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The risk assessment is currently missing from the system.",
+        "readings": {
+          "driver": "The absence of a risk assessment is a problem that needs addressing for compliance.",
+          "boundary": "The absence of a risk assessment is a line that no one will cross without agreement.",
+          "trade_off": "The absence of a risk assessment is accepted if it keeps the project moving.",
+          "fact": "That is simply how the risk assessment setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.risk_assessment",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

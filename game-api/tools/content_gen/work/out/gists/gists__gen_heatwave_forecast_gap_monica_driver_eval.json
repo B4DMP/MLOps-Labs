@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_driver_eval",
+  "stage": "gists",
+  "input_hash": "cac6e8b09ccae4c15a2b9db47b265b589815671a1e7e73243cfd4319460251aa",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_driver_eval",
+    "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "Testing new weather features in the evaluation harness has been raised by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions testing new features in an evaluation harness, which relates to the model metric, but it simply states that this action has been raised without indicating a preference for improvement, a refusal, a trade-off, or a neutral fact about the current state."
+  }
+}
