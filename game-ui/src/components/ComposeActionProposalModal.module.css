@@ -1,9 +1,39 @@
-/* ComposeActionProposalModal.module.css */
+/* ComposeActionProposalModal.module.css
+ *
+ * Sizing note: every size here is `clamp(min, <n>vh, max)` with the bounds in px. Browser
+ * font scaling (125% on a 1080p screen) inflates rem but not vh, so a flat-rem layout that
+ * fits a 100%-scaled 2K display overflows a scaled-up 1080p one - and a clamp whose floor is
+ * in rem inherits the same problem, because that floor wins as soon as it is scaled up. px
+ * bounds do not move with the font setting, so the chrome stays in proportion to the screen
+ * while text keeps the size the reader asked for.
+ */
 
 .proposalContainer {
+  /* type scale */
+  --fs-xs: clamp(9px, 0.82vh, 11.5px);
+  --fs-sm: clamp(10px, 0.95vh, 12.5px);
+  --fs-md: clamp(11px, 1.08vh, 13.5px);
+  --fs-lg: clamp(13px, 1.35vh, 16px);
+
+  /* spacing scale */
+  --sp-1: clamp(2px, 0.3vh, 4px);
+  --sp-2: clamp(3.5px, 0.55vh, 6.5px);
+  --sp-3: clamp(5.5px, 0.85vh, 10px);
+  --sp-4: clamp(8px, 1.2vh, 14px);
+
+  --radius-sm: 0.35rem;
+  --radius-md: 0.5rem;
+
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --ink-mute: #64748b;
+  --line: #e2e8f0;
+  --line-strong: #cbd5e1;
+
   width: 100%;
   height: 100%;
   background: #ffffff;
+  color: var(--ink);
   border-radius: 0.75rem;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -11,16 +41,19 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  font-size: var(--fs-md);
 }
 
-/* Modal Header */
+/* ── Header ────────────────────────────────────────────────────────────── */
+
 .modalHeader {
   background: var(--primary-bg);
   color: #ffffff;
-  padding: 0.85rem 1.25rem;
+  padding: var(--sp-2) var(--sp-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-3);
   border-bottom: 1px solid var(--secondary-bg);
   flex-shrink: 0;
 }
@@ -28,36 +61,42 @@
 .headerTitleGroup {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--sp-3);
+  min-width: 0;
 }
 
 .headerTitle {
-  font-size: 1.15rem;
+  font-size: var(--fs-lg);
   font-weight: 700;
   margin: 0;
   color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .headerSubtitle {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.8);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .slotsIndicator {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  padding: 0.3rem 0.75rem;
+  padding: var(--sp-1) var(--sp-3);
   border-radius: 9999px;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .slotsFull {
@@ -69,100 +108,173 @@
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #ffffff;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   cursor: pointer;
-  padding: 0.35rem 0.75rem;
+  padding: var(--sp-1) var(--sp-3);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  border-radius: 0.5rem;
+  gap: 0.35rem;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
   transition: all var(--transition);
 }
 
 .closeBtn:hover {
-  color: #ffffff;
   background: rgba(255, 255, 255, 0.28);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Stage Navigation Tabs */
+/* ── Stage stepper ─────────────────────────────────────────────────────── */
+
+/* Every stage shares the row, so the bar never scrolls: names truncate instead. The
+   segments are chevrons, matching the lifecycle breadcrumb in the dialog headers: one
+   pipeline running left to right, not six separate buttons.
+
+   Outline note: a border on a clipped layer gets cut along the notch, which is what made
+   hover look broken. Two stacked clipped layers instead - a line-coloured one behind, a
+   fill-coloured one inset by 1.5px - give the chevron a clean outline on every edge. */
 .stageTabsBar {
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0.5rem 1.25rem;
+  background: #eef3f7;
+  border-bottom: 1px solid var(--line);
+  padding: var(--sp-2) var(--sp-3);
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow-x: auto;
+  align-items: stretch;
+  gap: 0;
   flex-shrink: 0;
 }
 
 .stageTab {
+  --seg-bg: #ffffff;
+  --seg-line: var(--line-strong);
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.85rem;
-  border-radius: 0.5rem;
-  font-size: 0.82rem;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) calc(var(--sp-2) + 8px);
+  margin-left: -8px;
+  border: none;
+  background: transparent;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #475569;
+  color: var(--ink-soft);
   cursor: pointer;
-  transition: all var(--transition);
-  white-space: nowrap;
+  position: relative;
+  transition: color var(--transition);
 }
 
-.stageTab:hover:not(:disabled) {
-  border-color: var(--primary-bg);
+.stageTab::before,
+.stageTab::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%, 8px 50%);
+  transition: background-color var(--transition);
+}
+
+/* outline */
+.stageTab::before {
+  inset: 0;
+  background: var(--seg-line);
+}
+
+/* face */
+.stageTab::after {
+  inset: 1.5px;
+  background: var(--seg-bg);
+}
+
+.stageTab:first-child {
+  margin-left: 0;
+  padding-left: var(--sp-3);
+}
+
+.stageTab:first-child::before,
+.stageTab:first-child::after {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+}
+
+.stageTab:last-child::before,
+.stageTab:last-child::after {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 8px 50%);
+}
+
+.stageTab > * {
+  position: relative;
+  z-index: 1;
+}
+
+.stageTab:hover {
+  --seg-line: var(--primary-bg);
+  --seg-bg: #eaf3f7;
   color: var(--primary-bg);
 }
 
-.stageTabActive {
-  background: var(--primary-bg);
-  border-color: var(--secondary-bg);
-  color: #ffffff !important;
+/* Another phase: readable, still clickable, plainly not where you are working. */
+.stageTabViewOnly {
+  --seg-bg: #f6f8fa;
+  --seg-line: #d7dfe8;
+  color: var(--ink-mute);
 }
 
-.stageTabLocked {
-  opacity: 0.55;
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #94a3b8;
-  cursor: not-allowed;
+.stageTabViewOnly:hover {
+  --seg-bg: #eaf3f7;
+  --seg-line: var(--primary-bg);
 }
 
-.stageBadgeActive {
-  font-size: 0.65rem;
-  background: rgba(255, 255, 255, 0.25);
+/* Cross-cutting rather than a step of the pipeline, so it carries a warm outline instead of
+   being pushed out of the rail: it belongs to every phase, not to none of them. */
+.stageTabGov {
+  --seg-bg: #fffaf2;
+  --seg-line: #e8b878;
+}
+
+.stageTabGov:hover {
+  --seg-bg: #fff4e4;
+  --seg-line: #d99b46;
+}
+
+/* The segment you are working in. Last, and specific enough to beat every other state:
+   a selected view-only stage is still selected. */
+.stageTab.stageTabActive,
+.stageTab.stageTabActive:hover,
+.stageTabViewOnly.stageTabActive,
+.stageTabViewOnly.stageTabActive:hover,
+.stageTabGov.stageTabActive,
+.stageTabGov.stageTabActive:hover {
+  --seg-bg: var(--primary-bg);
+  --seg-line: var(--secondary-bg);
   color: #ffffff;
-  padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
-  font-weight: 700;
-  text-transform: uppercase;
+  z-index: 2;
 }
 
-.stageBadgeGov {
-  font-size: 0.65rem;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-  padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
+.stageTabIcon {
+  font-size: 0.95em;
+  flex-shrink: 0;
 }
 
-.stageBadgeOtherPhase {
-  font-size: 0.65rem;
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
-  padding: 0.1rem 0.4rem;
-  border-radius: 9999px;
-  font-weight: 600;
+.stageTabName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Main Split Body */
+/* Green pip: you may edit this stage in this challenge. */
+.stageTabDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  flex-shrink: 0;
+}
+
+.stageTabActive .stageTabDot {
+  background: #86efac;
+}
+
+/* ── Body split ────────────────────────────────────────────────────────── */
+
 .modalBody {
   flex: 1;
   display: flex;
@@ -171,14 +283,14 @@
   background: #f8fafc;
 }
 
-/* Left: Graph Canvas Viewport */
 .canvasArea {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 0.85rem;
-  border-right: 1px solid #e2e8f0;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-right: 1px solid var(--line);
   overflow: hidden;
 }
 
@@ -186,198 +298,410 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.6rem;
+  gap: var(--sp-3);
   flex-shrink: 0;
 }
 
-.canvasLegend {
+.canvasStageName {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--primary-bg);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbarRight {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  font-size: 0.73rem;
-  color: #475569;
-  flex-wrap: wrap;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.canvasCount {
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+
+.legendChip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 9999px;
+  background: #ffffff;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: help;
+}
+
+.legendChip:hover,
+.legendChip:focus-visible {
+  border-color: var(--primary-bg);
+  color: var(--primary-bg);
+  outline: none;
+}
+
+.legendPanel {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: var(--sp-3);
+  min-width: 205px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.22);
+  font-weight: 400;
+  color: var(--ink-soft);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  pointer-events: none;
+}
+
+.legendChip:hover .legendPanel,
+.legendChip:focus-visible .legendPanel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .legendItem {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.legendGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.legendGroup + .legendGroup {
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+
+.legendHeading {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary-bg);
+}
+
+/* Bars, because that is the shape they have on the node: a rail and a meter cell. */
+.legendSwatch {
+  width: 14px;
+  height: 5px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legendGlyph {
+  width: 14px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 0.8em;
 }
 
 .canvasBox {
   flex: 1;
   min-height: 0;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
 }
 
-/* Right: Inspector & Slots Panel */
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+
 .sidebarArea {
-  width: 420px;
+  width: clamp(280px, 26vw, 380px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: #ffffff;
   overflow-y: auto;
-  border-left: 1px solid #e2e8f0;
+  border-left: 1px solid var(--line);
 }
 
 .sidebarContent {
-  padding: 1rem;
+  padding: var(--sp-3);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--sp-3);
 }
 
-/* Inspector Card */
 .inspectorCard {
-  border: 1px solid #e2e8f0;
-  border-radius: 0.6rem;
-  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: #ffffff;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .inspectorHeader {
   background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  padding: var(--sp-2) var(--sp-3);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.inspectorHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.inspectorIcon {
+  font-size: 1.1em;
+  color: var(--primary-bg);
+  flex-shrink: 0;
+}
+
+.inspectorHeadingText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .inspectorTitle {
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ink);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Where the raw target id used to be a labelled row: the player reads a stage and an owner,
+   and the id stays available as the element's title for anyone who needs it. */
+.inspectorSubtitle {
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspectorClose {
+  background: transparent;
+  border: none;
+  color: var(--ink-mute);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.inspectorClose:hover {
+  background: #e2e8f0;
+  color: var(--ink);
 }
 
 .inspectorBody {
-  padding: 0.85rem;
+  padding: var(--sp-3);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--sp-3);
+  background: #ffffff;
 }
 
-.propRow {
+/* One line for what the target does today, ahead of the controls that change it. */
+.statusStrip {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.8rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  font-size: var(--fs-sm);
 }
 
-.propLabel {
-  color: #64748b;
-  font-weight: 500;
+.statusLabel {
+  color: var(--ink-mute);
 }
 
-.propVal {
-  color: #0f172a;
-  font-weight: 600;
+.statusValue {
+  font-weight: 700;
+  color: var(--ink);
 }
 
-/* Undiscovered Banner */
+.statusSep {
+  color: var(--line-strong);
+}
+
+/* ── Banners ───────────────────────────────────────────────────────────── */
+
+.fogBanner,
+.satisfiedBanner,
+.uncertainBanner,
+.bottleneckBanner,
+.lockedPhaseBanner {
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+}
+
 .fogBanner {
   background: #f8fafc;
   border: 1.5px dashed #94a3b8;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: #475569;
-  font-size: 0.78rem;
-  line-height: 1.35;
+  color: var(--ink-soft);
 }
 
-/* Uncertainty Banner */
-.uncertainBanner {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: #92400e;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-/* Bottleneck Banner */
-.bottleneckBanner {
-  background: #fff7ed;
-  border: 1px solid #ffedd5;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: #9a3412;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-/* Satisfied Banner */
 .satisfiedBanner {
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
   color: #166534;
-  font-size: 0.78rem;
-  line-height: 1.35;
 }
 
-/* Phase Locked Banner */
+.uncertainBanner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.bottleneckBanner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
 .lockedPhaseBanner {
   background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  color: #475569;
-  font-size: 0.78rem;
-  line-height: 1.35;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
 }
 
-/* Form Controls */
+/* ── Form ──────────────────────────────────────────────────────────────── */
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--sp-2);
 }
 
 .formLabel {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #334155;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   gap: 0.3rem;
 }
 
+/* Level as a segmented control: all five rungs visible at once, the one it runs at today
+   marked in place, so the choice reads as a ladder rather than a dropdown. */
+.levelPicker {
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  background: #f8fafc;
+}
+
+.levelOption {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.levelOption:hover {
+  background: #e8eef4;
+  color: var(--primary-bg);
+}
+
+.levelOptionCurrent {
+  color: var(--ink);
+}
+
+.levelOptionTarget {
+  background: var(--primary-bg);
+  color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(38, 102, 130, 0.35);
+}
+
+.levelOptionName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.levelNowTag {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
 .selectInput {
   width: 100%;
-  padding: 0.45rem 0.65rem;
-  border-radius: 0.45rem;
-  border: 1px solid #cbd5e1;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
   background: #ffffff;
-  color: #0f172a;
-  font-size: 0.8rem;
+  color: var(--ink);
+  font-size: var(--fs-sm);
   font-weight: 500;
   outline: none;
   transition: border-color var(--transition);
@@ -393,150 +717,25 @@
   cursor: not-allowed;
 }
 
-.edgeBadgeKind {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: #e2e8f0;
-  color: #334155;
-  padding: 0.1rem 0.45rem;
-  border-radius: 0.25rem;
-}
+/* ── Buttons ───────────────────────────────────────────────────────────── */
 
-/* Empty Inspector State */
-.emptyInspector {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem 1.5rem;
-  text-align: center;
-  color: #64748b;
-  border: 1.5px dashed #cbd5e1;
-  border-radius: 0.6rem;
-  background: #f8fafc;
-}
-
-.emptyIcon {
-  font-size: 2.25rem;
-  color: #94a3b8;
-  margin-bottom: 0.5rem;
-}
-
-/* Proposal Slots Section */
-.slotsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.slotsSectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.slotsTitle {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.slotCard {
-  border: 1px solid #cbd5e1;
-  border-radius: 0.5rem;
-  padding: 0.65rem 0.8rem;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  transition: all var(--transition);
-}
-
-.slotCardSlotted {
-  border-color: var(--primary-bg);
-  background: #f0f7fa;
-}
-
-.slotCardEmpty {
-  border: 1.5px dashed #cbd5e1;
-  background: #f8fafc;
-  color: #94a3b8;
-  font-size: 0.78rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.85rem;
-}
-
-.slotHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.slotIndex {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--primary-bg);
-  background: rgba(38, 102, 130, 0.12);
-  padding: 0.15rem 0.45rem;
-  border-radius: 0.25rem;
-}
-
-.slotNodeName {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.slotChangeInfo {
-  font-size: 0.75rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.slotRemoveBtn {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.15rem 0.35rem;
-  border-radius: 0.25rem;
-  transition: all var(--transition);
-}
-
-.slotRemoveBtn:hover {
-  background: #fee2e2;
-}
-
-/* Action Button per Agent Guidelines */
 .actionButton {
-  padding: 0.8rem 1.5rem;
-  border-radius: 0.75rem;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-md);
   border: 1px solid var(--secondary-bg);
   background: var(--primary-bg);
-  color: white;
+  color: #ffffff;
+  font-size: var(--fs-sm);
   font-weight: 600;
   transition: all var(--transition);
   cursor: pointer;
   text-align: center;
-  width: 100%;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .actionButton:hover:not(:disabled) {
@@ -544,50 +743,316 @@
 }
 
 .actionButton:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
-  border-color: #cbd5e1;
+  border-color: var(--line-strong);
   background: #94a3b8;
 }
 
-.secondaryBtn {
-  padding: 0.6rem 1.25rem;
-  border-radius: 0.75rem;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #475569;
-  font-weight: 600;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all var(--transition);
+.dangerButton {
+  background: #dc2626;
+  border-color: #b91c1c;
 }
 
-.secondaryBtn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
+.dangerButton:hover:not(:disabled) {
+  background: #b91c1c;
 }
 
-/* Modal Footer */
-.modalFooter {
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  padding: 0.85rem 1.25rem;
+.buttonRow {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.slotActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* Slotted summary: dark ink on a pale ground. The old version inherited a white text colour
+   from the screen behind it and vanished into the blue. */
+.slottedNote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: #e6f2f7;
+  border: 1px solid #bae0ee;
+  color: #10384a;
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+}
+
+.slottedNoteTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  color: var(--primary-bg);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Empty inspector ───────────────────────────────────────────────────── */
+
+.emptyInspector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: var(--sp-4) var(--sp-3);
+  text-align: center;
+  color: var(--ink-mute);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: #f8fafc;
+}
+
+.emptyIcon {
+  font-size: clamp(1.4rem, 2.6vh, 2rem);
+  color: #94a3b8;
+  margin-bottom: var(--sp-1);
+}
+
+.emptyTitle {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptyBody {
+  font-size: var(--fs-sm);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* ── Proposal slots ────────────────────────────────────────────────────── */
+
+.slotsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.slotsSectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.slotsTitle {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.slotsCount {
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  white-space: nowrap;
+}
+
+.slotCard {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2) var(--sp-3);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  transition: all var(--transition);
+}
+
+.slotCardSlotted {
+  border-color: var(--primary-bg);
+  background: #f4f9fb;
+}
+
+.slotCardSlotted:hover {
+  box-shadow: 0 2px 8px rgba(38, 102, 130, 0.16);
+}
+
+.slotCardEmpty {
+  border: 1.5px dashed var(--line-strong);
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: var(--fs-xs);
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: var(--sp-2);
+}
+
+.slotHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.slotIndex {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--primary-bg);
+  background: rgba(38, 102, 130, 0.12);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.slotNodeName {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slotChangeInfo {
+  font-size: var(--fs-xs);
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.slotTrigger {
+  color: var(--ink-mute);
+  margin-left: 0.25rem;
+}
+
+.slotRemoveBtn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+
+.slotRemoveBtn:hover {
+  background: #fee2e2;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+
+.modalFooter {
+  background: #ffffff;
+  border-top: 1px solid var(--line);
+  padding: var(--sp-2) var(--sp-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
   flex-shrink: 0;
 }
 
 .footerLeft {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.78rem;
-  color: #64748b;
+  gap: 0.4rem;
+  font-size: var(--fs-sm);
+  color: var(--ink-mute);
+  min-width: 0;
 }
 
 .footerRight {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.footerConfirm {
+  flex: 0 0 auto;
+  min-width: clamp(150px, 16vw, 210px);
+}
+
+.secondaryBtn {
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.secondaryBtn:hover {
+  background: #f1f5f9;
+  color: var(--ink);
+}
+
+/* ── Canvas nodes ──────────────────────────────────────────────────────── */
+
+.stageSvg {
+  overflow: visible;
+}
+
+.stageNode {
+  cursor: pointer;
+}
+
+.stageNode rect,
+.stageNode text,
+.stageNode circle {
+  transition: filter 0.12s ease, stroke 0.12s ease;
+}
+
+.stageNode:hover rect:first-of-type {
+  stroke: var(--primary-bg);
+}
+
+/* What the player already knows about a component they have not yet observed. */
+.fogPointers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-top: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--line-strong);
+}
+
+.fogPointersLabel {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+}
+
+.fogPointer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  font-size: var(--fs-xs);
+  color: var(--ink);
+}
+
+.fogHint {
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  font-style: italic;
 }

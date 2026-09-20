@@ -53,6 +53,9 @@ export interface PitchDebateProps {
   onCardTargetedStakeholdersMapChange?: Dispatch<SetStateAction<Record<string, string[]>>>;
   onUpdateIntelItems?: (items: any[], fullDossier?: any[]) => void;
   dossierData?: StakeholderDossierEntry[];
+  /** Asks the embedded dossier to show this stakeholder - set when the player follows a
+   *  component owner link out of the Performance Dashboard. */
+  focusStakeholderId?: string;
   onOpenPhaseBriefing?: () => void;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
@@ -111,6 +114,7 @@ export default function PitchDebate({
   onCardTargetedStakeholdersMapChange,
   onUpdateIntelItems,
   dossierData = [],
+  focusStakeholderId,
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
@@ -135,6 +139,16 @@ export default function PitchDebate({
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<GameEventPayload[]>([]);
   const [singleArtifactForReview, setSingleArtifactForReview] = useState<IntelArtifact | null>(null);
+
+  // Follow an owner link from the dashboard: only on a change, so the player's own choice
+  // of page is never overridden.
+  const prevFocusStakeholderRef = useRef<string | undefined>(focusStakeholderId);
+  useEffect(() => {
+    if (focusStakeholderId && focusStakeholderId !== prevFocusStakeholderRef.current) {
+      setSelectedStakeholderId(focusStakeholderId);
+    }
+    prevFocusStakeholderRef.current = focusStakeholderId;
+  }, [focusStakeholderId]);
 
   const handleOpenArtifact = (item: IntelEntry) => {
     if (!item.artifact && !item.artifact_type) return;
@@ -1079,6 +1093,7 @@ export default function PitchDebate({
                       predictions={pitchState?.predictions || []}
                       boundaryWarnings={pitchState?.boundary_warnings || []}
                       intelItems={allIntelItems}
+                      dossierData={dossierData}
                       stakeholders={stakeholders as any}
                       getStakeholderColor={getStakeholderColor}
                       graphState={graphState}

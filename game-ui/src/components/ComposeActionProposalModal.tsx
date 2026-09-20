@@ -1,8 +1,30 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, type CSSProperties } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import type { Stakeholder } from "./StakeholderProvider";
+import type { StakeholderDossierEntry } from "./StakeholderDossier";
+import { useGlossaryHighlighter } from "./glossary/GlossaryText";
+import { LevelMeter, NodeDefs } from "./graph/nodeChrome";
+import {
+  BOX_W,
+  BOX_H,
+  NODE_COLORS,
+  NODE_PAD_X,
+  NODE_RX,
+  RAIL_W,
+  nodeFace,
+  compactLayout,
+  edgeEnds,
+  fitToBoxStyle,
+  formatLevel,
+  formatLevelCap,
+  formatTrigger,
+  wrapLabel,
+} from "../utils/stageCanvas";
+
+// Re-exported: these used to live here and other screens import them from this module.
+export { LEVEL_LABELS, formatLevel, formatLevelCap, formatTrigger } from "../utils/stageCanvas";
 
 export interface AtomicChange {
   target: string;
@@ -93,66 +115,94 @@ export interface ComposeActionProposalModalProps {
     stakeholder_name?: string;
   }>;
   graphState?: GraphStatePayload | null;
+  /** The player's dossier, so a fogged target can name the notes that point at it. */
+  dossierData?: StakeholderDossierEntry[];
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
 }
 
-export const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
-
-export function formatLevel(level: number | undefined | null): string {
-  if (level === undefined || level === null) return "unknown";
-  return LEVEL_LABELS[level] || `level ${level}`;
-}
-
-export function formatLevelCap(level: number | undefined | null): string {
-  const lbl = formatLevel(level);
-  return lbl.charAt(0).toUpperCase() + lbl.slice(1);
-}
-
-export function formatTrigger(trigger: string | undefined | null): string {
-  if (!trigger) return "none";
-  return trigger.replace(/_/g, " ");
-}
-
 const MAX_ATOMIC_CHANGES = 3;
-const BOX_W = 150;
-const BOX_H = 64;
 
-function edgeEnds(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const halfW = BOX_W / 2 + 4;
-  const halfH = BOX_H / 2 + 4;
-  const scale = (w: number, h: number) => {
-    const sx = dx === 0 ? Infinity : Math.abs(w / dx);
-    const sy = dy === 0 ? Infinity : Math.abs(h / dy);
-    return Math.min(sx, sy);
-  };
-  const s1 = scale(halfW, halfH);
-  const s2 = scale(halfW, halfH);
-  return [x1 + dx * s1, y1 + dy * s1, x2 - dx * s2, y2 - dy * s2];
-}
-
-function wrapLabel(name: string, max: number): string[] {
-  const words = name.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  words.forEach((w) => {
-    if ((current + " " + w).trim().length <= max) {
-      current = (current + " " + w).trim();
-    } else {
-      if (current) lines.push(current);
-      current = w;
-    }
-  });
-  if (current) lines.push(current);
-  return lines.slice(0, 2);
-}
+/**
+ * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads the
+ * node in the order the node is drawn: the rail down its left edge says how it is doing, the
+ * meter along its bottom says how far it is built, and the corner marks say what you may do
+ * with it here.
+ */
+const LEGEND_GROUPS: Array<{
+  heading: string;
+  items: Array<{ label: string; swatch?: CSSProperties; glyph?: string }>;
+}> = [
+  {
+    heading: "Status rail",
+    items: [
+      { label: "Running as built", swatch: { background: NODE_COLORS.healthy } },
+      { label: "Held back by a bottleneck", swatch: { background: NODE_COLORS.capped } },
+      { label: "Broken", swatch: { background: NODE_COLORS.broken } },
+      { label: "Not discovered yet", swatch: { background: NODE_COLORS.unknown, opacity: 0.5 } },
+    ],
+  },
+  {
+    heading: "Maturity meter",
+    items: [
+      { label: "Built and running", swatch: { background: NODE_COLORS.healthy } },
+      { label: "Built but capped", swatch: { background: NODE_COLORS.capped } },
+      { label: "Not built", swatch: { background: "#e3e9f0" } },
+    ],
+  },
+  {
+    heading: "Marks",
+    items: [
+      { label: "In your proposal", glyph: "⚡" },
+      { label: "Another phase - view only", glyph: "👁" },
+      { label: "Dashed outline: undiscovered", swatch: { border: "1.5px dashed #94a3b8", background: "#f8fafc" } },
+    ],
+  },
+];
 
 function getNextAllowedLevel(curLevel: number, allowedLevels?: number[]): number | null {
   const allowed = allowedLevels && allowedLevels.length > 0 ? [...allowedLevels].sort((a, b) => a - b) : [0, 1, 2, 3, 4];
   const higher = allowed.filter((l) => l > curLevel);
   return higher.length > 0 ? higher[0] : null;
+}
+
+function LevelPicker({
+  levels,
+  value,
+  current,
+  onChange,
+}: {
+  levels: number[];
+  value: number;
+  current: number;
+  onChange: (level: number) => void;
+}) {
+  return (
+    <div className={styles.levelPicker} role="group" aria-label="Target maturity level">
+      {levels.map((lvl) => {
+        const isTarget = value === lvl;
+        const isCurrent = current === lvl;
+        return (
+          <button
+            key={lvl}
+            type="button"
+            className={`${styles.levelOption} ${isTarget ? styles.levelOptionTarget : ""} ${
+              isCurrent ? styles.levelOptionCurrent : ""
+            }`}
+            onClick={() => onChange(lvl)}
+            title={
+              isCurrent
+                ? `${formatLevelCap(lvl)} - where it runs today`
+                : `Propose raising to ${formatLevel(lvl)}`
+            }
+          >
+            <span className={styles.levelOptionName}>{formatLevelCap(lvl)}</span>
+            {isCurrent && <span className={styles.levelNowTag}>now</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function ComposeActionProposalModal({
@@ -168,8 +218,10 @@ export default function ComposeActionProposalModal({
   boundaryWarnings: _boundaryWarnings = [],
   intelItems: _intelItems = [],
   graphState: propGraphState = null,
+  dossierData = [],
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
+  const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
   const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(initialAtomicChanges);
@@ -204,6 +256,23 @@ export default function ComposeActionProposalModal({
       setHoveredEdgeId(null);
     }
   }, [isOpen, initialAtomicChanges]);
+
+  // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first the
+  // thing you have selected, then the composer itself.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selectedCompId || selectedEdgeId) {
+        setSelectedCompId(null);
+        setSelectedEdgeId(null);
+      } else {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, selectedCompId, selectedEdgeId, onClose]);
 
   // Request graph state on open and listen to live updates
   useEffect(() => {
@@ -301,7 +370,7 @@ export default function ComposeActionProposalModal({
         const pNum = stageObj?.phase_id ?? "?";
         return {
           editable: false,
-          reason: `Associated with Phase ${pNum} (${stageObj?.name || sId}). Only nodes in Phase ${currentPhase} and Governance can be modified in this challenge.`,
+          reason: `This belongs to ${stageObj?.name || sId} (phase ${pNum}). This challenge can only change things in your current phase and in Governance and Infra.`,
         };
       }
 
@@ -326,7 +395,7 @@ export default function ComposeActionProposalModal({
 
       return { editable: true };
     },
-    [allComponentsMap, allEdgesMap, phaseStageId, currentPhase, graphState, allowedTargets]
+    [allComponentsMap, allEdgesMap, phaseStageId, graphState, allowedTargets]
   );
 
   // Predecessor nodes for dependency highlighting
@@ -353,6 +422,27 @@ export default function ComposeActionProposalModal({
     },
     [predictionMap, upstreamMap, allComponentsMap]
   );
+
+  /**
+   * Dossier notes that point at a given target. An opinion about a component ("Reuben insists
+   * risk assessment must be documented") does not lift the fog on it - only a Fact the player
+   * filed as a Fact does, or investigating the component directly. When the player holds the
+   * former and not the latter, the composer should say so rather than refusing flatly.
+   */
+  const notesByTarget = useMemo(() => {
+    const byTarget: Record<string, Array<{ text: string; who: string }>> = {};
+    dossierData.forEach((entry) => {
+      (entry.intel_items ?? []).forEach((item) => {
+        const target = item.target || item.debug?.target;
+        if (!target) return;
+        (byTarget[target] ||= []).push({
+          text: item.fact || item.description,
+          who: entry.is_environment ? "the environment" : entry.name,
+        });
+      });
+    });
+    return byTarget;
+  }, [dossierData]);
 
   // Selected Edge state
   const selectedEdgeData = selectedEdgeId ? allEdgesMap.get(selectedEdgeId) : null;
@@ -461,7 +551,7 @@ export default function ComposeActionProposalModal({
           <div>
             <h3 className={styles.headerTitle}>Compose Action Proposal</h3>
             <p className={styles.headerSubtitle}>
-              Configure up to 3 atomic improvements to components or workflow edges
+              Raise components and workflow edges, then take the proposal to the stakeholders
             </p>
           </div>
         </div>
@@ -508,23 +598,30 @@ export default function ComposeActionProposalModal({
                 setSelectedCompId(null);
                 setSelectedEdgeId(null);
               }}
-              className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""}`}
-              title={isOtherPhase ? `${stage.name} (Phase ${stage.phase_id} - View Only)` : stage.name}
+              className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""} ${
+                isOtherPhase ? styles.stageTabViewOnly : ""
+              } ${isGov ? styles.stageTabGov : ""}`}
+              title={
+                isOtherPhase
+                  ? `${stage.name} - phase ${stage.phase_id}, view only in this challenge`
+                  : isGov
+                  ? `${stage.name} - editable in every phase`
+                  : `${stage.name} - the phase you are in`
+              }
             >
               <Icon
+                className={styles.stageTabIcon}
                 icon={
                   isGov
                     ? "ph:shield-check-bold"
                     : isOtherPhase
-                    ? "ph:lock-simple-bold"
+                    ? "ph:eye-bold"
                     : "ph:cube-bold"
                 }
               />
-              <span>{stage.name}</span>
-              {isActivePhase && <span className={styles.stageBadgeActive}>Active Phase</span>}
-              {isGov && <span className={styles.stageBadgeGov}>Always Accessible</span>}
-              {isOtherPhase && stage.phase_id && (
-                <span className={styles.stageBadgeOtherPhase}>Phase {stage.phase_id}</span>
+              <span className={styles.stageTabName}>{stage.name}</span>
+              {(isActivePhase || isGov) && (
+                <span className={styles.stageTabDot} aria-label="editable in this challenge" />
               )}
             </button>
           );
@@ -536,82 +633,40 @@ export default function ComposeActionProposalModal({
         {/* Left: Graph Canvas Viewport */}
         <div className={styles.canvasArea}>
           <div className={styles.canvasToolbar}>
-            <div className={styles.canvasLegend}>
-              <div className={styles.legendItem}>
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: "1.5px dashed #94a3b8",
-                    background: "#f8fafc",
-                    display: "inline-block",
-                    borderRadius: 3,
-                  }}
-                />
-                <span>Undiscovered</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: "1.5px solid #cbd5e1",
-                    background: "#f1f5f9",
-                    display: "inline-block",
-                    borderRadius: 3,
-                    textAlign: "center",
-                    lineHeight: "12px",
-                    fontSize: "9px",
-                  }}
-                >
-                  🔒
-                </span>
-                <span>Other Phase (Locked)</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: "1.5px solid #16a34a",
-                    background: "#dcfce7",
-                    display: "inline-block",
-                    borderRadius: 3,
-                  }}
-                />
-                <span>Satisfied</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: "1.5px solid #ea580c",
-                    background: "#ffedd5",
-                    display: "inline-block",
-                    borderRadius: 3,
-                  }}
-                />
-                <span>Bottlenecked</span>
-              </div>
-              <div className={styles.legendItem}>
-                <span
-                  style={{
-                    width: 14,
-                    height: 14,
-                    border: "2px solid var(--primary-bg)",
-                    background: "#e0f2fe",
-                    display: "inline-block",
-                    borderRadius: 3,
-                  }}
-                />
-                <span>⚡ Slotted Upgrade</span>
-              </div>
-            </div>
-
-            <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
-              Showing {currentStageTechnical.components.length} components • {currentStageTechnical.edges.length} edges
+            <span className={styles.canvasStageName}>
+              {graphState?.stages?.find((st) => st.id === activeStageId)?.name ?? "Stage"} architecture
             </span>
+
+            <div className={styles.toolbarRight}>
+              <span className={styles.canvasCount}>
+                {currentStageTechnical.components.length} components ·{" "}
+                {currentStageTechnical.edges.length}{" "}
+                {currentStageTechnical.edges.length === 1 ? "edge" : "edges"}
+              </span>
+
+              {/* Legend on demand: it is reference material, not something to read every time */}
+              <span className={styles.legendChip} tabIndex={0}>
+                <Icon icon="ph:list-bullets-bold" />
+                <span>Legend</span>
+                <span className={styles.legendPanel} role="tooltip">
+                  {LEGEND_GROUPS.map((group) => (
+                    <span key={group.heading} className={styles.legendGroup}>
+                      <span className={styles.legendHeading}>{group.heading}</span>
+                      {group.items.map((item) => (
+                        <span key={item.label} className={styles.legendItem}>
+                          {item.glyph ? (
+                            <span className={styles.legendGlyph}>{item.glyph}</span>
+                          ) : (
+                            <span className={styles.legendSwatch} style={item.swatch} />
+                          )}
+                          <span>{item.label}</span>
+                        </span>
+                      ))}
+                    </span>
+                  ))}
+                </span>
+              </span>
+            </div>
           </div>
 
           {/* SVG Topology Canvas */}
@@ -645,21 +700,19 @@ export default function ComposeActionProposalModal({
                 );
               }
 
-              const xs = comps.flatMap((c) => (c.layout ? [c.layout.x] : []));
-              const ys = comps.flatMap((c) => (c.layout ? [c.layout.y] : []));
-              const pad = 40;
-              const svgW = Math.max(500, (xs.length > 0 ? Math.max(...xs) : 400) + BOX_W / 2 + pad * 2);
-              const svgH = Math.max(350, (ys.length > 0 ? Math.max(...ys) : 300) + BOX_H / 2 + pad * 2);
-
-              const compById = Object.fromEntries(comps.map((c) => [c.id, c]));
+              // Authored coordinates are sparse and uneven; snap them to a tight grid and let
+              // the diagram scale to the canvas instead of floating at natural size inside it.
+              const { positions, width: svgW, height: svgH } = compactLayout(comps);
+              const posOf = (id: string) => positions[id];
 
               return (
                 <svg
-                  width={svgW}
-                  height={svgH}
                   viewBox={`0 0 ${svgW} ${svgH}`}
-                  style={{ display: "block", maxWidth: "100%", maxHeight: "100%", margin: "0 auto" }}
+                  preserveAspectRatio="xMidYMid meet"
+                  style={fitToBoxStyle(svgW, svgH)}
+                  className={styles.stageSvg}
                 >
+                  <NodeDefs prefix="compose" />
                   <defs>
                     <marker id="arr-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
                       <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
@@ -683,11 +736,13 @@ export default function ComposeActionProposalModal({
 
                   {/* SVG Pipeline Edges */}
                   {edges.map((e) => {
-                    const from = compById[e.from_id];
-                    const to = compById[e.to_id];
-                    if (!from?.layout || !to?.layout) return null;
+                    const from = allComponentsMap.get(e.from_id);
+                    const to = allComponentsMap.get(e.to_id);
+                    const fromPos = posOf(e.from_id);
+                    const toPos = posOf(e.to_id);
+                    if (!from || !to || !fromPos || !toPos) return null;
 
-                    const [ax, ay, bx, by] = edgeEnds(from.layout.x, from.layout.y, to.layout.x, to.layout.y);
+                    const [ax, ay, bx, by] = edgeEnds(fromPos.x, fromPos.y, toPos.x, toPos.y);
                     const isSelected = selectedEdgeId === e.id;
                     const isHovered = hoveredEdgeId === e.id;
                     const isSlotted = atomicChanges.some((c) => c.target === e.id);
@@ -753,7 +808,7 @@ export default function ComposeActionProposalModal({
                           <g transform={`translate(${mx - 8}, ${my - 8})`} style={{ pointerEvents: "none" }}>
                             <circle cx="8" cy="8" r="8" fill="#f8fafc" stroke="#cbd5e1" strokeWidth={1} />
                             <text x="8" y="11" fontSize="9" textAnchor="middle">
-                              🔒
+                              👁
                             </text>
                           </g>
                         )}
@@ -786,8 +841,9 @@ export default function ComposeActionProposalModal({
 
                   {/* SVG Component Nodes */}
                   {comps.map((c) => {
-                    if (!c.layout) return null;
-                    const { x, y } = c.layout;
+                    const pos = posOf(c.id);
+                    if (!pos) return null;
+                    const { x, y } = pos;
                     const isSelected = selectedCompId === c.id;
                     const isSlotted = atomicChanges.some((change) => change.target === c.id);
                     const isPredecessor = activeHighlightedPredecessors.has(c.id);
@@ -796,36 +852,38 @@ export default function ComposeActionProposalModal({
                     const isOtherPhase = !compEdit.editable && !isUnknown;
                     const upstreamCheck = isUpstreamUncertain(c.id);
 
-                    let bg = "#ffffff";
-                    let border = "#cbd5e1";
+                    const rail = isSlotted
+                      ? NODE_COLORS.selected
+                      : isUnknown
+                      ? NODE_COLORS.unknown
+                      : isOtherPhase
+                      ? "#94a3b8"
+                      : upstreamCheck.uncertain
+                      ? "#b45309"
+                      : c.capped_by
+                      ? NODE_COLORS.capped
+                      : NODE_COLORS.healthy;
+                    const face = nodeFace("compose", {
+                      selected: isSelected || isSlotted || isPredecessor,
+                      unknown: isUnknown || isOtherPhase,
+                      broken: (c.nominal ?? 1) === 0,
+                    });
+                    const stroke = isSlotted || isSelected
+                      ? NODE_COLORS.selected
+                      : isPredecessor
+                      ? (isUnknown ? "#f59e0b" : NODE_COLORS.selected)
+                      : isUnknown || isOtherPhase
+                      ? "#cbd5e1"
+                      : "#dde5ee";
 
-                    if (isSlotted) {
-                      bg = "#e0f2fe";
-                      border = "var(--primary-bg)";
-                    } else if (isSelected) {
-                      bg = "#f0f7fa";
-                      border = "var(--primary-bg)";
-                    } else if (isPredecessor) {
-                      bg = isUnknown ? "#fef3c7" : "#f1f5f9";
-                      border = isUnknown ? "#f59e0b" : "var(--primary-bg)";
-                    } else if (isOtherPhase) {
-                      bg = "#f8fafc";
-                      border = "#cbd5e1";
-                    } else if (isUnknown) {
-                      bg = "#f8fafc";
-                      border = "#94a3b8";
-                    } else if (c.capped_by) {
-                      bg = "#fff7ed";
-                      border = "#ea580c";
-                    }
-
-                    const lines = wrapLabel(c.name || c.id, 16);
+                    const lines = wrapLabel(c.name || c.id, 17);
+                    const safeId = c.id.replace(/\./g, "_");
 
                     return (
                       <g
                         key={c.id}
+                        className={styles.stageNode}
                         transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
-                        style={{ cursor: "pointer" }}
                         onClick={() => {
                           setSelectedCompId(isSelected ? null : c.id);
                           setSelectedEdgeId(null);
@@ -833,40 +891,44 @@ export default function ComposeActionProposalModal({
                         onMouseEnter={() => setHoveredCompId(c.id)}
                         onMouseLeave={() => setHoveredCompId(null)}
                       >
-                        {/* Node Background */}
+                        {/* Card face */}
                         <rect
                           width={BOX_W}
                           height={BOX_H}
-                          rx={8}
-                          fill={bg}
-                          stroke={border}
-                          strokeWidth={isSlotted ? 2.5 : isSelected ? 2 : 1.5}
-                          strokeDasharray={isOtherPhase || isUnknown ? "4 3" : undefined}
+                          rx={NODE_RX}
+                          fill={face}
+                          stroke={stroke}
+                          strokeWidth={isSlotted ? 2.4 : isSelected ? 2 : 1}
+                          strokeDasharray={isUnknown || isOtherPhase ? "5 3" : undefined}
+                          filter={`url(#compose-${isSelected || isSlotted ? "shadow-lifted" : "shadow"})`}
+                        />
+                        <clipPath id={`compose-clip-${safeId}`}>
+                          <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
+                        </clipPath>
+                        <rect
+                          width={RAIL_W}
+                          height={BOX_H}
+                          fill={rail}
+                          opacity={isUnknown || isOtherPhase ? 0.5 : 1}
+                          clipPath={`url(#compose-clip-${safeId})`}
                         />
 
-                        {/* Slotted Badge */}
+                        {/* Slotted marker */}
                         {isSlotted && (
-                          <g transform={`translate(${BOX_W - 28}, 4)`}>
-                            <circle cx="10" cy="10" r="10" fill="var(--primary-bg)" />
-                            <text
-                              x="10"
-                              y="14"
-                              fontSize="10"
-                              textAnchor="middle"
-                              fill="#ffffff"
-                              fontWeight="bold"
-                            >
+                          <g transform={`translate(${BOX_W - 26}, 5)`}>
+                            <circle cx="9" cy="9" r="9" fill={NODE_COLORS.selected} />
+                            <text x="9" y="12.5" fontSize="9" textAnchor="middle" fill="#ffffff" fontWeight="bold">
                               ⚡
                             </text>
                           </g>
                         )}
 
-                        {/* Other Phase Lock Badge */}
+                        {/* Another phase: readable here, editable elsewhere */}
                         {isOtherPhase && !isSlotted && (
-                          <g transform={`translate(${BOX_W - 24}, 4)`}>
-                            <circle cx="8" cy="8" r="8" fill="#f1f5f9" stroke="#cbd5e1" />
-                            <text x="8" y="11" fontSize="9" textAnchor="middle">
-                              🔒
+                          <g transform={`translate(${BOX_W - 24}, 5)`}>
+                            <circle cx="8" cy="8" r="8" fill="#eef2f7" stroke="#dde5ee" />
+                            <text x="8" y="11" fontSize="8" textAnchor="middle">
+                              👁
                             </text>
                           </g>
                         )}
@@ -875,9 +937,9 @@ export default function ComposeActionProposalModal({
                         {lines.map((line, i) => (
                           <text
                             key={i}
-                            x={12}
-                            y={18 + i * 14}
-                            fill={isUnknown || isOtherPhase ? "#64748b" : "#0f172a"}
+                            x={NODE_PAD_X}
+                            y={19 + i * 13}
+                            fill={isUnknown || isOtherPhase ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
                             fontSize="11"
                             fontWeight={isSelected || isSlotted ? "700" : "600"}
                           >
@@ -885,37 +947,33 @@ export default function ComposeActionProposalModal({
                           </text>
                         ))}
 
-                        {/* Status Subtitle / Level Badge */}
+                        {/* One caption, plus the maturity meter when there is one to show */}
                         {isUnknown ? (
-                          <g transform="translate(12, 46)">
-                            <text x="0" y="0" fill="#64748b" fontSize="9" fontWeight="500">
-                              🔍 Undiscovered
-                            </text>
-                          </g>
-                        ) : isOtherPhase ? (
-                          <g transform="translate(12, 46)">
-                            <text x="0" y="0" fill="#64748b" fontSize="9" fontWeight="600">
-                              🔒 Phase Locked ({formatLevelCap(c.nominal ?? 1)})
-                            </text>
-                          </g>
-                        ) : upstreamCheck.uncertain ? (
-                          <g transform="translate(12, 46)">
-                            <text x="0" y="0" fill="#b45309" fontSize="9" fontWeight="600">
-                              ❓ Status Uncertain
-                            </text>
-                          </g>
-                        ) : c.capped_by ? (
-                          <g transform="translate(12, 46)">
-                            <text x="0" y="0" fill="#c2410c" fontSize="9" fontWeight="600">
-                              ⛓ Capped: {formatLevelCap(c.effective)}
-                            </text>
-                          </g>
+                          <text x={NODE_PAD_X} y={BOX_H - 12} fill="#94a3b8" fontSize="8.5" fontStyle="italic">
+                            not discovered yet
+                          </text>
                         ) : (
-                          <g transform="translate(12, 46)">
-                            <text x="0" y="0" fill="#16a34a" fontSize="9" fontWeight="600">
-                              {formatLevelCap(c.nominal ?? 1)}
+                          <>
+                            <text
+                              x={NODE_PAD_X}
+                              y={BOX_H - 20}
+                              fill={rail}
+                              fontSize="8"
+                              fontWeight="700"
+                              letterSpacing="0.6"
+                            >
+                              {isOtherPhase
+                                ? "VIEW ONLY"
+                                : upstreamCheck.uncertain
+                                ? "UNCERTAIN"
+                                : formatLevel(c.effective ?? c.nominal ?? 1).toUpperCase()}
                             </text>
-                          </g>
+                            <LevelMeter
+                              nominal={c.nominal ?? 1}
+                              effective={c.effective}
+                              y={BOX_H - 14}
+                            />
+                          </>
                         )}
                       </g>
                     );
@@ -933,84 +991,79 @@ export default function ComposeActionProposalModal({
             {selectedEdgeData ? (
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
-                  <div className="d-flex align-items-center gap-2">
-                    <Icon icon="ph:flow-arrow-bold" style={{ fontSize: "1.1rem", color: "var(--primary-bg)" }} />
-                    <span className={styles.inspectorTitle}>
-                      {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id} ➔{" "}
-                      {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
-                    </span>
+                  <div className={styles.inspectorHeading}>
+                    <Icon icon="ph:flow-arrow-bold" className={styles.inspectorIcon} />
+                    <div className={styles.inspectorHeadingText}>
+                      <span className={styles.inspectorTitle}>
+                        {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id} →{" "}
+                        {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
+                      </span>
+                      <span className={styles.inspectorSubtitle} title={selectedEdgeData.id}>
+                        workflow · {selectedEdgeData.kind} ·{" "}
+                        {selectedEdgeData.slack === 1 ? "soft dependency" : "hard dependency"}
+                      </span>
+                    </div>
                   </div>
                   <button
                     type="button"
-                    className="btn btn-sm btn-link text-secondary text-decoration-none p-0"
+                    className={styles.inspectorClose}
                     onClick={() => setSelectedEdgeId(null)}
+                    title="Close inspector"
                   >
-                    ✕
+                    <Icon icon="ph:x-bold" />
                   </button>
                 </div>
 
                 <div className={styles.inspectorBody}>
-                  <div className={styles.propRow}>
-                    <span className={styles.propLabel}>Workflow ID:</span>
-                    <span className={styles.propVal}>{selectedEdgeData.id}</span>
-                  </div>
-
-                  <div className={styles.propRow}>
-                    <span className={styles.propLabel}>Type & Slack:</span>
-                    <div className="d-flex align-items-center gap-1">
-                      <span className={styles.edgeBadgeKind}>{selectedEdgeData.kind}</span>
-                      <span className="badge bg-light text-dark border">
-                        {selectedEdgeData.slack === 1 ? "Soft (Slack: 1)" : "Hard (Slack: 0)"}
-                      </span>
-                    </div>
-                  </div>
 
                   {/* Undiscovered Guard */}
                   {selectedEdgeData.knowledge === "unknown" ? (
                     <div className={styles.fogBanner}>
                       <Icon icon="ph:eye-slash-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                       <div>
-                        <strong>Undiscovered:</strong> You have not collected intel on this workflow edge
-                        yet. Its current maturity and trigger are unconfirmed, so no improvements can be proposed.
+                        <strong>Undiscovered:</strong>{" "}
+                        {highlight(
+                          "You have not collected intel on this workflow edge yet. Its current maturity and trigger are unconfirmed, so no improvements can be proposed."
+                        )}
                       </div>
                     </div>
                   ) : !selectedEdgeEditable.editable ? (
                     /* Other Phase Locked Guard */
                     <div className={styles.lockedPhaseBanner}>
-                      <Icon icon="ph:lock-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
+                      <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                       <div>
-                        <strong>Phase Locked:</strong> {selectedEdgeEditable.reason}
+                        <strong>View only:</strong> {highlight(selectedEdgeEditable.reason ?? "")}
                       </div>
                     </div>
                   ) : (
                     /* Editable Edge Controls */
                     <>
-                      <div className={styles.propRow}>
-                        <span className={styles.propLabel}>Current Status:</span>
-                        <span className={styles.propVal}>
-                          {formatLevelCap(selectedEdgeData.level ?? 1)}
-                        </span>
-                      </div>
-
-                      <div className={styles.propRow}>
-                        <span className={styles.propLabel}>Current Trigger:</span>
-                        <span className={styles.propVal}>
-                          <code>{selectedEdgeData.trigger || "none"}</code>
+                      <div className={styles.statusStrip}>
+                        <span className={styles.statusLabel}>Runs</span>
+                        <span className={styles.statusValue}>{formatLevel(selectedEdgeData.level ?? 1)}</span>
+                        <span className={styles.statusSep}>·</span>
+                        <span className={styles.statusLabel}>triggered by</span>
+                        <span className={styles.statusValue}>
+                          {formatTrigger(selectedEdgeData.trigger || "none")}
                         </span>
                       </div>
 
                       {/* Edge Edit Form */}
-                      <div className="mt-2 pt-2 border-top d-flex flex-column gap-3">
+                      <div className={styles.formStack}>
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             <Icon icon="ph:arrow-fat-line-up-bold" />
-                            <span>Target Maturity Level:</span>
+                            <span>Raise to</span>
                           </label>
-                          <select
-                            className={styles.selectInput}
+                          <LevelPicker
+                            levels={
+                              selectedEdgeData.allowed_levels && selectedEdgeData.allowed_levels.length > 0
+                                ? selectedEdgeData.allowed_levels
+                                : [0, 1, 2, 3, 4]
+                            }
                             value={selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)}
-                            onChange={(e) => {
-                              const newLvl = Number(e.target.value);
+                            current={selectedEdgeData.level ?? 1}
+                            onChange={(newLvl) => {
                               setSelectedEdgeTargetLevel(newLvl);
                               if (newLvl >= 3) {
                                 const defaultAuto =
@@ -1024,23 +1077,14 @@ export default function ComposeActionProposalModal({
                                 setSelectedEdgeTargetTrigger("none");
                               }
                             }}
-                          >
-                            {(selectedEdgeData.allowed_levels && selectedEdgeData.allowed_levels.length > 0
-                              ? selectedEdgeData.allowed_levels
-                              : [0, 1, 2, 3, 4]
-                            ).map((lvl) => (
-                              <option key={lvl} value={lvl}>
-                                Level {lvl} ({formatLevelCap(lvl)})
-                              </option>
-                            ))}
-                          </select>
+                          />
                         </div>
 
                         {/* Edge Trigger Selector (Automatic triggers available at Level >= 3) */}
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             <Icon icon="ph:lightning-bold" />
-                            <span>Trigger Mode:</span>
+                            <span>Started by</span>
                           </label>
                           {(selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)) >= 3 ? (
                             <select
@@ -1063,8 +1107,8 @@ export default function ComposeActionProposalModal({
                               className={styles.selectInput}
                               value={
                                 (selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)) === 2
-                                  ? "manual_request (automatic for Manual)"
-                                  : "none (automatic for Absent/Broken)"
+                                  ? "a person, on request"
+                                  : "nothing - the step does not run"
                               }
                             />
                           )}
@@ -1073,29 +1117,23 @@ export default function ComposeActionProposalModal({
 
                       {/* Slotted Edge Control */}
                       {isSelectedEdgeSlotted ? (
-                        <div className="d-flex flex-column gap-2 mt-2">
-                          <div
-                            className="p-2 rounded"
-                            style={{ background: "#e0f2fe", border: "1px solid #bae6fd", fontSize: "0.8rem" }}
-                          >
-                            <span className="fw-bold" style={{ color: "var(--primary-bg)" }}>
-                              ⚡ Slotted in Action Proposal:
+                        <div className={styles.slotActions}>
+                          <div className={styles.slottedNote}>
+                            <span className={styles.slottedNoteTitle}>
+                              <Icon icon="ph:lightning-fill" /> In the proposal
                             </span>
-                            <div className="mt-1">
-                              Maturity: <strong>{formatLevelCap(selectedEdgeChange?.value)}</strong>
+                            <span>
+                              Raise to <strong>{formatLevel(selectedEdgeChange?.value)}</strong>
                               {selectedEdgeChange?.trigger && (
-                                <>
-                                  {" "}• Trigger: <code>{selectedEdgeChange.trigger}</code>
-                                </>
+                                <>, started by <strong>{formatTrigger(selectedEdgeChange.trigger)}</strong></>
                               )}
-                            </div>
+                            </span>
                           </div>
 
-                          <div className="d-flex gap-2">
+                          <div className={styles.buttonRow}>
                             <button
                               type="button"
                               className={styles.actionButton}
-                              style={{ width: "auto", flex: 1 }}
                               onClick={() =>
                                 handleSaveEdgeSlot(
                                   selectedEdgeData.id,
@@ -1105,12 +1143,11 @@ export default function ComposeActionProposalModal({
                               }
                             >
                               <Icon icon="ph:arrows-clockwise-bold" />
-                              <span>Update Slot</span>
+                              <span>Update</span>
                             </button>
                             <button
                               type="button"
-                              className={styles.actionButton}
-                              style={{ background: "#dc2626", borderColor: "#b91c1c", width: "auto", flex: 1 }}
+                              className={`${styles.actionButton} ${styles.dangerButton}`}
                               onClick={() => handleRemoveTargetSlot(selectedEdgeData.id)}
                             >
                               <Icon icon="ph:trash-bold" />
@@ -1119,10 +1156,10 @@ export default function ComposeActionProposalModal({
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-2">
+                        <div className={styles.slotActions}>
                           {atomicChanges.length >= MAX_ATOMIC_CHANGES ? (
                             <button type="button" disabled className={styles.actionButton}>
-                              <span>Slots Full (3/3 Configured)</span>
+                              <span>All {MAX_ATOMIC_CHANGES} slots used</span>
                             </button>
                           ) : (
                             <button
@@ -1137,9 +1174,7 @@ export default function ComposeActionProposalModal({
                               }
                             >
                               <Icon icon="ph:plus-circle-bold" />
-                              <span>
-                                Slot Edge Upgrade ({formatLevelCap(selectedEdgeTargetLevel)})
-                              </span>
+                              <span>Add to proposal</span>
                             </button>
                           )}
                         </div>
@@ -1152,50 +1187,71 @@ export default function ComposeActionProposalModal({
               /* ── Selected COMPONENT Inspector ── */
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
-                  <span className={styles.inspectorTitle}>
-                    <Icon icon="ph:cube-bold" className="me-1" />
-                    {selectedCompData.name}
-                  </span>
+                  <div className={styles.inspectorHeading}>
+                    <Icon icon="ph:cube-bold" className={styles.inspectorIcon} />
+                    <div className={styles.inspectorHeadingText}>
+                      <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
+                      <span className={styles.inspectorSubtitle} title={selectedCompData.id}>
+                        {graphState?.stages?.find((st) => st.id === (selectedCompData.stage_id || activeStageId))
+                          ?.name ?? "component"}
+                        {selectedCompData.owner_id && ` · ${selectedCompData.owner_id.replace(/_/g, " ")}`}
+                      </span>
+                    </div>
+                  </div>
                   <button
                     type="button"
-                    className="btn btn-sm btn-link text-secondary text-decoration-none p-0"
+                    className={styles.inspectorClose}
                     onClick={() => setSelectedCompId(null)}
+                    title="Close inspector"
                   >
-                    ✕
+                    <Icon icon="ph:x-bold" />
                   </button>
                 </div>
 
                 <div className={styles.inspectorBody}>
-                  <div className={styles.propRow}>
-                    <span className={styles.propLabel}>Component ID:</span>
-                    <span className={styles.propVal}>{selectedCompData.id}</span>
-                  </div>
 
                   {/* Undiscovered Guard */}
                   {selectedCompData.knowledge === "unknown" ? (
                     <div className={styles.fogBanner}>
                       <Icon icon="ph:eye-slash-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                       <div>
-                        <strong>Undiscovered:</strong> You have not collected intel on this component
-                        yet. Its current maturity is unconfirmed, so no improvements can be proposed.
+                        <strong>Undiscovered:</strong>{" "}
+                        {highlight(
+                          "you have not established how this component actually works, so there is nothing here to raise yet."
+                        )}
+                        {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
+                          <div className={styles.fogPointers}>
+                            <span className={styles.fogPointersLabel}>Your notes point here:</span>
+                            {notesByTarget[selectedCompData.id].map((note, i) => (
+                              <span key={i} className={styles.fogPointer}>
+                                <Icon icon="ph:quotes-bold" />
+                                <span>
+                                  {note.text} <em>- {note.who}</em>
+                                </span>
+                              </span>
+                            ))}
+                            <span className={styles.fogHint}>
+                              An opinion about this component is not an observation of it. File the
+                              Fact that describes how it runs, or investigate the component itself.
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : !selectedCompEditable.editable ? (
                     /* Other Phase Locked Guard */
                     <div className={styles.lockedPhaseBanner}>
-                      <Icon icon="ph:lock-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
+                      <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                       <div>
-                        <strong>Phase Locked:</strong> {selectedCompEditable.reason}
+                        <strong>View only:</strong> {highlight(selectedCompEditable.reason ?? "")}
                       </div>
                     </div>
                   ) : (
                     /* Editable Component Controls */
                     <>
-                      <div className={styles.propRow}>
-                        <span className={styles.propLabel}>Current Status:</span>
-                        <span className={styles.propVal}>
-                          {formatLevelCap(selectedCompData.nominal ?? 1)}
-                        </span>
+                      <div className={styles.statusStrip}>
+                        <span className={styles.statusLabel}>Runs</span>
+                        <span className={styles.statusValue}>{formatLevel(selectedCompData.nominal ?? 1)}</span>
                       </div>
 
                       {/* Pipeline Dependency / Functional Level Analysis */}
@@ -1203,8 +1259,9 @@ export default function ComposeActionProposalModal({
                         <div className={styles.uncertainBanner}>
                           <Icon icon="ph:question-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                           <div>
-                            <strong>Real Functional Status Uncertain:</strong> Upstream pipeline dependency (
-                            <em>{selectedUpstreamStatus.unknownNodes.join(", ")}</em>) is undiscovered.
+                            <strong>Status uncertain:</strong>{" "}
+                            {highlight("an upstream pipeline dependency is still undiscovered")} (
+                            <em>{selectedUpstreamStatus.unknownNodes.join(", ")}</em>).
                           </div>
                         </div>
                       ) : selectedCompData.capped_by &&
@@ -1214,66 +1271,59 @@ export default function ComposeActionProposalModal({
                         <div className={styles.bottleneckBanner}>
                           <Icon icon="ph:link-break-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                           <div>
-                            <strong>Held Back by Bottleneck:</strong> Effective functionality is capped at{" "}
+                            <strong>Held back:</strong> {highlight("this component is capped at")}{" "}
                             <strong>{formatLevel(selectedCompData.effective)}</strong> by{" "}
-                            <strong>{selectedCompData.capped_by}</strong>. Raising this component alone changes
-                            nothing until that bottleneck is upgraded.
+                            <strong>{highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}</strong>.{" "}
+                            {highlight("Raising it alone changes nothing until that bottleneck is dealt with.")}
                           </div>
                         </div>
                       ) : (
                         <div className={styles.satisfiedBanner}>
                           <Icon icon="ph:check-circle-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                           <div>
-                            <strong>Dependencies Satisfied:</strong> Runs at full functional capacity (
-                            {formatLevelCap(selectedCompData.effective ?? selectedCompData.nominal ?? 1)}).
+                            <strong>Dependencies satisfied:</strong>{" "}
+                            {highlight("nothing upstream is holding this back")} - it runs at{" "}
+                            <strong>{formatLevel(selectedCompData.effective ?? selectedCompData.nominal ?? 1)}</strong>.
                           </div>
                         </div>
                       )}
 
                       {/* Component Level Selector */}
-                      <div className="mt-2 pt-2 border-top d-flex flex-column gap-2">
+                      <div className={styles.formStack}>
                         <div className={styles.formGroup}>
                           <label className={styles.formLabel}>
                             <Icon icon="ph:arrow-fat-line-up-bold" />
-                            <span>Target Maturity Level:</span>
+                            <span>Raise to</span>
                           </label>
-                          <select
-                            className={styles.selectInput}
+                          <LevelPicker
+                            levels={
+                              selectedCompData.allowed_levels && selectedCompData.allowed_levels.length > 0
+                                ? selectedCompData.allowed_levels
+                                : [0, 1, 2, 3, 4]
+                            }
                             value={selectedCompTargetLevel ?? (selectedCompData.nominal ?? 1)}
-                            onChange={(e) => setSelectedCompTargetLevel(Number(e.target.value))}
-                          >
-                            {(selectedCompData.allowed_levels && selectedCompData.allowed_levels.length > 0
-                              ? selectedCompData.allowed_levels
-                              : [0, 1, 2, 3, 4]
-                            ).map((lvl) => (
-                              <option key={lvl} value={lvl}>
-                                Level {lvl} ({formatLevelCap(lvl)})
-                              </option>
-                            ))}
-                          </select>
+                            current={selectedCompData.nominal ?? 1}
+                            onChange={setSelectedCompTargetLevel}
+                          />
                         </div>
                       </div>
 
                       {/* Slotted Action Control */}
                       {isSelectedCompSlotted ? (
-                        <div className="d-flex flex-column gap-2 mt-2">
-                          <div
-                            className="p-2 rounded"
-                            style={{ background: "#e0f2fe", border: "1px solid #bae6fd", fontSize: "0.8rem" }}
-                          >
-                            <span className="fw-bold" style={{ color: "var(--primary-bg)" }}>
-                              ⚡ Slotted in Action Proposal:
+                        <div className={styles.slotActions}>
+                          <div className={styles.slottedNote}>
+                            <span className={styles.slottedNoteTitle}>
+                              <Icon icon="ph:lightning-fill" /> In the proposal
                             </span>
-                            <div className="mt-1">
-                              Will advance from <strong>{formatLevelCap(selectedCompData.nominal ?? 1)}</strong> to{" "}
-                              <strong>{formatLevelCap(selectedCompChange?.value)}</strong>
-                            </div>
+                            <span>
+                              <strong>{formatLevel(selectedCompData.nominal ?? 1)}</strong> →{" "}
+                              <strong>{formatLevel(selectedCompChange?.value)}</strong>
+                            </span>
                           </div>
-                          <div className="d-flex gap-2">
+                          <div className={styles.buttonRow}>
                             <button
                               type="button"
                               className={styles.actionButton}
-                              style={{ width: "auto", flex: 1 }}
                               onClick={() =>
                                 handleSaveComponentSlot(
                                   selectedCompData.id,
@@ -1282,12 +1332,11 @@ export default function ComposeActionProposalModal({
                               }
                             >
                               <Icon icon="ph:arrows-clockwise-bold" />
-                              <span>Update Slot</span>
+                              <span>Update</span>
                             </button>
                             <button
                               type="button"
-                              className={styles.actionButton}
-                              style={{ background: "#dc2626", borderColor: "#b91c1c", width: "auto", flex: 1 }}
+                              className={`${styles.actionButton} ${styles.dangerButton}`}
                               onClick={() => handleRemoveTargetSlot(selectedCompData.id)}
                             >
                               <Icon icon="ph:trash-bold" />
@@ -1296,10 +1345,10 @@ export default function ComposeActionProposalModal({
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-2">
+                        <div className={styles.slotActions}>
                           {atomicChanges.length >= MAX_ATOMIC_CHANGES ? (
                             <button type="button" disabled className={styles.actionButton}>
-                              <span>Slots Full (3/3 Configured)</span>
+                              <span>All {MAX_ATOMIC_CHANGES} slots used</span>
                             </button>
                           ) : (
                             <button
@@ -1313,9 +1362,7 @@ export default function ComposeActionProposalModal({
                               }
                             >
                               <Icon icon="ph:plus-circle-bold" />
-                              <span>
-                                Advance to {formatLevelCap(selectedCompTargetLevel)}
-                              </span>
+                              <span>Add to proposal</span>
                             </button>
                           )}
                         </div>
@@ -1328,12 +1375,9 @@ export default function ComposeActionProposalModal({
               /* ── Empty Inspector State ── */
               <div className={styles.emptyInspector}>
                 <Icon icon="ph:cursor-click-bold" className={styles.emptyIcon} />
-                <h5 className="fw-bold mb-1" style={{ fontSize: "0.92rem", color: "#1e293b" }}>
-                  Select a Node or Edge
-                </h5>
-                <p className="mb-0" style={{ fontSize: "0.78rem" }}>
-                  Click on any component or workflow connection on the canvas to inspect its maturity, configure
-                  triggers, or slot an action proposal upgrade.
+                <span className={styles.emptyTitle}>Select a component or edge</span>
+                <p className={styles.emptyBody}>
+                  Click anything on the canvas to inspect its maturity and slot an upgrade.
                 </p>
               </div>
             )}
@@ -1343,10 +1387,10 @@ export default function ComposeActionProposalModal({
               <div className={styles.slotsSectionHeader}>
                 <h4 className={styles.slotsTitle}>
                   <Icon icon="ph:stack-bold" />
-                  <span>Configured Atomic Changes</span>
+                  <span>Proposal</span>
                 </h4>
-                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                  {atomicChanges.length} of {MAX_ATOMIC_CHANGES} used
+                <span className={styles.slotsCount}>
+                  {atomicChanges.length} of {MAX_ATOMIC_CHANGES} slots
                 </span>
               </div>
 
@@ -1405,12 +1449,9 @@ export default function ComposeActionProposalModal({
                           style={{ color: "var(--primary-bg)" }}
                         />
                         <span>
-                          Advance from <strong>{formatLevelCap(curLevel)}</strong> ➔{" "}
-                          <strong>{formatLevelCap(nextLevel)}</strong>
+                          <strong>{formatLevel(curLevel)}</strong> → <strong>{formatLevel(nextLevel)}</strong>
                           {change.trigger && (
-                            <span className="ms-1 text-muted">
-                              • <code>{change.trigger}</code>
-                            </span>
+                            <span className={styles.slotTrigger}>· {formatTrigger(change.trigger)}</span>
                           )}
                         </span>
                       </div>
@@ -1420,8 +1461,8 @@ export default function ComposeActionProposalModal({
 
                 return (
                   <div key={idx} className={`${styles.slotCard} ${styles.slotCardEmpty}`}>
-                    <Icon icon="ph:plus-dashed-bold" className="me-1" />
-                    <span>Slot {idx + 1}: Empty (Click a node or edge to slot)</span>
+                    <Icon icon="ph:plus-dashed-bold" />
+                    <span>Slot {idx + 1}</span>
                   </div>
                 );
               })}
@@ -1436,27 +1477,40 @@ export default function ComposeActionProposalModal({
           <Icon icon="ph:info-bold" />
           <span>
             {atomicChanges.length === 0
-              ? "Select at least 1 atomic improvement to confirm proposal."
-              : `${atomicChanges.length} atomic change${
-                  atomicChanges.length > 1 ? "s" : ""
-                } will be evaluated by the stakeholders.`}
+              ? "Add at least one change before taking this to the stakeholders."
+              : `${atomicChanges.length} change${atomicChanges.length > 1 ? "s" : ""} to be argued for.`}
           </span>
         </div>
 
         <div className={styles.footerRight}>
-          <button type="button" className={styles.secondaryBtn} onClick={onClose}>
-            Discard
+          <button
+            type="button"
+            className={styles.secondaryBtn}
+            onClick={onClose}
+            title="Leave the composer without proposing anything (Esc)"
+          >
+            <Icon icon="ph:arrow-u-up-left-bold" />
+            <span>Back to Boardroom</span>
           </button>
 
           <button
             type="button"
-            className={styles.actionButton}
-            style={{ width: "auto", minWidth: 220 }}
+            className={styles.secondaryBtn}
+            onClick={() => setAtomicChanges([])}
+            disabled={atomicChanges.length === 0}
+            title="Empty every slot and start the proposal again"
+          >
+            Discard changes
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.actionButton} ${styles.footerConfirm}`}
             disabled={atomicChanges.length === 0}
             onClick={handleConfirm}
           >
             <Icon icon="ph:check-bold" />
-            <span>Confirm Action Proposal ({atomicChanges.length})</span>
+            <span>Confirm proposal ({atomicChanges.length})</span>
           </button>
         </div>
       </div>

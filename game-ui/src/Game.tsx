@@ -788,6 +788,14 @@ function App({ username: _username }: AppProps) {
                     currentPhase={currentPhase}
                     isOpen={isPerformanceOpen}
                     onClose={() => setIsPerformanceOpen(false)}
+                    dossierData={dossierData}
+                    // A component owner links to that stakeholder's dossier page: the dashboard
+                    // steps aside and the dossier opens on them.
+                    onOpenStakeholder={(stakeholderId) => {
+                      setActiveStakeholderId(stakeholderId);
+                      setIsDossierOpen(true);
+                      setIsPerformanceOpen(false);
+                    }}
                   />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
@@ -857,6 +865,7 @@ function App({ username: _username }: AppProps) {
                           cardTargetedStakeholdersMap={cardTargetedStakeholdersMap}
                           onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
                           dossierData={dossierData}
+                          focusStakeholderId={activeStakeholderId}
                           onOpenPhaseBriefing={openBriefingForReview}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}

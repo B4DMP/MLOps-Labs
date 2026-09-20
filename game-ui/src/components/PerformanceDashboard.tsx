@@ -1,9 +1,27 @@
-import { useState, useEffect, useCallback, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
+import IntelArtifactViewer from "./IntelArtifactViewer";
+import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
+import { LevelMeter, NodeDefs } from "./graph/nodeChrome";
+import {
+  NODE_COLORS,
+  NODE_PAD_X,
+  NODE_RX,
+  RAIL_W,
+  nodeFace,
+  BOX_W,
+  BOX_H,
+  LEVEL_LABELS,
+  TRIGGER_ICONS,
+  compactLayout,
+  edgeEnds,
+  fitToBoxStyle,
+  wrapLabel,
+} from "../utils/stageCanvas";
 import styles from "./PerformanceDashboard.module.css";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -92,22 +110,47 @@ export interface PerformanceDashboardProps {
   challengeDescription?: string;
   challengeIntro?: string;
   challengeAmount?: number;
+  /** The player's dossier, used to link a component to the notes that are about it. */
+  dossierData?: StakeholderDossierEntry[];
+  /** Opens the dossier on a stakeholder's page. Owners become links when this is given. */
+  onOpenStakeholder?: (stakeholderId: string) => void;
+}
+
+/** What sits on one side of the stage being inspected. */
+interface StageNeighbour {
+  icon: string;
+  label: string;
+  title: string;
+  stageId?: string;
+  color?: string;
+}
+
+/** One dossier note, carrying the page it was found on so the artifact can be attributed. */
+interface LinkedNote {
+  item: IntelEntry;
+  stakeholderName: string;
+}
+
+const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
+  public_record: { icon: "ph:megaphone-bold", label: "Said openly in the team channel" },
+  interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
+  debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
+  offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
+};
+
+function noteSourceMeta(item: IntelEntry) {
+  return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()]
+    ?? NOTE_SOURCE_META.offline_artifact;
+}
+
+/** A note can be opened as an artifact only when there is a document behind it. */
+function artifactContentOf(item: IntelEntry): string | null {
+  return item.artifact?.content || item.debug?.artifact?.content || null;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const EMPTY_STAGES: StageData[] = [];
-const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
-
-const TRIGGER_ICONS: Record<string, string> = {
-  none: "—",
-  manual_request: "✋",
-  schedule: "⏰",
-  commit: "📦",
-  data_arrival: "📊",
-  alert: "🚨",
-  approval: "✅",
-};
 
 function statusColor(status?: string): string {
   if (status === "healthy") return "#16a34a";
@@ -209,9 +252,7 @@ function CrossStageArcs({
           const color = colorFor(f.level);
           return (
             <marker key={key} id={key} markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto">
-              {variant === "governance"
-                ? <path d="M0,3 L3,0 L6,3 L3,6 z" fill={color} />
-                : <path d="M0,0 L0,5 L5,2.5 z" fill={color} />}
+              <path d="M0,0 L0,6 L6,3 z" fill={color} />
             </marker>
           );
         })}
@@ -242,56 +283,64 @@ function CrossStageArcs({
   );
 }
 
-const BOX_W = 140;
-const BOX_H = 56;
+/** Connector between two stage buttons: a dashed pipe with an arrowhead, so the strip
+ *  reads as a direction of travel rather than a row of ties. */
+function StageConnector({ flow, band, toId }: { flow?: FlowData; band: boolean; toId: string }) {
+  const W = 34;
+  const H = 14;
+  const markerId = `conn-${toId}`.replace(/\./g, "_");
+  const color = band
+    ? "#94a3b8"
+    : !flow
+      ? "#cbd5e1"
+      : flow.level === 0
+        ? statusColor("broken")
+        : statusColor(flow.level >= 3 ? "healthy" : "degraded");
+  const animation = band || !flow
+    ? undefined
+    : flow.level === 0
+      ? "pipe-dead"
+      : flow.level >= 3
+        ? "pipe-flow"
+        : "pipe-flow-slow";
 
-function edgeEnds(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-  const halfW = BOX_W / 2 + 4;
-  const halfH = BOX_H / 2 + 4;
-  const scale = (w: number, h: number) => {
-    const sx = dx === 0 ? Infinity : Math.abs(w / dx);
-    const sy = dy === 0 ? Infinity : Math.abs(h / dy);
-    return Math.min(sx, sy);
-  };
-  const s1 = scale(halfW, halfH);
-  const s2 = scale(halfW, halfH);
-  return [x1 + dx * s1, y1 + dy * s1, x2 - dx * s2, y2 - dy * s2];
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ flexShrink: 0, overflow: "visible" }}>
+      <title>
+        {band
+          ? "Cross-cutting governance and infrastructure"
+          : flow
+            ? `Flow between stages: ${LEVEL_LABELS[flow.level]}`
+            : "No flow between these stages yet"}
+      </title>
+      <defs>
+        <marker id={markerId} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+          <path d="M0,0 L0,5 L5,2.5 z" fill={color} />
+        </marker>
+      </defs>
+      <line
+        x1={0}
+        y1={H / 2}
+        x2={W - 7}
+        y2={H / 2}
+        stroke={color}
+        strokeWidth={band ? 1.75 : 2.25}
+        strokeDasharray={band ? "4 3" : animation ? undefined : "4 3"}
+        className={animation}
+        markerEnd={`url(#${markerId})`}
+      />
+    </svg>
+  );
 }
 
-function wrapLabel(name: string, max: number): string[] {
-  const words = name.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  words.forEach((w) => {
-    if ((current + " " + w).trim().length <= max) {
-      current = (current + " " + w).trim();
-    } else {
-      if (current) lines.push(current);
-      current = w;
-    }
-  });
-  if (current) lines.push(current);
-  return lines.slice(0, 2);
-}
-
-function nodeColor(c: ComponentData, isSelected: boolean): string {
-  if (isSelected) return "#f0f7fa";
-  if (c.knowledge === "unknown") return "#f8fafc";
+/** The colour of a component's status rail: what the player should worry about first. */
+function railColor(c: ComponentData): string {
+  if (c.knowledge === "unknown") return NODE_COLORS.unknown;
   const eff = c.effective ?? c.nominal ?? 1;
-  if (eff === 0) return "#fef2f2";
-  if (c.knowledge === "stale") return "#fffbeb";
-  return "#ffffff";
-}
-
-function nodeBorder(c: ComponentData, isSelected: boolean): string {
-  if (isSelected) return "var(--primary-bg, #266682)";
-  if (c.knowledge === "unknown") return "#cbd5e1";
-  const eff = c.effective ?? c.nominal ?? 1;
-  if (eff === 0) return "#dc3545";
-  if (c.capped_by) return "#ea580c";
-  return "#93c5fd";
+  if (eff === 0) return NODE_COLORS.broken;
+  if (c.capped_by) return NODE_COLORS.capped;
+  if (c.knowledge === "stale") return NODE_COLORS.stale;
+  return NODE_COLORS.healthy;
 }
 
 function StageSvg({
@@ -303,30 +352,27 @@ function StageSvg({
   selectedComponentId: string | null;
   onSelectComponent: (id: string | null) => void;
 }) {
-  const compById = Object.fromEntries(technical.components.map((c) => [c.id, c]));
   const hasLayout = technical.components.some((c) => c.layout);
 
   if (!hasLayout) return null;
 
-  const xs = technical.components.flatMap((c) => (c.layout ? [c.layout.x] : []));
-  const ys = technical.components.flatMap((c) => (c.layout ? [c.layout.y] : []));
-  const pad = 14;
-  const svgW = Math.max(...xs) + BOX_W / 2 + pad * 2;
-  const svgH = Math.max(...ys) + BOX_H / 2 + pad * 2;
+  const { positions, width: svgW, height: svgH } = compactLayout(technical.components);
+  const posOf = (id: string) => positions[id];
 
   return (
     <svg
-      width={svgW}
-      height={svgH}
       viewBox={`0 0 ${svgW} ${svgH}`}
-      style={{ display: "block", maxWidth: "100%", maxHeight: "100%", margin: "0 auto" }}
+      preserveAspectRatio="xMidYMid meet"
+      style={fitToBoxStyle(svgW, svgH)}
     >
+      <NodeDefs prefix="dash" />
+
       {/* Connecting Edges */}
       {technical.edges.map((e) => {
-        const from = compById[e.from_id];
-        const to = compById[e.to_id];
-        if (!from?.layout || !to?.layout) return null;
-        const [ax, ay, bx, by] = edgeEnds(from.layout.x, from.layout.y, to.layout.x, to.layout.y);
+        const from = posOf(e.from_id);
+        const to = posOf(e.to_id);
+        if (!from || !to) return null;
+        const [ax, ay, bx, by] = edgeEnds(from.x, from.y, to.x, to.y);
         const x1b = ax, y1b = ay, x2b = bx, y2b = by;
         const known = e.knowledge !== "unknown";
         const color = known ? (e.level === 0 ? "#dc3545" : e.level && e.level >= 3 ? "#16a34a" : "#ea580c") : "#94a3b8";
@@ -361,97 +407,100 @@ function StageSvg({
 
       {/* Component Nodes */}
       {technical.components.map((c) => {
-        if (!c.layout) return null;
-        const { x, y } = c.layout;
+        const pos = posOf(c.id);
+        if (!pos) return null;
+        const { x, y } = pos;
         const isSelected = selectedComponentId === c.id;
-        const bg = nodeColor(c, isSelected);
-        const border = nodeBorder(c, isSelected);
+        const isUnknown = c.knowledge === "unknown";
+        const rail = railColor(c);
+        const isBroken = !isUnknown && (c.effective ?? c.nominal ?? 1) === 0;
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
         const lines = wrapLabel(rawName, 17);
 
         return (
           <g
             key={c.id}
+            className="stage-node"
             transform={`translate(${x - BOX_W / 2}, ${y - BOX_H / 2})`}
-            style={{ cursor: "pointer" }}
             onClick={() => onSelectComponent(isSelected ? null : c.id)}
-            opacity={c.knowledge === "stale" ? 0.85 : 1}
+            opacity={c.knowledge === "stale" ? 0.9 : 1}
           >
-            {/* Outer Box */}
+            {/* Card face, with the status rail hugging its left edge */}
             <rect
               width={BOX_W}
               height={BOX_H}
-              rx={7}
-              fill={bg}
-              stroke={border}
-              strokeWidth={isSelected ? 2.5 : 1.5}
-              strokeDasharray={c.knowledge === "unknown" ? "4 3" : undefined}
+              rx={NODE_RX}
+              fill={nodeFace("dash", { selected: isSelected, unknown: isUnknown, broken: isBroken })}
+              stroke={isSelected ? NODE_COLORS.selected : isUnknown ? "#cbd5e1" : "#dde5ee"}
+              strokeWidth={isSelected ? 2 : 1}
+              strokeDasharray={isUnknown ? "5 3" : undefined}
+              filter={`url(#dash-${isSelected ? "shadow-lifted" : "shadow"})`}
             />
-
-            {/* Click / Inspect Icon in corner */}
-            <circle
-              cx={BOX_W - 12}
-              cy={12}
-              r={7}
-              fill={isSelected ? "var(--primary-bg, #266682)" : "#f1f5f9"}
-              stroke={isSelected ? "var(--primary-bg, #266682)" : "#cbd5e1"}
-              strokeWidth={1}
+            <clipPath id={`dash-clip-${c.id.replace(/\./g, "_")}`}>
+              <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
+            </clipPath>
+            <rect
+              width={RAIL_W}
+              height={BOX_H}
+              fill={rail}
+              opacity={isUnknown ? 0.5 : 1}
+              clipPath={`url(#dash-clip-${c.id.replace(/\./g, "_")})`}
             />
-            <text
-              x={BOX_W - 12}
-              y={15}
-              fontSize={8}
-              textAnchor="middle"
-              fill={isSelected ? "#ffffff" : "#64748b"}
-              fontWeight="bold"
-            >
-              🔍
-            </text>
 
             {/* Component Title */}
             {lines.map((line, i) => (
               <text
                 key={i}
-                x={12}
-                y={16 + i * 12}
-                fill={c.knowledge === "unknown" ? "#64748b" : isSelected ? "var(--primary-bg, #266682)" : "#1e293b"}
-                fontSize={10}
-                fontWeight={isSelected ? "700" : "600"}
+                x={NODE_PAD_X}
+                y={19 + i * 13}
+                fill={isUnknown ? "#7c8ba1" : isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
+                fontSize={11}
+                fontWeight={isSelected ? 700 : 600}
+                letterSpacing="0.1"
               >
                 {line}
               </text>
             ))}
 
-            {c.knowledge === "unknown" && (
-              <text x={12} y={BOX_H - 10} fill="#94a3b8" fontSize={8.5}>
+            {isUnknown ? (
+              <text x={NODE_PAD_X} y={BOX_H - 12} fill="#94a3b8" fontSize={8.5} fontStyle="italic">
                 not looked at yet
               </text>
+            ) : (
+              <>
+                {c.nominal !== undefined && (
+                  <LevelMeter nominal={c.nominal} effective={c.effective} y={BOX_H - 14} />
+                )}
+                <text x={NODE_PAD_X} y={BOX_H - 20} fill={rail} fontSize={8} fontWeight={700} letterSpacing="0.6">
+                  {LEVEL_LABELS[c.effective ?? c.nominal ?? 0]?.toUpperCase()}
+                </text>
+              </>
             )}
 
-            {/* Level Pips */}
-            {c.knowledge !== "unknown" && c.nominal !== undefined && (
-              <g transform={`translate(12, ${BOX_H - 12})`}>
-                {Array.from({ length: 5 }, (_, i) => {
-                  const filled = i <= c.nominal!;
-                  const capped = c.effective !== undefined && i > c.effective && filled;
-                  return (
-                    <circle
-                      key={i}
-                      cx={i * 11}
-                      cy={0}
-                      r={4}
-                      fill={i === 0 && c.nominal === 0 ? "#dc3545" : filled ? (capped ? "#ea580c" : "#16a34a") : "transparent"}
-                      stroke={filled ? "none" : "#cbd5e1"}
-                      strokeWidth={1}
-                    />
-                  );
-                })}
-              </g>
-            )}
+            {/* Inspect affordance, quiet until the node is hovered or selected */}
+            <circle
+              className={isSelected ? undefined : "node-peek"}
+              cx={BOX_W - 13}
+              cy={13}
+              r={8}
+              fill={isSelected ? NODE_COLORS.selected : "#eef2f7"}
+              stroke={isSelected ? NODE_COLORS.selected : "#dde5ee"}
+              strokeWidth={1}
+            />
+            <text
+              className={isSelected ? undefined : "node-peek"}
+              x={BOX_W - 13}
+              y={16.5}
+              fontSize={9}
+              textAnchor="middle"
+              fill={isSelected ? "#ffffff" : "#64748b"}
+            >
+              ⌕
+            </text>
 
             {/* Stale Marker */}
             {c.knowledge === "stale" && c.seen_at !== undefined && (
-              <text x={BOX_W - 12} y={BOX_H - 8} fill="#d97706" fontSize={8} textAnchor="end" fontWeight="600">
+              <text x={BOX_W - 10} y={BOX_H - 8} fill={NODE_COLORS.stale} fontSize={8} textAnchor="end" fontWeight="700">
                 #{c.seen_at}
               </text>
             )}
@@ -475,10 +524,38 @@ const PIPELINE_ANIM = `
 .pipe-flow-slow { stroke-dasharray: 4 8; animation: pipeFlow 2.6s linear infinite; }
 .pipe-dead { stroke-dasharray: 3 5; animation: pipePulse 1.4s ease-in-out infinite; }
 .pipe-stage-failing { animation: pipeFailing 1.8s ease-in-out infinite; }
-.pipe-bar { background-size: 200% 100%; animation: pipeFlow 0s; }
-@keyframes pipeBar { to { background-position: -200% 0; } }
-.pipe-bar-run { animation: pipeBar 1.4s linear infinite; }
+.stage-node { cursor: pointer; }
+.stage-node rect, .stage-node circle, .stage-node text { transition: opacity .12s ease, fill .12s ease; }
+.stage-node .node-peek { opacity: 0; }
+.stage-node:hover .node-peek { opacity: 1; }
 `;
+
+/** A stage's neighbour, drawn as a thin rail beside the canvas: the architecture view is a
+ *  slice of a pipeline, and this is the reminder that the slice has edges. */
+function NeighbourRail({
+  side,
+  info,
+  onSelect,
+}: {
+  side: "in" | "out";
+  info: StageNeighbour;
+  onSelect: (stageId: string) => void;
+}) {
+  const isLink = Boolean(info.stageId);
+  return (
+    <button
+      type="button"
+      className={`${styles.neighbourRail} ${side === "in" ? styles.neighbourIn : styles.neighbourOut} ${isLink ? "" : styles.neighbourTerminal}`}
+      style={info.color ? { color: info.color } : undefined}
+      disabled={!isLink}
+      title={info.title}
+      onClick={() => info.stageId && onSelect(info.stageId)}
+    >
+      <Icon icon={info.icon} className={styles.neighbourIcon} />
+      <span className={styles.neighbourLabel}>{info.label}</span>
+    </button>
+  );
+}
 
 // ── Main PerformanceDashboard Component ──────────────────────────────────────
 
@@ -488,6 +565,8 @@ export default function PerformanceDashboard({
   onClose,
   onToggle,
   currentPhase = 0,
+  dossierData,
+  onOpenStakeholder,
 }: PerformanceDashboardProps) {
   const isDashboardOpen = isOpen ?? isVisible ?? false;
   const handleClose = useCallback(() => {
@@ -499,6 +578,22 @@ export default function PerformanceDashboard({
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
+  const [openNote, setOpenNote] = useState<LinkedNote | null>(null);
+
+  /** Dossier notes that are about a given graph target, flattened across stakeholder pages. */
+  const notesByTarget = useMemo(() => {
+    const byTarget: Record<string, LinkedNote[]> = {};
+    (dossierData ?? []).forEach((entry) => {
+      (entry.intel_items ?? []).forEach((item) => {
+        const target = item.target || item.debug?.target;
+        if (!target) return;
+        (byTarget[target] ||= []).push({ item, stakeholderName: entry.name });
+      });
+    });
+    return byTarget;
+  }, [dossierData]);
+
+  const linkedNotes = selectedComp ? notesByTarget[selectedComp] ?? [] : [];
 
   const stageRefs = useRef<Record<string, HTMLElement | null>>({});
   const buttonsRowRef = useRef<HTMLDivElement | null>(null);
@@ -512,12 +607,18 @@ export default function PerformanceDashboard({
     if (!isDashboardOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (selectedComp) setSelectedComp(null);
+      if (openNote) setOpenNote(null);
+      else if (selectedComp) setSelectedComp(null);
       else handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isDashboardOpen, selectedComp, handleClose]);
+  }, [isDashboardOpen, selectedComp, openNote, handleClose]);
+
+  // Changing what is selected drops an open artifact: it belonged to the old selection.
+  useEffect(() => {
+    setOpenNote(null);
+  }, [selectedComp, selectedStage]);
 
   const requestState = useCallback(() => {
     emit("graph:state_request", { phase_id: currentPhase });
@@ -606,6 +707,111 @@ export default function PerformanceDashboard({
     ? activeTechnical.components.find((c) => c.id === selectedComp)
     : null;
 
+  /** The owner's dossier page, when the player has one for them. */
+  const ownerEntry = selComponentData?.owner_id
+    ? (dossierData ?? []).find((d) => d.stakeholder_id === selComponentData.owner_id)
+    : undefined;
+
+  const stageName = useCallback(
+    (id: string) => pipelineStages.find((s) => s.id === id)?.name ?? id,
+    [pipelineStages],
+  );
+
+  /**
+   * What lies upstream and downstream of the stage on screen. A pipeline neighbour is a link;
+   * a stage with none gets a terminal marker instead - the lifecycle has to start and end
+   * somewhere, and saying so is better than leaving the edge blank.
+   */
+  const neighbours = useMemo(() => {
+    if (!activeStage || !graphState) return { inbound: null, outbound: null };
+
+    /** Every distinct stage on one side of this one. A stage can have more than one: the
+     *  modelling stage is fed by both requirements and data, and monitoring loops back into
+     *  both modelling and deployment. Naming only the first would misreport the pipeline. */
+    const peers = (flows: FlowData[], side: "from" | "to") => {
+      const other = side === "from" ? "to" : "from";
+      const ids: string[] = [];
+      flows.forEach((f) => {
+        if (f[other] !== activeStage.id) return;
+        if (f[side] === activeStage.id || ids.includes(f[side])) return;
+        ids.push(f[side]);
+      });
+      return ids;
+    };
+
+    const listNames = (ids: string[]) =>
+      ids.length <= 2
+        ? ids.map(stageName).join(" and ")
+        : `${stageName(ids[0])} +${ids.length - 1}`;
+
+    const crossCutting: StageNeighbour = {
+      icon: "ph:arrows-out-line-horizontal-bold",
+      label: "runs alongside every stage",
+      title: "Governance and infrastructure is cross-cutting: it has no single stage before or after it.",
+      color: GOVERNANCE_COLOR,
+    };
+
+    if (activeStage.band) return { inbound: crossCutting, outbound: crossCutting };
+
+    const pipelineInto = peers(graphState.flows, "from");
+    const pipelineOut = peers(graphState.flows, "to");
+    const feedbackInto = peers(graphState.feedback_flows ?? [], "from");
+    const feedbackOut = peers(graphState.feedback_flows ?? [], "to");
+
+    const inbound: StageNeighbour = pipelineInto.length
+      ? {
+          icon: "ph:arrow-right-bold",
+          label: `from ${listNames(pipelineInto)}`,
+          title: `Fed by ${pipelineInto.map(stageName).join(", ")} - click to inspect ${stageName(pipelineInto[0])}`,
+          stageId: pipelineInto[0],
+        }
+      : feedbackInto.length
+        ? {
+            icon: "ph:arrow-u-down-left-bold",
+            label: `loops back from ${listNames(feedbackInto)}`,
+            title: `Looped back into by ${feedbackInto.map(stageName).join(", ")} - click to inspect ${stageName(feedbackInto[0])}`,
+            stageId: feedbackInto[0],
+          }
+        : {
+            icon: "ph:arrows-clockwise-bold",
+            label: "each cycle starts here",
+            title: "Nothing upstream: every iteration of the project starts from this stage, at whatever maturity it has already reached.",
+          };
+
+    const outbound: StageNeighbour = pipelineOut.length
+      ? {
+          icon: "ph:arrow-right-bold",
+          label: `to ${listNames(pipelineOut)}`,
+          title: `Feeds ${pipelineOut.map(stageName).join(", ")} - click to inspect ${stageName(pipelineOut[0])}`,
+          stageId: pipelineOut[0],
+        }
+      : feedbackOut.length
+        ? {
+            // Runtime automation, not a step back through the lifecycle: the deployed system
+            // retrains and rolls itself back. The lifecycle carries on into the next cycle.
+            icon: "ph:arrows-clockwise-bold",
+            label: `runtime loops to ${listNames(feedbackOut)}`,
+            title:
+              `The running system drives ${feedbackOut.map(stageName).join(" and ")} on its own - retraining and rollback. ` +
+              `That is automation inside this cycle, not a step back through it: the lifecycle carries on into the next iteration, ` +
+              `which reopens ${stageName(pipelineStages[0]?.id ?? "")} with everything you have already built. ` +
+              `Click to inspect ${stageName(feedbackOut[0])}.`,
+            stageId: feedbackOut[0],
+          }
+        : {
+            icon: "ph:arrows-clockwise-bold",
+            label: "the cycle closes here",
+            title: `Nothing downstream: this cycle ends here, and the next iteration reopens ${stageName(pipelineStages[0]?.id ?? "")} with everything you have already built.`,
+          };
+
+    return { inbound, outbound };
+  }, [activeStage, graphState, stageName, pipelineStages]);
+
+  const selectStage = useCallback((stageId: string) => {
+    setSelectedStage(stageId);
+    setSelectedComp(null);
+  }, []);
+
   return (
     <div
       className={`${styles.helpOverlayLayer} ${
@@ -617,15 +823,19 @@ export default function PerformanceDashboard({
     >
       <style>{PIPELINE_ANIM}</style>
       <div className={styles.dashboardPanel}>
-        {/* Header matching PrePhaseDialog modal system */}
+        {/* Header matching PrePhaseDialog modal system. The phase rail lives here: it is
+            orientation, not content, and hovering a phase reveals its description. */}
         <div className={styles.header}>
           <h4 className={styles.headerTitle}>
             <Icon
               icon="material-symbols:dashboard-rounded"
-              style={{ fontSize: "1.35rem", color: "#ffffff" }}
+              style={{ fontSize: "1.45em", color: "#ffffff" }}
             />
             <span>Performance Dashboard</span>
           </h4>
+          <div className={styles.headerPhases}>
+            <PhaseOverview isTourAnchor />
+          </div>
           <button
             type="button"
             className="btn-close btn-close-white"
@@ -638,182 +848,132 @@ export default function PerformanceDashboard({
 
         {/* Modal Body */}
         <div className={styles.modalBody}>
-          {/* Section 1: Phase Overview */}
-          <div className={styles.sectionCard}>
-            <span className={styles.sectionLabel}>
-              <Icon icon="ph:clipboard-text-bold" style={{ fontSize: "1.05rem" }} /> Phase Overview
-            </span>
-            <div>
-              <PhaseOverview />
-            </div>
-          </div>
+          {/* Metrics rail: one row of gauges, descriptions on hover */}
+          <MetricTab current_phase={currentPhase} />
 
-          {/* Section 2: Performance Metrics */}
-          <div className={styles.sectionCard}>
-            <span className={styles.sectionLabel}>
-              <Icon icon="ph:chart-bar-bold" style={{ fontSize: "1.05rem" }} /> Performance Metrics
-            </span>
-            <div>
-              <MetricTab current_phase={currentPhase} />
-            </div>
-          </div>
-
-          {/* Section 3: MLOps Project Graph with Side-by-Side Node Details */}
-          <div className={`${styles.sectionCard} ${styles.graphSectionCard}`}>
-            <span className={styles.sectionLabel}>
-              <Icon icon="ph:target-bold" style={{ fontSize: "1.05rem" }} /> MLOps Project Graph
-            </span>
-
-            {/* Pipeline Stage Buttons Row */}
+          {/* Project graph. Left column: stage strip over the stage architecture.
+              Right column: the inspector, running the full height of both. */}
+          <div className={styles.graphSection}>
             {graphState ? (
-              <div className={styles.graphContentWrapper}>
-                <div style={{ overflowX: "auto", overflowY: "hidden", paddingTop: 10, paddingBottom: 2 }}>
-                  <div style={{ width: "max-content", minWidth: "100%", padding: "2px 2px" }}>
-                    <CrossStageArcs
-                      pipelineStages={pipelineStages}
-                      flows={graphState.governance_flows ?? []}
-                      centres={centres.centres}
-                      width={centres.width}
-                      variant="governance"
-                    />
-                    <CrossStageArcs
-                      pipelineStages={pipelineStages}
-                      flows={graphState.feedback_flows ?? []}
-                      centres={centres.centres}
-                      width={centres.width}
-                      variant="feedback"
-                    />
-                    <div
-                      ref={buttonsRowRef}
-                      className="d-flex align-items-center gap-2"
-                      style={{ position: "relative", zIndex: 5, marginTop: 4 }}
-                    >
-                      {pipelineStages.map((stage, i) => {
-                        const flow = graphState.flows.find((f) => f.from === pipelineStages[i - 1]?.id && f.to === stage.id);
-                        const isStageActive = selectedStage === stage.id;
+              <div className={styles.graphGrid}>
+                <div className={styles.graphColumn}>
+                  <div className={styles.sectionHeadRow}>
+                    <span className={styles.sectionLabel}>
+                      <Icon icon="ph:target-bold" style={{ fontSize: "1.05rem" }} /> MLOps Project Graph
+                    </span>
+                    {graphState.system_health !== undefined && (
+                      <span
+                        className={styles.systemHealth}
+                        style={{
+                          color: statusColor(
+                            healthBucket(graphState.system_health) === "healthy" ? "healthy"
+                              : healthBucket(graphState.system_health) === "strained" ? "degraded"
+                              : "broken"
+                          ),
+                        }}
+                      >
+                        The system as a whole: {HEALTH_BUCKET_WORD[healthBucket(graphState.system_health)]}
+                      </span>
+                    )}
+                  </div>
 
-                        return (
-                          <div
-                            key={stage.id}
-                            className="d-flex align-items-center gap-2"
-                            ref={(el) => { stageRefs.current[stage.id] = el; }}
-                          >
-                            {i > 0 && (
-                              stage.band ? (
-                                <div
-                                  title="Cross-cutting Governance & Infrastructure"
-                                  style={{
-                                    width: 28,
-                                    height: 0,
-                                    borderTop: "2px dashed #94a3b8",
-                                    margin: "0 2px",
-                                  }}
-                                />
-                              ) : (
-                                <div
-                                  className={flow ? (flow.level === 0 ? "" : "pipe-bar pipe-bar-run") : ""}
-                                  title={flow ? `Flow between stages: ${LEVEL_LABELS[flow.level]}` : undefined}
-                                  style={{
-                                    width: 28,
-                                    height: flow && flow.level === 0 ? 2 : 3,
-                                    borderRadius: 2,
-                                    background: !flow
-                                      ? "#cbd5e1"
-                                      : flow.level === 0
-                                        ? statusColor("broken")
-                                        : `repeating-linear-gradient(90deg, ${statusColor(flow.level >= 3 ? "healthy" : "degraded")} 0 7px, rgba(0,0,0,0.08) 7px 14px)`,
-                                  }}
-                                />
-                              )
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!stage.locked) {
-                                  setSelectedStage(stage.id);
-                                  setSelectedComp(null);
-                                }
-                              }}
-                              className={`${styles.stageButton} ${isStageActive ? styles.stageButtonActive : ""} ${stage.locked ? styles.stageButtonLocked : ""} ${!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : ""}`}
-                              disabled={stage.locked}
-                              title={stage.locked ? "Stage locked" : `Click to inspect ${stage.name}`}
+                  <div className={styles.stageStrip}>
+                    <div style={{ width: "max-content", minWidth: "100%", padding: "2px 2px" }}>
+                      <CrossStageArcs
+                        pipelineStages={pipelineStages}
+                        flows={graphState.governance_flows ?? []}
+                        centres={centres.centres}
+                        width={centres.width}
+                        variant="governance"
+                      />
+                      <CrossStageArcs
+                        pipelineStages={pipelineStages}
+                        flows={graphState.feedback_flows ?? []}
+                        centres={centres.centres}
+                        width={centres.width}
+                        variant="feedback"
+                      />
+                      <div
+                        ref={buttonsRowRef}
+                        className="d-flex align-items-center gap-2"
+                        style={{ position: "relative", zIndex: 5, marginTop: 4 }}
+                      >
+                        {pipelineStages.map((stage, i) => {
+                          const flow = graphState.flows.find((f) => f.from === pipelineStages[i - 1]?.id && f.to === stage.id);
+                          const isStageActive = selectedStage === stage.id;
+
+                          return (
+                            <div
+                              key={stage.id}
+                              className="d-flex align-items-center gap-2"
+                              ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
-                              <div className="fw-bold" style={{ color: stage.locked ? "#94a3b8" : "var(--text-primary, #1e293b)" }}>
-                                {stage.name}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: "0.72rem",
-                                  fontWeight: 600,
-                                  color: stage.locked ? "#94a3b8" : statusColor(stage.status),
-                                }}
+                              {i > 0 && (
+                                <StageConnector flow={flow} band={stage.band} toId={stage.id} />
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => selectStage(stage.id)}
+                                className={`${styles.stageButton} ${isStageActive ? styles.stageButtonActive : ""} ${stage.locked ? styles.stageButtonUpcoming : ""} ${!stage.locked && stage.status === "broken" ? "pipe-stage-failing" : ""}`}
+                                title={stage.locked ? `${stage.name} is ahead of you - preview what it will contain` : `Click to inspect ${stage.name}`}
                               >
-                                {stage.locked ? "🔒 locked" : healthText(stage)}
-                              </div>
+                                <div className="fw-bold" style={{ color: stage.locked ? "#64748b" : "var(--text-primary, #1e293b)" }}>
+                                  {stage.name}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    fontWeight: 600,
+                                    color: stage.locked ? "#94a3b8" : statusColor(stage.status),
+                                  }}
+                                >
+                                  {healthText(stage)}
+                                </div>
 
-                              {!stage.locked && (
                                 <div className={styles.stageClickHint}>
                                   <Icon icon="ph:cursor-click-bold" />
-                                  <span>{isStageActive ? "Viewing" : "Click to view"}</span>
+                                  <span>
+                                    {isStageActive ? "Viewing" : stage.locked ? "Click to preview" : "Click to view"}
+                                  </span>
                                 </div>
-                              )}
 
-                              {!stage.locked && stage.patterns && stage.patterns.length > 0 && (
-                                <div className="d-flex justify-content-center gap-1 mt-1">
-                                  {stage.patterns.map((p) => (
-                                    <span
-                                      key={p.id}
-                                      style={{
-                                        width: 6,
-                                        height: 6,
-                                        borderRadius: "50%",
-                                        background: p.kind === "anti" ? "#dc3545" : "#16a34a",
-                                        display: "inline-block",
-                                      }}
-                                      title={p.name}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                            </button>
-                          </div>
-                        );
-                      })}
+                                {!stage.locked && stage.patterns && stage.patterns.length > 0 && (
+                                  <div className="d-flex justify-content-center gap-1 mt-1">
+                                    {stage.patterns.map((p) => (
+                                      <span
+                                        key={p.id}
+                                        style={{
+                                          width: 6,
+                                          height: 6,
+                                          borderRadius: "50%",
+                                          background: p.kind === "anti" ? "#dc3545" : "#16a34a",
+                                          display: "inline-block",
+                                        }}
+                                        title={p.name}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* System health summary */}
-                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-1 pt-1 border-top">
-                  {graphState.system_health !== undefined && (
-                    <div
-                      style={{
-                        fontSize: "0.85rem",
-                        fontWeight: 700,
-                        color: statusColor(
-                          healthBucket(graphState.system_health) === "healthy" ? "healthy"
-                            : healthBucket(graphState.system_health) === "strained" ? "degraded"
-                            : "broken"
-                        ),
-                      }}
-                    >
-                      The system as a whole: {HEALTH_BUCKET_WORD[healthBucket(graphState.system_health)]}
-                    </div>
-                  )}
-                </div>
-
-                {/* Two-column Layout: Graph Topology (Left) and Node Details (Right) */}
-                {activeStage && activeTechnical ? (
-                  <div className={styles.graphGrid}>
-                    {/* Left Column: Stage Topology Canvas */}
-                    <div className={styles.graphColumn}>
+                  {activeStage && activeTechnical && (
+                    <>
                       {/* Subheader with Stage Info & Legend */}
                       <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-1">
                         <div className="d-flex align-items-center gap-2">
                           <h6 className="mb-0 fw-bold" style={{ color: "var(--text-primary, #1e293b)", fontSize: "0.92rem" }}>
                             {activeStage.name} Architecture
                           </h6>
-                          <span className="badge text-white" style={{ background: statusColor(activeStage.status), fontSize: "0.72rem" }}>
+                          <span
+                            className="badge text-white"
+                            style={{ background: activeStage.locked ? "#94a3b8" : statusColor(activeStage.status), fontSize: "0.72rem" }}
+                          >
                             {healthText(activeStage)}
                           </span>
                           {!!activeStage.starved && (
@@ -856,13 +1016,21 @@ export default function PerformanceDashboard({
                         </div>
                       )}
 
-                      {/* SVG Canvas Box */}
-                      <div className={styles.graphCanvasBox}>
-                        <StageSvg
-                          technical={activeTechnical}
-                          selectedComponentId={selectedComp}
-                          onSelectComponent={setSelectedComp}
-                        />
+                      {/* SVG canvas, flanked by what comes before and after this stage */}
+                      <div className={styles.canvasRow}>
+                        {neighbours.inbound && (
+                          <NeighbourRail side="in" info={neighbours.inbound} onSelect={selectStage} />
+                        )}
+                        <div className={styles.graphCanvasBox}>
+                          <StageSvg
+                            technical={activeTechnical}
+                            selectedComponentId={selectedComp}
+                            onSelectComponent={setSelectedComp}
+                          />
+                        </div>
+                        {neighbours.outbound && (
+                          <NeighbourRail side="out" info={neighbours.outbound} onSelect={selectStage} />
+                        )}
                       </div>
 
                       {/* Non-pipeline edges summary */}
@@ -878,11 +1046,47 @@ export default function PerformanceDashboard({
                           ))}
                         </div>
                       )}
-                    </div>
+                    </>
+                  )}
+                </div>
 
-                    {/* Right Column: Node Details Panel */}
-                    <div className={styles.detailsColumn}>
-                      <div className={styles.detailsCard}>
+                {/* Right column: the inspector spans the strip and the architecture */}
+                <div className={styles.detailsColumn}>
+                  {openNote ? (
+                    <div className={styles.detailsCard}>
+                      <div className={styles.detailsCardHeader}>
+                        <span className="d-flex align-items-center gap-2">
+                          <Icon icon={noteSourceMeta(openNote.item).icon} />
+                          <span>{selComponentData?.name ?? "Intel artifact"}</span>
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-link text-white text-decoration-none p-0"
+                          onClick={() => setOpenNote(null)}
+                          title="Back to the component"
+                          style={{ fontSize: "0.78rem" }}
+                        >
+                          ✕ Close
+                        </button>
+                      </div>
+                      <div className={styles.artifactBody}>
+                        <IntelArtifactViewer
+                          content={artifactContentOf(openNote.item) ?? ""}
+                          artifactType={openNote.item.artifact?.artifact_type || openNote.item.artifact_type || "document"}
+                          stakeholderName={openNote.item.artifact?.stakeholder_name || openNote.stakeholderName}
+                          isPublicRecord={(openNote.item.source || "").toLowerCase() === "public_record"}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary m-2"
+                        onClick={() => setOpenNote(null)}
+                      >
+                        ← Back to {selComponentData?.name ?? "component"}
+                      </button>
+                    </div>
+                  ) : activeStage && activeTechnical ? (
+                    <div className={styles.detailsCard}>
                         <div className={styles.detailsCardHeader}>
                           <span className="d-flex align-items-center gap-2">
                             <Icon icon={selComponentData ? "ph:cube-bold" : "ph:cards-bold"} />
@@ -914,9 +1118,22 @@ export default function PerformanceDashboard({
 
                               <div className="d-flex gap-1 flex-wrap">
                                 {selComponentData.owner_id && (
-                                  <span className="badge bg-light text-secondary border" style={{ fontSize: "0.68rem" }}>
-                                    Owner: {selComponentData.owner_id.replace(/_/g, " ")}
-                                  </span>
+                                  ownerEntry && onOpenStakeholder ? (
+                                    <button
+                                      type="button"
+                                      className={styles.ownerLink}
+                                      onClick={() => onOpenStakeholder(ownerEntry.stakeholder_id)}
+                                      title={`Open ${ownerEntry.name}'s dossier page`}
+                                    >
+                                      <Icon icon="ph:user-circle-bold" />
+                                      <span>Owner: {ownerEntry.name}</span>
+                                      <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
+                                    </button>
+                                  ) : (
+                                    <span className="badge bg-light text-secondary border" style={{ fontSize: "0.68rem" }}>
+                                      Owner: {selComponentData.owner_id.replace(/_/g, " ")}
+                                    </span>
+                                  )
                                 )}
                                 {selComponentData.knowledge === "stale" && (
                                   <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style={{ fontSize: "0.68rem" }}>
@@ -982,8 +1199,42 @@ export default function PerformanceDashboard({
                                 </>
                               ) : (
                                 <p className="text-muted small mb-0">
-                                  You have not uncovered intel about this component yet. Verify stakeholder intel and resolve objections to unlock deeper insights.
+                                  {activeStage.locked
+                                    ? "This component belongs to a stage you have not reached yet. Its name and wiring are part of the plan; its state becomes readable once the project gets there."
+                                    : "You have not uncovered intel about this component yet. Verify stakeholder intel and resolve objections to unlock deeper insights."}
                                 </p>
+                              )}
+
+                              {linkedNotes.length > 0 && (
+                                <div>
+                                  <span className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.68rem" }}>
+                                    Intel on this component:
+                                  </span>
+                                  <div className={styles.noteLinkList}>
+                                    {linkedNotes.map(({ item, stakeholderName }) => {
+                                      const meta = noteSourceMeta(item);
+                                      const openable = Boolean(artifactContentOf(item));
+                                      return (
+                                        <button
+                                          key={item.id}
+                                          type="button"
+                                          className={`${styles.noteLink} ${openable ? "" : styles.noteLinkFlat}`}
+                                          disabled={!openable}
+                                          onClick={() => openable && setOpenNote({ item, stakeholderName })}
+                                          title={openable ? `Open the ${meta.label.toLowerCase()}` : meta.label}
+                                        >
+                                          <Icon icon={meta.icon} className={styles.noteLinkIcon} />
+                                          <span className={styles.noteLinkText}>
+                                            {item.fact || item.description}
+                                          </span>
+                                          {openable && (
+                                            <Icon icon="ph:arrow-square-out-bold" className={styles.noteLinkGo} />
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
                               )}
 
                               <button
@@ -999,7 +1250,11 @@ export default function PerformanceDashboard({
                             <>
                               <div className="alert alert-info border-0 p-2 mb-2 d-flex align-items-center gap-2" style={{ background: "rgba(38, 102, 130, 0.08)", color: "var(--primary-bg)", fontSize: "0.78rem" }}>
                                 <Icon icon="ph:cursor-click-bold" className="flex-shrink-0" />
-                                <span>Click any component in the diagram or list to view parameters.</span>
+                                <span>
+                                  {activeStage.locked
+                                    ? "This stage is ahead of you. You can see what it will contain, not how any of it is doing."
+                                    : "Click any component in the diagram or list to view parameters."}
+                                </span>
                               </div>
 
                               <div className="d-flex flex-column gap-2" style={{ overflowY: "auto" }}>
@@ -1029,11 +1284,22 @@ export default function PerformanceDashboard({
                               </div>
                             </>
                           )}
-                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : null}
+                  ) : (
+                    <div className={styles.detailsCard}>
+                      <div className={styles.detailsCardHeader}>
+                        <span className="d-flex align-items-center gap-2">
+                          <Icon icon="ph:cards-bold" />
+                          <span>Components</span>
+                        </span>
+                      </div>
+                      <div className={styles.detailsCardBody}>
+                        <p className="text-muted small mb-0">Pick a stage above to inspect its components.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <span className="text-secondary" style={{ fontSize: "0.85rem" }}>Loading pipeline…</span>
