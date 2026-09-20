@@ -1,8 +1,8 @@
 {
   "item_id": "artifacts:gen_inconsistent_data_labeling_data_dave_boundary",
   "stage": "artifacts",
-  "input_hash": "e2828ac12b46660d2b43961caf09a1ae8e0e3c1d14fe712d787fd280b238d1cc",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "9b64d5d990c08a35c42bcad61494bcc33cac126bbf627413d010d541af501a43",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "requirement": {
@@ -28,7 +28,14 @@
         }
       ],
       "concedes": null,
-      "asserts": null
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
     },
     "artifact_type": "email",
     "author": {
@@ -41,8 +48,8 @@
     }
   },
   "output": {
-    "content": "Hi all, I’ve been thinking about the data labeling process. I understand the push for automation, but I need to be clear: I will not accept any solution that takes control away from me. Data labeling is too critical to hand off to a system without human oversight. I’m open to discussing improvements, but my team needs to remain in charge of the process. Best, {data_dave}",
+    "content": "We need to lock down the labeling workflow before the next sprint. I am not open to any automation that strips my direct control over the annotation process. If we introduce scripts that override manual decisions, I will block the release. The pipeline must remain in a state where every label is verified by a human eye before it hits the training set. Do not propose tools that bypass this check. I will not sign off on a governed system if it means I cannot see and correct every single entry. Keep the process manual and I will ensure the data quality stays high. Any attempt to automate this away is a hard no from me.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The message explicitly states a condition that, if crossed, would result in refusal."
+    "reclassify_reason": "The text explicitly defines a line whose crossing (automation bypassing human verification) results in a refusal to sign off or a block on the release."
   }
 }

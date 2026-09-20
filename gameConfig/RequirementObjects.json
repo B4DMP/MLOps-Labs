@@ -621,15 +621,18 @@
       "challenge_id": 107,
       "stakeholder_id": "efficiency_emilia",
       "type": "driver",
-      "description": "{efficiency_emilia} asked for automated data contracts to minimize upstream communication errors.",
+      "description": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals. The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
       "fact": "{efficiency_emilia} proposed that the KPI definitions be fully automated and governed to ensure alignment with business goals.",
       "reading": "The more the KPI definitions are aligned with business goals, the better the project outcomes will be for the organization.",
       "metric_id": "efficiency",
       "suggested": {
-        "target": "req.data_contracts",
-        "level": 3
+        "target": "req.kpi_definition",
+        "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "KPI definitions and their alignment with business goals have been raised by {efficiency_emilia}."
     },
     {
@@ -637,7 +640,54 @@
       "challenge_id": 107,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} insisted that risk assessment must be documented and maintained.",
+      "description": "{requirements_reuben} argued that the KPI definitions should remain a manual process to allow for careful security and compliance review. He will not accept any KPI definition process that is automated or governed without his direct manual review.",
+      "fact": "{requirements_reuben} argued that the KPI definitions should remain a manual process to allow for careful security and compliance review.",
+      "reading": "He will not accept any KPI definition process that is automated or governed without his direct manual review.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 2
+      },
+      "holds": {
+        "component": "req.kpi_definition",
+        "op": "lte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 2
+        }
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
+    },
+    {
+      "id": "gen_missing_kpi_baseline_emilia_trade_off",
+      "challenge_id": 107,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented. She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "fact": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented.",
+      "reading": "She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
+      "ops": [],
+      "concedes": {
+        "target": "req.kpi_definition",
+        "accepts_max_level": 2
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The documentation status of the KPI definition process keeps coming up in discussions with {efficiency_emilia}."
+    },
+    {
+      "id": "gen_missing_kpi_baseline_reuben_risk_boundary",
+      "challenge_id": 107,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} noted that the risk assessment must be reviewed manually before acceptance criteria are finalized. He will not accept any acceptance criteria that are not manually reviewed against the risk assessment.",
       "fact": "{requirements_reuben} noted that the risk assessment must be reviewed manually before acceptance criteria are finalized.",
       "reading": "He will not accept any acceptance criteria that are not manually reviewed against the risk assessment.",
       "metric_id": "requirements",
@@ -646,8 +696,8 @@
         "level": 2
       },
       "holds": {
-        "component": "req.risk_assessment",
-        "op": "gte",
+        "edge": "e.risk_acceptance",
+        "op": "lte",
         "level": 2
       },
       "ops": [
@@ -657,91 +707,10 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The process for manually reviewing risk assessments before finalizing acceptance criteria has been raised in requirements discussions."
-    },
-    {
-      "id": "gen_missing_kpi_baseline_emilia_trade_off",
-      "challenge_id": 107,
-      "stakeholder_id": "efficiency_emilia",
-      "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating KPI definitions to align features with business objectives for automating acceptance criteria while maintaining documented manual KPIs.",
-      "fact": "{efficiency_emilia} is open to a compromise that keeps the KPI definition process manual but documented.",
-      "reading": "She would give up the automation of KPI definitions if the process remains manual but is properly documented.",
-      "ops": [],
-      "concedes": {
-        "target": "req.kpi_definition",
-        "accepts_max_level": 2
-      },
-      "gist": "The documentation status of the KPI definition process keeps coming up in discussions with {efficiency_emilia}.",
-      "branch_x": {
-        "description": "automating KPI definitions to align features with business objectives",
-        "target": "req.kpi_definition",
-        "level": 4,
-        "atoms": [
-          "raise_to(req.kpi_definition, 4)"
-        ],
-        "name": "Automate KPI Definitions",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.kpi_definition",
-            "value": 4
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating acceptance criteria while maintaining documented manual KPIs",
-        "target": "req.acceptance_criteria",
-        "level": 4,
-        "atoms": [
-          "raise_to(req.acceptance_criteria, 4)"
-        ],
-        "name": "Automate Acceptance Criteria",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 4
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(req.kpi_definition, 4)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(req.acceptance_criteria, 4)"
-      ],
-      "atoms": [
-        "raise_to(req.kpi_definition, 4)",
-        "raise_to(req.acceptance_criteria, 4)"
-      ]
-    },
-    {
-      "id": "gen_missing_kpi_baseline_reuben_risk_boundary",
-      "challenge_id": 107,
-      "stakeholder_id": "requirements_reuben",
-      "type": "boundary",
-      "description": "{requirements_reuben} insisted that KPI definitions must at least be documented and manual, not completely lost.",
-      "fact": "{requirements_reuben} argued that the KPI definitions should remain a manual process to allow for careful security and compliance review.",
-      "reading": "He will not accept any KPI definition process that is automated or governed without his direct manual review.",
-      "metric_id": "requirements",
-      "suggested": {
-        "target": "req.kpi_definition",
-        "level": 1
-      },
-      "holds": {
-        "component": "req.kpi_definition",
-        "op": "gte",
-        "level": 1
-      },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "req.kpi_definition",
-          "value": 1
-        }
-      ],
-      "gist": "The governance and manual review requirements for KPI definitions have been raised by {requirements_reuben}."
     },
     {
       "id": "gen_missing_kpi_baseline_alex_pipeline_driver",
@@ -757,6 +726,9 @@
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The automation of data contracts for integration with the ingestion pipeline has been raised by {automation_alex}."
     },
     {
@@ -764,15 +736,18 @@
       "challenge_id": 107,
       "stakeholder_id": "reliability_ruth",
       "type": "driver",
-      "description": "{reliability_ruth} proposed automating acceptance criteria to ensure reliable release standards.",
+      "description": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features. The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
       "fact": "{reliability_ruth} proposed that the acceptance criteria be linked to real-world performance monitoring to ensure reliable ML features.",
       "reading": "The more the acceptance criteria are linked to real-world performance, the better the reliability of the ML features will be.",
       "metric_id": "reliability",
       "suggested": {
         "target": "req.acceptance_criteria",
-        "level": 4
+        "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Reliability of ML features through acceptance criteria and real-world performance monitoring has been raised."
     },
     {
@@ -783,6 +758,9 @@
       "fact": "The KPI definitions were lost during a team transition.",
       "reading": "That is simply the state of the KPI definitions after the team transition.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.kpi_definition",
         "level": 0
@@ -796,6 +774,9 @@
       "fact": "The acceptance criteria are currently done by hand.",
       "reading": "That is simply how the acceptance criteria process works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.acceptance_criteria",
         "level": 1
@@ -809,6 +790,9 @@
       "fact": "The data contracts are currently done by hand.",
       "reading": "That is simply how the data contracts process works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.data_contracts",
         "level": 1
@@ -822,6 +806,9 @@
       "fact": "The risk assessment is currently done by hand.",
       "reading": "That is simply how the risk assessment process works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.risk_assessment",
         "level": 1
@@ -835,6 +822,9 @@
       "fact": "The link between risk assessment and acceptance criteria is currently done by hand with no trigger.",
       "reading": "That is simply how the link between risk assessment and acceptance criteria works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.risk_acceptance",
         "level": 1,
@@ -846,77 +836,45 @@
       "challenge_id": 109,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} insisted that acceptance criteria must be automated to meet security standards.",
+      "description": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards. He will not approve any model promotion unless the acceptance criteria are governed.",
       "fact": "{requirements_reuben} proposed that the acceptance criteria process must be governed to meet security standards.",
       "reading": "He will not approve any model promotion unless the acceptance criteria are governed.",
       "metric_id": "requirements",
       "holds": {
         "component": "req.acceptance_criteria",
         "op": "gte",
-        "level": 1
+        "level": 4
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.acceptance_criteria",
-          "value": 1
+          "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The acceptance criteria process and its alignment with security standards has been raised by {requirements_reuben}."
     },
     {
       "id": "gen_the_missing_gate_alex_speed_priority",
       "challenge_id": 109,
       "stakeholder_id": "automation_alex",
-      "type": "trade_off",
-      "description": "{automation_alex} would compromise automating acceptance criteria to unblock model promotion safely for automating data contracts to ensure pipeline stability while keeping the gate manual.",
+      "type": "driver",
+      "description": "{automation_alex} asked for the acceptance criteria to remain manual to avoid delaying new features. He wants to keep the acceptance criteria manual so that new features can be released without delay.",
       "fact": "{automation_alex} asked for the acceptance criteria to remain manual to avoid delaying new features.",
       "reading": "He wants to keep the acceptance criteria manual so that new features can be released without delay.",
       "metric_id": "automation",
-      "ops": [],
-      "gist": "The automation of acceptance criteria keeps coming up whenever new features are discussed with {automation_alex}.",
-      "branch_x": {
-        "description": "automating acceptance criteria to unblock model promotion safely",
+      "suggested": {
         "target": "req.acceptance_criteria",
-        "level": 4,
-        "atoms": [
-          "raise_to(req.acceptance_criteria, 4)"
-        ],
-        "name": "Automate Acceptance Criteria",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 4
-          }
-        ]
+        "level": 2
       },
-      "branch_y": {
-        "description": "automating data contracts to ensure pipeline stability while keeping the gate manual",
-        "target": "req.data_contracts",
-        "level": 3,
-        "atoms": [
-          "raise_to(req.data_contracts, 3)"
-        ],
-        "name": "Automate Data Contracts",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.data_contracts",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(req.acceptance_criteria, 4)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(req.data_contracts, 3)"
-      ],
-      "atoms": [
-        "raise_to(req.acceptance_criteria, 4)",
-        "raise_to(req.data_contracts, 3)"
-      ]
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The automation of acceptance criteria keeps coming up whenever new features are discussed with {automation_alex}."
     },
     {
       "id": "gen_the_missing_gate_emilia_kpi_alignment",
@@ -932,6 +890,9 @@
         "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Defining KPIs to align model performance with business goals keeps coming up in {efficiency_emilia} notes."
     },
     {
@@ -939,7 +900,7 @@
       "challenge_id": 109,
       "stakeholder_id": "reliability_ruth",
       "type": "trade_off",
-      "description": "{reliability_ruth} would compromise automating acceptance criteria to enforce reliability thresholds for automating risk assessment to identify failure modes proactively.",
+      "description": "{reliability_ruth} mentioned that the lack of a quality gate makes it hard to monitor model performance in production. She would accept a manual gate if it meant faster deployment of user facing features.",
       "fact": "{reliability_ruth} mentioned that the lack of a quality gate makes it hard to monitor model performance in production.",
       "reading": "She would accept a manual gate if it meant faster deployment of user facing features.",
       "metric_id": "reliability",
@@ -950,56 +911,17 @@
         "target": "req.acceptance_criteria",
         "accepts_max_level": 2
       },
-      "gist": "The quality gate and its role in monitoring model performance in production have been brought up by {reliability_ruth}.",
-      "branch_x": {
-        "description": "automating acceptance criteria to enforce reliability thresholds",
-        "target": "req.acceptance_criteria",
-        "level": 4,
-        "atoms": [
-          "raise_to(req.acceptance_criteria, 4)"
-        ],
-        "name": "Automate Acceptance Criteria",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.acceptance_criteria",
-            "value": 4
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating risk assessment to identify failure modes proactively",
-        "target": "req.risk_assessment",
-        "level": 4,
-        "atoms": [
-          "raise_to(req.risk_assessment, 4)"
-        ],
-        "name": "Automate Risk Assessment",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.risk_assessment",
-            "value": 4
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(req.acceptance_criteria, 4)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(req.risk_assessment, 4)"
-      ],
-      "atoms": [
-        "raise_to(req.acceptance_criteria, 4)",
-        "raise_to(req.risk_assessment, 4)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The quality gate and its role in monitoring model performance in production have been brought up by {reliability_ruth}."
     },
     {
       "id": "gen_the_missing_gate_emilia_cost_tradeoff",
       "challenge_id": 109,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise establishing baseline data contracts to prevent schema drift for documenting risk assessments to meet basic compliance requirements.",
+      "description": "{efficiency_emilia} noted that the cost of building a governed gate impacts the operational budget. She would accept a higher cost for the gate if it ensures long term efficiency gains.",
       "fact": "{efficiency_emilia} noted that the cost of building a governed gate impacts the operational budget.",
       "reading": "She would accept a higher cost for the gate if it ensures long term efficiency gains.",
       "metric_id": "efficiency",
@@ -1008,49 +930,10 @@
         "metric_id": "efficiency",
         "loss": 2
       },
-      "gist": "The operational budget impact of building a governed gate has been raised by {efficiency_emilia}.",
-      "branch_x": {
-        "description": "establishing baseline data contracts to prevent schema drift",
-        "target": "req.data_contracts",
-        "level": 2,
-        "atoms": [
-          "raise_to(req.data_contracts, 2)"
-        ],
-        "name": "Baseline Data Contracts",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.data_contracts",
-            "value": 2
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "documenting risk assessments to meet basic compliance requirements",
-        "target": "req.risk_assessment",
-        "level": 2,
-        "atoms": [
-          "raise_to(req.risk_assessment, 2)"
-        ],
-        "name": "Documented Risk Assessment",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "req.risk_assessment",
-            "value": 2
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(req.data_contracts, 2)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(req.risk_assessment, 2)"
-      ],
-      "atoms": [
-        "raise_to(req.data_contracts, 2)",
-        "raise_to(req.risk_assessment, 2)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The operational budget impact of building a governed gate has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_the_missing_gate_alex_stability_driver",
@@ -1066,6 +949,9 @@
         "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The pipeline trigger for acceptance checks is the subject of the note from {automation_alex}."
     },
     {
@@ -1089,6 +975,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The link between risk assessment and acceptance criteria keeps coming up in discussions with {reliability_ruth}."
     },
     {
@@ -1099,6 +988,9 @@
       "fact": "The KPI definitions are missing.",
       "reading": "That is simply how the KPI definition setup works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.kpi_definition",
         "level": 1
@@ -1112,6 +1004,9 @@
       "fact": "The acceptance criteria process is broken.",
       "reading": "That is simply how the acceptance criteria setup works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.acceptance_criteria",
         "level": 0
@@ -1125,6 +1020,9 @@
       "fact": "The data contracts are managed manually.",
       "reading": "That is simply how the data contracts setup works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.data_contracts",
         "level": 1
@@ -1138,6 +1036,9 @@
       "fact": "The risk assessment is conducted manually.",
       "reading": "That is simply how the risk assessment setup works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "req.risk_assessment",
         "level": 1
@@ -1151,6 +1052,9 @@
       "fact": "The link from risk assessment to acceptance criteria has no trigger.",
       "reading": "That is simply how the link from risk assessment to acceptance criteria works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.risk_acceptance",
         "level": 1,
@@ -1162,15 +1066,18 @@
       "challenge_id": 102,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} proposed automating the data ingestion pipeline to streamline raw intake.",
+      "description": "{data_dave} proposed keeping data labeling done by hand. He believes more manual control will improve data flexibility.",
       "fact": "{data_dave} proposed keeping data labeling done by hand.",
       "reading": "He believes more manual control will improve data flexibility.",
       "metric_id": "data",
       "suggested": {
-        "target": "data.ingestion",
-        "level": 3
+        "target": "data.labeling",
+        "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The manual process for data labeling has been raised as a point of discussion."
     },
     {
@@ -1187,6 +1094,9 @@
         "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The reliability of the data labeling process keeps coming up whenever you talk to {reliability_ruth}."
     },
     {
@@ -1194,12 +1104,12 @@
       "challenge_id": 102,
       "stakeholder_id": "data_dave",
       "type": "boundary",
-      "description": "{data_dave} brought up that the data ingestion pipeline must remain at least at manual level 2.",
+      "description": "{data_dave} brought up keeping data labeling done by hand. He will not accept any automation that reduces his control over the labeling process.",
       "fact": "{data_dave} brought up keeping data labeling done by hand.",
       "reading": "He will not accept any automation that reduces his control over the labeling process.",
       "holds": {
-        "component": "data.ingestion",
-        "op": "gte",
+        "component": "data.labeling",
+        "op": "lte",
         "level": 2
       },
       "ops": [
@@ -1209,6 +1119,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Manual data labeling processes have been raised as a recurring topic in recent discussions."
     },
     {
@@ -1216,13 +1129,13 @@
       "challenge_id": 102,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} insisted that the data ingestion foundation must not be compromised.",
+      "description": "{reliability_ruth} mentioned that data labeling should be fully governed. She will not accept any labeling process that is not fully governed.",
       "fact": "{reliability_ruth} mentioned that data labeling should be fully governed.",
       "reading": "She will not accept any labeling process that is not fully governed.",
       "holds": {
-        "component": "data.ingestion",
+        "component": "data.labeling",
         "op": "gte",
-        "level": 2
+        "level": 4
       },
       "ops": [
         {
@@ -1230,14 +1143,17 @@
           "target": "data.labeling",
           "value": 4
         }
-      ]
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_inconsistent_data_labeling_dave_trade_off",
       "challenge_id": 102,
       "stakeholder_id": "data_dave",
       "type": "trade_off",
-      "description": "{data_dave} would compromise implementing semi-automated data labeling with quality controls for automating data validation checks while keeping labeling manual.",
+      "description": "{data_dave} suggested a semi-manual approach for data labeling. He would accept some automation if it significantly improves data quality.",
       "fact": "{data_dave} suggested a semi-manual approach for data labeling.",
       "reading": "He would accept some automation if it significantly improves data quality.",
       "ops": [],
@@ -1245,56 +1161,17 @@
         "target": "data.labeling",
         "accepts_max_level": 3
       },
-      "gist": "The semi-manual approach for data labeling has been suggested by {data_dave}.",
-      "branch_x": {
-        "description": "implementing semi-automated data labeling with quality controls",
-        "target": "data.labeling",
-        "level": 3,
-        "atoms": [
-          "raise_to(data.labeling, 3)"
-        ],
-        "name": "Semi-automated Data Labeling",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.labeling",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating data validation checks while keeping labeling manual",
-        "target": "data.validation",
-        "level": 3,
-        "atoms": [
-          "raise_to(data.validation, 3)"
-        ],
-        "name": "Automate Data Validation",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(data.labeling, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(data.validation, 3)"
-      ],
-      "atoms": [
-        "raise_to(data.labeling, 3)",
-        "raise_to(data.validation, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The semi-manual approach for data labeling has been suggested by {data_dave}."
     },
     {
       "id": "gen_inconsistent_data_labeling_ruth_trade_off",
       "challenge_id": 102,
       "stakeholder_id": "reliability_ruth",
       "type": "trade_off",
-      "description": "{reliability_ruth} would compromise governing data validation for strict quality enforcement for automating training data drift checks to catch distribution shifts.",
+      "description": "{reliability_ruth} proposed a semi-manual approach for data labeling. She would accept a semi-manual approach if it improves data quality.",
       "fact": "{reliability_ruth} proposed a semi-manual approach for data labeling.",
       "reading": "She would accept a semi-manual approach if it improves data quality.",
       "ops": [],
@@ -1302,48 +1179,9 @@
         "target": "data.labeling",
         "accepts_max_level": 3
       },
-      "branch_x": {
-        "description": "governing data validation for strict quality enforcement",
-        "target": "data.validation",
-        "level": 4,
-        "atoms": [
-          "raise_to(data.validation, 4)"
-        ],
-        "name": "Govern Data Validation",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 4
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating training data drift checks to catch distribution shifts",
-        "target": "data.training_drift_check",
-        "level": 3,
-        "atoms": [
-          "raise_to(data.training_drift_check, 3)"
-        ],
-        "name": "Automate Training Drift Checks",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.training_drift_check",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(data.validation, 4)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(data.training_drift_check, 3)"
-      ],
-      "atoms": [
-        "raise_to(data.validation, 4)",
-        "raise_to(data.training_drift_check, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_inconsistent_data_labeling_current_labeling_state",
@@ -1353,6 +1191,9 @@
       "fact": "Data labeling is currently broken.",
       "reading": "That is simply how the data labeling process is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.labeling",
         "level": 0
@@ -1366,6 +1207,9 @@
       "fact": "Data validation is currently missing.",
       "reading": "That is simply how the data validation process is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.validation",
         "level": 1
@@ -1379,6 +1223,9 @@
       "fact": "Data ingestion is currently done by hand.",
       "reading": "That is simply how the data ingestion process is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.ingestion",
         "level": 2
@@ -1389,15 +1236,18 @@
       "challenge_id": 102,
       "stakeholder_id": "efficiency_emilia",
       "type": "driver",
-      "description": "{efficiency_emilia} asked for a basic feature store to eliminate duplicated feature engineering work.",
+      "description": "{efficiency_emilia} asked for automated data validation. She believes more automation will improve efficiency.",
       "fact": "{efficiency_emilia} asked for automated data validation.",
       "reading": "She believes more automation will improve efficiency.",
       "metric_id": "efficiency",
       "suggested": {
-        "target": "data.feature_store",
-        "level": 2
+        "target": "data.validation",
+        "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The speed of manual data validation work keeps coming up in discussions with {efficiency_emilia}."
     },
     {
@@ -1405,33 +1255,36 @@
       "challenge_id": 102,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} required that data labeling must at least be documented and structured, not broken.",
+      "description": "{requirements_reuben} mentioned that data governance must be enforced. He will not accept any process that does not enforce data governance.",
       "fact": "{requirements_reuben} mentioned that data governance must be enforced.",
       "reading": "He will not accept any process that does not enforce data governance.",
       "holds": {
         "component": "data.labeling",
         "op": "gte",
-        "level": 1
+        "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.labeling",
-          "value": 1
+          "value": 3
         }
-      ]
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_data_quality_conflict_manual_checks_cost_control",
       "challenge_id": 100,
       "stakeholder_id": "data_dave",
       "type": "boundary",
-      "description": "{data_dave} insisted that the data ingestion pipeline must remain stable at or above manual level 2 before any experimental checks are considered.",
+      "description": "{data_dave} proposed keeping the quality checks manually done. He will not agree to automate the checks if it increases costs.",
       "fact": "{data_dave} proposed keeping the quality checks manually done.",
       "reading": "He will not agree to automate the checks if it increases costs.",
       "holds": {
-        "component": "data.ingestion",
-        "op": "gte",
+        "component": "data.validation",
+        "op": "lte",
         "level": 2
       },
       "ops": [
@@ -1441,6 +1294,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The manual execution of quality checks on the data has been raised as a potential approach."
     },
     {
@@ -1457,6 +1313,9 @@
         "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The consistency of automated reliability checks keeps coming up in conversations with {reliability_ruth}."
     },
     {
@@ -1464,7 +1323,7 @@
       "challenge_id": 100,
       "stakeholder_id": "data_dave",
       "type": "trade_off",
-      "description": "{data_dave} would compromise automating data validation with standard open source tooling for establishing a basic feature store while keeping validation manual.",
+      "description": "{data_dave} suggested using open source tools for automation. He would accept some manual processes if it keeps costs low.",
       "fact": "{data_dave} suggested using open source tools for automation.",
       "reading": "He would accept some manual processes if it keeps costs low.",
       "ops": [
@@ -1479,70 +1338,34 @@
         "metric_id": "efficiency",
         "loss": 3
       },
-      "gist": "The choice of open source tools for data automation keeps coming up in conversations with {data_dave}.",
-      "branch_x": {
-        "description": "automating data validation with standard open source tooling",
-        "target": "data.validation",
-        "level": 3,
-        "atoms": [
-          "raise_to(data.validation, 3)"
-        ],
-        "name": "Automate Data Validation",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "establishing a basic feature store while keeping validation manual",
-        "target": "data.feature_store",
-        "level": 2,
-        "atoms": [
-          "raise_to(data.feature_store, 2)"
-        ],
-        "name": "Basic Feature Store",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.feature_store",
-            "value": 2
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(data.validation, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(data.feature_store, 2)"
-      ],
-      "atoms": [
-        "raise_to(data.validation, 3)",
-        "raise_to(data.feature_store, 2)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The choice of open source tools for data automation keeps coming up in conversations with {data_dave}."
     },
     {
       "id": "gen_data_quality_conflict_consistent_automation",
       "challenge_id": 100,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} insisted that data validation must not remain completely unaddressed or broken.",
+      "description": "{reliability_ruth} proposed automating the quality checks with governed tools. She will not accept manual checks if it affects reliability.",
       "fact": "{reliability_ruth} proposed automating the quality checks with governed tools.",
       "reading": "She will not accept manual checks if it affects reliability.",
       "holds": {
         "component": "data.validation",
         "op": "gte",
-        "level": 1
+        "level": 4
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 1
+          "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Consistency in reliability checks keeps coming up whenever you talk to {reliability_ruth}."
     },
     {
@@ -1553,6 +1376,9 @@
       "fact": "The data quality checks are currently done manually.",
       "reading": "That is simply what the current quality checks setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.validation",
         "level": 0
@@ -1566,6 +1392,9 @@
       "fact": "The data ingestion process is done by hand.",
       "reading": "That is simply what the current ingestion setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.ingestion",
         "level": 2
@@ -1579,6 +1408,9 @@
       "fact": "The data validation process is done by hand.",
       "reading": "That is simply what the current validation setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.validation",
         "level": 0
@@ -1592,6 +1424,9 @@
       "fact": "The feature store is absent.",
       "reading": "That is simply what the current feature store setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.feature_store",
         "level": 1
@@ -1605,6 +1440,9 @@
       "fact": "The data labeling process is done by hand.",
       "reading": "That is simply what the current labeling setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.labeling",
         "level": 2
@@ -1618,6 +1456,9 @@
       "fact": "The training data drift check is absent.",
       "reading": "That is simply what the current drift check setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "data.training_drift_check",
         "level": 1
@@ -1628,22 +1469,25 @@
       "challenge_id": 100,
       "stakeholder_id": "requirements_reuben",
       "type": "driver",
-      "description": "{requirements_reuben} asked for automated training data drift checks to satisfy external governance standards.",
+      "description": "{requirements_reuben} mentioned governed data quality checks. He wants to improve compliance by governed checks.",
       "fact": "{requirements_reuben} mentioned governed data quality checks.",
       "reading": "He wants to improve compliance by governed checks.",
       "metric_id": "requirements",
       "suggested": {
-        "target": "data.training_drift_check",
-        "level": 3
+        "target": "data.validation",
+        "level": 4
       },
-      "ops": []
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_data_quality_conflict_cost_efficiency_balance",
       "challenge_id": 100,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating data validation to reduce operational delays for implementing baseline training data drift checks to catch distribution shifts early.",
+      "description": "{efficiency_emilia} proposed balancing cost and efficiency in automation. She would accept some manual processes if it keeps costs low.",
       "fact": "{efficiency_emilia} proposed balancing cost and efficiency in automation.",
       "reading": "She would accept some manual processes if it keeps costs low.",
       "ops": [],
@@ -1651,49 +1495,10 @@
         "metric_id": "automation",
         "loss": 2
       },
-      "gist": "Balancing cost and efficiency in automation has been raised by {efficiency_emilia} during recent discussions.",
-      "branch_x": {
-        "description": "automating data validation to reduce operational delays",
-        "target": "data.validation",
-        "level": 3,
-        "atoms": [
-          "raise_to(data.validation, 3)"
-        ],
-        "name": "Automate Data Validation",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "implementing baseline training data drift checks to catch distribution shifts early",
-        "target": "data.training_drift_check",
-        "level": 2,
-        "atoms": [
-          "raise_to(data.training_drift_check, 2)"
-        ],
-        "name": "Baseline Training Drift Checks",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.training_drift_check",
-            "value": 2
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(data.validation, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(data.training_drift_check, 2)"
-      ],
-      "atoms": [
-        "raise_to(data.validation, 3)",
-        "raise_to(data.training_drift_check, 2)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Balancing cost and efficiency in automation has been raised by {efficiency_emilia} during recent discussions."
     },
     {
       "id": "gen_experiment_tracking_dispute_monica_automated",
@@ -1709,6 +1514,9 @@
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The state of the model has been raised by {model_monica} regarding how experiments are tracked."
     },
     {
@@ -1716,7 +1524,7 @@
       "challenge_id": 101,
       "stakeholder_id": "data_dave",
       "type": "trade_off",
-      "description": "{data_dave} would compromise automating experiment tracking with standard tooling for automating the training pipeline while keeping experiment tracking manual.",
+      "description": "{data_dave} suggested keeping experiment tracking manual. {data_dave} would accept manual tracking if it significantly reduces costs.",
       "fact": "{data_dave} suggested keeping experiment tracking manual.",
       "reading": "{data_dave} would accept manual tracking if it significantly reduces costs.",
       "ops": [],
@@ -1724,49 +1532,10 @@
         "target": "model.experiment_tracking",
         "accepts_max_level": 1
       },
-      "gist": "The question of how experiment tracking is handled has been raised by {data_dave} regarding the data workflow.",
-      "branch_x": {
-        "description": "automating experiment tracking with standard tooling",
-        "target": "model.experiment_tracking",
-        "level": 3,
-        "atoms": [
-          "raise_to(model.experiment_tracking, 3)"
-        ],
-        "name": "Automate Experiment Tracking",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.experiment_tracking",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating the training pipeline while keeping experiment tracking manual",
-        "target": "model.training_pipeline",
-        "level": 3,
-        "atoms": [
-          "raise_to(model.training_pipeline, 3)"
-        ],
-        "name": "Automate Training Pipeline",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.training_pipeline",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(model.experiment_tracking, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(model.training_pipeline, 3)"
-      ],
-      "atoms": [
-        "raise_to(model.experiment_tracking, 3)",
-        "raise_to(model.training_pipeline, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The question of how experiment tracking is handled has been raised by {data_dave} regarding the data workflow."
     },
     {
       "id": "gen_experiment_tracking_dispute_reuben_audit",
@@ -1788,6 +1557,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Model reproducibility gaps flagged in a recent audit keep coming up in discussions with {requirements_reuben}."
     },
     {
@@ -1795,7 +1567,7 @@
       "challenge_id": 101,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating the model registry for streamlined operations for maintaining a documented manual training pipeline to control infrastructure spend.",
+      "description": "{efficiency_emilia} mentioned the importance of cost control in ML initiatives. {efficiency_emilia} would accept a less automated solution if it significantly reduces costs.",
       "fact": "{efficiency_emilia} mentioned the importance of cost control in ML initiatives.",
       "reading": "{efficiency_emilia} would accept a less automated solution if it significantly reduces costs.",
       "ops": [],
@@ -1803,62 +1575,23 @@
         "metric_id": "efficiency",
         "loss": 5
       },
-      "gist": "Cost control in machine learning initiatives has been raised by {efficiency_emilia}.",
-      "branch_x": {
-        "description": "automating the model registry for streamlined operations",
-        "target": "model.registry",
-        "level": 3,
-        "atoms": [
-          "raise_to(model.registry, 3)"
-        ],
-        "name": "Automate Model Registry",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.registry",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "maintaining a documented manual training pipeline to control infrastructure spend",
-        "target": "model.training_pipeline",
-        "level": 2,
-        "atoms": [
-          "raise_to(model.training_pipeline, 2)"
-        ],
-        "name": "Documented Training Pipeline",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.training_pipeline",
-            "value": 2
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(model.registry, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(model.training_pipeline, 2)"
-      ],
-      "atoms": [
-        "raise_to(model.registry, 3)",
-        "raise_to(model.training_pipeline, 2)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Cost control in machine learning initiatives has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_experiment_tracking_dispute_monica_boundary",
       "challenge_id": 101,
       "stakeholder_id": "model_monica",
       "type": "boundary",
-      "description": "{model_monica} insisted that the training pipeline must remain functional at or above manual level 2.",
+      "description": "{model_monica} insisted on automated experiment tracking to ensure reproducibility. {model_monica} will not accept anything less than automated tracking.",
       "fact": "{model_monica} insisted on automated experiment tracking to ensure reproducibility.",
       "reading": "{model_monica} will not accept anything less than automated tracking.",
       "holds": {
-        "component": "model.training_pipeline",
+        "component": "model.experiment_tracking",
         "op": "gte",
-        "level": 2
+        "level": 3
       },
       "ops": [
         {
@@ -1867,6 +1600,9 @@
           "value": 3
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The model's experiment tracking and reproducibility have been raised as a topic by {model_monica}."
     },
     {
@@ -1874,15 +1610,18 @@
       "challenge_id": 101,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} proposed a documented model evaluation harness to prevent unnecessary compute waste.",
+      "description": "{data_dave} asked for cost savings in the experiment tracking process. The more cost savings achieved, the better it aligns with data operations goals.",
       "fact": "{data_dave} asked for cost savings in the experiment tracking process.",
       "reading": "The more cost savings achieved, the better it aligns with data operations goals.",
       "metric_id": "data",
       "suggested": {
-        "target": "model.evaluation",
+        "target": "model.experiment_tracking",
         "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Data management in the experiment tracking process has been raised by {data_dave}."
     },
     {
@@ -1890,15 +1629,18 @@
       "challenge_id": 101,
       "stakeholder_id": "requirements_reuben",
       "type": "driver",
-      "description": "{requirements_reuben} proposed automated model registry tracking to ensure compliance and traceability.",
+      "description": "{requirements_reuben} proposed aligning experiment tracking with compliance standards. The more aligned with compliance standards, the better it guarantees product quality.",
       "fact": "{requirements_reuben} proposed aligning experiment tracking with compliance standards.",
       "reading": "The more aligned with compliance standards, the better it guarantees product quality.",
       "metric_id": "requirements",
       "suggested": {
-        "target": "model.registry",
+        "target": "model.experiment_tracking",
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The question of aligning experiment tracking with compliance standards has come up in discussions with {requirements_reuben}."
     },
     {
@@ -1906,15 +1648,18 @@
       "challenge_id": 101,
       "stakeholder_id": "efficiency_emilia",
       "type": "driver",
-      "description": "{efficiency_emilia} asked for automated model evaluation to measure operational capability reliably.",
+      "description": "{efficiency_emilia} suggested aligning experiment tracking with business goals. The more aligned with business goals, the better it enhances operational capability.",
       "fact": "{efficiency_emilia} suggested aligning experiment tracking with business goals.",
       "reading": "The more aligned with business goals, the better it enhances operational capability.",
       "metric_id": "efficiency",
       "suggested": {
-        "target": "model.evaluation",
+        "target": "model.experiment_tracking",
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Alignment between experiment tracking and business goals has been raised by {efficiency_emilia}."
     },
     {
@@ -1925,6 +1670,9 @@
       "fact": "Experiment tracking is currently missing.",
       "reading": "That is simply the current state of experiment tracking.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.experiment_tracking",
         "level": 1
@@ -1938,6 +1686,9 @@
       "fact": "The model registry is currently missing.",
       "reading": "That is simply the current state of the model registry.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.registry",
         "level": 1
@@ -1951,6 +1702,9 @@
       "fact": "The training pipeline is currently done by hand.",
       "reading": "That is simply the current state of the training pipeline.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.training_pipeline",
         "level": 2
@@ -1961,15 +1715,18 @@
       "challenge_id": 103,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} proposed automating the model registry to speed up deployment iterations.",
+      "description": "{model_monica} proposed automating the model registry. She wants it automated and it will help her work more efficiently.",
       "fact": "{model_monica} proposed automating the model registry.",
       "reading": "She wants it automated and it will help her work more efficiently.",
       "metric_id": "model",
       "suggested": {
         "target": "model.registry",
-        "level": 3
+        "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The state of the model registry keeps coming up in discussions with {model_monica}."
     },
     {
@@ -1977,13 +1734,13 @@
       "challenge_id": 103,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} insisted that access control and IAM must be at least manual level 2 for regulatory safety.",
+      "description": "{requirements_reuben} wants the model registry to be governed. He will not allow it without governance.",
       "fact": "{requirements_reuben} wants the model registry to be governed.",
       "reading": "He will not allow it without governance.",
       "holds": {
-        "component": "gov.iam",
+        "component": "model.registry",
         "op": "gte",
-        "level": 2
+        "level": 4
       },
       "ops": [
         {
@@ -1992,6 +1749,9 @@
           "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Governance of the model registry keeps coming up in discussions with {requirements_reuben}."
     },
     {
@@ -1999,7 +1759,7 @@
       "challenge_id": 103,
       "stakeholder_id": "data_dave",
       "type": "trade_off",
-      "description": "{data_dave} would compromise automating the model evaluation harness to catch flaws systematically for automating experiment tracking to monitor model training iterations.",
+      "description": "{data_dave} suggested sourcing the model registry from a custom tool. He would accept a different sourcing if needed.",
       "fact": "{data_dave} suggested sourcing the model registry from a custom tool.",
       "reading": "He would accept a different sourcing if needed.",
       "ops": [
@@ -2014,64 +1774,28 @@
         "target": "model.registry",
         "accepts_max_level": 2
       },
-      "gist": "The origin of the model registry tooling has been raised by {data_dave}.",
-      "branch_x": {
-        "description": "automating the model evaluation harness to catch flaws systematically",
-        "target": "model.evaluation",
-        "level": 3,
-        "atoms": [
-          "raise_to(model.evaluation, 3)"
-        ],
-        "name": "Automate Evaluation Harness",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.evaluation",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating experiment tracking to monitor model training iterations",
-        "target": "model.experiment_tracking",
-        "level": 3,
-        "atoms": [
-          "raise_to(model.experiment_tracking, 3)"
-        ],
-        "name": "Automate Experiment Tracking",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.experiment_tracking",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(model.evaluation, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(model.experiment_tracking, 3)"
-      ],
-      "atoms": [
-        "raise_to(model.evaluation, 3)",
-        "raise_to(model.experiment_tracking, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The origin of the model registry tooling has been raised by {data_dave}."
     },
     {
       "id": "gen_registry_red_tape_emilia_registry",
       "challenge_id": 103,
       "stakeholder_id": "efficiency_emilia",
       "type": "driver",
-      "description": "{efficiency_emilia} proposed automating the training pipeline to streamline model production.",
+      "description": "{efficiency_emilia} brought up automating the model registry. She wants it automated and it will streamline the process.",
       "fact": "{efficiency_emilia} brought up automating the model registry.",
       "reading": "She wants it automated and it will streamline the process.",
       "metric_id": "efficiency",
       "suggested": {
-        "target": "model.training_pipeline",
-        "level": 3
+        "target": "model.registry",
+        "level": 2
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The efficiency of the model registry workflow has been raised as a topic by {efficiency_emilia}."
     },
     {
@@ -2079,13 +1803,13 @@
       "challenge_id": 103,
       "stakeholder_id": "model_monica",
       "type": "boundary",
-      "description": "{model_monica} insisted that experiment tracking must remain operational at or above manual level 2.",
+      "description": "{model_monica} mentioned that the model registry must not be governed. She will not work with governance.",
       "fact": "{model_monica} mentioned that the model registry must not be governed.",
       "reading": "She will not work with governance.",
       "holds": {
-        "component": "model.experiment_tracking",
-        "op": "gte",
-        "level": 2
+        "component": "model.registry",
+        "op": "lte",
+        "level": 3
       },
       "ops": [
         {
@@ -2094,6 +1818,9 @@
           "value": 3
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The governance status of the model registry has been mentioned by {model_monica}."
     },
     {
@@ -2101,7 +1828,7 @@
       "challenge_id": 103,
       "stakeholder_id": "requirements_reuben",
       "type": "trade_off",
-      "description": "{requirements_reuben} would compromise implementing a fully governed model registry for rigorous compliance for automating audit logging to satisfy security requirements with an automated registry.",
+      "description": "{requirements_reuben} proposed automating the model registry. He would give up automation if compliance is ensured.",
       "fact": "{requirements_reuben} proposed automating the model registry.",
       "reading": "He would give up automation if compliance is ensured.",
       "ops": [
@@ -2115,63 +1842,27 @@
         "target": "model.registry",
         "accepts_max_level": 3
       },
-      "branch_x": {
-        "description": "implementing a fully governed model registry for rigorous compliance",
-        "target": "model.registry",
-        "level": 4,
-        "atoms": [
-          "raise_to(model.registry, 4)"
-        ],
-        "name": "Govern Model Registry",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.registry",
-            "value": 4
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating audit logging to satisfy security requirements with an automated registry",
-        "target": "gov.audit",
-        "level": 3,
-        "atoms": [
-          "raise_to(gov.audit, 3)"
-        ],
-        "name": "Automate Audit Logging",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "gov.audit",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(model.registry, 4)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(gov.audit, 3)"
-      ],
-      "atoms": [
-        "raise_to(model.registry, 4)",
-        "raise_to(gov.audit, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_registry_red_tape_dave_governance",
       "challenge_id": 103,
       "stakeholder_id": "data_dave",
       "type": "driver",
-      "description": "{data_dave} asked for data versioning to ensure data lineage across training runs.",
+      "description": "{data_dave} asked for governance of the model registry. He wants it governed and more is better.",
       "fact": "{data_dave} asked for governance of the model registry.",
       "reading": "He wants it governed and more is better.",
       "metric_id": "data",
       "suggested": {
-        "target": "data.versioning",
-        "level": 2
+        "target": "model.registry",
+        "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Data governance for the model registry keeps coming up in conversations with {data_dave}."
     },
     {
@@ -2179,21 +1870,24 @@
       "challenge_id": 103,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} noted that the model registry must not remain broken or managed via spreadsheets.",
+      "description": "{efficiency_emilia} suggested governing the model registry. She will not do her work without governance.",
       "fact": "{efficiency_emilia} suggested governing the model registry.",
       "reading": "She will not do her work without governance.",
       "holds": {
         "component": "model.registry",
         "op": "gte",
-        "level": 1
+        "level": 4
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.registry",
-          "value": 1
+          "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Governing the model registry has been raised as a topic during discussions about operational efficiency."
     },
     {
@@ -2204,6 +1898,9 @@
       "fact": "The model registry is a spreadsheet.",
       "reading": "That is simply what the model registry setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.registry",
         "level": 0
@@ -2217,6 +1914,9 @@
       "fact": "The model registry is missing.",
       "reading": "That is simply what the model registry setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.registry",
         "level": 0
@@ -2230,6 +1930,9 @@
       "fact": "The model registry has no tool.",
       "reading": "That is simply what the model registry setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.registry",
         "level": 0
@@ -2243,6 +1946,9 @@
       "fact": "The model registry is broken.",
       "reading": "That is simply what the model registry setup produces today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "model.registry",
         "level": 0
@@ -2253,12 +1959,12 @@
       "challenge_id": 106,
       "stakeholder_id": "automation_alex",
       "type": "boundary",
-      "description": "{automation_alex} insisted that the model serving endpoint must remain stable and active.",
+      "description": "{automation_alex} proposed keeping the API gateway in a manual state to avoid disrupting the current deployment pipeline. He will not allow the gateway to be automated if it risks breaking the existing CI/CD pipeline stability.",
       "fact": "{automation_alex} proposed keeping the API gateway in a manual state to avoid disrupting the current deployment pipeline.",
       "reading": "He will not allow the gateway to be automated if it risks breaking the existing CI/CD pipeline stability.",
       "holds": {
-        "component": "deploy.serving",
-        "op": "gte",
+        "component": "deploy.api_gateway",
+        "op": "lte",
         "level": 2
       },
       "ops": [
@@ -2268,6 +1974,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The API gateway's manual state and its effect on the deployment pipeline keep coming up in discussions."
     },
     {
@@ -2289,14 +1998,17 @@
           "target": "deploy.api_gateway",
           "value": 4
         }
-      ]
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_gateway_security_gap_alex_concession_gateway",
       "challenge_id": 106,
       "stakeholder_id": "automation_alex",
       "type": "trade_off",
-      "description": "{automation_alex} would compromise automating the API gateway with standard authentication controls for automating the CI/CD pipeline to streamline model promotions safely.",
+      "description": "{automation_alex} noted that the deployment pipeline is currently stable with the manual gateway configuration. He would accept a temporary reduction in deployment frequency if the gateway is upgraded to a governed state.",
       "fact": "{automation_alex} noted that the deployment pipeline is currently stable with the manual gateway configuration.",
       "reading": "He would accept a temporary reduction in deployment frequency if the gateway is upgraded to a governed state.",
       "ops": [],
@@ -2304,49 +2016,10 @@
         "target": "deploy.api_gateway",
         "accepts_max_level": 4
       },
-      "gist": "The manual gateway configuration inside the deployment pipeline keeps coming up in discussions with {automation_alex}.",
-      "branch_x": {
-        "description": "automating the API gateway with standard authentication controls",
-        "target": "deploy.api_gateway",
-        "level": 3,
-        "atoms": [
-          "raise_to(deploy.api_gateway, 3)"
-        ],
-        "name": "Automate API Gateway",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.api_gateway",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating the CI/CD pipeline to streamline model promotions safely",
-        "target": "deploy.cicd",
-        "level": 3,
-        "atoms": [
-          "raise_to(deploy.cicd, 3)"
-        ],
-        "name": "Automate CI/CD Pipeline",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.cicd",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(deploy.api_gateway, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(deploy.cicd, 3)"
-      ],
-      "atoms": [
-        "raise_to(deploy.api_gateway, 3)",
-        "raise_to(deploy.cicd, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual gateway configuration inside the deployment pipeline keeps coming up in discussions with {automation_alex}."
     },
     {
       "id": "gen_gateway_security_gap_ruth_serving_monitoring",
@@ -2368,6 +2041,9 @@
           "value": 3
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Reliability concerns about performance monitoring feedback loops on the model serving endpoint keep coming up."
     },
     {
@@ -2375,7 +2051,7 @@
       "challenge_id": 106,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating canary testing for low-risk rollout validation for scaling up model serving endpoint infrastructure for high throughput.",
+      "description": "{efficiency_emilia} suggested that the cost of upgrading the API gateway should be weighed against the business value of the new model features. She would accept a higher level of manual intervention in the gateway if it keeps the infrastructure costs low.",
       "fact": "{efficiency_emilia} suggested that the cost of upgrading the API gateway should be weighed against the business value of the new model features.",
       "reading": "She would accept a higher level of manual intervention in the gateway if it keeps the infrastructure costs low.",
       "metric_id": "efficiency",
@@ -2384,62 +2060,23 @@
         "metric_id": "efficiency",
         "loss": 3
       },
-      "gist": "The cost of the API gateway upgrade and the business value of new model features have been raised.",
-      "branch_x": {
-        "description": "automating canary testing for low-risk rollout validation",
-        "target": "deploy.canary_ab",
-        "level": 3,
-        "atoms": [
-          "raise_to(deploy.canary_ab, 3)"
-        ],
-        "name": "Automate Canary Testing",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.canary_ab",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "scaling up model serving endpoint infrastructure for high throughput",
-        "target": "deploy.serving",
-        "level": 3,
-        "atoms": [
-          "raise_to(deploy.serving, 3)"
-        ],
-        "name": "Scale Model Serving",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.serving",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(deploy.canary_ab, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(deploy.serving, 3)"
-      ],
-      "atoms": [
-        "raise_to(deploy.canary_ab, 3)",
-        "raise_to(deploy.serving, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The cost of the API gateway upgrade and the business value of new model features have been raised."
     },
     {
       "id": "gen_gateway_security_gap_reuben_canary_governance",
       "challenge_id": 106,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} insisted that canary testing must not be completely removed or broken.",
+      "description": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production. He will not allow any model to be promoted to production if the canary testing is not governed.",
       "fact": "{requirements_reuben} brought up the need for governed canary testing before any model reaches production.",
       "reading": "He will not allow any model to be promoted to production if the canary testing is not governed.",
       "holds": {
         "component": "deploy.canary_ab",
         "op": "gte",
-        "level": 2
+        "level": 3
       },
       "ops": [
         {
@@ -2447,7 +2084,10 @@
           "target": "deploy.canary_ab",
           "value": 3
         }
-      ]
+      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_gateway_security_gap_gateway_current_state",
@@ -2457,6 +2097,9 @@
       "fact": "The API gateway is currently in a broken state with no authentication controls in place.",
       "reading": "That is simply the current state of the API gateway configuration.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "deploy.api_gateway",
         "level": 0
@@ -2470,6 +2113,9 @@
       "fact": "The connection between the model serving endpoint and the API gateway is currently absent.",
       "reading": "That is simply how the routing is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.serving_gateway",
         "level": 1,
@@ -2484,6 +2130,9 @@
       "fact": "The identity and access management system governs the API gateway through a manual request trigger.",
       "reading": "That is simply how the governance link is set up in the current system.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.iam_gateway",
         "level": 2,
@@ -2498,6 +2147,9 @@
       "fact": "The CI/CD pipeline is currently automated but triggered by manual requests.",
       "reading": "That is simply how the CI/CD pipeline is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.registry_cicd",
         "level": 2,
@@ -2509,13 +2161,13 @@
       "challenge_id": 108,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} insisted that canary testing must remain at or above manual level 2.",
+      "description": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release. She will not approve any release without a governed shadow deployment in place.",
       "fact": "{reliability_ruth} proposed a fully automated and governed shadow deployment to validate model behavior before release.",
       "reading": "She will not approve any release without a governed shadow deployment in place.",
       "holds": {
-        "component": "deploy.canary_ab",
+        "component": "deploy.shadow",
         "op": "gte",
-        "level": 2
+        "level": 4
       },
       "ops": [
         {
@@ -2524,6 +2176,9 @@
           "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Automated shadow deployment for pre-release model validation has been proposed by {reliability_ruth}."
     },
     {
@@ -2531,13 +2186,13 @@
       "challenge_id": 108,
       "stakeholder_id": "automation_alex",
       "type": "boundary",
-      "description": "{automation_alex} insisted that the model serving endpoint must remain fully operational.",
+      "description": "{automation_alex} argued that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. He will not maintain any shadow infrastructure, even if it is broken.",
       "fact": "{automation_alex} argued that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity.",
       "reading": "He will not maintain any shadow infrastructure, even if it is broken.",
       "holds": {
-        "component": "deploy.serving",
-        "op": "gte",
-        "level": 2
+        "component": "deploy.shadow",
+        "op": "lte",
+        "level": 1
       },
       "ops": [
         {
@@ -2546,6 +2201,9 @@
           "value": 1
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The shadow environment's role in the automation pipeline has been questioned by {automation_alex}."
     },
     {
@@ -2562,6 +2220,9 @@
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Product quality standards and compliance expectations have been raised as a topic of discussion."
     },
     {
@@ -2569,7 +2230,7 @@
       "challenge_id": 108,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating canary testing for controlled release validation for deploying a lightweight shadow environment to reduce infrastructure costs.",
+      "description": "{efficiency_emilia} mentioned that the infrastructure costs for the shadow environment are a concern for the project budget. She would accept a higher cost for the shadow environment if it is necessary for reliability.",
       "fact": "{efficiency_emilia} mentioned that the infrastructure costs for the shadow environment are a concern for the project budget.",
       "reading": "She would accept a higher cost for the shadow environment if it is necessary for reliability.",
       "ops": [],
@@ -2577,49 +2238,10 @@
         "metric_id": "efficiency",
         "loss": 3
       },
-      "gist": "Infrastructure costs for the shadow environment have been raised as a topic regarding the project budget.",
-      "branch_x": {
-        "description": "automating canary testing for controlled release validation",
-        "target": "deploy.canary_ab",
-        "level": 3,
-        "atoms": [
-          "raise_to(deploy.canary_ab, 3)"
-        ],
-        "name": "Automate Canary Testing",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.canary_ab",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "deploying a lightweight shadow environment to reduce infrastructure costs",
-        "target": "deploy.shadow",
-        "level": 2,
-        "atoms": [
-          "raise_to(deploy.shadow, 2)"
-        ],
-        "name": "Lightweight Shadow Deployment",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "deploy.shadow",
-            "value": 2
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(deploy.canary_ab, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(deploy.shadow, 2)"
-      ],
-      "atoms": [
-        "raise_to(deploy.canary_ab, 3)",
-        "raise_to(deploy.shadow, 2)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Infrastructure costs for the shadow environment have been raised as a topic regarding the project budget."
     },
     {
       "id": "gen_shadow_environment_dispute_alex_cicd",
@@ -2635,6 +2257,9 @@
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The CI/CD pipeline and its automation for seamless integration and deployment keeps coming up in discussions."
     },
     {
@@ -2642,15 +2267,18 @@
       "challenge_id": 108,
       "stakeholder_id": "reliability_ruth",
       "type": "driver",
-      "description": "{reliability_ruth} asked for fully governed shadow deployment to validate real-world model behavior.",
+      "description": "{reliability_ruth} suggested implementing continuous monitoring of real-world performance to identify and report issues. She wants the canary and A/B testing to be automated to catch performance regressions immediately.",
       "fact": "{reliability_ruth} suggested implementing continuous monitoring of real-world performance to identify and report issues.",
       "reading": "She wants the canary and A/B testing to be automated to catch performance regressions immediately.",
       "metric_id": "reliability",
       "suggested": {
-        "target": "deploy.shadow",
-        "level": 4
+        "target": "deploy.canary_ab",
+        "level": 3
       },
-      "ops": []
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_shadow_environment_dispute_shadow_broken",
@@ -2660,6 +2288,9 @@
       "fact": "The shadow deployment environment is currently broken.",
       "reading": "That is simply how the shadow deployment is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "deploy.shadow",
         "level": 0
@@ -2673,6 +2304,9 @@
       "fact": "The canary and A/B testing environment is currently missing.",
       "reading": "That is simply how the canary and A/B testing environment is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "deploy.canary_ab",
         "level": 1
@@ -2686,6 +2320,9 @@
       "fact": "The CI/CD pipeline is currently done by hand.",
       "reading": "That is simply how the CI/CD pipeline is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "deploy.cicd",
         "level": 2
@@ -2699,6 +2336,9 @@
       "fact": "The model serving endpoint is currently done by hand.",
       "reading": "That is simply how the model serving endpoint is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "deploy.serving",
         "level": 2
@@ -2709,7 +2349,7 @@
       "challenge_id": 104,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automating performance monitoring for real-time visibility for automating the alerting system while keeping performance monitoring manual.",
+      "description": "{efficiency_emilia} proposed keeping the performance monitoring done by hand. She would accept losing real-time visibility into model degradation if it keeps the infrastructure costs low.",
       "fact": "{efficiency_emilia} proposed keeping the performance monitoring done by hand.",
       "reading": "She would accept losing real-time visibility into model degradation if it keeps the infrastructure costs low.",
       "ops": [
@@ -2723,49 +2363,10 @@
         "target": "ops.performance_monitoring",
         "accepts_max_level": 2
       },
-      "gist": "The current state of performance monitoring tools has been raised by {efficiency_emilia}.",
-      "branch_x": {
-        "description": "automating performance monitoring for real-time visibility",
-        "target": "ops.performance_monitoring",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.performance_monitoring, 3)"
-        ],
-        "name": "Automate Performance Monitoring",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.performance_monitoring",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating the alerting system while keeping performance monitoring manual",
-        "target": "ops.alerting",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.alerting, 3)"
-        ],
-        "name": "Automate Alerting System",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.alerting",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(ops.performance_monitoring, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(ops.alerting, 3)"
-      ],
-      "atoms": [
-        "raise_to(ops.performance_monitoring, 3)",
-        "raise_to(ops.alerting, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The current state of performance monitoring tools has been raised by {efficiency_emilia}."
     },
     {
       "id": "gen_blind_spot_silence_ruth_governance_demand",
@@ -2781,6 +2382,9 @@
         "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Governance of the performance monitoring workflow has been raised by {reliability_ruth}."
     },
     {
@@ -2788,7 +2392,7 @@
       "challenge_id": 104,
       "stakeholder_id": "reliability_ruth",
       "type": "trade_off",
-      "description": "{reliability_ruth} would compromise implementing an automated rollback mechanism for instant fault recovery for automating production drift monitoring to catch regressions before outages.",
+      "description": "{reliability_ruth} noted that the rollback mechanism is currently done by hand. She would accept keeping the rollback process manual if the alerting system is fully automated and governed.",
       "fact": "{reliability_ruth} noted that the rollback mechanism is currently done by hand.",
       "reading": "She would accept keeping the rollback process manual if the alerting system is fully automated and governed.",
       "ops": [],
@@ -2796,70 +2400,34 @@
         "target": "ops.rollback",
         "accepts_max_level": 1
       },
-      "gist": "The rollback mechanism has been raised by {reliability_ruth}.",
-      "branch_x": {
-        "description": "implementing an automated rollback mechanism for instant fault recovery",
-        "target": "ops.rollback",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.rollback, 3)"
-        ],
-        "name": "Automate Rollback Mechanism",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.rollback",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating production drift monitoring to catch regressions before outages",
-        "target": "ops.production_drift_monitoring",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.production_drift_monitoring, 3)"
-        ],
-        "name": "Automate Drift Monitoring",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.production_drift_monitoring",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(ops.rollback, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(ops.production_drift_monitoring, 3)"
-      ],
-      "atoms": [
-        "raise_to(ops.rollback, 3)",
-        "raise_to(ops.production_drift_monitoring, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The rollback mechanism has been raised by {reliability_ruth}."
     },
     {
       "id": "gen_blind_spot_silence_monica_drift_observation",
       "challenge_id": 104,
       "stakeholder_id": "model_monica",
       "type": "boundary",
-      "description": "{model_monica} insisted that performance monitoring must not remain completely broken.",
+      "description": "{model_monica} mentioned that the drift monitoring is missing. She will not tune the model parameters if the drift monitoring is not at least automated.",
       "fact": "{model_monica} mentioned that the drift monitoring is missing.",
       "reading": "She will not tune the model parameters if the drift monitoring is not at least automated.",
       "holds": {
-        "component": "ops.performance_monitoring",
+        "component": "ops.production_drift_monitoring",
         "op": "gte",
-        "level": 1
+        "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
-          "target": "ops.performance_monitoring",
-          "value": 1
+          "target": "ops.production_drift_monitoring",
+          "value": 3
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Drift monitoring in the model workflow keeps coming up in conversations with {model_monica}."
     },
     {
@@ -2873,15 +2441,18 @@
       "holds": {
         "component": "ops.observability",
         "op": "gte",
-        "level": 3
+        "level": 4
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.observability",
-          "value": 3
+          "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Governance of the observability logs has been proposed by {requirements_reuben}."
     },
     {
@@ -2889,56 +2460,17 @@
       "challenge_id": 104,
       "stakeholder_id": "efficiency_emilia",
       "type": "trade_off",
-      "description": "{efficiency_emilia} would compromise automated alerting for an automated retraining trigger.",
+      "description": "{efficiency_emilia} suggested that the alerting system remain manual. She would accept losing automated alerts if it saves the budget for the retraining pipeline.",
       "fact": "{efficiency_emilia} suggested that the alerting system remain manual.",
       "reading": "She would accept losing automated alerts if it saves the budget for the retraining pipeline.",
       "ops": [],
       "concedes": {
         "target": "ops.alerting",
-        "accepts_max_level": 1
+        "accepts_max_level": 2
       },
-      "branch_x": {
-        "name": "Automated Retraining Trigger",
-        "description": "an automated retraining trigger to maintain efficiency",
-        "target": "ops.retraining_trigger",
-        "level": 2,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.retraining_trigger",
-            "value": 2
-          }
-        ],
-        "atoms": [
-          "raise_to(ops.retraining_trigger, 2)"
-        ]
-      },
-      "branch_y": {
-        "name": "Manual Alerting Review",
-        "description": "manual alerting to save operational budget",
-        "target": "ops.alerting",
-        "level": 1,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.alerting",
-            "value": 1
-          }
-        ],
-        "atoms": [
-          "raise_to(ops.alerting, 1)"
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(ops.retraining_trigger, 2)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(ops.alerting, 1)"
-      ],
-      "atoms": [
-        "raise_to(ops.retraining_trigger, 2)",
-        "raise_to(ops.alerting, 1)"
-      ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The current state of the alerting system keeps coming up whenever you talk to {efficiency_emilia}."
     },
     {
@@ -2949,6 +2481,9 @@
       "fact": "The model performance monitoring is broken.",
       "reading": "That is simply how the performance monitoring is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "ops.performance_monitoring",
         "level": 0
@@ -2962,6 +2497,9 @@
       "fact": "The pipeline from observability to performance monitoring has no trigger.",
       "reading": "That is simply how the data flow is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.observe_perf",
         "level": 1,
@@ -2976,6 +2514,9 @@
       "fact": "The alerting system is missing.",
       "reading": "That is simply how the alerting system is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "ops.alerting",
         "level": 1
@@ -2989,6 +2530,9 @@
       "fact": "The production drift monitoring is missing.",
       "reading": "That is simply how the drift monitoring is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "ops.production_drift_monitoring",
         "level": 1
@@ -2999,13 +2543,13 @@
       "challenge_id": 105,
       "stakeholder_id": "efficiency_emilia",
       "type": "boundary",
-      "description": "{efficiency_emilia} insisted that alerting must remain at least documented manual level 2.",
+      "description": "{efficiency_emilia} proposed that any future drift detection setup requires automated governance. She will not approve a drift monitoring plan unless it includes automated governance controls.",
       "fact": "{efficiency_emilia} proposed that any future drift detection setup requires automated governance.",
       "reading": "She will not approve a drift monitoring plan unless it includes automated governance controls.",
       "holds": {
-        "component": "ops.alerting",
+        "component": "ops.production_drift_monitoring",
         "op": "gte",
-        "level": 2
+        "level": 4
       },
       "ops": [
         {
@@ -3014,6 +2558,9 @@
           "value": 4
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The efficiency of future drift detection setups and their governance requirements keeps coming up in discussions with {efficiency_emilia}."
     },
     {
@@ -3021,12 +2568,12 @@
       "challenge_id": 105,
       "stakeholder_id": "reliability_ruth",
       "type": "boundary",
-      "description": "{reliability_ruth} insisted that performance monitoring baseline must not be degraded.",
+      "description": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring. She will not accept an automated drift monitoring system that removes the manual weekly review step.",
       "fact": "{reliability_ruth} noted that manual weekly reviews are sufficient for drift monitoring.",
       "reading": "She will not accept an automated drift monitoring system that removes the manual weekly review step.",
       "holds": {
-        "component": "ops.performance_monitoring",
-        "op": "gte",
+        "component": "ops.production_drift_monitoring",
+        "op": "lte",
         "level": 2
       },
       "ops": [
@@ -3036,6 +2583,9 @@
           "value": 2
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "The adequacy of manual weekly reviews for drift monitoring has been raised in conversations with {reliability_ruth}."
     },
     {
@@ -3052,6 +2602,9 @@
         "level": 4
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Drift monitoring efficiency has come up in recent conversations with {efficiency_emilia}."
     },
     {
@@ -3059,7 +2612,7 @@
       "challenge_id": 105,
       "stakeholder_id": "reliability_ruth",
       "type": "trade_off",
-      "description": "{reliability_ruth} would compromise automating production drift monitoring for prompt degradation detection for automating the alerting system while keeping drift reviews manual.",
+      "description": "{reliability_ruth} mentioned that manual reviews are cheaper than automated systems. She would accept higher costs for drift monitoring if it improves reliability.",
       "fact": "{reliability_ruth} mentioned that manual reviews are cheaper than automated systems.",
       "reading": "She would accept higher costs for drift monitoring if it improves reliability.",
       "ops": [],
@@ -3067,64 +2620,28 @@
         "metric_id": "reliability",
         "loss": 3
       },
-      "gist": "The cost comparison between manual reviews and automated systems has been raised regarding reliability.",
-      "branch_x": {
-        "description": "automating production drift monitoring for prompt degradation detection",
-        "target": "ops.production_drift_monitoring",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.production_drift_monitoring, 3)"
-        ],
-        "name": "Automate Drift Monitoring",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.production_drift_monitoring",
-            "value": 3
-          }
-        ]
-      },
-      "branch_y": {
-        "description": "automating the alerting system while keeping drift reviews manual",
-        "target": "ops.alerting",
-        "level": 3,
-        "atoms": [
-          "raise_to(ops.alerting, 3)"
-        ],
-        "name": "Automate Alerting System",
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "ops.alerting",
-            "value": 3
-          }
-        ]
-      },
-      "branch_x_atoms": [
-        "raise_to(ops.production_drift_monitoring, 3)"
-      ],
-      "branch_y_atoms": [
-        "raise_to(ops.alerting, 3)"
-      ],
-      "atoms": [
-        "raise_to(ops.production_drift_monitoring, 3)",
-        "raise_to(ops.alerting, 3)"
-      ]
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The cost comparison between manual reviews and automated systems has been raised regarding reliability."
     },
     {
       "id": "gen_drift_blind_spot_monica_model_impact",
       "challenge_id": 105,
       "stakeholder_id": "model_monica",
       "type": "driver",
-      "description": "{model_monica} proposed automating the retraining trigger to respond to model degradation.",
+      "description": "{model_monica} suggested that better drift detection would help model performance. The more accurate the drift detection, the better the model retraining triggers.",
       "fact": "{model_monica} suggested that better drift detection would help model performance.",
       "reading": "The more accurate the drift detection, the better the model retraining triggers.",
       "metric_id": "model",
       "suggested": {
-        "target": "ops.retraining_trigger",
+        "target": "ops.production_drift_monitoring",
         "level": 3
       },
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Drift detection for the model has been raised by {model_monica} as a topic of interest."
     },
     {
@@ -3132,21 +2649,24 @@
       "challenge_id": 105,
       "stakeholder_id": "requirements_reuben",
       "type": "boundary",
-      "description": "{requirements_reuben} required that production drift monitoring must at least be documented and active.",
+      "description": "{requirements_reuben} proposed that drift monitoring must meet compliance standards. He will not approve a drift monitoring setup that lacks compliance sign-off.",
       "fact": "{requirements_reuben} proposed that drift monitoring must meet compliance standards.",
       "reading": "He will not approve a drift monitoring setup that lacks compliance sign-off.",
       "holds": {
         "component": "ops.production_drift_monitoring",
         "op": "gte",
-        "level": 1
+        "level": 3
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 1
+          "value": 3
         }
       ],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "gist": "Drift monitoring and compliance standards have been raised as a topic in discussions with {requirements_reuben}."
     },
     {
@@ -3157,6 +2677,9 @@
       "fact": "The production drift monitoring pipeline is currently non-functional.",
       "reading": "That is simply how the drift monitoring pipeline works today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "ops.production_drift_monitoring",
         "level": 0
@@ -3170,6 +2693,9 @@
       "fact": "The drift to alerting workflow has no trigger set.",
       "reading": "That is simply how the drift to alerting workflow is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.drift_alert",
         "level": 1,
@@ -3184,6 +2710,9 @@
       "fact": "The serving to observability workflow is triggered by manual request.",
       "reading": "That is simply how the serving to observability workflow is configured today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "e.serving_observe",
         "level": 2,
@@ -3198,6 +2727,9 @@
       "fact": "The retraining trigger mechanism is currently absent.",
       "reading": "That is simply how the retraining trigger mechanism is set up today.",
       "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
       "asserts": {
         "target": "ops.retraining_trigger",
         "level": 1

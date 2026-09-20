@@ -302,14 +302,14 @@
       "correction": "I did not say I wanted to automate the KPI definitions, so stop filing this as a demand for automation. I am only asking that the manual process remains in place but is properly documented."
     },
     {
-      "intel_id": "gen_missing_kpi_baseline_reuben_risk_boundary",
+      "intel_id": "gen_missing_kpi_baseline_reuben_kpi_manual",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
       "text": "I will not sign off on automating KPI definitions without my direct manual review of every security and compliance impact. This proposal fails to meet our non-negotiable governance standards.",
       "correction": "I am not saying we cannot track metrics, I am saying the definition logic itself must stay under human architectural control. Do not confuse my stance on process automation with a rejection of data visibility."
     },
     {
-      "intel_id": "gen_missing_kpi_baseline_reuben_kpi_manual",
+      "intel_id": "gen_missing_kpi_baseline_reuben_risk_boundary",
       "stakeholder_id": "requirements_reuben",
       "kind": "boundary",
       "text": "I refuse to approve these acceptance criteria until I have manually reviewed the risk assessment. This is a non-negotiable requirement for our security posture.",
