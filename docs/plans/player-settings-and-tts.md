@@ -349,14 +349,23 @@ Wiring:
   `skipCurrentSpeech` and `clearSpeechTimers` call `cancelSpeech()`.
 - `PowerInterestMatrix.tsx`: speak each self-introduction as its bubble opens, cancel when it
   closes or is skipped.
-- `StakeholderInteractionArea.tsx`: speak a stakeholder reply when it first arrives. Never
-  re-speak on re-render, and never narrate history when a panel reopens.
-- Intel artifacts: narrated by the **narrator** slot, on first view only. The deck is
+- `StakeholderInteractionArea.tsx` is **not** a separate wiring point after all: its `chatMsgs`
+  are the same messages `pitch_debate.tsx`'s speech queue already speaks (its only consumer in
+  this codebase), so a second speak-on-arrival call here would double-narrate every line. Left
+  untouched.
+- Intel artifacts (revised): narrated in the artifact's own author's voice - `slotForStakeholderVoice`
+  on the stakeholder's configured gender field, seeded on `stakeholder_id` - rather than always the
+  narrator slot. An artifact with no `stakeholder_id` (a System/environment fact) still falls to
+  **narrator**. On first view only. The deck is
   [offline_intel_gathering.tsx:788](game-ui/src/components/offline_intel_gathering.tsx:788);
   track spoken artifact keys in a ref keyed the same way the viewer is (`currentArtifactKey`), so
   paging back does not re-narrate. `PerformanceDashboard.tsx` also renders `IntelArtifactViewer`,
   but that is a reference lookup rather than a first reveal, so it stays silent. Narrate
   `content` only, not the surrounding chrome.
+- Per-utterance stop: a small button in the offline intel gathering header, next to the artifact
+  navigation pills, shown only while the current artifact is actually being read aloud. It cancels
+  just that one reading via the same per-call cancel `speak()` returns - separate from the settings
+  panel's global `mute_tts` toggle, and it does not prevent later artifacts from narrating.
 
 Bubble hold durations stay as they are. Tying them to speech end would change pacing for everyone
 the moment a voice is missing, and the durations are already length-derived.

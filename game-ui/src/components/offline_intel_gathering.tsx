@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef, useContext } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
@@ -9,6 +9,8 @@ import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
+import { StakeholderContext } from "./StakeholderProvider";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -91,7 +93,8 @@ export default function OfflineIntelGathering({
   onGoBack,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
-  const { speak: speakTts, cancel: cancelTts } = useSpeech();
+  const { speak: speakTts } = useSpeech();
+  const { stakeholders } = useContext(StakeholderContext);
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>(() =>
     singleArtifact ? [singleArtifact] : []
   );
@@ -355,14 +358,37 @@ export default function OfflineIntelGathering({
 
   // Narrates an artifact's content once, the first time it's actually viewed - keyed the same
   // way the viewer is, so paging back through already-read artifacts never re-narrates them.
+  // Read in the artifact's own author's voice (their configured gender slot) when it has one; a
+  // System/environment artifact has no stakeholder_id and falls to the narrator voice.
   const narratedArtifactKeysRef = useRef<Set<string>>(new Set());
+  const [isNarrating, setIsNarrating] = useState(false);
+  const narrationCancelRef = useRef<() => void>(() => {});
+
+  const stopNarration = () => {
+    narrationCancelRef.current();
+    setIsNarrating(false);
+  };
+
   useEffect(() => {
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
     narratedArtifactKeysRef.current.add(currentArtifactKey);
-    speakTts(currentArtifact.content, { slot: "narrator" });
-    return cancelTts;
-  }, [currentArtifactKey, currentArtifact?.content, speakTts, cancelTts]);
+
+    const speaker = currentArtifact.stakeholder_id ? stakeholders[currentArtifact.stakeholder_id] : undefined;
+    const slot = speaker ? slotForStakeholderVoice(speaker.voice) : "narrator";
+
+    setIsNarrating(true);
+    narrationCancelRef.current = speakTts(currentArtifact.content, {
+      slot,
+      seed: currentArtifact.stakeholder_id || undefined,
+      onEnd: () => setIsNarrating(false),
+    });
+    return () => {
+      narrationCancelRef.current();
+      setIsNarrating(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, speakTts]);
 
   // Known artifacts arrive pre-tagged and locked, so they stay out of every progress count:
   // the player should see how many calls are theirs to make, not a number they cannot move.
@@ -492,6 +518,20 @@ export default function OfflineIntelGathering({
                     </div>
                   )}
                 </div>
+
+                {/* Per-utterance stop: only shown while this artifact is actually being read
+                    aloud, separate from the settings panel's global mute. */}
+                {isNarrating && (
+                  <button
+                    type="button"
+                    onClick={stopNarration}
+                    className={styles.narrationStopButton}
+                    title="Stop reading this artifact aloud"
+                    aria-label="Stop reading this artifact aloud"
+                  >
+                    <Icon icon="ph:speaker-slash-bold" />
+                  </button>
+                )}
 
                 {/* Quick direct item navigation pills */}
                 {artifacts.length > 0 && !singleArtifact && (
