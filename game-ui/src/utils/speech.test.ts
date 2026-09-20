@@ -5,6 +5,21 @@ function voice(name: string, lang = "en-US"): SpeechSynthesisVoice {
   return { name, lang, default: false, localService: true, voiceURI: name } as SpeechSynthesisVoice;
 }
 
+/** A stand-in for `window.speechSynthesis`, minimal enough for these tests. */
+interface FakeSynth {
+  getVoices: () => SpeechSynthesisVoice[];
+  addEventListener: (type: string, handler: () => void) => void;
+  removeEventListener: (type: string, handler: () => void) => void;
+}
+
+function setSynth(synth: FakeSynth | undefined): void {
+  (globalThis as unknown as { speechSynthesis?: FakeSynth }).speechSynthesis = synth;
+}
+
+function getSynth(): FakeSynth | undefined {
+  return (globalThis as unknown as { speechSynthesis?: FakeSynth }).speechSynthesis;
+}
+
 const WINDOWS_VOICES = [voice("Microsoft David Desktop"), voice("Microsoft Zira Desktop")];
 const MACOS_VOICES = [voice("Alex"), voice("Samantha"), voice("Victoria")];
 const LINUX_NAMED_VOICES = [voice("slt"), voice("awb"), voice("bdl")];
@@ -122,32 +137,32 @@ describe("chunkText", () => {
 });
 
 describe("loadVoices", () => {
-  const originalSynth = (globalThis as any).speechSynthesis;
+  const originalSynth = getSynth();
 
   afterEach(() => {
-    (globalThis as any).speechSynthesis = originalSynth;
+    setSynth(originalSynth);
     vi.useRealTimers();
   });
 
   it("resolves immediately when voices are already loaded", async () => {
-    (globalThis as any).speechSynthesis = {
+    setSynth({
       getVoices: () => WINDOWS_VOICES,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-    };
+    });
     await expect(loadVoices()).resolves.toEqual(WINDOWS_VOICES);
   });
 
   it("resolves through onvoiceschanged when the first call is empty", async () => {
     let changeHandler: (() => void) | undefined;
     let loaded = false;
-    (globalThis as any).speechSynthesis = {
+    setSynth({
       getVoices: () => (loaded ? WINDOWS_VOICES : []),
       addEventListener: (_: string, handler: () => void) => {
         changeHandler = handler;
       },
       removeEventListener: vi.fn(),
-    };
+    });
 
     const promise = loadVoices(5000);
     loaded = true;
@@ -158,11 +173,11 @@ describe("loadVoices", () => {
 
   it("resolves through its timeout when the event never fires", async () => {
     vi.useFakeTimers();
-    (globalThis as any).speechSynthesis = {
+    setSynth({
       getVoices: () => [],
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-    };
+    });
 
     const promise = loadVoices(1000);
     await vi.advanceTimersByTimeAsync(1000);
@@ -170,20 +185,20 @@ describe("loadVoices", () => {
   });
 
   it("resolves to an empty list with no speechSynthesis at all", async () => {
-    delete (globalThis as any).speechSynthesis;
+    setSynth(undefined);
     await expect(loadVoices()).resolves.toEqual([]);
   });
 });
 
 describe("speak / cancelSpeech with no speechSynthesis", () => {
-  const originalSynth = (globalThis as any).speechSynthesis;
+  const originalSynth = getSynth();
 
   beforeEach(() => {
-    delete (globalThis as any).speechSynthesis;
+    setSynth(undefined);
   });
 
   afterEach(() => {
-    (globalThis as any).speechSynthesis = originalSynth;
+    setSynth(originalSynth);
   });
 
   it("speak is a no-op that still calls onEnd, and cancelSpeech does not throw", () => {

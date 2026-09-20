@@ -59,6 +59,8 @@ export interface PitchDebateProps {
   onOpenPhaseBriefing?: () => void;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
 }
 
 interface PitchStatePayload {
@@ -118,6 +120,8 @@ export default function PitchDebate({
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
 }: PitchDebateProps) {
   const { emit, subscribe } = useGameWebSocket();
   const stakeholderCtx = useContext(StakeholderContext);
@@ -1050,6 +1054,8 @@ export default function PitchDebate({
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}
+                  onSettingsToggle={onSettingsToggle}
+                  isSettingsOpen={isSettingsOpen}
                   onOpenPhaseBriefing={onOpenPhaseBriefing}
                   onLogToggle={() => setEventsOpen(true)}
                   isLogOpen={eventsOpen}
@@ -1619,6 +1625,8 @@ export default function PitchDebate({
               dossierData={dossierData}
               onPerformanceToggle={onPerformanceToggle}
               isPerformanceOpen={isPerformanceOpen}
+              onSettingsToggle={onSettingsToggle}
+              isSettingsOpen={isSettingsOpen}
               onOpenPhaseBriefing={onOpenPhaseBriefing}
               challengeTitle={challengeTitle}
               challengeDescription={challengeDescription}

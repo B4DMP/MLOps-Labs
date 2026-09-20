@@ -19,6 +19,7 @@ import {
 } from "./services/api/admin";
 import { WebSocketProvider } from "./services/websocket/WebSocketContext";
 import GlossaryProvider from "./components/glossary/GlossaryProvider";
+import SettingsProvider from "./components/SettingsProvider";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
 
@@ -266,7 +267,9 @@ function App() {
               <motion.div {...FADE_TRANSITION} key="game" style={screenStyle}>
                 <WebSocketProvider username={username}>
                   <GlossaryProvider>
-                    <Game username={username} />
+                    <SettingsProvider username={username}>
+                      <Game username={username} />
+                    </SettingsProvider>
                   </GlossaryProvider>
                 </WebSocketProvider>
               </motion.div>

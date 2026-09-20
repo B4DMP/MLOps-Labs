@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Icon } from "@iconify/react";
 import { useGameWebSocket } from "./services/websocket/useGameWebSocket";
 import type { ActionCard } from "./types/ActionCard";
 import type { EngagementCard } from "./types/EngagementCard";
@@ -20,6 +21,7 @@ import { PhasesContext } from "./components/PhaseProvider";
 import PrePhaseDialog from "./components/PrePhaseDialog";
 import ErrorDialog from "./components/ErrorDialog";
 import PerformanceDashboard from "./components/PerformanceDashboard";
+import SettingsPanel from "./components/SettingsPanel";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
@@ -228,6 +230,7 @@ function App({ username: _username }: AppProps) {
     Array(questions.length).fill(null),
   );
   const [isPerformanceOpen, setIsPerformanceOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     // Request initial game configurations ONCE on mount
@@ -747,6 +750,36 @@ function App({ username: _username }: AppProps) {
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>
       <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
+      <SettingsPanel isVisible={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      {/* Gameplay has its own gear in the dossier header; everywhere else (questionnaire,
+          briefing, end screen) gets this small fixed one instead, since none of those screens
+          have a persistent header of their own. */}
+      {progressionIndex !== 2 && progressionIndex !== null && !isLoadingSave && (
+        <button
+          type="button"
+          onClick={() => setIsSettingsOpen((v) => !v)}
+          title={isSettingsOpen ? "Close settings" : "Open settings"}
+          style={{
+            position: "fixed",
+            top: 16,
+            right: 16,
+            zIndex: 1030,
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: "1px solid rgba(255, 255, 255, 0.18)",
+            background: "rgba(9, 11, 20, 0.75)",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 18,
+            cursor: "pointer",
+          }}
+        >
+          <Icon icon="ph:gear-six-bold" />
+        </button>
+      )}
       <AnimatePresence mode="wait">
         {isLoadingSave || progressionIndex === null ? (
           <motion.div {...FADE_TRANSITION} key="game-loading" style={{ width: "100%", height: "100%" }}>
@@ -828,6 +861,8 @@ function App({ username: _username }: AppProps) {
                           onOpenPhaseBriefing={openBriefingForReview}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
+                          onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
+                          isSettingsOpen={isSettingsOpen}
                           isDossierOpen={isDossierOpen}
                           setIsDossierOpen={setIsDossierOpen}
                           dossierData={dossierData}
@@ -869,6 +904,8 @@ function App({ username: _username }: AppProps) {
                           onOpenPhaseBriefing={openBriefingForReview}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
+                          onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
+                          isSettingsOpen={isSettingsOpen}
                           onUpdateIntelItems={(items, fullDossier) => {
                             if (fullDossier) {
                               setDossierData(fullDossier);
@@ -921,6 +958,8 @@ function App({ username: _username }: AppProps) {
                           playedCard={pitchedActionCard}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
+                          onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
+                          isSettingsOpen={isSettingsOpen}
                         />
                       </motion.div>
                     )}

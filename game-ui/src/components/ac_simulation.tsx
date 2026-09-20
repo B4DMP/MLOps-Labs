@@ -119,6 +119,8 @@ interface AcSimulationProps {
    *  against this debrief without losing their place. */
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
 }
 
 const OUTCOME_CONFIG: Record<
@@ -180,6 +182,8 @@ export default function AcSimulation({
   playedCard,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
 }: AcSimulationProps) {
   const { emit } = useGameWebSocket();
   const { metrics } = useContext(MetricsContext);
@@ -254,6 +258,17 @@ export default function AcSimulation({
           >
             <Icon icon="ph:gauge-bold" />
             <span>Performance</span>
+          </button>
+        )}
+        {onSettingsToggle && (
+          <button
+            type="button"
+            className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
+            onClick={onSettingsToggle}
+            title={isSettingsOpen ? "Close settings" : "Open settings"}
+          >
+            <Icon icon="ph:gear-six-bold" />
+            <span>Settings</span>
           </button>
         )}
       </div>

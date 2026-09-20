@@ -27,6 +27,8 @@ interface OfflineIntelGatheringProps {
   /** Opens performance (gameplay metrics + the project pipeline) from the dossier, as in the pitch phase. */
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
   /** When provided, renders in single-item / focus review mode with only this artifact */
   singleArtifact?: IntelArtifact | null;
   /** Callback for the "go back" button in bottom right */
@@ -82,6 +84,8 @@ export default function OfflineIntelGathering({
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
   singleArtifact,
   onGoBack,
 }: OfflineIntelGatheringProps) {
@@ -402,6 +406,8 @@ export default function OfflineIntelGathering({
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onSettingsToggle={onSettingsToggle}
+                isSettingsOpen={isSettingsOpen}
                 onLogToggle={() => setIsLogOpen((v) => !v)}
                 isLogOpen={isLogOpen}
                 logCount={events.length}

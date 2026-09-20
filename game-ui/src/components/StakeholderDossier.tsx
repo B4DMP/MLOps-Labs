@@ -152,6 +152,9 @@ export interface StakeholderDossierProps {
   isLogOpen?: boolean;
   /** Badges the Log button with how many events have been filed so far. */
   logCount?: number;
+  /** Opens/closes the settings panel. Button appears in the dossier header, next to Log. */
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
   /** Opens the associated offline artifact for an intel item */
   onOpenArtifact?: (item: IntelEntry) => void;
 }
@@ -408,6 +411,8 @@ export default function StakeholderDossier({
   onLogToggle,
   isLogOpen = false,
   logCount,
+  onSettingsToggle,
+  isSettingsOpen = false,
   onOpenArtifact,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
@@ -1845,6 +1850,16 @@ export default function StakeholderDossier({
                 {Boolean(logCount) && (
                   <span className={styles.headerBadgeCount}>{logCount}</span>
                 )}
+              </button>
+            )}
+            {onSettingsToggle && (
+              <button
+                className={`${styles.briefingButton} ${isSettingsOpen ? styles.briefingButtonActive : ""}`}
+                onClick={onSettingsToggle}
+                title={isSettingsOpen ? "Close settings" : "Open settings"}
+              >
+                <Icon icon="ph:gear-six-bold" />
+                <span>Settings</span>
               </button>
             )}
           </div>
