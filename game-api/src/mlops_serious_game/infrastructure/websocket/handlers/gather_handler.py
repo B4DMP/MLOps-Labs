@@ -185,6 +185,20 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
     return [st_id for st_id in requested if st_id in room_ids]
 
 
+def _is_component_allowed_for_phase(comp_id: str, phase_id: int) -> bool:
+    phase_prefixes = {
+        0: {"req", "gov"},
+        1: {"req", "gov"},
+        2: {"data", "gov"},
+        3: {"model", "gov"},
+        4: {"deploy", "gov"},
+        5: {"ops", "gov"},
+    }
+    allowed = phase_prefixes.get(phase_id, {"req", "gov"})
+    prefix = comp_id.split(".")[0] if "." in comp_id else comp_id
+    return prefix in allowed
+
+
 async def handle_gather_open(websocket: WebSocket, username: str, payload: dict) -> None:
     """Plays a card: starts one conversation per target (or whole room for Team Sync-Up)."""
     phase_id, challenge_id = payload.get("phase_id", 0), payload.get("challenge_id", 0)
@@ -201,6 +215,14 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             or (payload.get("component_ids") or [None])[0]
             or (payload.get("stakeholder_ids") or [None])[0]
         )
+        if comp_id and not _is_component_allowed_for_phase(comp_id, phase_id):
+            await manager.send_event(
+                websocket=websocket,
+                event="system:error",
+                payload={"message": "Component is not relevant to the current phase or governance and infrastructure."},
+            )
+            return
+
         graph = None
         try:
             graph = GraphFactory.get_graph()

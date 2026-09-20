@@ -283,11 +283,21 @@ export const MLOPS_COMPONENTS: MLOpsComponentInfo[] = [
   },
 ];
 
+const PHASE_TO_COMPONENT_GROUP: Record<number, "Requirements" | "Data" | "Model" | "Deployment" | "Operations"> = {
+  0: "Requirements",
+  1: "Requirements",
+  2: "Data",
+  3: "Model",
+  4: "Deployment",
+  5: "Operations",
+};
+
 export interface EngagementCardTargetModalProps {
   isOpen: boolean;
   onClose: () => void;
   card: EngagementCard | null;
   attentionTokens: number;
+  currentPhase?: number;
   stakeholders: Record<string, Stakeholder>;
   availableStakeholderList: any[];
   isStakeholderActive: (st: any) => boolean;
@@ -304,6 +314,7 @@ export default function EngagementCardTargetModal({
   onClose,
   card,
   attentionTokens,
+  currentPhase = 0,
   stakeholders,
   availableStakeholderList,
   isStakeholderActive,
@@ -317,8 +328,6 @@ export default function EngagementCardTargetModal({
   const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [selectedStakeholderFilter, setSelectedStakeholderFilter] = useState<string>("ALL");
-  const [selectedComponentFilter, setSelectedComponentFilter] = useState<string>("ALL");
-  const [componentSearchQuery, setComponentSearchQuery] = useState<string>("");
   const [isClosing, setIsClosing] = useState(false);
 
   // Reset selections upon modal opening or card switch
@@ -337,8 +346,6 @@ export default function EngagementCardTargetModal({
       setSelectedIntelId(null);
       setSelectedComponentId(null);
       setSelectedStakeholderFilter("ALL");
-      setSelectedComponentFilter("ALL");
-      setComponentSearchQuery("");
       setIsClosing(false);
     }
     // Only on open or on a card switch: the parent rebuilds these lists on every render, and
@@ -401,26 +408,11 @@ export default function EngagementCardTargetModal({
     return item.stakeholder_id === selectedStakeholderFilter;
   });
 
-  // Component subsystem filter options
-  const componentGroups = Array.from(
-    new Set(MLOPS_COMPONENTS.map((c) => c.group))
-  ).map((grp) => ({
-    id: grp,
-    name: grp,
-    count: MLOPS_COMPONENTS.filter((c) => c.group === grp).length,
-  }));
-
-  const filteredComponents = MLOPS_COMPONENTS.filter((comp) => {
-    const matchesFilter =
-      selectedComponentFilter === "ALL" || comp.group.toUpperCase() === selectedComponentFilter.toUpperCase();
-    const q = componentSearchQuery.trim().toLowerCase();
-    const matchesQuery =
-      !q ||
-      comp.name.toLowerCase().includes(q) ||
-      comp.id.toLowerCase().includes(q) ||
-      comp.description.toLowerCase().includes(q);
-    return matchesFilter && matchesQuery;
-  });
+  // Filter components: only current phase components + governance and infra components
+  const currentPhaseGroup = PHASE_TO_COMPONENT_GROUP[currentPhase] || "Requirements";
+  const filteredComponents = MLOPS_COMPONENTS.filter(
+    (comp) => comp.group === currentPhaseGroup || comp.group === "Governance"
+  );
 
   const getGroupCategoryClass = (group: string) => {
     switch (group) {
@@ -656,7 +648,7 @@ export default function EngagementCardTargetModal({
                     )}
                     {isComponentCard && (
                       <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
-                        {filteredComponents.length} of {MLOPS_COMPONENTS.length}
+                        {filteredComponents.length} Available
                       </span>
                     )}
                   </div>
@@ -695,54 +687,6 @@ export default function EngagementCardTargetModal({
                             Clear
                           </button>
                         )}
-                      </div>
-                    )}
-
-                    {isComponentCard && (
-                      <div className="d-flex align-items-center gap-2">
-                        <div className="d-flex align-items-center gap-1">
-                          <label htmlFor="target-component-filter" className={styles.filterLabel}>
-                            <Icon icon="ph:funnel-bold" className="me-1" />
-                            Subsystem:
-                          </label>
-                          <select
-                            id="target-component-filter"
-                            className={`form-select form-select-sm ${styles.stakeholderFilterSelect}`}
-                            value={selectedComponentFilter}
-                            onChange={(e) => setSelectedComponentFilter(e.target.value)}
-                          >
-                            <option value="ALL">All Subsystems ({MLOPS_COMPONENTS.length})</option>
-                            {componentGroups.map((grp) => (
-                              <option key={grp.id} value={grp.id}>
-                                {grp.name} ({grp.count})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="d-flex align-items-center gap-1">
-                          <input
-                            type="text"
-                            placeholder="Filter by name or ID..."
-                            className={`form-control form-control-sm ${styles.componentSearchInput}`}
-                            value={componentSearchQuery}
-                            onChange={(e) => setComponentSearchQuery(e.target.value)}
-                          />
-                          {(selectedComponentFilter !== "ALL" || componentSearchQuery.trim() !== "") && (
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-secondary py-1 px-2"
-                              style={{ fontSize: "0.72rem" }}
-                              onClick={() => {
-                                setSelectedComponentFilter("ALL");
-                                setComponentSearchQuery("");
-                              }}
-                              title="Reset component filters"
-                            >
-                              Clear
-                            </button>
-                          )}
-                        </div>
                       </div>
                     )}
 
@@ -883,18 +827,8 @@ export default function EngagementCardTargetModal({
                         <Icon icon="ph:cpu-bold" className={styles.emptyStateIcon} />
                         <h6 className={styles.emptyStateTitle}>No MLOps Components Found</h6>
                         <p className={styles.emptyStateSubtitle}>
-                          No component matches the selected subsystem filter or search &ldquo;{componentSearchQuery}&rdquo;.
+                          No components are available for the current phase.
                         </p>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-info mt-2"
-                          onClick={() => {
-                            setSelectedComponentFilter("ALL");
-                            setComponentSearchQuery("");
-                          }}
-                        >
-                          Show All Components
-                        </button>
                       </div>
                     ) : (
                       /* Component Cards Grid - Oriented at Verify Intel Item UI */

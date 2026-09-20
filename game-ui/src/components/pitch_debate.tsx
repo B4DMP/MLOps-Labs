@@ -1568,6 +1568,7 @@ export default function PitchDebate({
           onClose={() => setPlayingCard(null)}
           card={playingCard}
           attentionTokens={tokens}
+          currentPhase={currentPhase}
           stakeholders={stakeholders as any}
           availableStakeholderList={activeStakeholders as any}
           isStakeholderActive={() => true}
