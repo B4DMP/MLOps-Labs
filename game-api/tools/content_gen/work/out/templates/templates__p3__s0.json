@@ -1,9 +1,9 @@
 {
   "item_id": "templates:p3:s0",
   "stage": "templates",
-  "input_hash": "dc7d14f8b4729b0559b49a911c4e44c6700f9ace1ce735e39c1a5aaf5867a353",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-  "attempts": 2,
+  "input_hash": "acac5324ad70c32d4595535f5ebfbd77eb755d945fa8352564db7677b36cb104",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
   "inputs": {
     "phase_id": 3,
     "phase_name": "Model Engineering",
@@ -414,7 +414,7 @@
       ],
       "instances": [
         {
-          "id": "model:prediction_v1",
+          "id": "model:demand_forecast_v1",
           "kind": "model",
           "on": "model.training_pipeline",
           "props": {
@@ -538,24 +538,6 @@
     "world_events": [
       {
         "kind": "set_to",
-        "target": "e.fs_train",
-        "value": "0",
-        "health_drop": 30.0
-      },
-      {
-        "kind": "set_to",
-        "target": "e.train_eval",
-        "value": "0",
-        "health_drop": 30.0
-      },
-      {
-        "kind": "set_to",
-        "target": "model.training_pipeline",
-        "value": "0",
-        "health_drop": 25.0
-      },
-      {
-        "kind": "set_to",
         "target": "e.eval_registry",
         "value": "0",
         "health_drop": 15.0
@@ -563,6 +545,12 @@
       {
         "kind": "set_to",
         "target": "e.hpo_train",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.train_eval",
         "value": "0",
         "health_drop": 15.0
       },
@@ -595,6 +583,12 @@
         "target": "model.registry",
         "value": "0",
         "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.training_pipeline",
+        "value": "0",
+        "health_drop": 10.0
       }
     ],
     "conflict_candidates": [
@@ -603,55 +597,60 @@
       "model.evaluation"
     ],
     "existing_challenges": [
-      "The Entanglement Problem"
-    ]
+      "Tracking Reproducibility Lost",
+      "Registry Red Tape"
+    ],
+    "angle": "something happening out in the world the product serves: weather, a season, a holiday, a sudden run on one article",
+    "is_intro": false
   },
   "output": {
-    "slug": "experiment_tracking_dispute",
-    "name": "Tracking Reproducibility Lost",
-    "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
-    "round_introduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
+    "slug": "heatwave_forecast_gap",
+    "name": "The Heatwave Blind Spot",
+    "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered.",
+    "round_introduction": "The nightly forecast job completed, but store managers in the northern region reported significant overstock of cold weather items and stockouts of iced tea. The team needs to decide how to handle the evaluation of a potential model update that incorporates the new weather data.",
     "preconditions": {
-      "component": "model.experiment_tracking",
-      "op": "eq",
-      "level": 2
+      "all": [
+        {
+          "component": "model.evaluation",
+          "op": "eq",
+          "level": 2
+        },
+        {
+          "component": "model.training_pipeline",
+          "op": "gte",
+          "level": 2
+        }
+      ]
     },
-    "priority": 50,
+    "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
-        "target": "model.experiment_tracking",
-        "value": "1",
+        "target": "model.evaluation",
+        "value": 0,
         "attr": null,
-        "reason": "the audit team found gaps in reproducibility"
-      },
-      {
-        "kind": "set_to",
-        "target": "e.train_tracking",
-        "value": "0",
-        "attr": null,
-        "reason": "the audit team found gaps in reproducibility"
+        "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
-        "target": "model.experiment_tracking",
-        "value": "0",
+        "target": "e.train_eval",
+        "value": 0,
         "attr": null,
-        "reason": "the audit team found gaps in reproducibility"
+        "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
       }
     ],
     "conflict": {
-      "target": "model.experiment_tracking",
+      "target": "model.evaluation",
       "positions": [
         {
           "stakeholder_id": "model_monica",
           "wants": 3
         },
         {
-          "stakeholder_id": "data_dave",
-          "wants": 2
+          "stakeholder_id": "requirements_reuben",
+          "wants": 1
         }
       ]
     }

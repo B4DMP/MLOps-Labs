@@ -14,6 +14,7 @@ from mlops_serious_game.application.pitch_debate_service.prompts import (
 from mlops_serious_game.application.pitch_debate_service.tools import tools
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.prompts import (
+    with_setting,
     INTEL_ARTIFACT_PROMPT,
     STAKEHOLDER_CHARACTER_CARD,
     WRONG_INTEL_PROMPT,
@@ -93,19 +94,19 @@ def get_intel_artifact_chain():
 def get_player_utterance_chain():
     """Builds and returns the LCEL chain for dynamically generating the player's spoken utterance upon option selection."""
     model = get_chat_model(temperature=0.7)
-    return PLAYER_UTTERANCE_PROMPT | model | StrOutputParser()
+    return with_setting(PLAYER_UTTERANCE_PROMPT) | model | StrOutputParser()
 
 
 def get_stakeholder_engagement_response_chain():
     """Builds and returns the LCEL chain for generating a stakeholder's response to an engagement dialogue option."""
     model = get_chat_model(temperature=0.7)
-    return STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT | model | StrOutputParser()
+    return with_setting(STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT) | model | StrOutputParser()
 
 
 def get_player_kickoff_chain():
     """Builds and returns the LCEL chain for dynamically generating the player's opening welcome and action card introduction."""
     model = get_chat_model(temperature=0.6)
-    return PLAYER_KICKOFF_PROMPT | model | StrOutputParser()
+    return with_setting(PLAYER_KICKOFF_PROMPT) | model | StrOutputParser()
 
 
 async def generate_player_utterance(
@@ -231,7 +232,7 @@ async def generate_stakeholder_response(
 def get_component_fact_chain():
     """Builds and returns the LCEL chain for generating a factual system telemetry observation for an MLOps component."""
     model = get_chat_model(temperature=0.4)
-    return GENERATE_COMPONENT_FACT_PROMPT | model | StrOutputParser()
+    return with_setting(GENERATE_COMPONENT_FACT_PROMPT) | model | StrOutputParser()
 
 
 COMPONENT_FACT_FALLBACKS: dict[str, str] = {

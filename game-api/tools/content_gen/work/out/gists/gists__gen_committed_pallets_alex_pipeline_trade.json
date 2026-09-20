@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_alex_pipeline_trade",
+  "stage": "gists",
+  "input_hash": "b01999eca06ab6dfeecf3c7a54ec74619c90a9689ee9c5b907a3970559c9c426",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_alex_pipeline_trade",
+    "fact": "{automation_alex} mentioned that the data contracts are currently manual and would take time to automate.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "Manual data contracts keep surfacing as a bottleneck whenever the team discusses automating the forecast pipeline.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies manual data contracts as a bottleneck to automation, but it does not explicitly state whether this is a refusal, a trade-off, a driver for change, or just a neutral fact; it merely describes the current friction."
+  }
+}

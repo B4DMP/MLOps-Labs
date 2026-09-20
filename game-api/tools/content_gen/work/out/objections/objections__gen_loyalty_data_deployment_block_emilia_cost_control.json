@@ -1,0 +1,52 @@
+{
+  "item_id": "objections:gen_loyalty_data_deployment_block_emilia_cost_control",
+  "stage": "objections",
+  "input_hash": "0ab575cc7080dc92cb3bf9f034c64324ef6e17e28e0464fa532168723f3cab79",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_loyalty_data_deployment_block_emilia_cost_control",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted the cost implications of running the new model version in the production environment. The cost control can be relaxed if the model provides significant business value, but it needs to be monitored closely.",
+      "fact": "{efficiency_emilia} noted the cost implications of running the new model version in the production environment.",
+      "reading": "The cost control can be relaxed if the model provides significant business value, but it needs to be monitored closely.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.cost_serving",
+          "value": 2
+        }
+      ],
+      "concedes": {
+        "metric_id": "efficiency",
+        "loss": 3,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are proposing to run a heavier model in production without acknowledging the direct hit to our compute budget. I need that cost increase explicitly on the table before we discuss any potential uplift.",
+    "correction": "I am not saying we cannot spend more, I am saying the trade off must be visible and monitored. Do not file this as a hard budget freeze, because I am willing to accept higher spend if the model proves it reduces residual stock and waste."
+  }
+}

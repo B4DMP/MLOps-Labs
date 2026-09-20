@@ -1,0 +1,50 @@
+{
+  "item_id": "objections:gen_committed_pallets_emilia_kpi_driver",
+  "stage": "objections",
+  "input_hash": "7f503fd8546e1c29b2525dcd50b4b1a3ce2c124d7e99bc59427be99c2b13a931",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "stance",
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_kpi_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin. She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
+      "fact": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin.",
+      "reading": "She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "Tracking residual stock and margin is just the floor, not the ceiling for the promotion week. I need the KPIs to automatically flag when the margin target is missed so we can adjust the allocation before the pallets are even loaded.",
+    "correction": "I am not asking for a dashboard that simply displays the numbers after the fact. I need the system to calculate the impact in real time so we can see the operational cost of a missed forecast while we still have the chance to act on it."
+  }
+}

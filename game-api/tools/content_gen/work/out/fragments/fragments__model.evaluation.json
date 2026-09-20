@@ -1,9 +1,9 @@
 {
   "item_id": "fragments:model.evaluation",
   "stage": "fragments",
-  "input_hash": "6a5665ee8f275dce631607bcac223bb28da6d1a3cd39a7ae899750175036cf67",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-  "attempts": 2,
+  "input_hash": "69d2ea24f3b8a33ff16b7ae0d3128ffcced509021c4a638b2481691960322841",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
   "inputs": {
     "target": "model.evaluation",
     "kind": "component",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The model evaluation harness produces incorrect evaluation metrics.",
-    "level_1": "The project lacks a model evaluation harness.",
-    "level_2": "The team manually evaluates models using spreadsheets.",
-    "level_3": "A script automates model evaluation but lacks consistency.",
-    "level_4": "The model evaluation harness integrates with governance policies."
+    "level_0": "The evaluation script crashes on missing loyalty data, leaving the team without any forecast accuracy numbers.",
+    "level_1": "No evaluation harness exists, so the team guesses whether the new model actually improves store availability.",
+    "level_2": "A data scientist manually runs a notebook each week to check forecast error against actual till sales.",
+    "level_3": "The harness automatically scores every nightly forecast against realized sales and flags significant accuracy drops.",
+    "level_4": "Governed evaluation tracks bias across store regions and logs results for audit before any model ships."
   }
 }

@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:data.training_drift_check",
   "stage": "objections",
-  "input_hash": "ba1a7c163583b79a39d59b7cef987c29d3dcb5c668c0d5cc06265db98d9e00c9",
+  "input_hash": "669a198d8a102a30d26b055c723bfe43d05cfc7eda9e87255df22c32b6c7e6cf",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I can't support improving {target} until {cause} is good enough upstream. My drift check will just keep flagging the same bad data."
+    "line": "We cannot trust {target} because the point of sale scan lines feeding into {cause} are still missing critical stock out signals. Until we fix that upstream data quality issue, any improvement there will just be noise."
   }
 }

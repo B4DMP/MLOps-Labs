@@ -69,6 +69,20 @@ def test_get_facial_expressions_dict():
 
 
 
+def first_boundary_requirement():
+    """A Boundary from whatever is in gameConfig right now.
+
+    These tests used to name `req_0_model_monica_hard_constraint_0`, an intel item of the hand
+    written challenges that no longer exist. Generated ids change whenever the content is
+    regenerated, so pick by tag instead of by name."""
+    from mlops_serious_game.domain.requirement_factory import RequirementFactory
+
+    for req in RequirementFactory.requirements:
+        if req.type.value == "boundary":
+            return req
+    raise AssertionError("gameConfig has no Boundary intel to test with")
+
+
 @pytest.mark.anyio
 async def test_unverified_intel_item_dialogue_option_generation():
     from mlops_serious_game.domain.requirement import StakeholderIntelItem, ConfidenceType, IntelTag
@@ -79,7 +93,7 @@ async def test_unverified_intel_item_dialogue_option_generation():
     RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
 
     # Unverified / unconfirmed intel item
-    req1 = RequirementFactory.get_requirement("req_0_model_monica_hard_constraint_0")
+    req1 = first_boundary_requirement()
     unverified_item = StakeholderIntelItem.from_requirement(
         req1,
         intel_type=ConfidenceType.UNCONFIRMED,
@@ -87,7 +101,7 @@ async def test_unverified_intel_item_dialogue_option_generation():
         categorized_description="Model Monica mandates that the model must achieve at least 95% accuracy.",
     )
 
-    assert unverified_item.stakeholder_id == "model_monica"
+    assert unverified_item.stakeholder_id == req1.stakeholder_id
     assert unverified_item.categorized_description == "Model Monica mandates that the model must achieve at least 95% accuracy."
 
     options = determine_dialogue_options(discovered_intel_items=[unverified_item])
@@ -109,7 +123,7 @@ async def test_misclassified_intel_item_dialogue_option_generation():
     RequirementFactory.load_requirements(Path("../gameConfig/RequirementObjects.json"))
 
     # Misclassified intel item (tagged as a Trade-off, but it is a Boundary)
-    req2 = RequirementFactory.get_requirement("req_0_model_monica_hard_constraint_0")
+    req2 = first_boundary_requirement()
     misclassified_item = StakeholderIntelItem.from_requirement(
         req2,
         intel_type=ConfidenceType.UNCONFIRMED,
@@ -117,7 +131,7 @@ async def test_misclassified_intel_item_dialogue_option_generation():
         categorized_description="Model Monica expresses strong personal frustration about accuracy standards.",
     )
 
-    assert misclassified_item.stakeholder_id == "model_monica"
+    assert misclassified_item.stakeholder_id == req2.stakeholder_id
     assert misclassified_item.is_correct_intel() is False
     assert misclassified_item.correct_description != ""
     assert misclassified_item.correct_intent == IntelTag.BOUNDARY

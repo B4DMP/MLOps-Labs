@@ -1,0 +1,46 @@
+{
+  "item_id": "objections:gen_nightly_window_miss_ruth_ingestion_tradeoff",
+  "stage": "objections",
+  "input_hash": "5b906c599e9f4643bf685b521e62cd299ae539a2baddba2db7e5c34edfb9b224",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_nightly_window_miss_ruth_ingestion_tradeoff",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "trade_off",
+      "description": "{reliability_ruth} mentioned the late arrival of till scan lines. She would accept a less reliable ingestion pipeline if it ensures the data arrives before the deadline.",
+      "fact": "{reliability_ruth} mentioned the late arrival of till scan lines.",
+      "reading": "She would accept a less reliable ingestion pipeline if it ensures the data arrives before the deadline.",
+      "metric_id": "reliability",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": "automation",
+        "loss": 3,
+        "target": "data.ingestion",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "You are treating my acceptance of a fragile ingestion pipeline as a free concession, but I am trading reliability for the hard deadline of the morning order window. If the till scan lines arrive late, the forecast is garbage and I need you to log that trade explicitly in the system state.",
+    "correction": "I am not asking you to ignore the risk of data loss, I am asking you to prioritize the arrival time over the integrity of the batch. The model can handle a slightly noisy scan line if it is there, but it cannot handle a missing scan line at all."
+  }
+}

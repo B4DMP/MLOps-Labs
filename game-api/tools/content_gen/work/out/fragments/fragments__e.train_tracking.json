@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.train_tracking",
   "stage": "fragments",
-  "input_hash": "999ba4429c30e485805a2e5d229fc6f431b92bd968bc3fb38b65471467c3165f",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "7c606c296dde1188174d0d6c3f4193972ecaa271f6ca4d256e13306a39b4696e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.train_tracking",
@@ -17,10 +17,10 @@
     "name": "hand over from Training Pipeline to Experiment Tracking"
   },
   "output": {
-    "level_0": "The Training Pipeline crashes when trying to log experiments.",
-    "level_1": "No tracking happens when the Training Pipeline finishes.",
-    "level_2": "A data scientist manually copies results from the Training Pipeline to Experiment Tracking.",
-    "level_3": "The Training Pipeline automatically uploads metrics and artifacts to Experiment Tracking.",
-    "level_4": "The Training Pipeline uploads metrics and artifacts to Experiment Tracking with audit logs and compliance checks."
+    "level_0": "Experiment records vanish when the training pipeline crashes, leaving no trace of failed model runs.",
+    "level_1": "No experiment tracking exists, so retraining results are lost unless someone manually saves a spreadsheet.",
+    "level_2": "A data scientist manually copies metrics from the training log into a shared document after each run.",
+    "level_3": "The training pipeline automatically logs every experiment run and its metrics to a central tracking system.",
+    "level_4": "Experiment tracking is governed, with access controls and audit logs for every model evaluation and decision."
   }
 }

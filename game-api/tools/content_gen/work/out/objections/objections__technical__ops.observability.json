@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:ops.observability",
   "stage": "objections",
-  "input_hash": "499c0ac487b1d490a6c1f07104e449dfb4c9702cede98eb1752fc10d21117798",
+  "input_hash": "c57af8614e440cf53b6311bbdb870b8f1ff76f21c80939bfba327636ca376f41",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot sign off on improving {target} because the data from {cause} upstream is still too noisy to trust."
+    "line": "We cannot make {target} reliable until the {cause} upstream actually produces consistent, queryable signals. Right now we are just building a dashboard on top of a fire hose."
   }
 }

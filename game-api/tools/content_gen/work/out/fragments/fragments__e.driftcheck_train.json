@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.driftcheck_train",
   "stage": "fragments",
-  "input_hash": "c9672df2e3ef2152ab90bd0ab3644119f7d7d86fb52ab3ce49e6a82e04374d84",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "d828873f49ad773cebdf0ea4f4f0158282d6c55123e2b5ae4d80616daf66d93e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.driftcheck_train",
@@ -17,10 +17,10 @@
     "name": "hand over from Training Data Drift Check to Training Pipeline"
   },
   "output": {
-    "level_0": "The Training Data Drift Check fails randomly due to missing dependencies.",
-    "level_1": "There is no connection between the Training Data Drift Check and the Training Pipeline.",
-    "level_2": "A team member manually triggers the Training Pipeline after the Training Data Drift Check.",
-    "level_3": "The Training Pipeline automatically starts when the Training Data Drift Check completes.",
-    "level_4": "The Training Pipeline only starts if the Training Data Drift Check passes with approved data versions."
+    "level_0": "The drift check crashes nightly, so the training pipeline runs on stale or corrupted scan lines.",
+    "level_1": "No drift check exists, so the training pipeline silently consumes shifted demand patterns without warning.",
+    "level_2": "A data engineer manually reviews drift reports before triggering the training pipeline each week.",
+    "level_3": "The drift check automatically gates the training pipeline, blocking runs when demand patterns shift.",
+    "level_4": "Governed drift thresholds trigger the training pipeline, with full audit logs for compliance and finance."
   }
 }

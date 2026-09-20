@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_emilia_efficiency_kpi",
+  "stage": "gists",
+  "input_hash": "3c3fff14fbc547700fd577f91e700e544821471140c78ce212d06aa7509dd413",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_emilia_efficiency_kpi",
+    "fact": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "Aligning the monitoring budget with the efficiency KPI has been proposed by {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely states that a proposal to align the monitoring budget with the efficiency KPI has been made, without indicating whether the stakeholder supports it as a driver, rejects it as a boundary, accepts it as a trade-off, or describes it as a fact."
+  }
+}

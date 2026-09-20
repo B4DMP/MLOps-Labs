@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.registry_cicd",
   "stage": "fragments",
-  "input_hash": "9c56993910aa79aff7a9f9139f8993ff1200432e37ac438d8b1ff46d2739f9be",
+  "input_hash": "aa478ebcc10e0caf39c2bf536bb16f117f0bdd5ea5037b6c9e2176e6a8f35983",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Model Registry to CI/CD Pipeline"
   },
   "output": {
-    "level_0": "Registry exports fail silently, leaving the pipeline with stale model artifacts and no clear error trace.",
-    "level_1": "No defined handoff exists, so developers copy model files manually without any version tracking or metadata.",
-    "level_2": "Engineers manually download models from the registry and upload them to the pipeline storage each time.",
-    "level_3": "The pipeline automatically pulls the latest approved model version from the registry during every build.",
-    "level_4": "Handoffs enforce compliance checks, ensuring only signed and audited models trigger the deployment pipeline."
+    "level_0": "The registry rejects valid models, so the pipeline cannot fetch any new version to test.",
+    "level_1": "No registry exists, so the pipeline pulls model files from a shared drive folder.",
+    "level_2": "A developer manually copies the model file from the registry into the pipeline workspace.",
+    "level_3": "The pipeline automatically fetches the latest registered model version whenever a new build starts.",
+    "level_4": "The pipeline verifies registry signatures and logs every model handover for audit compliance."
   }
 }

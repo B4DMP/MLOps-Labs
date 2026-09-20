@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:deploy.orchestration",
   "stage": "fragments",
-  "input_hash": "ec9b6f3a126ccc6fd9397c63a44fc02b34319477b2bdcb8a5ed9c3ccb5444c9d",
+  "input_hash": "95f80f016893e1b12916ba1bc93eced655107b08e2ce7adc2d379da2b84cd82a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Pipeline runs crash silently, leaving stale artifacts and confusing the entire team.",
-    "level_1": "No orchestration exists, so engineers manually trigger scripts in unpredictable orders.",
-    "level_2": "A basic scheduler runs jobs, but failures require human intervention to restart.",
-    "level_3": "Automated workflows handle retries and dependencies without human involvement.",
-    "level_4": "Orchestration is governed by policies, with full audit trails and compliance checks."
+    "level_0": "The nightly forecast job crashes mid run, leaving every store with stale data.",
+    "level_1": "No scheduling exists, so the team manually triggers jobs whenever they remember.",
+    "level_2": "Staff manually start the forecast job every morning and watch it finish.",
+    "level_3": "The scheduler automatically triggers the nightly forecast and promotion allocation runs.",
+    "level_4": "The scheduler enforces dependencies and alerts the team before any job fails."
   }
 }

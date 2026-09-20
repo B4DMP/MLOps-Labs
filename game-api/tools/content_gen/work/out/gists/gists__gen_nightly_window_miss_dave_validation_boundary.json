@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_dave_validation_boundary",
+  "stage": "gists",
+  "input_hash": "f008a8a19986cf144f231097253b1fcac3098aa7858933e91f35660e3b4f5620",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_dave_validation_boundary",
+    "fact": "{data_dave} proposed keeping the data validation process manual.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The manual handling of data validation keeps coming up whenever the team discusses the nightly pipeline.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies manual data validation as a recurring topic but does not express a desire to change it, a refusal, a trade-off, or a definitive factual claim about its status beyond its recurrence in discussions."
+  }
+}

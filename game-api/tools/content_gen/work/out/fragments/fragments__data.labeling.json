@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:data.labeling",
   "stage": "fragments",
-  "input_hash": "1e399c1500e8ff950582e3593dc9534a73b162c9c5e36d0d99dda407f2ade3e2",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "1df3a4575cf15868cb3849c743849c84761828c995972be49802961ee064dcd5",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "data.labeling",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The data labeling pipeline has no labels, no documentation, and no users.",
-    "level_1": "The data labeling pipeline is not implemented yet, no labels exist.",
-    "level_2": "The data labeling pipeline is done manually by a single person.",
-    "level_3": "The data labeling pipeline is automated but lacks consistency checks.",
-    "level_4": "The data labeling pipeline is automated with governance and audit trails."
+    "level_0": "Scan lines arrive corrupted, so the model trains on missing or duplicated article sales.",
+    "level_1": "No pipeline exists to convert raw till data into clean labels for the forecast model.",
+    "level_2": "Analysts manually clean scan lines in spreadsheets before feeding them into the training job.",
+    "level_3": "A scheduled job automatically validates and transforms raw scan lines into training labels nightly.",
+    "level_4": "Labeling is governed by data quality rules, with audit trails for every transformation step."
   }
 }

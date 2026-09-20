@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:req.acceptance_criteria",
   "stage": "objections",
-  "input_hash": "518ebec8882f142628613034baeb64f568ff4faf75d1fa4bdda5a551e810b71c",
+  "input_hash": "8c528d12305832eee8c59bc2299d5416cb1344560bee44026562a59ef25318cc",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "We cannot approve this change to {target} because the {cause} upstream does not meet our security and data governance standards. Until that foundation is solid, any downstream improvements will violate our acceptance criteria."
+    "line": "We cannot sign off on improving {target} because the upstream {cause} still fails our data governance and privacy acceptance criteria. We need that source hardened before we risk exposing personal loyalty data or violating retention limits in production."
   }
 }

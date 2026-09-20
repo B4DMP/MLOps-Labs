@@ -1,0 +1,52 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_monica_retraining",
+  "stage": "objections",
+  "input_hash": "fde2f270e16282a0ce0d6e1efa1af581b48b31f32138a918607e30e98c31fe53",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_monica_retraining",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} suggested linking drift alerts to the retraining trigger. She would accept a longer retraining cycle if it is triggered automatically by drift detection.",
+      "fact": "{model_monica} suggested linking drift alerts to the retraining trigger.",
+      "reading": "She would accept a longer retraining cycle if it is triggered automatically by drift detection.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "e.alert_retrain",
+          "value": 3
+        }
+      ],
+      "concedes": {
+        "metric_id": "model",
+        "loss": 4,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "I am not giving up the weekly retraining cadence, I am asking you to acknowledge that drift detection is the only reliable trigger we have. If you file this as a concession, you are misreading the engineering constraint I am trying to protect.",
+    "correction": "I did not say we can stretch the retraining window indefinitely, I said the trigger logic must be automated to prevent silent failures. You are treating my technical requirement as a commercial compromise, which is the wrong category for this discussion."
+  }
+}

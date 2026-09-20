@@ -1,0 +1,51 @@
+{
+  "item_id": "objections:gen_shadow_deployment_contract_ruth_shadow_boundary",
+  "stage": "objections",
+  "input_hash": "2ce074fff75d29338b770aa5574fa66a8dca9afbea1632e1fe73592684b8f530",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "boundary",
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_ruth_shadow_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "reliability_ruth",
+      "type": "boundary",
+      "description": "{reliability_ruth} proposed that the shadow deployment environment must be governed before any new model version is released to the live forecast service. She will not sign off on the new model deployment if the shadow environment is not governed.",
+      "fact": "{reliability_ruth} proposed that the shadow deployment environment must be governed before any new model version is released to the live forecast service.",
+      "reading": "She will not sign off on the new model deployment if the shadow environment is not governed.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": {
+        "component": "deploy.shadow",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    }
+  },
+  "output": {
+    "objection": "I will not release a new model version to the live forecast service until the shadow environment is governed. That is my line, and I will not move it.",
+    "correction": "I am not asking for extra paperwork or a new approval layer. I am saying the shadow deployment environment itself must be governed before any new model version is released to the live forecast service."
+  }
+}

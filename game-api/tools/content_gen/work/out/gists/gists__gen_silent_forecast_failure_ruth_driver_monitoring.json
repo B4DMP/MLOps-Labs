@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_ruth_driver_monitoring",
+  "stage": "gists",
+  "input_hash": "e07720f5796589aaaa3f37a292f202da40443e27e4eb7427007c4c2f2ba4d106",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_ruth_driver_monitoring",
+    "fact": "{reliability_ruth} proposed moving model performance monitoring to a governed state.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Failure"
+  },
+  "output": {
+    "gist": "Model performance monitoring for the nightly forecast job has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist mentions that monitoring for a job was raised by a stakeholder named Ruth, but it does not specify whether this is a demand for improvement, a constraint, a trade-off, or a simple statement of fact."
+  }
+}

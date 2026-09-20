@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:data.ingestion",
   "stage": "fragments",
-  "input_hash": "8d983724e3d17a3653c705706333e21ff226ee3f86298c7b52e7e498159f04e9",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "446ed5ba70cc63755c8b24df51de0b3b8a023bc111d01f32eccd7d89925d5c9c",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "data.ingestion",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Raw data files pile up unprocessed in the storage system.",
-    "level_1": "The team has not set up any data ingestion mechanism yet.",
-    "level_2": "Data engineers manually write scripts to import data into the system.",
-    "level_3": "A scheduled script automatically ingests data from various sources into the pipeline.",
-    "level_4": "Data ingestion follows predefined policies and gets logged for compliance."
+    "level_0": "Till data arrives late or corrupted, forcing the team to patch spreadsheets by hand before the forecast runs.",
+    "level_1": "No pipeline exists, so buyers manually copy point of sale figures from store emails into a central sheet.",
+    "level_2": "A single script pulls nightly data, but a human must rerun it whenever a store feed fails.",
+    "level_3": "Automated ingestion validates and loads all store data nightly without human intervention or manual checks.",
+    "level_4": "Ingestion is fully automated with strict consent checks and audit logs for every loyalty data record processed."
   }
 }

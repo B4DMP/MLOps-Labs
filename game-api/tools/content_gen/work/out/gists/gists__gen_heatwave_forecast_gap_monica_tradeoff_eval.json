@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_monica_tradeoff_eval",
+  "stage": "gists",
+  "input_hash": "ca41a7e74d5d9e6256d5293e8ba3615e5a6cc31bae20cc6493c69cee9cf8c124",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_monica_tradeoff_eval",
+    "fact": "{model_monica} mentioned accepting a manual review step for the final model approval.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The final model approval process has been raised by {model_monica} in the project discussion.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic as the model approval process but provides no information on whether it is a driver, boundary, trade-off, or fact."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_emilia_efficiency_focus",
+  "stage": "gists",
+  "input_hash": "39952efc9a3b22a90b0e48b855c1efb9099b2abc3241cef447298d0f184f06a8",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_emilia_efficiency_focus",
+    "fact": "{efficiency_emilia} asked for a faster turnaround on the data contract review process.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "The speed of data contract review processes keeps coming up in discussions with {efficiency_emilia}.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the speed of a process is a recurring topic in discussions but does not specify whether the stakeholder wants it faster, considers it a constraint, or accepts a trade-off."
+  }
+}

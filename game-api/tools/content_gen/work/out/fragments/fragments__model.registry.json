@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:model.registry",
   "stage": "fragments",
-  "input_hash": "5891f929865615b6c259f1b0e05aa83bd42d62abaf3e390acb2487308a0dd942",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "27b3dcfb9bac8a7b155ae55858fefeb24ee7b63de957a170489d5490ae8e5ed0",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "model.registry",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The model registry is broken and cannot be used to store or retrieve models.",
-    "level_1": "There is no model registry in place, making it hard to track model versions.",
-    "level_2": "The model registry is manually updated, leading to inconsistencies and errors.",
-    "level_3": "The model registry is automated, with models being versioned and tracked automatically.",
-    "level_4": "The model registry is governed, with clear policies and access controls in place."
+    "level_0": "The registry is down, so no one can tell which model version is live for the forecast.",
+    "level_1": "No registry exists, so the team guesses which model version is currently serving the stores.",
+    "level_2": "A shared spreadsheet lists model versions, but updates lag behind the actual deployment in production.",
+    "level_3": "The registry automatically tracks every model version and links each one to its training data.",
+    "level_4": "The registry enforces approval gates, ensuring only validated models can serve the morning order window."
   }
 }

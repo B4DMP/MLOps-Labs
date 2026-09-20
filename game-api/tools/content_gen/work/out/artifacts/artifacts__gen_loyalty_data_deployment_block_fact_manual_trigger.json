@@ -1,0 +1,50 @@
+{
+  "item_id": "artifacts:gen_loyalty_data_deployment_block_fact_manual_trigger",
+  "stage": "artifacts",
+  "input_hash": "dd021b037170d4327728faaba0f834c9f9d84f13bc6bed485442764c84ce1a74",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_loyalty_data_deployment_block_fact_manual_trigger",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The pipeline from the model registry to the CI/CD pipeline is triggered manually. The pipeline from the model registry to the CI/CD pipeline is currently triggered manually.",
+      "fact": "The pipeline from the model registry to the CI/CD pipeline is triggered manually.",
+      "reading": "The pipeline from the model registry to the CI/CD pipeline is currently triggered manually.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "e.registry_cicd",
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "The Consent Gap",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "I noticed the deployment flow during the last incident review. When the model registry confirms a new build, nothing automatically pushes it into the CI/CD pipeline. A person has to manually trigger that step every single time. I checked the logs for the past two weeks and saw the same pattern: the registry job finishes, then sits idle until someone clicks the deploy button in the dashboard. It is a simple gap in the automation chain. The infrastructure is ready, but the connection between the two systems relies entirely on human action to move the artifact forward. No alerts fire, no scripts run, just a waiting state until a teammate notices and acts.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The artifact objectively describes the current manual workflow and the absence of automation based on log analysis, without expressing a wish, refusal, or a stated trade-off."
+  }
+}

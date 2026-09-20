@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:deploy.shadow",
   "stage": "objections",
-  "input_hash": "f2df010142238b3c67549a424701e5c5c15cc553bcdb2c7f12ed67729f0d7149",
+  "input_hash": "bae6d0e4048b10e86538cfea5bc31bf24b456894bf1f034dd4d8c481269abf67",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot support improving {target} because {cause} upstream is not good enough yet. My shadow deployment pipeline needs stable inputs to maintain operational stability."
+    "line": "I cannot approve moving {target} to automated execution because the validation gates on {cause} upstream are still failing intermittently. We need that pipeline to be stable before I will risk the morning order window."
   }
 }

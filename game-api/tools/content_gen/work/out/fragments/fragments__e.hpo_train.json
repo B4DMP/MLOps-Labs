@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.hpo_train",
   "stage": "fragments",
-  "input_hash": "803c6f04d52158f5aceba1bea07a170a4e346216dd54fbe3742fc8994df0f3ea",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "0c669aada6961231393b4a6e0efc0d480bb8e7ff1cad702d21e170997573be11",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.hpo_train",
@@ -17,10 +17,10 @@
     "name": "hand over from Hyperparameter Tuning to Training Pipeline"
   },
   "output": {
-    "level_0": "Hyperparameter tuning results are not accessible to the training pipeline.",
-    "level_1": "The training pipeline has no input connection for hyperparameter tuning results.",
-    "level_2": "The training pipeline is manually configured with hyperparameter tuning results.",
-    "level_3": "Hyperparameter tuning results are automatically fed into the training pipeline.",
-    "level_4": "Hyperparameter tuning results are automatically validated and fed into the training pipeline."
+    "level_0": "The tuning notebook crashes, leaving the training pipeline with no hyperparameters to consume.",
+    "level_1": "No defined interface exists between the tuning step and the training pipeline.",
+    "level_2": "A data scientist manually copies the best hyperparameters from a notebook into the training script.",
+    "level_3": "The tuning job automatically writes the selected hyperparameters to a config file for training.",
+    "level_4": "The handover is logged, versioned, and validated against governance policies before training starts."
   }
 }

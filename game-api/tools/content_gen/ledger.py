@@ -211,3 +211,16 @@ class Ledger:
         if row is None:
             raise KeyError(item_id)
         self._set(item_id, status="rejected", note=note, attempts=0)
+
+    def drop(self, item_ids: Iterable[str]) -> int:
+        """Forgets items entirely. Used when a stage's plan no longer contains them, for instance
+        after the challenge templates were rewritten and the old slugs no longer exist: their
+        approved rows would otherwise keep feeding orphan work into the stages downstream."""
+        ids = list(item_ids)
+        if not ids:
+            return 0
+        with self.conn:
+            cur = self.conn.execute(
+                f"DELETE FROM items WHERE item_id IN ({','.join('?' * len(ids))})", ids
+            )
+        return cur.rowcount

@@ -6,7 +6,10 @@ stage component (the owner's technical objection when a change there would be ca
 from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
-from content_gen.stages.common import GAME_RULES, bare_stakeholder_id_errors, player_text_errors, render, text_errors, tokenize_names
+from content_gen.stages.common import (
+    GAME_RULES, bare_stakeholder_id_errors, player_text_errors, render, system_for, text_errors,
+    tokenize_names,
+)
 
 KIND_FOR_TAG = {"driver": "stance", "boundary": "boundary", "trade_off": "price"}
 
@@ -85,7 +88,7 @@ class ObjectionsStage:
                 "placeholders {target} and {cause} literally.",
                 *feedback,
             ])
-            out, usage = await llm.structured(TechnicalObjection, SYSTEM, user, tags={"item_id": item.item_id})
+            out, usage = await llm.structured(TechnicalObjection, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         else:
             req = i["requirement"]
             user = "\n".join([
@@ -97,7 +100,7 @@ class ObjectionsStage:
                 "Write the speaker's name as the placeholder given, e.g. {data_dave}, if they refer to themselves by name.",
                 *feedback,
             ])
-            out, usage = await llm.structured(StanceObjection, SYSTEM, user, tags={"item_id": item.item_id})
+            out, usage = await llm.structured(StanceObjection, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         data = out.model_dump()
         return {k: tokenize_names(v, ctx.stakeholders) if k != "line" else v for k, v in data.items()}, usage
 

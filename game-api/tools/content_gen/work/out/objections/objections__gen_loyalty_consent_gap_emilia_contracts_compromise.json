@@ -1,0 +1,46 @@
+{
+  "item_id": "objections:gen_loyalty_consent_gap_emilia_contracts_compromise",
+  "stage": "objections",
+  "input_hash": "fb6bea7a76dd6043b9810030bfae51d5c6e61896080324283610281698fc832b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_loyalty_consent_gap_emilia_contracts_compromise",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} suggested that manual review of data contracts is sufficient for now. She would accept higher automation in data contracts if it does not stall the leaflet.",
+      "fact": "{efficiency_emilia} suggested that manual review of data contracts is sufficient for now.",
+      "reading": "She would accept higher automation in data contracts if it does not stall the leaflet.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.data_contracts",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are treating my note on manual data contract review as a simple preference, but it is a hard boundary to protect the leaflet deadline. I will not accept automated checks that risk stalling the promotion week for a theoretical gain.",
+    "correction": "I did not say the manual process is permanent or that I oppose automation in general. I said it is sufficient for now because the current bottleneck is the buyer lock, not the data validation."
+  }
+}

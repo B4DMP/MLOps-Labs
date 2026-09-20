@@ -1,6 +1,6 @@
 {
   "briefing": {
-    "briefing_title": "Briefing",
-    "briefing_description": "Hello World"
+    "briefing_title": "Welcome to Lindenmarkt",
+    "briefing_description": "Lindenmarkt runs about 1200 discount stores. Each one carries a small core range and a middle aisle promotion that changes every week: around 80 seasonal articles, advertised in the leaflet, never restocked once they sell out. Today the buyers size those orders in spreadsheets, and store managers override the suggested replenishment whenever the numbers look wrong to them. Too often they are right.\n\nYou have been brought in to run Shelfcast, the demand forecasting and replenishment platform that is meant to fix this. Every night it forecasts demand for every article in every store for the next fourteen days and turns that into order suggestions for the distribution centres. When a buyer locks a promotion week, it sizes the first allocation across the stores.\n\nYou will not write any of the code. Your job is the room: six colleagues who each own a piece of this, who do not agree about what to build next, and who each have a price you have to find out. Availability, waste, residual stock and how often store managers ignore the system are what you will be judged on."
   }
 }

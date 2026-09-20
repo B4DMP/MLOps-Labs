@@ -8,6 +8,7 @@
   freeze --stage S [--only GLOB]      keeps the current output as approved and pins its hash
   try --stage S --item ID [--attempts N] [--show]   one item, printed, nothing written (prompt iteration)
   unstick                             releases items a killed run left running
+  prune [--stage S] [--dry-run]       forgets ledger rows no longer in a stage's plan
   diff [--stage S]                    what the current config would make stale
   assemble [--dry-run]                writes approved content into gameConfig
   validate                            runs the content gates on gameConfig
@@ -140,9 +141,33 @@ def cmd_freeze(ctx, ledger, args) -> int:
         row = ledger.get(item.item_id)
         if row is None or not row.output_path or not (ctx.work_dir / row.output_path).exists():
             continue
-        ledger.freeze(item.item_id, item.input_hash(stage.prompt_version, model, row.note))
+        ledger.freeze(item.item_id, item.input_hash(ctx.stage_version(stage), model, row.note))
         frozen += 1
     print(f"froze {frozen} {stage.name} item(s) at their current output")
+    return 0
+
+
+def cmd_prune(ctx, ledger, args) -> int:
+    """Rows for work that no longer exists. Rewriting the challenge templates changes their slugs,
+    and the items, artifacts and gists of the old slugs stay approved in the ledger, feeding orphan
+    content into assembly and into every stage that plans from what is approved."""
+    stages = [args.stage] if args.stage else ORDER
+    dropped = 0
+    for name in stages:
+        stage = STAGES[name]
+        planned = {i.item_id for i in stage.plan(ctx)}
+        orphans = [r for r in ledger.rows(name) if r.item_id not in planned]
+        for row in orphans:
+            print(f"{'would drop' if args.dry_run else 'drop'} {row.item_id}")
+        if not args.dry_run:
+            # The output files go too. A stale templates output would otherwise still collide with
+            # a new template's slug, and every stale file is one more thing a reviewer has to place.
+            for row in orphans:
+                if row.output_path:
+                    (ctx.work_dir / row.output_path).unlink(missing_ok=True)
+            dropped += ledger.drop([r.item_id for r in orphans])
+    print(f"{'would forget' if args.dry_run else 'forgot'} {dropped if not args.dry_run else ''} "
+          f"row(s) no longer planned".replace("  ", " "))
     return 0
 
 
@@ -159,7 +184,7 @@ def cmd_diff(ctx, ledger, args) -> int:
             row = ledger.get(item.item_id)
             if row is None:
                 print(f"new    {item.item_id}")
-            elif item.input_hash(stage.prompt_version, model, row.note) != row.input_hash:
+            elif item.input_hash(ctx.stage_version(stage), model, row.note) != row.input_hash:
                 print(f"stale  {item.item_id} ({row.status})")
     return 0
 
@@ -222,6 +247,9 @@ def main(argv=None) -> int:
     p.add_argument("--stage", required=True, choices=ORDER)
     p.add_argument("--only")
     sub.add_parser("unstick")
+    p = sub.add_parser("prune")
+    p.add_argument("--stage", choices=ORDER)
+    p.add_argument("--dry-run", action="store_true")
     p = sub.add_parser("try")
     p.add_argument("--stage", required=True, choices=ORDER)
     p.add_argument("--item", required=True, help="item id or glob; the first match is used")

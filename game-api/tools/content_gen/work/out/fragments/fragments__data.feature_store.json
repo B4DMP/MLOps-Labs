@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:data.feature_store",
   "stage": "fragments",
-  "input_hash": "763f7de9116b2a8f118fbbbd839c036aa100961964899275ced20fb49312a641",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "f52b8cd9cda96e2ef812109bf1c08358efce174eef77e1332c4810d34fd7ec3c",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "data.feature_store",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The feature store is offline, causing model training to fail.",
-    "level_1": "There is no feature store, engineers manually prepare data for each model.",
-    "level_2": "Engineers manually update features in a shared database every sprint.",
-    "level_3": "Features are automatically generated and served from a centralized system.",
-    "level_4": "The feature store is integrated with compliance tools and access controls."
+    "level_0": "The feature store crashes nightly, leaving the forecast job without any point of sale history to read.",
+    "level_1": "There is no central feature store, so every model trains on raw till scans pulled from different sources.",
+    "level_2": "Data engineers manually export point of sale and stock tables into a shared folder before every training run.",
+    "level_3": "A feature store automatically computes and serves point of sale, stock, and promotion features to the training pipeline.",
+    "level_4": "The feature store enforces access controls and lineage for loyalty data, ensuring only approved features reach the model."
   }
 }

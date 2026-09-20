@@ -1,0 +1,807 @@
+{
+  "item_id": "items:ch_silent_ingestion_failure",
+  "stage": "items",
+  "input_hash": "58b92472e08c28e4e450f8627fed2ce48ed57ad66d230d9eb2873243b776016c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 2,
+      "template_id": "ch_silent_ingestion_failure",
+      "name": "The Silent Store Gap",
+      "description": "A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce. #reliability_ruth# argues that the ingestion pipeline must be fully automated to guarantee every store's data arrives on time, while #data_dave# is willing to accept a manual verification step to ensure data quality before it reaches the feature store.",
+      "roundIntroduction": "The nightly store export pipeline failed for a subset of stores without triggering any alerts. The forecast job ran on incomplete data, leading to empty shelves for high demand articles in the affected regions this morning.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 80,
+      "preconditions": {
+        "component": "data.ingestion",
+        "op": "gte",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.ingestion",
+          "value": 0,
+          "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.ingest_validate",
+          "value": 0,
+          "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "data.ingestion",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "data_dave",
+        "name": "Data Dave",
+        "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development.",
+        "priorities": "Ensuring high-quality, secure, and scalable data operations and pipelines. Maximizing predictive performance of models and exploring new features. Aligning ML initiatives with organizational strategy, clear data ownership, and data quality.",
+        "metric_id": "data",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "data",
+      "components": [
+        {
+          "id": "data.ingestion",
+          "name": "Data Ingestion Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "custom_scripts",
+              "airbyte",
+              "kafka"
+            ]
+          }
+        },
+        {
+          "id": "data.validation",
+          "name": "Data Validation",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "great_expectations",
+              "deequ",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.feature_store",
+          "name": "Feature Store",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ],
+            "tool": [
+              "none",
+              "feast",
+              "tecton",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "data.versioning",
+          "name": "Data Versioning",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "tool": [
+              "none",
+              "dvc",
+              "lakefs",
+              "delta_lake"
+            ]
+          }
+        },
+        {
+          "id": "data.labeling",
+          "name": "Data Labeling Pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {
+            "sourcing": [
+              "none",
+              "custom",
+              "open_source",
+              "bought"
+            ]
+          }
+        },
+        {
+          "id": "data.training_drift_check",
+          "name": "Training Data Drift Check",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "data_dave",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.ingest_validate",
+          "from": "data.ingestion",
+          "to": "data.validation",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.validate_version",
+          "from": "data.validation",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_fs",
+          "from": "data.versioning",
+          "to": "data.feature_store",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.fs_train",
+          "from": "data.feature_store",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.label_version",
+          "from": "data.labeling",
+          "to": "data.versioning",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.version_driftcheck",
+          "from": "data.versioning",
+          "to": "data.training_drift_check",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival"
+          ]
+        },
+        {
+          "id": "e.driftcheck_train",
+          "from": "data.training_drift_check",
+          "to": "model.training_pipeline",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_data_arrival",
+            "on_commit",
+            "on_new_version"
+          ]
+        },
+        {
+          "id": "e.iam_fs",
+          "from": "gov.iam",
+          "to": "data.feature_store",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": [
+        {
+          "id": "dataset:till_scan_lines",
+          "kind": "dataset",
+          "on": "data.ingestion",
+          "props": {
+            "quality": "fair",
+            "freshness": "aging",
+            "documentation": "partial"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "dataset:demand_snapshot",
+          "kind": "dataset",
+          "on": "data.labeling",
+          "props": {
+            "quality": "fair",
+            "freshness": "stale",
+            "documentation": "none"
+          },
+          "property_values": {
+            "quality": [
+              "poor",
+              "fair",
+              "good",
+              "excellent"
+            ],
+            "freshness": [
+              "stale",
+              "aging",
+              "fresh"
+            ],
+            "documentation": [
+              "none",
+              "partial",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "pipeline:nightly_store_export",
+          "kind": "pipeline",
+          "on": "data.ingestion",
+          "props": {
+            "reliability": "flaky",
+            "runtime": "slow"
+          },
+          "property_values": {
+            "reliability": [
+              "failing",
+              "flaky",
+              "reliable"
+            ],
+            "runtime": [
+              "slow",
+              "acceptable",
+              "fast"
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "data.ingestion": {
+        "level": 0
+      },
+      "data.validation": {
+        "level": 1
+      },
+      "data.feature_store": {
+        "level": 1
+      },
+      "data.versioning": {
+        "level": 1
+      },
+      "data.labeling": {
+        "level": 2
+      },
+      "data.training_drift_check": {
+        "level": 1
+      },
+      "e.contracts_ingest": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.ingest_validate": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.validate_version": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.version_fs": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.label_version": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.version_driftcheck": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.iam_fs": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "ruth_driver_ingest",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed automating the data ingestion pipeline to guarantee timely arrival of store scan lines.",
+        "readings": {
+          "driver": "The more reliable the ingestion, the fewer times the forecast job runs on incomplete data.",
+          "boundary": "She will not accept a forecast job that runs without a confirmed data arrival signal.",
+          "trade_off": "She would accept a slower ingestion if it guarantees that no store data is dropped.",
+          "fact": "That is simply how the ingestion setup works today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "data.ingestion",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_tradeoff_ingest",
+        "tag": "trade_off",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} suggested keeping the data ingestion pipeline manual to allow for verification steps.",
+        "readings": {
+          "driver": "The more automated the ingestion, the better the data quality for the model.",
+          "boundary": "He will not allow unverified data to reach the feature store.",
+          "trade_off": "He would accept a lower level of automation if it allows for manual quality checks.",
+          "fact": "That is simply how the ingestion setup works today."
+        },
+        "metric_id": "data",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "data.ingestion",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_boundary_validation",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} brought up the need for governed data validation before any data enters the feature store.",
+        "readings": {
+          "driver": "The more rigorous the validation, the fewer compliance issues arise.",
+          "boundary": "He will not approve a data pipeline that lacks governed validation checks.",
+          "trade_off": "He would accept a slower validation process if it meets compliance standards.",
+          "fact": "That is simply how the validation setup works today."
+        },
+        "metric_id": "requirements",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "data.validation",
+          "op": "gte",
+          "level": 4
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.validation",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_tradeoff_feature",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} mentioned the cost of maintaining a complex feature store.",
+        "readings": {
+          "driver": "The more features available, the better the forecast accuracy.",
+          "boundary": "She will not approve a feature store that exceeds the budget.",
+          "trade_off": "She would accept a simpler feature store if it reduces operational costs.",
+          "fact": "That is simply how the feature store works today."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": "efficiency",
+        "concedes_loss": 5,
+        "concedes_target": "data.feature_store",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_tradeoff_versioning",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} noted the time required for data versioning in the current pipeline.",
+        "readings": {
+          "driver": "The more automated the versioning, the faster the model retraining.",
+          "boundary": "She will not accept a versioning process that delays the forecast job.",
+          "trade_off": "She would accept a manual versioning step if it ensures data consistency.",
+          "fact": "That is simply how the versioning setup works today."
+        },
+        "metric_id": "reliability",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "data.versioning",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "dave_driver_validation",
+        "tag": "driver",
+        "stakeholder_id": "data_dave",
+        "fact": "{data_dave} asked for automated data validation to improve data quality.",
+        "readings": {
+          "driver": "The more automated the validation, the fewer data errors reach the model.",
+          "boundary": "He will not accept manual validation for large datasets.",
+          "trade_off": "He would accept a slower validation process if it catches more errors.",
+          "fact": "That is simply how the validation setup works today."
+        },
+        "metric_id": "data",
+        "suggested_target": "data.validation",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_ingest_level",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The data ingestion pipeline is currently broken.",
+        "readings": {
+          "driver": "The more reliable the ingestion, the fewer times the forecast job runs on incomplete data.",
+          "boundary": "No one will accept a broken ingestion pipeline.",
+          "trade_off": "No one would accept a broken ingestion pipeline.",
+          "fact": "That is simply how the ingestion setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "data.ingestion",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_validation_level",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The data validation process is currently absent.",
+        "readings": {
+          "driver": "The more rigorous the validation, the fewer compliance issues arise.",
+          "boundary": "No one will accept an absent validation process.",
+          "trade_off": "No one would accept an absent validation process.",
+          "fact": "That is simply how the validation setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "data.validation",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_edge_trigger",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The pipeline from data ingestion to data validation is triggered manually.",
+        "readings": {
+          "driver": "The more automated the trigger, the faster the data flows.",
+          "boundary": "No one will accept a manual trigger for critical data flows.",
+          "trade_off": "No one would accept a manual trigger for critical data flows.",
+          "fact": "That is simply how the pipeline setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.ingest_validate",
+        "asserts_level": 2,
+        "asserts_trigger": "manual_request"
+      }
+    ]
+  }
+}

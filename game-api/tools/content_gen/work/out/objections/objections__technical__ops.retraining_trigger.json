@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:ops.retraining_trigger",
   "stage": "objections",
-  "input_hash": "bd38698ffa0527f61a08065ab4c7ddc16797314369a9d377bb8e47023836a9dc",
+  "input_hash": "13b0bdb21745d03f1382e1bcb06891d0faf64537a6998d700a50a6348ca7613b",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot sign off on improving {target} when the upstream {cause} is still unstable. My retriggering logic will just fail repeatedly until that foundation is solid."
+    "line": "We cannot improve {target} because the {cause} upstream is not good enough yet. The retraining trigger will keep firing on noise instead of real drift, which breaks the feedback loop we rely on for reliability."
   }
 }

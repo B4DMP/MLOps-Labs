@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:data.versioning",
   "stage": "fragments",
-  "input_hash": "d15b0c14af27c1f2e8d7c0269a0f0f83c55a17aa10acff7d268890795cfb505e",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "6c564c5c63e4cbbb96633b0d72bc5b799215f09831e32e6564f7eecf4b9f6469",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "data.versioning",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Data versioning lacks any tracking, causing confusion in reproducibility.",
-    "level_1": "No data versioning system exists, making it impossible to track changes.",
-    "level_2": "Team manually tracks data versions in spreadsheets, leading to errors.",
-    "level_3": "Data versioning is automated, but lacks integration with other systems.",
-    "level_4": "Data versioning is governed, integrated, and auditable across the MLOps pipeline."
+    "level_0": "Point of sale scan lines arrive corrupted, making nightly forecast retraining impossible.",
+    "level_1": "No data versioning exists, so buyers cannot trace which scan lines built a bad allocation.",
+    "level_2": "Data engineers manually snapshot raw till data before retraining, risking human error and delays.",
+    "level_3": "The pipeline automatically tags each nightly data drop with a unique, immutable version identifier.",
+    "level_4": "Data versions are governed, linking every forecast run to auditable consent and retention records."
   }
 }

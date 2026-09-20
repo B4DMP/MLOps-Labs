@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_emilia_driver_eff",
+  "stage": "gists",
+  "input_hash": "93cd0ac02f42b30312fc623ef8d4dc169d734545bd51e8e30bf2231dc4e416b0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_emilia_driver_eff",
+    "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "Model evaluation turnaround time for heatwave stockout scenarios has been raised as a recurring topic in team discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a topic (turnaround time) and notes its frequency in discussions, but does not explicitly commit to a stance such as demanding faster times, refusing delays, accepting a trade-off, or stating it as a neutral fact of the current system's performance."
+  }
+}

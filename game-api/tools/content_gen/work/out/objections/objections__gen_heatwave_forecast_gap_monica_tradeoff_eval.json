@@ -1,0 +1,49 @@
+{
+  "item_id": "objections:gen_heatwave_forecast_gap_monica_tradeoff_eval",
+  "stage": "objections",
+  "input_hash": "8202cc2f633b9a83e71bc8ad9d7cba00011733c83fbcffb39a821a2e822a229e",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_tradeoff_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "trade_off",
+      "description": "{model_monica} mentioned accepting a manual review step for the final model approval. She would give up the full automation of the evaluation harness if it ensures the model passes the compliance checks.",
+      "fact": "{model_monica} mentioned accepting a manual review step for the final model approval.",
+      "reading": "She would give up the full automation of the evaluation harness if it ensures the model passes the compliance checks.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.evaluation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "model.evaluation",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    }
+  },
+  "output": {
+    "objection": "You are treating my acceptance of a manual review gate as a free concession rather than a negotiated trade off. I am giving up full automation of the evaluation harness to ensure we meet compliance, and you need to acknowledge that cost explicitly in the plan.",
+    "correction": "I did not agree to slow down the weekly retraining cycle or block the deployment pipeline indefinitely. I am only asking for a human sign off on the final model version before it goes live, which is different from the manual data checks you just proposed."
+  }
+}

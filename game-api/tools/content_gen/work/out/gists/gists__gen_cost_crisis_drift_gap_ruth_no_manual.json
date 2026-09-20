@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_ruth_no_manual",
+  "stage": "gists",
+  "input_hash": "085627199687623b681742bb97b74ff47f9d174c91a2568cd3645ba96a03f8e9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_ruth_no_manual",
+    "fact": "{reliability_ruth} noted that manual drift checks are not a substitute for automated signal.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The adequacy of manual drift checks versus automated signal detection has been raised in reliability conversations.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a comparison between manual and automated checks has been raised in reliability conversations, but it does not commit to a preference, refusal, trade-off, or factual assertion about the outcome."
+  }
+}

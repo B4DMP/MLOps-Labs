@@ -1,7 +1,7 @@
 {
   "item_id": "templates:p5:s1",
   "stage": "templates",
-  "input_hash": "fb7fd89dbb030155dab3d2c9fea4b3cc194a0fee34cd56468b899c33f85c2a26",
+  "input_hash": "690187cfd38fe6e914b2b0a9098de5dc182ac8a42f16dec857cc231267fb8dba",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -475,36 +475,39 @@
       "ops.rollback"
     ],
     "existing_challenges": [
-      "Model Accuracy Drops"
-    ]
+      "The Blind Spot",
+      "The Silent Drift"
+    ],
+    "angle": "cost, infrastructure, or the narrow time window the job has to finish inside",
+    "is_intro": false
   },
   "output": {
-    "slug": "drift_blind_spot",
-    "name": "The Silent Drift",
-    "description": "The production drift monitoring pipeline is broken, leaving the model's input quality unchecked. #efficiency_emilia# insists on a fully automated and governed drift monitoring system to protect business KPIs, while #reliability_ruth# argues that manual weekly reviews are sufficient and cheaper. #efficiency_emilia# has set a red line requiring automated governance for any future drift detection.",
-    "round_introduction": "A recent data shift went unnoticed for three days, causing a spike in user complaints. The incident exposed that the drift monitoring workflow is currently non-functional and needs immediate repair.",
+    "slug": "cost_crisis_drift_gap",
+    "name": "The Cost Cliff",
+    "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal.",
+    "round_introduction": "The finance team flagged that the cost of running the observability pipeline is spiking due to the volume of scan lines from 1200 stores. #efficiency_emilia# has proposed cutting the automated drift monitoring budget to zero to save costs, while #reliability_ruth# warns that this will leave the forecast vulnerable to silent failures during the next promotion cycle.",
     "preconditions": {
       "all": [
         {
           "component": "ops.production_drift_monitoring",
-          "op": "lte",
+          "op": "eq",
           "level": 1
         },
         {
-          "edge": "e.observe_drift",
-          "op": "lte",
-          "level": 1
+          "component": "ops.observability",
+          "op": "gte",
+          "level": 2
         }
       ]
     },
-    "priority": 80,
+    "priority": 85,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "ops.production_drift_monitoring",
         "value": 0,
         "attr": null,
-        "reason": "The drift detection script crashed due to a schema change"
+        "reason": "budget freeze on automated monitoring tools"
       }
     ],
     "stalemate_ops": [
@@ -513,7 +516,7 @@
         "target": "e.observe_drift",
         "value": 0,
         "attr": null,
-        "reason": "The data feed to the drift monitor was disconnected"
+        "reason": "data pipeline to drift monitor disconnected due to cost"
       }
     ],
     "conflict": {
@@ -521,11 +524,11 @@
       "positions": [
         {
           "stakeholder_id": "efficiency_emilia",
-          "wants": 4
+          "wants": 1
         },
         {
           "stakeholder_id": "reliability_ruth",
-          "wants": 2
+          "wants": 4
         }
       ]
     }

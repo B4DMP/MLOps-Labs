@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.train_eval",
   "stage": "fragments",
-  "input_hash": "f68e7a1d9d7e6209bd250cc631beae0ddc3c32bf45ef2e20d2bb260ab9010b94",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "b605ece84ba22af1abae959d3dd21549fc41a586d199486971d728e2052d7d7f",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.train_eval",
@@ -17,10 +17,10 @@
     "name": "hand over from Training Pipeline to Model Evaluation Harness"
   },
   "output": {
-    "level_0": "Data fails to transfer between Training Pipeline and Model Evaluation Harness, causing evaluation delays.",
-    "level_1": "Hand over process from Training Pipeline to Model Evaluation Harness is undefined, requiring urgent setup.",
-    "level_2": "Engineers manually copy trained models into Model Evaluation Harness, risking errors and delays.",
-    "level_3": "Training Pipeline automatically sends models to Model Evaluation Harness, but no monitoring is in place.",
-    "level_4": "Training Pipeline hands over models to Model Evaluation Harness, with tracking and alerts for failures."
+    "level_0": "The training job crashes before metrics are written, so the evaluation harness never receives any input at all.",
+    "level_1": "No mechanism exists to pass trained model artifacts to the evaluation harness, so testing happens nowhere.",
+    "level_2": "A team member manually copies model files to a shared drive and runs evaluation scripts by hand.",
+    "level_3": "The pipeline automatically triggers the evaluation harness whenever a new model artifact is produced and validated.",
+    "level_4": "The handover is governed by policy checks that verify model lineage and approval status before evaluation begins."
   }
 }

@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.canary_serving",
   "stage": "fragments",
-  "input_hash": "26cd8b981a8e3daa8e325f505956088b51806d8b19e4eaab20d5ac6f66da293b",
+  "input_hash": "5215fc858ea261b2a7522dc27b2cdf1d776a6c6cc4d3eb84d99ad5e85e674538",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Canary and A/B Testing to Model Serving Endpoint"
   },
   "output": {
-    "level_0": "The handover from testing to serving crashes, dropping all traffic.",
-    "level_1": "No defined path exists to move tested models to the serving endpoint.",
-    "level_2": "Engineers manually copy tested models to the endpoint, risking configuration errors.",
-    "level_3": "A pipeline automatically deploys tested models to the endpoint without human intervention.",
-    "level_4": "Automated deployment includes audit logs and policy checks before reaching the endpoint."
+    "level_0": "Canary traffic crashes the endpoint, leaving stores with stale forecasts during the order window.",
+    "level_1": "No handover exists, so new models never reach the serving layer for production use.",
+    "level_2": "Engineers manually copy validated models to the endpoint after a successful test period.",
+    "level_3": "The pipeline automatically promotes the winning model to the endpoint after passing checks.",
+    "level_4": "Governance gates verify compliance and rollback plans before automated promotion to the endpoint."
   }
 }

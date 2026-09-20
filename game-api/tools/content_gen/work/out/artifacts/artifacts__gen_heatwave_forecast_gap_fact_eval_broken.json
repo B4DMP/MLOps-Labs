@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_fact_eval_broken",
+  "stage": "artifacts",
+  "input_hash": "a88e719bfcb803242ac2f1a3bf3e37f10ba82f0746214b0aa029669e0d9143c9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_fact_eval_broken",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The model evaluation harness is currently broken and cannot run any tests. That is simply how the evaluation setup works today.",
+      "fact": "The model evaluation harness is currently broken and cannot run any tests.",
+      "reading": "That is simply how the evaluation setup works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "model.evaluation",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "model_monica",
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "The evaluation harness is not responding. When I attempt to launch a batch of backtests on the nightly forecast job, the script exits immediately with a connection error to the metrics store. There is no queue, no retry logic, and no fallback. I checked the logs for the last three weeks and found no successful runs. The codebase has not changed, but the underlying service it depends on is not responding. I am inspecting the output files for a few sample stores by hand. The automated pipeline that would normally flag a regression before deployment is not active. The current validation process relies on these manual checks.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text is a diagnostic report detailing the current operational state of the system, including the failure of the evaluation harness, the absence of retry logic, and the reliance on manual checks, without expressing any wishes, trade-offs, or explicit requirements."
+  }
+}

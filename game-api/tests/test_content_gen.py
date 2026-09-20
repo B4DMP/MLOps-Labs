@@ -50,10 +50,10 @@ ITEMS = {"items": [
      "fact": "{data_dave} wants every incoming batch validated automatically.",
      "readings": {"driver": "D: He would take any improvement he can get.", "boundary": "B: He would take any improvement he can get.", "trade_off": "T: He would take any improvement he can get.", "fact": "F: He would take any improvement he can get."},
      "metric_id": "data", "suggested_target": "data.validation", "suggested_level": 3},
-    {"key": "dave_versioning", "tag": "driver", "stakeholder_id": "data_dave",
-     "fact": "{data_dave} wants each dataset versioned.",
-     "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: More versioning is always better in his book.", "trade_off": "T: More versioning is always better in his book.", "fact": "F: More versioning is always better in his book."},
-     "metric_id": "data", "suggested_target": "data.versioning", "suggested_level": 3},
+    {"key": "dave_versioning", "tag": "trade_off", "stakeholder_id": "data_dave",
+     "fact": "{data_dave} brought up versioning for each dataset.",
+     "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: He will not hand over a dataset that has no version.", "trade_off": "T: He would let versioning wait a sprint if ingestion gets fixed first.", "fact": "F: That is how the datasets are handled today."},
+     "concedes_target": "data.versioning", "concedes_max_level": 1},
     {"key": "ruth_ingestion", "tag": "boundary", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the ingestion job running again.",
      "readings": {"driver": "D: She will not sign off on anything until it is.", "boundary": "B: She will not sign off on anything until it is.", "trade_off": "T: She will not sign off on anything until it is.", "fact": "F: She will not sign off on anything until it is."},
@@ -67,10 +67,10 @@ ITEMS = {"items": [
      "fact": "{efficiency_emilia} agreed to discuss automated validation.",
      "readings": {"driver": "D: She can live with paying for it if the outages end.", "boundary": "B: She can live with paying for it if the outages end.", "trade_off": "T: She can live with paying for it if the outages end.", "fact": "F: She can live with paying for it if the outages end."},
      "concedes_target": "data.validation", "concedes_max_level": 3},
-    {"key": "reuben_contract", "tag": "driver", "stakeholder_id": "requirements_reuben",
-     "fact": "{requirements_reuben} wants the data contract applied to every ingestion run.",
-     "readings": {"driver": "D: The closer the better, as far as he is concerned.", "boundary": "B: The closer the better, as far as he is concerned.", "trade_off": "T: The closer the better, as far as he is concerned.", "fact": "F: The closer the better, as far as he is concerned."},
-     "metric_id": "requirements", "suggested_target": "e.contracts_ingest", "suggested_level": 2},
+    {"key": "reuben_contract", "tag": "trade_off", "stakeholder_id": "requirements_reuben",
+     "fact": "{requirements_reuben} brought up the data contract on every ingestion run.",
+     "readings": {"driver": "D: The closer the better, as far as he is concerned.", "boundary": "B: No run of his goes ahead without that contract.", "trade_off": "T: He would drop the contract on the smaller feeds to get the outage closed.", "fact": "F: That is what the ingestion setup does today."},
+     "concedes_metric": "requirements", "concedes_loss": 2},
     {"key": "fact_ingestion", "tag": "fact",
      "fact": "The ingestion job has produced no new records since last night.",
      "readings": {"driver": "D: That is simply the current state of the pipeline.", "boundary": "B: That is simply the current state of the pipeline.", "trade_off": "T: That is simply the current state of the pipeline.", "fact": "F: That is simply the current state of the pipeline."},
@@ -118,7 +118,7 @@ def test_objections_and_fragments_keep_levels_and_graph_words_out():
     technical = SimpleNamespace(inputs={"kind": "technical"})
     line = "I cannot sign off on {target} while {cause} in the upstream stage is still at level 2."
     errors = STAGES["objections"].check({"line": line}, technical, ctx)
-    assert any("line mentions levels" in e for e in errors)
+    assert any("line says 'level 2'" in e for e in errors)
     assert any("line says 'stage'" in e for e in errors)
 
     stance = SimpleNamespace(inputs={"kind": "stance"})
@@ -133,9 +133,14 @@ def test_objections_and_fragments_keep_levels_and_graph_words_out():
         "level_2": "Someone runs the export by hand every Monday morning.",
         "level_3": "The export component runs on its own at level 3.",
     }, fragment, ctx)
-    assert any("level_3 mentions levels" in e for e in errors)
+    assert any("level_3 says 'level 3'" in e for e in errors)
     assert any("level_3 says 'component'" in e for e in errors)
     assert not any(e.startswith("level_2") for e in errors)
+    # Ordinary English that happens to contain the word: the gate reads the scale, not the word.
+    assert STAGES["fragments"].check({
+        "level_2": "Someone checks feature level drift by hand every Monday morning.",
+        "level_3": "The export runs on its own, with that level of detail kept in the log.",
+    }, fragment, ctx) == []
 
 
 @pytest.fixture

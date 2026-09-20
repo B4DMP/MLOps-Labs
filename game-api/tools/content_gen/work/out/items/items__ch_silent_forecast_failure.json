@@ -1,0 +1,795 @@
+{
+  "item_id": "items:ch_silent_forecast_failure",
+  "stage": "items",
+  "input_hash": "8399b00d3a4af6e4e6336ebbd6a30aaa093877958c21d7f514a9974be326aa7f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 5,
+      "template_id": "ch_silent_forecast_failure",
+      "name": "The Silent Failure",
+      "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
+      "roundIntroduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "ops.performance_monitoring",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "edge": "e.perf_alert",
+            "op": "eq",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.perf_alert",
+          "value": 0,
+          "reason": "the connection between performance monitoring and alerting was severed during a recent infrastructure change"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "ops.performance_monitoring",
+          "value": 0,
+          "reason": "the monitoring job was disabled to reduce compute costs while the team debated the fix"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "ops.performance_monitoring",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "ops"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "high",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "reliability_ruth",
+        "name": "Reliability Ruth",
+        "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability.",
+        "priorities": "Pushes the delivery of reliable ML-powered features that directly improve the user experience. CI/CD and working feedback loops. Identifying and reporting issues to facilitate iterative improvements.",
+        "metric_id": "reliability",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "model_monica",
+        "name": "Model Monica",
+        "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
+        "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
+        "metric_id": "model",
+        "power": "low",
+        "interest": "low"
+      },
+      {
+        "stakeholder_id": "requirements_reuben",
+        "name": "Requirements Reuben",
+        "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality.",
+        "priorities": "Guaranteeing high product quality through rigorous testing of applications. Guaranteeing the integrity, confidentiality, and security of all ML assets. Meeting internal and external compliance and data protection standards. Keeping infrastructure stable, reproducible, and cost-controlled.",
+        "metric_id": "requirements",
+        "power": "low",
+        "interest": "low"
+      }
+    ],
+    "graph": {
+      "stage": "ops",
+      "components": [
+        {
+          "id": "ops.performance_monitoring",
+          "name": "Model Performance Monitoring",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {}
+        },
+        {
+          "id": "ops.production_drift_monitoring",
+          "name": "Production Drift Monitoring",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {
+            "tool": [
+              "none",
+              "evidently",
+              "whylabs",
+              "inhouse"
+            ]
+          }
+        },
+        {
+          "id": "ops.alerting",
+          "name": "Alerting System",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {
+            "tool": [
+              "none",
+              "email",
+              "pagerduty",
+              "opsgenie"
+            ]
+          }
+        },
+        {
+          "id": "ops.observability",
+          "name": "Logging and Observability",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {
+            "tool": [
+              "none",
+              "elk",
+              "prometheus_grafana",
+              "datadog"
+            ]
+          }
+        },
+        {
+          "id": "ops.retraining_trigger",
+          "name": "Retraining Trigger",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {}
+        },
+        {
+          "id": "ops.rollback",
+          "name": "Rollback Mechanism",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "reliability_ruth",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.serving_observe",
+          "from": "deploy.serving",
+          "to": "ops.observability",
+          "kind": "pipeline",
+          "start_level": 2,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.observe_perf",
+          "from": "ops.observability",
+          "to": "ops.performance_monitoring",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.observe_drift",
+          "from": "ops.observability",
+          "to": "ops.production_drift_monitoring",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.perf_alert",
+          "from": "ops.performance_monitoring",
+          "to": "ops.alerting",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.drift_alert",
+          "from": "ops.production_drift_monitoring",
+          "to": "ops.alerting",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.alert_retrain",
+          "from": "ops.alerting",
+          "to": "ops.retraining_trigger",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.retrain_train",
+          "from": "ops.retraining_trigger",
+          "to": "model.training_pipeline",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.alert_rollback",
+          "from": "ops.alerting",
+          "to": "ops.rollback",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        },
+        {
+          "id": "e.rollback_serving",
+          "from": "ops.rollback",
+          "to": "deploy.serving",
+          "kind": "feedback",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_metric_threshold",
+            "on_alert"
+          ]
+        }
+      ],
+      "instances": []
+    },
+    "current": {
+      "ops.performance_monitoring": {
+        "level": 1
+      },
+      "ops.production_drift_monitoring": {
+        "level": 1
+      },
+      "ops.alerting": {
+        "level": 1
+      },
+      "ops.observability": {
+        "level": 2
+      },
+      "ops.retraining_trigger": {
+        "level": 1
+      },
+      "ops.rollback": {
+        "level": 1
+      },
+      "e.serving_observe": {
+        "level": 2,
+        "trigger": "manual_request"
+      },
+      "e.observe_perf": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.observe_drift": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.perf_alert": {
+        "level": 0,
+        "trigger": "none"
+      },
+      "e.drift_alert": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.alert_retrain": {
+        "level": 1,
+        "trigger": "none"
+      },
+      "e.alert_rollback": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "ruth_driver_monitoring",
+        "tag": "driver",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} proposed moving model performance monitoring to a governed state.",
+        "readings": {
+          "driver": "The more complete the monitoring coverage, the faster the team catches silent forecast failures before they reach the distribution centres.",
+          "boundary": "The team will not accept any forecast job running without governed monitoring in place.",
+          "trade_off": "{reliability_ruth.first} would accept a manual review process if the cost of governed monitoring is too high for the budget.",
+          "fact": "That is simply the current state of the monitoring setup."
+        },
+        "metric_id": "reliability",
+        "suggested_target": "ops.performance_monitoring",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.performance_monitoring",
+            "value": 4,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_tradeoff_monitoring",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested keeping model performance monitoring done by hand.",
+        "readings": {
+          "driver": "{efficiency_emilia.first} wants more detailed monitoring to improve the efficiency of the forecasting process.",
+          "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the monitoring pipeline.",
+          "trade_off": "{efficiency_emilia.first} is willing to accept a manual monthly audit of the logs to save on tooling costs.",
+          "fact": "That is simply how the monitoring setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.performance_monitoring",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.performance_monitoring",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "monica_driver_drift",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} asked for automated production drift monitoring.",
+        "readings": {
+          "driver": "Automated drift monitoring helps {model_monica.first} identify when demand patterns shift, allowing for faster model updates.",
+          "boundary": "{model_monica.first} will not deploy new models without automated drift monitoring in place.",
+          "trade_off": "{model_monica.first} would accept a manual drift check if the automated tool is not available.",
+          "fact": "That is simply the current state of the drift monitoring setup."
+        },
+        "metric_id": "model",
+        "suggested_target": "ops.production_drift_monitoring",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.production_drift_monitoring",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "reuben_boundary_observability",
+        "tag": "boundary",
+        "stakeholder_id": "requirements_reuben",
+        "fact": "{requirements_reuben} brought up the need for automated logging and observability.",
+        "readings": {
+          "driver": "{requirements_reuben.first} wants more detailed logging to improve the security and compliance of the system.",
+          "boundary": "{requirements_reuben.first} will not approve any changes to the logging system without automated observability in place.",
+          "trade_off": "{requirements_reuben.first} would accept a manual logging review if the automated system is too costly.",
+          "fact": "That is simply the current state of the observability setup."
+        },
+        "metric_id": "requirements",
+        "suggested_target": "ops.observability",
+        "suggested_level": 3,
+        "holds": {
+          "component": "ops.observability",
+          "op": "gte",
+          "level": 3
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.observability",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "ruth_tradeoff_alerting",
+        "tag": "trade_off",
+        "stakeholder_id": "reliability_ruth",
+        "fact": "{reliability_ruth} mentioned the need for an automated alerting system.",
+        "readings": {
+          "driver": "{reliability_ruth.first} wants more reliable alerting to ensure that forecast failures are caught immediately.",
+          "boundary": "{reliability_ruth.first} will not accept any forecast job running without automated alerting in place.",
+          "trade_off": "{reliability_ruth.first} would accept a manual alerting process if the automated system is not available.",
+          "fact": "That is simply the current state of the alerting setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.alerting",
+            "value": 3,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.alerting",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_tradeoff_retraining",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} proposed keeping the retraining trigger done by hand.",
+        "readings": {
+          "driver": "{efficiency_emilia.first} wants more automated retraining to improve the efficiency of the model updates.",
+          "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the retraining pipeline.",
+          "trade_off": "{efficiency_emilia.first} is willing to accept a manual retrigger of the model if the automated system is too costly.",
+          "fact": "That is simply how the retraining setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "ops.retraining_trigger",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "ops.retraining_trigger",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_monitoring_level",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "Model performance monitoring is currently missing.",
+        "readings": {
+          "driver": "The team wants to improve the monitoring to catch forecast failures earlier.",
+          "boundary": "The team will not accept any changes to the performance metrics without first fixing the missing monitoring.",
+          "trade_off": "The team would accept a manual monitoring process if the automated system is too costly.",
+          "fact": "That is simply the current state of the monitoring setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "ops.performance_monitoring",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_alerting_level",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The alerting system is currently missing.",
+        "readings": {
+          "driver": "The team wants to improve the alerting to catch forecast failures earlier.",
+          "boundary": "The team will not accept any changes to the alert rules without first fixing the missing alerting.",
+          "trade_off": "The team would accept a manual alerting process if the automated system is too costly.",
+          "fact": "That is simply the current state of the alerting setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "ops.alerting",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_edge_perf_alert",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The pipeline from performance monitoring to alerting is broken.",
+        "readings": {
+          "driver": "The team wants to fix the pipeline to ensure that forecast failures are caught and alerted on.",
+          "boundary": "The team will not accept any changes to the pipeline without first fixing the broken connection.",
+          "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix.",
+          "fact": "That is simply the current state of the pipeline setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.perf_alert",
+        "asserts_level": 0,
+        "asserts_trigger": "none"
+      },
+      {
+        "key": "fact_edge_observe_perf",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The pipeline from observability to performance monitoring is missing.",
+        "readings": {
+          "driver": "The team wants to fix the pipeline to ensure that performance data is monitored automatically.",
+          "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
+          "trade_off": "The team would accept a manual monitoring process if the automated pipeline is too costly to fix.",
+          "fact": "That is simply the current state of the pipeline setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.observe_perf",
+        "asserts_level": 1,
+        "asserts_trigger": "none"
+      },
+      {
+        "key": "fact_edge_drift_alert",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The pipeline from drift monitoring to alerting is missing.",
+        "readings": {
+          "driver": "The team wants to fix the pipeline to ensure that drift is detected and alerted on.",
+          "boundary": "The team will not accept any changes to the pipeline without first fixing the missing connection.",
+          "trade_off": "The team would accept a manual alerting process if the automated pipeline is too costly to fix.",
+          "fact": "That is simply the current state of the pipeline setup."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "e.drift_alert",
+        "asserts_level": 1,
+        "asserts_trigger": "none"
+      }
+    ]
+  }
+}

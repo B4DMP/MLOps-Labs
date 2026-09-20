@@ -1,9 +1,9 @@
 {
   "item_id": "fragments:e.cicd_shadow",
   "stage": "fragments",
-  "input_hash": "cfd1a344ccc8d2e0a4781af9435dd3bd2d9675ac3c41be6560f75ed3195cb98f",
+  "input_hash": "765e745fb30e990bc5ae9a352dbfb551fc3ccd503e644de7eef9daca87f890ac",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 1,
+  "attempts": 2,
   "inputs": {
     "target": "e.cicd_shadow",
     "kind": "edge",
@@ -17,10 +17,10 @@
     "name": "hand over from CI/CD Pipeline to Shadow Deployment"
   },
   "output": {
-    "level_0": "The pipeline crashes before reaching shadow, leaving no deployment record for the team.",
-    "level_1": "No handover exists, so shadow deployment never receives builds from the CI/CD pipeline.",
-    "level_2": "An engineer manually copies artifacts from the pipeline to trigger the shadow deployment.",
-    "level_3": "The pipeline automatically pushes approved builds to shadow deployment without human intervention.",
-    "level_4": "Governed policies verify compliance before the pipeline triggers the shadow deployment handover."
+    "level_0": "The pipeline crashes before shadow deployment, leaving the new model untested and unverified.",
+    "level_1": "No shadow deployment exists, so new models jump straight to production without any safety check.",
+    "level_2": "A developer manually runs the shadow comparison script after the pipeline finishes, often skipping it under pressure.",
+    "level_3": "The pipeline automatically triggers a shadow deployment, comparing new and old model outputs before promotion.",
+    "level_4": "Shadow deployment runs with strict governance, logging all comparisons and requiring sign off before production release."
   }
 }

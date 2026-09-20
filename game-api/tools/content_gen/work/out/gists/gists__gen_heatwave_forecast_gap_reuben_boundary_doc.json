@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_heatwave_forecast_gap_reuben_boundary_doc",
+  "stage": "gists",
+  "input_hash": "0ad8741748d85059e548e1e382decb7be10a588e142421fee9d89d653023c0ce",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_heatwave_forecast_gap_reuben_boundary_doc",
+    "fact": "{requirements_reuben} proposed keeping the evaluation harness manual to document every test case.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Heatwave Blind Spot"
+  },
+  "output": {
+    "gist": "The approach to documenting evaluation test cases has been raised by {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a topic (documenting evaluation test cases) was raised, but it does not specify whether this is a new requirement, a refusal, a trade-off, or a simple fact about current operations."
+  }
+}

@@ -1785,23 +1785,18 @@ export default function StakeholderDossier({
       {/* Header Drag Handle */}
       <div className={styles.binderHeader} onMouseDown={isEmbedded ? undefined : handleMouseDown}>
         <div className={styles.binderTitle}>
-          📓 STAKEHOLDER DOSSIER
+          DOSSIER
         </div>
         <div className={styles.headerControls}>
           <div className={styles.headerButtonGroup}>
-            {environmentIndex >= 0 && (
+            {onOpenPhaseBriefing && (
               <button
-                className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
-                onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
-                title={`What you have worked out about the pipeline itself: facts, not anybody's wishes — ${describeIntelPips(systemPips)}`}
+                className={styles.briefingButton}
+                onClick={onOpenPhaseBriefing}
+                title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
               >
-                <Icon icon="ph:buildings-bold" />
-                <span>System</span>
-                {systemPips.length > 0 && (
-                  <span className={styles.headerBadgeCount}>
-                    {systemFoundCount}/{systemPips.length}
-                  </span>
-                )}
+                <Icon icon="ph:projector-screen-chart-bold" />
+                <span>Briefing</span>
               </button>
             )}
             {onPerformanceToggle && (
@@ -1824,14 +1819,19 @@ export default function StakeholderDossier({
                 )}
               </button>
             )}
-            {onOpenPhaseBriefing && (
+            {environmentIndex >= 0 && (
               <button
-                className={styles.briefingButton}
-                onClick={onOpenPhaseBriefing}
-                title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
+                className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+                onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
+                title={`What you have worked out about the pipeline itself: facts, not anybody's wishes — ${describeIntelPips(systemPips)}`}
               >
-                <Icon icon="ph:projector-screen-chart-bold" />
-                <span>Briefing</span>
+                <Icon icon="ph:buildings-bold" />
+                <span>System</span>
+                {systemPips.length > 0 && (
+                  <span className={styles.headerBadgeCount}>
+                    {systemFoundCount}/{systemPips.length}
+                  </span>
+                )}
               </button>
             )}
             {onLogToggle && (

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_dave_ingestion_tradeoff",
+  "stage": "gists",
+  "input_hash": "f2048e8960ef15374015381b62b9a1895dd2db9bb45973c0405158e3f116e644",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_dave_ingestion_tradeoff",
+    "fact": "{data_dave} noted the manual checks are sufficient to manage the risk.",
+    "metric_id": "data",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The adequacy of manual checks for managing data risk keeps coming up in conversations with {data_dave}.",
+    "verdict_metric_id": "data",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that the adequacy of manual checks for data risk is a recurring topic, but it does not explicitly state whether this is a driver, a boundary, a trade-off, or a simple fact."
+  }
+}

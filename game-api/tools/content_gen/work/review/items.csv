@@ -1,5 +1,11 @@
 item_id,status,summary,error,note,output_file
-items:ch_data_quality_conflict,approved,"2 boundary, 2 driver, 6 fact, 2 trade_off",,,out/items/items__ch_data_quality_conflict.json
-items:ch_experiment_tracking_dispute,approved,"2 boundary, 4 driver, 3 fact, 2 trade_off",,,out/items/items__ch_experiment_tracking_dispute.json
-items:ch_inconsistent_data_labeling,approved,"3 boundary, 3 driver, 3 fact, 2 trade_off",,,out/items/items__ch_inconsistent_data_labeling.json
-items:ch_registry_red_tape,approved,"3 boundary, 3 driver, 4 fact, 2 trade_off",,,out/items/items__ch_registry_red_tape.json
+items:ch_blind_forecast_failure,approved,"1 boundary, 2 driver, 4 fact, 3 trade_off",,,out/items/items__ch_blind_forecast_failure.json
+items:ch_blind_promotion_retrain,failed,,"registry_state: a fact states no wishes or refusals, rewrite it neutrally",,
+items:ch_committed_promo_stock,approved,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_committed_promo_stock.json
+items:ch_heatwave_forecast_blindness,done,"1 boundary, 1 driver, 5 fact, 4 trade_off",,,out/items/items__ch_heatwave_forecast_blindness.json
+items:ch_locked_promo_shadow,done,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_locked_promo_shadow.json
+items:ch_loyalty_data_breach,done,"1 boundary, 2 driver, 4 fact, 3 trade_off",,,out/items/items__ch_loyalty_data_breach.json
+items:ch_loyalty_retention_gap,approved,"1 boundary, 1 driver, 4 fact, 5 trade_off",,,out/items/items__ch_loyalty_retention_gap.json
+items:ch_midnight_compute_squeeze,approved,"1 boundary, 1 driver, 3 fact, 4 trade_off",,,out/items/items__ch_midnight_compute_squeeze.json
+items:ch_nightly_window_breach,failed,,fact_ingestion_slow: the reading must not repeat the fact; fact_feature_store_manual: the reading must not repeat the fact,,
+items:ch_silent_ingestion_failure,done,"1 boundary, 1 driver, 4 fact, 4 trade_off",,,out/items/items__ch_silent_ingestion_failure.json

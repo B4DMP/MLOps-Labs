@@ -1,9 +1,9 @@
 {
   "item_id": "templates:p3:s1",
   "stage": "templates",
-  "input_hash": "a2d35a98c0a50110180412d1e979d528a72e141655ab9f69a055e264c142ccd2",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
-  "attempts": 2,
+  "input_hash": "b2f6affeb33e4c7725d3ddf9688c00ed0189ee28a9962947b9be3335031977b5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
   "inputs": {
     "phase_id": 3,
     "phase_name": "Model Engineering",
@@ -414,7 +414,7 @@
       ],
       "instances": [
         {
-          "id": "model:prediction_v1",
+          "id": "model:demand_forecast_v1",
           "kind": "model",
           "on": "model.training_pipeline",
           "props": {
@@ -538,24 +538,6 @@
     "world_events": [
       {
         "kind": "set_to",
-        "target": "e.fs_train",
-        "value": "0",
-        "health_drop": 30.0
-      },
-      {
-        "kind": "set_to",
-        "target": "e.train_eval",
-        "value": "0",
-        "health_drop": 30.0
-      },
-      {
-        "kind": "set_to",
-        "target": "model.training_pipeline",
-        "value": "0",
-        "health_drop": 25.0
-      },
-      {
-        "kind": "set_to",
         "target": "e.eval_registry",
         "value": "0",
         "health_drop": 15.0
@@ -563,6 +545,12 @@
       {
         "kind": "set_to",
         "target": "e.hpo_train",
+        "value": "0",
+        "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "e.train_eval",
         "value": "0",
         "health_drop": 15.0
       },
@@ -595,6 +583,12 @@
         "target": "model.registry",
         "value": "0",
         "health_drop": 15.0
+      },
+      {
+        "kind": "set_to",
+        "target": "model.training_pipeline",
+        "value": "0",
+        "health_drop": 10.0
       }
     ],
     "conflict_candidates": [
@@ -602,36 +596,48 @@
       "model.hpo"
     ],
     "existing_challenges": [
-      "The Entanglement Problem"
-    ]
+      "Tracking Reproducibility Lost",
+      "Registry Red Tape"
+    ],
+    "angle": "the people who use the system's output not trusting it, working around it or overriding it",
+    "is_intro": false
   },
   "output": {
-    "slug": "registry_red_tape",
-    "name": "Registry Red Tape",
-    "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter.",
-    "round_introduction": "The team is arguing about the model registry. The registry is still just a spreadsheet, but #model_monica# says it's getting too hard to manage. #requirements_reuben# worries about compliance risks.",
+    "slug": "override_blind_spot",
+    "name": "The Override Blind Spot",
+    "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual.",
+    "round_introduction": "A recent promotion week saw a spike in overrides after a model update failed to account for a local weather event, leaving store managers skeptical of the system's reliability. The team is now debating how to handle model promotion to restore trust in the forecast.",
     "preconditions": {
-      "component": "model.registry",
-      "op": "eq",
-      "level": 1
+      "all": [
+        {
+          "component": "model.registry",
+          "op": "lte",
+          "level": 1
+        },
+        {
+          "component": "model.evaluation",
+          "op": "gte",
+          "level": 2
+        }
+      ]
     },
-    "priority": 50,
+    "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "model.registry",
-        "value": "0",
+        "value": 0,
         "attr": null,
-        "reason": "the registry is overloaded"
+        "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast."
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
         "target": "e.eval_registry",
-        "value": "0",
+        "value": 0,
         "attr": null,
-        "reason": "the registry is no longer trusted"
+        "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone."
       }
     ],
     "conflict": {
@@ -639,11 +645,11 @@
       "positions": [
         {
           "stakeholder_id": "model_monica",
-          "wants": 3
+          "wants": 4
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "wants": 4
+          "wants": 2
         }
       ]
     }

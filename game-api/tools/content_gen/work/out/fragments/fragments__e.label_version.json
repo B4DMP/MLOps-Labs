@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.label_version",
   "stage": "fragments",
-  "input_hash": "6747bfcb1f1c18cb265798a84933c72dad5c4f8aa6e3c5f68fad8da0d12cab8f",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "46b6600d72c2cca63f1ceebd6c02c3e997d3019a403b373662fede8638efb1cf",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.label_version",
@@ -17,10 +17,10 @@
     "name": "hand over from Data Labeling Pipeline to Data Versioning"
   },
   "output": {
-    "level_0": "Data Versioning rejects data from Data Labeling Pipeline without error messages.",
-    "level_1": "There is no connection between Data Labeling Pipeline and Data Versioning.",
-    "level_2": "Team members manually transfer data from Data Labeling Pipeline to Data Versioning.",
-    "level_3": "Data Labeling Pipeline automatically exports labeled data to Data Versioning.",
-    "level_4": "Data Versioning validates and logs all incoming data from Data Labeling Pipeline."
+    "level_0": "The labeled till scan lines vanish before the versioning step can capture them for the next retrain.",
+    "level_1": "No handover exists between labeling and versioning, so the team cannot trace which scan data trained the model.",
+    "level_2": "A data engineer manually copies labeled scan lines into the versioning store before the weekly retrain begins.",
+    "level_3": "The pipeline automatically pushes labeled scan lines to the versioning store as soon as labeling completes.",
+    "level_4": "The automated handover logs every labeled scan line batch with audit trails for compliance and model reproducibility."
   }
 }

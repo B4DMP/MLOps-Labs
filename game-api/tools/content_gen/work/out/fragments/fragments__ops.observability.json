@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:ops.observability",
   "stage": "fragments",
-  "input_hash": "da8a64b08e801457ff1fea35b618edefa336ee9c38c9e2ae785445216fac724c",
+  "input_hash": "b9a5a05d4d8e86664157a248b9068a54d1b87781c6c21f5ca1be990b4942d87c",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Logs crash the pipeline, and no one can trace why the model failed.",
-    "level_1": "There is no logging at all, so incidents remain completely unexplained.",
-    "level_2": "Developers copy logs manually into spreadsheets when something goes wrong.",
-    "level_3": "Structured logs stream automatically into a central dashboard for monitoring.",
-    "level_4": "Logging follows strict compliance standards with automated retention and access controls."
+    "level_0": "Logs are lost in a crashed terminal, so no one knows why the forecast failed.",
+    "level_1": "There is no logging, so the team guesses why the morning order window missed.",
+    "level_2": "A junior engineer manually greps raw text files to find the missing store data.",
+    "level_3": "Dashboards automatically track forecast latency and error rates for every store and article.",
+    "level_4": "Audit logs prove exactly who accessed loyalty data and when, satisfying legal retention rules."
   }
 }

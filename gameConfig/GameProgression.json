@@ -4,7 +4,7 @@
       "id": 0,
       "name": "Introduction",
       "description": "Introduction to the serious game mechanics and environment",
-      "phase_introduction": "The AI initiative has officially kicked off across the organization. The project stakeholders have convened to establish working relationships and review initial expectations.",
+      "phase_introduction": "The board has approved a forecasting programme for the whole chain. Buyers, store operations and the data team sit down together for the first time to work out what the new system is actually supposed to decide.",
       "stakeholders": [
         {
           "stakeholder_id": "model_monica",
@@ -16,13 +16,14 @@
           "power": "high",
           "interest": "high"
         }
-      ]
+      ],
+      "challenges_per_phase": 1
     },
     {
       "id": 1,
       "name": "Requirement Engineering",
       "description": "Business goal definition and stakeholder alignment",
-      "phase_introduction": "Following the kickoff, management formally greenlit the project budget and timeline. The core team has now reconvened to hammer out concrete business goals and system constraints.",
+      "phase_introduction": "Management has signed off the budget and the first release date. The team now has to turn better availability and less waste into numbers the system can be measured against.",
       "stakeholders": [
         {
           "stakeholder_id": "efficiency_emilia",
@@ -51,7 +52,7 @@
       "id": 2,
       "name": "Data Engineering",
       "description": " Dataset preparation, addressing data quality, accessibility, and privacy.",
-      "phase_introduction": "With initial requirements signed off, access was granted to internal databases and legacy systems. The engineering team has begun extracting raw records and investigating data quality across sources.",
+      "phase_introduction": "With the goals agreed, the team has access to the till scan lines, the promotion calendar and the supplier master data. The first extracts have landed, and what came back is not as clean as the kickoff slides promised.",
       "stakeholders": [
         {
           "stakeholder_id": "data_dave",
@@ -80,7 +81,7 @@
       "id": 3,
       "name": "Model Engineering",
       "description": "Design, training, and evaluation of ML models.",
-      "phase_introduction": "Data ingestion and cleaning pipelines have delivered the first unified training sets. The data science team has taken over the environment to begin model experimentation and architecture evaluation.",
+      "phase_introduction": "The first labelled demand snapshots are ready. The data science side has taken over the environment to find a model that can forecast fourteen days ahead for every article in every store.",
       "stakeholders": [
         {
           "stakeholder_id": "data_dave",
@@ -109,7 +110,7 @@
       "id": 4,
       "name": "Model Deployment",
       "description": "Integration of models into production systems.",
-      "phase_introduction": "The candidate model successfully passed offline benchmarks and validation suites. The DevOps and engineering teams have stepped in to build the production release pipelines and integrate system services.",
+      "phase_introduction": "The forecast model beat the old planning rules on last season's numbers. Engineering now has to get it into the nightly run and in front of store managers before the next promotion week.",
       "stakeholders": [
         {
           "stakeholder_id": "automation_alex",
@@ -138,7 +139,7 @@
       "id": 5,
       "name": "Monitoring/ Usage",
       "description": "Production monitoring and infrastructure management.",
-      "phase_introduction": "The ML model has been running in production, processing live user transactions. Telemetry dashboards and customer feedback loops have started streaming operational performance data.",
+      "phase_introduction": "The forecast has been driving order suggestions for several weeks. Availability, waste and how often store managers override the suggestion are now the numbers everyone watches.",
       "stakeholders": [
         {
           "stakeholder_id": "efficiency_emilia",
@@ -166,548 +167,43 @@
   ],
   "challenges": [
     {
-      "id": 0,
-      "phase_id": 0,
-      "name": "The Introduction",
-      "description": "#model_monica# proposes a complex ML model for maximizing accuracy. #efficiency_emilia# argues that a simpler model would be sufficient and could generate more business value.",
-      "roundIntroduction": "This sample challenge introduces you to the game and its mechanics.",
-      "metric_changes": {
-        "model_intro": 0,
-        "efficiency_intro": 0
-      },
-      "Source": "-",
-      "attention_tokens": 20,
-      "template_id": "ch_introduction",
-      "priority": 0,
-      "fallback": true
-    },
-    {
-      "id": 1,
+      "id": 110,
       "phase_id": 1,
-      "name": "The Platform Choice",
-      "description": "For minimizing the development effort, #efficiency_emilia# proposes to use a cloud-based 3rd-party managed MLOps platform. #requirements_reuben# warns that the platform may not fully meet the projects requirements and instead argues for designing and developing a custom platform that fits the projects requirements.",
-      "roundIntroduction": "Moving to system and architecture design, the team faces a fundamental dilemma: should they build a custom platform or buy a managed solution?",
-      "metric_changes": {
-        "automation": 0,
-        "reliability": 0,
-        "requirements": 0,
-        "efficiency": 0
-      },
-      "Source": "Eken",
-      "attention_tokens": 20,
-      "template_id": "ch_platform_choice",
-      "priority": 0,
-      "fallback": true,
-      "retired": true
-    },
-    {
-      "id": 2,
-      "phase_id": 2,
-      "name": "The Data Instability",
-      "description": "#data_dave# warns that changes in input signals can unpredictably degrade model performance and advocates creating versioned copies so that each model version uses a fixed snapshot of its inputs. #reliability_ruth# points out that a stale signal will get outdated leading to degrading performance when the model is not frequently retrained with new signal snapshots.",
-      "roundIntroduction": "During data analysis, it was revealed that a data source changes its behavior over time.",
-      "metric_changes": {
-        "reliability": -2,
-        "data": -1,
-        "requirements": 0,
-        "efficiency": 0
-      },
-      "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 20,
-      "template_id": "ch_data_instability",
-      "priority": 0,
-      "fallback": true,
-      "retired": true
-    },
-    {
-      "id": 3,
-      "phase_id": 3,
-      "name": "The Entanglement Problem",
-      "description": " #data_dave# warns that this additional complexity will lead to feature entaglement, where any change in feature weights, distribution or quantity have unpredictable effects on the model's performance. This makes isolation of improvement impossible. Hence, he proposes to instead use an ensemblement model that relies on multiple component models with independent signals. #model_monica# warns that this would come with a higher complexity and may hurt the model's performance.",
-      "roundIntroduction": "With data extraction and preparation completed, the team moves towards finding a suitable model architecture. The ML prediction will have to be based on multiple signals from different sources, but integrating them seamlessly threatens to destabilize the entire system.",
-      "metric_changes": {
-        "model": 0,
-        "data": 0,
-        "requirements": 0,
-        "efficiency": 0
-      },
-      "Source": "Hidden Technical Debt in Machine Learning Systems",
-      "attention_tokens": 20,
-      "template_id": "ch_entanglement",
-      "priority": 0,
-      "fallback": true,
-      "retired": true
-    },
-    {
-      "id": 4,
-      "phase_id": 4,
-      "name": "The Automation Risk",
-      "description": "To comply with CI/CD, #automation_alex# proposes a fully automated deployment and validation process. #requirements_reuben# warns that an automated validation may violate responsible AI practices as fairness and bias identification may fall short.",
-      "roundIntroduction": "A ML model that matches the performance goals has been selected for production, but scaling it introduces new hurdles. As the team prepares the deployment pipeline, a conflict arises over how to safely push the model without compromising ethical standards.",
-      "metric_changes": {
-        "automation": 0,
-        "reliability": 0,
-        "requirements": 0,
-        "efficiency": 0
-      },
-      "Source": "Eken",
-      "attention_tokens": 20,
-      "template_id": "ch_automation_risk",
-      "priority": 0,
-      "fallback": true,
-      "retired": true
-    },
-    {
-      "id": 5,
-      "phase_id": 5,
-      "name": "Model Accuracy Drops",
-      "description": "The deployed model shows declining accuracy as live data drifts away from training data. #efficiency_emilia# is concerned about business impact and requests a rapid retraining. #reliability_ruth# argues that a quick quick damage control without diagnosis and validation risks locking in bad patterns and increase instability.",
-      "roundIntroduction": "The ML solution has been running successfully in production until a subtle but concerning trend emerges.",
-      "metric_changes": {
-        "model": -4,
-        "reliability": 0,
-        "requirements": 0,
-        "efficiency": 0
-      },
-      "Source": "Learning in Nonstationary Environments: A Survey.",
-      "attention_tokens": 20,
-      "template_id": "ch_accuracy_drop",
-      "priority": 0,
-      "fallback": true,
-      "retired": true
-    },
-    {
-      "id": 100,
-      "phase_id": 2,
-      "template_id": "ch_data_quality_conflict",
-      "name": "The Inconsistent Checks",
-      "description": "#data_dave# insists on keeping the quality checks manually done to control costs. #reliability_ruth# argues for full automation to ensure consistent results.",
-      "roundIntroduction": "The data quality checks have become inconsistent, causing delays in the pipeline. #data_dave# and #reliability_ruth# disagree on how to fix the situation.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 50,
-      "preconditions": {
-        "edge": "e.ingest_validate",
-        "op": "gte",
-        "level": 2
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "data.validation",
-          "value": 0,
-          "reason": "quality checks failed unexpectedly"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "e.ingest_validate",
-          "value": 0,
-          "reason": "data validation steps are not aligned"
-        }
-      ],
-      "conflict": {
-        "type": "hard",
-        "target": "data.validation",
-        "positions": [
-          {
-            "stakeholder_id": "data_dave",
-            "wants": 2
-          },
-          {
-            "stakeholder_id": "reliability_ruth",
-            "wants": 4
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "data"
-      ],
-      "generated": true
-    },
-    {
-      "id": 101,
-      "phase_id": 3,
-      "template_id": "ch_experiment_tracking_dispute",
-      "name": "Tracking Reproducibility Lost",
-      "description": "#model_monica# insists on automated experiment tracking to ensure reproducibility. #data_dave# thinks that is overkill and wants to keep it manual to save costs. The team is stuck.",
-      "roundIntroduction": "A recent audit flagged gaps in model reproducibility. The team needs to agree on how to track experiments.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 50,
-      "preconditions": {
-        "component": "model.experiment_tracking",
-        "op": "eq",
-        "level": 2
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "model.experiment_tracking",
-          "value": 1,
-          "reason": "the audit team found gaps in reproducibility"
-        },
-        {
-          "kind": "set_to",
-          "target": "e.train_tracking",
-          "value": 0,
-          "reason": "the audit team found gaps in reproducibility"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "model.experiment_tracking",
-          "value": 0,
-          "reason": "the audit team found gaps in reproducibility"
-        }
-      ],
-      "conflict": {
-        "type": "soft",
-        "target": "model.experiment_tracking",
-        "positions": [
-          {
-            "stakeholder_id": "model_monica",
-            "wants": 3
-          },
-          {
-            "stakeholder_id": "data_dave",
-            "wants": 2
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "model"
-      ],
-      "generated": true
-    },
-    {
-      "id": 102,
-      "phase_id": 2,
-      "template_id": "ch_inconsistent_data_labeling",
-      "name": "Inconsistent Data Labeling",
-      "description": "#reliability_ruth# believes that labeling should be fully automated and governed to ensure consistent data quality. #data_dave# wants to keep it manual for flexibility. #data_dave# is willing to compromise on a semi-manual approach, but #reliability_ruth# insists on strict governance.",
-      "roundIntroduction": "The data labeling pipeline has been inconsistent, causing issues in model training. The team needs to decide on the right approach to ensure reliable data quality.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 50,
-      "preconditions": {
-        "component": "data.labeling",
-        "op": "eq",
-        "level": 2
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "data.labeling",
-          "value": 0,
-          "reason": "the labeling pipeline produced inconsistent results"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "e.label_version",
-          "value": 0,
-          "reason": "the labeling pipeline breaks due to unresolved conflicts"
-        }
-      ],
-      "conflict": {
-        "type": "soft",
-        "target": "data.labeling",
-        "positions": [
-          {
-            "stakeholder_id": "reliability_ruth",
-            "wants": 4
-          },
-          {
-            "stakeholder_id": "data_dave",
-            "wants": 2
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "data"
-      ],
-      "generated": true
-    },
-    {
-      "id": 103,
-      "phase_id": 3,
-      "template_id": "ch_registry_red_tape",
-      "name": "Registry Red Tape",
-      "description": "#model_monica# insists the model registry must be automated; they can't work without it. But #requirements_reuben# won't allow it, insisting it must be governed first. #model_monica# says that's a nonstarter.",
-      "roundIntroduction": "The team is arguing about the model registry. The registry is still just a spreadsheet, but #model_monica# says it's getting too hard to manage. #requirements_reuben# worries about compliance risks.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 50,
-      "preconditions": {
-        "component": "model.registry",
-        "op": "eq",
-        "level": 1
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "model.registry",
-          "value": 0,
-          "reason": "the registry is overloaded"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "e.eval_registry",
-          "value": 0,
-          "reason": "the registry is no longer trusted"
-        }
-      ],
-      "conflict": {
-        "type": "hard",
-        "target": "model.registry",
-        "positions": [
-          {
-            "stakeholder_id": "model_monica",
-            "wants": 3
-          },
-          {
-            "stakeholder_id": "requirements_reuben",
-            "wants": 4
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "model"
-      ],
-      "generated": true
-    },
-    {
-      "id": 104,
-      "phase_id": 5,
-      "template_id": "ch_blind_spot_silence",
-      "name": "The Blind Spot",
-      "description": "Production metrics have stopped flowing to the team. #efficiency_emilia# argues that a manual monthly audit is sufficient to keep costs down and maintain control over the business KPIs. #reliability_ruth# insists on automated and governed monitoring to catch real-time degradation and ensure the system remains reliable for users.",
-      "roundIntroduction": "The nightly data pipeline failed to ingest the latest batch of inference logs. The dashboard now shows a flat line for the last 48 hours, leaving the team blind to current model performance.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 70,
-      "preconditions": {
-        "component": "ops.performance_monitoring",
-        "op": "eq",
-        "level": 1
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "ops.performance_monitoring",
-          "value": 0,
-          "reason": "ingestion job crashed"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "e.perf_alert",
-          "value": 0,
-          "reason": "alerting rule disabled due to lack of data"
-        }
-      ],
-      "conflict": {
-        "type": "soft",
-        "target": "ops.performance_monitoring",
-        "positions": [
-          {
-            "stakeholder_id": "efficiency_emilia",
-            "wants": 2
-          },
-          {
-            "stakeholder_id": "reliability_ruth",
-            "wants": 4
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "ops"
-      ],
-      "generated": true
-    },
-    {
-      "id": 105,
-      "phase_id": 5,
-      "template_id": "ch_drift_blind_spot",
-      "name": "The Silent Drift",
-      "description": "The production drift monitoring pipeline is broken, leaving the model's input quality unchecked. #efficiency_emilia# insists on a fully automated and governed drift monitoring system to protect business KPIs, while #reliability_ruth# argues that manual weekly reviews are sufficient and cheaper. #efficiency_emilia# has set a red line requiring automated governance for any future drift detection.",
-      "roundIntroduction": "A recent data shift went unnoticed for three days, causing a spike in user complaints. The incident exposed that the drift monitoring workflow is currently non-functional and needs immediate repair.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 80,
-      "preconditions": {
-        "all": [
-          {
-            "component": "ops.production_drift_monitoring",
-            "op": "lte",
-            "level": 1
-          },
-          {
-            "edge": "e.observe_drift",
-            "op": "lte",
-            "level": 1
-          }
-        ]
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "ops.production_drift_monitoring",
-          "value": 0,
-          "reason": "The drift detection script crashed due to a schema change"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "e.observe_drift",
-          "value": 0,
-          "reason": "The data feed to the drift monitor was disconnected"
-        }
-      ],
-      "conflict": {
-        "type": "hard",
-        "target": "ops.production_drift_monitoring",
-        "positions": [
-          {
-            "stakeholder_id": "efficiency_emilia",
-            "wants": 4
-          },
-          {
-            "stakeholder_id": "reliability_ruth",
-            "wants": 2
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "ops"
-      ],
-      "generated": true
-    },
-    {
-      "id": 106,
-      "phase_id": 4,
-      "template_id": "ch_gateway_security_gap",
-      "name": "Exposed Model Endpoint",
-      "description": "A security audit revealed that the API gateway lacks proper authentication controls, exposing model endpoints to unauthorized access. #automation_alex# argues for keeping the gateway in a manual state to avoid disrupting the current deployment pipeline, while #requirements_reuben# insists on a fully governed state to ensure compliance and security.",
-      "roundIntroduction": "The security team flagged a critical vulnerability in the API gateway configuration. The current setup allows unauthenticated requests to reach the model serving endpoints.",
+      "template_id": "ch_committed_pallets",
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.",
+      "roundIntroduction": "The middle aisle category team locked the promotion calendar for the upcoming week, and the supplier confirmed the pallets are on the dock. The nightly forecast job is running, but the allocation module has no formal sign off for this specific high risk scenario.",
       "metric_changes": {},
       "attention_tokens": 20,
       "priority": 75,
-      "preconditions": {
-        "all": [
-          {
-            "component": "deploy.api_gateway",
-            "op": "eq",
-            "level": 1
-          },
-          {
-            "edge": "e.iam_gateway",
-            "op": "eq",
-            "level": 2
-          }
-        ]
-      },
-      "fallback": false,
+      "preconditions": true,
+      "fallback": true,
       "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "deploy.api_gateway",
-          "value": 0,
-          "reason": "The gateway crashed during a security patch attempt"
-        }
-      ],
-      "stalemate_ops": [
-        {
-          "kind": "set_to",
-          "target": "deploy.canary_ab",
-          "value": 0,
-          "reason": "The team paused canary testing to focus on the gateway crisis"
-        }
-      ],
-      "conflict": {
-        "type": "soft",
-        "target": "deploy.api_gateway",
-        "positions": [
-          {
-            "stakeholder_id": "automation_alex",
-            "wants": 2
-          },
-          {
-            "stakeholder_id": "requirements_reuben",
-            "wants": 4
-          }
-        ]
-      },
-      "focus_stage_ids": [
-        "deploy"
-      ],
-      "generated": true
-    },
-    {
-      "id": 107,
-      "phase_id": 1,
-      "template_id": "ch_missing_kpi_baseline",
-      "name": "The Missing Baseline",
-      "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control.",
-      "roundIntroduction": "A recent audit revealed that the KPI definitions were lost during a team transition. The team is now scrambling to redefine the success metrics before the next sprint planning session.",
-      "metric_changes": {},
-      "attention_tokens": 20,
-      "priority": 85,
-      "preconditions": {
-        "all": [
-          {
-            "component": "req.kpi_definition",
-            "op": "eq",
-            "level": 1
-          },
-          {
-            "component": "req.acceptance_criteria",
-            "op": "gte",
-            "level": 1
-          }
-        ]
-      },
-      "fallback": false,
-      "on_enter_ops": [
-        {
-          "kind": "set_to",
-          "target": "req.kpi_definition",
-          "value": 0,
-          "reason": "the previous KPI document was deleted during cleanup"
-        }
-      ],
-      "stalemate_ops": [
         {
           "kind": "set_to",
           "target": "req.acceptance_criteria",
           "value": 0,
-          "reason": "without agreed KPIs, acceptance criteria cannot be validated"
+          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.risk_assessment",
+          "value": 0,
+          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
         }
       ],
       "conflict": {
-        "type": "soft",
-        "target": "req.kpi_definition",
+        "type": "hard",
+        "target": "req.acceptance_criteria",
         "positions": [
           {
-            "stakeholder_id": "efficiency_emilia",
+            "stakeholder_id": "requirements_reuben",
             "wants": 4
           },
           {
-            "stakeholder_id": "requirements_reuben",
+            "stakeholder_id": "reliability_ruth",
             "wants": 2
           }
         ]
@@ -718,27 +214,395 @@
       "generated": true
     },
     {
-      "id": 108,
-      "phase_id": 4,
-      "template_id": "ch_shadow_environment_dispute",
-      "name": "The Silent Shadow",
-      "description": "#reliability_ruth# insists on a fully automated and governed shadow deployment to validate model behavior before release, while #automation_alex# argues that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. #automation_alex# has a red line against maintaining any shadow infrastructure and will not move on this point.",
-      "roundIntroduction": "A recent model update caused unexpected latency spikes in production, and the team realized there was no safe way to test the new version against live traffic without risking user experience. The shadow deployment environment, which was previously manual, has now broken completely, leaving the team without a safety net for future releases.",
+      "id": 111,
+      "phase_id": 5,
+      "template_id": "ch_cost_crisis_drift_gap",
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal.",
+      "roundIntroduction": "The finance team flagged that the cost of running the observability pipeline is spiking due to the volume of scan lines from 1200 stores. #efficiency_emilia# has proposed cutting the automated drift monitoring budget to zero to save costs, while #reliability_ruth# warns that this will leave the forecast vulnerable to silent failures during the next promotion cycle.",
       "metric_changes": {},
       "attention_tokens": 20,
-      "priority": 65,
+      "priority": 85,
       "preconditions": {
-        "component": "deploy.shadow",
-        "op": "lte",
-        "level": 1
+        "all": [
+          {
+            "component": "ops.production_drift_monitoring",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "component": "ops.observability",
+            "op": "gte",
+            "level": 2
+          }
+        ]
       },
       "fallback": false,
       "on_enter_ops": [
         {
           "kind": "set_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 0,
+          "reason": "budget freeze on automated monitoring tools"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.observe_drift",
+          "value": 0,
+          "reason": "data pipeline to drift monitor disconnected due to cost"
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "ops.production_drift_monitoring",
+        "positions": [
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 1
+          },
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "ops"
+      ],
+      "generated": true
+    },
+    {
+      "id": 112,
+      "phase_id": 3,
+      "template_id": "ch_heatwave_forecast_gap",
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered.",
+      "roundIntroduction": "The nightly forecast job completed, but store managers in the northern region reported significant overstock of cold weather items and stockouts of iced tea. The team needs to decide how to handle the evaluation of a potential model update that incorporates the new weather data.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": true,
+      "fallback": true,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.evaluation",
+          "value": 0,
+          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.train_eval",
+          "value": 0,
+          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "model.evaluation",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 3
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ],
+      "generated": true
+    },
+    {
+      "id": 113,
+      "phase_id": 0,
+      "template_id": "ch_heatwave_kpi_gap",
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals.",
+      "roundIntroduction": "Welcome to the Shelfcast project. You are now the project manager responsible for coordinating our MLOps team. Today, we are addressing a critical gap in how we measure success during volatile weather events.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 85,
+      "preconditions": true,
+      "fallback": true,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.acceptance_criteria",
+          "value": 0,
+          "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "req.kpi_definition",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ],
+      "generated": true
+    },
+    {
+      "id": 114,
+      "phase_id": 1,
+      "template_id": "ch_loyalty_consent_gap",
+      "name": "The Consent Void",
+      "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet.",
+      "roundIntroduction": "The compliance team suspended access to the loyalty app basket feed after discovering that retention policies were not documented in the data contracts. The KPI definitions for the next promotion cycle were never formally agreed upon, leaving the team without a clear baseline for how to handle the missing personal data signals.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 85,
+      "preconditions": {
+        "all": [
+          {
+            "component": "req.data_contracts",
+            "op": "eq",
+            "level": 1
+          },
+          {
+            "component": "req.kpi_definition",
+            "op": "eq",
+            "level": 1
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.data_contracts",
+          "value": 0,
+          "reason": "compliance audit found missing consent fields in the schema"
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "legal team blocked KPI sign off due to unresolved data rights"
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "req.data_contracts",
+        "positions": [
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ],
+      "generated": true
+    },
+    {
+      "id": 115,
+      "phase_id": 4,
+      "template_id": "ch_loyalty_data_deployment_block",
+      "name": "The Consent Gap",
+      "description": "A new model version requires loyalty basket data, but the deployment pipeline lacks the governance controls to verify consent. #automation_alex# wants to push the automated deployment forward immediately to meet the promotion deadline, while #requirements_reuben# insists on a manual review process to ensure legal compliance. #automation_alex# is open to adding a manual approval step if it keeps the pipeline moving, but #requirements_reuben# will not accept any automated path without full audit trails.",
+      "roundIntroduction": "The nightly forecast job failed to deploy because the new model version was rejected during the pre-deployment check. The rejection was triggered by a missing consent validation flag for the loyalty data features used in the model.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 80,
+      "preconditions": {
+        "component": "deploy.cicd",
+        "op": "gte",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.cicd",
+          "value": 0,
+          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "deploy.canary_ab",
+          "value": 0,
+          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "deploy.cicd",
+        "positions": [
+          {
+            "stakeholder_id": "automation_alex",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "deploy"
+      ],
+      "generated": true
+    },
+    {
+      "id": 116,
+      "phase_id": 2,
+      "template_id": "ch_nightly_window_miss",
+      "name": "The Midnight Deadline",
+      "description": "The nightly data job is failing to finish before the store managers open the ordering app. #reliability_ruth# demands an automated validation layer to catch bad data instantly so the morning window is never missed again. #data_dave# insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk.",
+      "roundIntroduction": "Last night, the till scan lines arrived late and the validation step was skipped to save time. The forecast job started with incomplete data, causing the morning order suggestions to be wrong for hundreds of stores.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 80,
+      "preconditions": true,
+      "fallback": true,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.validation",
+          "value": 0,
+          "reason": "The validation service crashed due to resource contention during the peak ingestion window."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.ingest_validate",
+          "value": 0,
+          "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store."
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "data.validation",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 3
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 1
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
+      ],
+      "generated": true
+    },
+    {
+      "id": 117,
+      "phase_id": 3,
+      "template_id": "ch_override_blind_spot",
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual.",
+      "roundIntroduction": "A recent promotion week saw a spike in overrides after a model update failed to account for a local weather event, leaving store managers skeptical of the system's reliability. The team is now debating how to handle model promotion to restore trust in the forecast.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": {
+        "all": [
+          {
+            "component": "model.registry",
+            "op": "lte",
+            "level": 1
+          },
+          {
+            "component": "model.evaluation",
+            "op": "gte",
+            "level": 2
+          }
+        ]
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "model.registry",
+          "value": 0,
+          "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.eval_registry",
+          "value": 0,
+          "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone."
+        }
+      ],
+      "conflict": {
+        "type": "hard",
+        "target": "model.registry",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "requirements_reuben",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "model"
+      ],
+      "generated": true
+    },
+    {
+      "id": 118,
+      "phase_id": 4,
+      "template_id": "ch_shadow_deployment_contract",
+      "name": "The Locked Shadow",
+      "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability.",
+      "roundIntroduction": "The nightly forecast job failed to generate suggestions for the northern stores because the shadow environment was not running. The buyer for the middle aisle promotion has already committed to the supplier, and any delay in validating the new model risks a stockout on the leaflet.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 75,
+      "preconditions": true,
+      "fallback": true,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
           "target": "deploy.shadow",
           "value": 0,
-          "reason": "the shadow environment crashed during a load test"
+          "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run"
         }
       ],
       "stalemate_ops": [
@@ -746,7 +610,7 @@
           "kind": "set_to",
           "target": "e.cicd_shadow",
           "value": 0,
-          "reason": "the pipeline trigger for shadow testing was disabled"
+          "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs"
         }
       ],
       "conflict": {
@@ -759,7 +623,7 @@
           },
           {
             "stakeholder_id": "automation_alex",
-            "wants": 1
+            "wants": 2
           }
         ]
       },
@@ -769,62 +633,100 @@
       "generated": true
     },
     {
-      "id": 109,
-      "phase_id": 1,
-      "template_id": "ch_the_missing_gate",
-      "name": "The Missing Gate",
-      "description": "A critical compliance audit has revealed that our model promotion process lacks a formal quality gate. #requirements_reuben# insists that acceptance criteria must be fully automated and governed to meet security standards, and he will not compromise on this. #automation_alex# argues that the current manual checks are sufficient for now and that building an automated gate will delay the release of new features.",
-      "roundIntroduction": "The compliance team has flagged a gap in our production pipeline where models are deployed without verified acceptance criteria. This has left the team scrambling to decide how to handle the validation step immediately.",
+      "id": 119,
+      "phase_id": 5,
+      "template_id": "ch_silent_forecast_failure",
+      "name": "The Silent Failure",
+      "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
+      "roundIntroduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
       "metric_changes": {},
       "attention_tokens": 20,
-      "priority": 80,
-      "preconditions": {
-        "all": [
-          {
-            "component": "req.acceptance_criteria",
-            "op": "eq",
-            "level": 1
-          },
-          {
-            "edge": "e.acceptance_eval",
-            "op": "eq",
-            "level": 1
-          }
-        ]
-      },
-      "fallback": false,
+      "priority": 75,
+      "preconditions": true,
+      "fallback": true,
       "on_enter_ops": [
         {
           "kind": "set_to",
-          "target": "req.acceptance_criteria",
+          "target": "e.perf_alert",
           "value": 0,
-          "reason": "The compliance audit found no defined criteria for model approval"
+          "reason": "the connection between performance monitoring and alerting was severed during a recent infrastructure change"
         }
       ],
       "stalemate_ops": [
         {
           "kind": "set_to",
-          "target": "req.kpi_definition",
+          "target": "ops.performance_monitoring",
           "value": 0,
-          "reason": "Uncertainty over acceptance criteria has frozen the business metric definitions"
+          "reason": "the monitoring job was disabled to reduce compute costs while the team debated the fix"
         }
       ],
       "conflict": {
-        "type": "hard",
-        "target": "req.acceptance_criteria",
+        "type": "soft",
+        "target": "ops.performance_monitoring",
         "positions": [
           {
-            "stakeholder_id": "requirements_reuben",
+            "stakeholder_id": "reliability_ruth",
             "wants": 4
           },
           {
-            "stakeholder_id": "automation_alex",
+            "stakeholder_id": "efficiency_emilia",
             "wants": 2
           }
         ]
       },
       "focus_stage_ids": [
-        "req"
+        "ops"
+      ],
+      "generated": true
+    },
+    {
+      "id": 120,
+      "phase_id": 2,
+      "template_id": "ch_silent_ingestion_failure",
+      "name": "The Silent Store Gap",
+      "description": "A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce. #reliability_ruth# argues that the ingestion pipeline must be fully automated to guarantee every store's data arrives on time, while #data_dave# is willing to accept a manual verification step to ensure data quality before it reaches the feature store.",
+      "roundIntroduction": "The nightly store export pipeline failed for a subset of stores without triggering any alerts. The forecast job ran on incomplete data, leading to empty shelves for high demand articles in the affected regions this morning.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 80,
+      "preconditions": {
+        "component": "data.ingestion",
+        "op": "gte",
+        "level": 2
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "data.ingestion",
+          "value": 0,
+          "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "e.ingest_validate",
+          "value": 0,
+          "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "data.ingestion",
+        "positions": [
+          {
+            "stakeholder_id": "reliability_ruth",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "data_dave",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "data"
       ],
       "generated": true
     }

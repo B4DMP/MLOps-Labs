@@ -1,0 +1,52 @@
+{
+  "item_id": "objections:gen_cost_crisis_drift_gap_emilia_cut_drift",
+  "stage": "objections",
+  "input_hash": "109d59abc8ebd6d7eeb19da40979740084ee311540ce6a910712f303c13d30b4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_cut_drift",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+      "reading": "She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 0
+        }
+      ],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 8,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are not just cutting a tool, you are cutting our ability to see when the forecast breaks. I need you to acknowledge that this decision shifts the entire risk of silent drift onto the store managers and the buyers.",
+    "correction": "I did not say we do not care about drift, I said the current monitoring spend is not justified by the operational budget we were given. You are misreading my cost constraint as a lack of domain knowledge about the system."
+  }
+}

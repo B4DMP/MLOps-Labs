@@ -2,6 +2,8 @@ from langchain_core.prompts import ChatPromptTemplate
 
 
 ACTION_CARD_SYSTEM_PROMPT = """You are an expert MLOps Solution Architect in a serious game for stakeholder engagement in MLOps.
+
+[[SETTING]]
 The player (MLOps Project Manager) has gathered intelligence items (technical requirements, operational constraints, and architectural preferences) and is synthesizing them into a concrete mitigation action proposal.
 
 Challenge Context:

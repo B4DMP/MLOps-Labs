@@ -1,5 +1,47 @@
+import copy
+
 import opik
 from loguru import logger
+
+# Every prompt that describes the world writes this token where the setting belongs. It is filled in
+# when the prompt is read, not when this module is imported, so the world comes from whichever
+# gameConfig the process loaded rather than from import order.
+SETTING_TOKEN = "[[SETTING]]"
+
+
+def setting_text() -> str:
+    from mlops_serious_game.domain.setting_factory import SettingFactory
+
+    return SettingFactory.short_block()
+
+
+def fill_setting(text: str) -> str:
+    if SETTING_TOKEN not in text:
+        return text
+    block = setting_text()
+    if not block:
+        # Without a Setting.json the placeholder line disappears instead of leaving a hole.
+        return "\n".join(line for line in text.splitlines() if line.strip() != SETTING_TOKEN)
+    return text.replace(SETTING_TOKEN, block)
+
+
+def with_setting(template):
+    """A ChatPromptTemplate with its setting token filled in.
+
+    The chat templates are built at import time, so they cannot bake the world in the way the
+    Prompt objects below can. Rather than make every call site pass the setting as a variable,
+    the chain builders run their template through this first."""
+    try:
+        filled = copy.deepcopy(template)
+        for message in getattr(filled, "messages", []):
+            inner = getattr(message, "prompt", None)
+            raw = getattr(inner, "template", None)
+            if isinstance(raw, str) and SETTING_TOKEN in raw:
+                inner.template = fill_setting(raw)
+        return filled
+    except Exception:  # a prompt without the world beats no prompt at all
+        logger.warning("could not fill the setting into a prompt template, using it unchanged")
+        return template
 
 
 class Prompt:
@@ -17,10 +59,8 @@ class Prompt:
 
     @property
     def prompt(self) -> str:
-        if isinstance(self.__prompt, opik.Prompt):
-            return self.__prompt.prompt
-        else:
-            return self.__prompt
+        raw = self.__prompt.prompt if isinstance(self.__prompt, opik.Prompt) else self.__prompt
+        return fill_setting(raw)
 
     def __str__(self) -> str:
         return self.prompt
@@ -34,7 +74,10 @@ class Prompt:
 # --- Stakeholders ---
 
 __STAKEHOLDER_CHARACTER_CARD = """
-You are role-playing {{stakeholder_name}} at an enterprise that develops an ML-based product using MLOps guidelines. Right now you are in a meeting with your colleagues and the MLOps Project Manager to decide on a mitigation strategy. The Project Manager presents an action proposal to the team. It is your goal to evaluate the proposal and influence the discussion so that the final strategy considers your priorities and requirements.
+You are role-playing {{stakeholder_name}}, who works on the machine learning system described below.
+
+[[SETTING]]
+ Right now you are in a meeting with your colleagues and the MLOps Project Manager to decide on a mitigation strategy. The Project Manager presents an action proposal to the team. It is your goal to evaluate the proposal and influence the discussion so that the final strategy considers your priorities and requirements.
 
 Context & Expertise:
 - Team challenge: {{challenge}}
@@ -96,6 +139,9 @@ STAKEHOLDER_CHARACTER_CARD = Prompt(
 
 __WRONG_INTEL_PROMPT = """
 You are an AI game designer creating miscategorized intel descriptions for an MLOps serious game.
+
+[[SETTING]]
+
 Your task is to generate a wrong intel description for a stakeholder based on an incorrect categorization of their requirement or stance.
 
 Context:
@@ -130,6 +176,9 @@ WRONG_INTEL_PROMPT = Prompt(
 
 __INTEL_ARTIFACT_PROMPT = """
 You are an AI game designer generating body content for an MLOps workplace document ({{artifact_type}}) written by or involving {{stakeholder_name}}.
+
+[[SETTING]]
+
 The document must convey {{stakeholder_name}}'s stance on the team challenge so the player can determine their requirement type.
 
 Context:
@@ -156,6 +205,9 @@ INTEL_ARTIFACT_PROMPT = Prompt(
 
 __ONLINE_INTEL_PLAYER_PROMPT = """
 You are the lead MLOps Project Manager initiating a meeting, sync-up, or 1-on-1 consultation with team members.
+
+[[SETTING]]
+
 
 Interaction Purpose:
 - Initiative / Focus: {{card_title}}
@@ -185,6 +237,9 @@ ONLINE_INTEL_PLAYER_PROMPT = Prompt(
 
 __ONLINE_INTEL_STAKEHOLDER_PROMPT = """
 You are role-playing {{stakeholder_name}} in an MLOps project meeting / workplace interaction.
+
+[[SETTING]]
+
 
 Stakeholder Profile:
 - Role & Responsibilities: {{stakeholder_responsibilities}}
@@ -225,6 +280,9 @@ ONLINE_INTEL_STAKEHOLDER_PROMPT = Prompt(
 __ACTION_CARD_PITCH_PLAYER_PROMPT = """
 You are the lead MLOps Project Manager presenting an action proposal to the project stakeholders in the resolution meeting.
 
+[[SETTING]]
+
+
 Context:
 - Team Challenge Context: {{challenge}}
 - Addressed Stakeholders in the Room: {{addressed_stakeholders}}
@@ -253,7 +311,10 @@ ACTION_CARD_PITCH_PLAYER_PROMPT = Prompt(
 )
 
 __ACTION_CARD_PITCH_STAKEHOLDER_PROMPT = """
-You are role-playing {{stakeholder_name}}, an enterprise MLOps domain expert participating in a live project resolution meeting with your team and the lead MLOps Project Manager. The Project Manager has just presented an action proposal to the room.
+You are role-playing {{stakeholder_name}}, a member of the team that runs the machine learning system described below, in a live project resolution meeting with your colleagues and the lead MLOps Project Manager.
+
+[[SETTING]]
+ The Project Manager has just presented an action proposal to the room.
 
 Your Professional Background:
 - Domain Role & Responsibilities: {{stakeholder_responsibilities}}
@@ -308,7 +369,10 @@ ACTION_CARD_PITCH_STAKEHOLDER_PROMPT = Prompt(
 # --- Action Card Veto Prompts ---
 
 __ACTION_CARD_VETO_PROMPT = """
-You are role-playing {{stakeholder_name}}, a high-influence / high-power executive or key stakeholder in an enterprise MLOps project.
+You are role-playing {{stakeholder_name}}, a high-influence / high-power stakeholder in the machine learning project described below.
+
+[[SETTING]]
+
 The Project Manager has attempted to formally commit an action proposal that severely breaches your requirements or crosses your non-negotiable boundaries.
 As a high-power decision maker, you have the authority to block the initiative, and you are now officially exercising your VETO.
 

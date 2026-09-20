@@ -1,7 +1,7 @@
 {
   "item_id": "templates:p1:s1",
   "stage": "templates",
-  "input_hash": "1d2e70c9611f4bce5e3cfecd75c24164f41298f9f25256188b328fe1f3a62673",
+  "input_hash": "b9fc5fe398544df3d55419d1e414ecca593707e614bfb0d5f91edd158d10fa41",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
@@ -276,14 +276,17 @@
       "req.risk_assessment"
     ],
     "existing_challenges": [
-      "The Platform Choice"
-    ]
+      "The Missing Baseline",
+      "The Missing Gate"
+    ],
+    "angle": "suppliers, contracts, or money that is already committed and cannot be taken back",
+    "is_intro": false
   },
   "output": {
-    "slug": "the_missing_gate",
-    "name": "The Missing Gate",
-    "description": "A critical compliance audit has revealed that our model promotion process lacks a formal quality gate. #requirements_reuben# insists that acceptance criteria must be fully automated and governed to meet security standards, and he will not compromise on this. #automation_alex# argues that the current manual checks are sufficient for now and that building an automated gate will delay the release of new features.",
-    "round_introduction": "The compliance team has flagged a gap in our production pipeline where models are deployed without verified acceptance criteria. This has left the team scrambling to decide how to handle the validation step immediately.",
+    "slug": "committed_pallets",
+    "name": "The Committed Pallets",
+    "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.",
+    "round_introduction": "The middle aisle category team locked the promotion calendar for the upcoming week, and the supplier confirmed the pallets are on the dock. The nightly forecast job is running, but the allocation module has no formal sign off for this specific high risk scenario.",
     "preconditions": {
       "all": [
         {
@@ -292,29 +295,29 @@
           "level": 1
         },
         {
-          "edge": "e.acceptance_eval",
+          "component": "req.risk_assessment",
           "op": "eq",
           "level": 1
         }
       ]
     },
-    "priority": 80,
+    "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "req.acceptance_criteria",
         "value": 0,
         "attr": null,
-        "reason": "The compliance audit found no defined criteria for model approval"
+        "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
-        "target": "req.kpi_definition",
+        "target": "req.risk_assessment",
         "value": 0,
         "attr": null,
-        "reason": "Uncertainty over acceptance criteria has frozen the business metric definitions"
+        "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
       }
     ],
     "conflict": {
@@ -325,7 +328,7 @@
           "wants": 4
         },
         {
-          "stakeholder_id": "automation_alex",
+          "stakeholder_id": "reliability_ruth",
           "wants": 2
         }
       ]

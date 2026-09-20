@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_fact_kpi_missing",
+  "stage": "artifacts",
+  "input_hash": "dfc3c38b52f03243e5cb965a58543331a92099efaeb9138a7df8e72cf634f7f7",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_fact_kpi_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The KPI definition for the promotion week is currently missing. That is simply how the KPI definition works today.",
+      "fact": "The KPI definition for the promotion week is currently missing.",
+      "reading": "That is simply how the KPI definition works today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "req.kpi_definition",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "requirements_reuben",
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "During the sprint review, the team discussed the promotion week metrics. The current workflow lacks a formal definition for the key performance indicator. When the weekly report is generated, the system does not pull a predefined threshold from the configuration file. Instead, the analyst manually enters the target value into the spreadsheet after the data aggregation job completes. The dashboard displays the raw availability and residual stock figures without a benchmark line. The alerting service does not trigger any notifications because there is no baseline to compare against. The process relies entirely on the analyst's manual input to establish the reference point for the week's performance summary.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes the current state of the workflow and the absence of specific features without expressing any wishes, refusals, or stated needs for change."
+  }
+}

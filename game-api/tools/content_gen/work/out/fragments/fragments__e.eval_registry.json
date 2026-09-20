@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.eval_registry",
   "stage": "fragments",
-  "input_hash": "72f77b79e3f30c82c5666d7228b44610f9987b7256bb6dd783b8efa21951275a",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "79dab364f23e64e60b46073dfceea75a40fdcbd46c5cd72e2762c63840a39d26",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.eval_registry",
@@ -17,10 +17,10 @@
     "name": "hand over from Model Evaluation Harness to Model Registry"
   },
   "output": {
-    "level_0": "The Model Evaluation Harness fails to find a Model Registry to hand over to.",
-    "level_1": "The Model Evaluation Harness has no connection to a Model Registry.",
-    "level_2": "The Model Evaluation Harness outputs a text file with model details for manual Model Registry upload.",
-    "level_3": "The Model Evaluation Harness automatically uploads the model to the Model Registry.",
-    "level_4": "The Model Evaluation Harness automatically uploads the model to the Model Registry with approval workflow."
+    "level_0": "The harness crashes before writing results, so the registry stays empty and stale.",
+    "level_1": "No link exists between the evaluation harness and the model registry today.",
+    "level_2": "A data engineer copies evaluation scores into the registry by hand each week.",
+    "level_3": "The harness pushes validated models to the registry automatically after each weekly retrain.",
+    "level_4": "Every model handover is logged, signed off, and auditable for compliance and finance."
   }
 }

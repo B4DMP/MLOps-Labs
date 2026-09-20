@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_reuben_contracts_governance",
+  "stage": "gists",
+  "input_hash": "07d52ced43d83ee78673bd879d1891315b37ed01e647a451852fbd3050a6f201",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_reuben_contracts_governance",
+    "fact": "{requirements_reuben} proposed that the data contracts be fully governed to enforce consent checks.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "Consent checks within the loyalty basket data contracts are the subject of the current requirements discussion.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the topic of the current discussion (consent checks in data contracts) but does not express a stance, desire, refusal, or trade-off regarding it."
+  }
+}

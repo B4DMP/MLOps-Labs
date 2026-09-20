@@ -1,0 +1,55 @@
+{
+  "item_id": "artifacts:gen_committed_pallets_reuben_governance_wall",
+  "stage": "artifacts",
+  "input_hash": "3021a2554d90b1f7d48c3733d00ab2a23ee9b691fceaac3d2d9179693e18debf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_committed_pallets_reuben_governance_wall",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable. He will not approve the release if the acceptance criteria remain below the governed level.",
+      "fact": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable.",
+      "reading": "He will not approve the release if the acceptance criteria remain below the governed level.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "author": {
+      "name": "Requirements Reuben",
+      "role": "Architects secure and scalable production ML systems. Defines security requirements, ensures privacy compliance, and manages data governance. Conducts rigorous testing and validation to guarantee high product quality."
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The supplier has confirmed the bulk order for the middle aisle promotion, and the trucks leave next week. Because the physical stock is already committed, there is no room for model error in the allocation logic. I am not willing to approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are not sufficient for this scale of financial and operational risk. I will not sign off on the deployment until the governance framework is in place and the audit trail is verifiable. This is a hard requirement for my team. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The author explicitly refuses to approve the release without a governed, auditable framework, establishing a non-negotiable line that must be met to avoid refusal."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "item_id": "templates:p1:s0",
   "stage": "templates",
-  "input_hash": "07e3f7f0a14cf7040d93faa72c598301967e4308d8bad6e8fea1ef63826a3b10",
+  "input_hash": "2bf20d83dadd7898e1be6b1d2a375f2f87650827470e1c1b1edc93053b9dc3dc",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -276,24 +276,27 @@
       "req.data_contracts"
     ],
     "existing_challenges": [
-      "The Platform Choice"
-    ]
+      "The Missing Baseline",
+      "The Missing Gate"
+    ],
+    "angle": "personal data, consent, retention or another legal obligation",
+    "is_intro": false
   },
   "output": {
-    "slug": "missing_kpi_baseline",
-    "name": "The Missing Baseline",
-    "description": "The KPI definitions were never formally agreed, leaving the project without a clear target for success. #efficiency_emilia# wants the KPI definition to be fully automated and governed to ensure alignment with business goals, while #requirements_reuben# argues it should remain a manual process to allow for careful security and compliance review. #efficiency_emilia# is open to a compromise that keeps the process manual but documented, but #requirements_reuben# insists on strict manual control.",
-    "round_introduction": "A recent audit revealed that the KPI definitions were lost during a team transition. The team is now scrambling to redefine the success metrics before the next sprint planning session.",
+    "slug": "loyalty_consent_gap",
+    "name": "The Consent Void",
+    "description": "A legal audit flagged that loyalty basket data lacks valid consent records, breaking the legal basis for using it in forecasts. #requirements_reuben# demands the data contracts be fully automated and governed to enforce consent checks before any data enters the pipeline. #efficiency_emilia# argues that manual review is sufficient for now to avoid delaying the promotion planning cycle, though she might accept a middle ground if it does not stall the weekly leaflet.",
+    "round_introduction": "The compliance team suspended access to the loyalty app basket feed after discovering that retention policies were not documented in the data contracts. The KPI definitions for the next promotion cycle were never formally agreed upon, leaving the team without a clear baseline for how to handle the missing personal data signals.",
     "preconditions": {
       "all": [
         {
-          "component": "req.kpi_definition",
+          "component": "req.data_contracts",
           "op": "eq",
           "level": 1
         },
         {
-          "component": "req.acceptance_criteria",
-          "op": "gte",
+          "component": "req.kpi_definition",
+          "op": "eq",
           "level": 1
         }
       ]
@@ -302,30 +305,30 @@
     "on_enter_ops": [
       {
         "kind": "set_to",
-        "target": "req.kpi_definition",
+        "target": "req.data_contracts",
         "value": 0,
         "attr": null,
-        "reason": "the previous KPI document was deleted during cleanup"
+        "reason": "compliance audit found missing consent fields in the schema"
       }
     ],
     "stalemate_ops": [
       {
         "kind": "set_to",
-        "target": "req.acceptance_criteria",
+        "target": "req.kpi_definition",
         "value": 0,
         "attr": null,
-        "reason": "without agreed KPIs, acceptance criteria cannot be validated"
+        "reason": "legal team blocked KPI sign off due to unresolved data rights"
       }
     ],
     "conflict": {
-      "target": "req.kpi_definition",
+      "target": "req.data_contracts",
       "positions": [
         {
-          "stakeholder_id": "efficiency_emilia",
+          "stakeholder_id": "requirements_reuben",
           "wants": 4
         },
         {
-          "stakeholder_id": "requirements_reuben",
+          "stakeholder_id": "efficiency_emilia",
           "wants": 2
         }
       ]

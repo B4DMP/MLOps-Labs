@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_reuben_compliance_focus",
+  "stage": "gists",
+  "input_hash": "05ebd3d68b473bf7563a9696a7dfeef0d2a1849ae4bf3ff371b3fbd2199c813b",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_reuben_compliance_focus",
+    "fact": "{requirements_reuben} suggested prioritizing compliance over speed in the model registry process.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model registry process is the topic of the note from {requirements_reuben}.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely identifies the model registry process as the topic of a note without expressing a stance, preference, or specific operational detail that would indicate a driver, boundary, trade-off, or factual statement about the metric itself."
+  }
+}

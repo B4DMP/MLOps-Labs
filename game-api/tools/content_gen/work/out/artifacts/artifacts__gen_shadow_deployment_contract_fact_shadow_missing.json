@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_shadow_deployment_contract_fact_shadow_missing",
+  "stage": "artifacts",
+  "input_hash": "df6f6f239dfe12d200c4c8f5fdcc7dedb4d7781382c96321c717c5530c27d12c",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_shadow_deployment_contract_fact_shadow_missing",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The shadow deployment environment is missing from the system, so no new model version can be verified against live traffic. That is simply the current state of the system, with no shadow deployment setup present.",
+      "fact": "The shadow deployment environment is missing from the system, so no new model version can be verified against live traffic.",
+      "reading": "That is simply the current state of the system, with no shadow deployment setup present.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "deploy.shadow",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "email",
+    "narrator": {
+      "id": "automation_alex",
+      "name": "Automation Alex",
+      "role": "Builds automated ML pipelines to ensure seamless integration and deployment. Prioritizes reliable infrastructure for frequent software deployments. Maintains system operational stability and focuses on CI/CD tooling."
+    },
+    "challenge": {
+      "name": "The Locked Shadow",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I am checking the deployment pipeline for the latest model candidate. The standard flow sends the build to the staging cluster, runs the unit tests, and pushes the artifact to the production registry. There is no intermediate stage where the new version processes live traffic without affecting the final output. The logs show the job completing the staging checks and immediately updating the active serving endpoint. I observe no parallel processing of incoming requests by the new model. The system moves directly from test validation to live execution, skipping any period where the new logic runs alongside the old one to compare results on real data.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text objectively describes the current deployment pipeline's behavior and the absence of a shadow traffic stage without expressing any wishes, refusals, or trade-offs."
+  }
+}

@@ -13,7 +13,10 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.llm import Usage
-from content_gen.stages.common import GAME_RULES, bare_stakeholder_id_errors, player_text_errors, render, text_errors, tokenize_names
+from content_gen.stages.common import (
+    GAME_RULES, bare_stakeholder_id_errors, player_text_errors, render, system_for, text_errors,
+    tokenize_names,
+)
 from content_gen.stages.items import STANCE_WORDS
 
 
@@ -96,7 +99,7 @@ class GistsStage:
             f"Metric this note is filed under: {i['metric_id']}",
             *feedback,
         ])
-        out, u1 = await llm.structured(GistOut, SYSTEM, user, tags={"item_id": item.item_id})
+        out, u1 = await llm.structured(GistOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         gist = tokenize_names(out.gist, ctx.stakeholders)
         verdict, u2 = await llm.structured(
             GistVerdict, CLASSIFY_GIST + render(i["metric_ids"]), gist,

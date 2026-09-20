@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:deploy.serving",
   "stage": "fragments",
-  "input_hash": "4c71615802506714cf7a1334cc43c67253d029538187ae61067f08f9f9a7a57d",
+  "input_hash": "a2a2d70dd06507c9b96d0f649eb35cb851162b073973b4094a2eb9a41a5273f3",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The serving endpoint crashes whenever traffic spikes, forcing on-call engineers to restart it manually.",
-    "level_1": "No serving infrastructure exists, so predictions are only available in offline notebooks.",
-    "level_2": "Engineers deploy new model versions by hand, updating configuration files and restarting containers.",
-    "level_3": "CI/CD pipelines automatically deploy new model versions to the serving endpoint with zero downtime.",
-    "level_4": "Serving endpoints are governed by policy, enforcing model versioning, rollback, and audit logging."
+    "level_0": "The serving endpoint crashes nightly, forcing every store to order blind from last week's paper sheets.",
+    "level_1": "No serving endpoint exists, so buyers manually copy forecast numbers into spreadsheets before the morning window.",
+    "level_2": "A junior engineer manually pushes forecast files to the ordering system every morning before the window opens.",
+    "level_3": "The endpoint automatically serves fresh forecasts to the ordering system and store app during the morning window.",
+    "level_4": "The endpoint serves forecasts with full audit logs, version control, and automatic rollback if latency spikes."
   }
 }

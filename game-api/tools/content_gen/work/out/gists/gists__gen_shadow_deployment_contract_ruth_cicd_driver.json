@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_cicd_driver",
+  "stage": "gists",
+  "input_hash": "bd47dedb89bda06bba46cc2c45ea38cc42373082681cfb64209d9422a4e8badd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_cicd_driver",
+    "fact": "{reliability_ruth} asked for the CI/CD pipeline to automatically trigger the shadow deployment whenever a new model version is committed.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The reliability of model version validation via shadow deployment keeps coming up in discussions with {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the reliability of a specific process is a recurring topic in discussions, but it does not express a desire to improve it, a refusal to change it, an acceptance of a loss, or a definitive factual claim about its current state."
+  }
+}

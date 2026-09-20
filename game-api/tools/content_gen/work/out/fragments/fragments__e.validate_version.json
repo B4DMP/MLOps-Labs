@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:e.validate_version",
   "stage": "fragments",
-  "input_hash": "d6bc4c074579ac75d5714bcd2e259c95c6d14ce5bc092670d912e6b16ca7674f",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "f65888f87dd3f210ba60b793edc1361f59f2d79e1356e9cfe3e4f60e79b47a4c",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "e.validate_version",
@@ -17,10 +17,10 @@
     "name": "hand over from Data Validation to Data Versioning"
   },
   "output": {
-    "level_0": "Data Validation fails silently, Data Versioning never receives input.",
-    "level_1": "No process exists to transfer validated data to Data Versioning.",
-    "level_2": "Team members manually copy validated data to Data Versioning.",
-    "level_3": "A script automatically moves validated data to Data Versioning.",
-    "level_4": "Validated data is automatically transferred with audit logs and compliance checks."
+    "level_0": "Validation crashes nightly, so versioned batches never trigger and the forecast job starves of clean input.",
+    "level_1": "No versioning exists, so the team cannot tell which validated till data produced a specific failed forecast.",
+    "level_2": "A data analyst manually copies validated scan lines into a new folder before the nightly model retraining begins.",
+    "level_3": "The pipeline automatically tags every validated data batch with a unique identifier before passing it to training.",
+    "level_4": "Governed versioning ensures every forecast run is auditable against the exact validated data snapshot used."
   }
 }

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_committed_pallets_ruth_speed_trade",
+  "stage": "gists",
+  "input_hash": "df8b4140dbc17d75297deb3a52f30695af6564e8e590b5a0daad11c2488dde07",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement_id": "gen_committed_pallets_ruth_speed_trade",
+    "fact": "{reliability_ruth} proposed keeping the acceptance criteria as manual checks to ship the feature immediately.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Committed Pallets"
+  },
+  "output": {
+    "gist": "The proposal to ship the feature using manual acceptance checks has been raised by {reliability_ruth}.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a proposal was raised but does not indicate whether it was accepted, rejected, or if it represents a commitment to a specific stance on reliability."
+  }
+}

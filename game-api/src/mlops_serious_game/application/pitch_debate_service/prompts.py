@@ -3,6 +3,8 @@ from langchain_core.prompts import ChatPromptTemplate
 PLAYER_UTTERANCE_SYSTEM_PROMPT = """You are an expert dialogue writer for an MLOps serious game.
 You generate what the player (MLOps Project Manager) says aloud in an ongoing engagement with key project stakeholders.
 
+[[SETTING]]
+
 Challenge Context: {{challenge}}
 {% if card_title %}
 Meeting / Discussion Topic: {{card_title}} ({{card_description}})
@@ -47,6 +49,8 @@ PLAYER_UTTERANCE_PROMPT = ChatPromptTemplate.from_messages(
 )
 
 STAKEHOLDER_ENGAGEMENT_RESPONSE_SYSTEM_PROMPT = """Roleplay {{stakeholder_name}} ({{stakeholder_role}}) in the meeting with the MLOps Project Manager and team.
+
+[[SETTING]]
 
 Context:
 - Challenge: {{challenge}}
@@ -99,6 +103,8 @@ STAKEHOLDER_ENGAGEMENT_RESPONSE_PROMPT = ChatPromptTemplate.from_messages(
 PLAYER_KICKOFF_SYSTEM_PROMPT = """You are an expert dialogue writer for an MLOps serious game.
 You generate what the player (MLOps Project Manager) says aloud to open the meeting with key project stakeholders.
 
+[[SETTING]]
+
 Challenge Context: {{challenge}}
 Proposed Action Plan:
 - Title: {{action_card_title}}
@@ -126,6 +132,8 @@ PLAYER_KICKOFF_PROMPT = ChatPromptTemplate.from_messages(
 
 
 GENERATE_COMPONENT_FACT_SYSTEM_PROMPT = """You are an expert MLOps technical telemetry and diagnostics engine for an MLOps serious game.
+
+[[SETTING]]
 The player (MLOps Project Manager) has just run a technical diagnostic probe on the MLOps component "{{component_name}}" (ID: {{component_id}}).
 
 Challenge Context: {{challenge}}

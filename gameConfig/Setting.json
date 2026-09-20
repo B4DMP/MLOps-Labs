@@ -1,0 +1,59 @@
+{
+  "setting": {
+    "company": "Lindenmarkt",
+    "company_description": "Lindenmarkt is a fictional discount supermarket chain running about 1200 stores across several countries. Every store carries a small core range of roughly 2000 everyday articles, plus a rotating weekly promotion in the middle aisle: around 80 non food and seasonal articles that appear for one week, are advertised in the weekly leaflet, and are never restocked once they sell out.",
+    "system": "Shelfcast",
+    "system_description": "Shelfcast is the chain's demand forecasting and replenishment platform. Every night it forecasts daily unit demand for each article in each store for the next fourteen days, and turns that forecast into suggested replenishment orders for the regional distribution centres. A second use of the same platform sizes the initial allocation of middle aisle promotion stock across stores when a buyer locks a promotion, six to ten weeks before it goes on sale.",
+    "player_role": "The player is the project manager of the Shelfcast team. They do not build the models themselves; they run the meetings where the team decides what to change.",
+    "product_users": [
+      "Regional buyers, who choose the middle aisle articles and commit the purchase quantity to suppliers",
+      "Store managers, who see the suggested order for their store each morning and can override it",
+      "Supply chain planners at the distribution centres, who turn orders into truck loads",
+      "The middle aisle category team, who own the weekly promotion calendar and the leaflet deadlines"
+    ],
+    "data_sources": [
+      "Point of sale scan lines from every till, delivered per store per night",
+      "Stock on hand and goods receipts from the store and warehouse systems",
+      "The promotion calendar: which article is in the middle aisle in which week, at which price",
+      "Supplier master data: lead times, minimum order quantities, pallet and case sizes",
+      "Price and markdown history",
+      "Store master data: size, region, opening hours, refrigeration capacity",
+      "A bought in weather feed used for fresh produce and seasonal promotions",
+      "Loyalty app basket data, which is personal data and carries consent and retention obligations"
+    ],
+    "business_metrics": [
+      "Availability: how often a shopper finds the article on the shelf",
+      "Waste: fresh articles thrown away past their date",
+      "Residual stock: middle aisle promotion articles left unsold when the week ends",
+      "Margin on the promotion week, which is what the buyers are measured on",
+      "Override rate: how often store managers change the suggested order, which is the team's proxy for trust"
+    ],
+    "cadence": "The forecast job runs every night for every store. Models are retrained weekly. The promotion allocation runs whenever a buyer locks a middle aisle week. The forecast is served to the ordering system and to the store manager app during the morning order window, so a slow or failed forecast means stores order blind that day.",
+    "current_pain": "Middle aisle quantities are still planned in spreadsheets on buyer instinct, and a miss is expensive in both directions: pallets of unsold garden furniture in the warehouse, or an advertised article sold out on the first morning. Store managers override a large share of suggested orders because the forecast has burned them before, which starves the system of clean signal and keeps the whole thing half trusted.",
+    "governance_hooks": [
+      "Loyalty basket data is personal data: consent, retention limits and access control are real constraints, not paperwork",
+      "Advertised promotions carry a legal duty to have reasonable stock available, so an allocation miss is a compliance problem, not only a commercial one",
+      "Supplier contracts fix minimum order quantities and lead times, so an order the model suggests can be impossible to place",
+      "Automated ordering commits real money without a human in the loop, which the finance side wants auditable"
+    ],
+    "vocabulary": {
+      "use": [
+        "article, store, shelf, till, pallet, case, distribution centre",
+        "middle aisle, promotion week, leaflet, buyer, store manager",
+        "availability, waste, residual stock, markdown, overstock, out of stock",
+        "order suggestion, replenishment, allocation, lead time, minimum order quantity"
+      ],
+      "avoid": [
+        "Any real retailer, brand or product name. The chain is Lindenmarkt and nothing else.",
+        "Any other machine learning domain: no fraud detection, no churn, no credit scoring, no recommendations, no medical or user transaction examples.",
+        "Naming a real country, city or currency. Say the region, the northern stores, the local currency."
+      ]
+    },
+    "examples": {
+      "drift": "A heatwave, a holiday shift, a competitor promotion, a viral article, or a price change moves demand away from what the model learned.",
+      "labelling": "What the shelf actually sold is not what shoppers wanted: once an article is out of stock, the scan lines stop, and that censored demand is what the model learns from.",
+      "monitoring": "A silent forecast failure shows up as empty shelves on a Saturday, or as a skip full of unsold fresh produce on a Monday.",
+      "serving": "The morning order window is narrow. If the forecast service is late or down, every store falls back to last week's numbers."
+    }
+  }
+}

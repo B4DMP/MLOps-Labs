@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_reuben_gov_driver",
+  "stage": "gists",
+  "input_hash": "c737c770ae399e7c19695ab59552ff9c5437cdbfeb0adfc745d8ccebbaddedaf",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_reuben_gov_driver",
+    "fact": "{requirements_reuben} proposed adding governance controls to the shadow deployment environment to ensure compliance with data protection standards.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Governance controls for the shadow deployment environment are the subject of {requirements_reuben} note.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies the subject of a note regarding governance controls but does not express a stance, direction, or commitment to any specific reading."
+  }
+}

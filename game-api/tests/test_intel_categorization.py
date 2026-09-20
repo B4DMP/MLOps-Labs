@@ -79,14 +79,14 @@ async def test_retag_challenge_specific_stance_updates_description():
     from unittest.mock import AsyncMock
     from mlops_serious_game.application.intel_handler import handle_intel_tagging, retrieve_dossier_data
     from mlops_serious_game.domain.phase_factory import PhaseFactory
-    from mlops_serious_game.domain.requirement import IntelTag
+    from mlops_serious_game.domain.requirement import IntelTag, join_wording
     from mlops_serious_game.domain.requirement_factory import RequirementFactory
     from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
 
     all_reqs = RequirementFactory.get_requirements()
-    target_req = next((r for r in all_reqs if r.id == "req_2_data_dave_negotiable_preference_26"), None)
-    if not target_req:
-        target_req = all_reqs[0]
+    # A stance from whatever is in gameConfig. The id this used to name belonged to the hand written
+    # challenges, which are gone, and generated ids move on every regeneration.
+    target_req = next((r for r in all_reqs if r.type != IntelTag.FACT and r.stakeholder_id), all_reqs[0])
     challenge = PhaseFactory.get_challenge_by_id(target_req.challenge_id)
     import sqlalchemy
     from mlops_serious_game.config import settings
@@ -105,7 +105,11 @@ async def test_retag_challenge_specific_stance_updates_description():
     mock_ws = AsyncMock()
     mock_ws.query_params = {"username": unique_user}
 
-    wrong_1, wrong_2 = [t for t in (IntelTag.BOUNDARY, IntelTag.TRADE_OFF, IntelTag.DRIVER) if t != target_req.type][:2]
+    # The first wrong tag is the other plain stance, where the dossier shows the item's stored
+    # reading for that tag. The second is Trade-off, which goes down the branch inventing path and
+    # gets its wording from the model, so it is only checked for being different.
+    wrong_1 = IntelTag.DRIVER if target_req.type == IntelTag.BOUNDARY else IntelTag.BOUNDARY
+    wrong_2 = IntelTag.TRADE_OFF
 
     # Tag it wrong once
     item1 = await handle_intel_tagging(challenge, mock_ws, target_req.id, wrong_1.value)
@@ -116,7 +120,7 @@ async def test_retag_challenge_specific_stance_updates_description():
 
     wrong_req_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, wrong_1.value)
     if wrong_req_desc:
-        assert intel_entry1["description"] == wrong_req_desc
+        assert intel_entry1["description"] == join_wording(target_req.fact, wrong_req_desc)
 
     # Re-tag wrong a different way
     item2 = await handle_intel_tagging(challenge, mock_ws, target_req.id, wrong_2.value)
@@ -125,11 +129,9 @@ async def test_retag_challenge_specific_stance_updates_description():
     intel_entry2 = next((i for i in st_entry2["intel_items"] if i["id"] == target_req.id), None)
     assert intel_entry2 is not None
 
-    wrong_friction_desc = OfflineIntelArtifactFactory.get_wrong_description(target_req.id, wrong_2.value)
-    if wrong_friction_desc:
-        assert intel_entry2["description"] == wrong_friction_desc
-        if wrong_req_desc:
-            assert intel_entry2["description"] != intel_entry1["description"]
+    assert intel_entry2["description"]
+    assert intel_entry2["description"] != intel_entry1["description"]
+    assert intel_entry2["description"] != target_req.description
 
     # Re-tag back to the true tag
     true_type_val = target_req.type.value if hasattr(target_req.type, "value") else str(target_req.type)

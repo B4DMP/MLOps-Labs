@@ -1,7 +1,7 @@
 {
   "item_id": "templates:p4:s1",
   "stage": "templates",
-  "input_hash": "c3be63baab8b82ea59d45699f0efaf933c1d4a52a1633e69b8091f46b4ed7c10",
+  "input_hash": "c254eae38e444d46d1d803de14331f7c0162ad724b54740217c462748f69a176",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -466,7 +466,7 @@
       ],
       "instances": [
         {
-          "id": "endpoint:prediction_api",
+          "id": "endpoint:forecast_service",
           "kind": "endpoint",
           "on": "deploy.serving",
           "props": {
@@ -654,27 +654,30 @@
       "deploy.orchestration"
     ],
     "existing_challenges": [
-      "The Automation Risk"
-    ]
+      "Exposed Model Endpoint",
+      "The Silent Shadow"
+    ],
+    "angle": "suppliers, contracts, or money that is already committed and cannot be taken back",
+    "is_intro": false
   },
   "output": {
-    "slug": "shadow_environment_dispute",
-    "name": "The Silent Shadow",
-    "description": "#reliability_ruth# insists on a fully automated and governed shadow deployment to validate model behavior before release, while #automation_alex# argues that the shadow environment is redundant and should be removed entirely to reduce infrastructure complexity. #automation_alex# has a red line against maintaining any shadow infrastructure and will not move on this point.",
-    "round_introduction": "A recent model update caused unexpected latency spikes in production, and the team realized there was no safe way to test the new version against live traffic without risking user experience. The shadow deployment environment, which was previously manual, has now broken completely, leaving the team without a safety net for future releases.",
+    "slug": "shadow_deployment_contract",
+    "name": "The Locked Shadow",
+    "description": "A supplier contract for the next promotion week is already signed, and the team cannot deploy the new model without a shadow run to verify it. #reliability_ruth# demands a fully automated and governed shadow environment to protect the live forecast, while #automation_alex# insists on keeping it manual to avoid breaking the current pipeline stability.",
+    "round_introduction": "The nightly forecast job failed to generate suggestions for the northern stores because the shadow environment was not running. The buyer for the middle aisle promotion has already committed to the supplier, and any delay in validating the new model risks a stockout on the leaflet.",
     "preconditions": {
       "component": "deploy.shadow",
-      "op": "lte",
+      "op": "eq",
       "level": 1
     },
-    "priority": 65,
+    "priority": 75,
     "on_enter_ops": [
       {
         "kind": "set_to",
         "target": "deploy.shadow",
         "value": 0,
         "attr": null,
-        "reason": "the shadow environment crashed during a load test"
+        "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run"
       }
     ],
     "stalemate_ops": [
@@ -683,7 +686,7 @@
         "target": "e.cicd_shadow",
         "value": 0,
         "attr": null,
-        "reason": "the pipeline trigger for shadow testing was disabled"
+        "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs"
       }
     ],
     "conflict": {
@@ -695,7 +698,7 @@
         },
         {
           "stakeholder_id": "automation_alex",
-          "wants": 1
+          "wants": 2
         }
       ]
     }

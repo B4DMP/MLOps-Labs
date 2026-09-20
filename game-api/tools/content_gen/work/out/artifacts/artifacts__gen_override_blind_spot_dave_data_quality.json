@@ -1,0 +1,54 @@
+{
+  "item_id": "artifacts:gen_override_blind_spot_dave_data_quality",
+  "stage": "artifacts",
+  "input_hash": "48513cde4f3c9d9bb716043d0609788b0312636eae6967089fd033faae1740b1",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_override_blind_spot_dave_data_quality",
+      "challenge_id": -1,
+      "stakeholder_id": "data_dave",
+      "type": "driver",
+      "description": "{data_dave} proposed improving the data quality in the model training pipeline. {data_dave.first} wants higher data quality to ensure the model learns from accurate signals.",
+      "fact": "{data_dave} proposed improving the data quality in the model training pipeline.",
+      "reading": "{data_dave.first} wants higher data quality to ensure the model learns from accurate signals.",
+      "metric_id": "data",
+      "suggested": {
+        "target": "model.training_pipeline",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Data Dave",
+      "role": "Builds secure, scalable data pipelines and manages storage infrastructure. Focuses on high-quality data operations and robust data governance. Collaborates on exploring data and managing data quality to support model development."
+    },
+    "challenge": {
+      "name": "The Override Blind Spot",
+      "description": "Store managers are overriding order suggestions at an alarming rate because they cannot verify if the model behind them is the one they tested. #model_monica# wants a fully automated registry to ensure every deployment is traceable and reproducible. #requirements_reuben# has a red line: no model enters the registry without a manual, documented review of its evaluation metrics to ensure compliance, so he insists on keeping the process manual."
+    }
+  },
+  "output": {
+    "content": "I have been watching the training pipeline lately, and the noise in the scan line data is making it hard to trust the outputs. I want to tighten the validation rules so we catch bad records before they reach the model. The cleaner the input, the better the forecast, and I believe we should keep pushing for higher data quality standards across the board. Every improvement in signal accuracy helps the whole team, so I am keen to expand these checks to cover more data sources as we go.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The text states a need for tighter validation and expresses a desire to expand these checks to more sources, indicating that doing more than the minimum requested would make the author happier."
+  }
+}

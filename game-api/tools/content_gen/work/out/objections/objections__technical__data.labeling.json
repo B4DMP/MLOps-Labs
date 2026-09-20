@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:data.labeling",
   "stage": "objections",
-  "input_hash": "d378160659617355362f1e6776347714633f7a9f4512ed85e7d7ccb92b96d1ef",
+  "input_hash": "e9a332c7ea452e06e3d88bdec8ccc4425ffae153d77acfef70051752a71434e3",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot support improving {target} until {cause} is improved, because the upstream data quality is still not good enough."
+    "line": "We cannot improve {target} because the {cause} upstream is still riddled with gaps and inconsistencies. I need the source data cleaned and validated before I will approve any changes to the labeling pipeline."
   }
 }

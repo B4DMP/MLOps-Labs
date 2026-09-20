@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_emilia_eff_tradeoff",
+  "stage": "gists",
+  "input_hash": "bd6279170f44d2dc075b046bbb88a87d583736a2d9903d08463d3ffc85e9b48f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 5,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_emilia_eff_tradeoff",
+    "fact": "{efficiency_emilia} mentioned that the cost of running an automated shadow environment should be weighed against the risk of a stockout during the promotion week.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The compute cost of the automated shadow environment keeps coming up in efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the cost of the automated environment is a recurring topic in efficiency discussions, but it does not indicate a desire to increase efficiency, a refusal to accept the cost, a trade-off, or a neutral factual statement about the current state of efficiency itself."
+  }
+}

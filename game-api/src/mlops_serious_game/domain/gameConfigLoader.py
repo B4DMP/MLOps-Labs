@@ -13,6 +13,7 @@ from mlops_serious_game.domain.glossary_factory import GlossaryFactory
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.story_factory import StoryFactory
 from mlops_serious_game.domain.pattern import PatternFactory
+from mlops_serious_game.domain.setting_factory import SettingFactory
 
 
 class GameConfigLoader:
@@ -22,6 +23,13 @@ class GameConfigLoader:
         print("Initializing Game Config")
         try:
             config_dir = config_dir or (Path(__file__).parent / "../../../../gameConfig").resolve()
+            setting_path = (config_dir / "Setting.json")
+            if setting_path.exists():
+                SettingFactory.load(setting_path)
+                print(f"loaded setting: {SettingFactory.company()} / {SettingFactory.system()}")
+            else:
+                SettingFactory.clear()
+                print("no Setting.json, content and agents run without a named world")
             stakeholders_path = (config_dir / "GameStakeholders.json")
             StakeholderFactory.load_stakeholders(stakeholders_path)
             print(f"loaded stakeholders:{StakeholderFactory.get_available_stakeholders()}")

@@ -8,7 +8,8 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.stages.common import (
-    GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, op_dict, parse_json_field, render, text_errors, tokenize_names,
+    GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
+    system_for, text_errors, tokenize_names,
 )
 
 KEY = re.compile(r"^[a-z][a-z0-9_]{1,30}$")
@@ -38,6 +39,32 @@ class Readings(BaseModel):
 
 
 TAGS = ("driver", "boundary", "trade_off", "fact")
+
+# Playtesting (Sep 2026): rooms full of Boundaries left players with one legal proposal and no room
+# to bargain. Trade-offs are what give them something to spend, so a challenge is now mostly made of
+# them and red lines are rare enough to mean something. Scopes may override this in scopes.json.
+#
+# The share is bounded on both sides. Asked only for a floor, the model wrote the one Driver and one
+# Boundary it had to and made everything else a Trade-off, which costs the challenge its shape: a
+# Driver is what a player builds an action card out of, and the orphan gate needs Drivers spread
+# over the phase's components.
+DEFAULT_STANCE_MIX = {
+    "trade_off_min_share": 0.4, "trade_off_max_share": 0.55, "driver_min_share": 0.25,
+    "boundary_max_share": 0.34, "driver_min": 1, "boundary_min": 1,
+}
+
+
+def mix_bounds(mix: dict, stances: int) -> dict:
+    """The mix as counts, for a challenge that ended up with this many stance items."""
+    import math
+
+    return {
+        "trade_off_min": max(1, math.ceil(mix.get("trade_off_min_share", 0) * stances)),
+        "trade_off_max": max(1, math.floor(mix.get("trade_off_max_share", 1) * stances)),
+        "driver_min": max(mix.get("driver_min", 1), math.ceil(mix.get("driver_min_share", 0) * stances)),
+        "boundary_max": max(mix.get("boundary_min", 1), math.floor(mix.get("boundary_max_share", 1) * stances)),
+        "boundary_min": mix.get("boundary_min", 1),
+    }
 
 
 class ItemOut(BaseModel):
@@ -143,6 +170,7 @@ class ItemsStage:
                     "current": current_levels(ctx, challenge),
                     "metrics": sorted(ctx.metric_ids - {"efficiency_intro", "model_intro"}),
                     "counts": {"stances": ctx.scope["stances_per_template"], "facts": ctx.scope["facts_per_template"]},
+                    "stance_mix": ctx.scope.get("stance_mix", DEFAULT_STANCE_MIX),
                 },
             ))
         return items
@@ -151,6 +179,7 @@ class ItemsStage:
         i = item.inputs
         c = i["challenge"]
         conflict = c["conflict"]
+        bounds = mix_bounds(i.get("stance_mix") or DEFAULT_STANCE_MIX, i["counts"]["stances"][0])
         sides = " or ".join(p["stakeholder_id"] for p in conflict["positions"])
         rule = (
             f"whichever of {sides} the description shows could compromise needs a trade_off about "
@@ -165,13 +194,19 @@ class ItemsStage:
             f"Write {i['counts']['stances'][0]} to {i['counts']['stances'][1]} stance items (every stakeholder in the "
             f"room gets at least one; at least one driver, one boundary, one trade_off overall) and "
             f"{i['counts']['facts'][0]} to {i['counts']['facts'][1]} facts.",
+            f"Most of what the player finds must be something a stakeholder would trade away, not a line they "
+            f"hold, but the room still needs people pushing for things. For {i['counts']['stances'][0]} stance "
+            f"items that means {bounds['trade_off_min']} to {bounds['trade_off_max']} trade_off, at least "
+            f"{bounds['driver_min']} driver and at most {bounds['boundary_max']} boundary; scale those up if you "
+            f"write more stances. A boundary is rare and costly: keep it for the thing that stakeholder truly "
+            f"cannot give up, and give everyone else a price instead of a wall.",
             "Stakeholders in the room:", render(i["roster"]),
             "Metrics:", render(i["metrics"]),
             "Focus stage graph:", render(i["graph"]),
             "Current levels and triggers right after the challenge starts (facts must match these):", render(i["current"]),
             *feedback,
         ])
-        out, usage = await llm.structured(ItemsOut, SYSTEM, user, tags={"item_id": item.item_id})
+        out, usage = await llm.structured(ItemsOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
         data = out.model_dump()
         for it in data["items"]:
             it["fact"] = tokenize_names(it["fact"], ctx.stakeholders)
@@ -256,6 +291,7 @@ class ItemsStage:
             for t in TAGS:
                 text = it["readings"][t]
                 errors += text_errors(f"{it['key']} reading {t}", text, 3, 22)
+                errors += domain_errors(f"{it['key']} reading {t}", text)
                 if GAME_WORDS.search(text or ""):
                     errors.append(f"{it['key']}: reading {t} says '{GAME_WORDS.search(text).group(0)}'; name the "
                                   "thing itself, e.g. the KPI definitions, never a component or stage")
@@ -283,6 +319,23 @@ class ItemsStage:
         for tag in ("driver", "boundary", "trade_off"):
             if not any(r.type == tag for r in stances):
                 errors.append(f"at least one {tag} is missing")
+        bounds = mix_bounds(i.get("stance_mix") or DEFAULT_STANCE_MIX, len(stances))
+        counted = {tag: sum(1 for r in stances if r.type == tag) for tag in ("driver", "boundary", "trade_off")}
+        if counted["trade_off"] < bounds["trade_off_min"]:
+            errors.append(f"with {len(stances)} stances at least {bounds['trade_off_min']} must be trade_off, "
+                          f"not {counted['trade_off']}; turn a driver or a boundary into something that "
+                          "stakeholder would give up for the right price")
+        if counted["trade_off"] > bounds["trade_off_max"]:
+            errors.append(f"with {len(stances)} stances at most {bounds['trade_off_max']} may be trade_off, "
+                          f"not {counted['trade_off']}; the room also needs people pushing for something, "
+                          "so turn one back into a driver")
+        if counted["driver"] < bounds["driver_min"]:
+            errors.append(f"with {len(stances)} stances at least {bounds['driver_min']} must be driver, "
+                          f"not {counted['driver']}; a driver is what the player builds a proposal out of")
+        if counted["boundary"] > bounds["boundary_max"]:
+            errors.append(f"with {len(stances)} stances at most {bounds['boundary_max']} may be boundary, "
+                          f"not {counted['boundary']}; a red line the player cannot bargain with is rare, "
+                          "rewrite the others as trade_offs")
         for sid in roster:
             if not any(r.stakeholder_id == sid for r in stances):
                 errors.append(f"{sid} is in the room but has no stance")
@@ -291,6 +344,7 @@ class ItemsStage:
         for r in reqs:
             where = r.id.removeprefix(f"gen_{c['template_id'].removeprefix('ch_')}_")
             errors += text_errors(f"{where} fact", r.fact, 4, 25)
+            errors += domain_errors(f"{where} fact", r.fact)
             if r.fact and LEVEL_TALK.search(r.fact):
                 errors.append(f"{where}: the fact mentions levels or numbers; say broken, missing, manual, automated")
             if r.fact and GAME_WORDS.search(r.fact):

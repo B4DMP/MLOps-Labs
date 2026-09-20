@@ -1,7 +1,7 @@
 {
   "item_id": "templates:p5:s0",
   "stage": "templates",
-  "input_hash": "e5f6776f606270a223b5a869126a89fa1ff9103582915723f29c502386d9bfdd",
+  "input_hash": "1ba68ce0955bfcdd6980f2d08b572668be6d7f6022172941049853b77c924c2a",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -475,48 +475,60 @@
       "ops.retraining_trigger"
     ],
     "existing_challenges": [
-      "Model Accuracy Drops"
-    ]
+      "The Blind Spot",
+      "The Silent Drift"
+    ],
+    "angle": "a technical failure nobody noticed until its effects showed up in the real world",
+    "is_intro": false
   },
   "output": {
-    "slug": "blind_spot_silence",
-    "name": "The Blind Spot",
-    "description": "Production metrics have stopped flowing to the team. #efficiency_emilia# argues that a manual monthly audit is sufficient to keep costs down and maintain control over the business KPIs. #reliability_ruth# insists on automated and governed monitoring to catch real-time degradation and ensure the system remains reliable for users.",
-    "round_introduction": "The nightly data pipeline failed to ingest the latest batch of inference logs. The dashboard now shows a flat line for the last 48 hours, leaving the team blind to current model performance.",
+    "slug": "silent_forecast_failure",
+    "name": "The Silent Failure",
+    "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
+    "round_introduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
     "preconditions": {
-      "component": "ops.performance_monitoring",
-      "op": "eq",
-      "level": 1
+      "all": [
+        {
+          "component": "ops.performance_monitoring",
+          "op": "eq",
+          "level": 1
+        },
+        {
+          "edge": "e.perf_alert",
+          "op": "eq",
+          "level": 1
+        }
+      ]
     },
-    "priority": 70,
+    "priority": 75,
     "on_enter_ops": [
-      {
-        "kind": "set_to",
-        "target": "ops.performance_monitoring",
-        "value": 0,
-        "attr": null,
-        "reason": "ingestion job crashed"
-      }
-    ],
-    "stalemate_ops": [
       {
         "kind": "set_to",
         "target": "e.perf_alert",
         "value": 0,
         "attr": null,
-        "reason": "alerting rule disabled due to lack of data"
+        "reason": "the connection between performance monitoring and alerting was severed during a recent infrastructure change"
+      }
+    ],
+    "stalemate_ops": [
+      {
+        "kind": "set_to",
+        "target": "ops.performance_monitoring",
+        "value": 0,
+        "attr": null,
+        "reason": "the monitoring job was disabled to reduce compute costs while the team debated the fix"
       }
     ],
     "conflict": {
       "target": "ops.performance_monitoring",
       "positions": [
         {
-          "stakeholder_id": "efficiency_emilia",
-          "wants": 2
-        },
-        {
           "stakeholder_id": "reliability_ruth",
           "wants": 4
+        },
+        {
+          "stakeholder_id": "efficiency_emilia",
+          "wants": 2
         }
       ]
     }

@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:data.training_drift_check",
   "stage": "fragments",
-  "input_hash": "d94234167dc593fa9c41a3b346fcf4f0e51c1368bf4ecbce6576d8d8d2a83b7c",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "33027a78b8b5ac1034459c86845e9e50e0a8ecc55b1f15c24dcddb611b0aec0b",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "data.training_drift_check",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "The training data drift check fails at random times, causing false alarms and ignored alerts.",
-    "level_1": "The training data drift check does not exist, so no one knows if models are still valid.",
-    "level_2": "The data team manually checks for drift, but it takes weeks and is often forgotten.",
-    "level_3": "A script runs daily to check for drift and sends emails if anomalies are detected.",
-    "level_4": "Drift checks are automated and integrated with model governance, with clear escalation paths."
+    "level_0": "Drift checks crash silently, leaving the team blind to demand shifts during promotion weeks.",
+    "level_1": "No drift check exists, so heatwaves or competitor sales silently skew the replenishment suggestions.",
+    "level_2": "A data analyst manually compares recent sales to historical baselines in a spreadsheet each week.",
+    "level_3": "An automated job flags drift in POS data and alerts the team before the nightly forecast runs.",
+    "level_4": "Drift detection is governed, with documented thresholds and automatic rollback to safe baselines when triggered."
   }
 }

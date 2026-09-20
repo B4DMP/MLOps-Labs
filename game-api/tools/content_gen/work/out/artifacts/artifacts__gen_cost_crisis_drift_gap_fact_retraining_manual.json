@@ -1,0 +1,51 @@
+{
+  "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_retraining_manual",
+  "stage": "artifacts",
+  "input_hash": "d8161cb932c0ec77158e3c7da1e254cc9b14e7508072e3f6ceaced94fd599c14",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_retraining_manual",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "The retraining trigger is done by hand. That is simply the state of the system today.",
+      "fact": "The retraining trigger is done by hand.",
+      "reading": "That is simply the state of the system today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.retraining_trigger",
+        "level": 1,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "document",
+    "narrator": {
+      "id": "reliability_ruth",
+      "name": "Reliability Ruth",
+      "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    },
+    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+  },
+  "output": {
+    "content": "I walked through the deployment pipeline this morning to check the latest model update. The retraining job did not start automatically as the schedule suggested. I found the process sitting idle in the queue. A colleague had to log in and click the start button manually to kick off the weekly cycle. This happens every week without fail. The system waits for a human to initiate the run. There is no automated trigger listening for new data or time based intervals. I watched the job begin only after that manual action. The logs show the timestamp of the human click, not a scheduled event. The pipeline remains static until someone intervenes directly.",
+    "reclassified_as": "fact",
+    "reclassify_reason": "The text describes a recurring operational issue and the current state of the pipeline without expressing a wish, refusal, or explicit acceptance of a trade-off."
+  }
+}

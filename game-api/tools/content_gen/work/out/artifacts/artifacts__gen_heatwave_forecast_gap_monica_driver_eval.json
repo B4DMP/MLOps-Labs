@@ -1,0 +1,54 @@
+{
+  "item_id": "artifacts:gen_heatwave_forecast_gap_monica_driver_eval",
+  "stage": "artifacts",
+  "input_hash": "2aa4f06173d5304bc0402d2cb4ad324c2bff828f68e04036de58706cf7b63b60",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_forecast_gap_monica_driver_eval",
+      "challenge_id": -1,
+      "stakeholder_id": "model_monica",
+      "type": "driver",
+      "description": "{model_monica} asked for automated testing of new weather features in the evaluation harness. Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
+      "reading": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "metric_id": "model",
+      "suggested": {
+        "target": "model.evaluation",
+        "level": 3
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "value": 3
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "slack_message",
+    "author": {
+      "name": "Model Monica",
+      "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring."
+    },
+    "challenge": {
+      "name": "The Heatwave Blind Spot",
+      "description": "A sudden heatwave has shifted demand for seasonal articles, and the current forecast is missing the mark. #model_monica# wants to automate the evaluation harness to test new weather features rapidly, while #requirements_reuben# wants to keep it manual to ensure every test case is rigorously documented before any model change is considered."
+    }
+  },
+  "output": {
+    "content": "I need the evaluation harness to run automatically so I can test new weather features without waiting for a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. If I can iterate on the feature set overnight, I can catch those shifts before the next promotion week locks in. Every additional hour spent on manual documentation delays the model update, which means more residual stock in the warehouse. I want the system to flag when a new feature improves accuracy so I can move it to production immediately.",
+    "reclassified_as": "driver",
+    "reclassify_reason": "The author explicitly states that being able to iterate overnight would allow them to catch demand shifts before a deadline, indicating that fulfilling this need for speed would make them happier by reducing stock risk."
+  }
+}

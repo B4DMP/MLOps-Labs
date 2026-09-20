@@ -1,0 +1,46 @@
+{
+  "item_id": "objections:gen_heatwave_kpi_gap_emilia_risk_manual",
+  "stage": "objections",
+  "input_hash": "eae43a9480b14145a47361e3f5b4e0c71326b7d5cf1a17846883070ee4bcea38",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "kind": "price",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_risk_manual",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} noted that the risk assessment is currently done by hand. {efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
+      "fact": "{efficiency_emilia} noted that the risk assessment is currently done by hand.",
+      "reading": "{efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": {
+        "metric_id": null,
+        "loss": null,
+        "target": "req.risk_assessment",
+        "accepts_max_level": 2
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "speaker": {
+      "id": "efficiency_emilia",
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    }
+  },
+  "output": {
+    "objection": "You are proposing to automate the risk assessment without acknowledging that I am currently doing it by hand. I need you to state clearly that I will retain a manual override for legal issues before we proceed.",
+    "correction": "I am not asking to keep the spreadsheet forever, I am asking for a specific guardrail in the new workflow. Do not file this as a general resistance to automation, it is a requirement for legal compliance."
+  }
+}

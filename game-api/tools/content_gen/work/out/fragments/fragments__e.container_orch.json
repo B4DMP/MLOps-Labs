@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:e.container_orch",
   "stage": "fragments",
-  "input_hash": "702ea036acdc9a5efa654c11fc3e2388ee7d5c9692ecb7f06b047cb8a478b46f",
+  "input_hash": "e6aa929cc416031893f3d9f7d40bdb63da88fbdc1246ee3727cbfbab5eab24fc",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     "name": "hand over from Containerization to Orchestration"
   },
   "output": {
-    "level_0": "Container builds fail silently and never reach the orchestration scheduler for execution.",
-    "level_1": "No defined process exists to move containerized models into the orchestration environment.",
-    "level_2": "Engineers manually push container images to the orchestrator after each successful build.",
-    "level_3": "CI pipelines automatically deploy new containers to the orchestration layer upon validation.",
-    "level_4": "Policy engines enforce compliance checks before any container is handed to orchestration."
+    "level_0": "Container builds fail nightly, so the orchestration scheduler crashes before it can trigger any forecast job.",
+    "level_1": "No orchestration layer exists, so the team manually SSHs into servers to run the containerized forecast script.",
+    "level_2": "A human manually starts the containerized forecast job every night using a simple command line script.",
+    "level_3": "The orchestrator automatically spins up forecast containers nightly and retries failed jobs without human intervention.",
+    "level_4": "The governed orchestrator logs every container launch, enforces resource limits, and alerts on scheduling delays."
   }
 }

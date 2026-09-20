@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_nightly_window_miss_ruth_ingestion_tradeoff",
+  "stage": "gists",
+  "input_hash": "bf4c44b321311979d3be1ddc974f9a09997b9e436dcd5ad2fb65fb676c6e0db9",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_nightly_window_miss_ruth_ingestion_tradeoff",
+    "fact": "{reliability_ruth} mentioned the late arrival of till scan lines.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Midnight Deadline"
+  },
+  "output": {
+    "gist": "The reliability of till scan line delivery before the nightly forecast run keeps coming up in discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist notes that reliability is a frequent topic of discussion but does not express a desire for improvement, a refusal, an acceptance of trade-offs, or a definitive statement of fact about its current status."
+  }
+}

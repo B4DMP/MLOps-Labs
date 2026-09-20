@@ -1,7 +1,7 @@
 {
   "item_id": "fragments:deploy.cicd",
   "stage": "fragments",
-  "input_hash": "09c857805affba1a19e80989970cba907846e6e4cafcf0aa9a6d03e42d600067",
+  "input_hash": "4c1ea221701fc12013f2286c5d23bcffbb6de9a32dad616aab15ea929708da91",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Builds fail randomly, and nobody can explain why the pipeline crashes mid deployment.",
-    "level_1": "No pipeline exists, so engineers deploy models by copying files over SSH manually.",
-    "level_2": "Developers trigger builds via CLI, but every step requires human intervention and attention.",
-    "level_3": "Pushing code triggers automatic builds, tests, and deployments without any human involvement.",
-    "level_4": "Pipeline changes require approval, and all deployments are logged for full audit compliance."
+    "level_0": "The pipeline crashes mid deployment, leaving the forecast job stuck on an old model.",
+    "level_1": "No pipeline exists, so engineers copy model files manually to the staging server.",
+    "level_2": "A developer runs the deployment script by hand after checking the test results.",
+    "level_3": "The pipeline triggers automatically on every code commit and runs the full test suite.",
+    "level_4": "Deployments require sign off, and every change is logged for audit and rollback."
   }
 }

@@ -4,7 +4,8 @@ INVESTIGATION_PLAYER_UTTERANCE_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are the Project Manager in a serious game about MLOps engineering and stakeholder collaboration.\n"
+            "You are the Project Manager in a serious game about MLOps engineering and stakeholder collaboration.\n\n"
+            "[[SETTING]]\n\n"
             "You are consulting directly with {{target_stakeholder_name}} (Role: {{target_stakeholder_role}}) to investigate and gather technical insights about the MLOps component '{{component_name}}' (ID: {{component_id}}).\n\n"
             "Challenge Context: {{challenge}}\n\n"
             "Instructions:\n"
@@ -30,7 +31,8 @@ INVESTIGATION_STAKEHOLDER_RESPONSE_PROMPT = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You are roleplaying as {{stakeholder_name}}, a key stakeholder in an MLOps engineering organization.\n"
+            "You are roleplaying as {{stakeholder_name}}, a key stakeholder in an MLOps engineering organization.\n\n"
+            "[[SETTING]]\n\n"
             "Your Role: {{stakeholder_role}}\n"
             "Your Responsibilities: {{responsibilities}}\n"
             "Your Core Priorities: {{priorities}}\n"

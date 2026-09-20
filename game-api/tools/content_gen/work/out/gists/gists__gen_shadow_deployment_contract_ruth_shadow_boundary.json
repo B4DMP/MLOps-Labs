@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_ruth_shadow_boundary",
+  "stage": "gists",
+  "input_hash": "a72b4f05e17f63ad24fa51abaacf51b6c35c68d626b08f8f1bae1520c2e27e52",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_ruth_shadow_boundary",
+    "fact": "{reliability_ruth} proposed that the shadow deployment environment must be governed before any new model version is released to the live forecast service.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "Governance of the shadow deployment environment for new model versions has been raised in reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that governance has been raised in discussions, which is a descriptive fact about the process without expressing a stance, commitment, or direction regarding the metric."
+  }
+}

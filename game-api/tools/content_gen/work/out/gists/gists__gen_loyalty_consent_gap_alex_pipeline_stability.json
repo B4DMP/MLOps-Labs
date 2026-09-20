@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_loyalty_consent_gap_alex_pipeline_stability",
+  "stage": "gists",
+  "input_hash": "78a1b7088c608b2ceefdc6d57b013a2e43815f790f38219eb3c460e25867d0c2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_loyalty_consent_gap_alex_pipeline_stability",
+    "fact": "{automation_alex} mentioned that pipeline stability relies on manual intervention during contract review.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Consent Void"
+  },
+  "output": {
+    "gist": "The gap between automated ordering and manual contract review has been raised as a recurring concern.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist identifies a specific gap regarding automation as a concern but does not explicitly state whether the stakeholder wants to increase automation, refuses it, accepts a trade-off, or is simply stating a fact without directional commitment."
+  }
+}

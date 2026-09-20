@@ -39,8 +39,18 @@ def collect(ctx) -> dict:
     challenges = []
     requirements = []
     tstage = STAGES["templates"]
+    seen_templates: dict[str, str] = {}
     for rec in templates:
         ch = tstage.to_challenge(rec["output"], WorkItem("templates", rec["item_id"], rec["inputs"]))
+        # Two templates with one id would share a single items record, so the second challenge would
+        # silently be dealt with the first one's intel. Refuse rather than assemble that.
+        if ch["template_id"] in seen_templates:
+            raise AssemblyError(
+                f"two approved templates both call themselves {ch['template_id']}: "
+                f"{seen_templates[ch['template_id']]} and {rec['item_id']}. Reject one of them with a note "
+                "to pick a different problem, then rerun the templates stage."
+            )
+        seen_templates[ch["template_id"]] = rec["item_id"]
         challenges.append(ch)
         irec = items.get(ch["template_id"])
         if irec is None:
@@ -61,9 +71,10 @@ def collect(ctx) -> dict:
     for ch in challenges:
         per_phase[ch["phase_id"]] = per_phase.get(ch["phase_id"], 0) + 1
     for phase_id in ctx.scope["phases"]:
-        if per_phase.get(phase_id, 0) != ctx.scope["templates_per_phase"]:
+        wanted = ctx.templates_for_phase(phase_id)
+        if per_phase.get(phase_id, 0) != wanted:
             missing.append(f"phase {phase_id} has {per_phase.get(phase_id, 0)} approved templates, "
-                           f"scope wants {ctx.scope['templates_per_phase']}")
+                           f"scope wants {wanted}")
     if missing:
         raise AssemblyError("not everything is approved yet:\n  " + "\n  ".join(missing))
     return {"challenges": challenges, "requirements": requirements, "artifacts": artifacts,
@@ -113,10 +124,16 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             next_id += 1
         ids[ch["template_id"]] = lock[ch["template_id"]]
     generated = [{"id": ids[ch["template_id"]], **ch, "generated": True} for ch in data["challenges"]]
+    assign_fallbacks(generated, [c for c in hand_written if not c.get("retired")])
     progression["challenges"] = hand_written + sorted(generated, key=lambda c: c["id"])
     for phase in progression["phases"]:
-        if phase["id"] in ctx.scope["phases"]:
-            phase["challenges_per_phase"] = ctx.scope["templates_per_phase"]
+        # How many challenges a player gets dealt in a phase is pacing, not content: it is tuned by
+        # hand against the target session length, so assembly only fills it in where it is missing.
+        # A phase that has never been given one falls back to one challenge, which is how the game
+        # was paced before the fallbacks became generated content.
+        if phase["id"] in ctx.scope["phases"] and phase.get("challenges_per_phase") is None:
+            if any(c["phase_id"] == phase["id"] for c in generated):
+                phase["challenges_per_phase"] = 1
 
     reqs = _load(cfg / "RequirementObjects.json")
     reqs["requirements"] = [r for r in reqs["requirements"] if not str(r["id"]).startswith("gen_")]
@@ -185,3 +202,25 @@ def assemble(ctx, dry_run: bool = False) -> dict:
     _save(cfg / "MlopsStoryFragments.json", fragments)
     _save(lock_path, lock)
     return summary
+
+
+def assign_fallbacks(generated: list[dict], hand_written: list[dict]) -> None:
+    """Give every phase exactly one fallback challenge, which the game's loader insists on.
+
+    The fallbacks used to be the six hand written challenges. They were written for a generic ML
+    project, carried no intel payloads and between them contained no Trade-offs, so they were
+    removed rather than rewritten. Each phase now falls back to one of its own generated
+    challenges: the lowest priority one, since the fallback is what the player gets when nothing
+    more specific fits the state of the project."""
+    phases_covered = {c["phase_id"] for c in hand_written if c.get("fallback")}
+    by_phase: dict[int, list[dict]] = {}
+    for ch in generated:
+        ch["fallback"] = False
+        by_phase.setdefault(ch["phase_id"], []).append(ch)
+    for phase_id, challenges in by_phase.items():
+        if phase_id in phases_covered:  # a hand written fallback still holds this phase
+            continue
+        fallback = min(challenges, key=lambda c: (c["priority"], c["template_id"]))
+        fallback["fallback"] = True
+        # A fallback is dealt when nothing else qualifies, so it must not be gated on the graph.
+        fallback["preconditions"] = True

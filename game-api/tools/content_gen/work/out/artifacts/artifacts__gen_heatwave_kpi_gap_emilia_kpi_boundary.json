@@ -1,0 +1,55 @@
+{
+  "item_id": "artifacts:gen_heatwave_kpi_gap_emilia_kpi_boundary",
+  "stage": "artifacts",
+  "input_hash": "daa490ff04c11c5a45caf1690beaef4bb8c5595a0bc64a73c4b68c5eb79537ae",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week. {efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
+      "reading": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": {
+        "component": "req.kpi_definition",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "artifact_type": "meeting_notes",
+    "author": {
+      "name": "Efficiency Emilia",
+      "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs."
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "We need to lock the definition of success before we build any new tracking. The margin on the promotion week is the only metric that matters to the business right now. If a KPI definition does not include that specific number, I will not sign off on it. We cannot let operational speed or model accuracy override the financial reality of the promotion. Any proposal that ignores the margin on the promotion week is a no from my side. We are not negotiating this point. The strategy is clear, and the KPIs must reflect it exactly. Do not bring me a dashboard that measures availability or waste in isolation without tying it back to that margin figure. That is the line.",
+    "reclassified_as": "boundary",
+    "reclassify_reason": "The text explicitly defines a non-negotiable requirement and refusal threshold, stating that any proposal ignoring the specific margin metric is a 'no' and that this point is not open to negotiation."
+  }
+}

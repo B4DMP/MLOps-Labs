@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_cost_crisis_drift_gap_monica_retraining",
+  "stage": "gists",
+  "input_hash": "fa8c10527c0becaf17a2c2f6575b3cce87cc1b3fc9fffc9ae89a3ffd89c59838",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_cost_crisis_drift_gap_monica_retraining",
+    "fact": "{model_monica} suggested linking drift alerts to the retraining trigger.",
+    "metric_id": "model",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Cost Cliff"
+  },
+  "output": {
+    "gist": "The connection between drift alerts and model retraining has been raised by {model_monica}.",
+    "verdict_metric_id": "model",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist merely notes that a topic regarding model retraining and drift alerts was raised, without expressing a stance, preference, or commitment to any specific reading."
+  }
+}

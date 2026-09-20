@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:model.training_pipeline",
   "stage": "objections",
-  "input_hash": "df34c7258bb0aebff20525338ce8599e9d4b73017131332b22b91183d0ec2fef",
+  "input_hash": "693b14bf767c3d1f358b7f39f3f5258f4ab5b7b63013186061f1630dd12bd33e",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I do not think we can improve {target} because {cause} upstream is not good enough yet. We need to improve {cause} first."
+    "line": "I cannot commit to improving {target} because the data quality in {cause} is still too noisy to train a reliable model. We need to stabilize that upstream feed before we can expect any real lift in performance."
   }
 }

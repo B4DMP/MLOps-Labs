@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_shadow_deployment_contract_alex_orch_tradeoff",
+  "stage": "gists",
+  "input_hash": "04fc1ad43fbe2e7b020c4d2f34dc4fc3cb6ea779c34253397ef86d64b7df49d0",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_shadow_deployment_contract_alex_orch_tradeoff",
+    "fact": "{automation_alex} noted that the orchestration layer for the shadow environment is currently done by hand and requires manual configuration for each new model version.",
+    "metric_id": "automation",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Locked Shadow"
+  },
+  "output": {
+    "gist": "The manual configuration process for the shadow environment orchestration layer has been raised during recent model version deployments.",
+    "verdict_metric_id": "automation",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the manual configuration process was raised as a topic during deployments, but it does not explicitly state a desire to automate it (driver), a refusal to automate (boundary), or an acceptance of the manual effort (trade_off), nor does it present it as a neutral fact without context."
+  }
+}

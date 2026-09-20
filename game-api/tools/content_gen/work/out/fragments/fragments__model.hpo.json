@@ -1,8 +1,8 @@
 {
   "item_id": "fragments:model.hpo",
   "stage": "fragments",
-  "input_hash": "db316265c5c30064121b551ab4c2771e93502e7a729e66c985327be47da3c619",
-  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "input_hash": "b56f0c5738d358e1000ab80597f29cfd52d55841be6e7c90ab98041607b7126e",
+  "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
     "target": "model.hpo",
@@ -17,10 +17,10 @@
     ]
   },
   "output": {
-    "level_0": "Hyperparameter Tuning fails repeatedly and crashes the training pipeline.",
-    "level_1": "Hyperparameter Tuning is not set up and no tuning occurs.",
-    "level_2": "Hyperparameter Tuning is done manually with trial and error by data scientists.",
-    "level_3": "Hyperparameter Tuning runs automatically but without coordination across the team.",
-    "level_4": "Hyperparameter Tuning is automated and integrated with a governance framework."
+    "level_0": "The tuning script crashes on every promotion week, leaving the team to guess parameters by hand.",
+    "level_1": "No tuning process exists, so the model runs with default settings that miss seasonal demand spikes.",
+    "level_2": "A data scientist manually adjusts learning rates in a notebook before each weekly retraining run.",
+    "level_3": "An automated pipeline searches hyperparameters nightly and applies the best configuration to the forecast job.",
+    "level_4": "Tuning experiments are logged, versioned, and approved by the ML platform team before deployment."
   }
 }

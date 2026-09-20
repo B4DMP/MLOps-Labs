@@ -35,6 +35,8 @@ class Context:
     phases: list = field(default_factory=list)
     stakeholders: dict = field(default_factory=dict)
     metric_ids: set = field(default_factory=set)
+    setting_block: str = ""
+    setting_digest: str = "none"
 
     @classmethod
     def load(cls, config_dir: Optional[Path] = None, work_dir: Optional[Path] = None, scope: str = "tier0",
@@ -44,6 +46,7 @@ class Context:
         from mlops_serious_game.domain.metric_factory import MetricFactory
         from mlops_serious_game.domain.pattern import PatternFactory
         from mlops_serious_game.domain.phase_factory import PhaseFactory
+        from mlops_serious_game.domain.setting_factory import SettingFactory
         from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
         config_dir = config_dir or default_config_dir()
@@ -56,7 +59,16 @@ class Context:
         ctx.phases = list(PhaseFactory.get_phases())
         ctx.stakeholders = {s.id: s for s in StakeholderFactory.stakeholders}
         ctx.metric_ids = set(MetricFactory.get_available_metrics())
+        ctx.setting_block = SettingFactory.full_block()
+        ctx.setting_digest = SettingFactory.digest()
         return ctx
+
+    def stage_version(self, stage) -> str:
+        """What a stage's output depends on besides its inputs: the prompt and the world it is set in.
+
+        Editing Setting.json therefore marks generated content stale, the same way editing a prompt
+        does, instead of leaving half the game in the old world."""
+        return f"{stage.prompt_version}+{self.setting_digest}"
 
     # ---- paths ----
 
@@ -85,7 +97,25 @@ class Context:
         return next(p for p in self.phases if p.id == phase_id)
 
     def stage_for_phase(self, phase_id: int) -> str:
-        return next(s.id for s in self.graph.stages if s.phase_id == phase_id)
+        """The graph stage a phase's challenges live in.
+
+        The introduction phase has no stage of its own. The game already treats it as the first
+        lifecycle stage (see the websocket pitch handler), and content generation follows: its
+        challenge argues about the same requirements the project is starting from."""
+        stage = next((s.id for s in self.graph.stages if s.phase_id == phase_id), None)
+        if stage is None:
+            first = min((s.phase_id for s in self.graph.stages if s.phase_id is not None), default=None)
+            stage = next((s.id for s in self.graph.stages if s.phase_id == first), None)
+        if stage is None:
+            raise SystemExit(f"no graph stage for phase {phase_id}, and no lifecycle stage to fall back to")
+        return stage
+
+    def templates_for_phase(self, phase_id: int) -> int:
+        """How many challenges this phase gets. The introduction gets one, everything else the
+        scope's usual number."""
+        if phase_id == self.scope.get("intro_phase"):
+            return 1
+        return self.scope["templates_per_phase"]
 
     def roster(self, phase_id: int) -> list[dict]:
         """Stakeholders in the room for a phase, with what the model needs to write for them."""

@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_forecast_failure_emilia_tradeoff_monitoring",
+  "stage": "gists",
+  "input_hash": "60ecfe6b9f5476796c6a961e5f1b22d0e13751109088175036058cdf728ca5bd",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_silent_forecast_failure_emilia_tradeoff_monitoring",
+    "fact": "{efficiency_emilia} suggested keeping model performance monitoring done by hand.",
+    "metric_id": "efficiency",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Failure"
+  },
+  "output": {
+    "gist": "The manual handling of model performance checks has been raised during efficiency discussions.",
+    "verdict_metric_id": "efficiency",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that a specific manual process was raised during discussions about efficiency, but it does not commit to a stance such as demanding automation, refusing the status quo, or accepting a trade-off; it merely notes the topic's presence in the conversation."
+  }
+}

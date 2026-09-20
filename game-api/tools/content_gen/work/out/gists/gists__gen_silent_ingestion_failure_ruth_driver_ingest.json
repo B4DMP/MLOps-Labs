@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_silent_ingestion_failure_ruth_driver_ingest",
+  "stage": "gists",
+  "input_hash": "3f98207a5c12f2f75e52584d42cd606a1b62e406b28d5817af9e5d54018c412a",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 3,
+  "inputs": {
+    "requirement_id": "gen_silent_ingestion_failure_ruth_driver_ingest",
+    "fact": "{reliability_ruth} proposed automating the data ingestion pipeline to guarantee timely arrival of store scan lines.",
+    "metric_id": "reliability",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Silent Store Gap"
+  },
+  "output": {
+    "gist": "Timely arrival of store scan lines in the nightly ingestion pipeline keeps coming up in reliability discussions.",
+    "verdict_metric_id": "reliability",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist explicitly states that timely arrival is a recurring topic in reliability discussions, which identifies the metric but does not commit to a specific stance such as a demand, refusal, trade-off, or neutral fact."
+  }
+}

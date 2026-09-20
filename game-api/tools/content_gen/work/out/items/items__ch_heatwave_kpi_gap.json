@@ -1,0 +1,511 @@
+{
+  "item_id": "items:ch_heatwave_kpi_gap",
+  "stage": "items",
+  "input_hash": "893f918c3ce7e40a906e4fdf5fda8fb0c4d7bbfb2f156d7eafae35f1c836d6b5",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "challenge": {
+      "phase_id": 0,
+      "template_id": "ch_heatwave_kpi_gap",
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals.",
+      "roundIntroduction": "Welcome to the Shelfcast project. You are now the project manager responsible for coordinating our MLOps team. Today, we are addressing a critical gap in how we measure success during volatile weather events.",
+      "metric_changes": {},
+      "attention_tokens": 20,
+      "priority": 85,
+      "preconditions": {
+        "component": "req.kpi_definition",
+        "op": "eq",
+        "level": 1
+      },
+      "fallback": false,
+      "on_enter_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.kpi_definition",
+          "value": 0,
+          "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items."
+        }
+      ],
+      "stalemate_ops": [
+        {
+          "kind": "set_to",
+          "target": "req.acceptance_criteria",
+          "value": 0,
+          "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability."
+        }
+      ],
+      "conflict": {
+        "type": "soft",
+        "target": "req.kpi_definition",
+        "positions": [
+          {
+            "stakeholder_id": "model_monica",
+            "wants": 4
+          },
+          {
+            "stakeholder_id": "efficiency_emilia",
+            "wants": 2
+          }
+        ]
+      },
+      "focus_stage_ids": [
+        "req"
+      ]
+    },
+    "roster": [
+      {
+        "stakeholder_id": "model_monica",
+        "name": "Model Monica",
+        "role": "Specializes in designing, optimizing, and training machine learning models. Conducts data exploration and iterates on models to maximize predictive performance. Collaborates on model deployment, versioning, and performance monitoring.",
+        "priorities": "Optimizing, deploying, and monitoring high-performing ML models. Maximizing predictive performance of models. Exploring new algorithms and features.",
+        "metric_id": "model",
+        "power": "low",
+        "interest": "high"
+      },
+      {
+        "stakeholder_id": "efficiency_emilia",
+        "name": "Efficiency Emilia",
+        "role": "Uses deep domain knowledge to define business goals, objectives, and KPIs. Aligns ML features with overarching product strategy and organizational roadmaps. Evaluates system performance, operational capability, and project costs.",
+        "priorities": "Applying deep domain knowledge to ensure models fulfill specific business goals. Aligning ML solutions with clear objectives, KPIs, and business goals. Making organization-level decisions and enhancing overall operational capability. Defining products by defining and optimizing product features.",
+        "metric_id": "efficiency",
+        "power": "high",
+        "interest": "high"
+      }
+    ],
+    "graph": {
+      "stage": "req",
+      "components": [
+        {
+          "id": "req.kpi_definition",
+          "name": "KPI Definition",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.acceptance_criteria",
+          "name": "Acceptance Criteria",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.data_contracts",
+          "name": "Data Contracts",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        },
+        {
+          "id": "req.risk_assessment",
+          "name": "Risk Assessment",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            4
+          ],
+          "owner": "requirements_reuben",
+          "attributes": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.contracts_ingest",
+          "from": "req.data_contracts",
+          "to": "data.ingestion",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_acceptance",
+          "from": "req.risk_assessment",
+          "to": "req.acceptance_criteria",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.acceptance_eval",
+          "from": "req.acceptance_criteria",
+          "to": "model.evaluation",
+          "kind": "pipeline",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_audit",
+          "from": "req.risk_assessment",
+          "to": "gov.audit",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        },
+        {
+          "id": "e.risk_cards",
+          "from": "req.risk_assessment",
+          "to": "gov.model_cards",
+          "kind": "governs",
+          "start_level": 1,
+          "allowed_levels": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "allowed_triggers": [
+            "none",
+            "manual_request",
+            "scheduled",
+            "on_approval"
+          ]
+        }
+      ],
+      "instances": []
+    },
+    "current": {
+      "req.kpi_definition": {
+        "level": 0
+      },
+      "req.acceptance_criteria": {
+        "level": 1
+      },
+      "req.data_contracts": {
+        "level": 1
+      },
+      "req.risk_assessment": {
+        "level": 1
+      },
+      "e.risk_acceptance": {
+        "level": 1,
+        "trigger": "none"
+      }
+    },
+    "metrics": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "counts": {
+      "stances": [
+        6,
+        10
+      ],
+      "facts": [
+        3,
+        6
+      ]
+    },
+    "stance_mix": {
+      "trade_off_min_share": 0.4,
+      "trade_off_max_share": 0.55,
+      "driver_min_share": 0.25,
+      "boundary_max_share": 0.34,
+      "driver_min": 1,
+      "boundary_min": 1
+    }
+  },
+  "output": {
+    "items": [
+      {
+        "key": "monica_kpi_automation",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} proposed automating the KPI definition.",
+        "readings": {
+          "driver": "Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
+          "boundary": "The model team will not deploy seasonal features without automated KPI tracking.",
+          "trade_off": "The model team would accept manual KPI tracking if it allowed more time for feature engineering.",
+          "fact": "The KPI definition is currently missing from the system."
+        },
+        "metric_id": "model",
+        "suggested_target": "req.kpi_definition",
+        "suggested_level": 4,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_kpi_manual",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} suggested keeping the KPI definition manual.",
+        "readings": {
+          "driver": "{efficiency_emilia} wants more manual control to refine the business goals.",
+          "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
+          "trade_off": "{efficiency_emilia} would accept an automated KPI definition if it clearly supports the agreed business goals.",
+          "fact": "The KPI definition is currently missing from the system."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.kpi_definition",
+        "concedes_max_level": 4,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "monica_criteria_automation",
+        "tag": "trade_off",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} asked for automated acceptance criteria.",
+        "readings": {
+          "driver": "Automated acceptance criteria would let the model team iterate faster on seasonal forecasting.",
+          "boundary": "The model team cannot proceed with deployment if acceptance criteria remain manual.",
+          "trade_off": "The model team would accept manual acceptance criteria if the review cycle is shortened to one day.",
+          "fact": "The acceptance criteria are currently done by hand."
+        },
+        "metric_id": "model",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.acceptance_criteria",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_risk_manual",
+        "tag": "trade_off",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} noted that the risk assessment is currently done by hand.",
+        "readings": {
+          "driver": "{efficiency_emilia} wants more detailed risk assessments for every promotion week.",
+          "boundary": "{efficiency_emilia} will not approve automated risk assessment without a compliance check.",
+          "trade_off": "{efficiency_emilia} would accept automated risk assessment if it includes a manual override for legal issues.",
+          "fact": "The risk assessment is currently done by hand."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": "req.risk_assessment",
+        "concedes_max_level": 2,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "monica_data_contracts",
+        "tag": "driver",
+        "stakeholder_id": "model_monica",
+        "fact": "{model_monica} proposed automated data contracts.",
+        "readings": {
+          "driver": "Automated data contracts would ensure the weather feed is always available for the model.",
+          "boundary": "The model team cannot train on weather data without automated contracts.",
+          "trade_off": "The model team would accept manual data contracts if the feed is reliable.",
+          "fact": "The data contracts are currently done by hand."
+        },
+        "metric_id": "model",
+        "suggested_target": "req.data_contracts",
+        "suggested_level": 3,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "emilia_kpi_boundary",
+        "tag": "boundary",
+        "stakeholder_id": "efficiency_emilia",
+        "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
+        "readings": {
+          "driver": "{efficiency_emilia} wants more KPIs to track margin improvements.",
+          "boundary": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+          "trade_off": "{efficiency_emilia} would drop the margin KPI if availability is prioritized.",
+          "fact": "The KPI definition is currently missing from the system."
+        },
+        "metric_id": "efficiency",
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": {
+          "component": "req.kpi_definition",
+          "op": "gte",
+          "level": 2
+        },
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "req.kpi_definition",
+            "value": 2,
+            "attr": null
+          }
+        ],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": null,
+        "asserts_level": null,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_kpi_missing",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The KPI definition is missing from the system.",
+        "readings": {
+          "driver": "The team wants to add KPI definitions to track performance.",
+          "boundary": "The team will not proceed without KPI definitions.",
+          "trade_off": "The team would accept missing KPIs if the models are accurate.",
+          "fact": "That is simply how the KPI setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.kpi_definition",
+        "asserts_level": 0,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_criteria_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The acceptance criteria are done by hand.",
+        "readings": {
+          "driver": "The team wants to automate the acceptance criteria.",
+          "boundary": "The team will not accept automated acceptance criteria.",
+          "trade_off": "The team would accept manual acceptance criteria if the process is fast.",
+          "fact": "That is simply how the acceptance criteria setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.acceptance_criteria",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      },
+      {
+        "key": "fact_risk_manual",
+        "tag": "fact",
+        "stakeholder_id": null,
+        "fact": "The risk assessment is done by hand.",
+        "readings": {
+          "driver": "The team wants to automate the risk assessment.",
+          "boundary": "The team will not accept automated risk assessment.",
+          "trade_off": "The team would accept manual risk assessment if it is thorough.",
+          "fact": "That is simply how the risk assessment setup works today."
+        },
+        "metric_id": null,
+        "suggested_target": null,
+        "suggested_level": null,
+        "holds": null,
+        "ops": [],
+        "concedes_metric": null,
+        "concedes_loss": null,
+        "concedes_target": null,
+        "concedes_max_level": null,
+        "asserts_target": "req.risk_assessment",
+        "asserts_level": 1,
+        "asserts_trigger": null
+      }
+    ]
+  }
+}

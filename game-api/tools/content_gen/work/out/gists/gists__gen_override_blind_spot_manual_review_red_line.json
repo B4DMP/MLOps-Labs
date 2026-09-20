@@ -1,0 +1,27 @@
+{
+  "item_id": "gists:gen_override_blind_spot_manual_review_red_line",
+  "stage": "gists",
+  "input_hash": "1db399ada2ab9590dfdf608a6b38430e194b4a5043265077d20fa0e7e19b2f72",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "requirement_id": "gen_override_blind_spot_manual_review_red_line",
+    "fact": "{requirements_reuben} proposed keeping the model registry review process manual.",
+    "metric_id": "requirements",
+    "metric_ids": [
+      "automation",
+      "data",
+      "efficiency",
+      "model",
+      "reliability",
+      "requirements"
+    ],
+    "challenge_name": "The Override Blind Spot"
+  },
+  "output": {
+    "gist": "The model registry review process keeps coming up in {requirements_reuben}'s notes.",
+    "verdict_metric_id": "requirements",
+    "verdict_reading": "none",
+    "verdict_reason": "The gist states that the review process appears in notes, which is a neutral observation of frequency without indicating a desire to increase it, a refusal, a trade-off, or a definitive operational fact."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:deploy.canary_ab",
   "stage": "objections",
-  "input_hash": "b3b7c15322730d599f1b7ebfdd5d807223f7b8ea7cb6e59ff821b90d0f8088ff",
+  "input_hash": "34d6ed95c8ff14a658b069da3cb4dcaf3605de1ac98441b3bd79ef3e655561b7",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot support improving {target} because the upstream {cause} is still unstable. My Canary and A/B testing infrastructure requires reliable inputs to function correctly."
+    "line": "I cannot approve this change to {target} because the upstream {cause} is still failing our stability checks. We need that infrastructure to be reliable before we risk breaking the deployment pipeline."
   }
 }

@@ -1,7 +1,7 @@
 {
   "item_id": "objections:technical:req.risk_assessment",
   "stage": "objections",
-  "input_hash": "4e69bd0a7b8a5438fb0931606ebe25a2c6409f4a2591b00704e5bfaec945f602",
+  "input_hash": "9f94d693964513c1ee10648433862a5e3f18fba2e696068b7eb680575ba7f194",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -17,6 +17,6 @@
     }
   },
   "output": {
-    "line": "I cannot approve the plan to improve {target} because the upstream {cause} does not meet our security and governance standards. We must resolve those foundational risks before proceeding."
+    "line": "I cannot sign off on improving {target} because the data governance posture for {cause} upstream is still non compliant. We need a clear audit trail for personal data access before we move this to production."
   }
 }
