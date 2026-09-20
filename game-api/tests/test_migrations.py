@@ -233,6 +233,7 @@ def test_upgrade_head_from_a_database_migrated_on_main(throwaway_db):
     add_graph_op_log. A database migrated on main is stamped `e5f6a7b8c9d0` with the campaign
     columns but no graph_op_log; alembic/env.py must notice and upgrade it without a manual stamp."""
     from alembic import command
+    from alembic.script import ScriptDirectory
 
     cfg = _alembic_config()
     command.upgrade(cfg, "d4e5f6a7b8c9")
@@ -253,4 +254,6 @@ def test_upgrade_head_from_a_database_migrated_on_main(throwaway_db):
         version = conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
     engine.dispose()
     assert "graph_op_log" in tables
-    assert version == "c4d5e6f7a8b9"
+    # Read head from the script directory rather than pinning a literal: what this test is about
+    # is that the upgrade runs at all from main's stamp, not which revision happens to be last.
+    assert version == ScriptDirectory.from_config(cfg).get_current_head()
