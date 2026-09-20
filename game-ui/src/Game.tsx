@@ -38,6 +38,7 @@ interface Stakeholder {
   constraints?: string;
   role_description: string;
   metric_id: string;
+  voice?: "male" | "female" | "neutral";
   stakeholder_color?: string;
   facial_expression?: string;
   emotion?: string;

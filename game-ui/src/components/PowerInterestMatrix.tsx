@@ -6,6 +6,8 @@ import { StakeholderContext } from "./StakeholderProvider";
 import type { PhaseStakeholderEntry } from "./PhaseProvider";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import HoverTooltip from "./HoverToolTip";
+import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
 
 interface PowerInterestMatrixProps {
   currentStakeholders: PhaseStakeholderEntry[];
@@ -94,6 +96,7 @@ export default function PowerInterestMatrix({
   autoPlayIntroductions = true,
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
+  const { speak: speakTts, cancel: cancelTts } = useSpeech();
 
   const { categorizedNodes, dynamicsItems } = useMemo(() => {
     const prevMap = new Map<string, PhaseStakeholderEntry>();
@@ -228,7 +231,7 @@ export default function PowerInterestMatrix({
   // Everyone on the radar who has something to say. Collected in grid reading order
   // so the bubble travels predictably instead of hopping around the quadrants.
   const { introsById, introQueue } = useMemo(() => {
-    const byId = new Map<string, { name: string; color: string; message: string }>();
+    const byId = new Map<string, { name: string; color: string; message: string; voice?: string }>();
     const queue: string[] = [];
     QUADRANTS.forEach((quad) => {
       (categorizedNodes[quad.key] || []).forEach((item: any) => {
@@ -238,6 +241,7 @@ export default function PowerInterestMatrix({
           name: item.st?.name || item.stakeholderId,
           color: item.st?.stakeholder_color || "#3b82f6",
           message,
+          voice: item.st?.voice,
         });
         // Only newcomers introduce themselves on their own. On the first phase the
         // whole cast counts as new, so the full round plays at project kickoff.
@@ -271,6 +275,7 @@ export default function PowerInterestMatrix({
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
     fadeTimerRef.current = null;
     advanceTimerRef.current = null;
+    cancelTts();
   };
 
   const advanceIntro = useCallback(() => {
@@ -329,7 +334,12 @@ export default function PowerInterestMatrix({
   // Hold each bubble long enough to read it, fade out, then hand over to the next speaker
   useEffect(() => {
     if (!introState) return;
-    const message = introsById.get(introState.stakeholderId)?.message || "";
+    const details = introsById.get(introState.stakeholderId);
+    const message = details?.message || "";
+    speakTts(message, {
+      slot: slotForStakeholderVoice(details?.voice),
+      seed: introState.stakeholderId,
+    });
     const durationMs = Math.min(9000, Math.max(4000, Math.round(message.length * 55)));
     fadeTimerRef.current = setTimeout(() => {
       setIntroState((prev) => (prev ? { ...prev, isClosing: true } : null));

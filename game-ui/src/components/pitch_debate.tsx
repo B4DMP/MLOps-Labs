@@ -6,6 +6,8 @@ import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
+import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
 import styles from "./pitch_debate.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo, type IntelEntry } from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
@@ -126,10 +128,20 @@ export default function PitchDebate({
 }: PitchDebateProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { settings } = useSettings();
+  const { speak: speakTts, cancel: cancelTts } = useSpeech();
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
-    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string; emotional_state?: string; metric_id?: string; power?: string; interest?: string }
+    {
+      name?: string;
+      avatar?: StakeholderAvatar;
+      stakeholder_color?: string;
+      emotional_state?: string;
+      metric_id?: string;
+      power?: string;
+      interest?: string;
+      voice?: string;
+    }
   >;
   const setStakeholders = stakeholderCtx?.setStakeholders;
   const metricsCtx = useContext(MetricsContext);
@@ -254,6 +266,7 @@ export default function PitchDebate({
     if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
     if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
     if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+    cancelTts();
   };
 
   const processSpeechQueue = () => {
@@ -295,6 +308,7 @@ export default function PitchDebate({
         return;
       }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
+      speakTts(nextItem.message, { slot: "player" });
       const durationMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
       const fadeOutDelay = Math.max(0, durationMs - 400);
 
@@ -355,6 +369,10 @@ export default function PitchDebate({
         stakeholderId: nextItem.stakeholderId || "",
         message: nextItem.message,
         isClosing: false,
+      });
+      speakTts(nextItem.message, {
+        slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
+        seed: nextItem.stakeholderId,
       });
       const durationMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
       const fadeOutDelay = Math.max(0, durationMs - 400);

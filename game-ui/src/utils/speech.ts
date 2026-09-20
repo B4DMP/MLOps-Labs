@@ -111,6 +111,13 @@ export function pickVoice(
   return pool.find((v) => regex.test(v.name)) ?? pool[0];
 }
 
+/** Maps a stakeholder's configured voice gender hint (male/female/neutral, from
+ * `gameConfig/GameStakeholders.json`) onto a speech slot. "neutral" falls back to the narrator
+ * voice, so every stakeholder is still distinguishable without being forced into a gender. */
+export function slotForStakeholderVoice(voice: string | undefined | null): VoiceSlot {
+  return voice === "male" || voice === "female" ? voice : "narrator";
+}
+
 function hashSeed(seed: string): number {
   let h = 0;
   for (let i = 0; i < seed.length; i += 1) {

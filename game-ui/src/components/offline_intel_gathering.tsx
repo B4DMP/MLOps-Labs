@@ -8,6 +8,7 @@ import EventLogModal from "./EventLogModal";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
+import { useSpeech } from "./useSpeech";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -90,6 +91,7 @@ export default function OfflineIntelGathering({
   onGoBack,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
+  const { speak: speakTts, cancel: cancelTts } = useSpeech();
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>(() =>
     singleArtifact ? [singleArtifact] : []
   );
@@ -350,6 +352,17 @@ export default function OfflineIntelGathering({
   const isFinished = artifacts.length > 0 && currentIndex >= artifacts.length;
   const currentArtifactKey = currentArtifact ? currentArtifact.id : "";
   const currentTaggedType = currentArtifactKey ? taggedTypes[currentArtifactKey] : undefined;
+
+  // Narrates an artifact's content once, the first time it's actually viewed - keyed the same
+  // way the viewer is, so paging back through already-read artifacts never re-narrates them.
+  const narratedArtifactKeysRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!currentArtifactKey || !currentArtifact?.content) return;
+    if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
+    narratedArtifactKeysRef.current.add(currentArtifactKey);
+    speakTts(currentArtifact.content, { slot: "narrator" });
+    return cancelTts;
+  }, [currentArtifactKey, currentArtifact?.content, speakTts, cancelTts]);
 
   // Known artifacts arrive pre-tagged and locked, so they stay out of every progress count:
   // the player should see how many calls are theirs to make, not a number they cannot move.
