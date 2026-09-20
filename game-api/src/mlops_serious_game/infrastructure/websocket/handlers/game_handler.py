@@ -365,6 +365,16 @@ async def handle_game_init(
             # No challenge recorded yet for this player: deal one through the same scheduler
             # every later challenge goes through, so retired/legacy templates are never dealt here.
             curr_challenge: Challenge = select_first_challenge(username)
+            await store_or_update_challenge(
+                challenge=curr_challenge,
+                challenge_loop_id=0,
+                action_card={},
+                metric_values=metric_values,
+                messages=[],
+                username=username,
+                attention_tokens=curr_challenge.attention_tokens,
+            )
+            saved_tokens = curr_challenge.attention_tokens
         else:
             curr_challenge: Challenge = PhaseFactory.translate_challenge_index(
                 challenge_index=last_gamestate_id[1],

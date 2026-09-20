@@ -366,7 +366,9 @@ function App({ username: _username }: AppProps) {
           setChatMsgs([]);
           setIsExistingDebateSave(false);
         }
-        setAttentionTokens(data.attention_tokens);
+        if (data.attention_tokens !== undefined) {
+          setAttentionTokens(data.attention_tokens);
+        }
         if (data.played_engagement_card_ids) setPlayedCardIdsInPhase(data.played_engagement_card_ids);
         if (data.engagement_card_targets) setCardTargetedStakeholdersMap(data.engagement_card_targets);
         if (data.action_card && typeof data.action_card === "object" && data.action_card.title) {
@@ -380,7 +382,9 @@ function App({ username: _username }: AppProps) {
         setCurrentChallenge(data["challenge_id"]);
         setChatMsgs([]);
         setIsExistingDebateSave(false);
-        setAttentionTokens(data.attention_tokens);
+        if (data.attention_tokens !== undefined) {
+          setAttentionTokens(data.attention_tokens);
+        }
         setPlayedCardIdsInPhase([]);
         setCardTargetedStakeholdersMap({});
         setPitchedActionCard(null);
@@ -695,6 +699,7 @@ function App({ username: _username }: AppProps) {
       metric_values: _metric_values,
       action_card_id: null,
       messages: [],
+      attention_tokens: attentionTokens,
     });
   };
 

@@ -170,16 +170,33 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
     engagement_card_targets = {}
     try:
         with get_session() as db_session:
+            user_id = get_user_id(db_session, username)
             stmt = select(GameChallenge).where(
-                GameChallenge.user_id == get_user_id(db_session, username)
+                GameChallenge.user_id == user_id,
+                GameChallenge.phase_index == phase_id,
+                GameChallenge.challenge_index == challenge_id,
             ).order_by(GameChallenge.id.desc())
             existing = db_session.scalars(stmt).first()
-            if existing:
-                if payload.get("attention_tokens") is not None:
-                    existing.attention_tokens = payload.get("attention_tokens")
-                if isinstance(existing.action_card, dict):
-                    played_engagement_card_ids = existing.action_card.get("played_engagement_card_ids", [])
-                    engagement_card_targets = existing.action_card.get("engagement_card_targets", {})
+            if not existing:
+                existing = GameChallenge(
+                    user_name=username,
+                    user_id=user_id,
+                    phase_index=phase_id,
+                    challenge_index=challenge_id,
+                    challenge_loop_index=1,
+                    action_card={},
+                    metric_values=[],
+                    time_stamp=datetime.datetime.utcnow(),
+                    messages=[],
+                    attention_tokens=payload.get("attention_tokens", curr_challenge.attention_tokens if curr_challenge else 20),
+                )
+                db_session.add(existing)
+            elif payload.get("attention_tokens") is not None:
+                existing.attention_tokens = payload.get("attention_tokens")
+
+            if isinstance(existing.action_card, dict):
+                played_engagement_card_ids = existing.action_card.get("played_engagement_card_ids", [])
+                engagement_card_targets = existing.action_card.get("engagement_card_targets", {})
                 
                 if result.get("status") == "success":
                     req_id = result.get("id")
@@ -292,8 +309,11 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     if card:
         try:
             with get_session() as db_session:
+                user_id = get_user_id(db_session, username)
                 stmt = select(GameChallenge).where(
-                    GameChallenge.user_id == get_user_id(db_session, username)
+                    GameChallenge.user_id == user_id,
+                    GameChallenge.phase_index == phase_id,
+                    GameChallenge.challenge_index == challenge_id,
                 ).order_by(GameChallenge.id.desc())
                 existing = db_session.scalars(stmt).first()
                 if existing:

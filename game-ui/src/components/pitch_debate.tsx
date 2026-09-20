@@ -842,6 +842,7 @@ export default function PitchDebate({
       challenge_id: currentChallenge,
       card_id: playingCard.id,
       stakeholder_ids: stakeholderIds,
+      attention_tokens: nextTokens,
     });
     if (playingCard.max_plays_per_phase === 1 || playingCard.stakeholder_selection_amount === -1) {
       setPlayedIds((prev) => [...prev, playingCard.id]);

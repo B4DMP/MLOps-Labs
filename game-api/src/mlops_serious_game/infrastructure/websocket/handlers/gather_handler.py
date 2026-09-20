@@ -7,6 +7,7 @@ Every rule lives in `pitch_debate_service.gather` (pure); this module gathers co
 calls in, writes revealed items as Verified, emits stakeholder chat messages, and updates the dossier.
 """
 
+import datetime
 from typing import Any, Optional
 
 from fastapi import WebSocket
@@ -259,10 +260,11 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
 
     existing_messages = []
     with get_session() as db:
+        user_id = get_user_id(db, username)
         row = db.scalars(
             select(GameChallenge)
             .where(
-                GameChallenge.user_id == get_user_id(db, username),
+                GameChallenge.user_id == user_id,
                 GameChallenge.phase_index == phase_id,
                 GameChallenge.challenge_index == challenge_id,
             )
@@ -285,6 +287,34 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             current_ac["engagement_card_targets"] = card_targets
             row.action_card = current_ac
             flag_modified(row, "action_card")
+            if payload.get("attention_tokens") is not None:
+                row.attention_tokens = payload.get("attention_tokens")
+            elif row.attention_tokens is not None and card is not None:
+                row.attention_tokens = max(0, row.attention_tokens - card.token_cost)
+            db.commit()
+        else:
+            curr_tokens = payload.get("attention_tokens")
+            if curr_tokens is None and challenge:
+                curr_tokens = max(0, challenge.attention_tokens - (card.token_cost if card else 0))
+            current_ac = {
+                "played_engagement_card_ids": [card_id],
+                "engagement_card_targets": {
+                    card_id: room_ids if card.stakeholder_selection_amount == -1 else targets
+                },
+            }
+            row = GameChallenge(
+                user_name=username,
+                user_id=user_id,
+                phase_index=phase_id,
+                challenge_index=challenge_id,
+                challenge_loop_index=1,
+                action_card=current_ac,
+                metric_values=[],
+                time_stamp=datetime.datetime.utcnow(),
+                messages=[],
+                attention_tokens=curr_tokens,
+            )
+            db.add(row)
             db.commit()
 
     prefix = f"eng_{card_id}_"
