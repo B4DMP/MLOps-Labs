@@ -9,8 +9,11 @@ this project's environment — it belongs to the user's other, unrelated work.
 - **Never** run `pip install`, `npm install -g`, or similar against the host/global interpreter
   to satisfy this project's dependencies, "just to get a test to import" or for any other reason.
 - To run the backend test suite, use the running container:
-  `docker compose exec api pytest tests/ -q` (or `docker exec game-api pytest tests/ -q`).
+  `docker compose exec -w /app api python -m pytest tests/ -q`.
+  `python -m pytest` (not the bare `pytest` entry point) is what puts `/app` on `sys.path`;
+  without it `conftest.py` fails to import `mlops_serious_game` before any test runs.
   If the container isn't running, `docker compose up -d` first (see `INSTALL_AND_USAGE.md`).
+- To run the frontend test suite: `docker compose exec ui npm test`.
 - If a container image is missing a dependency the code now needs, add it to
   `game-api/pyproject.toml` (or `game-ui/package.json`) and rebuild the image
   (`docker compose build api`) - don't patch around it by installing on the host.
