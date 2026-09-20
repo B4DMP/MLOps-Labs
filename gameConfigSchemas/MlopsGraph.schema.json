@@ -210,6 +210,22 @@
                 }
               }
             }
+          },
+          "layout": {
+            "type": "object",
+            "description": "SVG layout hint {x, y} for the stage modal",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            }
+          },
+          "icon": {
+            "type": "string",
+            "description": "Iconify icon name for this component"
           }
         }
       }

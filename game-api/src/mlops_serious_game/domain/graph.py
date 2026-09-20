@@ -94,6 +94,7 @@ class Component(BaseModel):
     allowed_levels: list[int]
     attributes: dict[str, AttributeDef] = Field(default_factory=dict)
     layout: Optional[dict] = Field(default=None, description="SVG layout hint {x, y} for the stage modal")
+    icon: Optional[str] = Field(default=None, description="Iconify icon name for this component")
 
 
 class Edge(BaseModel):

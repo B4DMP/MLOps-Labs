@@ -183,6 +183,8 @@ def build_graph_state(
                     base["owner_id"] = owner
                 if c.layout:
                     base["layout"] = c.layout
+                if c.icon:
+                    base["icon"] = c.icon
                 components.append(base)
                 continue
 
@@ -209,6 +211,8 @@ def build_graph_state(
             }
             if c.layout:
                 comp["layout"] = c.layout
+            if c.icon:
+                comp["icon"] = c.icon
             if c.id in effective.capped_by:
                 comp["capped_by"] = effective.capped_by[c.id]
             if state.debt:

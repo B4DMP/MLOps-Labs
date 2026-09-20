@@ -231,7 +231,8 @@
       "layout": {
         "x": 100,
         "y": 100
-      }
+      },
+      "icon": "ph:target-bold"
     },
     {
       "id": "req.acceptance_criteria",
@@ -250,7 +251,8 @@
       "layout": {
         "x": 300,
         "y": 100
-      }
+      },
+      "icon": "ph:check-square-offset-bold"
     },
     {
       "id": "req.data_contracts",
@@ -270,7 +272,8 @@
       "layout": {
         "x": 300,
         "y": 220
-      }
+      },
+      "icon": "ph:file-text-bold"
     },
     {
       "id": "req.risk_assessment",
@@ -289,7 +292,8 @@
       "layout": {
         "x": 100,
         "y": 220
-      }
+      },
+      "icon": "ph:warning-bold"
     },
     {
       "id": "data.ingestion",
@@ -328,7 +332,8 @@
       "layout": {
         "x": 80,
         "y": 100
-      }
+      },
+      "icon": "ph:download-bold"
     },
     {
       "id": "data.validation",
@@ -367,7 +372,8 @@
       "layout": {
         "x": 240,
         "y": 100
-      }
+      },
+      "icon": "ph:check-circle-bold"
     },
     {
       "id": "data.feature_store",
@@ -406,7 +412,8 @@
       "layout": {
         "x": 560,
         "y": 100
-      }
+      },
+      "icon": "ph:stack-bold"
     },
     {
       "id": "data.versioning",
@@ -436,7 +443,8 @@
       "layout": {
         "x": 400,
         "y": 100
-      }
+      },
+      "icon": "ph:git-branch-bold"
     },
     {
       "id": "data.labeling",
@@ -466,7 +474,8 @@
       "layout": {
         "x": 80,
         "y": 220
-      }
+      },
+      "icon": "ph:tag-bold"
     },
     {
       "id": "data.training_drift_check",
@@ -486,7 +495,8 @@
       "layout": {
         "x": 400,
         "y": 220
-      }
+      },
+      "icon": "ph:chart-line-bold"
     },
     {
       "id": "model.experiment_tracking",
@@ -516,7 +526,8 @@
       "layout": {
         "x": 420,
         "y": 220
-      }
+      },
+      "icon": "ph:flask-bold"
     },
     {
       "id": "model.registry",
@@ -555,7 +566,8 @@
       "layout": {
         "x": 580,
         "y": 140
-      }
+      },
+      "icon": "ph:archive-bold"
     },
     {
       "id": "model.training_pipeline",
@@ -585,7 +597,8 @@
       "layout": {
         "x": 240,
         "y": 140
-      }
+      },
+      "icon": "ph:cpu-bold"
     },
     {
       "id": "model.hpo",
@@ -615,7 +628,8 @@
       "layout": {
         "x": 80,
         "y": 220
-      }
+      },
+      "icon": "ph:sliders-horizontal-bold"
     },
     {
       "id": "model.evaluation",
@@ -635,7 +649,8 @@
       "layout": {
         "x": 420,
         "y": 80
-      }
+      },
+      "icon": "ph:ruler-bold"
     },
     {
       "id": "deploy.cicd",
@@ -665,7 +680,8 @@
       "layout": {
         "x": 240,
         "y": 90
-      }
+      },
+      "icon": "ph:git-merge-bold"
     },
     {
       "id": "deploy.serving",
@@ -705,7 +721,8 @@
       "layout": {
         "x": 400,
         "y": 90
-      }
+      },
+      "icon": "ph:cloud-bold"
     },
     {
       "id": "deploy.canary_ab",
@@ -725,7 +742,8 @@
       "layout": {
         "x": 400,
         "y": 210
-      }
+      },
+      "icon": "ph:test-tube-bold"
     },
     {
       "id": "deploy.shadow",
@@ -745,7 +763,8 @@
       "layout": {
         "x": 560,
         "y": 210
-      }
+      },
+      "icon": "ph:copy-bold"
     },
     {
       "id": "deploy.containerization",
@@ -774,7 +793,8 @@
       "layout": {
         "x": 80,
         "y": 90
-      }
+      },
+      "icon": "mdi:docker"
     },
     {
       "id": "deploy.orchestration",
@@ -804,7 +824,8 @@
       "layout": {
         "x": 80,
         "y": 210
-      }
+      },
+      "icon": "ph:flow-arrow-bold"
     },
     {
       "id": "deploy.api_gateway",
@@ -834,7 +855,8 @@
       "layout": {
         "x": 560,
         "y": 90
-      }
+      },
+      "icon": "ph:door-bold"
     },
     {
       "id": "ops.performance_monitoring",
@@ -854,7 +876,8 @@
       "layout": {
         "x": 80,
         "y": 100
-      }
+      },
+      "icon": "ph:gauge-bold"
     },
     {
       "id": "ops.production_drift_monitoring",
@@ -884,7 +907,8 @@
       "layout": {
         "x": 260,
         "y": 100
-      }
+      },
+      "icon": "ph:waves-bold"
     },
     {
       "id": "ops.alerting",
@@ -914,7 +938,8 @@
       "layout": {
         "x": 440,
         "y": 100
-      }
+      },
+      "icon": "ph:bell-bold"
     },
     {
       "id": "ops.observability",
@@ -944,7 +969,8 @@
       "layout": {
         "x": 80,
         "y": 220
-      }
+      },
+      "icon": "ph:eye-bold"
     },
     {
       "id": "ops.retraining_trigger",
@@ -964,7 +990,8 @@
       "layout": {
         "x": 440,
         "y": 220
-      }
+      },
+      "icon": "ph:arrows-clockwise-bold"
     },
     {
       "id": "ops.rollback",
@@ -984,7 +1011,8 @@
       "layout": {
         "x": 260,
         "y": 220
-      }
+      },
+      "icon": "ph:arrow-u-down-left-bold"
     },
     {
       "id": "gov.iam",
@@ -1014,7 +1042,8 @@
       "layout": {
         "x": 80,
         "y": 100
-      }
+      },
+      "icon": "ph:shield-check-bold"
     },
     {
       "id": "gov.audit",
@@ -1034,7 +1063,8 @@
       "layout": {
         "x": 240,
         "y": 100
-      }
+      },
+      "icon": "ph:clipboard-text-bold"
     },
     {
       "id": "gov.model_cards",
@@ -1053,7 +1083,8 @@
       "layout": {
         "x": 400,
         "y": 100
-      }
+      },
+      "icon": "ph:identification-card-bold"
     },
     {
       "id": "gov.cost_monitoring",
@@ -1073,7 +1104,8 @@
       "layout": {
         "x": 400,
         "y": 220
-      }
+      },
+      "icon": "ph:currency-dollar-bold"
     },
     {
       "id": "gov.iac",
@@ -1103,7 +1135,8 @@
       "layout": {
         "x": 80,
         "y": 220
-      }
+      },
+      "icon": "ph:code-bold"
     },
     {
       "id": "gov.compute_scheduling",
@@ -1133,7 +1166,8 @@
       "layout": {
         "x": 240,
         "y": 220
-      }
+      },
+      "icon": "ph:calendar-bold"
     }
   ],
   "edges": [
