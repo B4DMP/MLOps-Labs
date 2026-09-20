@@ -4,12 +4,26 @@ import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import type { Stakeholder } from "./StakeholderProvider";
 import type { StakeholderDossierEntry } from "./StakeholderDossier";
+import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
-import { LevelMeter, NodeDefs } from "./graph/nodeChrome";
+import {
+  CappedChainGlyph,
+  edgeStrokeWidth,
+  FlowParticle,
+  LevelMeter,
+  NodeDefs,
+  NodeIcon,
+  NODE_STATE_ANIM,
+  ScanlineDefs,
+  SelectionReticle,
+  StaleScanline,
+  TriggerChip,
+} from "./graph/nodeChrome";
 import {
   BOX_W,
   BOX_H,
   NODE_COLORS,
+  NODE_ICON_OFFSET,
   NODE_PAD_X,
   NODE_RX,
   RAIL_W,
@@ -45,6 +59,7 @@ export interface ComponentData {
   capped_by?: string;
   allowed_levels?: number[];
   attributes?: Record<string, { values: string[]; initial: string }>;
+  icon?: string;
   layout?: { x: number; y: number };
 }
 
@@ -219,6 +234,7 @@ export default function ComposeActionProposalModal({
   intelItems: _intelItems = [],
   graphState: propGraphState = null,
   dossierData = [],
+  stakeholders = {},
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
   const highlight = useGlossaryHighlighter("action_proposal");
@@ -712,7 +728,9 @@ export default function ComposeActionProposalModal({
                   style={fitToBoxStyle(svgW, svgH)}
                   className={styles.stageSvg}
                 >
+                  <style>{NODE_STATE_ANIM}</style>
                   <NodeDefs prefix="compose" />
+                  <ScanlineDefs />
                   <defs>
                     <marker id="arr-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
                       <path d="M0,0 L0,6 L6,3 z" fill="#94a3b8" />
@@ -780,6 +798,10 @@ export default function ComposeActionProposalModal({
 
                     const mx = (ax + bx) / 2;
                     const my = (ay + by) / 2;
+                    const baseWidth = edgeStrokeWidth(e.knowledge !== "unknown" ? e.level : undefined);
+                    const isAutomated = e.knowledge !== "unknown" && e.level !== undefined && e.level !== null && e.level >= 3;
+                    const hasTriggerChip =
+                      !isSlotted && !isOtherPhase && e.knowledge !== "unknown" && e.trigger && e.trigger !== "none";
 
                     return (
                       <g key={e.id}>
@@ -790,10 +812,17 @@ export default function ComposeActionProposalModal({
                           x2={bx}
                           y2={by}
                           stroke={color}
-                          strokeWidth={isSelected ? 3.5 : isSlotted ? 3 : isHovered ? 2.5 : isPredecessorLine ? 2.5 : 1.5}
+                          strokeWidth={
+                            isSelected ? 3.5
+                              : isSlotted ? 3
+                              : isHovered ? 2.5
+                              : isPredecessorLine ? 2.5
+                              : Math.max(baseWidth, 1.5)
+                          }
                           strokeDasharray={isOtherPhase || isFromUnknown || e.knowledge === "unknown" ? "4 3" : undefined}
                           markerEnd={`url(#${markerId})`}
                         />
+                        {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={color} />}
 
                         {/* Midpoint badge: Slotted ⚡ or Locked 🔒 */}
                         {isSlotted && (
@@ -811,6 +840,11 @@ export default function ComposeActionProposalModal({
                               👁
                             </text>
                           </g>
+                        )}
+                        {/* Trigger, in a bordered chip - only when the midpoint isn't already
+                            claimed by a slotted or view-only badge */}
+                        {hasTriggerChip && (
+                          <TriggerChip x={mx} y={my - 16} label={formatTrigger(e.trigger)} color={color} />
                         )}
 
                         {/* Wide transparent hit area for easy clicking */}
@@ -863,10 +897,11 @@ export default function ComposeActionProposalModal({
                       : c.capped_by
                       ? NODE_COLORS.capped
                       : NODE_COLORS.healthy;
+                    const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
                     const face = nodeFace("compose", {
                       selected: isSelected || isSlotted || isPredecessor,
                       unknown: isUnknown || isOtherPhase,
-                      broken: (c.nominal ?? 1) === 0,
+                      broken: isBroken,
                     });
                     const stroke = isSlotted || isSelected
                       ? NODE_COLORS.selected
@@ -878,6 +913,8 @@ export default function ComposeActionProposalModal({
 
                     const lines = wrapLabel(c.name || c.id, 17);
                     const safeId = c.id.replace(/\./g, "_");
+                    const compChange = atomicChanges.find((change) => change.target === c.id);
+                    const previewLevel = typeof compChange?.value === "number" ? compChange.value : undefined;
 
                     return (
                       <g
@@ -891,6 +928,7 @@ export default function ComposeActionProposalModal({
                         onMouseEnter={() => setHoveredCompId(c.id)}
                         onMouseLeave={() => setHoveredCompId(null)}
                       >
+                        <g className={isBroken ? "node-broken" : undefined}>
                         {/* Card face */}
                         <rect
                           width={BOX_W}
@@ -898,7 +936,7 @@ export default function ComposeActionProposalModal({
                           rx={NODE_RX}
                           fill={face}
                           stroke={stroke}
-                          strokeWidth={isSlotted ? 2.4 : isSelected ? 2 : 1}
+                          strokeWidth={1}
                           strokeDasharray={isUnknown || isOtherPhase ? "5 3" : undefined}
                           filter={`url(#compose-${isSelected || isSlotted ? "shadow-lifted" : "shadow"})`}
                         />
@@ -912,6 +950,10 @@ export default function ComposeActionProposalModal({
                           opacity={isUnknown || isOtherPhase ? 0.5 : 1}
                           clipPath={`url(#compose-clip-${safeId})`}
                         />
+                        {c.knowledge === "stale" && <StaleScanline clipPathId={`compose-clip-${safeId}`} />}
+                        {!isUnknown && !isOtherPhase && !isBroken && c.capped_by && (
+                          <CappedChainGlyph color={rail} />
+                        )}
 
                         {/* Slotted marker */}
                         {isSlotted && (
@@ -933,11 +975,14 @@ export default function ComposeActionProposalModal({
                           </g>
                         )}
 
+                        {/* Icon, sharing the title's row */}
+                        {c.icon && <NodeIcon icon={c.icon} color={isUnknown || isOtherPhase ? "#7c8ba1" : rail} />}
+
                         {/* Node Title */}
                         {lines.map((line, i) => (
                           <text
                             key={i}
-                            x={NODE_PAD_X}
+                            x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
                             y={19 + i * 13}
                             fill={isUnknown || isOtherPhase ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
                             fontSize="11"
@@ -971,10 +1016,15 @@ export default function ComposeActionProposalModal({
                             <LevelMeter
                               nominal={c.nominal ?? 1}
                               effective={c.effective}
+                              previewLevel={previewLevel}
                               y={BOX_H - 14}
                             />
                           </>
                         )}
+
+                        </g>
+
+                        {(isSelected || isSlotted) && <SelectionReticle />}
                       </g>
                     );
                   })}
@@ -1194,8 +1244,19 @@ export default function ComposeActionProposalModal({
                       <span className={styles.inspectorSubtitle} title={selectedCompData.id}>
                         {graphState?.stages?.find((st) => st.id === (selectedCompData.stage_id || activeStageId))
                           ?.name ?? "component"}
-                        {selectedCompData.owner_id && ` · ${selectedCompData.owner_id.replace(/_/g, " ")}`}
                       </span>
+                      {selectedCompData.owner_id && (
+                        <span className={styles.inspectorOwner}>
+                          <StakeholderAvatarComponent
+                            stakeholderId={selectedCompData.owner_id}
+                            avatar={stakeholders[selectedCompData.owner_id]?.avatar}
+                            stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                            size={16}
+                            hoverToSuspicious={false}
+                          />
+                          <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                   <button
