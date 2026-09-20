@@ -263,6 +263,55 @@ def test_a_fact_that_judges_the_work_is_rejected():
     assert not any("judgement" in e for e in ArtifactsStage().check(_fact_output(BODY), item, ctx))
 
 
+# Envelope lines the assembled content was full of: IntelArtifactViewer already draws the channel,
+# the sender and the date, so a header inside the body shows the player the same chrome twice.
+@pytest.mark.parametrize("opening", [
+    "Slack from Dave:\n",
+    "Email from Monica:\n",
+    "Email from Dave to Team:\n",
+    "Meeting Notes - QA Standup:\n",
+    "Document - Budget Allocation memo:\n",
+    "Subject: data validation\n",
+    "Internal memo\n",
+])
+def test_an_artifact_that_labels_its_own_channel_is_rejected(opening):
+    item = WorkItem("artifacts", "artifacts:gen_x", {"requirement": {"type": "fact"}, "artifact_type": "email"})
+    errors = ArtifactsStage().check(_fact_output(opening + BODY), item, SimpleNamespace(stakeholders={}))
+    assert any("header line" in e or "write the body only" in e for e in errors)
+
+
+def test_a_body_that_is_one_paragraph_of_prose_is_accepted():
+    item = WorkItem("artifacts", "artifacts:gen_x", {"requirement": {"type": "fact"}, "artifact_type": "email"})
+    errors = ArtifactsStage().check(_fact_output(BODY), item, SimpleNamespace(stakeholders={}))
+    assert not any("write the body only" in e or "header line" in e or "quotation marks" in e for e in errors)
+
+
+def test_a_transcript_prefix_and_a_quoted_body_are_rejected():
+    item = WorkItem("artifacts", "artifacts:gen_x", {"requirement": {"type": "fact"}, "artifact_type": "meeting_notes"})
+    ctx = SimpleNamespace(stakeholders={})
+    spoken = ArtifactsStage().check(_fact_output("Ruth: " + BODY), item, ctx)
+    assert any("prefixes the body with a speaker" in e for e in spoken)
+    quoted = ArtifactsStage().check(_fact_output("'" + BODY + "'"), item, ctx)
+    assert any("quotation marks" in e for e in quoted)
+
+
+# GAME_RULES hands every stage the level scale; only this stage used to repeat it to the player.
+@pytest.mark.parametrize("line, flagged", [
+    ("Ingestion must remain stable at or above level 2.", True),
+    ("The KPI definitions sit at level 0 today.", True),
+    ("We keep risk assessment at manual level 2.", True),
+    ("Nobody has taken it past level one.", True),
+    # Ordinary English in a paragraph of prose, which the shared gate would have rejected.
+    ("If monitoring does not reach that level of maturity, I will not sign off.", False),
+    ("There is no rejection mechanism active at the gateway level right now.", False),
+    ("Models are assisting with pre-labeling at this stage.", False),
+])
+def test_an_artifact_that_names_a_maturity_level_is_rejected(line, flagged):
+    item = WorkItem("artifacts", "artifacts:gen_x", {"requirement": {"type": "fact"}, "artifact_type": "email"})
+    errors = ArtifactsStage().check(_fact_output(BODY + " " + line), item, SimpleNamespace(stakeholders={}))
+    assert any("level scale" in e for e in errors) is flagged
+
+
 def test_an_artifact_never_talks_about_the_game_graph():
     item = WorkItem("artifacts", "artifacts:gen_x", {"requirement": {"type": "fact"}, "artifact_type": "email"})
     text = BODY + " The registry is absent from the infrastructure graph."

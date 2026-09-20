@@ -12,7 +12,9 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.llm import Usage
-from content_gen.stages.common import GAME_RULES, WISH_WORDS, bare_stakeholder_id_errors, render, text_errors, tokenize_names
+from content_gen.stages.common import (
+    GAME_RULES, WISH_WORDS, bare_stakeholder_id_errors, render, text_errors, tokenize_names,
+)
 
 # Facts come in the same formats as stances. A runbook or a CI log would give the tag away before
 # the player read a word, so a Fact is a stakeholder telling you how things stand.
@@ -20,7 +22,8 @@ ARTIFACT_TYPES = ["email", "slack_message", "meeting_notes", "document"]
 
 
 class ArtifactOut(BaseModel):
-    content: str = Field(description="the artifact body, 60 to 150 words, no title or subject line")
+    content: str = Field(description="the message body only, 60 to 150 words: no header line naming the "
+                                     "channel or sender, no greeting, no sign off")
 
 
 class Classification(BaseModel):
@@ -40,7 +43,14 @@ intel item, and a careful reader must be able to tell which kind it is:
 Stance artifacts are written by the stakeholder in their own voice. Fact artifacts are written by,
 or record what was said by, the narrator you are given, in the same kind of message a stance would
 come in. The narrator reports what they see; they do not take a side in this artifact.
-No title, subject line, greeting header or signature block.
+The game draws the channel, the sender, the date and the signature around your text, so write the
+message body only, as one or more plain paragraphs. No title, subject line, greeting, sign off or
+signature block, and no line that names the channel, the sender or the recipient: never open with
+"Slack from ...", "Email from ...", "Meeting Notes - ...", "Document - ..." or a speaker prefix
+like "Ruth:". Do not wrap the body in quotation marks.
+The level scale above is how the game keeps score, not something anyone in the fiction says out
+loud: never write "level 2" or "at or above level 3". Say broken, missing, done by hand, automated
+or governed instead.
 
 A second reader will classify your text blind, with this test, in this order:
 1. Is anyone's wish, refusal or acceptance in it? If no: fact.
@@ -94,6 +104,69 @@ GAME_META = re.compile(
     re.I,
 )
 
+# GAME_RULES hands every stage the level scale, and 22 assembled artifacts repeated it to the player
+# ("ingestion must remain stable at or above level 2"). Only the scale itself, never the plain word:
+# these artifacts are 150 words of prose where "that level of maturity" and "at the gateway level"
+# are ordinary English, so the shared `player_text_errors` gate would reject good writing.
+LEVEL_LEAK = re.compile(
+    r"\b((maturity |component |automation )?levels? ([0-4]\b|zero|one|two|three|four)"
+    r"|(broken|absent|missing|manual|automated|governed) level\b"
+    r"|levels? of (automation|maturity) [0-4]\b)",
+    re.I,
+)
+# IntelArtifactViewer draws the channel, the sender, the date and a signature around the body, so
+# an envelope line inside it doubles the chrome ("Slack from Dave:" under a header already naming
+# Data Dave) and reads like a forwarded screenshot. Header keys first, then the transport lines the
+# model invents instead once the header keys are banned.
+HEADER_KEY = re.compile(r"^(subject|title|re|from|to|cc|bcc|sent|date|author)\s*:", re.I)
+ENVELOPE = re.compile(
+    r"^\s*(slack|e-?mail|message|dm|chat|memo|meeting notes?|minutes|notes?|document|doc|report|"
+    r"transcript|internal (memo|note|message))\b",
+    re.I,
+)
+# "Ruth: 'Before we even debate...'": a transcript prefix, where the viewer already names the voice.
+SPEAKER_PREFIX = re.compile(r"^\s*(\{[a-z_]+(\.first)?\}|[A-Z][a-z]+)\s*:\s")
+QUOTED_WHOLE = {"'": "'", '"': '"', "‘": "’", "“": "”"}
+# The email view closes with "Regards, <name>" of its own, so a sign off inside the body repeats it,
+# and a greeting addresses a room the viewer has already named.
+GREETING = re.compile(r"^\s*(hi|hey|hello|dear|good (morning|afternoon|evening))\b", re.I)
+SIGN_OFF = re.compile(r"\b(best( regards)?|regards|thanks|thank you|cheers|sincerely)\s*,\s*"
+                      r"(\{[a-z_]+(\.first)?\}|[A-Z][a-z]+)?\s*[.!]?$", re.I)
+# "... crucial for our data operations. {data_dave}": the author signing their own message.
+TRAILING_NAME = re.compile(r"[.!?]\s*\{[a-z_]+(\.first)?\}\s*[.!]?$")
+
+
+def envelope_errors(content: str) -> list[str]:
+    """The body only, please: no line that names the channel, sender or recipient, and no quotes
+    around the whole thing. A short leading line is the tell, whether or not it ends in a colon."""
+    text = (content or "").strip()
+    if not text:
+        return []
+    errors = []
+    lines = [ln for ln in text.split("\n") if ln.strip()]
+    first = lines[0].strip()
+    if HEADER_KEY.match(first):
+        errors.append("start directly with the body, no subject, title or header line")
+    elif len(lines) > 1 and len(first.split()) < 12 and (first.endswith(":") or ENVELOPE.match(first)):
+        errors.append(f"'{first}' labels the message; the game shows the channel, sender and date "
+                      "already, so write the body only")
+    for line in lines[:2]:
+        if SPEAKER_PREFIX.match(line):
+            errors.append(f"'{line.split(':')[0].strip()}:' prefixes the body with a speaker; the game names "
+                          "the author already, so write what they said, in their own voice")
+            break
+    if len(text) > 1 and QUOTED_WHOLE.get(text[0]) == text[-1]:
+        errors.append("the whole body is in quotation marks; write it plainly, it is the message itself")
+    if GREETING.match(first):
+        errors.append(f"'{first.split(',')[0].strip()}' greets the room; the game shows who this went to, "
+                      "so open on what you have to say")
+    tail = lines[-1].strip()
+    if SIGN_OFF.search(tail) or TRAILING_NAME.search(tail):
+        errors.append(f"'{tail[-40:]}' signs the message off; the game draws the signature, so end on the "
+                      "last thing the author has to say")
+    return errors
+
+
 ABSENT_HINT = ("The fact is that something does not exist. Describe only how the work is done today "
                "without it, as observed events or numbers. No consequences, risks, costs or benefits.")
 
@@ -126,7 +199,7 @@ def narrator_for(req, roster: list[dict], graph) -> Optional[dict]:
 
 class ArtifactsStage:
     name = "artifacts"
-    prompt_version = "a5"
+    prompt_version = "a6"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -196,9 +269,10 @@ class ArtifactsStage:
         req = item.inputs["requirement"]
         tag = req["type"]
         errors = text_errors("content", output["content"], 50, 170)
-        first = (output["content"] or "").strip().split("\n", 1)[0].lower()
-        if first.startswith(("subject:", "title:", "re:", "from:", "to:")):
-            errors.append("start directly with the body, no subject, title or header line")
+        errors += envelope_errors(output["content"])
+        if level := LEVEL_LEAK.search(output["content"] or ""):
+            errors.append(f"'{level.group(0)}' is the game's level scale; say broken, missing, done by hand, "
+                          "automated or governed instead")
         if tag == "fact" and WISH_WORDS.search(output["content"] or ""):
             errors.append("a fact artifact states nobody's wishes, preferences or refusals")
         if tag == "fact" and (framing := REPORT_FRAMING.search(output["content"] or "")):
