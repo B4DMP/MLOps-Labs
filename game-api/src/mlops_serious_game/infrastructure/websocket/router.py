@@ -33,6 +33,11 @@ from .handlers.pitch_handler import (
     handle_pitch_set_card,
     handle_pitch_state,
 )
+from .handlers.settings_handler import (
+    handle_settings_get,
+    handle_settings_reset_account,
+    handle_settings_update,
+)
 from .handlers.simulation_handler import handle_simulation_run
 from .handlers.system_handler import handle_ping
 from .manager import manager
@@ -65,6 +70,9 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "gather:open": handle_gather_open,
     "gather:ask": handle_gather_ask,
     "gather:close": handle_gather_close,
+    "settings:get": handle_settings_get,
+    "settings:update": handle_settings_update,
+    "settings:reset_account": handle_settings_reset_account,
 }
 
 

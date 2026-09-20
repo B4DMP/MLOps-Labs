@@ -669,6 +669,24 @@ def remove_player(player_name: str) -> None:
         raise
 
 
+def reset_player(player_name: str) -> None:
+    """Wipes a player's own progress and returns them to a freshly registered account.
+
+    Same per-table cleanup as `remove_player`, but re-inserts a `User` row with the same
+    `user_name`, `campaign_key` and `campaign_id` so the player stays in their campaign instead
+    of being removed outright. `user_settings` goes with the cascade too, so the recreated
+    account starts on defaults - see docs/plans/player-settings-and-tts.md.
+    """
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == player_name))
+        if user is None:
+            return
+        campaign_key = user.campaign_key
+        campaign_id = user.campaign_id
+        _cleanup_and_delete_user(session, user)
+        session.add(User(user_name=player_name, campaign_key=campaign_key, campaign_id=campaign_id))
+
+
 def remove_all_players() -> None:
     """Removes all player-related data across all tables. Deleting every `User` row cascades
     (ON DELETE CASCADE) to every table with a `user_id` FK; only the checkpoint tables (not

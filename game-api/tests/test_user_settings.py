@@ -6,6 +6,7 @@ here, and neither exists on a SQLite stand-in built from the models.
 """
 
 import uuid
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import sqlalchemy
@@ -274,3 +275,114 @@ def test_settings_go_with_the_user_on_delete(migrated_db):
         session.delete(session.scalar(sqlalchemy.select(User).where(User.user_name == "alice")))
 
     assert _row_count("alice") == 0
+
+
+# ---------- websocket handler ----------
+
+
+def _mock_ws() -> MagicMock:
+    ws = MagicMock()
+    ws.query_params = {}
+    return ws
+
+
+@pytest.mark.anyio
+async def test_handle_settings_get_sends_defaults_plus_can_reset_account(migrated_db):
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    ws = _mock_ws()
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", True):
+        mock_manager.send_event = AsyncMock()
+        await settings_handler.handle_settings_get(ws, "alice", {})
+
+    mock_manager.send_event.assert_awaited_once_with(
+        websocket=ws,
+        event="settings:data",
+        payload={
+            "auto_skip_conversations": False,
+            "mute_tts": False,
+            "voice_male": None,
+            "voice_female": None,
+            "voice_narrator": None,
+            "voice_player": None,
+            "can_reset_account": True,
+        },
+    )
+
+
+@pytest.mark.anyio
+async def test_handle_settings_update_persists_and_echoes(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    ws = _mock_ws()
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", False):
+        mock_manager.send_event = AsyncMock()
+        await settings_handler.handle_settings_update(ws, "alice", {"mute_tts": True})
+
+    payload = mock_manager.send_event.await_args.kwargs["payload"]
+    assert payload["mute_tts"] is True
+    assert payload["can_reset_account"] is False
+    assert svc.get_settings("alice")["mute_tts"] is True
+
+
+@pytest.mark.anyio
+async def test_handle_settings_reset_account_refused_when_flag_is_off(migrated_db):
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    ws = _mock_ws()
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", False):
+        mock_manager.send_error = AsyncMock()
+        await settings_handler.handle_settings_reset_account(ws, "alice", {"confirm": True})
+
+    mock_manager.send_error.assert_awaited_once()
+    assert mock_manager.send_error.await_args.kwargs["code"] == "RESET_DISABLED"
+
+
+@pytest.mark.anyio
+async def test_handle_settings_reset_account_refused_without_confirm(migrated_db):
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    ws = _mock_ws()
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", True):
+        mock_manager.send_error = AsyncMock()
+        await settings_handler.handle_settings_reset_account(ws, "alice", {})
+
+    mock_manager.send_error.assert_awaited_once()
+    assert mock_manager.send_error.await_args.kwargs["code"] == "RESET_NOT_CONFIRMED"
+
+
+@pytest.mark.anyio
+async def test_handle_settings_reset_account_resets_and_notifies(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import User
+    from mlops_serious_game.infrastructure.websocket.handlers import settings_handler
+
+    _seed_user()
+    svc.update_settings("alice", {"mute_tts": True})
+    ws = _mock_ws()
+
+    with patch.object(settings_handler, "manager") as mock_manager, \
+         patch.object(settings, "ENABLE_RESET_USER", True):
+        mock_manager.send_event = AsyncMock()
+        await settings_handler.handle_settings_reset_account(ws, "alice", {"confirm": True})
+
+    mock_manager.send_event.assert_awaited_once_with(
+        websocket=ws, event="settings:account_reset", payload={}
+    )
+    with get_session() as session:
+        assert session.scalar(sqlalchemy.select(User).where(User.user_name == "alice")) is not None
+    assert svc.get_settings("alice") == svc.DEFAULT_SETTINGS
