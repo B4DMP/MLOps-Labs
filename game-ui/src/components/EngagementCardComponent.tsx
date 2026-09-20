@@ -91,8 +91,12 @@ export default function EngagementCardComponent({
               draggable={false}
               onError={(e) => {
                 const target = e.currentTarget;
-                if (target.src.endsWith(".png")) {
+                if (target.src.endsWith("_sm.png")) {
+                  target.src = target.src.replace(/_sm\.png$/, ".png");
+                } else if (target.src.endsWith(".png")) {
                   target.src = target.src.replace(/\.png$/, ".jpg");
+                } else if (target.src.endsWith("_sm.jpg")) {
+                  target.src = target.src.replace(/_sm\.jpg$/, ".jpg");
                 } else if (!target.src.includes("engagement_card_sample.jpg")) {
                   target.src = defaultSampleImage;
                 }
