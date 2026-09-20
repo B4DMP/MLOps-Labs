@@ -78,18 +78,51 @@
 }
 
 .header {
-  padding: 0.8rem 1.5rem;
+  --hdr: clamp(12px, 1.4vh, 17px);
+  font-size: var(--hdr);
+  padding: 0.55em 1em;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
+  gap: 1em;
   color: #ffffff;
   background-color: var(--primary-bg);
   border-bottom: 2px solid var(--secondary-bg);
   flex-shrink: 0;
 }
 
+/* Title block: never the thing that gives way when the header runs short of room. */
+.headerTitleGroup {
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 42%;
+  align-self: center;
+}
+
+/* Holds the shared lifecycle breadcrumb between the title and the phase badge. */
+.headerPhases {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  font-size: 0.92em;
+  overflow: visible;
+}
+
+@media (max-width: 1100px) {
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .headerPhases {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
 .headerTitle {
-  font-size: 1.25rem;
+  font-size: 1.25em;
+  white-space: nowrap;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -99,7 +132,7 @@
 }
 
 .headerSubtitle {
-  font-size: 0.8rem;
+  font-size: 0.8em;
   color: rgba(255, 255, 255, 0.8);
   margin: 0.15rem 0 0 0;
   font-weight: 400;
@@ -108,14 +141,17 @@
 
 .headerIcon {
   color: var(--dialog-surface);
-  font-size: 1.7rem;
+  font-size: 1.45em;
 }
 
 .phaseBadge {
   background: rgba(255, 255, 255, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: #ffffff;
-  font-size: 0.85rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-self: center;
+  font-size: 0.85em;
   font-weight: 600;
   letter-spacing: 0.5px;
   padding: 0.35rem 0.9rem;

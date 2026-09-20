@@ -5,6 +5,7 @@ import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
 import PowerInterestMatrix from "./PowerInterestMatrix";
+import PhaseOverview from "./PhaseOverview";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 
@@ -90,14 +91,19 @@ export default function PrePhaseDialog({
       <div className={wasReviewRef.current ? styles.dashboardPanel : styles.panel}>
           {/* Header */}
           <div className={styles.header}>
-            <div>
+            <div className={styles.headerTitleGroup}>
               <h1 className={styles.headerTitle}>
                 <Icon icon="ph:projector-screen-chart-bold" className={styles.headerIcon} />
                 <span>Phase Briefing</span>
               </h1>
               <p className={styles.headerSubtitle}>
-                Project Milestone Overview • Align technical decisions with stakeholder priorities
+                Project Milestone Overview
               </p>
+            </div>
+            {/* Same lifecycle breadcrumb as the Performance Dashboard header, so "where am I
+                in the project" looks identical wherever the player reads it. */}
+            <div className={styles.headerPhases}>
+              <PhaseOverview />
             </div>
             <div className="d-flex align-items-center gap-2">
               {phases && phases.length > 0 && (
@@ -220,7 +226,10 @@ export default function PrePhaseDialog({
             <div className={styles.footer}>
               <div className={styles.footerHint}>
                 <Icon icon="ph:info-bold" className={styles.footerHintIcon} />
-                <span>You can review this stakeholder matrix anytime.</span>
+                <span>
+                  You can review this stakeholder matrix anytime. Each phase feeds the next, and
+                  the last one feeds the next iteration: MLOps is a spiral, not a checklist.
+                </span>
               </div>
               <div className={styles.actions}>
                 <button className={styles.actionButton} onClick={handleClose}>

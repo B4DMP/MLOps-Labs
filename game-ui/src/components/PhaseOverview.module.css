@@ -1,0 +1,242 @@
+/* Lifecycle breadcrumb, sized for the dark dashboard header.
+   The chevron is painted by a clipped ::before layer rather than by clipping the step
+   itself, so the rail reads as one continuous flow while the hover card can still escape
+   the shape.
+
+   Sizing note: the rail carries no absolute size of its own. It inherits the font size of
+   the header it sits in (`--hdr` there, scaled by `.headerPhases`) and expresses everything
+   else in em, so the chevrons stay in fixed proportion to the title beside them at any zoom
+   or browser font setting. Sizing the rail independently is what previously left an 11px
+   chevron next to a 27px icon. */
+
+/* Grid, not flex: `grid-template-columns` is set by the component to
+   `repeat(<phase count>, minmax(0, 1fr)) auto`, so the phases are always equal thirds,
+   sixths, whatever the count is, and the tail takes only what its icon needs. The rail
+   fills its container exactly - it can neither overflow it nor leave a gap. */
+.rail {
+  display: grid;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.3em 0.6em 0.3em 1em;
+  margin-left: -0.6em;
+  font-weight: 600;
+  line-height: 1.15;
+  cursor: help;
+  --seg-bg: rgba(255, 255, 255, 0.07);
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--seg-bg);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 0.6em) 0,
+    100% 50%,
+    calc(100% - 0.6em) 100%,
+    0 100%,
+    0.6em 50%
+  );
+  transition: background-color 0.15s ease;
+}
+
+.step > * {
+  position: relative;
+  z-index: 1;
+}
+
+.first {
+  margin-left: 0;
+  padding-left: 0.7em;
+}
+
+.first::before {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 0.6em) 0,
+    100% 50%,
+    calc(100% - 0.6em) 100%,
+    0 100%
+  );
+}
+
+/* Phases already played: settled, quiet, still legibly "done". */
+.done {
+  --seg-bg: rgba(255, 255, 255, 0.26);
+  color: #ffffff;
+}
+
+/* The phase the player is in: the one bright segment in the rail. */
+.active {
+  --seg-bg: #ffffff;
+  color: var(--primary-bg, #266682);
+  font-weight: 700;
+  z-index: 2;
+}
+
+/* Ahead of the player: visible as plan, dim as state. */
+.upcoming {
+  --seg-bg: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.step:hover,
+.step:focus-visible {
+  outline: none;
+}
+
+.done:hover,
+.done:focus-within {
+  --seg-bg: rgba(255, 255, 255, 0.3);
+}
+
+.upcoming:hover,
+.upcoming:focus-within {
+  --seg-bg: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.marker {
+  flex-shrink: 0;
+  width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85em;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.active .marker {
+  background: var(--primary-bg, #266682);
+  color: #ffffff;
+}
+
+.done .marker {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.stepName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hover card with the phase description - replaces the old always-on body copy. */
+.tip {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  width: max(220px, 100%);
+  max-width: 320px;
+  padding: 0.5rem 0.6rem;
+  background: #ffffff;
+  color: var(--text-primary, #1e293b);
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.45rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.28);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-3px);
+  transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  white-space: normal;
+  pointer-events: none;
+}
+
+.step:hover,
+.step:focus-within {
+  z-index: 70;
+}
+
+.step:hover .tip,
+.step:focus-within .tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.step:last-child .tip {
+  left: auto;
+  right: 0;
+}
+
+.tipTitle {
+  font-size: 13px;
+  color: var(--primary-bg, #266682);
+}
+
+.tipBody {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--text-secondary, #475569);
+}
+
+/* The tail of the rail: implied, not played. Fainter than an upcoming phase, dashed rather
+   than filled, and it never claims a number. */
+/* Icon-wide, not label-wide: the rail belongs to the phases, this is only its tail. */
+.nextCycle {
+  /* The face matches the header ground, so only the 1px rim reads: present, not solid. */
+  --seg-bg: var(--primary-bg, #266682);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: help;
+  justify-content: center;
+  padding: 0.3em 0.45em 0.3em 0.85em;
+}
+
+.nextCycle:hover,
+.nextCycle:focus-within {
+  --seg-bg: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.nextCycleIcon {
+  position: relative;
+  z-index: 1;
+  font-size: 1.05em;
+}
+
+/* Two stacked clipped layers give the tail an outline on every edge, notch included: the
+   ::before is the outline, the ::after is the face inset over it. A border on a clipped
+   layer gets sliced by the notch, which is what made this read as a dashed rectangle. */
+.nextCycle::before {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.nextCycle::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--seg-bg);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 0.6em) 0,
+    100% 50%,
+    calc(100% - 0.6em) 100%,
+    0 100%,
+    0.6em 50%
+  );
+  transition: background-color 0.15s ease;
+}
+
