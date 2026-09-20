@@ -32,9 +32,11 @@ const PITCH_MIN = 0;
 const PITCH_MAX = 2;
 /** With only 6 shipped stakeholders splitting 2 gender slots (so ~3 per slot, sharing one
  * installed voice), a narrow spread leaves real hash collisions audible - Efficiency Erica and
- * Reliability Ruth landed 0.07 apart at the original 0.15 and were reported as sounding the
- * same. Doubling it roughly doubles the worst-case gap between any two stakeholders in a slot. */
-const PITCH_SPREAD = 0.3;
+ * Reliability Ruth landed 0.07 apart at the original 0.15 (still only 0.14 apart after doubling
+ * it once), and kept being reported as sounding the same: `utterance.pitch`'s 0-2 scale is not
+ * semitones, and most engines only render clear differences over a wide chunk of that range.
+ * This puts the same pair about 0.24 apart, over 3x the original gap. */
+const PITCH_SPREAD = 0.5;
 
 /** Chrome's network-backed voices cut off after roughly 15s of continuous speech, so long text
  * is chunked at sentence boundaries into utterances of about this many characters. */

@@ -242,6 +242,10 @@ export default function PitchDebate({
   const activeSpeechTimerRef = useRef<any>(null);
   const activeFadeTimerRef = useRef<any>(null);
   const activeNextTimerRef = useRef<any>(null);
+  // Minimum-read-time floor and an absolute safety ceiling for the "wait for narration to
+  // actually finish" gating below - see processSpeechQueue.
+  const activeFloorTimerRef = useRef<any>(null);
+  const activeHardCapTimerRef = useRef<any>(null);
 
   const [activeSpeakingState, setActiveSpeakingState] = useState<{
     stakeholderId: string;
@@ -266,6 +270,8 @@ export default function PitchDebate({
     if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
     if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
     if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+    if (activeFloorTimerRef.current) clearTimeout(activeFloorTimerRef.current);
+    if (activeHardCapTimerRef.current) clearTimeout(activeHardCapTimerRef.current);
     cancelTts();
   };
 
@@ -308,21 +314,39 @@ export default function PitchDebate({
         return;
       }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
-      speakTts(nextItem.message, { slot: "player" });
-      // 85ms/char comfortably covers real TTS speaking rate (~66-75ms/char at 150wpm), so the
-      // bubble outlives the voice line instead of cutting it off mid-sentence.
-      const durationMs = Math.min(14000, Math.max(2500, Math.round(nextItem.message.length * 85)));
-      const fadeOutDelay = Math.max(0, durationMs - 400);
-
-      activeFadeTimerRef.current = setTimeout(() => {
+      // The bubble stays open at least this long (its old, pre-narration duration - what it
+      // still gets when muted, since speak() then calls onEnd synchronously), and does not
+      // start closing until narration actually finishes speaking, however long that takes -
+      // fixing both a spoken line getting cut off and the bubble outlasting a short one.
+      const floorMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
+      let speechDone = false;
+      let floorDone = false;
+      let settled = false;
+      const proceedWhenReady = () => {
+        if (settled || !speechDone || !floorDone) return;
+        settled = true;
         setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-      }, fadeOutDelay);
-
-      activeSpeechTimerRef.current = setTimeout(() => {
-        setActivePlayerSpeakingState(null);
-        isProcessingQueueRef.current = false;
-        activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-      }, durationMs);
+        activeSpeechTimerRef.current = setTimeout(() => {
+          setActivePlayerSpeakingState(null);
+          isProcessingQueueRef.current = false;
+          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+        }, 400);
+      };
+      speakTts(nextItem.message, {
+        slot: "player",
+        onEnd: () => {
+          speechDone = true;
+          proceedWhenReady();
+        },
+      });
+      activeFloorTimerRef.current = setTimeout(() => {
+        floorDone = true;
+        proceedWhenReady();
+      }, floorMs);
+      activeHardCapTimerRef.current = setTimeout(() => {
+        speechDone = true;
+        proceedWhenReady();
+      }, 12000);
     } else {
       setActivePlayerSpeakingState(null);
       if (nextItem.stakeholderId) {
@@ -372,24 +396,38 @@ export default function PitchDebate({
         message: nextItem.message,
         isClosing: false,
       });
+      // Same floor-plus-actual-completion gating as the player branch above: the bubble stays
+      // open at least this long, and only starts closing once narration truly finishes.
+      const floorMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
+      let speechDone = false;
+      let floorDone = false;
+      let settled = false;
+      const proceedWhenReady = () => {
+        if (settled || !speechDone || !floorDone) return;
+        settled = true;
+        setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+        activeSpeechTimerRef.current = setTimeout(() => {
+          setActiveSpeakingState(null);
+          isProcessingQueueRef.current = false;
+          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+        }, 400);
+      };
       speakTts(nextItem.message, {
         slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
         seed: nextItem.stakeholderId,
+        onEnd: () => {
+          speechDone = true;
+          proceedWhenReady();
+        },
       });
-      // 85ms/char comfortably covers real TTS speaking rate (~66-75ms/char at 150wpm), so the
-      // bubble outlives the voice line instead of cutting it off mid-sentence.
-      const durationMs = Math.min(20000, Math.max(4500, Math.round(nextItem.message.length * 85)));
-      const fadeOutDelay = Math.max(0, durationMs - 400);
-
-      activeFadeTimerRef.current = setTimeout(() => {
-        setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-      }, fadeOutDelay);
-
-      activeSpeechTimerRef.current = setTimeout(() => {
-        setActiveSpeakingState(null);
-        isProcessingQueueRef.current = false;
-        activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-      }, durationMs);
+      activeFloorTimerRef.current = setTimeout(() => {
+        floorDone = true;
+        proceedWhenReady();
+      }, floorMs);
+      activeHardCapTimerRef.current = setTimeout(() => {
+        speechDone = true;
+        proceedWhenReady();
+      }, 20000);
     }
   };
 

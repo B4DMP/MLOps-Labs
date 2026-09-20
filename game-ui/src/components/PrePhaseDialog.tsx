@@ -224,7 +224,12 @@ export default function PrePhaseDialog({
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
                   bubblePortalTarget={bubbleLayer}
-                  autoPlayIntroductions={!isReview && !settings.auto_skip_conversations}
+                  // wasReviewRef, not the live isReview prop: the reopened-from-dossier overlay
+                  // never unmounts on close (it just toggles a CSS class), and the parent flips
+                  // isReview back to false the instant it closes - reading it live here would
+                  // restart the whole introduction round on close, since the effect that seeds
+                  // introState depends on this prop.
+                  autoPlayIntroductions={!wasReviewRef.current && !settings.auto_skip_conversations}
                 />
               </div>
             </div>

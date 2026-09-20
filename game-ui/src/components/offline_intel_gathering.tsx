@@ -366,7 +366,11 @@ export default function OfflineIntelGathering({
   const [isNarrating, setIsNarrating] = useState(false);
   const narrationCancelRef = useRef<() => void>(() => {});
 
-  const narrateArtifact = (artifact: IntelArtifact) => {
+  // `markKey` is only recorded as narrated once the reading actually completes - not when it
+  // starts - so React StrictMode's dev-only double-invoke (mount, cleanup, mount again) can't
+  // mark an artifact "done" from a phantom run that gets cancelled before it ever plays, which
+  // would otherwise make the real, second mount see it as already-narrated and stay silent.
+  const narrateArtifact = (artifact: IntelArtifact, markKey?: string) => {
     if (!artifact.content) return;
     narrationCancelRef.current(); // a replay or a fresh artifact both interrupt any prior reading
     const speaker = artifact.stakeholder_id ? stakeholders[artifact.stakeholder_id] : undefined;
@@ -376,7 +380,10 @@ export default function OfflineIntelGathering({
     narrationCancelRef.current = speakTts(artifact.content, {
       slot,
       seed: artifact.stakeholder_id || undefined,
-      onEnd: () => setIsNarrating(false),
+      onEnd: () => {
+        setIsNarrating(false);
+        if (markKey) narratedArtifactKeysRef.current.add(markKey);
+      },
     });
   };
 
@@ -388,8 +395,7 @@ export default function OfflineIntelGathering({
   useEffect(() => {
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
-    narratedArtifactKeysRef.current.add(currentArtifactKey);
-    narrateArtifact(currentArtifact);
+    narrateArtifact(currentArtifact, currentArtifactKey);
     return () => {
       narrationCancelRef.current();
       setIsNarrating(false);
@@ -543,7 +549,7 @@ export default function OfflineIntelGathering({
                 {!settings.mute_tts && currentArtifact?.content && (
                   <button
                     type="button"
-                    onClick={() => currentArtifact && narrateArtifact(currentArtifact)}
+                    onClick={() => currentArtifact && narrateArtifact(currentArtifact, currentArtifactKey)}
                     className={styles.narrationControlButton}
                     title="Listen to this artifact again"
                     aria-label="Listen to this artifact again"
