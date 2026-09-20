@@ -16,6 +16,10 @@ class GlossarySurfaces(BaseModel):
     dossier_profile: bool = Field(default=True, description="Dossier role, responsibilities and priorities text")
     dialogue_options: bool = Field(default=True, description="Pitch debate dialogue cards")
     challenge_briefing: bool = Field(default=True, description="Challenge description and phase briefing")
+    action_proposal: bool = Field(
+        default=True,
+        description="Compose Action Proposal inspector: component names and the explanations of what holds them back",
+    )
 
 
 class GlossarySettings(BaseModel):

@@ -81,6 +81,12 @@
               "type": "boolean",
               "title": "Challenge Description & Briefing",
               "default": true
+            },
+            "action_proposal": {
+              "type": "boolean",
+              "title": "Compose Action Proposal",
+              "description": "The proposal inspector: component names and the explanations of what is holding a component back.",
+              "default": true
             }
           }
         }

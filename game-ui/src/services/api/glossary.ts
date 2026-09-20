@@ -16,6 +16,7 @@ export interface GlossarySurfaces {
   dossier_profile: boolean;
   dialogue_options: boolean;
   challenge_briefing: boolean;
+  action_proposal: boolean;
 }
 
 export type GlossarySurface = keyof GlossarySurfaces;
@@ -68,6 +69,7 @@ export const EMPTY_GLOSSARY: GlossaryConfig = {
       dossier_profile: false,
       dialogue_options: false,
       challenge_briefing: false,
+      action_proposal: false,
     },
   },
   categories: [],

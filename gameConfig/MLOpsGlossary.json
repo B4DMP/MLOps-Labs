@@ -12,7 +12,8 @@
       "intel_artifacts": true,
       "dossier_profile": true,
       "dialogue_options": true,
-      "challenge_briefing": true
+      "challenge_briefing": true,
+      "action_proposal": true
     }
   },
   "categories": [
@@ -856,6 +857,19 @@
       "category": "lifecycle",
       "definition": "The end-to-end loop a model travels: requirements, data engineering, model engineering, deployment, monitoring, and back around to retraining.",
       "why_it_matters": "The phases you play follow this loop. A decision taken early keeps charging you rent in every later phase."
+    },
+    {
+      "id": "spiral_model",
+      "term": "spiral model",
+      "aliases": [
+        "spiral",
+        "iteration",
+        "next iteration",
+        "development cycle"
+      ],
+      "category": "lifecycle",
+      "definition": "Development that repeats the same sequence of phases, each pass starting from what the last one built rather than from scratch.",
+      "why_it_matters": "Reaching monitoring is not the end of the work. The next pass reopens requirements with production evidence in hand - and with every component you already raised still standing."
     },
     {
       "id": "ml_pipeline",
