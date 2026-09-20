@@ -5,6 +5,7 @@ import type { ActionCard } from "../types/ActionCard";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
+import { useSettings } from "./SettingsProvider";
 import styles from "./pitch_debate.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo, type IntelEntry } from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
@@ -124,6 +125,7 @@ export default function PitchDebate({
   isSettingsOpen = false,
 }: PitchDebateProps) {
   const { emit, subscribe } = useGameWebSocket();
+  const { settings } = useSettings();
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
@@ -282,6 +284,16 @@ export default function PitchDebate({
 
     if (nextItem.type === "player") {
       setActiveSpeakingState(null);
+      // Auto-skip: the chat message and any state updates above already landed, so the line
+      // isn't lost - only the timed bubble and its hold are skipped. A minimal timeout (rather
+      // than recursing synchronously) keeps this on the same "next tick" rhythm as a real turn,
+      // so isSpeechActive()'s brief true window stays intact for callers that gate on it.
+      if (settings.auto_skip_conversations) {
+        setActivePlayerSpeakingState(null);
+        isProcessingQueueRef.current = false;
+        activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
+        return;
+      }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
       const durationMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
       const fadeOutDelay = Math.max(0, durationMs - 400);
@@ -330,6 +342,13 @@ export default function PitchDebate({
             },
           };
         });
+      }
+
+      if (settings.auto_skip_conversations) {
+        setActiveSpeakingState(null);
+        isProcessingQueueRef.current = false;
+        activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
+        return;
       }
 
       setActiveSpeakingState({

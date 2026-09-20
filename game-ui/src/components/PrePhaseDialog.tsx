@@ -1,6 +1,7 @@
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { useSettings } from "./SettingsProvider";
 import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
@@ -45,6 +46,7 @@ export default function PrePhaseDialog({
   isReview = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
+  const { settings } = useSettings();
   // Overlay layer the radar portals its bubbles and tooltips into. The page
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
@@ -217,7 +219,7 @@ export default function PrePhaseDialog({
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
                   bubblePortalTarget={bubbleLayer}
-                  autoPlayIntroductions={!isReview}
+                  autoPlayIntroductions={!isReview && !settings.auto_skip_conversations}
                 />
               </div>
             </div>
