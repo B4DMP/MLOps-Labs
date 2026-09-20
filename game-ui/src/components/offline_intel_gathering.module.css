@@ -179,7 +179,7 @@
 /* ==========================================================================
    Per-artifact narration stop button
    ========================================================================== */
-.narrationStopButton {
+.narrationControlButton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -197,8 +197,8 @@
     transition: background var(--transition);
 }
 
-.narrationStopButton:hover,
-.narrationStopButton:focus-visible {
+.narrationControlButton:hover,
+.narrationControlButton:focus-visible {
     background: rgba(255, 255, 255, 0.28);
 }
 
