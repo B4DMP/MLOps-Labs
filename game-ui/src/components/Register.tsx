@@ -5,7 +5,7 @@ import { ReadyState } from "../services/websocket/types";
 import styles from "./Register.module.css";
 
 interface RegisterProps {
-  onSubmit: (username: string, campaignKey: string) => void;
+  onSubmit: (username: string, campaignKey: string, startMuted: boolean) => void;
   readyState: ReadyState;
   onBack: () => void;
   isLoading?: boolean;
@@ -23,11 +23,12 @@ export function Register({
 }: RegisterProps) {
   const [username, setUsername] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
+  const [startMuted, setStartMuted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() && campaignKey.trim() && !isLoading) {
-      onSubmit(username.trim(), campaignKey.trim());
+      onSubmit(username.trim(), campaignKey.trim(), startMuted);
     }
   };
 
@@ -124,6 +125,22 @@ export function Register({
                 onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="form-check form-switch d-flex align-items-center gap-2 mb-1">
+            <input
+              type="checkbox"
+              role="switch"
+              id="register-start-muted"
+              className="form-check-input mt-0"
+              checked={startMuted}
+              disabled={isLoading}
+              onChange={(e) => setStartMuted(e.target.checked)}
+            />
+            <label htmlFor="register-start-muted" className={styles.formLabel} style={{ cursor: "pointer", marginBottom: 0 }}>
+              <Icon icon="ph:speaker-slash-bold" style={{ fontSize: "1rem" }} />
+              <span>Start muted</span>
+            </label>
           </div>
 
           <div className={styles.buttonRow}>

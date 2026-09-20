@@ -5,7 +5,7 @@ import { ReadyState } from "../services/websocket/types";
 import styles from "./Login.module.css";
 
 interface LoginProps {
-  onSubmit: (username: string) => void;
+  onSubmit: (username: string, startMuted: boolean) => void;
   readyState: ReadyState;
   onBack: () => void;
   isLoading?: boolean;
@@ -22,11 +22,12 @@ export function Login({
   onClearError,
 }: LoginProps) {
   const [username, setUsername] = useState("");
+  const [startMuted, setStartMuted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() && !isLoading) {
-      onSubmit(username.trim());
+      onSubmit(username.trim(), startMuted);
     }
   };
 
@@ -92,6 +93,22 @@ export function Login({
               disabled={isLoading}
               onChange={(e) => handleUsernameChange(e.target.value)}
             />
+          </div>
+
+          <div className="form-check form-switch d-flex align-items-center gap-2 mb-1">
+            <input
+              type="checkbox"
+              role="switch"
+              id="login-start-muted"
+              className="form-check-input mt-0"
+              checked={startMuted}
+              disabled={isLoading}
+              onChange={(e) => setStartMuted(e.target.checked)}
+            />
+            <label htmlFor="login-start-muted" className={styles.formLabel} style={{ cursor: "pointer", marginBottom: 0 }}>
+              <Icon icon="ph:speaker-slash-bold" style={{ fontSize: "1rem" }} />
+              <span>Start muted</span>
+            </label>
           </div>
 
           <div className="d-flex flex-column gap-2 mt-3">

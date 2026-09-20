@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 
 export interface PlayerSettings {
@@ -90,6 +90,11 @@ function toPlayerSettings(data: Record<string, unknown> | undefined | null): Pla
 interface SettingsProviderProps {
   children: React.ReactNode;
   username: string;
+  /** "Start muted" from the login/register form: forces mute_tts on for this login, overriding
+   * whatever was last saved, so a player who wants quiet doesn't get a burst of audio before
+   * they can reach the settings panel. Persisted server-side once (see below), not re-applied
+   * on every subsequent settings echo, so the player can still unmute mid-session as normal. */
+  startMuted?: boolean;
 }
 
 /**
@@ -102,19 +107,29 @@ interface SettingsProviderProps {
  * `settings:account_reset` the local mirror is dropped and the page reloads into the fresh
  * account rather than trying to reconcile stale in-memory state.
  */
-export default function SettingsProvider({ children, username }: SettingsProviderProps) {
+export default function SettingsProvider({ children, username, startMuted = false }: SettingsProviderProps) {
   const { emit, subscribe } = useGameWebSocket();
-  const [settings, setSettings] = useState<PlayerSettings>(() => readMirror(username) ?? DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<PlayerSettings>(() => {
+    const initial = readMirror(username) ?? DEFAULT_SETTINGS;
+    return startMuted ? { ...initial, mute_tts: true } : initial;
+  });
   const [canResetAccount, setCanResetAccount] = useState(false);
+  // Guards the startMuted override: true once it has actually been persisted server-side (its
+  // own settings:data echo has landed), so an earlier, stale game:init_data/settings:data isn't
+  // allowed to flip mute_tts back off in between, but a real toggle afterwards is respected.
+  const startMutedAppliedRef = useRef(false);
 
   const applyIncoming = useCallback(
     (data: Record<string, unknown> | undefined | null) => {
       const next = toPlayerSettings(data);
+      if (startMuted && !startMutedAppliedRef.current) {
+        next.mute_tts = true;
+      }
       setSettings(next);
       setCanResetAccount(Boolean(data?.can_reset_account));
       writeMirror(username, next);
     },
-    [username],
+    [username, startMuted],
   );
 
   useEffect(() => {
@@ -132,6 +147,13 @@ export default function SettingsProvider({ children, username }: SettingsProvide
       unsubReset();
     };
   }, [subscribe, applyIncoming, username]);
+
+  useEffect(() => {
+    if (!startMuted || startMutedAppliedRef.current) return;
+    startMutedAppliedRef.current = true;
+    emit("settings:update", { mute_tts: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startMuted]);
 
   const updateSettings = useCallback(
     (partial: Partial<PlayerSettings>) => {
