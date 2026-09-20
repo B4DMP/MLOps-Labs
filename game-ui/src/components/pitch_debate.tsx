@@ -297,8 +297,12 @@ export default function PitchDebate({
         setSelectedStakeholderId(nextItem.stakeholderId);
       }
 
-      // Update that stakeholder's emotional state, facial expression, and avatar now that their message is displayed!
-      if (nextItem.stakeholderId && (nextItem.emotionalState || nextItem.facialExpression) && setStakeholders) {
+      // Update that stakeholder's emotional state, facial expression, avatar, and emotionValues now that their message is displayed!
+      if (
+        nextItem.stakeholderId &&
+        (nextItem.emotionalState || nextItem.facialExpression || nextItem.emotionValues) &&
+        setStakeholders
+      ) {
         setStakeholders((prev: Record<string, any>) => {
           const stId = nextItem.stakeholderId!;
           const current = prev[stId];
@@ -312,6 +316,8 @@ export default function PitchDebate({
               emotional_state: newEmotionalState,
               facial_expression: newFace,
               emotion: newFace,
+              emotion_values: nextItem.emotionValues || current.emotion_values,
+              emotionValues: nextItem.emotionValues || current.emotionValues,
               avatar: {
                 ...(current.avatar || {}),
                 face: newFace,

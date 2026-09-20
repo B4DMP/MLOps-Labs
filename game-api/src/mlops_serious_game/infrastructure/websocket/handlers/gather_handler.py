@@ -76,6 +76,31 @@ def _stakeholder_name(st_id: str) -> str:
     return st.name if st else st_id.replace(".", " ").replace("_", " ").title()
 
 
+def _stakeholder_emotion_meta(st_id: str, emotion_values_map: dict) -> tuple[str, str, str, dict]:
+    """Returns (emotion_str, emotional_state, facial_expression, ev_dict) for a stakeholder."""
+    st_ev = emotion_values_map.get(st_id)
+    emotion_str = "Neutral"
+    emotional_state = "neutral"
+    facial_expression = "neutral"
+    ev_dict = {}
+    if st_ev:
+        try:
+            derived = EmotionFactory.derive_emotional_state(st_ev)
+            if derived:
+                emotion_str = derived.capitalize()
+                emotional_state = derived.lower()
+                facial_expression = EmotionFactory.derive_facial_expression_for_state(derived)
+            if hasattr(st_ev, "model_dump"):
+                ev_dict = st_ev.model_dump()
+            elif hasattr(st_ev, "dict"):
+                ev_dict = st_ev.dict()
+            elif isinstance(st_ev, dict):
+                ev_dict = dict(st_ev)
+        except Exception:
+            pass
+    return emotion_str, emotional_state, facial_expression, ev_dict
+
+
 async def _held_items(username: str, phase_id: int) -> list[StakeholderIntelItem]:
     return load_known_intel_items(username, up_to_phase=phase_id)
 
@@ -480,15 +505,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
             matching_undisc = [r for r in matching if r.id not in current_known_ids and r.id not in conversation.discovered_item_ids]
             matching_disc = [r for r in matching if r.id in current_known_ids or r.id in conversation.discovered_item_ids]
 
-            st_ev = emotion_values_map.get(s_id)
-            emotion_str = "Neutral"
-            if st_ev:
-                try:
-                    derived = EmotionFactory.derive_emotional_state(st_ev)
-                    if derived:
-                        emotion_str = derived.capitalize()
-                except Exception:
-                    pass
+            emotion_str, emotional_state, facial_expression, ev_dict = _stakeholder_emotion_meta(
+                s_id, emotion_values_map
+            )
 
             if matching_undisc:
                 ordered = gather._stable_order(f"{seed}|sync|{s_id}|{chosen_component}", matching_undisc)
@@ -547,6 +566,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": revealed_dicts,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -557,6 +579,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": revealed_dicts,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
             elif matching_disc:
                 req = matching_disc[0]
@@ -605,6 +630,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": newly_verified_items,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -615,6 +643,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": newly_verified_items,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
             else:
                 default_msg = f"I don't have any specific requirements or concerns regarding {comp_display} from my end."
@@ -642,6 +673,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": [],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -652,6 +686,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": [],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
 
     elif option == "component_query":
@@ -660,15 +697,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
         speaker_st = _stakeholder_obj(speaker_id)
         speaker_name = speaker_st.name if speaker_st else _stakeholder_name(speaker_id)
 
-        st_ev = emotion_values_map.get(speaker_id)
-        emotion_str = "Neutral"
-        if st_ev:
-            try:
-                derived = EmotionFactory.derive_emotional_state(st_ev)
-                if derived:
-                    emotion_str = derived.capitalize()
-            except Exception:
-                pass
+        emotion_str, emotional_state, facial_expression, ev_dict = _stakeholder_emotion_meta(
+            speaker_id, emotion_values_map
+        )
 
         revealed_item_ids = outcome.item_ids if outcome.item_ids else ([outcome.item_id] if outcome.item_id else [])
         if outcome.result == "revealed" and revealed_item_ids:
@@ -728,6 +759,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": revealed_dicts,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -738,6 +772,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": revealed_dicts,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
         else:
             # Check if stakeholder has already discovered items on this component
@@ -794,6 +831,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": newly_verified_items,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -804,6 +844,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": newly_verified_items,
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
             else:
                 default_msg = f"I don't have any specific requirements or concerns regarding {comp_display} at this time."
@@ -831,6 +874,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": [],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -841,6 +887,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": [],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
 
     elif option == "investigate_component" or card_id == "eng_5":
@@ -853,15 +902,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
         speaker_st = _stakeholder_obj(speaker_id)
         speaker_name = speaker_st.name if speaker_st else _stakeholder_name(speaker_id)
 
-        st_ev = emotion_values_map.get(speaker_id)
-        emotion_str = "Neutral"
-        if st_ev:
-            try:
-                derived = EmotionFactory.derive_emotional_state(st_ev)
-                if derived:
-                    emotion_str = derived.capitalize()
-            except Exception:
-                pass
+        emotion_str, emotional_state, facial_expression, ev_dict = _stakeholder_emotion_meta(
+            speaker_id, emotion_values_map
+        )
 
         if outcome.result == "revealed" and outcome.item_id:
             req = RequirementFactory.get_requirement(outcome.item_id)
@@ -914,6 +957,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "message": spoken_response,
                     "conversation_id": conversation.conversation_id,
                     "revealed_intel_items": [item_dict],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 }
                 await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
                 revealed_db_entries.append({
@@ -924,6 +970,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                     "conversation_id": conversation.conversation_id,
                     "ac_id": -1,
                     "revealed_intel": [item_dict],
+                    "emotional_state": emotional_state,
+                    "facial_expression": facial_expression,
+                    "emotion_values": ev_dict,
                 })
         else:
             if option == "priority_query":
@@ -955,6 +1004,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                 "message": spoken_response,
                 "conversation_id": conversation.conversation_id,
                 "revealed_intel_items": [],
+                "emotional_state": emotional_state,
+                "facial_expression": facial_expression,
+                "emotion_values": ev_dict,
             }
             await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
             revealed_db_entries.append({
@@ -965,6 +1017,9 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
                 "conversation_id": conversation.conversation_id,
                 "ac_id": -1,
                 "revealed_intel": [],
+                "emotional_state": emotional_state,
+                "facial_expression": facial_expression,
+                "emotion_values": ev_dict,
             })
 
     # Save chat messages to GameChallenge DB row for persistent chat history

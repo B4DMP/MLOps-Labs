@@ -17,6 +17,8 @@ export type Stakeholder = {
   emotion?: string;
   facial_expression?: string;
   emotional_state?: string;
+  emotion_values?: Record<string, number>;
+  emotionValues?: Record<string, number>;
 };
 
 type StakeholderContextType = {

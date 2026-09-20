@@ -276,6 +276,24 @@ async def conduct_component_investigation_turn(
     item_dict = intel_item.model_dump(mode="json")
     item_dict["stakeholder_name"] = st_name
 
+    emotional_state = "neutral"
+    facial_expression = "neutral"
+    ev_dict = {}
+    if st_ev:
+        try:
+            derived = EmotionFactory.derive_emotional_state(st_ev)
+            if derived:
+                emotional_state = derived.lower()
+                facial_expression = EmotionFactory.derive_facial_expression_for_state(derived)
+            if hasattr(st_ev, "model_dump"):
+                ev_dict = st_ev.model_dump()
+            elif hasattr(st_ev, "dict"):
+                ev_dict = st_ev.dict()
+            elif isinstance(st_ev, dict):
+                ev_dict = dict(st_ev)
+        except Exception:
+            pass
+
     msg_payload = {
         "type": "stakeholder_message",
         "stakeholder_id": stakeholder_id,
@@ -283,6 +301,9 @@ async def conduct_component_investigation_turn(
         "message": stakeholder_message,
         "conversation_id": conversation.conversation_id,
         "revealed_intel_items": [item_dict],
+        "emotional_state": emotional_state,
+        "facial_expression": facial_expression,
+        "emotion_values": ev_dict,
     }
     await manager.send_event(websocket=websocket, event="intel:message_received", payload=msg_payload)
 
