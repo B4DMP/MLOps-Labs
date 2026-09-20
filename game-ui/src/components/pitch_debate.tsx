@@ -973,17 +973,6 @@ export default function PitchDebate({
             }}
           >
             {activeSpeakingState.message}
-            <button
-              type="button"
-              className={styles.speechSkipBtn}
-              onClick={(e) => {
-                e.stopPropagation();
-                skipCurrentSpeech();
-              }}
-              title="Skip message"
-            >
-              <Icon icon="ph:skip-forward-fill" style={{ fontSize: "0.85rem" }} />
-            </button>
           </div>
         )}
 
@@ -1412,17 +1401,6 @@ export default function PitchDebate({
                                     <Icon icon="ph:user-circle-bold" />
                                     <span>Player</span>
                                   </div>
-                                  <button
-                                    type="button"
-                                    className={styles.speechSkipBtn}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      skipCurrentSpeech();
-                                    }}
-                                    title="Skip message"
-                                  >
-                                    <Icon icon="ph:skip-forward-fill" />
-                                  </button>
                                 </div>
                                 <div className={styles.playerSpeechContent}>{activePlayerSpeakingState.message}</div>
                               </div>
@@ -1475,6 +1453,20 @@ export default function PitchDebate({
                             onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
                           />
 
+
+                          {/* One skip control for every bubble: the bubbles themselves move around
+                              the table, so the button that dismisses them stays put here instead. */}
+                          {isAnySpeechActive && (
+                            <button
+                              type="button"
+                              className={styles.speechSkipBar}
+                              onClick={skipCurrentSpeech}
+                              title="Skip the current message"
+                            >
+                              <Icon icon="ph:skip-forward-fill" />
+                              <span>Skip</span>
+                            </button>
+                          )}
 
                           {/* Maximize / Minimize button */}
                           <button

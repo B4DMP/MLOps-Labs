@@ -555,24 +555,41 @@
   animation: bubblePopOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.speechSkipBtn {
+/* Skip control for whoever is speaking. It sits at the top of the conversation history rather
+   than in the bubble: a seated stakeholder's bubble opens wherever that seat is, and hunting for
+   a 16px button around the table is worse than one target that never moves. Absolute, so the
+   chat below it does not reflow every time a message starts and ends. */
+.speechSkipBar {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 3px;
-  display: flex;
+  top: 8px;
+  left: 50%;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  transition: color 0.15s ease;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: var(--primary-bg, #266682);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  z-index: 21;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: bubblePopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: filter 0.2s ease, transform 0.2s ease;
 }
 
-.speechSkipBtn:hover {
-  color: #1e293b;
+.speechSkipBar:hover {
+  filter: brightness(1.18);
+  transform: translate(-50%, 0) scale(1.05);
+}
+
+.speechSkipBar:active {
+  transform: translate(-50%, 0) scale(0.95);
 }
 
 /* Player Speech Bubble */

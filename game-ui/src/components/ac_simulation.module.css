@@ -26,61 +26,101 @@
 
 /* ── Top Header Strip ── */
 .header {
-  padding: 0.8rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
   color: #ffffff;
   background-color: var(--primary-bg, #0f1826);
   border-bottom: 2px solid var(--secondary-bg, #1e293b);
   flex-shrink: 0;
 }
 
+.headerTitleBlock {
+  flex-shrink: 0;
+}
+
 .headerTitle {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin: 0;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .headerSubtitle {
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   color: rgba(255, 255, 255, 0.82);
-  margin: 0.2rem 0 0 0;
+  margin: 0.15rem 0 0 0;
   font-weight: 400;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 .headerIcon {
   color: var(--dialog-surface, #ffffff);
-  font-size: 1.6rem;
+  font-size: 1.35rem;
 }
 
-.phaseBadge {
+.headerPhases {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  font-size: 0.9em;
+  overflow: visible;
+}
+
+/* Jumps to the full Performance Dashboard without leaving the debrief - this page only shows
+   the components/dimensions this rollout touched, the dashboard has the whole graph. */
+.dashboardLink {
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.28);
   color: #ffffff;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   letter-spacing: 0.4px;
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: 9999px;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition, 0.2s ease);
+}
+
+.dashboardLink:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.dashboardLinkActive {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 1100px) {
+  .header {
+    flex-wrap: wrap;
+  }
+  .headerPhases {
+    order: 3;
+    flex-basis: 100%;
+  }
 }
 
 /* ── Body Container ── */
 .modalBody {
-  padding: 1rem 1.25rem;
+  padding: 0.85rem 1.1rem;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.7rem;
   flex: 1;
   min-height: 0;
 }
@@ -90,8 +130,8 @@
   background: #ffffff;
   border: 1px solid var(--dialog-border, #e2e8f0);
   border-left: 4px solid var(--primary-bg, #0f1826);
-  border-radius: 0.65rem;
-  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.8rem 0.45rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 }
@@ -108,21 +148,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--primary-bg, #0f1826);
 }
 
-.directiveIcon {
-  font-size: 1.25rem;
-  color: var(--primary-bg, #0f1826);
-}
-
 .directiveText {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: #475569;
-  margin-top: 0.35rem;
-  line-height: 1.4;
+  margin: 0.1rem 0 0;
+  line-height: 1.3;
 }
 
 /* Outcome Status Badges */
@@ -162,11 +197,13 @@
   border: 1px solid #cbd5e1;
 }
 
-/* ── Two-Column Layout ── */
+/* ── Two-Column Layout ──
+   Main column (what happened, to whom) reads first; the summary column (abstract
+   dimension/architecture shifts) sits beside it as the "so what" recap. */
 .mainGrid {
   display: grid;
-  grid-template-columns: 360px 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr 320px;
+  gap: 0.85rem;
   align-items: start;
 }
 
@@ -176,11 +213,11 @@
   }
 }
 
-.leftCol,
-.rightCol {
+.mainCol,
+.summaryCol {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.7rem;
   min-width: 0;
 }
 
@@ -188,7 +225,7 @@
 .surfaceCard {
   background: #ffffff;
   border: 1px solid var(--dialog-border, #e2e8f0);
-  border-radius: 0.65rem;
+  border-radius: 0.6rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   overflow: hidden;
   display: flex;
@@ -196,7 +233,7 @@
 }
 
 .cardHeader {
-  padding: 0.65rem 0.95rem;
+  padding: 0.55rem 0.8rem;
   background: #f8fafc;
   border-bottom: 1px solid var(--dialog-border, #e2e8f0);
   display: flex;
@@ -215,10 +252,10 @@
 }
 
 .cardBody {
-  padding: 0.85rem;
+  padding: 0.7rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 /* ── Component Implementation Log (Highlight Feature) ── */
@@ -228,15 +265,16 @@
   gap: 0.75rem;
 }
 
+/* A tinted fill instead of a white card + border - the surrounding `.cardBody` is already
+   white with its own border, so a second bordered white box on top of it just doubles the
+   frame. The tint alone reads as "a distinct item" without the nested-box look. */
 .rolloutItem {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #f8fafc;
   border-radius: 0.55rem;
-  padding: 0.85rem;
+  padding: 0.65rem 0.7rem;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  transition: border-color var(--transition, 0.2s ease);
+  gap: 0.5rem;
 }
 
 .rolloutItemHeader {
@@ -280,13 +318,21 @@
   border-radius: 0.25rem;
 }
 
-.idTag {
-  font-size: 0.7rem;
-  font-family: monospace;
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 0.15rem 0.45rem;
-  border-radius: 0.25rem;
+/* The stakeholder responsible for a component, folded into the header row it used to sit
+   below - a tag, not a bordered sub-card, since it's a label for the component, not its own
+   piece of content. The role is still one hover away via `title`, never printed as an id. */
+.ownerChip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  padding: 0.12rem 0.5rem 0.12rem 0.3rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: help;
 }
 
 .levelTransition {
@@ -298,6 +344,9 @@
 }
 
 .levelPip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.15rem 0.5rem;
   border-radius: 0.35rem;
   font-size: 0.72rem;
@@ -336,42 +385,38 @@
   border: 1px solid #86efac;
 }
 
-/* Stakeholder Responsible Block */
-.ownerRow {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  background: #f8fafc;
-  border: 1px solid #edf2f7;
-  border-radius: 0.45rem;
-  padding: 0.5rem 0.7rem;
-}
-
-.ownerAvatarWrap {
-  width: 38px;
-  height: 38px;
+/* Quiet hint that a name/label carries more detail on hover (role, responsibilities). */
+.ownerRoleHint {
+  color: #94a3b8;
+  font-size: 0.85em;
   flex-shrink: 0;
 }
 
-.ownerInfo {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.ownerName {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #1e293b;
+/* A component that shipped clean gets one quiet line, not a repeated boilerplate callout -
+   the callout treatment is reserved for the components that actually have a story. */
+.flawlessLine {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: #166534;
 }
 
-.ownerRole {
-  font-size: 0.72rem;
-  color: #64748b;
+/* Status callout and story sit side by side when there's room, so a two-sentence outcome
+   doesn't need three lines of vertical space. */
+.rolloutDetails {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.rolloutDetails > .statusCallout {
+  flex: 1 1 260px;
+}
+
+.rolloutDetails > .rolloutStory {
+  flex: 1 1 200px;
 }
 
 /* Implementation Status Callout */
@@ -412,73 +457,134 @@
 .rolloutStory {
   font-size: 0.78rem;
   color: #334155;
-  background: #fdfdfe;
+  background: #ffffff;
   border-left: 2px solid #cbd5e1;
   padding: 0.3rem 0.6rem;
+  border-radius: 0 0.3rem 0.3rem 0;
   font-style: italic;
   line-height: 1.35;
 }
 
-/* ── Project Dimensions Shifts (6 Metrics) ── */
+/* ── Project Dimensions Shifts (6 Metrics) ──
+   Deliberately mirrors MetricTab's header gauges (badge colour, segmented meter, value/max) -
+   this *is* that same widget, just showing before -> after instead of only "now". A different
+   look here would read as a second, unrelated system. Only metrics that actually moved a
+   segment get a card; the rest fold into `.steadyMetricsLine` below. */
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
+  gap: 0.45rem;
+}
+
+.metricsExplainer {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0 0 0.15rem;
+  line-height: 1.35;
 }
 
 .metricCard {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.45rem;
-  padding: 0.5rem 0.65rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.metricHeader {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.55rem;
+  background: color-mix(in srgb, var(--metric) 6%, transparent);
+}
+
+.metricBadge {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: #ffffff;
+  background: var(--metric);
+}
+
+.metricCardBody {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metricTopline {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
+  gap: 0.4rem;
+  min-width: 0;
 }
 
 .metricName {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: #1e293b;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-.metricDelta {
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 0.1rem 0.4rem;
-  border-radius: 0.3rem;
+.metricChange {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.2rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.metricChange svg {
+  align-self: center;
 }
 
 .metricUp {
-  background: #dcfce7;
   color: #166534;
 }
 
 .metricDown {
-  background: #fee2e2;
   color: #991b1b;
 }
 
-.metricNeutral {
-  background: #f1f5f9;
-  color: #64748b;
+.metricMax {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
-.metricValue {
-  font-size: 0.7rem;
-  color: #64748b;
+.metricSegments {
+  display: flex;
+  gap: 2px;
+  height: 5px;
+}
+
+.segment {
+  flex: 1 1 0;
+  border-radius: 1px;
+  background: #e8edf3;
+}
+
+.segmentOn {
+  background: var(--metric);
+}
+
+.steadyMetricsLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  padding-top: 0.15rem;
 }
 
 /* ── Stakeholder Sentiments & Grudges ── */
@@ -488,14 +594,22 @@
   gap: 0.65rem;
 }
 
+/* Same tinted-fill treatment as `.rolloutItem` - no border, so it doesn't double up on
+   the white bordered `.cardBody` it sits inside. */
 .stakeholderCard {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #f8fafc;
   border-radius: 0.5rem;
-  padding: 0.65rem;
+  padding: 0.55rem 0.6rem;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.4rem;
+}
+
+.stakeholderStory {
+  font-size: 0.74rem;
+  color: #334155;
+  font-style: italic;
+  line-height: 1.35;
 }
 
 .emotionPills {
@@ -507,8 +621,11 @@
 .emotionPill {
   font-size: 0.68rem;
   font-weight: 600;
-  padding: 0.15rem 0.45rem;
+  padding: 0.15rem 0.45rem 0.15rem 0.35rem;
   border-radius: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
 }
 
 .emotionPositive {
@@ -543,15 +660,84 @@
   color: #166534;
 }
 
-.alertInfo {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e40af;
+.alertNeutral {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+/* One consistent "nothing to report here" pattern, used by every card that can come up
+   empty, instead of each card inventing its own wording/treatment. */
+.emptyState {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  text-align: left;
+}
+
+.emptyState svg {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Grudges: severity follows the stakeholder's power, so a high-power grudge visually
+   outweighs a low-power one instead of every name reading as equally bad. */
+/* Label and chips flow together as one wrapping line instead of a label row stacked over a
+   separate chip row - reads as one sentence, not two blocks. */
+.grudgeBlock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.grudgeBlockLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.grudgeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.grudgeChipMinor {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.grudgeChipSevere {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.grudgeChipTag {
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.3px;
+  background: rgba(153, 27, 27, 0.12);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.2rem;
 }
 
 /* ── Footer Strip ── */
 .footer {
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.25rem;
   background: #ffffff;
   border-top: 1px solid var(--dialog-border, #e2e8f0);
   display: flex;
@@ -562,12 +748,58 @@
   flex-wrap: wrap;
 }
 
+.footerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .footerHint {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   font-size: 0.78rem;
   color: #64748b;
+}
+
+/* What the player carries forward into the next milestone, at a glance, right where they
+   commit to moving on - so they don't have to scroll back up to remember. */
+.stakesSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.stakeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.stakeGood {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+/* Amber, matching `.grudgeChipMinor`/`.alertWarning` - a shortcut or grudge is a caution, the
+   same colour it carries everywhere else on this page. Red is reserved for `.stakeBad`,
+   an actually-measured regression (a dimension that dropped a tier). */
+.stakeWarn {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.stakeBad {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
 .actions {

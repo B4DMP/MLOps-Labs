@@ -919,6 +919,8 @@ function App({ username: _username }: AppProps) {
                           currentPhase={currentPhase}
                           currentChallenge={currentChallenge}
                           playedCard={pitchedActionCard}
+                          onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
+                          isPerformanceOpen={isPerformanceOpen}
                         />
                       </motion.div>
                     )}
