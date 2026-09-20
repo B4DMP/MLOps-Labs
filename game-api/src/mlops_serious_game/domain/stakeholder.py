@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -30,6 +30,9 @@ class Stakeholder(BaseModel):
         default="", description="Short, friendly self-introduction spoken in the phase briefing"
     )
     metric_id: str = Field(description="associated metric")
+    voice: Literal["male", "female", "neutral"] = Field(
+        default="neutral", description="Text-to-speech gender hint, used to pick a voice slot"
+    )
     avatar: dict = Field(
         default_factory=dict,
         description="Open Peeps avatar configuration, role-level traits and identity colors",

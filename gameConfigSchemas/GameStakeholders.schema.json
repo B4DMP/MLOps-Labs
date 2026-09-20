@@ -50,6 +50,17 @@
               "model_intro"
             ]
           },
+          "voice": {
+            "type": "string",
+            "title": "Voice Gender Hint",
+            "description": "Which text-to-speech voice slot this stakeholder speaks in. Defaults to \"neutral\", which falls back to the narrator voice.",
+            "default": "neutral",
+            "enum": [
+              "male",
+              "female",
+              "neutral"
+            ]
+          },
           "role_description": {
             "type": "string",
             "title": "Role Description"
