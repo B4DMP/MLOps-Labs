@@ -2,6 +2,7 @@ import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
+import { cancelSpeech } from "../utils/speech";
 import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
@@ -57,6 +58,10 @@ export default function PrePhaseDialog({
   }
 
   const handleClose = () => {
+    // A stakeholder introduction can still be mid-sentence when the player moves on (they don't
+    // have to wait for it), and the round behind this dialog starts immediately on close - so
+    // without this, its own narration could start while the old introduction was still audible.
+    cancelSpeech();
     setIsOpen(false);
     // Reviewing mid-phase just returns the player to where they were; only the
     // briefing shown on entering a phase starts the round.

@@ -340,7 +340,10 @@ export default function PowerInterestMatrix({
       slot: slotForStakeholderVoice(details?.voice),
       seed: introState.stakeholderId,
     });
-    const durationMs = Math.min(9000, Math.max(4000, Math.round(message.length * 55)));
+    // 85ms/char comfortably covers a typical browser TTS rate of ~66-75ms/char (150wpm), so the
+    // bubble outlives the voice line instead of cutting it off mid-sentence - introductions run
+    // 150-250 chars and were routinely hitting the old 9s cap before finishing.
+    const durationMs = Math.min(20000, Math.max(4000, Math.round(message.length * 85)));
     fadeTimerRef.current = setTimeout(() => {
       setIntroState((prev) => (prev ? { ...prev, isClosing: true } : null));
     }, Math.max(0, durationMs - 400));

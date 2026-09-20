@@ -309,7 +309,9 @@ export default function PitchDebate({
       }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
       speakTts(nextItem.message, { slot: "player" });
-      const durationMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
+      // 85ms/char comfortably covers real TTS speaking rate (~66-75ms/char at 150wpm), so the
+      // bubble outlives the voice line instead of cutting it off mid-sentence.
+      const durationMs = Math.min(14000, Math.max(2500, Math.round(nextItem.message.length * 85)));
       const fadeOutDelay = Math.max(0, durationMs - 400);
 
       activeFadeTimerRef.current = setTimeout(() => {
@@ -374,7 +376,9 @@ export default function PitchDebate({
         slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
         seed: nextItem.stakeholderId,
       });
-      const durationMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
+      // 85ms/char comfortably covers real TTS speaking rate (~66-75ms/char at 150wpm), so the
+      // bubble outlives the voice line instead of cutting it off mid-sentence.
+      const durationMs = Math.min(20000, Math.max(4500, Math.round(nextItem.message.length * 85)));
       const fadeOutDelay = Math.max(0, durationMs - 400);
 
       activeFadeTimerRef.current = setTimeout(() => {
