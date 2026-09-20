@@ -148,6 +148,10 @@ export const NODE_RX = 10;
 export const RAIL_W = 4;
 /** Left edge of node content: clear of the status rail. */
 export const NODE_PAD_X = RAIL_W + 10;
+/** Size of a component's icon, sharing the title's row. */
+export const NODE_ICON_SIZE = 14;
+/** How far the title shifts right to make room for the icon, when the node has one. */
+export const NODE_ICON_OFFSET = NODE_ICON_SIZE + 4;
 
 /** What a node's status rail says, in the order a player needs to hear it. */
 export const NODE_COLORS = {
