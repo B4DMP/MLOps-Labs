@@ -13,18 +13,24 @@ import {
   LevelMeter,
   NodeDefs,
   NodeIcon,
+  NodeTitleAberration,
+  LevelCaption,
   NODE_STATE_ANIM,
   ScanlineDefs,
   SelectionReticle,
   StaleScanline,
-  TriggerChip,
+  EdgeHandle,
 } from "./graph/nodeChrome";
 import {
   BOX_W,
   BOX_H,
   NODE_COLORS,
   NODE_ICON_OFFSET,
+  NODE_CAPTION_Y,
+  NODE_METER_Y,
   NODE_PAD_X,
+  NODE_TITLE_LH,
+  NODE_TITLE_Y,
   NODE_RX,
   RAIL_W,
   nodeFace,
@@ -34,6 +40,10 @@ import {
   formatLevel,
   formatLevelCap,
   formatTrigger,
+  LEVEL_EMPTY,
+  LEVEL_META,
+  levelMeta,
+  TRIGGER_ICONS,
   wrapLabel,
 } from "../utils/stageCanvas";
 
@@ -160,9 +170,12 @@ const LEGEND_GROUPS: Array<{
   {
     heading: "Maturity meter",
     items: [
-      { label: "Built and running", swatch: { background: NODE_COLORS.healthy } },
-      { label: "Built but capped", swatch: { background: NODE_COLORS.capped } },
-      { label: "Not built", swatch: { background: "#e3e9f0" } },
+      ...LEVEL_META.map((rung, i) => ({
+        label: `${i}. ${rung.label}`,
+        swatch: { background: rung.color },
+      })),
+      { label: "Built but not running", swatch: { background: LEVEL_META[3].color, opacity: 0.33 } },
+      { label: "Not built", swatch: { background: LEVEL_EMPTY } },
     ],
   },
   {
@@ -171,6 +184,11 @@ const LEGEND_GROUPS: Array<{
       { label: "In your proposal", glyph: "⚡" },
       { label: "Another phase - view only", glyph: "👁" },
       { label: "Dashed outline: undiscovered", swatch: { border: "1.5px dashed #94a3b8", background: "#f8fafc" } },
+      { label: "Flat pale face: another phase", swatch: { border: "1.5px solid #cbd5e1", background: "#eef2f7" } },
+      {
+        label: "Handle on a line: the connection is editable",
+        swatch: { border: "1.25px solid #64748b", background: "#ffffff", borderRadius: "9999px", height: "11px" },
+      },
     ],
   },
 ];
@@ -204,6 +222,11 @@ function LevelPicker({
             className={`${styles.levelOption} ${isTarget ? styles.levelOptionTarget : ""} ${
               isCurrent ? styles.levelOptionCurrent : ""
             }`}
+            style={{
+              ["--rung" as string]: levelMeta(lvl).color,
+              ["--rung-ink" as string]: levelMeta(lvl).ink,
+              ["--rung-on-fill" as string]: levelMeta(lvl).onFill,
+            }}
             onClick={() => onChange(lvl)}
             title={
               isCurrent
@@ -211,6 +234,7 @@ function LevelPicker({
                 : `Propose raising to ${formatLevel(lvl)}`
             }
           >
+            <Icon icon={levelMeta(lvl).icon} className={styles.levelOptionIcon} aria-hidden />
             <span className={styles.levelOptionName}>{formatLevelCap(lvl)}</span>
             {isCurrent && <span className={styles.levelNowTag}>now</span>}
           </button>
@@ -753,7 +777,7 @@ export default function ComposeActionProposalModal({
                   </defs>
 
                   {/* SVG Pipeline Edges */}
-                  {edges.map((e) => {
+                  {edges.map((e, edgeIndex) => {
                     const from = allComponentsMap.get(e.from_id);
                     const to = allComponentsMap.get(e.to_id);
                     const fromPos = posOf(e.from_id);
@@ -800,8 +824,10 @@ export default function ComposeActionProposalModal({
                     const my = (ay + by) / 2;
                     const baseWidth = edgeStrokeWidth(e.knowledge !== "unknown" ? e.level : undefined);
                     const isAutomated = e.knowledge !== "unknown" && e.level !== undefined && e.level !== null && e.level >= 3;
-                    const hasTriggerChip =
-                      !isSlotted && !isOtherPhase && e.knowledge !== "unknown" && e.trigger && e.trigger !== "none";
+                    const hasTrigger = Boolean(e.trigger && e.trigger !== "none");
+                    // Every edge the player may act on gets a handle, triggered or not; the
+                    // slotted and view-only badges already own the midpoint when they show.
+                    const showHandle = !isSlotted && !isOtherPhase && e.knowledge !== "unknown";
 
                     return (
                       <g key={e.id}>
@@ -821,6 +847,8 @@ export default function ComposeActionProposalModal({
                           }
                           strokeDasharray={isOtherPhase || isFromUnknown || e.knowledge === "unknown" ? "4 3" : undefined}
                           markerEnd={`url(#${markerId})`}
+                          style={{ cursor: showHandle ? "pointer" : undefined }}
+                          opacity={isHovered ? 1 : 0.92}
                         />
                         {isAutomated && <FlowParticle x1={ax} y1={ay} x2={bx} y2={by} color={color} />}
 
@@ -841,10 +869,31 @@ export default function ComposeActionProposalModal({
                             </text>
                           </g>
                         )}
-                        {/* Trigger, in a bordered chip - only when the midpoint isn't already
-                            claimed by a slotted or view-only badge */}
-                        {hasTriggerChip && (
-                          <TriggerChip x={mx} y={my - 16} label={formatTrigger(e.trigger)} color={color} />
+                        {/* The handle: what makes the edge look like something to press. It
+                            carries the trigger glyph when there is one, a neutral dot when
+                            there is not, and it is the click target. */}
+                        {showHandle && (
+                          <EdgeHandle
+                            key={`${activeStageId}-${e.id}`}
+                            className="edge-handle-reveal"
+                            revealDelay={edgeIndex * 90}
+                            x={mx}
+                            y={my}
+                            glyph={hasTrigger ? TRIGGER_ICONS[e.trigger!] ?? "?" : undefined}
+                            title={`${from.name} to ${to.name}
+Runs ${formatLevel(e.level)}${
+                              hasTrigger ? `, started by ${formatTrigger(e.trigger)}` : ""
+                            }
+Click to edit this connection`}
+                            color={color}
+                            active={isSelected || isSlotted}
+                            onClick={() => {
+                              setSelectedEdgeId(isSelected ? null : e.id);
+                              setSelectedCompId(null);
+                            }}
+                            onMouseEnter={() => setHoveredEdgeId(e.id)}
+                            onMouseLeave={() => setHoveredEdgeId(null)}
+                          />
                         )}
 
                         {/* Wide transparent hit area for easy clicking */}
@@ -886,21 +935,26 @@ export default function ComposeActionProposalModal({
                     const isOtherPhase = !compEdit.editable && !isUnknown;
                     const upstreamCheck = isUpstreamUncertain(c.id);
 
+                    const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
+                    // Runs at nothing, but is not itself broken: something upstream is down.
+                    const isStarved = !isUnknown && !isBroken && (c.effective ?? 1) === 0;
                     const rail = isSlotted
                       ? NODE_COLORS.selected
                       : isUnknown
                       ? NODE_COLORS.unknown
                       : isOtherPhase
                       ? "#94a3b8"
+                      : isBroken
+                      ? NODE_COLORS.broken
                       : upstreamCheck.uncertain
                       ? "#b45309"
                       : c.capped_by
                       ? NODE_COLORS.capped
                       : NODE_COLORS.healthy;
-                    const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
                     const face = nodeFace("compose", {
                       selected: isSelected || isSlotted || isPredecessor,
-                      unknown: isUnknown || isOtherPhase,
+                      unknown: isUnknown,
+                      viewOnly: isOtherPhase,
                       broken: isBroken,
                     });
                     const stroke = isSlotted || isSelected
@@ -937,8 +991,10 @@ export default function ComposeActionProposalModal({
                           fill={face}
                           stroke={stroke}
                           strokeWidth={1}
-                          strokeDasharray={isUnknown || isOtherPhase ? "5 3" : undefined}
-                          filter={`url(#compose-${isSelected || isSlotted ? "shadow-lifted" : "shadow"})`}
+                          strokeDasharray={isUnknown ? "5 3" : undefined}
+                          filter={`url(#compose-${
+                            isBroken ? "broken-face" : isSelected || isSlotted ? "shadow-lifted" : "shadow"
+                          })`}
                         />
                         <clipPath id={`compose-clip-${safeId}`}>
                           <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
@@ -978,12 +1034,19 @@ export default function ComposeActionProposalModal({
                         {/* Icon, sharing the title's row */}
                         {c.icon && <NodeIcon icon={c.icon} color={isUnknown || isOtherPhase ? "#7c8ba1" : rail} />}
 
-                        {/* Node Title */}
+                        {/* Node Title, with its colour-split ghosts underneath when broken */}
+                        {isBroken && (
+                          <NodeTitleAberration
+                            lines={lines}
+                            x={(i) => NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
+                            fontWeight={isSelected || isSlotted ? 700 : 600}
+                          />
+                        )}
                         {lines.map((line, i) => (
                           <text
                             key={i}
                             x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
-                            y={19 + i * 13}
+                            y={NODE_TITLE_Y + i * NODE_TITLE_LH}
                             fill={isUnknown || isOtherPhase ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
                             fontSize="11"
                             fontWeight={isSelected || isSlotted ? "700" : "600"}
@@ -994,30 +1057,34 @@ export default function ComposeActionProposalModal({
 
                         {/* One caption, plus the maturity meter when there is one to show */}
                         {isUnknown ? (
-                          <text x={NODE_PAD_X} y={BOX_H - 12} fill="#94a3b8" fontSize="8.5" fontStyle="italic">
+                          <text x={NODE_PAD_X} y={NODE_CAPTION_Y} fill="#94a3b8" fontSize="8.5" fontStyle="italic">
                             not discovered yet
                           </text>
                         ) : (
                           <>
-                            <text
-                              x={NODE_PAD_X}
-                              y={BOX_H - 20}
-                              fill={rail}
-                              fontSize="8"
-                              fontWeight="700"
-                              letterSpacing="0.6"
-                            >
-                              {isOtherPhase
-                                ? "VIEW ONLY"
-                                : upstreamCheck.uncertain
-                                ? "UNCERTAIN"
-                                : formatLevel(c.effective ?? c.nominal ?? 1).toUpperCase()}
-                            </text>
+                            <LevelCaption
+                              level={c.effective ?? c.nominal ?? 1}
+                              y={NODE_CAPTION_Y}
+                              // Three cases are not about a rung at all, and keep the rail's
+                              // colour along with their own word.
+                              text={
+                                isOtherPhase
+                                  ? "view only"
+                                  : upstreamCheck.uncertain
+                                  ? "uncertain"
+                                  : isStarved
+                                  ? "starved"
+                                  : undefined
+                              }
+                              color={
+                                isOtherPhase || upstreamCheck.uncertain || isStarved ? rail : undefined
+                              }
+                            />
                             <LevelMeter
                               nominal={c.nominal ?? 1}
                               effective={c.effective}
                               previewLevel={previewLevel}
-                              y={BOX_H - 14}
+                              y={NODE_METER_Y}
                             />
                           </>
                         )}
@@ -1436,9 +1503,10 @@ export default function ComposeActionProposalModal({
               /* ── Empty Inspector State ── */
               <div className={styles.emptyInspector}>
                 <Icon icon="ph:cursor-click-bold" className={styles.emptyIcon} />
-                <span className={styles.emptyTitle}>Select a component or edge</span>
+                <span className={styles.emptyTitle}>Select a component or a connection</span>
                 <p className={styles.emptyBody}>
-                  Click anything on the canvas to inspect its maturity and slot an upgrade.
+                  Click a component, or the handle on the line between two of them. Both can be
+                  raised, and both count as one of your three slots.
                 </p>
               </div>
             )}

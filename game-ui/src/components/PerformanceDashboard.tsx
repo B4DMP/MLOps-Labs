@@ -15,6 +15,8 @@ import {
   LevelMeter,
   NodeDefs,
   NodeIcon,
+  NodeTitleAberration,
+  LevelCaption,
   NODE_STATE_ANIM,
   ScanlineDefs,
   SelectionReticle,
@@ -24,7 +26,11 @@ import {
 import {
   NODE_COLORS,
   NODE_ICON_OFFSET,
+  NODE_CAPTION_Y,
+  NODE_METER_Y,
   NODE_PAD_X,
+  NODE_TITLE_LH,
+  NODE_TITLE_Y,
   NODE_RX,
   RAIL_W,
   nodeFace,
@@ -438,6 +444,9 @@ function StageSvg({
         const isUnknown = c.knowledge === "unknown";
         const rail = railColor(c);
         const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
+        // Runs at nothing, but is not itself broken: something upstream is down. Saying
+        // BROKEN here would blame the victim of a break for the break.
+        const isStarved = !isUnknown && !isBroken && (c.effective ?? 1) === 0;
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
         const lines = wrapLabel(rawName, 17);
 
@@ -459,7 +468,7 @@ function StageSvg({
               stroke={isSelected ? NODE_COLORS.selected : isUnknown ? "#cbd5e1" : "#dde5ee"}
               strokeWidth={1}
               strokeDasharray={isUnknown ? "5 3" : undefined}
-              filter={`url(#dash-${isSelected ? "shadow-lifted" : "shadow"})`}
+              filter={`url(#dash-${isBroken ? "broken-face" : isSelected ? "shadow-lifted" : "shadow"})`}
             />
             <clipPath id={`dash-clip-${c.id.replace(/\./g, "_")}`}>
               <rect width={BOX_W} height={BOX_H} rx={NODE_RX} />
@@ -477,12 +486,19 @@ function StageSvg({
             {/* Icon, sharing the title's row */}
             {c.icon && <NodeIcon icon={c.icon} color={isUnknown ? "#7c8ba1" : rail} />}
 
-            {/* Component Title */}
+            {/* Component Title, with its colour-split ghosts underneath when broken */}
+            {isBroken && (
+              <NodeTitleAberration
+                lines={lines}
+                x={(i) => NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
+                fontWeight={isSelected ? 700 : 600}
+              />
+            )}
             {lines.map((line, i) => (
               <text
                 key={i}
                 x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
-                y={19 + i * 13}
+                y={NODE_TITLE_Y + i * NODE_TITLE_LH}
                 fill={isUnknown ? "#7c8ba1" : isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
                 fontSize={11}
                 fontWeight={isSelected ? 700 : 600}
@@ -493,17 +509,21 @@ function StageSvg({
             ))}
 
             {isUnknown ? (
-              <text x={NODE_PAD_X} y={BOX_H - 12} fill="#94a3b8" fontSize={8.5} fontStyle="italic">
+              <text x={NODE_PAD_X} y={NODE_CAPTION_Y} fill="#94a3b8" fontSize={8.5} fontStyle="italic">
                 not looked at yet
               </text>
             ) : (
               <>
                 {c.nominal !== undefined && (
-                  <LevelMeter nominal={c.nominal} effective={c.effective} y={BOX_H - 14} />
+                  <LevelMeter nominal={c.nominal} effective={c.effective} y={NODE_METER_Y} />
                 )}
-                <text x={NODE_PAD_X} y={BOX_H - 20} fill={rail} fontSize={8} fontWeight={700} letterSpacing="0.6">
-                  {LEVEL_LABELS[c.effective ?? c.nominal ?? 0]?.toUpperCase()}
-                </text>
+                <LevelCaption
+                  level={c.effective ?? c.nominal ?? 0}
+                  y={NODE_CAPTION_Y}
+                  // Starved is about upstream, not about a rung, so it keeps the rail's colour.
+                  text={isStarved ? "starved" : undefined}
+                  color={isStarved ? rail : undefined}
+                />
               </>
             )}
 

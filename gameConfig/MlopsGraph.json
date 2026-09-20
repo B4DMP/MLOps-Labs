@@ -410,7 +410,7 @@
         }
       },
       "layout": {
-        "x": 560,
+        "x": 400,
         "y": 100
       },
       "icon": "ph:stack-bold"
@@ -441,8 +441,8 @@
         }
       },
       "layout": {
-        "x": 400,
-        "y": 100
+        "x": 240,
+        "y": 220
       },
       "icon": "ph:git-branch-bold"
     },
@@ -524,7 +524,7 @@
         }
       },
       "layout": {
-        "x": 420,
+        "x": 240,
         "y": 220
       },
       "icon": "ph:flask-bold"
@@ -564,8 +564,8 @@
         }
       },
       "layout": {
-        "x": 580,
-        "y": 140
+        "x": 400,
+        "y": 220
       },
       "icon": "ph:archive-bold"
     },
@@ -596,7 +596,7 @@
       },
       "layout": {
         "x": 240,
-        "y": 140
+        "y": 100
       },
       "icon": "ph:cpu-bold"
     },
@@ -627,7 +627,7 @@
       },
       "layout": {
         "x": 80,
-        "y": 220
+        "y": 100
       },
       "icon": "ph:sliders-horizontal-bold"
     },
@@ -647,8 +647,8 @@
       ],
       "attributes": {},
       "layout": {
-        "x": 420,
-        "y": 80
+        "x": 400,
+        "y": 100
       },
       "icon": "ph:ruler-bold"
     },
@@ -678,8 +678,8 @@
         }
       },
       "layout": {
-        "x": 240,
-        "y": 90
+        "x": 80,
+        "y": 100
       },
       "icon": "ph:git-merge-bold"
     },
@@ -720,7 +720,7 @@
       },
       "layout": {
         "x": 400,
-        "y": 90
+        "y": 220
       },
       "icon": "ph:cloud-bold"
     },
@@ -740,8 +740,8 @@
       ],
       "attributes": {},
       "layout": {
-        "x": 400,
-        "y": 210
+        "x": 240,
+        "y": 220
       },
       "icon": "ph:test-tube-bold"
     },
@@ -761,8 +761,8 @@
       ],
       "attributes": {},
       "layout": {
-        "x": 560,
-        "y": 210
+        "x": 80,
+        "y": 220
       },
       "icon": "ph:copy-bold"
     },
@@ -791,8 +791,8 @@
         }
       },
       "layout": {
-        "x": 80,
-        "y": 90
+        "x": 240,
+        "y": 100
       },
       "icon": "mdi:docker"
     },
@@ -822,8 +822,8 @@
         }
       },
       "layout": {
-        "x": 80,
-        "y": 210
+        "x": 400,
+        "y": 100
       },
       "icon": "ph:flow-arrow-bold"
     },
@@ -853,8 +853,8 @@
         }
       },
       "layout": {
-        "x": 560,
-        "y": 90
+        "x": 400,
+        "y": 340
       },
       "icon": "ph:door-bold"
     },
@@ -874,7 +874,7 @@
       ],
       "attributes": {},
       "layout": {
-        "x": 80,
+        "x": 260,
         "y": 100
       },
       "icon": "ph:gauge-bold"
@@ -905,8 +905,8 @@
         }
       },
       "layout": {
-        "x": 260,
-        "y": 100
+        "x": 80,
+        "y": 220
       },
       "icon": "ph:waves-bold"
     },
@@ -936,8 +936,8 @@
         }
       },
       "layout": {
-        "x": 440,
-        "y": 100
+        "x": 260,
+        "y": 220
       },
       "icon": "ph:bell-bold"
     },
@@ -968,7 +968,7 @@
       },
       "layout": {
         "x": 80,
-        "y": 220
+        "y": 100
       },
       "icon": "ph:eye-bold"
     },
@@ -989,7 +989,7 @@
       "attributes": {},
       "layout": {
         "x": 440,
-        "y": 220
+        "y": 100
       },
       "icon": "ph:arrows-clockwise-bold"
     },
@@ -1009,7 +1009,7 @@
       ],
       "attributes": {},
       "layout": {
-        "x": 260,
+        "x": 440,
         "y": 220
       },
       "icon": "ph:arrow-u-down-left-bold"

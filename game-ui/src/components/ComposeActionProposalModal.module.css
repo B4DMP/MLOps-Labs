@@ -679,8 +679,12 @@
   flex: 1 1 0;
   min-width: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   border: none;
-  background: transparent;
+  background: color-mix(in srgb, var(--rung) 12%, transparent);
   border-radius: var(--radius-sm);
   padding: var(--sp-2) 0.2rem;
   font-size: var(--fs-xs);
@@ -690,19 +694,35 @@
   transition: all var(--transition);
 }
 
+/* The rung's glyph, at the size it needs to stay recognisable rather than at the size of
+   the label under it. */
+.levelOptionIcon {
+  font-size: 1.45em;
+  line-height: 1;
+  color: var(--rung-ink);
+  flex-shrink: 0;
+}
+
 .levelOption:hover {
-  background: #e8eef4;
-  color: var(--primary-bg);
+  background: color-mix(in srgb, var(--rung) 26%, transparent);
+  color: var(--ink);
 }
 
 .levelOptionCurrent {
   color: var(--ink);
 }
 
-.levelOptionTarget {
-  background: var(--primary-bg);
-  color: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(38, 102, 130, 0.35);
+/* Selected: the segment fills with its rung's colour, and the label switches to whichever
+   ink survives on it - white over the dark rungs, near-black over the pale ones. */
+.levelOptionTarget,
+.levelOptionTarget:hover {
+  background: var(--rung);
+  color: var(--rung-on-fill);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--rung) 45%, transparent);
+}
+
+.levelOptionTarget .levelOptionIcon {
+  color: var(--rung-on-fill);
 }
 
 .levelOptionName {
