@@ -1,14 +1,29 @@
-import { useState, useEffect, useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo, useRef } from "react";
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
 import IntelArtifactViewer from "./IntelArtifactViewer";
 import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
+import { StakeholderContext } from "./StakeholderProvider";
+import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
-import { LevelMeter, NodeDefs } from "./graph/nodeChrome";
+import {
+  CappedChainGlyph,
+  edgeStrokeWidth,
+  FlowParticle,
+  LevelMeter,
+  NodeDefs,
+  NodeIcon,
+  NODE_STATE_ANIM,
+  ScanlineDefs,
+  SelectionReticle,
+  StaleScanline,
+  TriggerChip,
+} from "./graph/nodeChrome";
 import {
   NODE_COLORS,
+  NODE_ICON_OFFSET,
   NODE_PAD_X,
   NODE_RX,
   RAIL_W,
@@ -65,6 +80,7 @@ interface ComponentData {
   capped_by?: string;
   story?: string;
   seen_at?: number;
+  icon?: string;
   layout?: { x: number; y: number };
   debt?: Array<{ intended: number; applied: number; owner_id?: string }>;
   instances?: Array<{ id: string; kind: string; name: string; state: string; props: Record<string, string> }>;
@@ -336,8 +352,9 @@ function StageConnector({ flow, band, toId }: { flow?: FlowData; band: boolean; 
 /** The colour of a component's status rail: what the player should worry about first. */
 function railColor(c: ComponentData): string {
   if (c.knowledge === "unknown") return NODE_COLORS.unknown;
-  const eff = c.effective ?? c.nominal ?? 1;
-  if (eff === 0) return NODE_COLORS.broken;
+  // Broken is what this component is; capped covers what its upstream does to it, starving
+  // included. Reading `effective` here would paint every victim of one break as broken.
+  if ((c.nominal ?? 1) === 0) return NODE_COLORS.broken;
   if (c.capped_by) return NODE_COLORS.capped;
   if (c.knowledge === "stale") return NODE_COLORS.stale;
   return NODE_COLORS.healthy;
@@ -365,7 +382,9 @@ function StageSvg({
       preserveAspectRatio="xMidYMid meet"
       style={fitToBoxStyle(svgW, svgH)}
     >
+      <style>{NODE_STATE_ANIM}</style>
       <NodeDefs prefix="dash" />
+      <ScanlineDefs />
 
       {/* Connecting Edges */}
       {technical.edges.map((e) => {
@@ -376,6 +395,7 @@ function StageSvg({
         const x1b = ax, y1b = ay, x2b = bx, y2b = by;
         const known = e.knowledge !== "unknown";
         const color = known ? (e.level === 0 ? "#dc3545" : e.level && e.level >= 3 ? "#16a34a" : "#ea580c") : "#94a3b8";
+        const isAutomated = known && e.level !== undefined && e.level !== null && e.level >= 3;
         return (
           <g key={e.id} opacity={e.knowledge === "stale" ? 0.6 : 1}>
             <defs>
@@ -386,7 +406,7 @@ function StageSvg({
             <line
               x1={x1b} y1={y1b} x2={x2b} y2={y2b}
               stroke={color}
-              strokeWidth={known && e.level && e.level >= 3 ? 2 : 1.5}
+              strokeWidth={edgeStrokeWidth(known ? e.level : undefined)}
               className={
                 !known ? undefined
                   : e.level === 0 ? "pipe-dead"
@@ -396,10 +416,14 @@ function StageSvg({
               strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
               markerEnd={`url(#arr-${e.id})`}
             />
+            {isAutomated && <FlowParticle x1={x1b} y1={y1b} x2={x2b} y2={y2b} color={color} />}
             {known && e.trigger && e.trigger !== "none" && (
-              <text x={(x1b + x2b) / 2} y={(y1b + y2b) / 2 - 4} fill={color} fontSize={10} textAnchor="middle">
-                {TRIGGER_ICONS[e.trigger] ?? ""}
-              </text>
+              <TriggerChip
+                x={(x1b + x2b) / 2}
+                y={(y1b + y2b) / 2 - 4}
+                label={TRIGGER_ICONS[e.trigger] ?? "?"}
+                color={color}
+              />
             )}
           </g>
         );
@@ -413,7 +437,7 @@ function StageSvg({
         const isSelected = selectedComponentId === c.id;
         const isUnknown = c.knowledge === "unknown";
         const rail = railColor(c);
-        const isBroken = !isUnknown && (c.effective ?? c.nominal ?? 1) === 0;
+        const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
         const lines = wrapLabel(rawName, 17);
 
@@ -425,6 +449,7 @@ function StageSvg({
             onClick={() => onSelectComponent(isSelected ? null : c.id)}
             opacity={c.knowledge === "stale" ? 0.9 : 1}
           >
+            <g className={isBroken ? "node-broken" : undefined}>
             {/* Card face, with the status rail hugging its left edge */}
             <rect
               width={BOX_W}
@@ -432,7 +457,7 @@ function StageSvg({
               rx={NODE_RX}
               fill={nodeFace("dash", { selected: isSelected, unknown: isUnknown, broken: isBroken })}
               stroke={isSelected ? NODE_COLORS.selected : isUnknown ? "#cbd5e1" : "#dde5ee"}
-              strokeWidth={isSelected ? 2 : 1}
+              strokeWidth={1}
               strokeDasharray={isUnknown ? "5 3" : undefined}
               filter={`url(#dash-${isSelected ? "shadow-lifted" : "shadow"})`}
             />
@@ -446,12 +471,17 @@ function StageSvg({
               opacity={isUnknown ? 0.5 : 1}
               clipPath={`url(#dash-clip-${c.id.replace(/\./g, "_")})`}
             />
+            {c.knowledge === "stale" && <StaleScanline clipPathId={`dash-clip-${c.id.replace(/\./g, "_")}`} />}
+            {!isUnknown && !isBroken && c.capped_by && <CappedChainGlyph color={rail} />}
+
+            {/* Icon, sharing the title's row */}
+            {c.icon && <NodeIcon icon={c.icon} color={isUnknown ? "#7c8ba1" : rail} />}
 
             {/* Component Title */}
             {lines.map((line, i) => (
               <text
                 key={i}
-                x={NODE_PAD_X}
+                x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
                 y={19 + i * 13}
                 fill={isUnknown ? "#7c8ba1" : isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
                 fontSize={11}
@@ -504,6 +534,10 @@ function StageSvg({
                 #{c.seen_at}
               </text>
             )}
+
+            </g>
+
+            {isSelected && <SelectionReticle />}
           </g>
         );
       })}
@@ -575,6 +609,9 @@ export default function PerformanceDashboard({
   }, [onClose, onToggle]);
 
   const { emit, subscribe } = useGameWebSocket();
+  // Same roster the dossier renders from, so an owner chip on the board shows the same face
+  // as that stakeholder's own page instead of a generic stand-in.
+  const { stakeholders } = useContext(StakeholderContext);
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
@@ -1125,7 +1162,14 @@ export default function PerformanceDashboard({
                                       onClick={() => onOpenStakeholder(ownerEntry.stakeholder_id)}
                                       title={`Open ${ownerEntry.name}'s dossier page`}
                                     >
-                                      <Icon icon="ph:user-circle-bold" />
+                                      <StakeholderAvatarComponent
+                                        stakeholderId={ownerEntry.stakeholder_id}
+                                        avatar={stakeholders[ownerEntry.stakeholder_id]?.avatar}
+                                        stakeholderColor={stakeholders[ownerEntry.stakeholder_id]?.stakeholder_color}
+                                        size={18}
+                                        hoverToSuspicious={false}
+                                        className={styles.ownerLinkAvatar}
+                                      />
                                       <span>Owner: {ownerEntry.name}</span>
                                       <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
                                     </button>
