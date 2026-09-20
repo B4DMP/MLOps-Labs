@@ -254,6 +254,10 @@
             ],
             "title": "0 hard dependency, 1 soft"
           },
+          "stage_flow": {
+            "type": "boolean",
+            "title": "Counts as a hand-off between the two stages (default true). False for a specification dependency: it constrains levels like any pipeline edge but is not a step of the lifecycle and is not drawn as one."
+          },
           "initial_level": {
             "$ref": "#/definitions/level"
           },

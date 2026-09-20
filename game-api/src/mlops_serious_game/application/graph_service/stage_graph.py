@@ -105,10 +105,13 @@ def stage_graph(
             )
         )
 
+    # `stage_flow: false` edges constrain levels but are not hand-offs between stages, so they
+    # never become a stage-level arrow: `req.acceptance_criteria -> model.evaluation` caps the
+    # evaluation without claiming the lifecycle runs from requirements straight to modelling.
     weakest: dict[tuple[str, str], tuple[int, str]] = {}
     for e in graph.pipeline_edges():
         a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
-        if a == b:
+        if a == b or not e.stage_flow:
             continue
         level = effective.edges[e.id]
         if (a, b) not in weakest or level < weakest[(a, b)][0]:
@@ -121,7 +124,7 @@ def stage_graph(
     def _cross_stage_weakest(kind: str) -> list[FlowView]:
         weakest_by_pair: dict[tuple[str, str], tuple[int, str]] = {}
         for e in graph.edges:
-            if e.kind != kind:
+            if e.kind != kind or not e.stage_flow:
                 continue
             a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
             if a == b:

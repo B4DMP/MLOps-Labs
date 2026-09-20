@@ -104,6 +104,15 @@ class Edge(BaseModel):
     to_id: str = Field(alias="to")
     kind: EdgeKind
     slack: int = Field(default=0, ge=0, le=1, description="0 hard dependency, 1 soft")
+    stage_flow: bool = Field(
+        default=True,
+        description=(
+            "Whether this edge counts as a hand-off between its two stages. False for a "
+            "specification dependency - one component defining the bar another is judged "
+            "against - which constrains levels like any pipeline edge but is not a step of "
+            "the lifecycle and must not be drawn as one."
+        ),
+    )
     initial_level: int
     initial_trigger: str = "none"
     allowed_levels: list[int]

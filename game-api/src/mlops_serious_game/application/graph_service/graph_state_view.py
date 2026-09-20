@@ -157,28 +157,30 @@ def build_graph_state(
         for f in stage_view.governance_flows
     ]
 
-    # Technical: one entry per reached stage, components and edges filtered by knowledge.
+    # Technical: one entry per stage. Stages the player has not reached yet still ship their
+    # topology - names and wiring - so the board reads as a plan, not a blank. Everything about
+    # their state stays hidden: every target is reported as "unknown" regardless of knowledge.
     technical: dict[str, dict] = {}
     for s in graph.stages:
-        if not _stage_reached(s, current_phase_id):
-            continue
+        reached = _stage_reached(s, current_phase_id)
 
         components = []
         for c in graph.components:
             if c.stage_id != s.id:
                 continue
             owner = graph.owner_of(c.id)
-            ks = knowledge.state_of(c.id, state)
+            ks = knowledge.state_of(c.id, state) if reached else "unknown"
 
             if ks == "unknown":
                 base = {
                     "id": c.id,
                     "name": c.name,
                     "stage_id": c.stage_id,
-                    "owner_id": owner,
                     "knowledge": "unknown",
                     "allowed_levels": c.allowed_levels,
                 }
+                if reached:
+                    base["owner_id"] = owner
                 if c.layout:
                     base["layout"] = c.layout
                 components.append(base)
@@ -229,7 +231,7 @@ def build_graph_state(
         for e in graph.edges:
             if graph.component(e.from_id).stage_id != s.id:
                 continue
-            ks = knowledge.state_of(e.id, state)
+            ks = knowledge.state_of(e.id, state) if reached else "unknown"
 
             if ks == "unknown":
                 edges.append({

@@ -1185,6 +1185,7 @@
       "to": "model.evaluation",
       "kind": "pipeline",
       "slack": 1,
+      "stage_flow": false,
       "initial_level": 1,
       "initial_trigger": "none",
       "allowed_levels": [
