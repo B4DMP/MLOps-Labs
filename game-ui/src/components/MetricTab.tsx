@@ -1,106 +1,79 @@
 import { MetricsContext } from "./MetricProvider";
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
+import styles from "./MetricTab.module.css";
 
 interface MetricTabProps {
   current_phase: number;
 }
 
-function MetricTab({
-  current_phase,
-}: MetricTabProps) {
+const SEGMENTS = 10;
+
+/**
+ * Metric rail: one panel, one gauge per metric, divided rather than scattered. The bar is
+ * segmented like a game HUD meter (each segment is a tenth of the maximum), which reads as
+ * a score at a glance and keeps the whole rail one row tall. The metric colour is used as
+ * an accent - icon badge, fill, tinted ground - instead of flooding a card.
+ */
+function MetricTab({ current_phase }: MetricTabProps) {
   const { metrics } = useContext(MetricsContext);
 
-  const calculateProgress = (current: number, max: number = 50): number => {
-    const maxVal = max && max > 0 ? max : 50;
-    return Math.min(Math.max((current / maxVal) * 100, 0), 100);
-  };
-
   return (
-    <div className="container-fluid intro6" data-intro-group="intro6" data-step="2" data-intro="Here you can see how the action card changed the metrics.">
-      <div className="row justify-content-end">
-        <div className="col-auto">
-          <div className="d-flex flex-nowrap gap-3">
-            {Object.values(metrics).map(
-              (item) =>
-                item.phases[current_phase] && (
-                  <div
-                    key={item.id}
-                    className="stat-card hover-card p-2 text-white rounded shadow-sm"
-                    style={{
-                      minWidth: "180px",
-                      backgroundColor: item.metric_color,
-                    }}
-                  >
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div className="d-flex align-items-center gap-2">
-                        <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>
-                          <Icon
-                            icon={item.metric_icon}
-                            style={{
-                              fontSize: "25px",
-                              color: "white",
-                              flexShrink: 0,
-                            }}
-                          />
-                        </span>
+    <div
+      className={`${styles.rail} intro6`}
+      data-intro-group="intro6"
+      data-step="2"
+      data-intro="Here you can see how the action card changed the metrics."
+    >
+      {Object.values(metrics).map((item) => {
+        if (!item.phases[current_phase]) return null;
+        const value = item.value ?? item.start_value;
+        const max = item.max_value ?? 50;
+        const ratio = Math.min(Math.max(max > 0 ? value / max : 0, 0), 1);
+        const filled = Math.round(ratio * SEGMENTS);
 
-                        <span className="fw-semibold">{item.name}</span>
-                      </div>
+        return (
+          <div
+            key={item.id}
+            className={styles.gauge}
+            style={{ ["--metric" as string]: item.metric_color }}
+            tabIndex={0}
+            aria-label={`${item.name}: ${value} of ${max}`}
+          >
+            <span className={styles.badge} aria-hidden>
+              <Icon icon={item.metric_icon} />
+            </span>
 
-                      <div className="d-flex align-items-baseline gap-1">
-                        <span className="fw-bold fs-5" id={`metric-value-${item.id}`}>
-                          {item.value ?? item.start_value}
-                        </span>
-                        <span style={{ fontSize: "0.85rem", opacity: 0.9, lineHeight: 1 }}>
-                          /{item.max_value ?? 50}
-                        </span>
-                      </div>
-                    </div>
+            <div className={styles.body}>
+              <div className={styles.topline}>
+                <span className={styles.name}>{item.name}</span>
+                <span className={styles.value}>
+                  <span className={styles.number} id={`metric-value-${item.id}`}>
+                    {value}
+                  </span>
+                  <span className={styles.max}>/{max}</span>
+                </span>
+              </div>
 
-                    <div className="mt-2">
-                      <small
-                        style={{
-                          color: "rgba(255, 255, 255, 0.95)",
-                          fontSize: "0.78rem",
-                          lineHeight: "1.25",
-                          fontWeight: 400,
-                          display: "block",
-                        }}
-                      >
-                        {item.description ?? "DESCRIPTION PLACEHOLDER"}
-                      </small>
-                    </div>
+              <span className={styles.segments} aria-hidden>
+                {Array.from({ length: SEGMENTS }, (_, i) => (
+                  <span
+                    key={i}
+                    className={`${styles.segment} ${i < filled ? styles.segmentOn : ""}`}
+                  />
+                ))}
+              </span>
+            </div>
 
-                    <div
-                      className="progress mt-2"
-                      style={{
-                        height: "8px",
-                        backgroundColor: "rgba(0, 0, 0, 0.35)",
-                        borderRadius: "4px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        className="progress-bar"
-                        role="progressbar"
-                        style={{
-                          width: `${calculateProgress(
-                            item.value ?? item.start_value,
-                            item.max_value ?? 50,
-                          )}%`,
-                          backgroundColor: "#ffffff",
-                          boxShadow: "0 0 6px rgba(255, 255, 255, 0.8)",
-                          transition: "width 0.3s ease",
-                        }}
-                      />
-                    </div>
-                  </div>
-                ),
-            )}
+            <span className={styles.tip} role="tooltip">
+              <strong className={styles.tipTitle}>{item.name}</strong>
+              <span className={styles.tipBody}>
+                {item.description ?? "DESCRIPTION PLACEHOLDER"}
+              </span>
+            </span>
           </div>
-        </div>
-      </div>
+        );
+      })}
     </div>
   );
 }
