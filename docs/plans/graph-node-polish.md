@@ -1,6 +1,6 @@
 # Graph node polish
 
-Status: **not built.**
+Status: **1-4 built.** 5-8 (texture, motion, edges, entrance) not yet started.
 
 Nodes look like web UI. They should look like game UI. Same footprint: 150 x 64. No card
 anatomy, no header band, no footer well - those cost space we do not have.
