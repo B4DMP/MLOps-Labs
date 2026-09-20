@@ -435,6 +435,7 @@
   background: var(--secondary-bg, #334155);
 }
 
+.actionButton:disabled,
 .actionButtonDisabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -725,3 +726,17 @@
     transform: translate(-50%, 6px) scale(0.95);
   }
 }
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

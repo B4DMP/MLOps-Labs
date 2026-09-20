@@ -229,6 +229,18 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
         except Exception:
             pass
         if comp_id:
+            try:
+                from mlops_serious_game.application.graph_service import store as graph_store
+                replay = graph_store.load_state(username)
+                if replay.knowledge.state_of(comp_id, replay.state) != "unknown":
+                    await manager.send_event(
+                        websocket=websocket,
+                        event="system:error",
+                        payload={"message": f"Component '{comp_id}' is already discovered and cannot be investigated again."},
+                    )
+                    return
+            except Exception:
+                pass
             owner_id = resolve_component_owner(comp_id, graph)
             targets = [owner_id]
             target_comp_id = comp_id

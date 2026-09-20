@@ -303,6 +303,7 @@ export interface EngagementCardTargetModalProps {
   isStakeholderActive: (st: any) => boolean;
   cardTargetedStakeholdersMap: Record<string, string[]>;
   intelItems?: IntelItem[];
+  graphState?: any;
   onConfirmStakeholders: (stakeholderIds: string[]) => void;
   onConfirmIntel: (intelItem: IntelItem) => void;
   getStakeholderColor: (st: any) => string;
@@ -320,6 +321,7 @@ export default function EngagementCardTargetModal({
   isStakeholderActive,
   cardTargetedStakeholdersMap,
   intelItems = [],
+  graphState,
   onConfirmStakeholders,
   onConfirmIntel,
   getStakeholderColor,
@@ -458,10 +460,22 @@ export default function EngagementCardTargetModal({
     setSelectedIntelId((prev) => (prev === item.id ? null : item.id));
   };
 
+  const isComponentDiscovered = (compId: string): boolean => {
+    if (!graphState?.technical) return false;
+    for (const stageKey of Object.keys(graphState.technical)) {
+      const stageTech = graphState.technical[stageKey];
+      const comp = stageTech.components?.find((c: any) => c.id === compId);
+      if (comp) {
+        return comp.knowledge !== "unknown";
+      }
+    }
+    return false;
+  };
+
   const isSelectionValid = isIntelCard
     ? Boolean(selectedIntelId)
     : isComponentCard
-    ? Boolean(selectedComponentId)
+    ? Boolean(selectedComponentId && !isComponentDiscovered(selectedComponentId))
     : requiredAmount > 0 && selectedStakeholderIds.length === requiredAmount;
 
   const handleConfirm = () => {
@@ -491,7 +505,7 @@ export default function EngagementCardTargetModal({
     const compName = MLOPS_COMPONENTS.find((c) => c.id === selectedComponentId)?.name || selectedComponentId;
     footerHint = selectedComponentId
       ? `Ready to investigate ${compName}.`
-      : "Select 1 MLOps graph component from the list to inspect.";
+      : "Select 1 undiscovered MLOps graph component from the list to inspect.";
   } else {
     const remaining = requiredAmount - selectedStakeholderIds.length;
     if (remaining === 0) {
@@ -604,7 +618,7 @@ export default function EngagementCardTargetModal({
                       {isIntelCard
                         ? "Already verified intel items cannot be verified again."
                         : isComponentCard
-                        ? "Discovered Facts unlock bundled prerequisite upgrades during Action Card drafting."
+                        ? "Already discovered components cannot be investigated again."
                         : "Stakeholders already targeted by this card in this challenge are locked."}
                     </span>
                   </div>
@@ -648,7 +662,7 @@ export default function EngagementCardTargetModal({
                     )}
                     {isComponentCard && (
                       <span className="badge bg-secondary" style={{ fontSize: "0.72rem" }}>
-                        {filteredComponents.length} Available
+                        {filteredComponents.filter((c) => !isComponentDiscovered(c.id)).length} Undiscovered / {filteredComponents.length} Total
                       </span>
                     )}
                   </div>
@@ -830,18 +844,34 @@ export default function EngagementCardTargetModal({
                           No components are available for the current phase.
                         </p>
                       </div>
+                    ) : filteredComponents.every((c) => isComponentDiscovered(c.id)) ? (
+                      <div className={styles.emptyState}>
+                        <Icon icon="ph:check-circle-bold" className={styles.emptyStateIcon} />
+                        <h6 className={styles.emptyStateTitle}>All Components Discovered</h6>
+                        <p className={styles.emptyStateSubtitle}>
+                          All components in this phase have already been discovered on the technical graph.
+                        </p>
+                      </div>
                     ) : (
                       /* Component Cards Grid - Oriented at Verify Intel Item UI */
                       <div className={styles.intelGrid}>
                         {filteredComponents.map((comp) => {
                           const isSelected = selectedComponentId === comp.id;
+                          const isDiscovered = isComponentDiscovered(comp.id);
+                          const isSelectable = !isDiscovered;
                           const catClass = getGroupCategoryClass(comp.group);
 
                           return (
                             <div
                               key={comp.id}
-                              className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""}`}
-                              onClick={() => setSelectedComponentId(isSelected ? null : comp.id)}
+                              className={`${styles.intelCard} ${isSelected ? styles.intelSelected : ""} ${
+                                !isSelectable ? styles.intelDisabled : ""
+                              }`}
+                              onClick={() => {
+                                if (isSelectable) {
+                                  setSelectedComponentId(isSelected ? null : comp.id);
+                                }
+                              }}
                             >
                               <div>
                                 <div className={styles.intelHeader}>
@@ -852,13 +882,15 @@ export default function EngagementCardTargetModal({
                                     </span>
 
                                     <span
-                                      className={`${styles.confirmationPill} ${styles.confirmationPillVerified}`}
+                                      className={`${styles.confirmationPill} ${
+                                        isDiscovered ? styles.confirmationPillVerified : styles.confirmationPillUnconfirmed
+                                      }`}
                                     >
                                       <Icon
-                                        icon="ph:cpu-bold"
+                                        icon={isDiscovered ? "ph:check-circle-bold" : "ph:cpu-bold"}
                                         style={{ fontSize: "0.85rem" }}
                                       />
-                                      <span>MLOps Subsystem</span>
+                                      <span>{isDiscovered ? "Discovered" : "Undiscovered"}</span>
                                     </span>
                                   </div>
                                 </div>
@@ -873,12 +905,13 @@ export default function EngagementCardTargetModal({
                               </div>
 
                               <div className="d-flex justify-content-between align-items-center mt-3 pt-2" style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                                <p className={styles.intelSource} style={{ fontFamily: "monospace", fontSize: "0.74rem", color: "#38bdf8" }}>
-                                  <Icon icon="ph:code-bold" />
-                                  <span>{comp.id}</span>
-                                </p>
+                                <span />
 
-                                {isSelected ? (
+                                {!isSelectable ? (
+                                  <span className={styles.lockedBadge}>
+                                    <Icon icon="ph:check-circle-fill" /> Already Discovered
+                                  </span>
+                                ) : isSelected ? (
                                   <Icon icon="ph:check-circle-fill" className={styles.checkedIcon} />
                                 ) : (
                                   <span className={styles.uncheckCircle} />

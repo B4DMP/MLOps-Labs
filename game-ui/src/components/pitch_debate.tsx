@@ -235,9 +235,11 @@ export default function PitchDebate({
     message: string;
     isClosing?: boolean;
   } | null>(null);
+  const [isSpeechInProgress, setIsSpeechInProgress] = useState<boolean>(false);
 
   const isAnySpeechActive = Boolean(activeSpeakingState || activePlayerSpeakingState);
   const isSpeechBubbleCoveringButton = Boolean(activePlayerSpeakingState);
+  const isPitchDebating = isPitchEvaluating || isSpeechInProgress || isAnySpeechActive;
 
   const isSpeechActive = () =>
     isProcessingQueueRef.current ||
@@ -256,6 +258,7 @@ export default function PitchDebate({
       setActiveSpeakingState(null);
       setActivePlayerSpeakingState(null);
       isProcessingQueueRef.current = false;
+      setIsSpeechInProgress(false);
       if (pendingDismissKeysRef.current.size > 0) {
         const keysToDismiss = Array.from(pendingDismissKeysRef.current);
         pendingDismissKeysRef.current.clear();
@@ -266,6 +269,7 @@ export default function PitchDebate({
       return;
     }
 
+    setIsSpeechInProgress(true);
     const nextItem = speechQueueRef.current.shift();
     if (!nextItem) return;
 
@@ -353,6 +357,9 @@ export default function PitchDebate({
     setActiveSpeakingState(null);
     setActivePlayerSpeakingState(null);
     isProcessingQueueRef.current = false;
+    if (speechQueueRef.current.length === 0) {
+      setIsSpeechInProgress(false);
+    }
     processSpeechQueue();
   };
 
@@ -368,6 +375,7 @@ export default function PitchDebate({
     }
   ) => {
     if (!stakeholderId || !message) return;
+    setIsSpeechInProgress(true);
     speechQueueRef.current.push({
       id: Math.random().toString(36).substring(2, 9),
       type: "stakeholder",
@@ -384,6 +392,7 @@ export default function PitchDebate({
 
   const triggerPlayerSpeech = (message: string, chatMsg?: ChatMsg) => {
     if (!message) return;
+    setIsSpeechInProgress(true);
     speechQueueRef.current.push({
       id: Math.random().toString(36).substring(2, 9),
       type: "player",
@@ -406,8 +415,10 @@ export default function PitchDebate({
 
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setPitchState(payload);
-    setIsPitchEvaluating(false);
-    setEvaluatingPitchConvId(null);
+    if (payload.stage === "PITCHED" || payload.stage === "DONE") {
+      setIsPitchEvaluating(false);
+      setEvaluatingPitchConvId(null);
+    }
     if (payload.atomic_changes) {
       setAtomicChanges(payload.atomic_changes);
     }
@@ -526,6 +537,10 @@ export default function PitchDebate({
       subscribe("intel:message_received", (p: any) => {
         if (!p) return;
         const convId = p.conversation_id || "default";
+        if (convId.startsWith("pitch_")) {
+          setIsPitchEvaluating(false);
+          setEvaluatingPitchConvId(null);
+        }
         if (
           p.type === "telemetry_message" ||
           p.type === "system_message" ||
@@ -904,21 +919,7 @@ export default function PitchDebate({
     setIsPitchEvaluating(true);
     setEvaluatingPitchConvId(nextPitchConvId);
 
-    emit("pitch:set_card", { ...base, atomic_changes: newAtomicChanges });
     emit("pitch:evaluate", { ...base, atomic_changes: newAtomicChanges });
-  };
-
-  const handlePitchEvaluate = () => {
-    const matchingPitchIds = chatMsgsState
-      .map((m) => m.conversation_id || "")
-      .filter((id) => id.startsWith("pitch_"));
-    const nextPitchIndex = new Set(matchingPitchIds).size + 1;
-    const nextPitchConvId = `pitch_${nextPitchIndex}`;
-
-    setIsPitchEvaluating(true);
-    setEvaluatingPitchConvId(nextPitchConvId);
-
-    emit("pitch:evaluate", { ...base, atomic_changes: atomicChanges });
   };
 
   const handlePitchCommit = () => {
@@ -1205,9 +1206,9 @@ export default function PitchDebate({
                                     stakeholders={stakeholders as any}
                                     getStakeholderColor={getStakeholderColor}
                                     isMinimized={true}
-                                    isInteractive={!isCommittedLocked || pitchState?.outcome === "VETO"}
+                                    isInteractive={(!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating}
                                     onClick={() => {
-                                      if (!isCommittedLocked || pitchState?.outcome === "VETO") {
+                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
@@ -1215,18 +1216,20 @@ export default function PitchDebate({
                                 ) : (
                                   <div
                                     className={`${styles.tableCenterPlaque} ${
-                                      !isCommittedLocked || pitchState?.outcome === "VETO"
+                                      (!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating
                                         ? styles.tableCenterPlaqueActive
                                         : ""
                                     }`}
                                     onClick={() => {
-                                      if (!isCommittedLocked || pitchState?.outcome === "VETO") {
+                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
                                     title={
                                       isCommittedLocked && pitchState?.outcome !== "VETO"
                                         ? "Action card committed"
+                                        : isPitchDebating
+                                        ? "Wait until all stakeholder messages have appeared in conversation history"
                                         : "Pitch Deck Table - Configure up to 3 graph changes"
                                     }
                                   >
@@ -1323,50 +1326,47 @@ export default function PitchDebate({
                                     </button>
                                   )}
                                 </div>
+                              ) : isPitchEvaluating ? (
+                                <button
+                                  type="button"
+                                  className={styles.actionButton}
+                                  disabled
+                                  style={{ opacity: 0.85, cursor: "wait" }}
+                                >
+                                  <Icon icon="ph:spinner-gap-bold" className={styles.spinIcon} />
+                                  <span>Presenting Action Proposal...</span>
+                                </button>
                               ) : stage === "PITCHED" ? (
                                 <div className="d-flex align-items-center gap-2 w-100">
                                   <button
                                     type="button"
-                                    className={styles.actionButton}
+                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     style={{ flex: 1 }}
+                                    disabled={isPitchDebating}
                                     onClick={() => setIsPitchModalOpen(true)}
-                                    title="Modify card items or trade-off branches"
+                                    title={
+                                      isPitchDebating
+                                        ? "Wait until all stakeholder messages have appeared in conversation history"
+                                        : "Modify card items or trade-off branches"
+                                    }
                                   >
                                     <Icon icon="ph:pencil-simple-bold" />
                                     <span>Revise Card</span>
                                   </button>
                                   <button
                                     type="button"
-                                    className={styles.actionButton}
+                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     style={{ flex: 1.5 }}
+                                    disabled={isPitchDebating}
                                     onClick={handlePitchCommit}
-                                    title="Commit action proposal to lock in final outcome"
+                                    title={
+                                      isPitchDebating
+                                        ? "Wait until all stakeholder messages have appeared in conversation history"
+                                        : "Commit action proposal to lock in final outcome"
+                                    }
                                   >
                                     <Icon icon="ph:check-bold" />
                                     <span>Commit Proposal ➔</span>
-                                  </button>
-                                </div>
-                              ) : isCardComposed ? (
-                                <div className="d-flex align-items-center gap-2 w-100">
-                                  <button
-                                    type="button"
-                                    className={styles.actionButton}
-                                    style={{ flex: 1 }}
-                                    onClick={() => setIsPitchModalOpen(true)}
-                                    title="Edit proposal items"
-                                  >
-                                    <Icon icon="ph:pencil-simple-bold" />
-                                    <span>Edit Card</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className={styles.actionButton}
-                                    style={{ flex: 1.5 }}
-                                    onClick={handlePitchEvaluate}
-                                    title="Present proposal to stakeholders for feedback"
-                                  >
-                                    <Icon icon="ph:paper-plane-tilt-bold" />
-                                    <span>Present Pitch Proposal ➔</span>
                                   </button>
                                 </div>
                               ) : (
@@ -1566,6 +1566,7 @@ export default function PitchDebate({
           isStakeholderActive={() => true}
           cardTargetedStakeholdersMap={cardTargetedMap}
           intelItems={unconfirmedNotes}
+          graphState={graphState}
           onConfirmStakeholders={handleConfirmPlayCardStakeholders}
           onConfirmIntel={handleConfirmPlayCardIntel}
           getStakeholderColor={getStakeholderColor}

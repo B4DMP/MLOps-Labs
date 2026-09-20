@@ -235,7 +235,13 @@ def build_graph_state(
         for e in graph.edges:
             if graph.component(e.from_id).stage_id != s.id:
                 continue
-            ks = knowledge.state_of(e.id, state) if reached else "unknown"
+            
+            from_known = reached and knowledge.state_of(e.from_id, state) != "unknown"
+            to_known = reached and knowledge.state_of(e.to_id, state) != "unknown"
+            edge_directly_known = reached and knowledge.state_of(e.id, state) != "unknown"
+
+            is_known = edge_directly_known or from_known or to_known
+            ks = knowledge.state_of(e.id, state) if edge_directly_known else ("current" if is_known else "unknown")
 
             if ks == "unknown":
                 edges.append({
@@ -251,10 +257,10 @@ def build_graph_state(
                 continue
 
             if ks == "stale":
-                entry = knowledge.seen[e.id]
-                lv = entry.nominal
-                trigger = entry.trigger or "none"
-                extra = {"seen_at": entry.seq}
+                entry = knowledge.seen.get(e.id)
+                lv = entry.nominal if entry else state.edge_levels[e.id]
+                trigger = (entry.trigger or "none") if entry else state.edge_triggers.get(e.id, "none")
+                extra = {"seen_at": entry.seq} if entry else {}
             else:
                 lv = state.edge_levels[e.id]
                 trigger = state.edge_triggers.get(e.id, "none")

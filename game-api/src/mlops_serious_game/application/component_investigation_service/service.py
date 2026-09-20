@@ -228,7 +228,13 @@ async def conduct_component_investigation_turn(
             phase_index=challenge.phase_id,
             challenge_template=getattr(challenge, "template_id", ""),
         )
-        targets_to_observe = [component_id]
+        connected_edges = []
+        if graph:
+            connected_edges = [
+                e.id for e in graph.edges
+                if e.from_id == component_id or e.to_id == component_id
+            ]
+        targets_to_observe = [component_id, *connected_edges]
         if (
             intel_item.asserts
             and getattr(intel_item.asserts, "target", None)

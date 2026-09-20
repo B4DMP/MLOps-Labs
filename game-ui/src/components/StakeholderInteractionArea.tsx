@@ -350,7 +350,7 @@ export default function StakeholderInteractionArea({
                 }
               >
                 {displayedMsgs.length === 0 && (
-                  isPitchEvaluating && activeConversationId === evaluatingConversationId ? (
+                  (isPitchEvaluating && (!evaluatingConversationId || activeConversationId === evaluatingConversationId)) ? (
                     <div className={styles.evaluatingContainer}>
                       <Icon icon="ph:spinner-gap-bold" className={styles.evaluatingSpinner} />
                       <div className={styles.evaluatingTextContainer}>
