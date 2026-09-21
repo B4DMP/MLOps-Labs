@@ -6,9 +6,9 @@ has to follow: middle aisle, order suggestion, residual stock, minimum order qua
 not MLOps concepts and do not belong in that file, but a player who does not know them reads the
 snippet less well than the stakeholder who wrote it.
 
-`gameConfig/DomainGlossary.json` holds them: 34 terms in five categories, the same schema, hover
+`gameConfig/DomainGlossary.json` holds them: 40 terms in five categories, the same schema, hover
 card and surfaces as before, underlined **wavy** instead of dotted so the two are distinguishable
-at a glance without reading them.
+at a glance without reading them. The MLOps glossary grew by ten in the same pass, to 139.
 
 ## Why one matcher rather than two
 
@@ -101,6 +101,42 @@ bubbles off, as before.
 
 The client still understands an older single-config response, so a stale frontend against a new API
 keeps highlighting MLOps terms.
+
+## Deciding where a word goes
+
+Every candidate was counted in the assembled content first, because a term nobody writes is not
+worth an entry and a word written ninety times is worth getting right.
+
+Two words were argued about and left out:
+
+- **"risk"**, 92 uses, is too ordinary to highlight: it is not one concept and a mark on every
+  other sentence teaches nothing. **"risk assessment"** (37 uses) is the concept, is a component in
+  the graph, and was added instead.
+- **"protect the margin"** is a phrase rather than a term. "margin" already lights up inside it,
+  which is the entry a player wants.
+
+Added to the MLOps glossary, with their counts in the content: data contract (108), consent (47),
+governance (42, as an alias of model governance), risk assessment (37), data retention (5),
+censored demand (2), forecast error (3), data aggregation (2), benchmark (1, as an alias of
+baseline), key performance indicator (1, as an alias of business metric), backtesting (1).
+Seasonality and forecast horizon were added ahead of their use: neither is written down yet, but
+both are vocabulary the live stakeholder agents reach for, and seasonality earns its place by
+being the thing players will otherwise mistake for drift.
+
+Added to the domain glossary: truck (25, the "before the trucks leave" deadline), overstock (6,
+promoted out of being a spelling of residual stock, since too much stock and leftover promotional
+stock are different problems), physical stock (5, the counted shelf against the system's belief),
+bulk order (2), liability (2), safety stock (0, ahead of use). "inventory" became a spelling of
+stock on hand.
+
+## Density
+
+With both glossaries loaded, an intel artifact of about 110 words carries around 7 marks, roughly
+one every 15 words, at most 14 in the densest snippet. These additions moved that from 6.7 to 7.1,
+so the density question is not something they introduced. If playtesting finds it busy, the levers
+in order of bluntness are: turn the domain glossary off on intel artifacts, lower
+`max_highlights_per_term_per_block` to 0 for a single glossary, or add a per-block total cap, which
+the matcher does not currently have.
 
 ## Coverage
 

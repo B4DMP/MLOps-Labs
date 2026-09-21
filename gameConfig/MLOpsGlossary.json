@@ -81,6 +81,17 @@
   ],
   "terms": [
     {
+      "id": "censored_demand",
+      "term": "censored demand",
+      "aliases": [
+        "lost sales",
+        "unobserved demand"
+      ],
+      "category": "data",
+      "definition": "Demand that existed but was never recorded, because the thing being measured stopped being available to buy.",
+      "why_it_matters": "The most important missing data in a forecasting system: sales stop at an empty shelf, so the model learns that nobody wanted it."
+    },
+    {
       "id": "class_imbalance",
       "term": "class imbalance",
       "aliases": [
@@ -90,6 +101,27 @@
       "category": "data",
       "definition": "A dataset where one outcome vastly outnumbers the others, letting a model score well while learning nothing useful.",
       "why_it_matters": "It is how \"99% accurate\" can mean \"always predicts no\". Ask which metric they used."
+    },
+    {
+      "id": "data_aggregation",
+      "term": "data aggregation",
+      "aliases": [
+        "aggregation job",
+        "rolling up"
+      ],
+      "category": "data",
+      "definition": "Rolling detailed records up into coarser ones: per receipt into per article per store per day.",
+      "why_it_matters": "Aggregation is a modelling decision disguised as plumbing. The grain you pick is the grain you can forecast at, forever after."
+    },
+    {
+      "id": "data_contract",
+      "term": "data contract",
+      "aliases": [
+        "contract with the data owner"
+      ],
+      "category": "data",
+      "definition": "An agreement with whoever produces a data feed about what it will contain, in what shape, and how it may change, enforced by checks rather than by goodwill.",
+      "why_it_matters": "It turns an upstream change from something you discover in a model review into something that fails at the door, in the producer's name."
     },
     {
       "id": "data_engineering",
@@ -270,6 +302,17 @@
       "category": "data",
       "definition": "An upstream source quietly changing its fields, types, units or encoding.",
       "why_it_matters": "This is Dave's warning in the data phase: nothing errors, the numbers simply start meaning something else."
+    },
+    {
+      "id": "seasonality",
+      "term": "seasonality",
+      "aliases": [
+        "seasonal pattern",
+        "seasonal demand"
+      ],
+      "category": "data",
+      "definition": "A repeating pattern in the data tied to the calendar: the day of the week, the month, the holiday, the weather turning.",
+      "why_it_matters": "Not drift, however much it looks like it. The shape is expected and the model should already know it; drift is what is left after seasonality is accounted for."
     },
     {
       "id": "snapshot",
@@ -584,6 +627,29 @@
       "why_it_matters": "Compliance requirements do not negotiate, and the stakeholder repeating them is usually the one who will be held responsible."
     },
     {
+      "id": "consent",
+      "term": "consent",
+      "aliases": [
+        "consent record",
+        "consent check"
+      ],
+      "category": "governance",
+      "definition": "A person's specific, informed agreement to their data being used for a stated purpose, which has to be recorded and can be withdrawn.",
+      "why_it_matters": "Consent is scoped to a purpose. Data collected to run a loyalty programme is not automatically data you may train a model on."
+    },
+    {
+      "id": "data_retention",
+      "term": "data retention",
+      "aliases": [
+        "retention policy",
+        "retention limit",
+        "retention period"
+      ],
+      "category": "governance",
+      "definition": "How long personal data may be kept before it has to be deleted or anonymised, and the rules that decide it.",
+      "why_it_matters": "A retention limit quietly caps how much history a model may learn from, which is a modelling constraint arriving from the legal side."
+    },
+    {
       "id": "explainability",
       "term": "explainability",
       "aliases": [
@@ -633,7 +699,8 @@
       "id": "model_governance",
       "term": "model governance",
       "aliases": [
-        "ML governance"
+        "ML governance",
+        "governance"
       ],
       "category": "governance",
       "definition": "The controls around models in production: who may approve, promote, change or retire one, and on what evidence.",
@@ -650,6 +717,16 @@
       "category": "governance",
       "definition": "Building and running ML systems so their effects on people are examined and defensible: fairness, transparency, accountability, privacy and safety.",
       "why_it_matters": "Reuben's objection to full automation lives here, and it is the one that carries regulatory teeth."
+    },
+    {
+      "id": "risk_assessment",
+      "term": "risk assessment",
+      "aliases": [
+        "risk review"
+      ],
+      "category": "governance",
+      "definition": "A recorded judgement, before a system goes live, of what could go wrong with it, how badly, and what is being done about each one.",
+      "why_it_matters": "\"We discussed the risks\" is not one. What makes it an assessment is that somebody signed it and it can be produced later."
     },
     {
       "id": "security",
@@ -868,19 +945,6 @@
       "why_it_matters": "The phases you play follow this loop. A decision taken early keeps charging you rent in every later phase."
     },
     {
-      "id": "spiral_model",
-      "term": "spiral model",
-      "aliases": [
-        "spiral",
-        "iteration",
-        "next iteration",
-        "development cycle"
-      ],
-      "category": "lifecycle",
-      "definition": "Development that repeats the same sequence of phases, each pass starting from what the last one built rather than from scratch.",
-      "why_it_matters": "Reaching monitoring is not the end of the work. The next pass reopens requirements with production evidence in hand - and with every component you already raised still standing."
-    },
-    {
       "id": "ml_pipeline",
       "term": "ML pipeline",
       "aliases": [
@@ -960,6 +1024,19 @@
       "why_it_matters": "Without it you cannot debug a regression, defend a result to an auditor, or roll back with any confidence."
     },
     {
+      "id": "spiral_model",
+      "term": "spiral model",
+      "aliases": [
+        "spiral",
+        "iteration",
+        "next iteration",
+        "development cycle"
+      ],
+      "category": "lifecycle",
+      "definition": "Development that repeats the same sequence of phases, each pass starting from what the last one built rather than from scratch.",
+      "why_it_matters": "Reaching monitoring is not the end of the work. The next pass reopens requirements with production evidence in hand - and with every component you already raised still standing."
+    },
+    {
       "id": "ab_test",
       "term": "A/B test",
       "aliases": [
@@ -991,12 +1068,24 @@
       "why_it_matters": "Threshold-free, which makes it good for comparing models and poor for describing live behaviour."
     },
     {
+      "id": "backtesting",
+      "term": "backtesting",
+      "aliases": [
+        "backtest",
+        "historical evaluation"
+      ],
+      "category": "metrics",
+      "definition": "Evaluating a model by replaying history: train on what was known then, predict forward, compare against what happened.",
+      "why_it_matters": "The honest test for anything that predicts the future, and the easiest to get wrong by letting the model see past its own cut-off."
+    },
+    {
       "id": "business_metric",
       "term": "business metric",
       "aliases": [
         "business value",
         "business impact",
-        "KPI"
+        "KPI",
+        "key performance indicator"
       ],
       "category": "metrics",
       "definition": "The outcome the organisation actually cares about, such as revenue, retention, cost saved or time saved.",
@@ -1059,6 +1148,17 @@
       "why_it_matters": "Useful when someone demands a single figure and accuracy would flatter the model."
     },
     {
+      "id": "forecast_error",
+      "term": "forecast error",
+      "aliases": [
+        "model error",
+        "prediction error"
+      ],
+      "category": "metrics",
+      "definition": "The gap between what a model predicted and what actually happened, measured with its direction kept, not only its size.",
+      "why_it_matters": "Over and under are not the same mistake. One fills a warehouse, the other empties a shelf, and an average hides which one you have."
+    },
+    {
       "id": "generalisation",
       "term": "generalization",
       "aliases": [
@@ -1113,7 +1213,9 @@
       "id": "baseline",
       "term": "baseline",
       "aliases": [
-        "baseline model"
+        "baseline model",
+        "benchmark",
+        "benchmark line"
       ],
       "category": "model",
       "definition": "The simplest reasonable model or rule used as a reference point, so any complex alternative has to prove it earns its complexity.",
@@ -1142,6 +1244,17 @@
       "category": "model",
       "definition": "Combining several component models and merging their outputs, so no single model has to carry every signal.",
       "why_it_matters": "Dave's answer to entanglement: isolate the signals so one change stops moving everything at once."
+    },
+    {
+      "id": "forecast_horizon",
+      "term": "forecast horizon",
+      "aliases": [
+        "planning horizon",
+        "prediction horizon"
+      ],
+      "category": "model",
+      "definition": "How far ahead a model has to predict, which is set by how long it takes to act on the answer.",
+      "why_it_matters": "Accuracy falls off with distance. A long lead time forces a longer horizon and therefore a worse forecast, before anyone has modelled anything."
     },
     {
       "id": "hyperparameter",

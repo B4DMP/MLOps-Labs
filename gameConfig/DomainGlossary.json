@@ -52,36 +52,93 @@
   ],
   "terms": [
     {
-      "id": "middle_aisle",
-      "term": "middle aisle",
+      "id": "liability",
+      "term": "liability",
       "aliases": [
-        "promotional aisle"
+        "financial liability",
+        "committed spend"
       ],
-      "category": "range",
-      "definition": "The rotating non-food promotion that sits in the centre of the store: around 80 seasonal articles that appear for one week, are advertised in the leaflet, and are never restocked once they sell out.",
-      "why_it_matters": "One shot, no second delivery. Every middle aisle forecast is a bet placed weeks ahead that cannot be corrected on the day."
+      "category": "commercial",
+      "definition": "Money the chain has already promised and cannot get back, such as a supplier order signed before a single unit has sold.",
+      "why_it_matters": "It is what turns a forecast into a decision somebody is answerable for. Nobody argues this hard about a number that costs nothing to be wrong about."
     },
     {
-      "id": "promotion_week",
-      "term": "promotion week",
+      "id": "margin",
+      "term": "margin",
       "aliases": [
-        "promo week",
-        "promotion calendar"
+        "gross margin",
+        "promotion margin"
       ],
-      "category": "range",
-      "definition": "The week a particular set of promotional articles is on sale, fixed in the calendar long before it starts.",
-      "why_it_matters": "The date does not move. Anything the team wants to change has to be ready before the leaflet goes to print."
+      "category": "commercial",
+      "definition": "What is left of a sale after what the goods cost, and the number a buyer is measured on.",
+      "why_it_matters": "Whenever a stakeholder talks about business value here, this is usually what they mean underneath it."
     },
     {
-      "id": "leaflet",
-      "term": "leaflet",
+      "id": "markdown",
+      "term": "markdown",
       "aliases": [
-        "flyer",
-        "leaflet deadline"
+        "markdowns",
+        "marked down",
+        "clearance"
+      ],
+      "category": "commercial",
+      "definition": "Cutting the price to move stock that is not selling at the price it was set at.",
+      "why_it_matters": "What a bad forecast costs, paid in margin. It is also a change in the data: the sales that follow were bought by the price, not by demand."
+    },
+    {
+      "id": "overstock",
+      "term": "overstock",
+      "aliases": [
+        "over ordered",
+        "too much stock"
+      ],
+      "category": "commercial",
+      "definition": "More of an article than the shelf and the coming days can absorb, wherever it is sitting.",
+      "why_it_matters": "Not free to hold: it takes shelf space from something that would have sold, and on fresh articles it is waste with a delay."
+    },
+    {
+      "id": "residual_stock",
+      "term": "residual stock",
+      "aliases": [
+        "leftover stock",
+        "unsold stock"
+      ],
+      "category": "commercial",
+      "definition": "Promotional articles still sitting in the warehouse or the store when the promotion week ends.",
+      "why_it_matters": "The specific failure mode of the middle aisle: it does not spoil, it just occupies a warehouse and someone's budget until it is marked down."
+    },
+    {
+      "id": "shrink",
+      "term": "shrinkage",
+      "aliases": [
+        "shrink"
+      ],
+      "category": "commercial",
+      "definition": "Stock that disappears without being sold, through theft, breakage or miscounting.",
+      "why_it_matters": "It quietly widens the gap between recorded stock and the real shelf, which means the system is forecasting against a number that is already wrong."
+    },
+    {
+      "id": "waste",
+      "term": "waste",
+      "aliases": [
+        "food waste",
+        "wastage",
+        "written off"
+      ],
+      "category": "commercial",
+      "definition": "Fresh articles thrown away because they passed their date before anyone bought them.",
+      "why_it_matters": "The other number the project is judged on, and the one that pulls every decision towards ordering less. Availability and waste are the same dial."
+    },
+    {
+      "id": "article",
+      "term": "article",
+      "aliases": [
+        "articles",
+        "article number"
       ],
       "category": "range",
-      "definition": "The weekly printed advertisement that announces the promotion, committed to print days before the articles reach the shelf.",
-      "why_it_matters": "Printing turns a forecast into a public promise. Once an article is in the leaflet, running out is a complaint rather than a miss."
+      "definition": "One sellable product as the chain's systems know it, identified by its own number.",
+      "why_it_matters": "The unit everything is counted in: a forecast is made per article, per store, per day."
     },
     {
       "id": "buyer",
@@ -115,37 +172,114 @@
       "why_it_matters": "The core range is where availability and waste are won or lost every single day, quietly, without anyone advertising it."
     },
     {
-      "id": "article",
-      "term": "article",
+      "id": "leaflet",
+      "term": "leaflet",
       "aliases": [
-        "articles",
-        "article number"
+        "flyer",
+        "leaflet deadline"
       ],
       "category": "range",
-      "definition": "One sellable product as the chain's systems know it, identified by its own number.",
-      "why_it_matters": "The unit everything is counted in: a forecast is made per article, per store, per day."
+      "definition": "The weekly printed advertisement that announces the promotion, committed to print days before the articles reach the shelf.",
+      "why_it_matters": "Printing turns a forecast into a public promise. Once an article is in the leaflet, running out is a complaint rather than a miss."
     },
     {
-      "id": "store_manager",
-      "term": "store manager",
+      "id": "middle_aisle",
+      "term": "middle aisle",
       "aliases": [
-        "store managers"
+        "promotional aisle"
       ],
-      "category": "store",
-      "definition": "The person running one store, who sees the suggested order each morning and can change it before it is sent.",
-      "why_it_matters": "They are the last human in the loop and the only one who can see the shelf. Their overrides are the system's report card."
+      "category": "range",
+      "definition": "The rotating non-food promotion that sits in the centre of the store: around 80 seasonal articles that appear for one week, are advertised in the leaflet, and are never restocked once they sell out.",
+      "why_it_matters": "One shot, no second delivery. Every middle aisle forecast is a bet placed weeks ahead that cannot be corrected on the day."
     },
     {
-      "id": "override",
-      "term": "override",
+      "id": "promotion_week",
+      "term": "promotion week",
       "aliases": [
-        "overrides",
-        "override rate",
-        "manual override"
+        "promo week",
+        "promotion calendar"
+      ],
+      "category": "range",
+      "definition": "The week a particular set of promotional articles is on sale, fixed in the calendar long before it starts.",
+      "why_it_matters": "The date does not move. Anything the team wants to change has to be ready before the leaflet goes to print."
+    },
+    {
+      "id": "basket",
+      "term": "basket",
+      "aliases": [
+        "baskets",
+        "basket data"
+      ],
+      "category": "sources",
+      "definition": "Everything bought together in one transaction.",
+      "why_it_matters": "Baskets show what moves together, which is how a promotion is credited with sales that happened elsewhere in the store."
+    },
+    {
+      "id": "loyalty_app",
+      "term": "loyalty app",
+      "aliases": [
+        "loyalty data",
+        "loyalty basket data",
+        "loyalty card"
+      ],
+      "category": "sources",
+      "definition": "The chain's shopper app, which ties baskets to a person and carries consent and retention obligations as a result.",
+      "why_it_matters": "The only personal data in the project. It is why governance stakeholders have something real to defend rather than paperwork to cite."
+    },
+    {
+      "id": "scan_line",
+      "term": "scan line",
+      "aliases": [
+        "scan lines",
+        "till scan lines",
+        "sales line"
+      ],
+      "category": "sources",
+      "definition": "One line of a receipt: which article, how many, at what price, in which store, at what time.",
+      "why_it_matters": "The raw material of the whole system. A night of missing scan lines is a night of demand the model will never learn about."
+    },
+    {
+      "id": "store_master_data",
+      "term": "store master data",
+      "aliases": [
+        "master data",
+        "supplier master data"
+      ],
+      "category": "sources",
+      "definition": "The reference records describing stores, suppliers and articles: size, region, opening hours, pack sizes, lead times.",
+      "why_it_matters": "Slow moving, rarely owned by anybody in the room, and wrong often enough to explain a forecast nobody can otherwise explain."
+    },
+    {
+      "id": "till",
+      "term": "till",
+      "aliases": [
+        "tills",
+        "checkout",
+        "point of sale"
+      ],
+      "category": "sources",
+      "definition": "The checkout where a sale is recorded, one scanned article at a time.",
+      "why_it_matters": "Everything the system knows about demand starts here, which is why an article that never reached the shelf is invisible to it."
+    },
+    {
+      "id": "weather_feed",
+      "term": "weather feed",
+      "aliases": [
+        "weather data"
+      ],
+      "category": "sources",
+      "definition": "A bought in forecast of temperature and conditions per region, used for fresh produce and seasonal promotions.",
+      "why_it_matters": "An outside dependency nobody in the team controls, arriving daily, capable of moving demand more than anything the team does."
+    },
+    {
+      "id": "availability",
+      "term": "availability",
+      "aliases": [
+        "on shelf availability"
       ],
       "category": "store",
-      "definition": "A store manager changing the quantity the system suggested before the order goes out.",
-      "why_it_matters": "The team's honest measure of trust. A model can be accurate and still be overridden into irrelevance."
+      "definition": "How often a shopper finds what they came for on the shelf, measured across articles and stores.",
+      "why_it_matters": "One of the two numbers the project is judged on, and the one that pulls every decision towards ordering more."
     },
     {
       "id": "order_window",
@@ -172,14 +306,28 @@
       "why_it_matters": "It is also a hole in the data: once an article is gone the tills stop recording demand that was still there."
     },
     {
-      "id": "availability",
-      "term": "availability",
+      "id": "override",
+      "term": "override",
       "aliases": [
-        "on shelf availability"
+        "overrides",
+        "override rate",
+        "manual override"
       ],
       "category": "store",
-      "definition": "How often a shopper finds what they came for on the shelf, measured across articles and stores.",
-      "why_it_matters": "One of the two numbers the project is judged on, and the one that pulls every decision towards ordering more."
+      "definition": "A store manager changing the quantity the system suggested before the order goes out.",
+      "why_it_matters": "The team's honest measure of trust. A model can be accurate and still be overridden into irrelevance."
+    },
+    {
+      "id": "physical_stock",
+      "term": "physical stock",
+      "aliases": [
+        "actual stock",
+        "stock on the shelf",
+        "counted stock"
+      ],
+      "category": "store",
+      "definition": "What is really in the store, as opposed to what the system believes is there.",
+      "why_it_matters": "The two drift apart through breakage, theft and miscounts, and every order suggestion is computed from the belief rather than from the shelf."
     },
     {
       "id": "shelf_capacity",
@@ -191,6 +339,38 @@
       "category": "store",
       "definition": "How much of an article physically fits in its place on the shelf.",
       "why_it_matters": "A perfect order is still wrong if the delivery does not fit. Capacity is the constraint that turns a number into a pallet in a corridor."
+    },
+    {
+      "id": "store_manager",
+      "term": "store manager",
+      "aliases": [
+        "store managers"
+      ],
+      "category": "store",
+      "definition": "The person running one store, who sees the suggested order each morning and can change it before it is sent.",
+      "why_it_matters": "They are the last human in the loop and the only one who can see the shelf. Their overrides are the system's report card."
+    },
+    {
+      "id": "allocation",
+      "term": "allocation",
+      "aliases": [
+        "initial allocation",
+        "allocating"
+      ],
+      "category": "supply",
+      "definition": "Dividing a fixed quantity of promotional stock between stores before any of it has sold.",
+      "why_it_matters": "Unlike replenishment there is nothing to learn from as you go. The split is decided once, on a forecast, and then lived with."
+    },
+    {
+      "id": "bulk_order",
+      "term": "bulk order",
+      "aliases": [
+        "bulk buy",
+        "volume commitment"
+      ],
+      "category": "supply",
+      "definition": "Buying a large quantity in one commitment, usually for a better unit price, usually for a promotion.",
+      "why_it_matters": "The discount is real and so is the exposure. A bulk order is the forecast and the liability arriving at the same time."
     },
     {
       "id": "distribution_centre",
@@ -205,37 +385,15 @@
       "why_it_matters": "Stores do not order from suppliers, they order from here, which is where a forecast turns into a truck load."
     },
     {
-      "id": "replenishment",
-      "term": "replenishment",
+      "id": "goods_receipt",
+      "term": "goods receipt",
       "aliases": [
-        "replenish",
-        "reordering"
+        "goods receiving",
+        "delivery note"
       ],
       "category": "supply",
-      "definition": "Refilling a store's shelves with what it has sold, as an ongoing cycle rather than a one off order.",
-      "why_it_matters": "This is the thing being automated. Everything the team argues about is downstream of getting it right."
-    },
-    {
-      "id": "order_suggestion",
-      "term": "order suggestion",
-      "aliases": [
-        "suggested order",
-        "order proposal"
-      ],
-      "category": "supply",
-      "definition": "The quantity the system proposes a store should order, produced from the forecast and the stock it already holds.",
-      "why_it_matters": "A suggestion, not an order. What separates the two is whether the store manager believes it."
-    },
-    {
-      "id": "allocation",
-      "term": "allocation",
-      "aliases": [
-        "initial allocation",
-        "allocating"
-      ],
-      "category": "supply",
-      "definition": "Dividing a fixed quantity of promotional stock between stores before any of it has sold.",
-      "why_it_matters": "Unlike replenishment there is nothing to learn from as you go. The split is decided once, on a forecast, and then lived with."
+      "definition": "The record a store makes when a delivery arrives and is booked into its stock.",
+      "why_it_matters": "A late or skipped receipt makes the system think the shelf is emptier than it is, and the next order compounds the error."
     },
     {
       "id": "lead_time",
@@ -259,6 +417,17 @@
       "why_it_matters": "The reason a perfectly good forecast can be impossible to act on. The model asks for 40, the contract sells in 500."
     },
     {
+      "id": "order_suggestion",
+      "term": "order suggestion",
+      "aliases": [
+        "suggested order",
+        "order proposal"
+      ],
+      "category": "supply",
+      "definition": "The quantity the system proposes a store should order, produced from the forecast and the stock it already holds.",
+      "why_it_matters": "A suggestion, not an order. What separates the two is whether the store manager believes it."
+    },
+    {
       "id": "pallet",
       "term": "pallet",
       "aliases": [
@@ -271,26 +440,37 @@
       "why_it_matters": "Forecasts come out in single articles and orders go in whole pallets. Somebody has to round, and rounding is where waste starts."
     },
     {
+      "id": "replenishment",
+      "term": "replenishment",
+      "aliases": [
+        "replenish",
+        "reordering"
+      ],
+      "category": "supply",
+      "definition": "Refilling a store's shelves with what it has sold, as an ongoing cycle rather than a one off order.",
+      "why_it_matters": "This is the thing being automated. Everything the team argues about is downstream of getting it right."
+    },
+    {
+      "id": "safety_stock",
+      "term": "safety stock",
+      "aliases": [
+        "buffer stock"
+      ],
+      "category": "supply",
+      "definition": "Stock held deliberately above the forecast, to absorb the days when demand or delivery does not behave.",
+      "why_it_matters": "The dial between availability and waste, set by hand. Raising it hides a bad forecast and pays for the cover in stock nobody sold."
+    },
+    {
       "id": "stock_on_hand",
       "term": "stock on hand",
       "aliases": [
         "on hand stock",
-        "inventory position"
+        "inventory position",
+        "inventory"
       ],
       "category": "supply",
       "definition": "What the system believes a store currently holds, from deliveries received minus what the tills have sold.",
       "why_it_matters": "A belief, not a fact. It drifts away from the real shelf through breakage, theft and miscounts, and the order suggestion never knows."
-    },
-    {
-      "id": "goods_receipt",
-      "term": "goods receipt",
-      "aliases": [
-        "goods receiving",
-        "delivery note"
-      ],
-      "category": "supply",
-      "definition": "The record a store makes when a delivery arrives and is booked into its stock.",
-      "why_it_matters": "A late or skipped receipt makes the system think the shelf is emptier than it is, and the next order compounds the error."
     },
     {
       "id": "supplier",
@@ -304,129 +484,16 @@
       "why_it_matters": "A committed supplier order is money already spent. It is the hardest constraint in the game, and no model argues with it."
     },
     {
-      "id": "waste",
-      "term": "waste",
+      "id": "truck",
+      "term": "truck",
       "aliases": [
-        "food waste",
-        "wastage",
-        "written off"
+        "truck load",
+        "dispatch",
+        "delivery run"
       ],
-      "category": "commercial",
-      "definition": "Fresh articles thrown away because they passed their date before anyone bought them.",
-      "why_it_matters": "The other number the project is judged on, and the one that pulls every decision towards ordering less. Availability and waste are the same dial."
-    },
-    {
-      "id": "residual_stock",
-      "term": "residual stock",
-      "aliases": [
-        "leftover stock",
-        "overstock",
-        "unsold stock"
-      ],
-      "category": "commercial",
-      "definition": "Promotional articles still sitting in the warehouse or the store when the promotion week ends.",
-      "why_it_matters": "The specific failure mode of the middle aisle: it does not spoil, it just occupies a warehouse and someone's budget until it is marked down."
-    },
-    {
-      "id": "markdown",
-      "term": "markdown",
-      "aliases": [
-        "markdowns",
-        "marked down",
-        "clearance"
-      ],
-      "category": "commercial",
-      "definition": "Cutting the price to move stock that is not selling at the price it was set at.",
-      "why_it_matters": "What a bad forecast costs, paid in margin. It is also a change in the data: the sales that follow were bought by the price, not by demand."
-    },
-    {
-      "id": "margin",
-      "term": "margin",
-      "aliases": [
-        "gross margin",
-        "promotion margin"
-      ],
-      "category": "commercial",
-      "definition": "What is left of a sale after what the goods cost, and the number a buyer is measured on.",
-      "why_it_matters": "Whenever a stakeholder talks about business value here, this is usually what they mean underneath it."
-    },
-    {
-      "id": "shrink",
-      "term": "shrinkage",
-      "aliases": [
-        "shrink"
-      ],
-      "category": "commercial",
-      "definition": "Stock that disappears without being sold, through theft, breakage or miscounting.",
-      "why_it_matters": "It quietly widens the gap between recorded stock and the real shelf, which means the system is forecasting against a number that is already wrong."
-    },
-    {
-      "id": "till",
-      "term": "till",
-      "aliases": [
-        "tills",
-        "checkout",
-        "point of sale"
-      ],
-      "category": "sources",
-      "definition": "The checkout where a sale is recorded, one scanned article at a time.",
-      "why_it_matters": "Everything the system knows about demand starts here, which is why an article that never reached the shelf is invisible to it."
-    },
-    {
-      "id": "scan_line",
-      "term": "scan line",
-      "aliases": [
-        "scan lines",
-        "till scan lines",
-        "sales line"
-      ],
-      "category": "sources",
-      "definition": "One line of a receipt: which article, how many, at what price, in which store, at what time.",
-      "why_it_matters": "The raw material of the whole system. A night of missing scan lines is a night of demand the model will never learn about."
-    },
-    {
-      "id": "loyalty_app",
-      "term": "loyalty app",
-      "aliases": [
-        "loyalty data",
-        "loyalty basket data",
-        "loyalty card"
-      ],
-      "category": "sources",
-      "definition": "The chain's shopper app, which ties baskets to a person and carries consent and retention obligations as a result.",
-      "why_it_matters": "The only personal data in the project. It is why governance stakeholders have something real to defend rather than paperwork to cite."
-    },
-    {
-      "id": "basket",
-      "term": "basket",
-      "aliases": [
-        "baskets",
-        "basket data"
-      ],
-      "category": "sources",
-      "definition": "Everything bought together in one transaction.",
-      "why_it_matters": "Baskets show what moves together, which is how a promotion is credited with sales that happened elsewhere in the store."
-    },
-    {
-      "id": "store_master_data",
-      "term": "store master data",
-      "aliases": [
-        "master data",
-        "supplier master data"
-      ],
-      "category": "sources",
-      "definition": "The reference records describing stores, suppliers and articles: size, region, opening hours, pack sizes, lead times.",
-      "why_it_matters": "Slow moving, rarely owned by anybody in the room, and wrong often enough to explain a forecast nobody can otherwise explain."
-    },
-    {
-      "id": "weather_feed",
-      "term": "weather feed",
-      "aliases": [
-        "weather data"
-      ],
-      "category": "sources",
-      "definition": "A bought in forecast of temperature and conditions per region, used for fresh produce and seasonal promotions.",
-      "why_it_matters": "An outside dependency nobody in the team controls, arriving daily, capable of moving demand more than anything the team does."
+      "category": "supply",
+      "definition": "One delivery run from the distribution centre to the stores, loaded against orders that closed earlier that day.",
+      "why_it_matters": "\"Before the trucks leave\" is the real deadline in this project. It is when a forecast stops being adjustable and becomes a load on a vehicle."
     }
   ]
 }
