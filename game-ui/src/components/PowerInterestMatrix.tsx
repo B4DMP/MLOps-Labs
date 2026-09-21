@@ -6,6 +6,8 @@ import { StakeholderContext } from "./StakeholderProvider";
 import type { PhaseStakeholderEntry } from "./PhaseProvider";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import HoverTooltip from "./HoverToolTip";
+import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
 
 interface PowerInterestMatrixProps {
   currentStakeholders: PhaseStakeholderEntry[];
@@ -94,6 +96,7 @@ export default function PowerInterestMatrix({
   autoPlayIntroductions = true,
 }: PowerInterestMatrixProps) {
   const { stakeholders } = useContext(StakeholderContext);
+  const { speak: speakTts, cancel: cancelTts } = useSpeech();
 
   const { categorizedNodes, dynamicsItems } = useMemo(() => {
     const prevMap = new Map<string, PhaseStakeholderEntry>();
@@ -228,7 +231,7 @@ export default function PowerInterestMatrix({
   // Everyone on the radar who has something to say. Collected in grid reading order
   // so the bubble travels predictably instead of hopping around the quadrants.
   const { introsById, introQueue } = useMemo(() => {
-    const byId = new Map<string, { name: string; color: string; message: string }>();
+    const byId = new Map<string, { name: string; color: string; message: string; voice?: string }>();
     const queue: string[] = [];
     QUADRANTS.forEach((quad) => {
       (categorizedNodes[quad.key] || []).forEach((item: any) => {
@@ -238,6 +241,7 @@ export default function PowerInterestMatrix({
           name: item.st?.name || item.stakeholderId,
           color: item.st?.stakeholder_color || "#3b82f6",
           message,
+          voice: item.st?.voice,
         });
         // Only newcomers introduce themselves on their own. On the first phase the
         // whole cast counts as new, so the full round plays at project kickoff.
@@ -261,6 +265,8 @@ export default function PowerInterestMatrix({
   );
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const floorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hardCapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Set once the player dismisses the round with the close button: no further
   // bubbles play on their own, though clicking a chip still replays that one.
@@ -269,8 +275,13 @@ export default function PowerInterestMatrix({
   const clearIntroTimers = () => {
     if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current);
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    if (floorTimerRef.current) clearTimeout(floorTimerRef.current);
+    if (hardCapTimerRef.current) clearTimeout(hardCapTimerRef.current);
     fadeTimerRef.current = null;
     advanceTimerRef.current = null;
+    floorTimerRef.current = null;
+    hardCapTimerRef.current = null;
+    cancelTts();
   };
 
   const advanceIntro = useCallback(() => {
@@ -326,15 +337,45 @@ export default function PowerInterestMatrix({
     );
   }, [introQueueKey, autoPlayIntroductions]);
 
-  // Hold each bubble long enough to read it, fade out, then hand over to the next speaker
+  // Hold each bubble long enough to read it, fade out, then hand over to the next speaker.
+  // The bubble stays open at least `floorMs` (its old, pre-narration duration - what it still
+  // gets when muted, since speak() then calls onEnd synchronously) and does not start closing
+  // until narration actually finishes speaking, however long that takes: fixes both a voice
+  // line getting cut off and the bubble outlasting a short one. `hardCapTimerRef` is a safety
+  // net in case a real voice never fires onEnd.
   useEffect(() => {
     if (!introState) return;
-    const message = introsById.get(introState.stakeholderId)?.message || "";
-    const durationMs = Math.min(9000, Math.max(4000, Math.round(message.length * 55)));
-    fadeTimerRef.current = setTimeout(() => {
+    const details = introsById.get(introState.stakeholderId);
+    const message = details?.message || "";
+    const floorMs = Math.min(9000, Math.max(4000, Math.round(message.length * 55)));
+
+    let speechDone = false;
+    let floorDone = false;
+    let settled = false;
+    const proceedWhenReady = () => {
+      if (settled || !speechDone || !floorDone) return;
+      settled = true;
       setIntroState((prev) => (prev ? { ...prev, isClosing: true } : null));
-    }, Math.max(0, durationMs - 400));
-    advanceTimerRef.current = setTimeout(advanceIntro, durationMs);
+      advanceTimerRef.current = setTimeout(advanceIntro, 400);
+    };
+
+    speakTts(message, {
+      slot: slotForStakeholderVoice(details?.voice),
+      seed: introState.stakeholderId,
+      onEnd: () => {
+        speechDone = true;
+        proceedWhenReady();
+      },
+    });
+    floorTimerRef.current = setTimeout(() => {
+      floorDone = true;
+      proceedWhenReady();
+    }, floorMs);
+    hardCapTimerRef.current = setTimeout(() => {
+      speechDone = true;
+      proceedWhenReady();
+    }, 20000);
+
     return clearIntroTimers;
   }, [introState?.stakeholderId, introState?.nonce, advanceIntro]);
 

@@ -5,6 +5,9 @@ import type { ActionCard } from "../types/ActionCard";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
+import { useSettings } from "./SettingsProvider";
+import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
 import styles from "./pitch_debate.module.css";
 import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyInInfo, type IntelEntry } from "./StakeholderDossier";
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
@@ -59,6 +62,8 @@ export interface PitchDebateProps {
   onOpenPhaseBriefing?: () => void;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
 }
 
 interface PitchStatePayload {
@@ -118,12 +123,25 @@ export default function PitchDebate({
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
 }: PitchDebateProps) {
   const { emit, subscribe } = useGameWebSocket();
+  const { settings } = useSettings();
+  const { speak: speakTts, cancel: cancelTts } = useSpeech();
   const stakeholderCtx = useContext(StakeholderContext);
   const stakeholders = (stakeholderCtx?.stakeholders || {}) as Record<
     string,
-    { name?: string; avatar?: StakeholderAvatar; stakeholder_color?: string; emotional_state?: string; metric_id?: string; power?: string; interest?: string }
+    {
+      name?: string;
+      avatar?: StakeholderAvatar;
+      stakeholder_color?: string;
+      emotional_state?: string;
+      metric_id?: string;
+      power?: string;
+      interest?: string;
+      voice?: string;
+    }
   >;
   const setStakeholders = stakeholderCtx?.setStakeholders;
   const metricsCtx = useContext(MetricsContext);
@@ -224,6 +242,10 @@ export default function PitchDebate({
   const activeSpeechTimerRef = useRef<any>(null);
   const activeFadeTimerRef = useRef<any>(null);
   const activeNextTimerRef = useRef<any>(null);
+  // Minimum-read-time floor and an absolute safety ceiling for the "wait for narration to
+  // actually finish" gating below - see processSpeechQueue.
+  const activeFloorTimerRef = useRef<any>(null);
+  const activeHardCapTimerRef = useRef<any>(null);
 
   const [activeSpeakingState, setActiveSpeakingState] = useState<{
     stakeholderId: string;
@@ -250,6 +272,9 @@ export default function PitchDebate({
     if (activeFadeTimerRef.current) clearTimeout(activeFadeTimerRef.current);
     if (activeSpeechTimerRef.current) clearTimeout(activeSpeechTimerRef.current);
     if (activeNextTimerRef.current) clearTimeout(activeNextTimerRef.current);
+    if (activeFloorTimerRef.current) clearTimeout(activeFloorTimerRef.current);
+    if (activeHardCapTimerRef.current) clearTimeout(activeHardCapTimerRef.current);
+    cancelTts();
   };
 
   const processSpeechQueue = () => {
@@ -282,19 +307,50 @@ export default function PitchDebate({
 
     if (nextItem.type === "player") {
       setActiveSpeakingState(null);
-      setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
-      const durationMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
-      const fadeOutDelay = Math.max(0, durationMs - 400);
-
-      activeFadeTimerRef.current = setTimeout(() => {
-        setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-      }, fadeOutDelay);
-
-      activeSpeechTimerRef.current = setTimeout(() => {
+      // Auto-skip: the chat message and any state updates above already landed, so the line
+      // isn't lost - only the timed bubble and its hold are skipped. A minimal timeout (rather
+      // than recursing synchronously) keeps this on the same "next tick" rhythm as a real turn,
+      // so isSpeechActive()'s brief true window stays intact for callers that gate on it.
+      if (settings.auto_skip_conversations) {
         setActivePlayerSpeakingState(null);
         isProcessingQueueRef.current = false;
-        activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-      }, durationMs);
+        activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
+        return;
+      }
+      setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
+      // The bubble stays open at least this long (its old, pre-narration duration - what it
+      // still gets when muted, since speak() then calls onEnd synchronously), and does not
+      // start closing until narration actually finishes speaking, however long that takes -
+      // fixing both a spoken line getting cut off and the bubble outlasting a short one.
+      const floorMs = Math.min(5000, Math.max(2500, Math.round(nextItem.message.length * 40)));
+      let speechDone = false;
+      let floorDone = false;
+      let settled = false;
+      const proceedWhenReady = () => {
+        if (settled || !speechDone || !floorDone) return;
+        settled = true;
+        setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+        activeSpeechTimerRef.current = setTimeout(() => {
+          setActivePlayerSpeakingState(null);
+          isProcessingQueueRef.current = false;
+          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+        }, 400);
+      };
+      speakTts(nextItem.message, {
+        slot: "player",
+        onEnd: () => {
+          speechDone = true;
+          proceedWhenReady();
+        },
+      });
+      activeFloorTimerRef.current = setTimeout(() => {
+        floorDone = true;
+        proceedWhenReady();
+      }, floorMs);
+      activeHardCapTimerRef.current = setTimeout(() => {
+        speechDone = true;
+        proceedWhenReady();
+      }, 12000);
     } else {
       setActivePlayerSpeakingState(null);
       if (nextItem.stakeholderId) {
@@ -332,23 +388,50 @@ export default function PitchDebate({
         });
       }
 
+      if (settings.auto_skip_conversations) {
+        setActiveSpeakingState(null);
+        isProcessingQueueRef.current = false;
+        activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
+        return;
+      }
+
       setActiveSpeakingState({
         stakeholderId: nextItem.stakeholderId || "",
         message: nextItem.message,
         isClosing: false,
       });
-      const durationMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
-      const fadeOutDelay = Math.max(0, durationMs - 400);
-
-      activeFadeTimerRef.current = setTimeout(() => {
+      // Same floor-plus-actual-completion gating as the player branch above: the bubble stays
+      // open at least this long, and only starts closing once narration truly finishes.
+      const floorMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
+      let speechDone = false;
+      let floorDone = false;
+      let settled = false;
+      const proceedWhenReady = () => {
+        if (settled || !speechDone || !floorDone) return;
+        settled = true;
         setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-      }, fadeOutDelay);
-
-      activeSpeechTimerRef.current = setTimeout(() => {
-        setActiveSpeakingState(null);
-        isProcessingQueueRef.current = false;
-        activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-      }, durationMs);
+        activeSpeechTimerRef.current = setTimeout(() => {
+          setActiveSpeakingState(null);
+          isProcessingQueueRef.current = false;
+          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+        }, 400);
+      };
+      speakTts(nextItem.message, {
+        slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
+        seed: nextItem.stakeholderId,
+        onEnd: () => {
+          speechDone = true;
+          proceedWhenReady();
+        },
+      });
+      activeFloorTimerRef.current = setTimeout(() => {
+        floorDone = true;
+        proceedWhenReady();
+      }, floorMs);
+      activeHardCapTimerRef.current = setTimeout(() => {
+        speechDone = true;
+        proceedWhenReady();
+      }, 20000);
     }
   };
 
@@ -1052,6 +1135,8 @@ export default function PitchDebate({
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}
+                  onSettingsToggle={onSettingsToggle}
+                  isSettingsOpen={isSettingsOpen}
                   onOpenPhaseBriefing={onOpenPhaseBriefing}
                   onLogToggle={() => setEventsOpen(true)}
                   isLogOpen={eventsOpen}
@@ -1621,6 +1706,8 @@ export default function PitchDebate({
               dossierData={dossierData}
               onPerformanceToggle={onPerformanceToggle}
               isPerformanceOpen={isPerformanceOpen}
+              onSettingsToggle={onSettingsToggle}
+              isSettingsOpen={isSettingsOpen}
               onOpenPhaseBriefing={onOpenPhaseBriefing}
               challengeTitle={challengeTitle}
               challengeDescription={challengeDescription}

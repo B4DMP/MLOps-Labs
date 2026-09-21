@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef, useContext } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
@@ -8,6 +8,10 @@ import EventLogModal from "./EventLogModal";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
+import { useSpeech } from "./useSpeech";
+import { slotForStakeholderVoice } from "../utils/speech";
+import { StakeholderContext } from "./StakeholderProvider";
+import { useSettings } from "./SettingsProvider";
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -27,6 +31,8 @@ interface OfflineIntelGatheringProps {
   /** Opens performance (gameplay metrics + the project pipeline) from the dossier, as in the pitch phase. */
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
   /** When provided, renders in single-item / focus review mode with only this artifact */
   singleArtifact?: IntelArtifact | null;
   /** Callback for the "go back" button in bottom right */
@@ -82,10 +88,15 @@ export default function OfflineIntelGathering({
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
   singleArtifact,
   onGoBack,
 }: OfflineIntelGatheringProps) {
   const { emit, subscribe } = useGameWebSocket();
+  const { speak: speakTts } = useSpeech();
+  const { settings } = useSettings();
+  const { stakeholders } = useContext(StakeholderContext);
   const [artifacts, setArtifacts] = useState<IntelArtifact[]>(() =>
     singleArtifact ? [singleArtifact] : []
   );
@@ -347,6 +358,51 @@ export default function OfflineIntelGathering({
   const currentArtifactKey = currentArtifact ? currentArtifact.id : "";
   const currentTaggedType = currentArtifactKey ? taggedTypes[currentArtifactKey] : undefined;
 
+  // Narrates an artifact's content once, the first time it's actually viewed - keyed the same
+  // way the viewer is, so paging back through already-read artifacts never re-narrates them.
+  // Read in the artifact's own author's voice (their configured gender slot) when it has one; a
+  // System/environment artifact has no stakeholder_id and falls to the narrator voice.
+  const narratedArtifactKeysRef = useRef<Set<string>>(new Set());
+  const [isNarrating, setIsNarrating] = useState(false);
+  const narrationCancelRef = useRef<() => void>(() => {});
+
+  // `markKey` is only recorded as narrated once the reading actually completes - not when it
+  // starts - so React StrictMode's dev-only double-invoke (mount, cleanup, mount again) can't
+  // mark an artifact "done" from a phantom run that gets cancelled before it ever plays, which
+  // would otherwise make the real, second mount see it as already-narrated and stay silent.
+  const narrateArtifact = (artifact: IntelArtifact, markKey?: string) => {
+    if (!artifact.content) return;
+    narrationCancelRef.current(); // a replay or a fresh artifact both interrupt any prior reading
+    const speaker = artifact.stakeholder_id ? stakeholders[artifact.stakeholder_id] : undefined;
+    const slot = speaker ? slotForStakeholderVoice(speaker.voice) : "narrator";
+
+    setIsNarrating(true);
+    narrationCancelRef.current = speakTts(artifact.content, {
+      slot,
+      seed: artifact.stakeholder_id || undefined,
+      onEnd: () => {
+        setIsNarrating(false);
+        if (markKey) narratedArtifactKeysRef.current.add(markKey);
+      },
+    });
+  };
+
+  const stopNarration = () => {
+    narrationCancelRef.current();
+    setIsNarrating(false);
+  };
+
+  useEffect(() => {
+    if (!currentArtifactKey || !currentArtifact?.content) return;
+    if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
+    narrateArtifact(currentArtifact, currentArtifactKey);
+    return () => {
+      narrationCancelRef.current();
+      setIsNarrating(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id]);
+
   // Known artifacts arrive pre-tagged and locked, so they stay out of every progress count:
   // the player should see how many calls are theirs to make, not a number they cannot move.
   const playerArtifacts = artifacts.filter((art) => !art.is_known);
@@ -402,6 +458,8 @@ export default function OfflineIntelGathering({
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}
+                onSettingsToggle={onSettingsToggle}
+                isSettingsOpen={isSettingsOpen}
                 onLogToggle={() => setIsLogOpen((v) => !v)}
                 isLogOpen={isLogOpen}
                 logCount={events.length}
@@ -473,6 +531,32 @@ export default function OfflineIntelGathering({
                     </div>
                   )}
                 </div>
+
+                {/* Per-utterance narration controls: Stop only while actually reading; Listen
+                    again whenever there is something to read and the player hasn't muted
+                    narration globally. Both are independent of the settings panel's mute_tts. */}
+                {isNarrating && (
+                  <button
+                    type="button"
+                    onClick={stopNarration}
+                    className={styles.narrationControlButton}
+                    title="Stop reading this artifact aloud"
+                    aria-label="Stop reading this artifact aloud"
+                  >
+                    <Icon icon="ph:speaker-slash-bold" />
+                  </button>
+                )}
+                {!settings.mute_tts && currentArtifact?.content && (
+                  <button
+                    type="button"
+                    onClick={() => currentArtifact && narrateArtifact(currentArtifact, currentArtifactKey)}
+                    className={styles.narrationControlButton}
+                    title="Listen to this artifact again"
+                    aria-label="Listen to this artifact again"
+                  >
+                    <Icon icon="ph:arrow-clockwise-bold" />
+                  </button>
+                )}
 
                 {/* Quick direct item navigation pills */}
                 {artifacts.length > 0 && !singleArtifact && (

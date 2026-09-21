@@ -219,6 +219,34 @@
   flex-shrink: 0;
 }
 
+.briefingNarrationControls {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.briefingNarrationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font-size: 0.85rem;
+  padding: 0;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.briefingNarrationButton:hover,
+.briefingNarrationButton:focus-visible {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 .missionCardBody {
   padding: 1rem;
   display: flex;

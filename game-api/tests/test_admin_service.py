@@ -93,7 +93,7 @@ def migrated_db(monkeypatch):
 def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     from mlops_serious_game.infrastructure.database.models import (
         Campaign, User, GameProgression, GameChallenge, GameSession, IntelItem,
-        GraphOpLog, GameEventRow,
+        GraphOpLog, GameEventRow, UserSettings,
     )
     import datetime
 
@@ -117,9 +117,7 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
         time_stamp=datetime.datetime.utcnow(), messages=[],
         attention_tokens=20, emotion_values={},
     ))
-    session.add(GameSession(
-        player=username, user_id=user.id, stakeholder_archetypes={}, stakeholder_personas={},
-    ))
+    session.add(GameSession(player=username, user_id=user.id, stakeholder_personas={}))
     session.add(IntelItem(user_name=username, user_id=user.id, intel_item_data={}))
     session.add(GraphOpLog(
         user_name=username, user_id=user.id, seq=1, phase_index=0,
@@ -129,6 +127,7 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
         user_name=username, user_id=user.id, seq=1, phase_id=0, challenge_id=0,
         step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
     ))
+    session.add(UserSettings(user_name=username, user_id=user.id, mute_tts=True))
     for thread_id in (f"MLOps_Convo_{username}", f"Online_Intel_{username}"):
         session.execute(
             sqlalchemy.text("INSERT INTO checkpoints (thread_id) VALUES (:t)"), {"t": thread_id}
@@ -146,6 +145,7 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
 def _row_counts(session, username: str) -> dict[str, int]:
     from mlops_serious_game.infrastructure.database.models import (
         GameProgression, GameChallenge, GameSession, IntelItem, GraphOpLog, GameEventRow,
+        UserSettings,
     )
 
     counts = {
@@ -172,6 +172,10 @@ def _row_counts(session, username: str) -> dict[str, int]:
         "GameEventRow": session.scalar(
             sqlalchemy.select(sqlalchemy.func.count()).select_from(GameEventRow)
             .where(GameEventRow.user_name == username)
+        ),
+        "UserSettings": session.scalar(
+            sqlalchemy.select(sqlalchemy.func.count()).select_from(UserSettings)
+            .where(UserSettings.user_name == username)
         ),
     }
     for table in CHECKPOINT_TABLES:
@@ -246,6 +250,36 @@ def test_remove_campaign_clears_every_table_for_every_user(migrated_db):
         assert session.scalar(
             sqlalchemy.select(Campaign).where(Campaign.campaign_key == "camp-multi")
         ) is None
+
+
+def test_reset_player_clears_every_table_but_recreates_the_user(migrated_db):
+    """docs/plans/player-settings-and-tts.md: a reset must look like a freshly registered
+    account in the same campaign, not a deletion - `user_settings` goes with the cascade too."""
+    from mlops_serious_game.infrastructure.database.connection import get_session
+    from mlops_serious_game.infrastructure.database.models import User
+    from mlops_serious_game.application.services import admin_service
+
+    with get_session() as session:
+        _seed_player(session, username="grace", campaign_key="camp-1")
+
+    with get_session() as session:
+        before = _row_counts(session, "grace")
+    assert all(v > 0 for v in before.values()), before
+
+    admin_service.reset_player("grace")
+
+    with get_session() as session:
+        after = _row_counts(session, "grace")
+        user = session.scalar(sqlalchemy.select(User).where(User.user_name == "grace"))
+        assert user is not None
+        assert user.campaign_key == "camp-1"
+    assert all(v == 0 for v in after.values()), after
+
+
+def test_reset_player_for_an_unknown_user_is_a_no_op(migrated_db):
+    from mlops_serious_game.application.services import admin_service
+
+    admin_service.reset_player("nobody")  # must not raise
 
 
 @pytest.fixture

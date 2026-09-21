@@ -88,6 +88,7 @@ class Settings(BaseSettings):
     POSTGRES_INTEL_DATA_TABLE: str = "intel_data"
     POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
     POSTGRES_GAME_EVENT_TABLE: str = "game_event"
+    POSTGRES_USER_SETTINGS_TABLE: str = "user_settings"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
@@ -131,6 +132,10 @@ class Settings(BaseSettings):
     # Sends the answer key (true tags, real archetypes, the artifacts behind each note) with the
     # dossier. Never on in production: players could read it straight off the websocket.
     ENABLE_DOSSIER_DEBUG: bool = False
+    # Lets a player wipe their own account from the settings panel and start over as a freshly
+    # registered user. Never on in production: the only thing between a crafted websocket frame
+    # and a deleted account is this flag.
+    ENABLE_RESET_USER: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")

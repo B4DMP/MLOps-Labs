@@ -11,8 +11,8 @@ from langchain_core.runnables import RunnableConfig
 from loguru import logger
 from mlops_serious_game.application.message_parser import sanitize_dashes, sanitize_messages
 from mlops_serious_game.application.pitch_debate_service.chains import (
+    generate_player_utterance,
     get_player_kickoff_chain,
-    get_player_utterance_chain,
     get_stakeholder_response_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import (
@@ -213,39 +213,39 @@ async def player_prompt_node(
     last_msg = parsed_messages[-1] if parsed_messages else None
     latest_statement = getattr(last_msg, "content", str(last_msg)) if last_msg else "(Meeting started)"
 
-    utterance_chain = get_player_utterance_chain()
+    action_card = state.get("action_card") or {}
+    card_title = action_card.get("title", "") if isinstance(action_card, dict) else ""
+    card_description = action_card.get("description", "") if isinstance(action_card, dict) else ""
+
     if last_selected_option.type == "intel":
         type_desc = describe_tag(str(last_selected_option.intel_type or "driver").lower())
         intel_context = (
             f"Specific claim or stance to voice: '{last_selected_option.intel_description}'\n"
             f"Intel type: {type_desc}"
         )
-        player_text = await utterance_chain.ainvoke(
-            {
-                "challenge": challenge,
-                "target_stakeholder_name": target_st_name,
-                "target_stakeholder_role": target_st_role,
-                "option_type": "intel",
-                "intel_context": intel_context,
-                "history": history_str,
-                "latest_statement": latest_statement,
-            }
-        )
+        option_label = f"Raise what you know about {target_st_name}'s position"
     else:
-        player_text = await utterance_chain.ainvoke(
-            {
-                "challenge": challenge,
-                "target_stakeholder_name": target_st_name,
-                "target_stakeholder_role": target_st_role,
-                "option_type": "corporate_noise",
-                "intel_context": "",
-                "history": history_str,
-                "latest_statement": latest_statement,
-            }
-        )
+        intel_context = ""
+        option_label = "Keep the conversation going"
+
+    # Goes through the chains wrapper rather than invoking the chain here: that wrapper is the
+    # one place that fills every variable PLAYER_UTTERANCE_PROMPT declares, and it falls back to
+    # a written line when the model is unreachable. Building the input dict here is what let this
+    # node drift out of sync with the prompt and raise mid-conversation.
+    player_text = await generate_player_utterance(
+        challenge=challenge,
+        target_stakeholder_name=target_st_name,
+        target_stakeholder_role=target_st_role,
+        dialogue_option_label=option_label,
+        intel_context=intel_context,
+        history=history_str,
+        latest_statement=latest_statement,
+        card_title=card_title,
+        card_description=card_description,
+        is_first_turn=not parsed_messages,
+    )
 
     player_text = str(player_text).strip().strip('"')
-    player_text = sanitize_dashes(player_text)
     last_selected_option.text = player_text
     new_msg = HumanMessage(content=player_text)
 

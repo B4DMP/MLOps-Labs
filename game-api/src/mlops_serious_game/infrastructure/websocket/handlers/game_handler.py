@@ -26,6 +26,7 @@ from mlops_serious_game.application.intel_handler import (
     load_known_intel_items_for_challenge,
     determine_dialogue_options,
 )
+from mlops_serious_game.application.services import user_settings_service
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.application.pitch_debate_service import (
     DialogueOption,
@@ -257,6 +258,10 @@ async def handle_game_init(
             "phases": get_phases(),
             "emotion_colors": get_emotion_colors(),
             "use_questionnaire": use_questionnaire,
+            "settings": {
+                **user_settings_service.get_settings(username),
+                "can_reset_account": settings.ENABLE_RESET_USER,
+            },
         }
     )
 

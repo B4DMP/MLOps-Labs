@@ -1,6 +1,9 @@
 import { Icon } from "@iconify/react";
 import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
+import { useSettings } from "./SettingsProvider";
+import { useSpeech } from "./useSpeech";
+import { cancelSpeech } from "../utils/speech";
 import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
@@ -45,6 +48,8 @@ export default function PrePhaseDialog({
   isReview = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
+  const { settings } = useSettings();
+  const { speak: speakTts } = useSpeech();
   // Overlay layer the radar portals its bubbles and tooltips into. The page
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
@@ -54,7 +59,77 @@ export default function PrePhaseDialog({
     wasReviewRef.current = isReview;
   }
 
+  // Narrator reads the phase introduction and this round's challenge before the stakeholders
+  // introduce themselves, only on a genuine phase entry (a review reopen never auto-plays
+  // introductions either, and re-narrating every time a player reopens the briefing mid-phase
+  // would get repetitive). `introsUnlocked` gates PowerInterestMatrix's own auto-play so the
+  // two don't talk over each other; it resolves immediately (no gap before the stakeholders
+  // start) whenever there is nothing to narrate, auto-skip is on, or narration is muted, since
+  // speak() then calls onEnd synchronously.
+  const [isNarratingBriefing, setIsNarratingBriefing] = useState(false);
+  const [introsUnlocked, setIntrosUnlocked] = useState(false);
+  const briefingCancelRef = useRef<() => void>(() => {});
+
+  const currentPhaseData = phases[currentPhase];
+  const buildBriefingNarration = () =>
+    [
+      currentPhaseData?.phase_introduction,
+      challengeTitle ? `${challengeTitle}. ${challengeIntro || ""}`.trim() : challengeIntro,
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+  useEffect(() => {
+    if (!isOpen || isReview) return;
+    const text = buildBriefingNarration();
+    if (!text || settings.auto_skip_conversations) {
+      setIntrosUnlocked(true);
+      return;
+    }
+    setIntrosUnlocked(false);
+    setIsNarratingBriefing(true);
+    briefingCancelRef.current = speakTts(text, {
+      slot: "narrator",
+      onEnd: () => {
+        setIsNarratingBriefing(false);
+        setIntrosUnlocked(true);
+      },
+    });
+    return () => {
+      briefingCancelRef.current();
+      setIsNarratingBriefing(false);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isOpen,
+    isReview,
+    currentPhaseData?.phase_introduction,
+    challengeTitle,
+    challengeIntro,
+    settings.auto_skip_conversations,
+  ]);
+
+  const replayBriefingNarration = () => {
+    const text = buildBriefingNarration();
+    if (!text) return;
+    briefingCancelRef.current();
+    setIsNarratingBriefing(true);
+    briefingCancelRef.current = speakTts(text, {
+      slot: "narrator",
+      onEnd: () => setIsNarratingBriefing(false),
+    });
+  };
+
+  const stopBriefingNarration = () => {
+    briefingCancelRef.current();
+    setIsNarratingBriefing(false);
+  };
+
   const handleClose = () => {
+    // A stakeholder introduction can still be mid-sentence when the player moves on (they don't
+    // have to wait for it), and the round behind this dialog starts immediately on close - so
+    // without this, its own narration could start while the old introduction was still audible.
+    cancelSpeech();
     setIsOpen(false);
     // Reviewing mid-phase just returns the player to where they were; only the
     // briefing shown on entering a phase starts the round.
@@ -72,8 +147,6 @@ export default function PrePhaseDialog({
     return () => window.removeEventListener("keydown", onKey);
   }, [isOpen, isReview]);
 
-  const currentPhaseData = phases[currentPhase];
-  
   const hasIntroPhase =
     phases.length > 0 &&
     phases[0]?.id === 0 &&
@@ -161,6 +234,34 @@ export default function PrePhaseDialog({
                   <div className={styles.missionCardHeader}>
                     <Icon icon="ph:target-bold" />
                     <span>{currentPhaseData?.phase_name || `Phase ${displayPhaseNumber}`}</span>
+                    {/* Narrator controls for the phase/challenge reading above the radar. Stop
+                        only while it's actually playing; Play again works whenever there's
+                        something to read and narration isn't globally muted (mirrors the
+                        per-utterance controls in offline intel gathering). */}
+                    {!settings.mute_tts && buildBriefingNarration() && (
+                      <span className={styles.briefingNarrationControls}>
+                        {isNarratingBriefing && (
+                          <button
+                            type="button"
+                            onClick={stopBriefingNarration}
+                            className={styles.briefingNarrationButton}
+                            title="Stop playing"
+                            aria-label="Stop playing"
+                          >
+                            <Icon icon="ph:speaker-slash-bold" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={replayBriefingNarration}
+                          className={styles.briefingNarrationButton}
+                          title="Play again"
+                          aria-label="Play again"
+                        >
+                          <Icon icon="ph:arrow-clockwise-bold" />
+                        </button>
+                      </span>
+                    )}
                   </div>
                   <div className={styles.missionCardBody}>
                     {currentPhaseData?.phase_introduction && (
@@ -217,7 +318,12 @@ export default function PrePhaseDialog({
                   previousStakeholders={previousStakeholders}
                   isFirstPhase={isFirstPhase}
                   bubblePortalTarget={bubbleLayer}
-                  autoPlayIntroductions={!isReview}
+                  // wasReviewRef, not the live isReview prop: the reopened-from-dossier overlay
+                  // never unmounts on close (it just toggles a CSS class), and the parent flips
+                  // isReview back to false the instant it closes - reading it live here would
+                  // restart the whole introduction round on close, since the effect that seeds
+                  // introState depends on this prop.
+                  autoPlayIntroductions={!wasReviewRef.current && !settings.auto_skip_conversations && introsUnlocked}
                 />
               </div>
             </div>

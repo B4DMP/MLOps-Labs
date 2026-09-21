@@ -50,37 +50,6 @@ def test_sanitize_dialogue_text_removes_speaker_prefixes_and_dashes():
 
 # ---------- 2. Graph Distance & Primary Objection Tests ----------
 
-def test_compute_stakeholder_primary_objection_detects_misclassification():
-    # Misclassified item in card
-    req = StakeholderRequirement(
-        id="t1",
-        challenge_id=1,
-        stakeholder_id="data_dave",
-        type="trade_off",
-        description="Data trade-off",
-    )
-    held = type("HeldItem", (), {
-        "id": "t1",
-        "type": "trade_off",
-        "categorized_type": "driver",
-        "description": "Data trade-off",
-    })()
-
-    res = session.compute_stakeholder_primary_objection(
-        st_id="data_dave",
-        st_intel=[req],
-        card_item_ids={"t1"},
-        card_atoms=set(),
-        violated_boundaries=[],
-        trade_off_branches={},
-        held_items=[held],
-    )
-
-    assert res["objection_kind"] == "misclassification"
-    assert res["distance"] == 1.0
-    assert not res["is_approval"]
-
-
 def test_compute_stakeholder_primary_objection_detects_boundary_violation():
     req = StakeholderRequirement(
         id="b1",
@@ -99,10 +68,9 @@ def test_compute_stakeholder_primary_objection_detects_boundary_violation():
     res = session.compute_stakeholder_primary_objection(
         st_id="reliability_ruth",
         st_intel=[req],
-        card_item_ids=set(),
+        changes=[],
         card_atoms=set(),
         violated_boundaries=[warning],
-        trade_off_branches={},
     )
 
     assert res["objection_kind"] == "boundary"
@@ -137,10 +105,9 @@ def test_compute_stakeholder_primary_objection_ranks_uncovered_drivers_and_trade
     res = session.compute_stakeholder_primary_objection(
         st_id="data_dave",
         st_intel=[d1, d2],
-        card_item_ids={"d1"},
+        changes=[],
         card_atoms=card_atoms,
         violated_boundaries=[],
-        trade_off_branches={},
     )
 
     assert res["objection_kind"] == "driver"
@@ -165,10 +132,9 @@ def test_compute_stakeholder_primary_objection_returns_approval_when_fully_satis
     res = session.compute_stakeholder_primary_objection(
         st_id="data_dave",
         st_intel=[d1],
-        card_item_ids={"d1"},
+        changes=[],
         card_atoms=card_atoms,
         violated_boundaries=[],
-        trade_off_branches={},
     )
 
     assert res["objection_kind"] == "none"

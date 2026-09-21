@@ -47,6 +47,29 @@ def registered_cast():
     StakeholderFactory.stakeholders = original
 
 
+def test_voice_defaults_to_neutral_when_the_config_omits_it():
+    assert _stakeholder().voice == "neutral"
+
+
+def test_voice_is_authored_for_every_shipped_stakeholder():
+    """docs/plans/player-settings-and-tts.md: authored explicitly for all six, not guessed from
+    the id in the client - automation_alex is exactly the case a name heuristic gets wrong.
+
+    Other test modules register throwaway stakeholders into the same shared factory list
+    without cleaning up, so this only checks the six shipped ids rather than the whole list.
+    """
+    expected = {
+        "data_dave": "male",
+        "model_monica": "female",
+        "requirements_reuben": "male",
+        "efficiency_emilia": "female",
+        "automation_alex": "male",
+        "reliability_ruth": "female",
+    }
+    voices = {s.id: s.voice for s in StakeholderFactory.get_all_stakeholders()}
+    assert {k: voices[k] for k in expected} == expected
+
+
 def test_tokens_stay_canonical_without_a_persona_map(registered_cast):
     """Anything running outside a player session sees the config as written."""
     assert personalize("{model_monica} said no") == "{model_monica} said no"

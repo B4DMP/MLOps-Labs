@@ -19,6 +19,7 @@ import {
 } from "./services/api/admin";
 import { WebSocketProvider } from "./services/websocket/WebSocketContext";
 import GlossaryProvider from "./components/glossary/GlossaryProvider";
+import SettingsProvider from "./components/SettingsProvider";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
 
@@ -44,6 +45,7 @@ function App() {
   const [isInRegisterUi, setIsInRegisterUi] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
   const [username, setUsername] = useState("");
+  const [startMuted, setStartMuted] = useState(false);
   const [isInErrorUi, setIsInErrorUi] = useState(false);
   const [lastError, setLastError] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -62,13 +64,14 @@ function App() {
   const [outroQuestionaireAverage, setOutroQuestionaireAverage] = useState(0);
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
-  const handleLoginSubmit = async (inputUsername: string) => {
+  const handleLoginSubmit = async (inputUsername: string, loginStartMuted: boolean) => {
     setIsAuthenticating(true);
     setLoginError("");
     try {
       const data = await loginUser(inputUsername);
       if (data.type === "login_success") {
         setUsername(inputUsername);
+        setStartMuted(loginStartMuted);
         setIsInLoginUi(false);
         setIsInGame(true);
       } else if (data.type === "admin_login_success" && data.token) {
@@ -88,7 +91,7 @@ function App() {
     }
   };
 
-  const handleRegisterSubmit = async (inputUsername: string, campaignKey: string) => {
+  const handleRegisterSubmit = async (inputUsername: string, campaignKey: string, registerStartMuted: boolean) => {
     setIsAuthenticating(true);
     setRegisterError("");
     try {
@@ -101,6 +104,7 @@ function App() {
         updateAdminState(dashData);
       } else if (data.type === "register_success") {
         setUsername(inputUsername);
+        setStartMuted(registerStartMuted);
         setIsInRegisterUi(false);
         setIsInGame(true);
       }
@@ -266,7 +270,9 @@ function App() {
               <motion.div {...FADE_TRANSITION} key="game" style={screenStyle}>
                 <WebSocketProvider username={username}>
                   <GlossaryProvider>
-                    <Game username={username} />
+                    <SettingsProvider username={username} startMuted={startMuted}>
+                      <Game username={username} />
+                    </SettingsProvider>
                   </GlossaryProvider>
                 </WebSocketProvider>
               </motion.div>

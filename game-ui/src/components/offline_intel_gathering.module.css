@@ -176,6 +176,32 @@
     background: rgba(255, 255, 255, 0.32);
 }
 
+/* ==========================================================================
+   Per-artifact narration stop button
+   ========================================================================== */
+.narrationControlButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    font-size: 0.95rem;
+    padding: 0;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.narrationControlButton:hover,
+.narrationControlButton:focus-visible {
+    background: rgba(255, 255, 255, 0.28);
+}
+
 .infoTooltipContent {
     position: absolute;
     top: calc(100% + 8px);

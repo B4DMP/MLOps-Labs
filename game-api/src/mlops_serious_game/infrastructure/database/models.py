@@ -173,3 +173,42 @@ class GameEventRow(Base):
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
+
+
+class UserSettings(Base):
+    """One row per player: the preferences the settings panel owns
+    (docs/plans/player-settings-and-tts.md).
+
+    The `user_id` FK cascades like every other per-player table, so a reset (which deletes and
+    recreates the `User` row) also returns these to their defaults, which is what "as if freshly
+    registered" means. `user_name` rides along the way it does on the other tables, because the
+    websocket only ever knows the username.
+
+    `voice_*` hold raw `SpeechSynthesisVoice.name` strings. They are OS- and browser-specific, so
+    a stored name that no longer resolves is not an error: the client falls back to matching a
+    voice by name pattern.
+    """
+
+    __tablename__ = settings.POSTGRES_USER_SETTINGS_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    auto_skip_conversations: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    mute_tts: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    voice_male: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    voice_female: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    voice_narrator: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    voice_player: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )

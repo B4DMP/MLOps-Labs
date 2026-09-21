@@ -115,6 +115,7 @@ async def generate_player_utterance(
     target_stakeholder_role: str = "",
     dialogue_option_label: str = "",
     dialogue_option_prompt: str = "",
+    intel_context: str = "",
     component_name: str = "",
     history: str = "",
     latest_statement: str = "",
@@ -151,6 +152,11 @@ async def generate_player_utterance(
                 "target_stakeholder_role": target_stakeholder_role,
                 "dialogue_option_label": dialogue_option_label,
                 "dialogue_option_prompt": dialogue_option_prompt or default_prompt,
+                # PLAYER_UTTERANCE_PROMPT declares intel_context (it reads
+                # `dialogue_option_prompt or intel_context`), so leaving it out made every
+                # invocation raise on a missing variable and fall through to the canned
+                # fallback below - the LLM was never actually reached.
+                "intel_context": intel_context,
                 "component_name": component_name,
                 "history": history,
                 "latest_statement": latest_statement,

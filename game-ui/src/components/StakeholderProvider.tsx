@@ -10,6 +10,9 @@ export type Stakeholder = {
   role_description: string;
   introduction?: string;
   metric_id: string;
+  /** Text-to-speech gender hint (docs/plans/player-settings-and-tts.md). "neutral" falls back
+   * to the narrator voice. */
+  voice?: "male" | "female" | "neutral";
   stakeholder_color?: string;
   avatar?: StakeholderAvatar;
   power?: string;
