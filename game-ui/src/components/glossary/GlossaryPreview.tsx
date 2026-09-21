@@ -1,15 +1,20 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./Glossary.module.css";
 import GlossaryProvider from "./GlossaryProvider";
 import GlossaryText from "./GlossaryText";
-import type { GlossaryConfig } from "../../services/api/glossary";
+import { fetchGlossaries, type GlossaryConfig } from "../../services/api/glossary";
 
-/** A line of game text with enough MLOps vocabulary in it to exercise most categories. */
+/**
+ * A line of game text carrying both vocabularies, so either draft has something to light up and
+ * the two underline styles can be compared side by side. "distribution centre" is in there on
+ * purpose: it is the phrase the two glossaries come closest to fighting over.
+ */
 const DEFAULT_SAMPLE =
-  "Data drift in the live feature distribution is degrading model accuracy, so the team wants " +
-  "continuous training wired into the CI/CD pipeline. Reliability warns that retraining without " +
-  "root cause analysis locks in whatever went wrong, and that the latency SLA is a hard constraint.";
+  "Data drift in the live feature distribution is degrading forecast accuracy, so the team wants " +
+  "continuous training wired into the CI/CD pipeline. The distribution centre is still shipping " +
+  "against yesterday's order suggestion, store managers have gone back to overrides, and the " +
+  "middle aisle promotion week is already in the leaflet.";
 
 interface GlossaryPreviewProps {
   /** The draft being edited, including unsaved changes. */
@@ -29,6 +34,25 @@ interface PreviewIssue {
  */
 export default function GlossaryPreview({ config }: GlossaryPreviewProps) {
   const [sample, setSample] = useState(DEFAULT_SAMPLE);
+  // The other glossaries as they are saved right now. The draft is matched together with them in
+  // game, so a spelling both files claim is a problem this panel can point at before it is saved.
+  const [others, setOthers] = useState<GlossaryConfig[]>([]);
+
+  const kind = config?.kind || "mlops";
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchGlossaries()
+      .then((all) => {
+        if (!cancelled) setOthers(all.filter((g) => (g.kind || "mlops") !== kind));
+      })
+      .catch(() => {
+        if (!cancelled) setOthers([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
 
   const terms = Array.isArray(config?.terms) ? config.terms : [];
   const categories = Array.isArray(config?.categories) ? config.categories : [];
@@ -70,8 +94,32 @@ export default function GlossaryPreview({ config }: GlossaryPreviewProps) {
       }
     }
 
+    // Across files: an identical spelling has no tie-breaker, so the glossary compiled first
+    // takes every occurrence and the other entry never appears. A longer phrase that merely
+    // contains a shorter one is fine, and deliberately so: the longest form wins the position.
+    for (const other of others) {
+      const otherForms = new Map<string, string>();
+      for (const term of other.terms || []) {
+        if (term?.disabled) continue;
+        for (const form of [term.term, ...(term.aliases || [])]) {
+          const key = String(form || "").trim().toLowerCase();
+          if (key) otherForms.set(key, term.id);
+        }
+      }
+      for (const [form, owners] of seenForms) {
+        const clash = otherForms.get(form);
+        if (clash) {
+          found.push({
+            text: `"${form}" is also in the ${other.kind || "other"} glossary (${clash}); the MLOps ` +
+              `glossary is matched first, so only one of ${owners.join(", ")} and ${clash} will ever ` +
+              `show. Make one of the two spellings longer and more specific.`,
+          });
+        }
+      }
+    }
+
     return { issues: found, formCount: forms, activeCount: active };
-  }, [terms, categories]);
+  }, [terms, categories, others]);
 
   const enabledSurfaces = Object.entries(config?.settings?.surfaces || {})
     .filter(([, on]) => on)
@@ -87,6 +135,9 @@ export default function GlossaryPreview({ config }: GlossaryPreviewProps) {
           <span className={styles.previewStat}>{activeCount} active terms</span>
           <span className={styles.previewStat}>{formCount} spellings matched</span>
           <span className={styles.previewStat}>{categories.length} categories</span>
+          <span className={styles.previewStat}>
+            {kind} glossary, {config?.settings?.underline_style || "dotted"} underline
+          </span>
           <span className={styles.previewStat}>{enabledSurfaces.length} surfaces on</span>
           {config?.settings?.enabled === false && (
             <span className={`${styles.previewStat} ${styles.previewStatWarn}`}>highlighting disabled</span>
@@ -111,14 +162,26 @@ export default function GlossaryPreview({ config }: GlossaryPreviewProps) {
           one unrelated surface was switched off. */}
       <GlossaryProvider
         overrideConfig={
-          {
-            ...config,
-            settings: {
-              ...(config?.settings || {}),
-              enabled: true,
-              surfaces: { ...(config?.settings?.surfaces || {}), intel_notes: true },
+          [
+            {
+              ...config,
+              settings: {
+                ...(config?.settings || {}),
+                enabled: true,
+                surfaces: { ...(config?.settings?.surfaces || {}), intel_notes: true },
+              },
             },
-          } as GlossaryConfig
+            // The saved other glossary comes along so the sample reads the way the game will
+            // render it, including which of the two wins a phrase they both nearly claim.
+            ...others.map((other) => ({
+              ...other,
+              settings: {
+                ...other.settings,
+                enabled: true,
+                surfaces: { ...(other.settings?.surfaces || {}), intel_notes: true },
+              },
+            })),
+          ] as GlossaryConfig[]
         }
       >
         <div className={styles.previewRendered}>

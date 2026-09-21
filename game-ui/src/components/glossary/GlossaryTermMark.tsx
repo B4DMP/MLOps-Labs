@@ -2,7 +2,11 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./Glossary.module.css";
-import type { GlossaryCategory, GlossaryTerm } from "../../services/api/glossary";
+import type {
+  GlossaryCategory,
+  GlossaryTerm,
+  GlossaryUnderlineStyle,
+} from "../../services/api/glossary";
 
 /** Breathing room kept between the card and both the word and the viewport edge. */
 const EDGE_MARGIN = 10;
@@ -12,6 +16,12 @@ interface GlossaryTermMarkProps {
   children: string;
   term: GlossaryTerm;
   category?: GlossaryCategory;
+  /**
+   * The underline of the glossary this term came from: dotted for the MLOps practice, wavy for
+   * the world the game is set in. It is the only thing that distinguishes the two at a glance,
+   * so it is carried rather than inferred.
+   */
+  underlineStyle?: GlossaryUnderlineStyle;
 }
 
 /**
@@ -23,7 +33,12 @@ interface GlossaryTermMarkProps {
  * it too, and the card itself is `pointer-events: none` so it can never swallow a click aimed at
  * whatever it happens to be floating over.
  */
-export default function GlossaryTermMark({ children, term, category }: GlossaryTermMarkProps) {
+export default function GlossaryTermMark({
+  children,
+  term,
+  category,
+  underlineStyle = "dotted",
+}: GlossaryTermMarkProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const anchorRef = useRef<HTMLSpanElement>(null);
@@ -75,8 +90,12 @@ export default function GlossaryTermMark({ children, term, category }: GlossaryT
     <span
       ref={anchorRef}
       className={styles.termMark}
-      style={{ ["--glossary-accent" as string]: accent }}
+      style={{
+        ["--glossary-accent" as string]: accent,
+        ["--glossary-underline" as string]: underlineStyle,
+      }}
       data-glossary-term={term.id}
+      data-glossary-underline={underlineStyle}
       onPointerEnter={handleOpen}
       onPointerLeave={handleClose}
       onFocus={handleOpen}
@@ -96,6 +115,7 @@ export default function GlossaryTermMark({ children, term, category }: GlossaryT
               top: `${coords.top}px`,
               left: `${coords.left}px`,
               ["--glossary-accent" as string]: accent,
+              ["--glossary-underline" as string]: underlineStyle,
             }}
             role="tooltip"
           >

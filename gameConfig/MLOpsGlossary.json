@@ -1,6 +1,7 @@
 {
   "settings": {
     "enabled": true,
+    "underline_style": "dotted",
     "case_sensitive": false,
     "match_whole_words": true,
     "max_highlights_per_term_per_block": 1,
@@ -103,7 +104,9 @@
       "term": "data ingestion",
       "aliases": [
         "ingestion",
-        "ingest"
+        "ingest",
+        "nightly store export",
+        "store export"
       ],
       "category": "data",
       "definition": "Pulling data out of source systems into your own storage, in batches or as a stream.",
@@ -170,7 +173,7 @@
       ],
       "category": "data",
       "definition": "Keeping immutable, addressable versions of datasets so every model can be tied to exactly the data it learned from.",
-      "why_it_matters": "Dave's fixed snapshots are data versioning. It is what lets you answer \"what changed?\" when accuracy drops."
+      "why_it_matters": "It is what lets you answer \"what changed?\" when the forecast starts missing and nobody has touched the code."
     },
     {
       "id": "dataset",
@@ -278,7 +281,7 @@
       ],
       "category": "data",
       "definition": "A frozen copy of a data source at one moment, used so a training run has a stable, reproducible input.",
-      "why_it_matters": "Snapshots buy stability and pay for it in staleness. That trade is the whole Data Instability challenge."
+      "why_it_matters": "Snapshots buy stability and pay for it in staleness. A demand snapshot frozen before a heatwave trains a model for weather that has already passed."
     },
     {
       "id": "stale_data",
@@ -332,7 +335,7 @@
       ],
       "category": "debt",
       "definition": "In an ML model, changing anything changes everything: alter one feature's weight, distribution or presence and every other feature's contribution shifts too.",
-      "why_it_matters": "The Entanglement Problem challenge. It is why you cannot improve one part of a model in isolation and prove it."
+      "why_it_matters": "It is why you cannot improve one part of a model in isolation and prove it: add the weather feed and every other signal's contribution shifts too."
     },
     {
       "id": "hidden_feedback_loop",
@@ -362,7 +365,7 @@
       ],
       "category": "debt",
       "definition": "The argument that ML systems accumulate maintenance cost in ways ordinary software does not, because data dependencies and feedback loops erode a system even while its code sits still.",
-      "why_it_matters": "Two of this game's challenges come straight from that paper. The debt is invisible until you try to change something."
+      "why_it_matters": "The debt is invisible until you try to change something, which is usually the week a promotion is already in the leaflet."
     },
     {
       "id": "pipeline_jungle",
@@ -414,14 +417,17 @@
       ],
       "category": "deployment",
       "definition": "Checks a pipeline runs on its own before promoting a model: performance thresholds, data checks, fairness tests, smoke tests.",
-      "why_it_matters": "The Automation Risk challenge in one phrase. It catches what you thought to encode, and nothing else."
+      "why_it_matters": "It catches what you thought to encode, and nothing else. That is the whole argument about how much of the nightly run a gate can own."
     },
     {
       "id": "batch_inference",
       "term": "batch inference",
       "aliases": [
         "batch scoring",
-        "batch prediction"
+        "batch prediction",
+        "nightly forecast job",
+        "forecast job",
+        "nightly run"
       ],
       "category": "deployment",
       "definition": "Scoring a large set of records on a schedule and storing the results for later lookup.",
@@ -447,7 +453,7 @@
       ],
       "category": "deployment",
       "definition": "Releasing a change to a small slice of traffic first and widening only while the metrics hold.",
-      "why_it_matters": "The compromise between Alex's full automation and Reuben's demand that a human check the result."
+      "why_it_matters": "The compromise between shipping automatically and insisting a human checks the result: the new model reaches a handful of stores before it reaches all of them."
     },
     {
       "id": "inference",
@@ -455,7 +461,9 @@
       "aliases": [
         "prediction",
         "predictions",
-        "scoring"
+        "scoring",
+        "forecast",
+        "forecasts"
       ],
       "category": "deployment",
       "definition": "Running a trained model on new input to produce an output.",
@@ -478,7 +486,8 @@
       "term": "model serving",
       "aliases": [
         "serving",
-        "serving infrastructure"
+        "serving infrastructure",
+        "forecast service"
       ],
       "category": "deployment",
       "definition": "The infrastructure that hosts a model behind an interface and answers prediction requests reliably and at scale.",
@@ -494,7 +503,7 @@
       ],
       "category": "deployment",
       "definition": "Scoring a single request on demand, inside a live user interaction, under a latency budget.",
-      "why_it_matters": "This is the mode where Emilia's 50ms ceiling turns into an architecture constraint."
+      "why_it_matters": "The morning order window is the deadline version of this: a forecast that answers late is a forecast the stores never see."
     },
     {
       "id": "production",
@@ -755,7 +764,7 @@
       ],
       "category": "infrastructure",
       "definition": "The integrated tooling a team uses to run the ML lifecycle: pipelines, tracking, registry, serving and monitoring in one place.",
-      "why_it_matters": "The Platform Choice challenge is a build-versus-buy decision about exactly this."
+      "why_it_matters": "Build versus buy, decided about exactly this. Whichever way it goes, somebody is operating it on the night a promotion week starts."
     },
     {
       "id": "saas",
@@ -766,7 +775,7 @@
       ],
       "category": "infrastructure",
       "definition": "Software run and operated by a vendor and consumed over the network for a recurring fee.",
-      "why_it_matters": "Predictable monthly pricing is Emilia's stated constraint, and it is a real one for anyone defending a budget."
+      "why_it_matters": "Predictable monthly pricing is a real constraint for anyone defending a budget, and it is the usual counterweight to building the platform yourself."
     },
     {
       "id": "scalability",
@@ -910,7 +919,8 @@
       "id": "model_registry",
       "term": "model registry",
       "aliases": [
-        "registry"
+        "registry",
+        "model catalogue"
       ],
       "category": "lifecycle",
       "definition": "A catalogue of trained models with their versions, lineage, evaluation results and promotion status (staging, production, archived).",
@@ -1014,7 +1024,7 @@
       ],
       "category": "metrics",
       "definition": "Rotating which slice of the data is held out, training several times, and averaging the scores for a more stable estimate.",
-      "why_it_matters": "Buys a more honest performance number for more compute, which is a trade Emilia will notice."
+      "why_it_matters": "Buys a more honest performance number for more compute, which is a trade whoever owns the infrastructure bill will notice."
     },
     {
       "id": "threshold",
@@ -1087,7 +1097,7 @@
       ],
       "category": "metrics",
       "definition": "Data held back from training and used once, at the end, to estimate performance on inputs the model has never seen.",
-      "why_it_matters": "Monica's 95% target is measured here, so how the split was made matters as much as the number."
+      "why_it_matters": "An accuracy target is measured here, so how the split was made matters as much as the number. A split that straddles a promotion week flatters everything."
     },
     {
       "id": "validation_set",
@@ -1119,7 +1129,7 @@
       ],
       "category": "model",
       "definition": "Models built from many layers of learned transformations, powerful on unstructured data and expensive in data, compute and interpretability.",
-      "why_it_matters": "Monica's preferred hammer. Its costs land on Emilia's budget and Ruth's pager."
+      "why_it_matters": "Powerful on the hard signals, and its costs land on somebody else's budget and somebody else's pager."
     },
     {
       "id": "ensemble",
@@ -1273,7 +1283,7 @@
       ],
       "category": "monitoring",
       "definition": "How long a single request takes to answer, usually quoted at a high percentile rather than as an average.",
-      "why_it_matters": "Emilia's 50ms ceiling is a latency budget, and every layer of model complexity spends part of it."
+      "why_it_matters": "A latency budget is what turns speed from a preference into a constraint, and every layer of model complexity spends part of it."
     },
     {
       "id": "model_decay",
@@ -1323,7 +1333,8 @@
       "aliases": [
         "retrain",
         "retrained",
-        "model refresh"
+        "model refresh",
+        "weekly retrain"
       ],
       "category": "monitoring",
       "definition": "Fitting a new version of a model on fresher data, then evaluating it against the incumbent before it replaces anything.",
@@ -1339,7 +1350,7 @@
       ],
       "category": "monitoring",
       "definition": "Working back from a symptom to the underlying cause, instead of treating whichever surface fault is easiest to reach.",
-      "why_it_matters": "\"Accuracy dropped, retrain it\" skips this step, which is exactly the objection raised against a rapid fix."
+      "why_it_matters": "\"Availability dropped, retrain it\" skips this step, which is the objection that surfaces whenever a fix has to land before a deadline."
     },
     {
       "id": "sla",
@@ -1372,7 +1383,7 @@
       ],
       "category": "requirements",
       "definition": "The concrete, checkable conditions a deliverable must meet before stakeholders consider it finished.",
-      "why_it_matters": "\"Accurate enough\" is not acceptance criteria. \"95% on the agreed test set\" is."
+      "why_it_matters": "\"Accurate enough\" is not acceptance criteria. \"Availability above the agreed level on the agreed articles\" is."
     },
     {
       "id": "elicitation",

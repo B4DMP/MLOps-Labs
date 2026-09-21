@@ -7,9 +7,14 @@ router = APIRouter(prefix="/api/glossary", tags=["Glossary"])
 
 @router.get("")
 async def get_glossary():
-    """Returns the MLOps glossary used to highlight terms in game text.
+    """Returns the glossaries used to highlight terms in game text.
+
+    Two of them: the MLOps practice and the vocabulary of the world the game is set in. They
+    travel together because the client matches them in one pass, so that a phrase claimed by
+    both ("distribution centre" against "distribution") is decided once instead of being
+    highlighted twice.
 
     Deliberately unauthenticated: it is static teaching content the client needs before a
     player has done anything, and it reveals nothing about a session or another player.
     """
-    return {"type": "glossary_config", **GlossaryFactory.get_config_dict()}
+    return {"type": "glossary_config", "glossaries": GlossaryFactory.get_configs_dict()}

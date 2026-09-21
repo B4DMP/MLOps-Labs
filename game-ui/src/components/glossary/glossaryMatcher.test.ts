@@ -11,8 +11,13 @@ function makeTerm(overrides: Partial<GlossaryTerm> & Pick<GlossaryTerm, 'id' | '
   };
 }
 
-function makeConfig(terms: GlossaryTerm[], settingsOverrides: Partial<GlossaryConfig['settings']> = {}): GlossaryConfig {
+function makeConfig(
+  terms: GlossaryTerm[],
+  settingsOverrides: Partial<GlossaryConfig['settings']> = {},
+  configOverrides: Partial<GlossaryConfig> = {}
+): GlossaryConfig {
   return {
+    ...configOverrides,
     settings: {
       enabled: true,
       case_sensitive: false,
@@ -25,7 +30,7 @@ function makeConfig(terms: GlossaryTerm[], settingsOverrides: Partial<GlossaryCo
       } as GlossaryConfig['settings']['surfaces'],
       ...settingsOverrides,
     },
-    categories: [],
+    categories: configOverrides.categories ?? [],
     terms,
   };
 }
@@ -117,5 +122,93 @@ describe('buildGlossaryMatcher', () => {
     const matcher = buildGlossaryMatcher(makeConfig([term]));
     expect(matcher.termById('t1')?.term).toBe('data drift');
     expect(matcher.termById('missing')).toBeUndefined();
+  });
+});
+
+describe('buildGlossaryMatcher across two glossaries', () => {
+  const mlops = makeConfig(
+    [makeTerm({ id: 'distribution', term: 'distribution', aliases: ['feature distribution'] })],
+    { underline_style: 'dotted' },
+    { kind: 'mlops', categories: [{ id: 'general', label: 'MLOps', color: '#6366f1' }] }
+  );
+  const domain = makeConfig(
+    [makeTerm({ id: 'distribution_centre', term: 'distribution centre', aliases: ['warehouse'] })],
+    { underline_style: 'wavy' },
+    { kind: 'domain', categories: [{ id: 'general', label: 'Supply Chain', color: '#0d9488' }] }
+  );
+
+  it('prefers the longer phrase, so the warehouse beats the statistical term', () => {
+    const matcher = buildGlossaryMatcher([mlops, domain]);
+    const matches = matcher.findMatches('the distribution centre ships overnight');
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0].matched).toBe('distribution centre');
+    expect(matches[0].term.id).toBe('distribution_centre');
+    expect(matches[0].entry.kind).toBe('domain');
+  });
+
+  it('still matches the MLOps term when the domain phrase is not there', () => {
+    const matcher = buildGlossaryMatcher([mlops, domain]);
+    const matches = matcher.findMatches('the input distribution moved last week');
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0].term.id).toBe('distribution');
+    expect(matches[0].entry.kind).toBe('mlops');
+  });
+
+  it('never highlights one word twice: the two glossaries share a single pass', () => {
+    const matcher = buildGlossaryMatcher([mlops, domain]);
+    const matches = matcher.findMatches('a distribution centre and a distribution shift');
+
+    // Sorted by position, non-overlapping, one mark per occurrence.
+    const spans = matches.map((m) => [m.start, m.end]);
+    for (let i = 1; i < spans.length; i += 1) {
+      expect(spans[i][0]).toBeGreaterThanOrEqual(spans[i - 1][1]);
+    }
+  });
+
+  it('carries each glossary underline style and its own category through the match', () => {
+    const matcher = buildGlossaryMatcher([mlops, domain]);
+
+    const domainMatch = matcher.findMatches('the warehouse is full')[0];
+    expect(domainMatch.entry.underlineStyle).toBe('wavy');
+    expect(domainMatch.entry.category?.label).toBe('Supply Chain');
+
+    const mlopsMatch = matcher.findMatches('the feature distribution moved')[0];
+    expect(mlopsMatch.entry.underlineStyle).toBe('dotted');
+    // Same category id in both files, resolved against the glossary the term came from.
+    expect(mlopsMatch.entry.category?.label).toBe('MLOps');
+  });
+
+  it('an identical spelling in both files goes to the glossary compiled first', () => {
+    const clashing = makeConfig(
+      [makeTerm({ id: 'domain_label', term: 'label' })],
+      {},
+      { kind: 'domain' }
+    );
+    const mlopsLabel = makeConfig(
+      [makeTerm({ id: 'mlops_label', term: 'label' })],
+      {},
+      { kind: 'mlops' }
+    );
+
+    const matches = buildGlossaryMatcher([mlopsLabel, clashing]).findMatches('check the label');
+    expect(matches).toHaveLength(1);
+    expect(matches[0].term.id).toBe('mlops_label');
+  });
+
+  it('leaves out a glossary that has this surface switched off', () => {
+    const domainOffHere = makeConfig(
+      [makeTerm({ id: 'shelf', term: 'shelf capacity' })],
+      { surfaces: { stakeholder_messages: false, speech_bubbles: true } as GlossaryConfig['settings']['surfaces'] },
+      { kind: 'domain' }
+    );
+    const text = 'the shelf capacity and the feature distribution';
+
+    const inChat = buildGlossaryMatcher([mlops, domainOffHere], 'stakeholder_messages');
+    expect(inChat.findMatches(text).map((m) => m.term.id)).toEqual(['distribution']);
+
+    const inBubble = buildGlossaryMatcher([mlops, domainOffHere], 'speech_bubbles');
+    expect(inBubble.findMatches(text).map((m) => m.term.id).sort()).toEqual(['distribution', 'shelf']);
   });
 });

@@ -81,14 +81,17 @@ class GameConfigLoader:
                 EmotionFactory.load_config(emotion_path)
                 print(f"loaded emotion configs.")
 
-            glossary_path = (config_dir / "MLOpsGlossary.json")
-            if glossary_path.exists():
+            GlossaryFactory.clear()
+            for file_name, kind in (("MLOpsGlossary.json", "mlops"), ("DomainGlossary.json", "domain")):
+                glossary_path = (config_dir / file_name)
+                if not glossary_path.exists():
+                    continue
                 # A broken glossary costs highlighting, not a game: never let it block startup.
                 try:
-                    GlossaryFactory.load_glossary(glossary_path)
-                    print(f"loaded glossary: {len(GlossaryFactory.get_terms())} terms.")
+                    GlossaryFactory.load_glossary(glossary_path, kind)
+                    print(f"loaded {kind} glossary: {len(GlossaryFactory.get_terms(kind))} terms.")
                 except Exception as e:
-                    print(f"failed to load glossary, highlighting disabled: {e}")
+                    print(f"failed to load the {kind} glossary, its highlighting is disabled: {e}")
 
         except Exception as e:
             raise ConfigLoaderError(e)

@@ -1,28 +1,28 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
-  EMPTY_GLOSSARY,
-  fetchGlossary,
-  type GlossaryCategory,
+  fetchGlossaries,
   type GlossaryConfig,
   type GlossarySurface,
 } from "../../services/api/glossary";
 import { buildGlossaryMatcher, type GlossaryMatcher } from "./glossaryMatcher";
 
 interface GlossaryContextValue {
-  config: GlossaryConfig;
-  matcher: GlossaryMatcher;
-  categoryById: (id: string) => GlossaryCategory | undefined;
-  /** Whether a given surface should highlight at all. */
+  /** Every loaded glossary: the MLOps practice, and the world the game is set in. */
+  configs: GlossaryConfig[];
+  /** The matcher for one surface, compiled over the glossaries that surface has switched on. */
+  matcherFor: (surface: GlossarySurface) => GlossaryMatcher;
+  /** Whether a given surface should highlight at all, in any glossary. */
   isSurfaceEnabled: (surface: GlossarySurface) => boolean;
   isLoaded: boolean;
 }
 
 const FALLBACK_MATCHER = buildGlossaryMatcher(null);
+/** Stable identity, so "nothing loaded yet" does not recompile the matchers every render. */
+const NO_GLOSSARIES: GlossaryConfig[] = [];
 
 export const GlossaryContext = createContext<GlossaryContextValue>({
-  config: EMPTY_GLOSSARY,
-  matcher: FALLBACK_MATCHER,
-  categoryById: () => undefined,
+  configs: [],
+  matcherFor: () => FALLBACK_MATCHER,
   isSurfaceEnabled: () => false,
   isLoaded: false,
 });
@@ -33,19 +33,19 @@ interface GlossaryProviderProps {
   children: React.ReactNode;
   /**
    * Skips the network call and uses this configuration instead. The admin config editor passes
-   * the draft being edited so the preview reflects unsaved changes.
+   * the draft being edited so the preview reflects unsaved changes. One config or several.
    */
-  overrideConfig?: GlossaryConfig | null;
+  overrideConfig?: GlossaryConfig | GlossaryConfig[] | null;
 }
 
 /**
- * Loads the glossary once for the whole app and compiles it into a matcher.
+ * Loads the glossaries once for the whole app and compiles them into matchers.
  *
- * Failure is silent by design: if the glossary cannot be fetched the game renders exactly as it
- * did before highlighting existed, which is a far better outcome than an error over a chat.
+ * Failure is silent by design: if they cannot be fetched the game renders exactly as it did
+ * before highlighting existed, which is a far better outcome than an error over a chat.
  */
 export default function GlossaryProvider({ children, overrideConfig = null }: GlossaryProviderProps) {
-  const [fetched, setFetched] = useState<GlossaryConfig | null>(null);
+  const [fetched, setFetched] = useState<GlossaryConfig[] | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -56,9 +56,9 @@ export default function GlossaryProvider({ children, overrideConfig = null }: Gl
 
     let cancelled = false;
 
-    fetchGlossary()
-      .then((cfg) => {
-        if (!cancelled) setFetched(cfg);
+    fetchGlossaries()
+      .then((cfgs) => {
+        if (!cancelled) setFetched(cfgs);
       })
       .catch(() => {
         if (!cancelled) setFetched(null);
@@ -72,21 +72,35 @@ export default function GlossaryProvider({ children, overrideConfig = null }: Gl
     };
   }, [overrideConfig]);
 
-  const config = overrideConfig ?? fetched ?? EMPTY_GLOSSARY;
+  const override = overrideConfig
+    ? Array.isArray(overrideConfig)
+      ? overrideConfig
+      : [overrideConfig]
+    : null;
+  const configs = override ?? fetched ?? NO_GLOSSARIES;
 
   const value = useMemo<GlossaryContextValue>(() => {
-    const matcher = buildGlossaryMatcher(config);
-    const categories = new Map((config.categories || []).map((c) => [c.id, c]));
+    // A matcher per surface, because the two glossaries are switched on in different places and
+    // a term of a glossary that is off here must not be matched at all. There are a handful of
+    // surfaces and they are compiled on first use, so this stays cheap.
+    const cache = new Map<GlossarySurface, GlossaryMatcher>();
+
+    const isSurfaceEnabled = (surface: GlossarySurface) =>
+      configs.some((c) => Boolean(c.settings?.enabled && c.settings?.surfaces?.[surface]));
 
     return {
-      config,
-      matcher,
-      categoryById: (id: string) => categories.get(id),
-      isSurfaceEnabled: (surface: GlossarySurface) =>
-        Boolean(config.settings?.enabled && config.settings?.surfaces?.[surface]),
+      configs,
+      matcherFor: (surface: GlossarySurface) => {
+        const cached = cache.get(surface);
+        if (cached) return cached;
+        const matcher = buildGlossaryMatcher(configs, surface);
+        cache.set(surface, matcher);
+        return matcher;
+      },
+      isSurfaceEnabled,
       isLoaded,
     };
-  }, [config, isLoaded]);
+  }, [configs, isLoaded]);
 
   return <GlossaryContext.Provider value={value}>{children}</GlossaryContext.Provider>;
 }

@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -26,6 +28,12 @@ class GlossarySettings(BaseModel):
     """Matching behaviour for the highlighter."""
 
     enabled: bool = Field(default=True, description="Master switch for glossary highlighting")
+    underline_style: Literal["dotted", "wavy", "dashed", "solid"] = Field(
+        default="dotted",
+        description="How a term of this glossary is underlined, which is what tells a player "
+        "which vocabulary they are looking at: dotted for the MLOps practice, wavy for the "
+        "world the game is set in",
+    )
     case_sensitive: bool = Field(default=False, description="Whether matching respects letter case")
     match_whole_words: bool = Field(default=True, description="Whether matches must sit on word boundaries")
     max_highlights_per_term_per_block: int = Field(
@@ -60,8 +68,18 @@ class GlossaryTerm(BaseModel):
 
 
 class GlossaryConfig(BaseModel):
-    """Complete glossary configuration matching MLOpsGlossary.json."""
+    """One glossary: MLOpsGlossary.json or DomainGlossary.json.
 
+    The two are separate files because they teach different things. MLOps vocabulary is what the
+    player is meant to take away from the game; the domain vocabulary is what they need in order
+    to follow the story it is told in. They are highlighted differently for the same reason.
+    """
+
+    kind: str = Field(
+        default="mlops",
+        description="Which vocabulary this is, 'mlops' or 'domain'. Decides nothing on its own; "
+        "the look comes from settings.underline_style and the categories' colours",
+    )
     settings: GlossarySettings = Field(default_factory=GlossarySettings, description="Matching behaviour")
     categories: list[GlossaryCategory] = Field(default_factory=list, description="Term categories")
     terms: list[GlossaryTerm] = Field(default_factory=list, description="Highlighted terms")

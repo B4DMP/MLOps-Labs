@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
-  "title": "MLOps Glossary Configuration",
-  "description": "Terms highlighted inside stakeholder messages, intel notes, intel artifacts and dossier text, with the explanation shown on hover.",
+  "title": "Domain Glossary Configuration",
+  "description": "Vocabulary of the world the game is set in (the supermarket chain and how it runs), highlighted in the same places as the MLOps glossary but underlined differently so a player can tell the two apart.",
   "required": [
     "terms"
   ],
@@ -102,7 +102,7 @@
             "dashed",
             "solid"
           ],
-          "default": "dotted"
+          "default": "wavy"
         }
       }
     },
@@ -222,7 +222,7 @@
         "mlops",
         "domain"
       ],
-      "default": "mlops"
+      "default": "domain"
     }
   }
 }

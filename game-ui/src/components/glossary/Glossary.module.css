@@ -14,15 +14,22 @@
   display: inline;
   cursor: help;
   border-radius: 2px;
-  /* Underline rather than a border, so no line box changes height. */
+  /* Underline rather than a border, so no line box changes height. The style comes from the
+     glossary the term belongs to: dotted for the MLOps practice, wavy for the world the game is
+     set in. A wavy line is drawn taller, so it gets a little more offset to clear the text. */
   text-decoration: underline;
-  text-decoration-style: dotted;
+  text-decoration-style: var(--glossary-underline, dotted);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
   text-decoration-color: var(--glossary-accent, #6366f1);
   background-color: transparent;
   transition: background-color 0.15s ease-in-out, text-decoration-color 0.15s ease-in-out;
   outline: none;
+}
+
+.termMark[data-glossary-underline="wavy"] {
+  text-underline-offset: 3px;
 }
 
 .termMark:hover,

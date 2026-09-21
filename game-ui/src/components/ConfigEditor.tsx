@@ -514,8 +514,9 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
         </div>
       )}
 
-      {/* Glossary Highlighting Live Preview (When MLOpsGlossary.json is opened) */}
+      {/* Glossary Highlighting Live Preview (MLOpsGlossary.json and DomainGlossary.json) */}
       {(selectedFilename === "MLOpsGlossary.json" ||
+        selectedFilename === "DomainGlossary.json" ||
         (Array.isArray(currentData?.terms) && currentData?.terms?.[0]?.definition !== undefined)) &&
         currentData && <GlossaryPreview config={currentData} />}
 

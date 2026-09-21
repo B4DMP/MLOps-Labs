@@ -5,12 +5,17 @@ import { useGlossary } from "./GlossaryProvider";
 import type { GlossarySurface } from "../../services/api/glossary";
 
 /**
- * Returns a function that turns a plain string into React nodes with the MLOps terms in it
+ * Returns a function that turns a plain string into React nodes with the glossary terms in it
  * highlighted, or leaves the string untouched when this surface has highlighting switched off.
+ *
+ * Both vocabularies are matched in the same pass, so a word is highlighted once and the longest
+ * reading wins: "distribution centre" is the warehouse, a bare "distribution" is the statistical
+ * one. Which glossary a term came from shows in its underline, not in the words themselves.
  */
 export function useGlossaryHighlighter(surface: GlossarySurface) {
-  const { matcher, categoryById, isSurfaceEnabled } = useGlossary();
+  const { matcherFor, isSurfaceEnabled } = useGlossary();
   const enabled = isSurfaceEnabled(surface);
+  const matcher = matcherFor(surface);
 
   return useCallback(
     (text: string): React.ReactNode => {
@@ -28,9 +33,10 @@ export function useGlossaryHighlighter(surface: GlossarySurface) {
         }
         nodes.push(
           <GlossaryTermMark
-            key={`${match.term.id}-${match.start}-${index}`}
+            key={`${match.entry.kind}-${match.term.id}-${match.start}-${index}`}
             term={match.term}
-            category={categoryById(match.term.category)}
+            category={match.entry.category}
+            underlineStyle={match.entry.underlineStyle}
           >
             {match.matched}
           </GlossaryTermMark>
@@ -44,7 +50,7 @@ export function useGlossaryHighlighter(surface: GlossarySurface) {
 
       return <>{nodes}</>;
     },
-    [enabled, matcher, categoryById]
+    [enabled, matcher]
   );
 }
 
