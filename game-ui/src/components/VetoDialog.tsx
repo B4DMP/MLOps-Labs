@@ -19,6 +19,15 @@ interface VetoDialogProps {
   vetoInfo: VetoInfo | null;
   stakeholders?: Record<string, any>;
   getStakeholderColor: (st: any) => string;
+  /** Escalation Points left this playthrough (D15): 3 to start, never regenerated within a run.
+   * `null` while the count has not arrived yet, which hides the button rather than showing a
+   * false "0 left". */
+  escalationPoints?: number | null;
+  /** Spends one Escalation Point to push this exact card through despite the veto. Omit to hide
+   * the button entirely (e.g. a read-only replay of the dialog). */
+  onVetoBreaker?: () => void;
+  /** True from the click until the server answers, so the button cannot be pressed twice. */
+  isBreakingVeto?: boolean;
 }
 
 export default function VetoDialog({
@@ -28,8 +37,20 @@ export default function VetoDialog({
   vetoInfo,
   stakeholders = {},
   getStakeholderColor,
+  escalationPoints = null,
+  onVetoBreaker,
+  isBreakingVeto = false,
 }: VetoDialogProps) {
   if (!isOpen || !vetoInfo) return null;
+
+  const pointsLeft = escalationPoints ?? 0;
+  const canBreakVeto = Boolean(onVetoBreaker) && pointsLeft > 0 && !isBreakingVeto;
+  const vetoBreakerHint =
+    escalationPoints === null
+      ? undefined
+      : pointsLeft > 0
+        ? `Spend one Escalation Point (${pointsLeft} left) to push this exact card through anyway. ${vetoInfo.stakeholder_name || "They"} will remember it.`
+        : "No Escalation Points left this playthrough.";
 
   const stId = vetoInfo.stakeholder_id;
   const st = stakeholders[stId] || {};
@@ -136,6 +157,22 @@ export default function VetoDialog({
               <Icon icon="ph:arrow-counter-clockwise-bold" />
               <span>Revise Action Card & Re-Pitch</span>
             </button>
+            {onVetoBreaker && (
+              <button
+                type="button"
+                className={styles.vetoBreakerButton}
+                onClick={onVetoBreaker}
+                disabled={!canBreakVeto}
+                title={vetoBreakerHint}
+              >
+                <Icon icon="ph:lightning-bold" />
+                <span>
+                  {isBreakingVeto
+                    ? "Overriding..."
+                    : `Push It Through${escalationPoints !== null ? ` (${pointsLeft} left)` : ""}`}
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>

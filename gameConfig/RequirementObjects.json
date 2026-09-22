@@ -1540,7 +1540,17 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The manual shadow deployment process keeps coming up whenever the team discusses changes to the CI/CD pipeline."
+      "gist": "The manual shadow deployment process keeps coming up whenever the team discusses changes to the CI/CD pipeline.",
+      "branch_x": {
+        "description": "governing the shadow environment on its own",
+        "target": "deploy.shadow",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "leaving the shadow deployment a manual step",
+        "target": "deploy.shadow",
+        "level": 2
+      }
     },
     {
       "id": "gen_shadow_deployment_contract_ruth_cicd_driver",
@@ -1607,7 +1617,17 @@
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
-      "atoms": []
+      "atoms": [],
+      "branch_x": {
+        "description": "running an automated shadow environment",
+        "target": "deploy.shadow",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "accepting a manual shadow run instead",
+        "target": "deploy.shadow",
+        "level": 2
+      }
     },
     {
       "id": "gen_shadow_deployment_contract_alex_orch_tradeoff",
@@ -1625,7 +1645,17 @@
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
-      "gist": "The manual configuration process for the shadow environment orchestration layer has been raised during recent model version deployments."
+      "gist": "The manual configuration process for the shadow environment orchestration layer has been raised during recent model version deployments.",
+      "branch_x": {
+        "description": "automating the shadow environment's orchestration",
+        "target": "deploy.shadow",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "keeping the shadow orchestration a manual step",
+        "target": "deploy.shadow",
+        "level": 2
+      }
     },
     {
       "id": "gen_shadow_deployment_contract_fact_shadow_missing",
