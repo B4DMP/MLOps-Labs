@@ -5,6 +5,9 @@ import { StakeholderContext } from "./StakeholderProvider";
 import HoverTooltip from "./HoverToolTip";
 import { intelTagMeta } from "../types/IntelTag";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
+import OnceIcon from "./Results/OnceIcon";
+import PUZZLE_SQUARE_ICON from "./Results/icons/puzzle-square.json";
+import WARNING_TRIANGLE_ICON from "./Results/icons/warning-triangle.json";
 
 export interface IntelVerificationResultData {
   wasCorrect: boolean;
@@ -101,11 +104,9 @@ export default function IntelVerificationDialog({
               wasCorrect ? styles.resultBannerSuccess : styles.resultBannerWarning
             }`}
           >
-            <Icon
-              icon={wasCorrect ? "ph:sparkle-bold" : "ph:warning-circle-bold"}
-              className={`${styles.bannerIcon} ${
-                wasCorrect ? styles.iconSuccess : styles.iconWarning
-              }`}
+            <OnceIcon
+              icon={wasCorrect ? PUZZLE_SQUARE_ICON : WARNING_TRIANGLE_ICON}
+              className={styles.bannerLordicon}
             />
             <div className={styles.bannerContent}>
               <h2 className={styles.bannerHeading}>
