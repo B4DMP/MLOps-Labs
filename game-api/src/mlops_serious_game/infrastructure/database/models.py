@@ -24,6 +24,9 @@ class User(Base):
         nullable=False,
         index=True,
     )
+    # Set the first time a playtest tool fabricates progress, never cleared (D10). Account-level
+    # because contamination does not stay inside one challenge or run: see docs/plans/results-screen.md.
+    playtest_tainted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class Campaign(Base):
@@ -34,6 +37,8 @@ class Campaign(Base):
     campaign_key: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     use_questionnaire: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Off by default: a research campaign wants one run per player (the end screen says so).
+    allow_replay: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class GameProgression(Base):
@@ -48,6 +53,11 @@ class GameProgression(Base):
         index=True,
     )
     game_progress_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Which playthrough this row belongs to. 1 for everyone who played before replay existed.
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    # The run this one continues, or null for a fresh start. This is the whole difference
+    # between the two new-game modes: see docs/plans/results-screen.md (D11) and `run_chain`.
+    seeded_from_run: Mapped[int | None] = mapped_column(Integer, nullable=True)
     time_stamp: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
@@ -65,6 +75,7 @@ class GameChallenge(Base):
         nullable=False,
         index=True,
     )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_loop_index: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -76,6 +87,9 @@ class GameChallenge(Base):
     messages: Mapped[Any] = mapped_column(JSON, default=list, nullable=False)
     attention_tokens: Mapped[int] = mapped_column(Integer, default=20, nullable=True)
     emotion_values: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    # Debugging breadcrumb only: which challenge a playtest tool advanced. Nothing filters on it;
+    # the exclusion from research data is `User.playtest_tainted`.
+    auto_played: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class GameSession(Base):
@@ -89,6 +103,7 @@ class GameSession(Base):
         nullable=False,
         index=True,
     )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     # {stakeholder_id: persona_key} drawn once for this player and kept for the whole game
     stakeholder_personas: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
     # 3 per game, never regenerated (D15): spent on a Veto Breaker or an Emergency Addendum
@@ -111,6 +126,7 @@ class IntelItem(Base):
         nullable=False,
         index=True,
     )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     intel_item_data: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
 
 
@@ -128,6 +144,7 @@ class GraphOpLog(Base):
         nullable=False,
         index=True,
     )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     phase_index: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_template: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -159,6 +176,7 @@ class GameEventRow(Base):
         nullable=False,
         index=True,
     )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     seq: Mapped[int] = mapped_column(Integer, nullable=False)
     phase_id: Mapped[int] = mapped_column(Integer, nullable=False)
     challenge_id: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -211,4 +229,29 @@ class UserSettings(Base):
         default=datetime.datetime.utcnow,
         onupdate=datetime.datetime.utcnow,
         nullable=False,
+    )
+
+
+class GameResult(Base):
+    """One computed results payload per (player, run), cached on first request.
+
+    Building a run's results folds its whole op log and event log, which is fine once for the
+    player but not once per run per admin page load. The payload is the whole screen: grade,
+    pillars, metrics, pipeline and knowledge delta (docs/plans/results-screen.md).
+    """
+
+    __tablename__ = settings.POSTGRES_GAME_RESULT_TABLE
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_name: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey(f"{settings.POSTGRES_USER_DATA_TABLE}.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    run_index: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    payload: Mapped[Any] = mapped_column(JSON, default=dict, nullable=False)
+    time_stamp: Mapped[datetime.datetime] = mapped_column(
+        DateTime, default=datetime.datetime.utcnow, nullable=False
     )

@@ -12,6 +12,7 @@ from mlops_serious_game.domain.phase_factory import PhaseFactory
 from .handlers.chat_handler import handle_chat_message
 from .handlers.game_handler import (
     handle_game_init,
+    handle_new_run,
     handle_progress_update,
     handle_state_update_request,
     reset_thread,
@@ -32,7 +33,10 @@ from .handlers.pitch_handler import (
     handle_pitch_evaluate,
     handle_pitch_set_card,
     handle_pitch_state,
+    handle_pitch_veto_breaker,
 )
+from .handlers.playtest_handler import handle_playtest_auto_card, handle_playtest_skip_challenge
+from .handlers.results_handler import handle_results_get
 from .handlers.settings_handler import (
     handle_settings_get,
     handle_settings_reset_account,
@@ -49,6 +53,7 @@ HandlerFunc = Callable[[WebSocket, str, dict], Awaitable[None]]
 # Event Registry mapping unified event names to handler functions
 EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "game:init": handle_game_init,
+    "game:new_run": handle_new_run,
     "game:progress_update": handle_progress_update,
     "game:state_update_request": handle_state_update_request,
     "chat:send_message": handle_chat_message,
@@ -65,11 +70,15 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
     "pitch:evaluate": handle_pitch_evaluate,
     "pitch:object": handle_pitch_evaluate,  # Alias for backward compatibility
     "pitch:commit": handle_pitch_commit,
+    "pitch:veto_breaker": handle_pitch_veto_breaker,
     "simulation:run": handle_simulation_run,
     "log:history": handle_log_history,
     "gather:open": handle_gather_open,
     "gather:ask": handle_gather_ask,
     "gather:close": handle_gather_close,
+    "playtest:auto_card": handle_playtest_auto_card,
+    "playtest:skip_challenge": handle_playtest_skip_challenge,
+    "results:get": handle_results_get,
     "settings:get": handle_settings_get,
     "settings:update": handle_settings_update,
     "settings:reset_account": handle_settings_reset_account,

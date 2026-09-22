@@ -3,7 +3,7 @@ import datetime
 from typing import Any, Optional
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from mlops_serious_game.config import settings
@@ -22,6 +22,7 @@ from mlops_serious_game.application.graph_service.scheduler import next_challeng
 from mlops_serious_game.application.graph_service.view import evaluate_graph
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.application.intel_handler import (
+    intel_rows,
     observe_tagged_facts,
     load_known_intel_items_for_challenge,
     determine_dialogue_options,
@@ -33,6 +34,7 @@ from mlops_serious_game.application.pitch_debate_service import (
     get_checkpoint_dialogue_options,
     save_checkpoint_dialogue_options,
 )
+from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
 from mlops_serious_game.infrastructure.database import (
     Campaign,
     User,
@@ -133,18 +135,39 @@ def get_engagement_cards() -> list[Any]:
 
 
 def get_or_create_game_session(player: str, db_session=None) -> GameSession:
-    """Retrieves or creates a GameSession record for a given player."""
+    """Retrieves or creates a GameSession record for a given player's current run.
+
+    One row per run, not per player: escalation points and grudges are per playthrough, so a new
+    game gets its own. Personas are not - they are who this player's colleagues are - so a run
+    after the first inherits the draw rather than recasting the cast mid-campaign.
+    """
     from mlops_serious_game.application.persona_service import sync_personas
 
     def _init_in_session(s):
         user_id = get_user_id(s, player)
-        stmt = select(GameSession).where(GameSession.user_id == user_id)
+        run_index = current_run_index(s, user_id)
+        stmt = (
+            select(GameSession)
+            .where(GameSession.user_id == user_id, GameSession.run_index == run_index)
+            .order_by(GameSession.id.desc())
+        )
         session_rec = s.scalars(stmt).first()
         if not session_rec:
+            previous = s.scalars(
+                select(GameSession)
+                .where(GameSession.user_id == user_id)
+                .order_by(GameSession.id.desc())
+            ).first()
+            personas = (
+                dict(previous.stakeholder_personas)
+                if previous and previous.stakeholder_personas
+                else StakeholderFactory.choose_personas(player)
+            )
             session_rec = GameSession(
                 player=player,
                 user_id=user_id,
-                stakeholder_personas=StakeholderFactory.choose_personas(player),
+                run_index=run_index,
+                stakeholder_personas=personas,
             )
             s.add(session_rec)
             s.commit()
@@ -168,9 +191,7 @@ def get_discovered_intel_items(
 
     with get_session() as session:
         user_id = get_user_id(session, username)
-        records = session.scalars(
-            select(IntelItem).where(IntelItem.user_id == user_id)
-        ).all()
+        records = intel_rows(session, user_id)
 
         for record in records:
             data = record.intel_item_data
@@ -233,6 +254,111 @@ async def get_dialogue_options(
     return [opt.model_dump(exclude={"text"}, exclude_none=True) for opt in options]
 
 
+def inherited_state(username: str) -> tuple[list, dict]:
+    """The gauges and the room a run inherits from the run it continues.
+
+    Empty for a fresh start, which has no ancestors. Read from the last challenge an ancestor
+    played, whose `metric_values` were finalised when that challenge ended.
+    """
+    with get_session() as session:
+        user_id = get_user_id(session, username)
+        ancestors = run_chain(session, user_id)[1:]
+        if not ancestors:
+            return [], {}
+        last = session.scalars(
+            select(GameChallenge)
+            .where(GameChallenge.user_id == user_id, GameChallenge.run_index.in_(ancestors))
+            .order_by(GameChallenge.id.desc())
+        ).first()
+        if last is None:
+            return [], {}
+        metrics = list(last.metric_values) if isinstance(last.metric_values, list) else []
+        emotions = dict(last.emotion_values) if isinstance(last.emotion_values, dict) else {}
+        return metrics, emotions
+
+
+NEW_RUN_MODES = ("fresh", "spiral")
+
+
+async def handle_new_run(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Starts another playthrough (docs/plans/results-screen.md, D1/D4/D11).
+
+    Two modes, and the only difference is one column. `fresh` opens a clean run; `spiral` opens one
+    that continues the run just finished, so the player returns to requirements carrying the
+    system they built, with its maturity, debt and anti-patterns intact.
+
+    **Nothing is deleted, in either mode.** A new run is an insert: the finished run keeps every
+    row it wrote, because the results screen and the admin aggregates read that history.
+
+    Refused unless the campaign allows replay and the current run is actually finished, so a crafted
+    frame cannot restart someone mid-game or get past a research campaign's one-run rule.
+    """
+    mode = payload.get("mode")
+    if mode not in NEW_RUN_MODES:
+        await manager.send_error(websocket, "mode must be 'fresh' or 'spiral'.", code="BAD_MODE")
+        return
+
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        campaign = session.scalar(select(Campaign).where(Campaign.id == user.campaign_id)) if user else None
+        if user is None or campaign is None or not campaign.allow_replay:
+            await manager.send_error(websocket, "This campaign does not allow a new game.", code="REPLAY_DISABLED")
+            return
+
+        user_id = user.id
+        run = current_run_index(session, user_id)
+        finished = session.scalar(
+            select(func.count(GameProgression.id)).where(
+                GameProgression.user_id == user_id,
+                GameProgression.run_index == run,
+                GameProgression.game_progress_index == 4,
+            )
+        )
+        if not finished:
+            await manager.send_error(websocket, "Finish this game before starting another.", code="RUN_NOT_FINISHED")
+            return
+
+        previous = session.scalars(
+            select(GameSession)
+            .where(GameSession.user_id == user_id, GameSession.run_index == run)
+            .order_by(GameSession.id.desc())
+        ).first()
+
+        new_run = run + 1
+        session.add(
+            GameProgression(
+                user_name=username,
+                user_id=user_id,
+                run_index=new_run,
+                seeded_from_run=run if mode == "spiral" else None,
+                # Straight into play: the intro questionnaire is not asked again (its answers are
+                # the baseline the whole before/after series is measured from) and the player has
+                # already had the briefing.
+                game_progress_index=2,
+                time_stamp=datetime.datetime.utcnow(),
+                additional_data=[],
+            )
+        )
+        # One session row per run. Personas carry over so the cast is not recast mid-campaign;
+        # escalation starts fresh (D15's three points are per game). Grudges are what a next
+        # iteration carries: neglected stakeholders remember, and a new cycle does not wipe that.
+        session.add(
+            GameSession(
+                player=username,
+                user_id=user_id,
+                run_index=new_run,
+                stakeholder_personas=dict(previous.stakeholder_personas) if previous and previous.stakeholder_personas else {},
+                grudges=list(previous.grudges) if previous and mode == "spiral" and previous.grudges else [],
+            )
+        )
+
+    await manager.send_event(
+        websocket=websocket,
+        event="game:new_run_started",
+        payload={"run_index": new_run, "mode": mode},
+    )
+
+
 async def handle_game_init(
     websocket: WebSocket,
     username: str,
@@ -261,6 +387,7 @@ async def handle_game_init(
             "settings": {
                 **user_settings_service.get_settings(username),
                 "can_reset_account": settings.ENABLE_RESET_USER,
+                "can_playtest": settings.ENABLE_PLAYTEST_TOOLS,
             },
         }
     )
@@ -284,9 +411,14 @@ async def handle_game_init(
         # Initialize or retrieve persistent player GameSession
         get_or_create_game_session(username, session)
 
-        # Fetch user progression index
+        # Fetch user progression index. This run only: the maximum across every run would read a
+        # finished first game (index 4) as the new one's position and send a replaying player
+        # straight back to the results screen.
         results = session.scalars(
-            select(GameProgression).where(GameProgression.user_id == user_id)
+            select(GameProgression).where(
+                GameProgression.user_id == user_id,
+                GameProgression.run_index == current_run_index(session, user_id),
+            )
         ).all()
         for r in results:
             if r.game_progress_index > game_progress_index:
@@ -300,6 +432,7 @@ async def handle_game_init(
                     GameProgression(
                         user_name=username,
                         user_id=user_id,
+                        run_index=current_run_index(session, user_id),
                         game_progress_index=1,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
@@ -311,16 +444,19 @@ async def handle_game_init(
                     GameProgression(
                         user_name=username,
                         user_id=user_id,
+                        run_index=current_run_index(session, user_id),
                         game_progress_index=4,
                         time_stamp=datetime.datetime.utcnow(),
                         additional_data=[]
                     )
                 )
 
-        # Fetch latest game challenge state
+        # Fetch latest game challenge state. Scoped to this run: on a new game the player has
+        # no challenge row yet, and the previous run's last one would resume them mid-campaign.
+        run_index = current_run_index(session, user_id)
         stmt = (
             select(GameChallenge)
-            .where(GameChallenge.user_id == user_id)
+            .where(GameChallenge.user_id == user_id, GameChallenge.run_index == run_index)
             .order_by(GameChallenge.id.desc())
         )
         latest_session = session.scalars(stmt).first()
@@ -333,7 +469,11 @@ async def handle_game_init(
             else:
                 stmt_ev = (
                     select(GameChallenge)
-                    .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
+                    .where(
+                        GameChallenge.user_id == user_id,
+                        GameChallenge.run_index == run_index,
+                        GameChallenge.emotion_values.isnot(None),
+                    )
                     .order_by(GameChallenge.id.desc())
                 )
                 session_with_ev = session.scalars(stmt_ev).first()
@@ -367,7 +507,14 @@ async def handle_game_init(
 
     if(game_progress_index==2):
         if latest_session is None:
-            # No challenge recorded yet for this player: deal one through the same scheduler
+            # A next iteration starts from what the last run left: the gauges where they ended and
+            # the room as it was. A fresh start has no ancestors, so this changes nothing for it.
+            inherited_metrics, inherited_emotions = inherited_state(username)
+            if inherited_metrics:
+                metric_values = inherited_metrics
+            if inherited_emotions:
+                emotion_values_dict = inherited_emotions
+            # No challenge recorded yet for this run: deal one through the same scheduler
             # every later challenge goes through, so retired/legacy templates are never dealt here.
             curr_challenge: Challenge = select_first_challenge(username)
             await store_or_update_challenge(
@@ -493,10 +640,12 @@ async def handle_progress_update(
 
     # Store in PostgreSQL via SQLAlchemy
     with get_session() as session:
+        progress_user_id = get_user_id(session, username)
         session.add(
             GameProgression(
                 user_name=username,
-                user_id=get_user_id(session, username),
+                user_id=progress_user_id,
+                run_index=current_run_index(session, progress_user_id),
                 game_progress_index=game_progress_index,
                 time_stamp=datetime.datetime.utcnow(),
                 additional_data=additional_data
@@ -563,10 +712,16 @@ async def store_or_update_challenge(
     with get_session() as session:
         user_id = get_user_id(session, username)
 
-        # Carry forward latest persisted emotion_values from user's history
+        # Carry forward the latest persisted emotion_values along this run's chain. The chain, not
+        # every run: a fresh start begins the room neutral, while a next iteration inherits how
+        # the last one left it (docs/plans/results-screen.md, D11).
         stmt_ev = (
             select(GameChallenge)
-            .where(GameChallenge.user_id == user_id, GameChallenge.emotion_values.isnot(None))
+            .where(
+                GameChallenge.user_id == user_id,
+                GameChallenge.run_index.in_(run_chain(session, user_id)),
+                GameChallenge.emotion_values.isnot(None),
+            )
             .order_by(GameChallenge.id.desc())
         )
         prev_session_ev = session.scalars(stmt_ev).first()
@@ -597,6 +752,7 @@ async def store_or_update_challenge(
                     GameChallenge(
                         user_name=username,
                         user_id=user_id,
+                        run_index=current_run_index(session, user_id),
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
                         challenge_loop_index=challenge_loop_id,
@@ -629,6 +785,7 @@ async def store_or_update_challenge(
                     GameChallenge(
                         user_name=username,
                         user_id=user_id,
+                        run_index=current_run_index(session, user_id),
                         phase_index=challenge.phase_id,
                         challenge_index=challenge.id,
                         challenge_loop_index=challenge_loop_id,
@@ -654,9 +811,38 @@ def _first_non_retired_challenge(start_phase_id: int) -> Challenge | None:
     return None
 
 
+def played_templates(username: str) -> set[str]:
+    """Every challenge template this player has ever been dealt, **across all runs**.
+
+    Deliberately not run-scoped (docs/plans/results-screen.md, D1): a new game should deal
+    challenges the player has not seen, so the played set is the one thing that outlives a run.
+
+    It is also what keeps `graph_store.has_batch`'s `enter:<template>` key unambiguous: because a
+    template is never dealt twice to the same player, a per-challenge lookup can never collide
+    across runs.
+    """
+    with get_session() as session:
+        user_id = get_user_id(session, username)
+        played_ids = set(
+            session.scalars(
+                select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
+            ).all()
+        )
+    templates = set()
+    for cid in played_ids:
+        try:
+            templates.add(PhaseFactory.get_challenge_by_id(cid).template_id)
+        except ValueError:
+            continue
+    return templates
+
+
 def select_first_challenge(username: str) -> Challenge | None:
-    """Picks a new player's very first challenge via the same scheduler as every later pick,
-    so a retired/legacy template is never dealt just because it's challenge #1.
+    """Picks the first challenge of a run via the same scheduler as every later pick, so a
+    retired/legacy template is never dealt just because it's challenge #1.
+
+    The played set is read rather than assumed empty: this runs for the first challenge of a
+    *second* game too, which must not re-deal something the player already worked through.
 
     Falls back to plain sequential order if the graph cannot be read, same as select_next_challenge.
     """
@@ -664,7 +850,13 @@ def select_first_challenge(username: str) -> Challenge | None:
         graph = GraphFactory.get_graph()
         replayed = graph_store.load_state(username)
         ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
-        return next_challenge(PhaseFactory.get_phases(), current_phase_id=1, played=set(), ctx=ctx, seed=username)
+        return next_challenge(
+            PhaseFactory.get_phases(),
+            current_phase_id=1,
+            played=played_templates(username),
+            ctx=ctx,
+            seed=username,
+        )
     except Exception as e:
         print(f"[Challenge selection error, falling back to sequential] {e}")
         return _first_non_retired_challenge(1)
@@ -679,19 +871,9 @@ def select_next_challenge(username: str, phase_id: int, challenge_id: int) -> Ch
     try:
         graph = GraphFactory.get_graph()
         current = PhaseFactory.translate_challenge_index(challenge_index=challenge_id, phase_index=phase_id)
-        with get_session() as session:
-            user_id = get_user_id(session, username)
-            played_ids = set(
-                session.scalars(
-                    select(GameChallenge.challenge_index).where(GameChallenge.user_id == user_id)
-                ).all()
-            )
-        played = set()
-        for cid in played_ids | ({current.id} if current else set()):
-            try:
-                played.add(PhaseFactory.get_challenge_by_id(cid).template_id)
-            except ValueError:
-                continue
+        played = played_templates(username)
+        if current:
+            played.add(current.template_id)
         replayed = graph_store.load_state(username)
         ctx = evaluate_graph(graph, replayed.state).context(graph, replayed.state)
         current_phase = current.phase_id if current else phase_id
@@ -753,6 +935,14 @@ async def handle_state_update_request(
                         .order_by(GameChallenge.id.desc())
                     )
                     completed_rec = db_session.scalars(stmt).first()
+                    # What the simulation actually did to the metrics (`set_metric_changes`),
+                    # read now while the row is still attached - the client's own "proceed"
+                    # request never carries this (see the note where `ac_changes` is used below).
+                    persisted_metric_changes = (
+                        dict(completed_rec.action_card.get("metric_changes", {}))
+                        if completed_rec and isinstance(completed_rec.action_card, dict)
+                        else {}
+                    )
                     if completed_rec and metric_values:
                         completed_rec.metric_values = metric_values
                         completed_rec.challenge_loop_index = 3
@@ -761,6 +951,7 @@ async def handle_state_update_request(
                             GameChallenge(
                                 user_name=username,
                                 user_id=completed_user_id,
+                                run_index=current_run_index(db_session, completed_user_id),
                                 phase_index=phase_id,
                                 challenge_index=challenge_id,
                                 challenge_loop_index=3,
@@ -791,6 +982,7 @@ async def handle_state_update_request(
                                 GameProgression(
                                     user_name=username,
                                     user_id=get_user_id(db_session, username),
+                                    run_index=current_run_index(db_session, get_user_id(db_session, username)),
                                     game_progress_index=3,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -803,6 +995,7 @@ async def handle_state_update_request(
                                 GameProgression(
                                     user_name=username,
                                     user_id=get_user_id(db_session, username),
+                                    run_index=current_run_index(db_session, get_user_id(db_session, username)),
                                     game_progress_index=4,
                                     time_stamp=datetime.datetime.utcnow(),
                                     additional_data=[]
@@ -823,10 +1016,18 @@ async def handle_state_update_request(
                 load_known_intel_items_for_challenge(challenge, username)
                 
                 #calculate new metric values
-                new_metric_values=[]    
+                new_metric_values=[]
 
-                ac_changes = action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}
-                
+                # `action_card` here is the client's own request payload, which - for the
+                # "proceed to next milestone" call this branch handles - never actually carries
+                # a "metric_changes" key (see `ac_simulation.tsx`'s handleAcSimulationContinue).
+                # `persisted_metric_changes`, written by the simulation step itself, is the real
+                # source; the payload's own value (if a caller ever does send one) still wins.
+                ac_changes = {
+                    **persisted_metric_changes,
+                    **(action_card.get("metric_changes", {}) if isinstance(action_card, dict) else {}),
+                }
+
                 for i, m_name in enumerate(MetricFactory.get_available_metrics()):
                     cur_val = metric_values[i] if i < len(metric_values) else 0
                     change = ac_changes.get(m_name, 0) + challenge.metric_changes.get(m_name, 0)
@@ -854,9 +1055,14 @@ async def handle_state_update_request(
         }
         persisted_ac = action_card
         with get_session() as session:
+            ev_user_id = get_user_id(session, username)
             stmt = (
                 select(GameChallenge)
-                .where(GameChallenge.user_id == get_user_id(session, username), GameChallenge.emotion_values.isnot(None))
+                .where(
+                    GameChallenge.user_id == ev_user_id,
+                    GameChallenge.run_index == current_run_index(session, ev_user_id),
+                    GameChallenge.emotion_values.isnot(None),
+                )
                 .order_by(GameChallenge.id.desc())
             )
             latest = session.scalars(stmt).first()

@@ -18,6 +18,7 @@ from mlops_serious_game.domain.requirement import StakeholderIntelItem
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, IntelItem, get_session, get_user_id
 from mlops_serious_game.application.intel_handler import (
+    intel_rows,
     correct_and_verify_intel_item,
     retrieve_dossier_data,
 )
@@ -191,9 +192,7 @@ async def handle_chat_message(
             card_intel_ids = action_card.get("intel_ids", [])
             existing_ids = {getattr(it, "id", None) for it in intel_items}
             with get_session() as db_session:
-                records = db_session.scalars(
-                    select(IntelItem).where(IntelItem.user_id == get_user_id(db_session, username))
-                ).all()
+                records = intel_rows(db_session, get_user_id(db_session, username))
                 for record in records:
                     if isinstance(record.intel_item_data, dict):
                         data = record.intel_item_data

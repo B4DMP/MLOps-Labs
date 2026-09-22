@@ -15,6 +15,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from mlops_serious_game.application.pitch_debate_service.scoring import shift_emotions
 from mlops_serious_game.application.pitch_debate_service.session import PitchState
 from mlops_serious_game.infrastructure.database import GameChallenge, GameSession, get_session, get_user_id
+from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 
 PITCH_KEY = "pitch"
 DEFAULT_ESCALATION_POINTS = 3
@@ -58,9 +59,42 @@ def save_pitch(username: str, phase_id: int, challenge_id: int, state: PitchStat
         db.commit()
 
 
+METRIC_CHANGES_KEY = "metric_changes"
+
+
+def set_metric_changes(username: str, phase_id: int, challenge_id: int, metric_changes: dict[str, int]) -> None:
+    """Records what the simulation actually did to the metrics, on the challenge's own row.
+
+    `handle_state_update_request`'s "proceed to next milestone" step is the only place metric
+    values are actually advanced, and it does so from `action_card["metric_changes"]" - but the
+    client that calls it never sends that key (see the note in `ac_simulation.tsx`), so without
+    this call the graph-driven `DeltaReport.metric_deltas` computed here is shown on screen and
+    then silently dropped. Writing it onto the row is what lets that step pick it up later,
+    whatever the client's own payload does or doesn't carry.
+
+    Idempotent, matching `run_simulation`'s own idempotency: a repeat call for an already-simulated
+    challenge is handed back the same stored report and so writes the same dict here.
+    """
+    if not metric_changes:
+        return
+    with get_session() as db:
+        row = _latest_challenge_row(db, username, phase_id, challenge_id)
+        if row is None:
+            return
+        card = dict(row.action_card) if isinstance(row.action_card, dict) else {}
+        card[METRIC_CHANGES_KEY] = dict(metric_changes)
+        row.action_card = card
+        db.commit()
+
+
 def _session_row(db, username: str) -> Optional[GameSession]:
+    """This run's session row: escalation points and grudges belong to one playthrough, so a
+    new game must not read the last one's (docs/plans/results-screen.md, D1)."""
+    user_id = get_user_id(db, username)
     return db.scalars(
-        select(GameSession).where(GameSession.user_id == get_user_id(db, username)).order_by(GameSession.id.desc())
+        select(GameSession)
+        .where(GameSession.user_id == user_id, GameSession.run_index == current_run_index(db, user_id))
+        .order_by(GameSession.id.desc())
     ).first()
 
 
@@ -119,9 +153,15 @@ def _emotion_row(db, username: str):
     dict is not NULL, so filtering on NULL alone hands back nothing and every stakeholder reads
     as neutral. Walk back until a row has something in it.
     """
+    ev_user_id = get_user_id(db, username)
     rows = db.scalars(
         select(GameChallenge)
-        .where(GameChallenge.user_id == get_user_id(db, username), GameChallenge.emotion_values.isnot(None))
+        .where(
+            GameChallenge.user_id == ev_user_id,
+            # This run only: a new game starts the room on neutral, never on how the last one left it.
+            GameChallenge.run_index == current_run_index(db, ev_user_id),
+            GameChallenge.emotion_values.isnot(None),
+        )
         .order_by(GameChallenge.id.desc())
     ).all()
     for row in rows:
@@ -181,9 +221,13 @@ def apply_emotion_deltas(
             base.setdefault(st_id, dict(_defaults([st_id])[st_id]))
         target = row
         if target is None:
+            fallback_user_id = get_user_id(db, username)
             target = db.scalars(
                 select(GameChallenge)
-                .where(GameChallenge.user_id == get_user_id(db, username))
+                .where(
+                    GameChallenge.user_id == fallback_user_id,
+                    GameChallenge.run_index == current_run_index(db, fallback_user_id),
+                )
                 .order_by(GameChallenge.id.desc())
             ).first()
         if target is None or not base:
