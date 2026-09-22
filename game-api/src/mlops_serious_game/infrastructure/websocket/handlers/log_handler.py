@@ -9,22 +9,15 @@ same way, through the same store.
 from fastapi import WebSocket
 
 from mlops_serious_game.application.event_log_service.store import append_events, load_events
+from mlops_serious_game.application.event_log_service.serialize import serialize_event
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.event_causes import EventCauseFactory
 from mlops_serious_game.infrastructure.websocket.manager import manager
 
 
 def _serialize(event: GameEvent) -> dict:
-    """The event plus its rendered cause text - causes are config templates, never LLM text
-    (plan 11, D51), so the frontend never needs its own copy of `EventCauses.json` to show them."""
-    params = dict(event.params or {})
-    if event.cause == "outcome.veto" and not params.get("st"):
-        params["st"] = "the room"
-    try:
-        text = EventCauseFactory.render(event.cause, params)
-    except Exception:
-        text = event.cause
-    return {**event.model_dump(mode="json"), "text": text}
+    """Kept as a thin alias: the rendering lives in `event_log_service.serialize`, shared with the
+    results screen so the two never render an event differently."""
+    return serialize_event(event)
 
 
 async def send_events(websocket: WebSocket, username: str, events: list[GameEvent]) -> list[GameEvent]:
