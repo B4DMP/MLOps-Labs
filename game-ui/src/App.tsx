@@ -38,6 +38,7 @@ interface Campaign {
   is_active: boolean;
   use_questionnaire: boolean;
   is_test_campaign: boolean;
+  require_email_verification: boolean;
   users: string[];
 }
 
@@ -258,11 +259,12 @@ function App() {
     newCampaignKey: string,
     isActive: boolean = true,
     useQuestionnaire: boolean = true,
-    isTestCampaign: boolean = false
+    isTestCampaign: boolean = false,
+    requireEmailVerification: boolean = true
   ) => {
     try {
       const updated = await addAdminCampaign(
-        adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign
+        adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign, requireEmailVerification
       );
       updateAdminState(updated);
     } catch (err: any) {
@@ -279,6 +281,7 @@ function App() {
       allow_replay?: boolean;
       campaign_name?: string;
       is_test_campaign?: boolean;
+      require_email_verification?: boolean;
     }
   ) => {
     try {

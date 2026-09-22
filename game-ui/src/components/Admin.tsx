@@ -43,6 +43,7 @@ export interface Campaign {
   use_questionnaire?: boolean;
   allow_replay?: boolean;
   is_test_campaign?: boolean;
+  require_email_verification?: boolean;
 }
 
 export interface Player {
@@ -69,7 +70,8 @@ interface AdminProps {
     campaignKey: string,
     isActive?: boolean,
     useQuestionnaire?: boolean,
-    isTestCampaign?: boolean
+    isTestCampaign?: boolean,
+    requireEmailVerification?: boolean
   ) => void;
   updateCampaign?: (
     campaignKey: string,
@@ -79,6 +81,7 @@ interface AdminProps {
       allow_replay?: boolean;
       campaign_name?: string;
       is_test_campaign?: boolean;
+      require_email_verification?: boolean;
     }
   ) => void;
   removeCampaign: (campaignKey: string) => void;
@@ -166,6 +169,7 @@ export function Admin({
   const [campaignIsActive, setCampaignIsActive] = useState(true);
   const [campaignUseQuestionnaire, setCampaignUseQuestionnaire] = useState(true);
   const [campaignIsTestCampaign, setCampaignIsTestCampaign] = useState(false);
+  const [campaignRequireEmailVerification, setCampaignRequireEmailVerification] = useState(true);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
@@ -220,13 +224,15 @@ export function Admin({
     if (e) e.preventDefault();
     if (campaignName.trim() && campaignKey.trim()) {
       addCampaign(
-        campaignName.trim(), campaignKey.trim(), campaignIsActive, campaignUseQuestionnaire, campaignIsTestCampaign
+        campaignName.trim(), campaignKey.trim(), campaignIsActive, campaignUseQuestionnaire,
+        campaignIsTestCampaign, campaignRequireEmailVerification
       );
       setCampaignName("");
       setCampaignKey("");
       setCampaignIsActive(true);
       setCampaignUseQuestionnaire(true);
       setCampaignIsTestCampaign(false);
+      setCampaignRequireEmailVerification(true);
     }
   };
 
@@ -645,6 +651,7 @@ export function Admin({
                         <th>Questionnaire</th>
                         <th>Replay</th>
                         <th>Test Campaign</th>
+                        <th>Email Verification</th>
                         <th>Enrolled Players</th>
                         <th className="text-end">Actions</th>
                       </tr>
@@ -760,6 +767,37 @@ export function Admin({
                                   <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
                                     <Icon icon="ph:minus-circle-bold" />
                                     <span>No</span>
+                                  </span>
+                                )}
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => updateCampaign && updateCampaign(c.key, { require_email_verification: c.require_email_verification === false ? true : false })}
+                                className="btn btn-sm p-0 border-0"
+                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                title={
+                                  c.require_email_verification !== false
+                                    ? "Verification required: players confirm a code sent to their email. Click to auto-verify instead."
+                                    : "Verification skipped: players are auto-verified on registration (still requires a real email). Click to require a code."
+                                }
+                                disabled={!updateCampaign || c.is_test_campaign}
+                              >
+                                {c.is_test_campaign ? (
+                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:minus-circle-bold" />
+                                    <span>N/A</span>
+                                  </span>
+                                ) : c.require_email_verification !== false ? (
+                                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:shield-check-bold" />
+                                    <span>Required</span>
+                                  </span>
+                                ) : (
+                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:prohibit-bold" />
+                                    <span>Skipped</span>
                                   </span>
                                 )}
                               </button>
@@ -908,6 +946,21 @@ export function Admin({
                         />
                         <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignIsTestCampaignSwitch" style={{ cursor: "pointer" }}>
                           Test campaign <span className="text-muted fw-normal">(players skip email & verification entirely)</span>
+                        </label>
+                      </div>
+                      <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                        <input
+                          className="form-check-input mt-0"
+                          type="checkbox"
+                          role="switch"
+                          id="campaignRequireEmailVerificationSwitch"
+                          checked={campaignRequireEmailVerification}
+                          disabled={campaignIsTestCampaign}
+                          onChange={(e) => setCampaignRequireEmailVerification(e.target.checked)}
+                          style={{ cursor: campaignIsTestCampaign ? "default" : "pointer" }}
+                        />
+                        <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignRequireEmailVerificationSwitch" style={{ cursor: campaignIsTestCampaign ? "default" : "pointer" }}>
+                          Require email verification <span className="text-muted fw-normal">(off: still needs a real email, but skips the code)</span>
                         </label>
                       </div>
                     </div>

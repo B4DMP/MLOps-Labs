@@ -54,6 +54,10 @@ class Campaign(Base):
     # Players registering with this campaign's key skip email entirely and are auto-verified -
     # see auth_service.register_user. Never enable this on a real campaign.
     is_test_campaign: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # On by default. Set false to let players register with an email but skip the code-verification
+    # step (auto-verified on registration) - a lighter opt-out than is_test_campaign, which also
+    # drops the email requirement and the password-length policy. See auth_service.register_user.
+    require_email_verification: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class GameProgression(Base):

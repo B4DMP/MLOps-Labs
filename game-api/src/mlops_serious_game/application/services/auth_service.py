@@ -179,8 +179,12 @@ async def register_user(
 
         # Test campaigns don't require an email, skip verification entirely, and don't enforce
         # the password length policy - this is the only place that decides any of that, the
-        # frontend has no notion of "test campaign".
-        is_test_campaign = campaign.is_test_campaign
+        # frontend has no notion of "test campaign". ENABLE_DEV_ACCOUNTS extends the same path to
+        # every campaign, for a local dev environment with no SMTP configured.
+        is_test_campaign = campaign.is_test_campaign or settings.ENABLE_DEV_ACCOUNTS
+        # A lighter opt-out than is_test_campaign: still requires a real email and password, but
+        # never sends a code - the account is auto-verified straight away.
+        skip_email_verification = is_test_campaign or not campaign.require_email_verification
 
         if not is_test_campaign and len(password) < _MIN_PASSWORD_LENGTH:
             return {"success": False, "error": f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."}
@@ -204,7 +208,7 @@ async def register_user(
             # UNIQUE for every account, this one is just never used to send anything.
             email = f"{username}@test-campaign.invalid"
 
-        if is_test_campaign:
+        if skip_email_verification:
             new_user = User(
                 user_name=username,
                 campaign_key=campaign_key,
