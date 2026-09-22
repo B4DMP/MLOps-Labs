@@ -9,7 +9,7 @@ import type { Question } from "./types/Question";
 import BriefingPage from "./BriefingPage";
 import introJs from "intro.js";
 import "intro.js/introjs.css";
-import EndPage from "./EndPage";
+import ResultsScreen from "./components/Results/ResultsScreen";
 import OfflineIntelGathering from "./components/offline_intel_gathering";
 import { type IntelItem } from "./components/ActionCardCardComponent";
 import PitchDebate from "./components/pitch_debate";
@@ -987,7 +987,14 @@ function App({ username: _username }: AppProps) {
           </motion.div>
         ) : progressionIndex === 4 ? (
           <motion.div {...FADE_TRANSITION} key="endpage" style={{ width: "100%", height: "100%" }}>
-            <EndPage />
+            <ResultsScreen
+              metricInfo={Object.fromEntries(
+                Object.values(metrics).map((m) => [
+                  m.id,
+                  { name: m.name, metric_color: m.metric_color, metric_icon: m.metric_icon },
+                ]),
+              )}
+            />
           </motion.div>
         ) : null}
       </AnimatePresence>

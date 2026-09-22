@@ -1,0 +1,342 @@
+/*
+ * The results hero: a printed certificate, in a modern, professional register rather than an aged
+ * one. White paper, crisp sans-serif type and a solid accent colour carry the "certificate" read
+ * through the classic double-rule frame - no parchment, no gold leaf, no wax, and no gradients:
+ * paper is flat, so colour here is mostly solid with depth coming from drop shadows instead.
+ *
+ * All sizes are container query units (cqw), so the card scales as one piece. 1cqw is 1% of the
+ * card's width, i.e. about 11px on the 1100px maximum.
+ */
+
+.card {
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: rgba(100, 116, 139, 0.16);
+  --track: rgba(100, 116, 139, 0.14);
+  /* One solid, fixed accent (see the component note): every grade gets the same celebratory
+     colour, never a bleak-to-bright scale that would make a low grade look like a worse badge.
+     The app's own brand colour, so the certificate reads as part of the same product. */
+  --accent: var(--primary-bg);
+  --accent-text: var(--primary-bg);
+
+  container-type: inline-size;
+  position: relative;
+  width: min(100%, calc((100vh - 4rem) * 1.62));
+  aspect-ratio: 1.62;
+  margin: 0 auto;
+  padding: 3.1cqw 3.5cqw;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.7cqw;
+  justify-content: space-between;
+  overflow: hidden;
+  color: var(--ink);
+  border-radius: 0.6cqw;
+  background: #ffffff;
+  /* A modern double-rule certificate frame: a hairline, a paper-white gap, a second hairline in a
+     faint tint of the accent, then the desk shadow. */
+  box-shadow:
+    0 1.2cqw 3.6cqw rgba(30, 41, 59, 0.14),
+    inset 0 0 0 1px rgba(100, 116, 139, 0.22),
+    inset 0 0 0 0.55cqw #ffffff,
+    inset 0 0 0 0.62cqw color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* A slim, solid header strip - the one flourish that reads as "certificate" without any
+   aged/paper styling. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 0.5cqw;
+  min-height: 4px;
+  background: var(--accent);
+}
+
+.ribbon {
+  position: absolute;
+  top: 1.6cqw;
+  right: 1.6cqw;
+  padding: 0.35cqw 1cqw;
+  border-radius: 99px;
+  font-size: max(10px, 0.95cqw);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1cqw;
+  font-size: max(11px, 1.15cqw);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.brandDot {
+  margin: 0 0.4em;
+  color: var(--muted);
+}
+
+.runTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8cqw;
+}
+
+/* Reserves room so the "Playtest account" pill (absolutely positioned, top right) never overlaps
+   the run tag sitting in the same corner. */
+.runTagClear {
+  margin-right: 9cqw;
+}
+
+.spiralTag {
+  padding: 0.15cqw 0.9cqw;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  font-size: 0.85em;
+  letter-spacing: 0.06em;
+  color: var(--accent-text);
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 19cqw 1fr;
+  gap: 3cqw;
+  align-items: center;
+}
+
+.gradeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* The badge-ribbon animation is the grade's one big visual (see the component note); the letter
+   sits on its medallion, which Lordicon centres a little above the ribbon's own vertical middle. */
+.ribbonWrap {
+  position: relative;
+  width: 15cqw;
+  height: 15cqw;
+  filter: drop-shadow(0 0.35cqw 0.5cqw rgba(30, 41, 59, 0.22));
+}
+
+.ribbonIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.ribbonIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.confettiIcon {
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+}
+
+.confettiIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.letter {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  font-size: 5.4cqw;
+  font-weight: 800;
+  line-height: 1;
+  color: #ffffff;
+  /* The medallion's own colour varies with the icon art, so a dark edge keeps the letter legible
+     against it regardless. */
+  text-shadow: 0 0.08cqw 0.25cqw rgba(0, 0, 0, 0.55);
+}
+
+.gradeLabel {
+  margin-top: 1.1cqw;
+  font-size: 1.75cqw;
+  font-weight: 700;
+}
+
+.gradeSub {
+  font-size: max(11px, 1.1cqw);
+  color: var(--muted);
+}
+
+.verdictTitle {
+  margin: 0 0 0.7cqw;
+  font-size: max(11px, 1.1cqw);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.closing {
+  margin: 0;
+  font-size: max(13px, 2.1cqw);
+  line-height: 1.5;
+  /* Epilogue text carries an authored "\n" between its opening beat and its elaboration
+     (gameConfig/EndgameEpilogue.json), so it reads as two lines rather than one dense run. */
+  white-space: pre-line;
+}
+
+/* The story beats (docs/plans/results-screen.md D5's "beats"): what shaped this outcome, as an
+   icon and a short caption rather than the prose paragraphs playtesters found hard to parse. */
+.beatStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6cqw 1.6cqw;
+  margin: 1cqw 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.beatItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6cqw;
+  font-size: max(11px, 1.15cqw);
+  color: var(--muted);
+}
+
+.beatIcon {
+  display: inline-flex;
+  width: 2.2cqw;
+  height: 2.2cqw;
+  min-width: 20px;
+  min-height: 20px;
+  flex: none;
+}
+
+.beatIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2cqw;
+  padding-top: 1.5cqw;
+  border-top: 1px solid var(--line);
+}
+
+.pillar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+  min-width: 0;
+}
+
+.pillarHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6cqw;
+}
+
+.pillarLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5cqw;
+  font-size: max(11px, 1.3cqw);
+  color: var(--muted);
+}
+
+.pillarValue {
+  font-size: max(13px, 1.9cqw);
+  font-weight: 700;
+}
+
+/* Thin marks, a quiet track: the number carries the value, the bar only frames it. */
+.track {
+  height: 0.6cqw;
+  min-height: 5px;
+  border-radius: 99px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+
+.pillarNote {
+  font-size: max(10px, 1.15cqw);
+  color: var(--muted);
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2cqw;
+  margin: 0;
+}
+
+.scoreItem {
+  min-width: 0;
+}
+
+.scoreLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5cqw;
+  margin-bottom: 0.5cqw;
+  font-size: max(10px, 1.15cqw);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.scoreText {
+  margin: 0;
+  font-size: max(11px, 1.3cqw);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2cqw;
+  padding-top: 1.4cqw;
+  border-top: 1px solid var(--line);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: max(13px, 1.9cqw);
+  font-weight: 700;
+}
+
+.statLabel {
+  font-size: max(9px, 0.95cqw);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

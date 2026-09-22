@@ -146,7 +146,7 @@ function App() {
 
   const handleUpdateCampaign = async (
     campaignKey: string,
-    updates: { is_active?: boolean; use_questionnaire?: boolean; campaign_name?: string }
+    updates: { is_active?: boolean; use_questionnaire?: boolean; allow_replay?: boolean; campaign_name?: string }
   ) => {
     try {
       const updated = await updateAdminCampaign(adminToken, campaignKey, updates);
