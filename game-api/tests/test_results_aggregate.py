@@ -11,7 +11,7 @@ from mlops_serious_game.application.results_service import aggregate as agg
 
 
 def _payload(grade="B", overall=0.6, *, decisions=None, pillars=None, knowledge=None, intel=None,
-             spiral=False, metrics=None):
+             spiral=False, metrics=None, mood=None):
     return {
         "grade": {"grade": grade, "overall": overall, "label": "x"},
         "is_spiral": spiral,
@@ -25,6 +25,7 @@ def _payload(grade="B", overall=0.6, *, decisions=None, pillars=None, knowledge=
         "knowledge": knowledge or {"intro": {"percent": None}, "outro_per_run": [], "delta": None, "delta_percent": None},
         "intel": intel or {"per_stakeholder": []},
         "metrics": metrics or {"metrics": []},
+        "mood": mood or {"steps": 0, "series": {}},
     }
 
 
@@ -217,3 +218,45 @@ def test_metric_ratios_are_averaged_per_gauge():
         _payload(metrics={"metrics": [{"id": "model", "ratio": 0.8}]}),
     ]
     assert agg.metric_summary(payloads)["model"]["mean"] == pytest.approx(0.6)
+
+
+def test_metric_series_are_averaged_per_challenge_index():
+    payloads = [
+        _payload(metrics={"metrics": [{"id": "model", "ratio": 0.4, "series": [0.2, 0.4]}]}),
+        _payload(metrics={"metrics": [{"id": "model", "ratio": 0.8, "series": [0.6, 0.8]}]}),
+    ]
+    series = agg.metric_series_summary(payloads)["model"]
+    assert [point["mean"] for point in series] == [pytest.approx(0.4), pytest.approx(0.6)]
+
+
+def test_a_run_that_ended_earlier_stops_contributing_rather_than_counting_as_zero():
+    """The reading past a shorter run's last challenge is absent, not a bad one."""
+    payloads = [
+        _payload(metrics={"metrics": [{"id": "model", "ratio": 0.2, "series": [0.2]}]}),
+        _payload(metrics={"metrics": [{"id": "model", "ratio": 0.8, "series": [0.6, 0.8]}]}),
+    ]
+    series = agg.metric_series_summary(payloads)["model"]
+    assert (series[0]["n"], series[0]["mean"]) == (2, pytest.approx(0.4))
+    assert (series[1]["n"], series[1]["mean"]) == (1, pytest.approx(0.8))
+
+
+# ── Mood over time ───────────────────────────────────────────────────────────
+
+
+def test_mood_series_are_averaged_per_challenge_index():
+    payloads = [
+        _payload(mood={"steps": 2, "series": {"dave": [0.3, 0.5]}}),
+        _payload(mood={"steps": 2, "series": {"dave": [0.7, 0.9]}}),
+    ]
+    series = agg.mood_series_summary(payloads)["dave"]
+    assert [point["mean"] for point in series] == [pytest.approx(0.5), pytest.approx(0.7)]
+
+
+def test_a_stakeholder_absent_at_a_point_does_not_count_as_zero_mood():
+    """Not in the room is not a bad reading."""
+    payloads = [
+        _payload(mood={"steps": 2, "series": {"dave": [0.4, None]}}),
+        _payload(mood={"steps": 2, "series": {"dave": [0.6, 0.8]}}),
+    ]
+    series = agg.mood_series_summary(payloads)["dave"]
+    assert (series[1]["n"], series[1]["mean"]) == (1, pytest.approx(0.8))

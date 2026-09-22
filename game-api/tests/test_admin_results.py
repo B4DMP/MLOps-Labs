@@ -138,6 +138,23 @@ def test_an_empty_campaign_still_returns_something_renderable(migrated_db):
     assert dashboard["intel_items"] == {"most_gathered": [], "least_gathered": []}
 
 
+def test_the_dashboard_carries_the_campaign_config_a_chart_needs_to_colour_itself(migrated_db):
+    """The admin charts have no per-player session to read gauge/stakeholder colours off, unlike the
+    player's own HUD, so the dashboard hands over the same campaign config directly."""
+    from mlops_serious_game.application.services.admin_results import get_results_dashboard
+    from mlops_serious_game.domain.metric_factory import MetricFactory
+    from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+
+    dashboard = get_results_dashboard()
+
+    assert set(dashboard["metric_info"]) == set(MetricFactory.get_available_metrics())
+    for info in dashboard["metric_info"].values():
+        assert {"name", "metric_color", "metric_icon"} <= set(info)
+
+    assert dashboard["stakeholder_order"] == list(StakeholderFactory.get_available_stakeholders())
+    assert set(dashboard["stakeholders"]) == set(dashboard["stakeholder_order"])
+
+
 def test_the_campaign_filter_narrows_to_that_campaign(migrated_db):
     from mlops_serious_game.application.services.admin_results import get_results_dashboard
 
