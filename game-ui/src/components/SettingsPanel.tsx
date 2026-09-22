@@ -4,6 +4,7 @@ import HeaderModal from "./HeaderModal";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { useSettings, type PlayerSettings } from "./SettingsProvider";
 import { cancelSpeech, loadVoices, speak, type VoiceSlot } from "../utils/speech";
+import PlaytestSection from "./PlaytestSection";
 import styles from "./SettingsPanel.module.css";
 
 interface VoiceSlotConfig {
@@ -43,11 +44,16 @@ const VOICE_SLOTS: VoiceSlotConfig[] = [
   },
 ];
 
+/** Same order the automatic choice uses in `speech.ts`: online (neural) voices first, then
+ * en-US, then by name. A player browsing this list should not have to guess which entries are
+ * the good ones that "Automatic" would have reached for. */
 function englishVoicesSorted(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
   return voices
     .filter((v) => v.lang?.toLowerCase().startsWith("en"))
     .slice()
     .sort((a, b) => {
+      const online = Number(b.localService === false) - Number(a.localService === false);
+      if (online !== 0) return online;
       const aUS = a.lang?.toLowerCase() === "en-us" ? 0 : 1;
       const bUS = b.lang?.toLowerCase() === "en-us" ? 0 : 1;
       return aUS - bUS || a.name.localeCompare(b.name);
@@ -61,7 +67,7 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ isVisible, onClose }: SettingsPanelProps) {
   const { username } = useGameWebSocket();
-  const { settings, updateSettings, canResetAccount, resetAccount } = useSettings();
+  const { settings, updateSettings, canResetAccount, resetAccount, canPlaytest } = useSettings();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -158,7 +164,7 @@ export default function SettingsPanel({ isVisible, onClose }: SettingsPanelProps
                     <option value="">Automatic</option>
                     {englishVoices.map((v) => (
                       <option key={v.name} value={v.name}>
-                        {v.name}
+                        {v.localService === false ? `${v.name} (online)` : v.name}
                       </option>
                     ))}
                   </select>
@@ -177,6 +183,8 @@ export default function SettingsPanel({ isVisible, onClose }: SettingsPanelProps
             </div>
           )}
         </section>
+
+        {canPlaytest && <PlaytestSection onSkipped={onClose} />}
 
         {canResetAccount && (
           <section className={styles.section}>

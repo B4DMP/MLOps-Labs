@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     POSTGRES_GRAPH_OP_LOG_TABLE: str = "graph_op_log"
     POSTGRES_GAME_EVENT_TABLE: str = "game_event"
     POSTGRES_USER_SETTINGS_TABLE: str = "user_settings"
+    POSTGRES_GAME_RESULT_TABLE: str = "game_result"
     AUTO_MIGRATE: bool = Field(
         default=True,
         description=(
@@ -136,6 +137,12 @@ class Settings(BaseSettings):
     # registered user. Never on in production: the only thing between a crafted websocket frame
     # and a deleted account is this flag.
     ENABLE_RESET_USER: bool = False
+    # Shows "skip this challenge" and "auto-pitch a card" in the settings panel. They exist to
+    # manufacture finished games cheaply while testing the results screen and the admin aggregates,
+    # and using either taints the account, which leaves the research data (D10). Never on in
+    # production: like the reset, the flag is the only thing between a crafted websocket frame and
+    # a fabricated run.
+    ENABLE_PLAYTEST_TOOLS: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
