@@ -149,6 +149,17 @@ class Settings(BaseSettings):
     EXTRACTION_METADATA_FILE_PATH: Path = Path("data/extraction_metadata.json")
     EXTRACTION_STAKEHOLDER_DATA_FILE: Path = Path("data/stakeholder_extraction_data")
 
+    # --- SMTP Configuration (RWTH mail relay, StartTLS) ---
+    SMTP_HOST: str = "mail.rwth-aachen.de"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str | None = None
+    SMTP_PASSWORD: str | None = None
+    SMTP_FROM_EMAIL: str | None = None
+    SMTP_USE_TLS: bool = True
+
+    # --- Auth: email verification / password reset ---
+    VERIFICATION_CODE_TTL_MINUTES: int = 10
+
 import os
 
 settings = Settings()

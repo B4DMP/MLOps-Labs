@@ -210,7 +210,10 @@ def test_valid_rows_backfill_correctly(throwaway_db):
             "VALUES ('valid_user', 1, now(), '[]')"
         ))
 
-    command.upgrade(cfg, "head")
+    # Stop at enforce_fk_constraints, the revision this test actually exercises - a later
+    # revision (a1c2e3f4b5d6, password-auth) intentionally wipes user_data, which would make
+    # 'valid_user' disappear before the assertions below run.
+    command.upgrade(cfg, "c4d5e6f7a8b9")
 
     with engine.connect() as conn:
         user_id, campaign_id = conn.execute(

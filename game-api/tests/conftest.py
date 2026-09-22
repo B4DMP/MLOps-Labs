@@ -103,6 +103,14 @@ def ensure_test_user(username: str, campaign_key: str = "test-campaign") -> None
                 campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
                 session.add(campaign)
                 session.flush()
-            session.add(User(user_name=username, campaign_key=campaign_key, campaign_id=campaign.id))
+            session.add(User(
+                user_name=username,
+                campaign_key=campaign_key,
+                campaign_id=campaign.id,
+                email=f"{username}@example.test",
+                password_hash="$2b$12$test.hash.not.a.real.bcrypt.digest..............",
+                users_on_machine=1,
+                is_verified=True,
+            ))
     except Exception:
         pass

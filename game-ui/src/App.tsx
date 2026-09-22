@@ -2,13 +2,22 @@ import { useState, type CSSProperties } from "react";
 import { Home } from "./components/Home";
 import { Login } from "./components/Login";
 import { Register } from "./components/Register";
+import { VerifyEmail } from "./components/VerifyEmail";
+import { ForgotPassword } from "./components/ForgotPassword";
+import { ResetPassword } from "./components/ResetPassword";
 import Game from "./Game";
 import ErrorDialog from "./components/ErrorDialog";
 import { Admin } from "./components/Admin";
 import LoadingScreen from "./components/LoadingScreen";
 import { ReadyState } from "./services/websocket/types";
 
-import { loginUser, registerUser } from "./services/api/auth";
+import {
+  loginUser,
+  registerUser,
+  verifyEmailCode,
+  forgotPassword,
+  resetPassword,
+} from "./services/api/auth";
 import {
   fetchAdminDashboard,
   addAdminCampaign,
@@ -28,6 +37,7 @@ interface Campaign {
   key: string;
   is_active: boolean;
   use_questionnaire: boolean;
+  is_test_campaign: boolean;
   users: string[];
 }
 
@@ -43,6 +53,9 @@ interface Player {
 function App() {
   const [isInLoginUi, setIsInLoginUi] = useState(false);
   const [isInRegisterUi, setIsInRegisterUi] = useState(false);
+  const [isInVerifyUi, setIsInVerifyUi] = useState(false);
+  const [isInForgotPasswordUi, setIsInForgotPasswordUi] = useState(false);
+  const [isInResetPasswordUi, setIsInResetPasswordUi] = useState(false);
   const [isInGame, setIsInGame] = useState(false);
   const [username, setUsername] = useState("");
   const [startMuted, setStartMuted] = useState(false);
@@ -52,6 +65,16 @@ function App() {
   const [registerError, setRegisterError] = useState("");
   const [isInAdminUi, setIsInAdminUi] = useState(false);
   const [adminToken, setAdminToken] = useState("");
+
+  // Held only in memory so "Resend code" on the verify screen can re-trigger a login (which
+  // regenerates the code for an unverified account) without asking the user to retype it.
+  const [pendingPassword, setPendingPassword] = useState("");
+  const [pendingStartMuted, setPendingStartMuted] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [isResendingCode, setIsResendingCode] = useState(false);
+
+  const [forgotPasswordError, setForgotPasswordError] = useState("");
+  const [resetPasswordError, setResetPasswordError] = useState("");
 
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
@@ -64,22 +87,41 @@ function App() {
   const [outroQuestionaireAverage, setOutroQuestionaireAverage] = useState(0);
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
-  const handleLoginSubmit = async (inputUsername: string, loginStartMuted: boolean) => {
+  // `token` isn't persisted or sent anywhere yet - no player-authenticated REST endpoint exists
+  // for it to gate. It's accepted here so the call sites read naturally and it's available to
+  // wire up once one does.
+  const enterGameAsPlayer = (loggedInUsername: string, _token: string, muted: boolean) => {
+    setUsername(loggedInUsername);
+    setStartMuted(muted);
+    setIsInLoginUi(false);
+    setIsInRegisterUi(false);
+    setIsInVerifyUi(false);
+    setIsInForgotPasswordUi(false);
+    setIsInResetPasswordUi(false);
+    setPendingPassword("");
+    setIsInGame(true);
+  };
+
+  const handleLoginSubmit = async (inputUsername: string, password: string, loginStartMuted: boolean) => {
     setIsAuthenticating(true);
     setLoginError("");
     try {
-      const data = await loginUser(inputUsername);
-      if (data.type === "login_success") {
-        setUsername(inputUsername);
-        setStartMuted(loginStartMuted);
-        setIsInLoginUi(false);
-        setIsInGame(true);
+      const data = await loginUser(inputUsername, password);
+      if (data.type === "login_success" && data.token) {
+        enterGameAsPlayer(inputUsername, data.token, loginStartMuted);
       } else if (data.type === "admin_login_success" && data.token) {
         setAdminToken(data.token);
         setIsInLoginUi(false);
         setIsInAdminUi(true);
         const dashData = await fetchAdminDashboard(data.token);
         updateAdminState(dashData);
+      } else if (data.type === "verification_required") {
+        setUsername(inputUsername);
+        setPendingPassword(password);
+        setPendingStartMuted(loginStartMuted);
+        setVerifyError("");
+        setIsInLoginUi(false);
+        setIsInVerifyUi(true);
       }
     } catch (err: any) {
       const msg = err.message || "An unknown error occurred during login.";
@@ -91,28 +133,110 @@ function App() {
     }
   };
 
-  const handleRegisterSubmit = async (inputUsername: string, campaignKey: string, registerStartMuted: boolean) => {
+  const handleRegisterSubmit = async (
+    inputUsername: string,
+    email: string,
+    emailConfirm: string,
+    password: string,
+    passwordConfirm: string,
+    usersOnMachine: number,
+    campaignKey: string,
+    registerStartMuted: boolean
+  ) => {
     setIsAuthenticating(true);
     setRegisterError("");
     try {
-      const data = await registerUser(inputUsername, campaignKey);
+      const data = await registerUser({
+        username: inputUsername,
+        email,
+        emailConfirm,
+        password,
+        passwordConfirm,
+        usersOnMachine,
+        campaignKey,
+      });
       if (data.type === "admin_login_success" && data.token) {
         setAdminToken(data.token);
         setIsInRegisterUi(false);
         setIsInAdminUi(true);
         const dashData = await fetchAdminDashboard(data.token);
         updateAdminState(dashData);
-      } else if (data.type === "register_success") {
+      } else if (data.type === "register_pending_verification") {
         setUsername(inputUsername);
-        setStartMuted(registerStartMuted);
+        setPendingPassword(password);
+        setPendingStartMuted(registerStartMuted);
+        setVerifyError("");
         setIsInRegisterUi(false);
-        setIsInGame(true);
+        setIsInVerifyUi(true);
+      } else if (data.type === "login_success" && data.token) {
+        // Test campaigns skip verification entirely - registration logs straight into the game.
+        enterGameAsPlayer(inputUsername, data.token, registerStartMuted);
       }
     } catch (err: any) {
       const msg = err.message || "An unknown error occurred during registration.";
       setLastError(msg);
       setRegisterError(msg);
       setIsInErrorUi(true);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleVerifySubmit = async (code: string) => {
+    setIsAuthenticating(true);
+    setVerifyError("");
+    try {
+      const data = await verifyEmailCode(username, code);
+      enterGameAsPlayer(username, data.token, pendingStartMuted);
+    } catch (err: any) {
+      setVerifyError(err.message || "Verification failed.");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsResendingCode(true);
+    setVerifyError("");
+    try {
+      const data = await loginUser(username, pendingPassword);
+      if (data.type === "verification_required") {
+        // A fresh code has been emailed - nothing else to do here.
+      } else if (data.type === "login_success" && data.token) {
+        // Already got verified in the meantime (e.g. via another tab) - just log in.
+        enterGameAsPlayer(username, data.token, pendingStartMuted);
+      }
+    } catch (err: any) {
+      setVerifyError(err.message || "Could not resend the code.");
+    } finally {
+      setIsResendingCode(false);
+    }
+  };
+
+  const handleForgotPasswordSubmit = async (forgotUsername: string, email: string) => {
+    setIsAuthenticating(true);
+    setForgotPasswordError("");
+    try {
+      await forgotPassword(forgotUsername, email);
+      setUsername(forgotUsername);
+      setResetPasswordError("");
+      setIsInForgotPasswordUi(false);
+      setIsInResetPasswordUi(true);
+    } catch (err: any) {
+      setForgotPasswordError(err.message || "Could not request a password reset.");
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleResetPasswordSubmit = async (code: string, newPassword: string, newPasswordConfirm: string) => {
+    setIsAuthenticating(true);
+    setResetPasswordError("");
+    try {
+      const data = await resetPassword(username, code, newPassword, newPasswordConfirm);
+      enterGameAsPlayer(username, data.token, false);
+    } catch (err: any) {
+      setResetPasswordError(err.message || "Could not reset your password.");
     } finally {
       setIsAuthenticating(false);
     }
@@ -133,10 +257,13 @@ function App() {
     newCampaignName: string,
     newCampaignKey: string,
     isActive: boolean = true,
-    useQuestionnaire: boolean = true
+    useQuestionnaire: boolean = true,
+    isTestCampaign: boolean = false
   ) => {
     try {
-      const updated = await addAdminCampaign(adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire);
+      const updated = await addAdminCampaign(
+        adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign
+      );
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to add campaign.");
@@ -146,7 +273,13 @@ function App() {
 
   const handleUpdateCampaign = async (
     campaignKey: string,
-    updates: { is_active?: boolean; use_questionnaire?: boolean; allow_replay?: boolean; campaign_name?: string }
+    updates: {
+      is_active?: boolean;
+      use_questionnaire?: boolean;
+      allow_replay?: boolean;
+      campaign_name?: string;
+      is_test_campaign?: boolean;
+    }
   ) => {
     try {
       const updated = await updateAdminCampaign(adminToken, campaignKey, updates);
@@ -227,18 +360,24 @@ function App() {
           // is exactly what triggered the Chromium compositing flicker. So these
           // just swap instantly; each card animates its own small entrance
           // instead (see the `motion.div` around the card in each component).
-          if (isAuthenticating) {
-            return (
-              <div key="loading" style={screenStyle}>
-                <LoadingScreen />
-              </div>
-            );
-          } else if (isInLoginUi) {
+          // isAuthenticating is checked after every form screen below, not before, so a
+          // register/login/verify/forgot/reset submission that fails doesn't unmount its form
+          // (and lose whatever the player typed) - each of those screens already shows its own
+          // inline loading state via the `isLoading` prop. It still applies as a fallback for
+          // transitions that have no form of their own to stay on (entering the game, entering
+          // the admin dashboard while its data loads).
+          if (isInLoginUi) {
             return (
               <div key="login" style={screenStyle}>
                 <Login
                   readyState={ReadyState.OPEN}
                   onSubmit={handleLoginSubmit}
+                  onForgotPassword={() => {
+                    setLoginError("");
+                    setForgotPasswordError("");
+                    setIsInLoginUi(false);
+                    setIsInForgotPasswordUi(true);
+                  }}
                   onBack={() => {
                     setLoginError("");
                     setIsInLoginUi(false);
@@ -263,6 +402,63 @@ function App() {
                   errorMessage={registerError}
                   onClearError={() => setRegisterError("")}
                 />
+              </div>
+            );
+          } else if (isInVerifyUi) {
+            return (
+              <div key="verify" style={screenStyle}>
+                <VerifyEmail
+                  username={username}
+                  onSubmit={handleVerifySubmit}
+                  onResend={handleResendCode}
+                  onBack={() => {
+                    setVerifyError("");
+                    setPendingPassword("");
+                    setIsInVerifyUi(false);
+                  }}
+                  isLoading={isAuthenticating}
+                  isResending={isResendingCode}
+                  errorMessage={verifyError}
+                  onClearError={() => setVerifyError("")}
+                />
+              </div>
+            );
+          } else if (isInForgotPasswordUi) {
+            return (
+              <div key="forgot-password" style={screenStyle}>
+                <ForgotPassword
+                  onSubmit={handleForgotPasswordSubmit}
+                  onBack={() => {
+                    setForgotPasswordError("");
+                    setIsInForgotPasswordUi(false);
+                    setIsInLoginUi(true);
+                  }}
+                  isLoading={isAuthenticating}
+                  errorMessage={forgotPasswordError}
+                  onClearError={() => setForgotPasswordError("")}
+                />
+              </div>
+            );
+          } else if (isInResetPasswordUi) {
+            return (
+              <div key="reset-password" style={screenStyle}>
+                <ResetPassword
+                  username={username}
+                  onSubmit={handleResetPasswordSubmit}
+                  onBack={() => {
+                    setResetPasswordError("");
+                    setIsInResetPasswordUi(false);
+                  }}
+                  isLoading={isAuthenticating}
+                  errorMessage={resetPasswordError}
+                  onClearError={() => setResetPasswordError("")}
+                />
+              </div>
+            );
+          } else if (isAuthenticating) {
+            return (
+              <div key="loading" style={screenStyle}>
+                <LoadingScreen />
               </div>
             );
           } else if (isInGame) {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./Admin.module.css";
 import {
@@ -27,7 +27,13 @@ ChartJS.register(
 import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
 import AdminResults from "./Results/AdminResults";
-import { fetchAdminDashboard } from "../services/api/admin";
+import {
+  fetchAdminDashboard,
+  fetchAdminEmailStatus,
+  sendAdminTestEmail,
+  type AdminEmailStatus,
+  type AdminTestEmailTemplate,
+} from "../services/api/admin";
 
 export interface Campaign {
   name: string;
@@ -36,6 +42,7 @@ export interface Campaign {
   is_active?: boolean;
   use_questionnaire?: boolean;
   allow_replay?: boolean;
+  is_test_campaign?: boolean;
 }
 
 export interface Player {
@@ -57,8 +64,23 @@ interface AdminProps {
   onDashboardUpdate?: (data: any) => void;
   campaigns: Campaign[];
   players: Player[];
-  addCampaign: (campaignName: string, campaignKey: string, isActive?: boolean, useQuestionnaire?: boolean) => void;
-  updateCampaign?: (campaignKey: string, updates: { is_active?: boolean; use_questionnaire?: boolean; allow_replay?: boolean; campaign_name?: string }) => void;
+  addCampaign: (
+    campaignName: string,
+    campaignKey: string,
+    isActive?: boolean,
+    useQuestionnaire?: boolean,
+    isTestCampaign?: boolean
+  ) => void;
+  updateCampaign?: (
+    campaignKey: string,
+    updates: {
+      is_active?: boolean;
+      use_questionnaire?: boolean;
+      allow_replay?: boolean;
+      campaign_name?: string;
+      is_test_campaign?: boolean;
+    }
+  ) => void;
   removeCampaign: (campaignKey: string) => void;
   removePlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
@@ -91,13 +113,59 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug" | "email">("config");
+
+  // Email / SMTP state
+  const [emailStatus, setEmailStatus] = useState<AdminEmailStatus | null>(null);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [emailTemplate, setEmailTemplate] = useState<AdminTestEmailTemplate>("generic");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSuccessMessage, setEmailSuccessMessage] = useState<string | null>(null);
+  const [emailErrorMessage, setEmailErrorMessage] = useState<string | null>(null);
+
+  const loadEmailStatus = async () => {
+    if (!adminToken) return;
+    setEmailLoading(true);
+    setEmailErrorMessage(null);
+    try {
+      const status = await fetchAdminEmailStatus(adminToken);
+      setEmailStatus(status);
+    } catch (err: any) {
+      setEmailErrorMessage(err.message || "Failed to load SMTP status.");
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeSubpage === "email" && !emailStatus && !emailLoading) {
+      loadEmailStatus();
+    }
+  }, [activeSubpage, adminToken]);
+
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminToken || !recipientEmail) return;
+    setEmailSending(true);
+    setEmailSuccessMessage(null);
+    setEmailErrorMessage(null);
+    try {
+      const res = await sendAdminTestEmail(adminToken, recipientEmail, emailTemplate);
+      setEmailSuccessMessage(res.message);
+    } catch (err: any) {
+      setEmailErrorMessage(err.message || "Failed to send test email.");
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   // Campaign management state
   const [campaignName, setCampaignName] = useState("");
   const [campaignKey, setCampaignKey] = useState("");
   const [campaignIsActive, setCampaignIsActive] = useState(true);
   const [campaignUseQuestionnaire, setCampaignUseQuestionnaire] = useState(true);
+  const [campaignIsTestCampaign, setCampaignIsTestCampaign] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
@@ -151,11 +219,14 @@ export function Admin({
   const handleAddCampaignSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (campaignName.trim() && campaignKey.trim()) {
-      addCampaign(campaignName.trim(), campaignKey.trim(), campaignIsActive, campaignUseQuestionnaire);
+      addCampaign(
+        campaignName.trim(), campaignKey.trim(), campaignIsActive, campaignUseQuestionnaire, campaignIsTestCampaign
+      );
       setCampaignName("");
       setCampaignKey("");
       setCampaignIsActive(true);
       setCampaignUseQuestionnaire(true);
+      setCampaignIsTestCampaign(false);
     }
   };
 
@@ -495,6 +566,14 @@ export function Admin({
               <Icon icon="ph:graph-bold" />
               <span>Graph Debug</span>
             </button>
+            <button
+              type="button"
+              className={`${styles.navTab} ${activeSubpage === "email" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("email")}
+            >
+              <Icon icon="ph:envelope-simple-bold" />
+              <span>SMTP Email</span>
+            </button>
           </div>
 
           <div className="text-muted small d-none d-md-block">
@@ -503,8 +582,10 @@ export function Admin({
             {activeSubpage === "analysis" && "Research metrics and questionnaire evaluations"}
             {activeSubpage === "results" && "How finished games went: grades, pillars, and each player's own results"}
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
+            {activeSubpage === "email" && "Inspect SMTP configuration and send test emails"}
           </div>
         </div>
+
 
         {/* Body Content */}
         <div className={styles.body}>
@@ -563,6 +644,7 @@ export function Admin({
                         <th>Status</th>
                         <th>Questionnaire</th>
                         <th>Replay</th>
+                        <th>Test Campaign</th>
                         <th>Enrolled Players</th>
                         <th className="text-end">Actions</th>
                       </tr>
@@ -656,6 +738,28 @@ export function Admin({
                                   <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
                                     <Icon icon="ph:prohibit-bold" />
                                     <span>Off</span>
+                                  </span>
+                                )}
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => updateCampaign && updateCampaign(c.key, { is_test_campaign: !c.is_test_campaign })}
+                                className="btn btn-sm p-0 border-0"
+                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                title={c.is_test_campaign ? "Test campaign: players skip email & verification. Click to make it a real campaign" : "Real campaign: click to make it a test campaign (players skip email & verification)"}
+                                disabled={!updateCampaign}
+                              >
+                                {c.is_test_campaign ? (
+                                  <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:flask-bold" />
+                                    <span>Test</span>
+                                  </span>
+                                ) : (
+                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:minus-circle-bold" />
+                                    <span>No</span>
                                   </span>
                                 )}
                               </button>
@@ -790,6 +894,20 @@ export function Admin({
                         />
                         <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignUseQuestionnaireSwitch" style={{ cursor: "pointer" }}>
                           Include intro & outro questionnaire
+                        </label>
+                      </div>
+                      <div className="form-check form-switch d-flex align-items-center gap-2 m-0">
+                        <input
+                          className="form-check-input mt-0"
+                          type="checkbox"
+                          role="switch"
+                          id="campaignIsTestCampaignSwitch"
+                          checked={campaignIsTestCampaign}
+                          onChange={(e) => setCampaignIsTestCampaign(e.target.checked)}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <label className="form-check-label small fw-semibold text-secondary" htmlFor="campaignIsTestCampaignSwitch" style={{ cursor: "pointer" }}>
+                          Test campaign <span className="text-muted fw-normal">(players skip email & verification entirely)</span>
                         </label>
                       </div>
                     </div>
@@ -1485,8 +1603,209 @@ export function Admin({
               <GraphDebug adminToken={adminToken} campaigns={campaigns} players={players} />
             </div>
           )}
+
+          {/* ======================================================== */}
+          {/* SUBPAGE 5: SMTP EMAIL CONFIGURATION & TEST               */}
+          {/* ======================================================== */}
+          {activeSubpage === "email" && (
+            <div className="d-flex flex-column gap-4">
+              {/* Configuration Status Card */}
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:envelope-simple-bold" />
+                      <span>Gmail SMTP Configuration</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Inspect environment SMTP connection settings and verify live email delivery.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.outlineButton}
+                    onClick={loadEmailStatus}
+                    disabled={emailLoading}
+                  >
+                    <Icon
+                      icon={emailLoading ? "ph:spinner-bold" : "ph:arrows-clockwise-bold"}
+                      className={emailLoading ? styles.spinner : ""}
+                    />
+                    <span>Refresh Status</span>
+                  </button>
+                </div>
+
+                {emailLoading && !emailStatus && (
+                  <div className="text-center py-4 text-muted">
+                    <Icon icon="ph:spinner-bold" className={`fs-2 mb-2 ${styles.spinner}`} />
+                    <p className="small mb-0">Loading SMTP configuration...</p>
+                  </div>
+                )}
+
+                {emailStatus && (
+                  <div className={styles.kpiGrid}>
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiHeader}>
+                        <span className={styles.kpiLabel}>SMTP Host</span>
+                        <Icon icon="ph:hard-drives-bold" className={styles.kpiIcon} />
+                      </div>
+                      <div className="fs-6 fw-bold text-dark">{emailStatus.host || "Not set"}</div>
+                      <small className="text-muted mt-1">Default: smtp.gmail.com</small>
+                    </div>
+
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiHeader}>
+                        <span className={styles.kpiLabel}>Port & TLS</span>
+                        <Icon icon="ph:shield-check-bold" className={styles.kpiIcon} />
+                      </div>
+                      <div className="fs-6 fw-bold text-dark">
+                        Port {emailStatus.port} {emailStatus.use_tls ? "(STARTTLS)" : "(No TLS)"}
+                      </div>
+                      <small className="text-muted mt-1">Standard STARTTLS Port</small>
+                    </div>
+
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiHeader}>
+                        <span className={styles.kpiLabel}>Sender / Username</span>
+                        <Icon icon="ph:user-bold" className={styles.kpiIcon} />
+                      </div>
+                      <div className="fs-6 fw-bold text-dark text-truncate" title={emailStatus.username}>
+                        {emailStatus.username || <span className="text-danger">Not configured</span>}
+                      </div>
+                      <small className="text-muted mt-1">{emailStatus.from_email || "No from address"}</small>
+                    </div>
+
+                    <div className={styles.kpiCard}>
+                      <div className={styles.kpiHeader}>
+                        <span className={styles.kpiLabel}>Credentials Status</span>
+                        <Icon icon="ph:lock-key-bold" className={styles.kpiIcon} />
+                      </div>
+                      <div className="fs-6 fw-bold">
+                        {emailStatus.is_configured ? (
+                          <span className="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            <Icon icon="ph:check-circle-bold" className="me-1" />
+                            Ready to Send
+                          </span>
+                        ) : (
+                          <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1">
+                            <Icon icon="ph:warning-circle-bold" className="me-1" />
+                            Missing in .env
+                          </span>
+                        )}
+                      </div>
+                      <small className="text-muted mt-1">
+                        {emailStatus.has_password ? "Password / App Password set" : "Password missing"}
+                      </small>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Send Test Email Card */}
+              <div className={styles.cardSurface}>
+                <div className={styles.sectionHeader}>
+                  <div>
+                    <h2 className={styles.sectionTitle}>
+                      <Icon icon="ph:paper-plane-tilt-bold" />
+                      <span>Send Test Email</span>
+                    </h2>
+                    <p className={styles.sectionSubtitle}>
+                      Verify your SMTP connection, or preview the login/verification and password-reset
+                      emails with a placeholder code, sent to any address for testing.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSendTestEmail} style={{ maxWidth: "560px" }}>
+                  <div className="mb-3">
+                    <label htmlFor="testEmailTemplate" className="form-label fw-bold small text-secondary">
+                      Email Type
+                    </label>
+                    <select
+                      id="testEmailTemplate"
+                      className="form-select"
+                      value={emailTemplate}
+                      onChange={(e) => {
+                        setEmailTemplate(e.target.value as AdminTestEmailTemplate);
+                        setEmailSuccessMessage(null);
+                        setEmailErrorMessage(null);
+                      }}
+                    >
+                      <option value="generic">Generic SMTP connectivity test</option>
+                      <option value="verification">Login / registration verification code</option>
+                      <option value="password_reset">Password reset code</option>
+                    </select>
+                    {emailTemplate !== "generic" && (
+                      <div className="form-text small text-muted">
+                        Sends the real code-email template with a placeholder code (123456) - no player
+                        account is touched.
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-3">
+                    <label htmlFor="testRecipientEmail" className="form-label fw-bold small text-secondary">
+                      Recipient Email Address
+                    </label>
+                    <input
+                      id="testRecipientEmail"
+                      type="email"
+                      required
+                      className="form-control"
+                      placeholder="e.g. your-name@example.com"
+                      value={recipientEmail}
+                      onChange={(e) => {
+                        setRecipientEmail(e.target.value);
+                        setEmailSuccessMessage(null);
+                        setEmailErrorMessage(null);
+                      }}
+                    />
+                    <div className="form-text small text-muted">
+                      A test message will be sent through the configured SMTP server.
+                    </div>
+                  </div>
+
+                  {emailSuccessMessage && (
+                    <div className="alert alert-success d-flex align-items-center gap-2 mb-3" role="alert">
+                      <Icon icon="ph:check-circle-bold" className="fs-5 flex-shrink-0" />
+                      <div>{emailSuccessMessage}</div>
+                    </div>
+                  )}
+
+                  {emailErrorMessage && (
+                    <div className="alert alert-danger d-flex align-items-start gap-2 mb-3" role="alert">
+                      <Icon icon="ph:warning-octagon-bold" className="fs-5 flex-shrink-0 mt-1" />
+                      <div className="small">{emailErrorMessage}</div>
+                    </div>
+                  )}
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={emailSending || !recipientEmail.trim()}
+                      className={styles.actionButton}
+                      style={{ maxWidth: "260px" }}
+                    >
+                      {emailSending ? (
+                        <span className="d-flex align-items-center justify-content-center gap-2">
+                          <Icon icon="ph:spinner-bold" className={styles.spinner} />
+                          <span>Sending...</span>
+                        </span>
+                      ) : (
+                        <span className="d-flex align-items-center justify-content-center gap-2">
+                          <Icon icon="ph:paper-plane-tilt-bold" />
+                          <span>Send Test Email</span>
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
 
       {/* Delete Campaign Confirmation Modal */}
       {campaignToDelete && (

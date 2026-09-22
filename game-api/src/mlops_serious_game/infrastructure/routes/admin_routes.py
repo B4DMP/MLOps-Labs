@@ -30,6 +30,7 @@ class CampaignAddRequest(BaseModel):
     is_active: bool = True
     use_questionnaire: bool = True
     allow_replay: bool = False
+    is_test_campaign: bool = False
 
 
 class CampaignUpdateRequest(BaseModel):
@@ -37,6 +38,7 @@ class CampaignUpdateRequest(BaseModel):
     use_questionnaire: bool | None = None
     allow_replay: bool | None = None
     campaign_name: str | None = None
+    is_test_campaign: bool | None = None
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -95,6 +97,7 @@ async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_
         is_active=req.is_active,
         use_questionnaire=req.use_questionnaire,
         allow_replay=req.allow_replay,
+        is_test_campaign=req.is_test_campaign,
     )
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
@@ -109,6 +112,7 @@ async def patch_campaign(campaign_key: str, req: CampaignUpdateRequest, _: str =
             use_questionnaire=req.use_questionnaire,
             allow_replay=req.allow_replay,
             campaign_name=req.campaign_name,
+            is_test_campaign=req.is_test_campaign,
         )
         data = get_admin_dashboard_data()
         return {"type": "admin_data_update", **data}
@@ -247,4 +251,65 @@ async def get_graph_debug(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+class TestEmailRequest(BaseModel):
+    recipient_email: str
+    # "generic" (default) sends the plain SMTP-connectivity test below. "verification" /
+    # "password_reset" send the exact same styled code email a player would get, with a
+    # placeholder code, to any address - for previewing/testing that template without touching
+    # any real player account.
+    template: str = "generic"
+
+
+@router.get("/email/status")
+async def get_smtp_status(_: str = Depends(check_admin_token)):
+    from mlops_serious_game.application.services.email_service import get_email_status
+    try:
+        status = get_email_status()
+        return {"type": "smtp_status", **status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/email/test")
+async def send_test_email(req: TestEmailRequest, _: str = Depends(check_admin_token)):
+    from mlops_serious_game.application.services.email_service import build_code_email, send_email
+    from mlops_serious_game.config import settings
+    try:
+        if req.template in ("verification", "password_reset"):
+            subject, text_body, html_body = build_code_email(
+                req.template, "Test Player", "123456", settings.VERIFICATION_CODE_TTL_MINUTES
+            )
+        else:
+            subject = "MLOps Serious Game - SMTP Test Email"
+            text_body = (
+                "Hello,\n\n"
+                "This is a test email sent from the MLOps Serious Game Admin Panel.\n"
+                "If you are receiving this message, your SMTP configuration is working properly!\n\n"
+                "Best regards,\n"
+                "MLOps Serious Game Platform"
+            )
+            html_body = (
+                "<div style='font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;'>"
+                "<h2 style='color: #11303e;'>MLOps Serious Game - SMTP Test</h2>"
+                "<p>This is a test email sent from the <strong>MLOps Serious Game Admin Panel</strong>.</p>"
+                "<p style='color: #10b981; font-weight: bold;'>Your SMTP configuration is working properly!</p>"
+                "<hr style='border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;' />"
+                "<small style='color: #64748b;'>Delivered via configured SMTP</small>"
+                "</div>"
+            )
+        await send_email(
+            to_email=req.recipient_email,
+            subject=subject,
+            body=text_body,
+            html_body=html_body,
+        )
+        return {
+            "type": "email_test_success",
+            "message": f"Test email successfully sent to {req.recipient_email}!",
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 

@@ -537,3 +537,16 @@
   color: var(--primary-bg);
   background: rgba(38, 102, 130, 0.08);
 }
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

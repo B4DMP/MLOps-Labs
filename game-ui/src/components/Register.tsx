@@ -5,7 +5,16 @@ import { ReadyState } from "../services/websocket/types";
 import styles from "./Register.module.css";
 
 interface RegisterProps {
-  onSubmit: (username: string, campaignKey: string, startMuted: boolean) => void;
+  onSubmit: (
+    username: string,
+    email: string,
+    emailConfirm: string,
+    password: string,
+    passwordConfirm: string,
+    usersOnMachine: number,
+    campaignKey: string,
+    startMuted: boolean
+  ) => void;
   readyState: ReadyState;
   onBack: () => void;
   isLoading?: boolean;
@@ -22,13 +31,37 @@ export function Register({
   onClearError,
 }: RegisterProps) {
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailConfirm, setEmailConfirm] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [usersOnMachine, setUsersOnMachine] = useState("1");
   const [campaignKey, setCampaignKey] = useState("");
   const [startMuted, setStartMuted] = useState(false);
 
+  // Whether email is actually required depends on the campaign (test campaigns skip it
+  // entirely), which only the backend knows - so the form doesn't require it client-side, and
+  // register_user re-validates everything server-side regardless of what's sent here.
+  const isFormFilled =
+    username.trim() &&
+    password &&
+    passwordConfirm &&
+    usersOnMachine.trim() &&
+    campaignKey.trim();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() && campaignKey.trim() && !isLoading) {
-      onSubmit(username.trim(), campaignKey.trim(), startMuted);
+    if (isFormFilled && !isLoading) {
+      onSubmit(
+        username.trim(),
+        email.trim(),
+        emailConfirm.trim(),
+        password,
+        passwordConfirm,
+        parseInt(usersOnMachine, 10),
+        campaignKey.trim(),
+        startMuted
+      );
     }
   };
 
@@ -125,6 +158,87 @@ export function Register({
                 onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
               />
             </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-email-input" className={styles.formLabel}>
+                <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
+                <span>Email</span>
+              </label>
+              <input
+                id="register-email-input"
+                type="email"
+                className={styles.formInput}
+                placeholder="Enter your email"
+                value={email}
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setEmail, e.target.value)}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-email-confirm-input" className={styles.formLabel}>
+                <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
+                <span>Confirm Email</span>
+              </label>
+              <input
+                id="register-email-confirm-input"
+                type="email"
+                className={styles.formInput}
+                placeholder="Re-enter your email"
+                value={emailConfirm}
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setEmailConfirm, e.target.value)}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-password-input" className={styles.formLabel}>
+                <Icon icon="ph:lock-key-bold" style={{ fontSize: "1rem" }} />
+                <span>Password</span>
+              </label>
+              <input
+                id="register-password-input"
+                type="password"
+                className={styles.formInput}
+                placeholder="Choose a password"
+                value={password}
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setPassword, e.target.value)}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-password-confirm-input" className={styles.formLabel}>
+                <Icon icon="ph:lock-key-bold" style={{ fontSize: "1rem" }} />
+                <span>Confirm Password</span>
+              </label>
+              <input
+                id="register-password-confirm-input"
+                type="password"
+                className={styles.formInput}
+                placeholder="Re-enter your password"
+                value={passwordConfirm}
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setPasswordConfirm, e.target.value)}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="register-users-on-machine-input" className={styles.formLabel}>
+                <Icon icon="ph:users-bold" style={{ fontSize: "1rem" }} />
+                <span>Players On This Device</span>
+              </label>
+              <input
+                id="register-users-on-machine-input"
+                type="number"
+                min={1}
+                className={styles.formInput}
+                placeholder="How many people play on this device?"
+                value={usersOnMachine}
+                disabled={isLoading}
+                onChange={(e) => handleInputChange(setUsersOnMachine, e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="form-check form-switch d-flex align-items-center gap-2 mb-1">
@@ -147,7 +261,7 @@ export function Register({
             <button
               type="submit"
               className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
-              disabled={isLoading || readyState !== ReadyState.OPEN || !username.trim() || !campaignKey.trim()}
+              disabled={isLoading || readyState !== ReadyState.OPEN || !isFormFilled}
             >
               <span>{isLoading ? "Starting Game..." : readyState === ReadyState.OPEN ? "Start New Game" : "Connecting..."}</span>
               <Icon icon="ph:arrow-right-bold" />

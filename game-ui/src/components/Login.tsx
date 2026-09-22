@@ -5,7 +5,8 @@ import { ReadyState } from "../services/websocket/types";
 import styles from "./Login.module.css";
 
 interface LoginProps {
-  onSubmit: (username: string, startMuted: boolean) => void;
+  onSubmit: (username: string, password: string, startMuted: boolean) => void;
+  onForgotPassword: () => void;
   readyState: ReadyState;
   onBack: () => void;
   isLoading?: boolean;
@@ -15,6 +16,7 @@ interface LoginProps {
 
 export function Login({
   onSubmit,
+  onForgotPassword,
   readyState,
   onBack,
   isLoading = false,
@@ -22,17 +24,25 @@ export function Login({
   onClearError,
 }: LoginProps) {
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [startMuted, setStartMuted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() && !isLoading) {
-      onSubmit(username.trim(), startMuted);
+    if (username.trim() && password && !isLoading) {
+      onSubmit(username.trim(), password, startMuted);
     }
   };
 
   const handleUsernameChange = (val: string) => {
     setUsername(val);
+    if (errorMessage && onClearError) {
+      onClearError();
+    }
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
     if (errorMessage && onClearError) {
       onClearError();
     }
@@ -95,6 +105,41 @@ export function Login({
             />
           </div>
 
+          <div className="mb-4">
+            <label htmlFor="login-password-input" className={styles.formLabel}>
+              <Icon icon="ph:lock-key-bold" style={{ fontSize: "1rem" }} />
+              <span>Password</span>
+            </label>
+            <input
+              id="login-password-input"
+              type="password"
+              className={styles.formInput}
+              placeholder="Enter your password"
+              value={password}
+              disabled={isLoading}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+            />
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              style={{
+                width: "auto",
+                background: "none",
+                border: "none",
+                color: "#7dd3fc",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                padding: "0.4rem 0 0",
+                textDecoration: "underline",
+                textAlign: "left",
+              }}
+              onClick={onForgotPassword}
+              disabled={isLoading}
+            >
+              Forgot password?
+            </button>
+          </div>
+
           <div className="form-check form-switch d-flex align-items-center gap-2 mb-1">
             <input
               type="checkbox"
@@ -115,7 +160,7 @@ export function Login({
             <button
               type="submit"
               className={`d-flex align-items-center justify-content-center gap-2 ${styles.actionButton}`}
-              disabled={isLoading || readyState !== ReadyState.OPEN || !username.trim()}
+              disabled={isLoading || readyState !== ReadyState.OPEN || !username.trim() || !password}
             >
               <span>{isLoading ? "Starting Game..." : readyState === ReadyState.OPEN ? "Resume Game" : "Connecting..."}</span>
               <Icon icon="ph:arrow-right-bold" />

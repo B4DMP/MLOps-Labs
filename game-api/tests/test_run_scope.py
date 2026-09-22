@@ -91,7 +91,15 @@ def _seed_user(username: str = "alice", campaign_key: str = "camp-1") -> int:
         campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
         session.add(campaign)
         session.flush()
-        user = User(user_name=username, campaign_key=campaign_key, campaign_id=campaign.id)
+        user = User(
+            user_name=username,
+            campaign_key=campaign_key,
+            campaign_id=campaign.id,
+            email=f"{username}@example.test",
+            password_hash="$2b$12$test.hash.not.a.real.bcrypt.digest..............",
+            users_on_machine=1,
+            is_verified=True,
+        )
         session.add(user)
         session.flush()
         return user.id

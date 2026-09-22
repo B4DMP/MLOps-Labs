@@ -27,6 +27,18 @@ class User(Base):
     # Set the first time a playtest tool fabricates progress, never cleared (D10). Account-level
     # because contamination does not stay inside one challenge or run: see docs/plans/results-screen.md.
     playtest_tainted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    users_on_machine: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Pending email-verification code, generated at registration and re-issued on every login
+    # attempt while unverified (docs/plans/password-auth.md).
+    verification_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    verification_code_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
+    # Kept separate from verification_code so a forgot-password request on an already-verified
+    # account can never be confused with (or short-circuit) the registration-verification path.
+    password_reset_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    password_reset_code_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Campaign(Base):
@@ -39,6 +51,9 @@ class Campaign(Base):
     use_questionnaire: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     # Off by default: a research campaign wants one run per player (the end screen says so).
     allow_replay: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Players registering with this campaign's key skip email entirely and are auto-verified -
+    # see auth_service.register_user. Never enable this on a real campaign.
+    is_test_campaign: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
 class GameProgression(Base):
