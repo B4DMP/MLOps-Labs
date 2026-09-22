@@ -19,7 +19,11 @@ async def _send_settings_data(websocket: WebSocket, data: dict) -> None:
     await manager.send_event(
         websocket=websocket,
         event="settings:data",
-        payload={**data, "can_reset_account": settings.ENABLE_RESET_USER},
+        payload={
+            **data,
+            "can_reset_account": settings.ENABLE_RESET_USER,
+            "can_playtest": settings.ENABLE_PLAYTEST_TOOLS,
+        },
     )
 
 

@@ -294,7 +294,8 @@ async def test_handle_settings_get_sends_defaults_plus_can_reset_account(migrate
     ws = _mock_ws()
 
     with patch.object(settings_handler, "manager") as mock_manager, \
-         patch.object(settings, "ENABLE_RESET_USER", True):
+         patch.object(settings, "ENABLE_RESET_USER", True), \
+         patch.object(settings, "ENABLE_PLAYTEST_TOOLS", False):
         mock_manager.send_event = AsyncMock()
         await settings_handler.handle_settings_get(ws, "alice", {})
 
@@ -309,6 +310,7 @@ async def test_handle_settings_get_sends_defaults_plus_can_reset_account(migrate
             "voice_narrator": None,
             "voice_player": None,
             "can_reset_account": True,
+            "can_playtest": False,
         },
     )
 

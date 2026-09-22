@@ -27,6 +27,9 @@ interface SettingsContextValue {
   updateSettings: (partial: Partial<PlayerSettings>) => void;
   canResetAccount: boolean;
   resetAccount: () => void;
+  /** Whether the server has the playtest tools on (`ENABLE_PLAYTEST_TOOLS`). The server checks the
+   * flag again on every event, so this only decides whether the buttons are shown. */
+  canPlaytest: boolean;
 }
 
 export const SettingsContext = createContext<SettingsContextValue>({
@@ -34,6 +37,7 @@ export const SettingsContext = createContext<SettingsContextValue>({
   updateSettings: () => {},
   canResetAccount: false,
   resetAccount: () => {},
+  canPlaytest: false,
 });
 
 export const useSettings = () => useContext(SettingsContext);
@@ -114,6 +118,7 @@ export default function SettingsProvider({ children, username, startMuted = fals
     return startMuted ? { ...initial, mute_tts: true } : initial;
   });
   const [canResetAccount, setCanResetAccount] = useState(false);
+  const [canPlaytest, setCanPlaytest] = useState(false);
   // Guards the startMuted override: true once it has actually been persisted server-side (its
   // own settings:data echo has landed), so an earlier, stale game:init_data/settings:data isn't
   // allowed to flip mute_tts back off in between, but a real toggle afterwards is respected.
@@ -127,6 +132,7 @@ export default function SettingsProvider({ children, username, startMuted = fals
       }
       setSettings(next);
       setCanResetAccount(Boolean(data?.can_reset_account));
+      setCanPlaytest(Boolean(data?.can_playtest));
       writeMirror(username, next);
     },
     [username, startMuted],
@@ -172,8 +178,8 @@ export default function SettingsProvider({ children, username, startMuted = fals
   }, [emit]);
 
   const value = useMemo<SettingsContextValue>(
-    () => ({ settings, updateSettings, canResetAccount, resetAccount }),
-    [settings, updateSettings, canResetAccount, resetAccount],
+    () => ({ settings, updateSettings, canResetAccount, resetAccount, canPlaytest }),
+    [settings, updateSettings, canResetAccount, resetAccount, canPlaytest],
   );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
