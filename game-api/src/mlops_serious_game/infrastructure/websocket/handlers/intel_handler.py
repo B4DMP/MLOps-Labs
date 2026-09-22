@@ -7,6 +7,7 @@ from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem, get_user_id
 from mlops_serious_game.application.online_intel_service.service import (
     run_engagement_card_workflow,
@@ -15,6 +16,7 @@ from mlops_serious_game.application.action_card_service.service import (
     generate_action_card,
 )
 from mlops_serious_game.application.intel_handler import (
+    intel_rows,
     load_known_intel_items_for_challenge,
     generate_offline_intel_artifacts,
     handle_intel_tagging,
@@ -181,6 +183,7 @@ async def handle_verify_item(websocket: WebSocket, username: str, payload: dict)
                 existing = GameChallenge(
                     user_name=username,
                     user_id=user_id,
+                    run_index=current_run_index(db_session, user_id),
                     phase_index=phase_id,
                     challenge_index=challenge_id,
                     challenge_loop_index=1,
@@ -513,9 +516,7 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
             item = collected_map.get(i_id)
             if not item:
                 with get_session() as s:
-                    records = s.scalars(
-                        select(IntelItem).where(IntelItem.user_id == get_user_id(s, username))
-                    ).all()
+                    records = intel_rows(s, get_user_id(s, username))
                     for r in records:
                         if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == i_id:
                             try:
@@ -546,6 +547,7 @@ async def handle_generate_action_card(websocket: WebSocket, username: str, paylo
                 new_record = GameChallenge(
                     user_name=username,
                     user_id=action_card_user_id,
+                    run_index=current_run_index(db_session, action_card_user_id),
                     phase_index=phase_id,
                     challenge_index=challenge_id,
                     challenge_loop_index=1,
