@@ -65,6 +65,7 @@ def get_campaigns_data() -> list[dict[str, Any]]:
                     "use_questionnaire": c.use_questionnaire,
                     "allow_replay": c.allow_replay,
                     "is_test_campaign": c.is_test_campaign,
+                    "require_email_verification": c.require_email_verification,
                     "users": get_campaign_users(c.campaign_key),
                 }
                 for c in campaigns_list
@@ -643,6 +644,7 @@ def add_campaign(
     use_questionnaire: bool = True,
     allow_replay: bool = False,
     is_test_campaign: bool = False,
+    require_email_verification: bool = True,
 ) -> None:
     try:
         with get_session() as session:
@@ -653,6 +655,7 @@ def add_campaign(
                 use_questionnaire=use_questionnaire,
                 allow_replay=allow_replay,
                 is_test_campaign=is_test_campaign,
+                require_email_verification=require_email_verification,
             )
             session.add(new_c)
     except Exception as e:
@@ -667,6 +670,7 @@ def update_campaign(
     campaign_name: str | None = None,
     allow_replay: bool | None = None,
     is_test_campaign: bool | None = None,
+    require_email_verification: bool | None = None,
 ) -> None:
     try:
         with get_session() as session:
@@ -682,6 +686,8 @@ def update_campaign(
                     campaign.allow_replay = allow_replay
                 if is_test_campaign is not None:
                     campaign.is_test_campaign = is_test_campaign
+                if require_email_verification is not None:
+                    campaign.require_email_verification = require_email_verification
     except Exception as e:
         print(f"Error updating campaign {campaign_key}: {e}")
         raise

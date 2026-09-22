@@ -143,6 +143,11 @@ class Settings(BaseSettings):
     # production: like the reset, the flag is the only thing between a crafted websocket frame and
     # a fabricated run.
     ENABLE_PLAYTEST_TOOLS: bool = False
+    # Registers every account as if it joined a test campaign (docs/plans/password-auth.md):
+    # no email required, no verification code, no password-length policy. Off by default, never
+    # on in production - it exists so a local dev environment doesn't need SMTP configured or a
+    # test campaign set up in the admin panel just to create a throwaway account.
+    ENABLE_DEV_ACCOUNTS: bool = False
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")
