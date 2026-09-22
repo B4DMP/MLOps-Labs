@@ -3,6 +3,7 @@ exactly them; hand-written content is never touched."""
 
 import json
 from pathlib import Path
+from typing import Optional
 
 from content_gen.ledger import WorkItem
 from content_gen.stages import STAGES
@@ -86,25 +87,69 @@ def _conflict_target(challenge: dict):
     return conflict.get("target") if isinstance(conflict, dict) else getattr(conflict, "target", None)
 
 
-def on_record_ids(requirements, artifacts: dict, conflict_targets: dict) -> set[str]:
+def _conflict_stakeholder_ids(challenge: dict) -> set[str]:
+    conflict = challenge.get("conflict")
+    if conflict is None:
+        return set()
+    positions = conflict.get("positions") if isinstance(conflict, dict) else getattr(conflict, "positions", None)
+    return {p.get("stakeholder_id") if isinstance(p, dict) else p.stakeholder_id for p in (positions or [])}
+
+
+def _stance_target(req) -> Optional[str]:
+    """The graph target a stance requirement is about.
+
+    `item_target` (domain.requirement) is the shared runtime resolver, but it does not read a
+    Trade-off's `branch_x`/`branch_y` - both branches act on the same component at different
+    levels, so either one names it. Kept local to content assembly rather than widened on the
+    shared resolver, since that function feeds live pitch/dossier logic this fix doesn't touch.
+    """
+    from mlops_serious_game.domain.requirement import item_target
+
+    target = item_target(req)
+    if target is not None:
+        return target
+    for branch in (req.branch_x, req.branch_y):
+        if branch is not None and getattr(branch, "target", None):
+            return branch.target
+    return None
+
+
+def on_record_ids(requirements, artifacts: dict, conflict_targets: dict, conflict_stakeholders: dict) -> set[str]:
     """What each challenge starts with on the public record.
 
-    One stance, as an example of a finished call, and the challenge itself: the first Fact about
-    the disputed component, which the whole team already knows. That Fact needs a narrator, since
-    an on-record card is something somebody said openly.
+    Both stances that frame the conflict, one per stakeholder on either side, and the challenge
+    itself: the first Fact about the disputed component, which the whole team already knows. That
+    Fact needs a narrator, since an on-record card is something somebody said openly.
+
+    A conflict stakeholder's stance is matched to the conflict by its graph target when the item
+    carries one; some authored Trade-offs concede a metric without naming a target at all (only
+    `concedes.metric_id`/`loss`, no `concedes.target`, no `ops`), so a stakeholder in the conflict
+    with no target-matched stance still gets their first stance item - they are in the conflict
+    either way, and it is the only stance they have to show for it.
     """
-    stance_done: set[str] = set()
+    from mlops_serious_game.domain.requirement import STANCE_TAGS
+
     fact_done: set[str] = set()
     known: set[str] = set()
+    matched: dict[str, set[str]] = {}
+    fallback: dict[tuple[str, str], str] = {}
     for template_id, req in requirements:
-        if req.type == "driver" and template_id not in stance_done:
-            stance_done.add(template_id)
-            known.add(req.id)
+        wanted_stakeholders = conflict_stakeholders.get(template_id, set())
+        if req.type in STANCE_TAGS and req.stakeholder_id in wanted_stakeholders:
+            fallback.setdefault((template_id, req.stakeholder_id), req.id)
+            if _stance_target(req) == conflict_targets.get(template_id):
+                done = matched.setdefault(template_id, set())
+                if req.stakeholder_id not in done:
+                    done.add(req.stakeholder_id)
+                    known.add(req.id)
         elif (req.type == "fact" and template_id not in fact_done
               and artifacts[req.id]["inputs"].get("narrator")
               and req.asserts is not None and req.asserts.target == conflict_targets.get(template_id)):
             fact_done.add(template_id)
             known.add(req.id)
+    for (template_id, stakeholder_id), req_id in fallback.items():
+        if stakeholder_id not in matched.get(template_id, set()):
+            known.add(req_id)
     return known
 
 
@@ -142,6 +187,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
     known_ids = on_record_ids(
         data["requirements"], data["artifacts"],
         {ch["template_id"]: _conflict_target(ch) for ch in data["challenges"]},
+        {ch["template_id"]: _conflict_stakeholder_ids(ch) for ch in data["challenges"]},
     )
     for template_id, req in data["requirements"]:
         gist_rec = data["gists"].get(req.id)
