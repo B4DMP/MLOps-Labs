@@ -1,0 +1,384 @@
+/*
+ * Shared styles for the results detail tabs. They sit on the app's light panel, so they use its
+ * text tokens; the dark hero card is a separate, self-contained thing.
+ *
+ * Marks are thin, gridlines are hairlines, and text always wears an ink token rather than a series
+ * colour: the colour key is a small swatch beside the label, never the label itself.
+ */
+
+.tileRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  border-radius: 0.6rem;
+  background: #ffffff;
+}
+
+.tileValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-primary, #1e293b);
+}
+
+.tileLabel {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #475569);
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.sectionNote {
+  margin: 0 0 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary, #475569);
+}
+
+.empty {
+  margin: 0;
+  padding: 1rem 0;
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--text-secondary, #475569);
+}
+
+/* ── Bars ─────────────────────────────────────────────────────────────────── */
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr 5.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+  color: var(--text-primary, #1e293b);
+}
+
+.barLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barTrack {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(100, 116, 139, 0.16);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: #2a78d6;
+}
+
+.barValue {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary, #475569);
+}
+
+.swatch {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+}
+
+/* ── Charts ───────────────────────────────────────────────────────────────── */
+
+.chartBlock {
+  margin-bottom: 1.5rem;
+}
+
+.chartHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.chartTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid rgba(100, 116, 139, 0.35);
+  border-radius: 99px;
+  background: transparent;
+  font-size: 0.76rem;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+}
+
+.viewToggle:hover,
+.viewToggle:focus-visible {
+  border-color: var(--primary-bg);
+  color: var(--primary-bg);
+}
+
+.chartArea {
+  position: relative;
+  height: 260px;
+}
+
+.tableWrap {
+  max-height: 260px;
+  overflow: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dataTable th,
+.dataTable td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.18);
+  text-align: left;
+  color: var(--text-primary, #1e293b);
+}
+
+.dataTable th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  font-weight: 700;
+}
+
+/* ── Chips ────────────────────────────────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Status colours are reserved for status, and always ship with an icon and a word. */
+.chipGood { background: #dcfce7; color: #14532d; }
+.chipWarn { background: #fef3c7; color: #78350f; }
+.chipBad { background: #fee2e2; color: #7f1d1d; }
+.chipNeutral { background: #e2e8f0; color: #334155; }
+
+/* ── Decisions and pipeline rows ──────────────────────────────────────────── */
+
+.rowList {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.16);
+}
+
+.rowIndex {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary, #475569);
+}
+
+.rowTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.rowSub {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #475569);
+}
+
+/* A stage's name and its health bar share one line, instead of stacking a label, a bar and a
+   repeated status word across three. */
+.rowHead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.trackInline {
+  flex: 1;
+  height: 6px;
+  min-width: 4rem;
+  border-radius: 99px;
+  background: rgba(100, 116, 139, 0.16);
+  overflow: hidden;
+}
+
+.trackInlineFill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+}
+
+/* Debt/broken/starved counts and pattern chips share one wrapping line rather than each getting
+   their own row. */
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.patternList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+}
+
+.chipContext {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* ── Confusion matrix ─────────────────────────────────────────────────────── */
+
+.matrix {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 0.82rem;
+}
+
+.matrix th {
+  padding: 0.25rem 0.5rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-secondary, #475569);
+}
+
+.matrix th[scope="row"] {
+  text-align: right;
+}
+
+.cell {
+  min-width: 3rem;
+  padding: 0.5rem;
+  border-radius: 0.35rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #1e293b);
+}
+
+.cellRight { outline: 2px solid rgba(42, 120, 214, 0.55); outline-offset: -2px; }
+
+/* ── HUD-style metric gauge (matches the in-game MetricTab) ──────────────── */
+
+.gauge {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  border-radius: 0.6rem;
+  background: #ffffff;
+}
+
+.gaugeBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.55rem;
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.gaugeTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.gaugeName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.gaugeValue {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #1e293b);
+}
+
+.gaugeMax {
+  color: var(--text-secondary, #475569);
+}
+
+.segments {
+  display: flex;
+  gap: 2px;
+}
+
+.segment {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(100, 116, 139, 0.18);
+}
+
+.gaugeGain {
+  margin-top: 0.25rem;
+  font-size: 0.74rem;
+  color: var(--text-secondary, #475569);
+}
+
+.gaugeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}

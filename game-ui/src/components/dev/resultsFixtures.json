@@ -1,0 +1,1482 @@
+{
+ "S": {
+  "run_index": 1,
+  "setting": {
+   "company": "Lindenmarkt",
+   "system": "Shelfcast"
+  },
+  "seeded_from_run": null,
+  "is_spiral": false,
+  "grade": {
+   "overall": 0.91,
+   "grade": "S",
+   "label": "Exemplary"
+  },
+  "epilogue": {
+   "closing": "A year on, nobody at Lindenmarkt calls it \"the Shelfcast project\" any more.\nThey just call it the forecast, and they plan around it.",
+   "scoreboard": {
+    "availability": "Shoppers find the article on the shelf, including in the middle aisle week.",
+    "waste": "Fresh waste is down to what the category team considers normal loss.",
+    "residual_stock": "Promotion weeks end close to clean. The warehouse is not holding last season's garden furniture.",
+    "override_rate": "Store managers rarely override the suggestion now. When they do, the team goes and looks, because it usually means something real."
+   },
+   "beats": [
+    {
+     "id": "intel_sharp",
+     "text": "The team could usually say what each person actually needed before the meeting started, which is most of why the meetings got shorter."
+    },
+    {
+     "id": "clean_run",
+     "text": "Nothing had to be forced through. Every change that shipped had the person who owned it standing behind it."
+    },
+    {
+     "id": "room_warm",
+     "text": "The room still works. Whoever runs the next cycle inherits colleagues who will tell them the truth early, which is worth more than the platform."
+    }
+   ]
+  },
+  "pillars": [
+   {
+    "id": "pipeline_health",
+    "score": 0.94,
+    "detail": {},
+    "relative": false
+   },
+   {
+    "id": "stakeholder_relations",
+    "score": 0.88,
+    "detail": {
+     "per_stakeholder": {
+      "data_dave": 0.9,
+      "model_monica": 0.86,
+      "requirements_reuben": 0.82,
+      "efficiency_emilia": 0.9,
+      "automation_alex": 0.85,
+      "reliability_ruth": 0.88
+     },
+     "fired_grudges": 0
+    },
+    "relative": false
+   },
+   {
+    "id": "intel_accuracy",
+    "score": 0.93,
+    "detail": {},
+    "relative": false
+   },
+   {
+    "id": "decision_quality",
+    "score": 0.9,
+    "detail": {},
+    "relative": false
+   }
+  ],
+  "metrics": {
+   "metrics": [
+    {
+     "id": "model",
+     "value": 42,
+     "max": 50,
+     "gained": 29,
+     "ratio": 0.846,
+     "series": [
+      7,
+      14,
+      21,
+      28,
+      35,
+      42
+     ]
+    },
+    {
+     "id": "automation",
+     "value": 32,
+     "max": 50,
+     "gained": 23,
+     "ratio": 0.658,
+     "series": [
+      5,
+      10,
+      16,
+      21,
+      27,
+      32
+     ]
+    },
+    {
+     "id": "reliability",
+     "value": 47,
+     "max": 50,
+     "gained": 32,
+     "ratio": 0.94,
+     "series": [
+      7,
+      15,
+      23,
+      31,
+      39,
+      47
+     ]
+    },
+    {
+     "id": "data",
+     "value": 37,
+     "max": 50,
+     "gained": 26,
+     "ratio": 0.744,
+     "series": [
+      6,
+      12,
+      18,
+      24,
+      31,
+      37
+     ]
+    },
+    {
+     "id": "requirements",
+     "value": 40,
+     "max": 50,
+     "gained": 28,
+     "ratio": 0.81,
+     "series": [
+      6,
+      13,
+      20,
+      27,
+      33,
+      40
+     ]
+    },
+    {
+     "id": "efficiency",
+     "value": 35,
+     "max": 50,
+     "gained": 24,
+     "ratio": 0.704,
+     "series": [
+      5,
+      11,
+      17,
+      23,
+      29,
+      35
+     ]
+    }
+   ],
+   "challenges": 6,
+   "own_from": 0
+  },
+  "knowledge": {
+   "total_questions": 7,
+   "intro": {
+    "correct": 3,
+    "percent": 42.9
+   },
+   "outro_per_run": [
+    {
+     "run": 1,
+     "correct": 5,
+     "percent": 71.4
+    }
+   ],
+   "delta": 2,
+   "delta_percent": 28.6
+  },
+  "intel": {
+   "per_stakeholder": [
+    {
+     "id": "data_dave",
+     "gathered": 5,
+     "available": 5,
+     "correct": 5,
+     "wrong": 0
+    },
+    {
+     "id": "model_monica",
+     "gathered": 5,
+     "available": 5,
+     "correct": 5,
+     "wrong": 0
+    },
+    {
+     "id": "requirements_reuben",
+     "gathered": 4,
+     "available": 5,
+     "correct": 4,
+     "wrong": 0
+    },
+    {
+     "id": "efficiency_emilia",
+     "gathered": 5,
+     "available": 5,
+     "correct": 5,
+     "wrong": 0
+    },
+    {
+     "id": "automation_alex",
+     "gathered": 5,
+     "available": 5,
+     "correct": 5,
+     "wrong": 0
+    },
+    {
+     "id": "reliability_ruth",
+     "gathered": 4,
+     "available": 5,
+     "correct": 4,
+     "wrong": 0
+    }
+   ],
+   "confusion": {
+    "driver": {
+     "driver": 6,
+     "boundary": 1
+    },
+    "boundary": {
+     "boundary": 4,
+     "driver": 2
+    },
+    "trade_off": {
+     "trade_off": 2,
+     "driver": 2
+    },
+    "fact": {
+     "fact": 3
+    }
+   },
+   "confidence": {
+    "verified": 9,
+    "inferred": 6,
+    "refuted": 2,
+    "unconfirmed": 3
+   }
+  },
+  "decisions": [
+   {
+    "position": 1,
+    "phase_index": 1,
+    "challenge_index": 1,
+    "name": "The Introduction",
+    "card_title": "Buy the platform",
+    "outcome": "PASS",
+    "attention_tokens": 4
+   },
+   {
+    "position": 2,
+    "phase_index": 2,
+    "challenge_index": 2,
+    "name": "The Platform Choice",
+    "card_title": "Automate the retrain",
+    "outcome": "PASS",
+    "attention_tokens": 5
+   },
+   {
+    "position": 3,
+    "phase_index": 3,
+    "challenge_index": 3,
+    "name": "The Automation Deadline",
+    "card_title": "Pair with the store managers",
+    "outcome": "PASS",
+    "attention_tokens": 6
+   },
+   {
+    "position": 4,
+    "phase_index": 4,
+    "challenge_index": 4,
+    "name": "Subject-Matter Expert Resistance",
+    "card_title": "Add a data contract",
+    "outcome": "PASS",
+    "attention_tokens": 7
+   },
+   {
+    "position": 5,
+    "phase_index": 5,
+    "challenge_index": 5,
+    "name": "The Data Contract",
+    "card_title": "Wire a drift alarm",
+    "outcome": "PASS",
+    "attention_tokens": 8
+   },
+   {
+    "position": 6,
+    "phase_index": 6,
+    "challenge_index": 6,
+    "name": "The Drift Alarm",
+    "card_title": "Own the override rate",
+    "outcome": "PASS",
+    "attention_tokens": 9
+   }
+  ],
+  "mood": {
+   "steps": 6,
+   "series": {
+    "data_dave": [
+     1,
+     0.98,
+     0.94,
+     0.9,
+     0.86,
+     0.82
+    ],
+    "model_monica": [
+     0.74,
+     0.78,
+     0.82,
+     0.86,
+     0.9,
+     0.94
+    ],
+    "requirements_reuben": [
+     0.94,
+     0.9,
+     0.86,
+     0.82,
+     0.78,
+     0.74
+    ],
+    "efficiency_emilia": [
+     0.78,
+     0.82,
+     0.86,
+     0.9,
+     0.94,
+     0.98
+    ],
+    "automation_alex": [
+     0.97,
+     0.93,
+     0.89,
+     0.85,
+     0.81,
+     0.77
+    ],
+    "reliability_ruth": [
+     0.76,
+     0.8,
+     0.84,
+     0.88,
+     0.92,
+     0.96
+    ]
+   }
+  },
+  "stakeholders": {
+   "data_dave": "Data Dave",
+   "model_monica": "Model Monica",
+   "requirements_reuben": "Requirements Reuben",
+   "efficiency_emilia": "Efficiency Emilia",
+   "automation_alex": "Automation Alex",
+   "reliability_ruth": "Reliability Ruth",
+   "environment": "The environment"
+  },
+  "stakeholder_order": [
+   "data_dave",
+   "model_monica",
+   "requirements_reuben",
+   "efficiency_emilia",
+   "automation_alex",
+   "reliability_ruth"
+  ],
+  "escalation": {
+   "total": 3,
+   "left": 3
+  },
+  "pipeline": {
+   "system_health": 88.0,
+   "inherited_system_health": null,
+   "stages": [
+    {
+     "id": "s0",
+     "name": "Requirements",
+     "band": false,
+     "locked": false,
+     "health": 88.0,
+     "status": "healthy",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s1",
+     "name": "Data Engineering",
+     "band": false,
+     "locked": false,
+     "health": 90.0,
+     "status": "healthy",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s2",
+     "name": "Model Engineering",
+     "band": false,
+     "locked": false,
+     "health": 74.0,
+     "status": "healthy",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": [
+      {
+       "id": "p2",
+       "kind": "design",
+       "name": "Automated retraining"
+      }
+     ]
+    },
+    {
+     "id": "s3",
+     "name": "Deployment",
+     "band": false,
+     "locked": false,
+     "health": 76.0,
+     "status": "healthy",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s4",
+     "name": "Monitoring",
+     "band": false,
+     "locked": false,
+     "health": 60.0,
+     "status": "healthy",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "gov",
+     "name": "Governance",
+     "band": true,
+     "locked": false,
+     "health": 83.0,
+     "status": "degraded",
+     "patterns": []
+    }
+   ]
+  },
+  "challenges": [],
+  "events": [
+   {
+    "seq": 1,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "offline",
+    "kind": "intel",
+    "subject_id": "model_monica",
+    "direction": "up",
+    "magnitude": "clear",
+    "cause": "intel.found",
+    "params": {},
+    "refs": {},
+    "text": "You picked up a note from Model Monica."
+   },
+   {
+    "seq": 2,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "commit",
+    "kind": "outcome",
+    "subject_id": null,
+    "direction": "none",
+    "magnitude": null,
+    "cause": "outcome.pass",
+    "params": {},
+    "refs": {},
+    "text": "The room went along with it."
+   }
+  ]
+ },
+ "C": {
+  "run_index": 1,
+  "setting": {
+   "company": "Lindenmarkt",
+   "system": "Shelfcast"
+  },
+  "seeded_from_run": null,
+  "is_spiral": false,
+  "grade": {
+   "overall": 0.5,
+   "grade": "C",
+   "label": "Mixed"
+  },
+  "epilogue": {
+   "closing": "Shelfcast forecasts every night and the stores work around it.\nThe platform is real; the trust that was supposed to come with it is not, yet.",
+   "scoreboard": {
+    "availability": "Availability is about where it was. The cases everyone complained about still happen.",
+    "waste": "Fresh waste is unchanged. Nobody can agree whether that is the model or the ordering rules.",
+    "residual_stock": "Residual stock after a promotion week is still a buyer's problem, solved by instinct.",
+    "override_rate": "Store managers override roughly as often as before, and now they have a year of examples."
+   },
+   "beats": [
+    {
+     "id": "default",
+     "text": "The team shipped what it could agree on, and left the rest for the next cycle. Most projects end this way; few admit it."
+    }
+   ]
+  },
+  "pillars": [
+   {
+    "id": "pipeline_health",
+    "score": 0.52,
+    "detail": {},
+    "relative": false
+   },
+   {
+    "id": "stakeholder_relations",
+    "score": 0.55,
+    "detail": {
+     "per_stakeholder": {
+      "data_dave": 0.6,
+      "model_monica": 0.52,
+      "requirements_reuben": 0.4,
+      "efficiency_emilia": 0.58,
+      "automation_alex": 0.5,
+      "reliability_ruth": 0.45
+     },
+     "fired_grudges": 0
+    },
+    "relative": false
+   },
+   {
+    "id": "intel_accuracy",
+    "score": 0.5,
+    "detail": {},
+    "relative": false
+   },
+   {
+    "id": "decision_quality",
+    "score": 0.48,
+    "detail": {},
+    "relative": false
+   }
+  ],
+  "metrics": {
+   "metrics": [
+    {
+     "id": "model",
+     "value": 23,
+     "max": 50,
+     "gained": 16,
+     "ratio": 0.468,
+     "series": [
+      3,
+      7,
+      11,
+      15,
+      19,
+      23
+     ]
+    },
+    {
+     "id": "automation",
+     "value": 18,
+     "max": 50,
+     "gained": 12,
+     "ratio": 0.364,
+     "series": [
+      3,
+      6,
+      9,
+      12,
+      15,
+      18
+     ]
+    },
+    {
+     "id": "reliability",
+     "value": 26,
+     "max": 50,
+     "gained": 18,
+     "ratio": 0.52,
+     "series": [
+      4,
+      8,
+      13,
+      17,
+      21,
+      26
+     ]
+    },
+    {
+     "id": "data",
+     "value": 20,
+     "max": 50,
+     "gained": 14,
+     "ratio": 0.4,
+     "series": [
+      3,
+      6,
+      10,
+      13,
+      16,
+      20
+     ]
+    },
+    {
+     "id": "requirements",
+     "value": 21,
+     "max": 50,
+     "gained": 15,
+     "ratio": 0.432,
+     "series": [
+      3,
+      7,
+      10,
+      14,
+      18,
+      21
+     ]
+    },
+    {
+     "id": "efficiency",
+     "value": 22,
+     "max": 50,
+     "gained": 15,
+     "ratio": 0.44,
+     "series": [
+      3,
+      7,
+      11,
+      14,
+      18,
+      22
+     ]
+    }
+   ],
+   "challenges": 6,
+   "own_from": 0
+  },
+  "knowledge": {
+   "total_questions": 7,
+   "intro": {
+    "correct": 3,
+    "percent": 42.9
+   },
+   "outro_per_run": [
+    {
+     "run": 1,
+     "correct": 5,
+     "percent": 71.4
+    }
+   ],
+   "delta": 2,
+   "delta_percent": 28.6
+  },
+  "intel": {
+   "per_stakeholder": [
+    {
+     "id": "data_dave",
+     "gathered": 4,
+     "available": 5,
+     "correct": 3,
+     "wrong": 1
+    },
+    {
+     "id": "model_monica",
+     "gathered": 3,
+     "available": 5,
+     "correct": 2,
+     "wrong": 1
+    },
+    {
+     "id": "requirements_reuben",
+     "gathered": 3,
+     "available": 5,
+     "correct": 1,
+     "wrong": 2
+    },
+    {
+     "id": "efficiency_emilia",
+     "gathered": 4,
+     "available": 5,
+     "correct": 4,
+     "wrong": 0
+    },
+    {
+     "id": "automation_alex",
+     "gathered": 2,
+     "available": 5,
+     "correct": 1,
+     "wrong": 1
+    },
+    {
+     "id": "reliability_ruth",
+     "gathered": 3,
+     "available": 5,
+     "correct": 2,
+     "wrong": 1
+    }
+   ],
+   "confusion": {
+    "driver": {
+     "driver": 6,
+     "boundary": 1
+    },
+    "boundary": {
+     "boundary": 4,
+     "driver": 2
+    },
+    "trade_off": {
+     "trade_off": 2,
+     "driver": 2
+    },
+    "fact": {
+     "fact": 3
+    }
+   },
+   "confidence": {
+    "verified": 9,
+    "inferred": 6,
+    "refuted": 2,
+    "unconfirmed": 3
+   }
+  },
+  "decisions": [
+   {
+    "position": 1,
+    "phase_index": 1,
+    "challenge_index": 1,
+    "name": "The Introduction",
+    "card_title": "Buy the platform",
+    "outcome": "PASS",
+    "attention_tokens": 4
+   },
+   {
+    "position": 2,
+    "phase_index": 2,
+    "challenge_index": 2,
+    "name": "The Platform Choice",
+    "card_title": "Automate the retrain",
+    "outcome": "SOFT_PASS",
+    "attention_tokens": 5
+   },
+   {
+    "position": 3,
+    "phase_index": 3,
+    "challenge_index": 3,
+    "name": "The Automation Deadline",
+    "card_title": "Pair with the store managers",
+    "outcome": "VETO",
+    "attention_tokens": 6
+   },
+   {
+    "position": 4,
+    "phase_index": 4,
+    "challenge_index": 4,
+    "name": "Subject-Matter Expert Resistance",
+    "card_title": "Add a data contract",
+    "outcome": "SOFT_PASS",
+    "attention_tokens": 7
+   },
+   {
+    "position": 5,
+    "phase_index": 5,
+    "challenge_index": 5,
+    "name": "The Data Contract",
+    "card_title": "Wire a drift alarm",
+    "outcome": "PASS",
+    "attention_tokens": 8
+   },
+   {
+    "position": 6,
+    "phase_index": 6,
+    "challenge_index": 6,
+    "name": "The Drift Alarm",
+    "card_title": "Own the override rate",
+    "outcome": "SOFT_PASS",
+    "attention_tokens": 9
+   }
+  ],
+  "mood": {
+   "steps": 6,
+   "series": {
+    "data_dave": [
+     0.72,
+     0.68,
+     0.64,
+     0.6,
+     0.56,
+     0.52
+    ],
+    "model_monica": [
+     0.4,
+     0.44,
+     0.48,
+     0.52,
+     0.56,
+     0.6
+    ],
+    "requirements_reuben": [
+     0.52,
+     0.48,
+     0.44,
+     0.4,
+     0.36,
+     0.32
+    ],
+    "efficiency_emilia": [
+     0.46,
+     0.5,
+     0.54,
+     0.58,
+     0.62,
+     0.66
+    ],
+    "automation_alex": [
+     0.62,
+     0.58,
+     0.54,
+     0.5,
+     0.46,
+     0.42
+    ],
+    "reliability_ruth": [
+     0.33,
+     0.37,
+     0.41,
+     0.45,
+     0.49,
+     0.53
+    ]
+   }
+  },
+  "stakeholders": {
+   "data_dave": "Data Dave",
+   "model_monica": "Model Monica",
+   "requirements_reuben": "Requirements Reuben",
+   "efficiency_emilia": "Efficiency Emilia",
+   "automation_alex": "Automation Alex",
+   "reliability_ruth": "Reliability Ruth",
+   "environment": "The environment"
+  },
+  "stakeholder_order": [
+   "data_dave",
+   "model_monica",
+   "requirements_reuben",
+   "efficiency_emilia",
+   "automation_alex",
+   "reliability_ruth"
+  ],
+  "escalation": {
+   "total": 3,
+   "left": 3
+  },
+  "pipeline": {
+   "system_health": 58.0,
+   "inherited_system_health": null,
+   "stages": [
+    {
+     "id": "s0",
+     "name": "Requirements",
+     "band": false,
+     "locked": false,
+     "health": 58.0,
+     "status": "degraded",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s1",
+     "name": "Data Engineering",
+     "band": false,
+     "locked": false,
+     "health": 60.0,
+     "status": "degraded",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s2",
+     "name": "Model Engineering",
+     "band": false,
+     "locked": false,
+     "health": 44.0,
+     "status": "degraded",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s3",
+     "name": "Deployment",
+     "band": false,
+     "locked": false,
+     "health": 46.0,
+     "status": "degraded",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": [
+      {
+       "id": "p1",
+       "kind": "anti",
+       "name": "Manual promotion"
+      }
+     ]
+    },
+    {
+     "id": "s4",
+     "name": "Monitoring",
+     "band": false,
+     "locked": false,
+     "health": 30.0,
+     "status": "degraded",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "gov",
+     "name": "Governance",
+     "band": true,
+     "locked": false,
+     "health": 53.0,
+     "status": "degraded",
+     "patterns": []
+    }
+   ]
+  },
+  "challenges": [],
+  "events": [
+   {
+    "seq": 1,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "offline",
+    "kind": "intel",
+    "subject_id": "model_monica",
+    "direction": "up",
+    "magnitude": "clear",
+    "cause": "intel.found",
+    "params": {},
+    "refs": {},
+    "text": "You picked up a note from Model Monica."
+   },
+   {
+    "seq": 2,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "commit",
+    "kind": "outcome",
+    "subject_id": null,
+    "direction": "none",
+    "magnitude": null,
+    "cause": "outcome.pass",
+    "params": {},
+    "refs": {},
+    "text": "The room went along with it."
+   }
+  ]
+ },
+ "E": {
+  "run_index": 2,
+  "setting": {
+   "company": "Lindenmarkt",
+   "system": "Shelfcast"
+  },
+  "seeded_from_run": 1,
+  "is_spiral": true,
+  "grade": {
+   "overall": 0.22,
+   "grade": "E",
+   "label": "Overwhelmed"
+  },
+  "epilogue": {
+   "closing": "This cycle ends with the platform trusted less than when it started, which is the one outcome the team was told to avoid.",
+   "scoreboard": {
+    "availability": "Availability is no better, and in the promotion weeks it is worse.",
+    "waste": "Fresh waste is up. The category team has gone back to ordering the way they did before.",
+    "residual_stock": "An advertised article sold out on the first morning in half the estate. A different one is still on pallets.",
+    "override_rate": "Almost every suggested order is overridden. The signal the model needs is gone, because nobody is following it."
+   },
+   "beats": [
+    {
+     "id": "stakeholder_hostile",
+     "text": "Requirements Reuben's trust never recovered. By the end they had stopped raising objections in meetings entirely, not because they agreed but because raising them had stopped changing anything."
+    },
+    {
+     "id": "grudge_fired",
+     "text": "A concern Requirements Reuben raised and was overruled on came back later as a real incident, one that took a week to fix."
+    },
+    {
+     "id": "stage_broken",
+     "text": "Deployment broke and was never repaired. Every stage downstream of it has been working with whatever degraded output it produces."
+    }
+   ]
+  },
+  "pillars": [
+   {
+    "id": "pipeline_health",
+    "score": 0.18,
+    "detail": {},
+    "relative": true
+   },
+   {
+    "id": "stakeholder_relations",
+    "score": 0.24,
+    "detail": {
+     "per_stakeholder": {
+      "data_dave": 0.3,
+      "model_monica": 0.22,
+      "requirements_reuben": 0.15,
+      "efficiency_emilia": 0.34,
+      "automation_alex": 0.26,
+      "reliability_ruth": 0.2
+     },
+     "fired_grudges": 1
+    },
+    "relative": false
+   },
+   {
+    "id": "intel_accuracy",
+    "score": 0.2,
+    "detail": {},
+    "relative": false
+   },
+   {
+    "id": "decision_quality",
+    "score": 0.26,
+    "detail": {},
+    "relative": false
+   }
+  ],
+  "metrics": {
+   "metrics": [
+    {
+     "id": "model",
+     "value": 8,
+     "max": 50,
+     "gained": 5,
+     "ratio": 0.162,
+     "series": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8
+     ]
+    },
+    {
+     "id": "automation",
+     "value": 6,
+     "max": 50,
+     "gained": 4,
+     "ratio": 0.126,
+     "series": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    },
+    {
+     "id": "reliability",
+     "value": 9,
+     "max": 50,
+     "gained": 6,
+     "ratio": 0.18,
+     "series": [
+      1,
+      3,
+      4,
+      6,
+      7,
+      9
+     ]
+    },
+    {
+     "id": "data",
+     "value": 8,
+     "max": 50,
+     "gained": 5,
+     "ratio": 0.16,
+     "series": [
+      1,
+      2,
+      4,
+      5,
+      6,
+      8
+     ]
+    },
+    {
+     "id": "requirements",
+     "value": 11,
+     "max": 50,
+     "gained": 8,
+     "ratio": 0.234,
+     "series": [
+      1,
+      3,
+      5,
+      7,
+      9,
+      11
+     ]
+    },
+    {
+     "id": "efficiency",
+     "value": 9,
+     "max": 50,
+     "gained": 6,
+     "ratio": 0.192,
+     "series": [
+      1,
+      3,
+      4,
+      6,
+      8,
+      9
+     ]
+    }
+   ],
+   "challenges": 6,
+   "own_from": 2
+  },
+  "knowledge": {
+   "total_questions": 7,
+   "intro": {
+    "correct": 3,
+    "percent": 42.9
+   },
+   "outro_per_run": [
+    {
+     "run": 1,
+     "correct": 5,
+     "percent": 71.4
+    }
+   ],
+   "delta": 2,
+   "delta_percent": 28.6
+  },
+  "intel": {
+   "per_stakeholder": [
+    {
+     "id": "data_dave",
+     "gathered": 2,
+     "available": 5,
+     "correct": 0,
+     "wrong": 2
+    },
+    {
+     "id": "model_monica",
+     "gathered": 1,
+     "available": 5,
+     "correct": 0,
+     "wrong": 1
+    },
+    {
+     "id": "requirements_reuben",
+     "gathered": 1,
+     "available": 5,
+     "correct": 0,
+     "wrong": 1
+    },
+    {
+     "id": "efficiency_emilia",
+     "gathered": 2,
+     "available": 5,
+     "correct": 1,
+     "wrong": 1
+    },
+    {
+     "id": "automation_alex",
+     "gathered": 1,
+     "available": 5,
+     "correct": 0,
+     "wrong": 1
+    },
+    {
+     "id": "reliability_ruth",
+     "gathered": 0,
+     "available": 5,
+     "correct": 0,
+     "wrong": 0
+    }
+   ],
+   "confusion": {
+    "driver": {
+     "driver": 6,
+     "boundary": 1
+    },
+    "boundary": {
+     "boundary": 4,
+     "driver": 2
+    },
+    "trade_off": {
+     "trade_off": 2,
+     "driver": 2
+    },
+    "fact": {
+     "fact": 3
+    }
+   },
+   "confidence": {
+    "verified": 9,
+    "inferred": 6,
+    "refuted": 2,
+    "unconfirmed": 3
+   }
+  },
+  "decisions": [
+   {
+    "position": 1,
+    "phase_index": 1,
+    "challenge_index": 1,
+    "name": "The Introduction",
+    "card_title": "Buy the platform",
+    "outcome": "VETO",
+    "attention_tokens": 4
+   },
+   {
+    "position": 2,
+    "phase_index": 2,
+    "challenge_index": 2,
+    "name": "The Platform Choice",
+    "card_title": "Automate the retrain",
+    "outcome": "VETO",
+    "attention_tokens": 5
+   },
+   {
+    "position": 3,
+    "phase_index": 3,
+    "challenge_index": 3,
+    "name": "The Automation Deadline",
+    "card_title": "Pair with the store managers",
+    "outcome": "SOFT_PASS",
+    "attention_tokens": 6
+   },
+   {
+    "position": 4,
+    "phase_index": 4,
+    "challenge_index": 4,
+    "name": "Subject-Matter Expert Resistance",
+    "card_title": "Add a data contract",
+    "outcome": "VETO",
+    "attention_tokens": 7
+   },
+   {
+    "position": 5,
+    "phase_index": 5,
+    "challenge_index": 5,
+    "name": "The Data Contract",
+    "card_title": "Wire a drift alarm",
+    "outcome": null,
+    "attention_tokens": 8
+   },
+   {
+    "position": 6,
+    "phase_index": 6,
+    "challenge_index": 6,
+    "name": "The Drift Alarm",
+    "card_title": "Own the override rate",
+    "outcome": null,
+    "attention_tokens": 9
+   }
+  ],
+  "mood": {
+   "steps": 6,
+   "series": {
+    "data_dave": [
+     0.42,
+     0.38,
+     0.34,
+     0.3,
+     0.26,
+     0.22
+    ],
+    "model_monica": [
+     0.1,
+     0.14,
+     0.18,
+     0.22,
+     0.26,
+     0.3
+    ],
+    "requirements_reuben": [
+     0.27,
+     0.23,
+     0.19,
+     0.15,
+     0.11,
+     0.07
+    ],
+    "efficiency_emilia": [
+     0.22,
+     0.26,
+     0.3,
+     0.34,
+     0.38,
+     0.42
+    ],
+    "automation_alex": [
+     0.38,
+     0.34,
+     0.3,
+     0.26,
+     0.22,
+     0.18
+    ],
+    "reliability_ruth": [
+     0.08,
+     0.12,
+     0.16,
+     0.2,
+     0.24,
+     0.28
+    ]
+   }
+  },
+  "stakeholders": {
+   "data_dave": "Data Dave",
+   "model_monica": "Model Monica",
+   "requirements_reuben": "Requirements Reuben",
+   "efficiency_emilia": "Efficiency Emilia",
+   "automation_alex": "Automation Alex",
+   "reliability_ruth": "Reliability Ruth",
+   "environment": "The environment"
+  },
+  "stakeholder_order": [
+   "data_dave",
+   "model_monica",
+   "requirements_reuben",
+   "efficiency_emilia",
+   "automation_alex",
+   "reliability_ruth"
+  ],
+  "escalation": {
+   "total": 3,
+   "left": 1
+  },
+  "pipeline": {
+   "system_health": 24.0,
+   "inherited_system_health": 41.0,
+   "stages": [
+    {
+     "id": "s0",
+     "name": "Requirements",
+     "band": false,
+     "locked": false,
+     "health": 24.0,
+     "status": "broken",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s1",
+     "name": "Data Engineering",
+     "band": false,
+     "locked": false,
+     "health": 26.0,
+     "status": "broken",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s2",
+     "name": "Model Engineering",
+     "band": false,
+     "locked": false,
+     "health": 10.0,
+     "status": "broken",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "s3",
+     "name": "Deployment",
+     "band": false,
+     "locked": false,
+     "health": 12.0,
+     "status": "broken",
+     "maturity": 2,
+     "debt": 1,
+     "broken": 1,
+     "patterns": [
+      {
+       "id": "p1",
+       "kind": "anti",
+       "name": "Manual promotion"
+      }
+     ]
+    },
+    {
+     "id": "s4",
+     "name": "Monitoring",
+     "band": false,
+     "locked": false,
+     "health": 5,
+     "status": "broken",
+     "maturity": 2,
+     "debt": 0,
+     "broken": 0,
+     "patterns": []
+    },
+    {
+     "id": "gov",
+     "name": "Governance",
+     "band": true,
+     "locked": false,
+     "health": 19.0,
+     "status": "degraded",
+     "patterns": []
+    }
+   ]
+  },
+  "challenges": [],
+  "events": [
+   {
+    "seq": 1,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "offline",
+    "kind": "intel",
+    "subject_id": "model_monica",
+    "direction": "up",
+    "magnitude": "clear",
+    "cause": "intel.found",
+    "params": {},
+    "refs": {},
+    "text": "You picked up a note from Model Monica."
+   },
+   {
+    "seq": 2,
+    "phase_id": 1,
+    "challenge_id": 1,
+    "step": "commit",
+    "kind": "outcome",
+    "subject_id": null,
+    "direction": "none",
+    "magnitude": null,
+    "cause": "outcome.pass",
+    "params": {},
+    "refs": {},
+    "text": "The room went along with it."
+   }
+  ]
+ }
+}

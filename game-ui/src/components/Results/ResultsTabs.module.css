@@ -1,0 +1,54 @@
+.wrap {
+  background: #f8f9fa;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.tabList {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem 0;
+  overflow-x: auto;
+  background: var(--primary-bg);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.tab:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: -2px;
+}
+
+.tabActive {
+  background: #f8f9fa;
+  color: var(--primary-bg);
+}
+
+.tabActive:hover {
+  background: #f8f9fa;
+  color: var(--primary-bg);
+}
+
+.panel {
+  padding: 1.5rem;
+  min-height: 18rem;
+}

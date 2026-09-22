@@ -13,6 +13,8 @@ import "iconify-icon";
  */
 const DEV_SCREENS: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   "phase-rail": lazy(() => import("./components/dev/PhaseRailPreview")),
+  results: lazy(() => import("./components/dev/ResultsPreview")),
+  "admin-results": lazy(() => import("./components/dev/AdminResultsPreview")),
 };
 
 const devScreen = import.meta.env.DEV
