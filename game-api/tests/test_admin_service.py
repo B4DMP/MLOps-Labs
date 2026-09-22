@@ -103,7 +103,15 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
         session.add(campaign)
         session.flush()
 
-    user = User(user_name=username, campaign_key=campaign_key, campaign_id=campaign.id)
+    user = User(
+        user_name=username,
+        campaign_key=campaign_key,
+        campaign_id=campaign.id,
+        email=f"{username}@example.test",
+        password_hash="$2b$12$test.hash.not.a.real.bcrypt.digest..............",
+        users_on_machine=1,
+        is_verified=True,
+    )
     session.add(user)
     session.flush()
 
@@ -314,8 +322,14 @@ def test_calculate_metric_sum_per_challenge_uses_played_order(sqlite_db):
         session.add_all([c1, c2])
         session.flush()
 
-        u1 = User(user_name="user1", campaign_key="camp-alpha", campaign_id=c1.id)
-        u2 = User(user_name="user2", campaign_key="camp-beta", campaign_id=c2.id)
+        u1 = User(
+            user_name="user1", campaign_key="camp-alpha", campaign_id=c1.id,
+            email="user1@example.test", password_hash="hash", users_on_machine=1, is_verified=True,
+        )
+        u2 = User(
+            user_name="user2", campaign_key="camp-beta", campaign_id=c2.id,
+            email="user2@example.test", password_hash="hash", users_on_machine=1, is_verified=True,
+        )
         session.add_all([u1, u2])
         session.flush()
 

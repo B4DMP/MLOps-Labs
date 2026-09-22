@@ -64,6 +64,7 @@ def get_campaigns_data() -> list[dict[str, Any]]:
                     "is_active": c.is_active,
                     "use_questionnaire": c.use_questionnaire,
                     "allow_replay": c.allow_replay,
+                    "is_test_campaign": c.is_test_campaign,
                     "users": get_campaign_users(c.campaign_key),
                 }
                 for c in campaigns_list
@@ -641,6 +642,7 @@ def add_campaign(
     is_active: bool = True,
     use_questionnaire: bool = True,
     allow_replay: bool = False,
+    is_test_campaign: bool = False,
 ) -> None:
     try:
         with get_session() as session:
@@ -650,6 +652,7 @@ def add_campaign(
                 is_active=is_active,
                 use_questionnaire=use_questionnaire,
                 allow_replay=allow_replay,
+                is_test_campaign=is_test_campaign,
             )
             session.add(new_c)
     except Exception as e:
@@ -663,6 +666,7 @@ def update_campaign(
     use_questionnaire: bool | None = None,
     campaign_name: str | None = None,
     allow_replay: bool | None = None,
+    is_test_campaign: bool | None = None,
 ) -> None:
     try:
         with get_session() as session:
@@ -676,6 +680,8 @@ def update_campaign(
                     campaign.campaign_name = campaign_name
                 if allow_replay is not None:
                     campaign.allow_replay = allow_replay
+                if is_test_campaign is not None:
+                    campaign.is_test_campaign = is_test_campaign
     except Exception as e:
         print(f"Error updating campaign {campaign_key}: {e}")
         raise
@@ -740,8 +746,20 @@ def reset_player(player_name: str) -> None:
             return
         campaign_key = user.campaign_key
         campaign_id = user.campaign_id
+        email = user.email
+        password_hash = user.password_hash
+        users_on_machine = user.users_on_machine
+        is_verified = user.is_verified
         _cleanup_and_delete_user(session, user)
-        session.add(User(user_name=player_name, campaign_key=campaign_key, campaign_id=campaign_id))
+        session.add(User(
+            user_name=player_name,
+            campaign_key=campaign_key,
+            campaign_id=campaign_id,
+            email=email,
+            password_hash=password_hash,
+            users_on_machine=users_on_machine,
+            is_verified=is_verified,
+        ))
 
 
 def remove_all_players() -> None:

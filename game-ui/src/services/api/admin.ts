@@ -47,7 +47,8 @@ export async function addAdminCampaign(
   newCampaignName: string,
   newCampaignKey: string,
   isActive: boolean = true,
-  useQuestionnaire: boolean = true
+  useQuestionnaire: boolean = true,
+  isTestCampaign: boolean = false
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns`, {
     method: "POST",
@@ -60,6 +61,7 @@ export async function addAdminCampaign(
       new_campaign_key: newCampaignKey,
       is_active: isActive,
       use_questionnaire: useQuestionnaire,
+      is_test_campaign: isTestCampaign,
     }),
   });
 
@@ -79,6 +81,7 @@ export async function updateAdminCampaign(
     use_questionnaire?: boolean;
     allow_replay?: boolean;
     campaign_name?: string;
+    is_test_campaign?: boolean;
   }
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
@@ -320,5 +323,58 @@ export async function generateOfflineIntelArtifacts(
 
   return response.json();
 }
+
+export interface AdminEmailStatus {
+  type: string;
+  host: string;
+  port: number;
+  username: string;
+  from_email: string;
+  use_tls: boolean;
+  is_configured: boolean;
+  has_password: boolean;
+}
+
+export async function fetchAdminEmailStatus(token: string): Promise<AdminEmailStatus> {
+  const response = await fetch(`${BASE_URL}/api/admin/email/status`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to fetch email status.");
+  }
+
+  return response.json();
+}
+
+export type AdminTestEmailTemplate = "generic" | "verification" | "password_reset";
+
+export async function sendAdminTestEmail(
+  token: string,
+  recipientEmail: string,
+  template: AdminTestEmailTemplate = "generic"
+): Promise<{ type: string; message: string }> {
+  const response = await fetch(`${BASE_URL}/api/admin/email/test`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ recipient_email: recipientEmail, template }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to send test email.");
+  }
+
+  return response.json();
+}
+
 
 
