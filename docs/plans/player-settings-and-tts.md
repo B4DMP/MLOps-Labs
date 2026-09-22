@@ -242,9 +242,26 @@ otherwise waits on `speechSynthesis.onvoiceschanged` (Chrome loads voices asynch
 returns an empty array on the first call), with a timeout so a browser that never fires it does
 not leave a pending promise.
 
-`pickVoice(voices, slot, preferredName?)`: `preferredName` wins when it still resolves to an
-installed voice. Otherwise match by regex on `voice.name`, since `SpeechSynthesisVoice` has no
-`gender` property. Filter to `voice.lang.startsWith("en")` first and prefer `en-US`.
+`pickVoice(voices, slot, preferredName?, localOnly?)`: `preferredName` wins when it still
+resolves to an installed voice. Otherwise match by regex on `voice.name`, since
+`SpeechSynthesisVoice` has no `gender` property. Filter to `voice.lang.startsWith("en")` first,
+then order the pool **online voices first**, en-US second.
+
+Online (network, `localService === false`) voices are the neural ones, Google's and the
+Microsoft "Online (Natural)" set, and they carry a long artifact far better than the bundled
+local voices, so the automatic choice prefers them even over the en-US tiebreak: a neural en-GB
+voice reads the game better than a robotic local en-US one, and every stakeholder is fictional
+anyway. Gender matching still applies within that order, so a matching online voice beats a
+matching local one, and the regexes cover the online names too (Ava, Emma, Aria, Michelle,
+Jenny; Andrew, Brian, Christopher, Eric, Guy, Roger, Steffan).
+
+Online voices need the network, so `speak` watches for a failing utterance on one: the first
+failure flips that whole line to `localOnly` and retries the chunk that failed rather than
+dropping it. Without that, an offline or firewalled player would lose narration entirely and
+silently. `localOnly` also ignores a stored online voice, since re-picking it would fail again.
+
+The settings dropdowns use the same order and suffix online entries with "(online)", so a
+player picking by hand can see which ones "Automatic" would have chosen.
 
 Note the `alex` collision below: it matches the male regex as a *voice name*, which is unrelated
 to the `automation_alex` stakeholder id. Stakeholder gender comes from the config field, never
@@ -418,6 +435,8 @@ Steps 1 to 5 are backend-only and land independently of 6 to 9.
 - The dropdowns list every installed `en-*` voice, not only regex matches. On Linux that is
   frequently the only way a player gets two distinguishable voices.
 - Four voice slots: male, female, narrator, player.
+- The automatic choice prefers online (neural) voices over local ones, ahead of the en-US
+  tiebreak, and falls back to a local voice for the rest of a line once an online one fails.
 
 ## Open questions
 
