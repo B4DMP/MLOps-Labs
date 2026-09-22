@@ -9,12 +9,24 @@
  * name, covering the Windows/macOS names players are likely to have installed plus the Linux
  * tiers speech-dispatcher's engines tend to produce (espeak-ng's language-only names give no
  * signal at all, which is the common Linux outcome the "no match" fallback below covers).
+ *
+ * The automatic choice prefers online (network, `localService: false`) voices: those are the
+ * neural ones, and they carry a long artifact far better than the bundled local voices. They
+ * need the network, so `speak` falls back to a local voice for the rest of a line once an online
+ * one fails. A voice the player picked by hand in the settings panel always wins over both.
  */
 
 export type VoiceSlot = "male" | "female" | "narrator" | "player";
 
-const FEMALE_REGEX = /(zira|jenny|samantha|victoria|slt|clb|eva|f[1-5]\b)/i;
-const MALE_REGEX = /(david|guy|alex|fred|awb|rms|bdl|ksp|kal|m[1-5]\b)/i;
+/* Includes the online "Natural"/neural voice names alongside the local ones, since those are
+ * now what the automatic choice reaches for first: Windows/Edge ship Ava, Emma, Aria, Michelle
+ * and Jenny (female), Andrew, Brian, Christopher, Eric, Guy, Roger and Steffan (male). The
+ * multi-word online names are anchored on word boundaries so they cannot match inside a longer
+ * name. */
+const FEMALE_REGEX =
+  /(zira|jenny|samantha|victoria|slt|clb|eva|f[1-5]\b|\b(ava|emma|aria|michelle)\b)/i;
+const MALE_REGEX =
+  /(david|guy|alex|fred|awb|rms|bdl|ksp|kal|m[1-5]\b|\b(andrew|brian|christopher|eric|roger|steffan)\b)/i;
 
 const BASELINE_PITCH: Record<VoiceSlot, number> = {
   male: 0.95,
@@ -76,11 +88,33 @@ export function loadVoices(timeoutMs: number = VOICES_LOAD_TIMEOUT_MS): Promise<
   });
 }
 
-function englishVoicesPreferringUS(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
+/** Network-backed voices report `localService: false`. They are the neural ones (Google US
+ * English, the Microsoft "Online (Natural)" set), and they sound markedly better than the
+ * bundled local voices, so the automatic choice prefers them over the en-US tiebreak. */
+function isOnline(v: SpeechSynthesisVoice): boolean {
+  return v.localService === false;
+}
+
+/**
+ * The pool the automatic choice picks from: English voices, online ones first, then en-US.
+ *
+ * Online wins over language region deliberately. A neural en-GB voice reads the game better than
+ * a robotic local en-US one, and every stakeholder is fictional anyway, so accent matters less
+ * than intelligibility across a long artifact.
+ *
+ * `localOnly` drops the online voices entirely, for the retry after a network voice fails.
+ */
+function voicePool(
+  voices: SpeechSynthesisVoice[],
+  localOnly = false,
+): SpeechSynthesisVoice[] {
   return voices
     .filter((v) => v.lang?.toLowerCase().startsWith("en"))
+    .filter((v) => !localOnly || !isOnline(v))
     .slice()
     .sort((a, b) => {
+      const online = Number(isOnline(b)) - Number(isOnline(a));
+      if (online !== 0) return online;
       const aUS = a.lang?.toLowerCase() === "en-us" ? 0 : 1;
       const bUS = b.lang?.toLowerCase() === "en-us" ? 0 : 1;
       return aUS - bUS;
@@ -94,21 +128,27 @@ function englishVoicesPreferringUS(voices: SpeechSynthesisVoice[]): SpeechSynthe
  * through to the regex rather than erroring.
  *
  * `narrator` and `player` have no gender regex: absent a stored preference they just take the
- * first available English voice. `male`/`female` match by name; when nothing in the installed
- * set matches either gender regex (the common Linux outcome with only language-named voices),
- * both resolve to the same first voice, differentiated only by `pitchFor`'s baseline.
+ * first voice in the pool, which is an online one wherever the browser offers any. `male`/
+ * `female` match by name within that same order, so a matching online voice beats a matching
+ * local one; when nothing in the installed set matches either gender regex (the common Linux
+ * outcome with only language-named voices), both resolve to the same first voice, differentiated
+ * only by `pitchFor`'s baseline.
+ *
+ * `localOnly` excludes the network voices, including a stored one: it is for the retry after an
+ * online voice has already failed, where re-picking it would just fail again.
  */
 export function pickVoice(
   voices: SpeechSynthesisVoice[],
   slot: VoiceSlot,
   preferredName?: string | null,
+  localOnly = false,
 ): SpeechSynthesisVoice | null {
   if (preferredName) {
     const preferred = voices.find((v) => v.name === preferredName);
-    if (preferred) return preferred;
+    if (preferred && !(localOnly && isOnline(preferred))) return preferred;
   }
 
-  const pool = englishVoicesPreferringUS(voices);
+  const pool = voicePool(voices, localOnly);
   if (pool.length === 0) return null;
 
   if (slot === "narrator" || slot === "player") return pool[0];
@@ -214,6 +254,11 @@ export function speak(text: string, opts: SpeakOptions): () => void {
   const rate = opts.slot === "narrator" ? 0.95 : 1;
   let cancelled = false;
   let index = 0;
+  /* Set once an online voice has failed. Preferring network voices means an offline player, a
+   * blocked request or a flaky connection would otherwise lose the whole line: every chunk would
+   * error and be skipped in silence. After the first failure this run falls back to local voices
+   * and retries the chunk that failed, rather than dropping it. */
+  let localOnly = false;
 
   const speakNext = () => {
     if (cancelled) return;
@@ -222,7 +267,7 @@ export function speak(text: string, opts: SpeakOptions): () => void {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
-    const voice = pickVoice(synth.getVoices(), opts.slot, opts.voiceName);
+    const voice = pickVoice(synth.getVoices(), opts.slot, opts.voiceName, localOnly);
     if (voice) utterance.voice = voice;
     utterance.pitch = pitch;
     utterance.rate = rate;
@@ -231,6 +276,11 @@ export function speak(text: string, opts: SpeakOptions): () => void {
       speakNext();
     };
     utterance.onerror = () => {
+      if (!localOnly && voice && isOnline(voice)) {
+        localOnly = true;
+        speakNext(); // same chunk, local voice
+        return;
+      }
       index += 1;
       speakNext();
     };
