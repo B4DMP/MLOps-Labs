@@ -20,6 +20,7 @@ from sqlalchemy import select
 
 from mlops_serious_game.application.results_service import aggregate, service
 from mlops_serious_game.application.services.admin_service import get_valid_players_set
+from mlops_serious_game.domain.persona_resolver import PersonaMap, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
@@ -84,6 +85,17 @@ def _tainted_accounts(campaign_key: str | None) -> set[str]:
         return set(session.scalars(stmt).all())
 
 
+def _canonical_personas() -> PersonaMap:
+    """The first persona of every stakeholder, standing in for the per-player draw.
+
+    Admin aggregates span every player, each of whom may have been dealt a different persona
+    for the same stakeholder, so there is no single "current player" name to render `{token}`s
+    with. `Stakeholder.with_persona` falls back to this same first-persona-in-config identity
+    when no persona is bound, which is why it reads as the canonical name elsewhere on this page.
+    """
+    return {st.id: st.personas[0] for st in StakeholderFactory.stakeholders if st.personas}
+
+
 def _intel_item_rates(pairs: set[tuple[str, int]], dealt: Counter) -> dict[str, list[dict[str, Any]]]:
     """Which individual intel items players tend to find, and which they walk past.
 
@@ -92,6 +104,8 @@ def _intel_item_rates(pairs: set[tuple[str, int]], dealt: Counter) -> dict[str, 
     """
     if not pairs:
         return {"most_gathered": [], "least_gathered": []}
+
+    canonical_personas = _canonical_personas()
 
     with get_session() as session:
         users = {name for name, _ in pairs}
@@ -121,7 +135,7 @@ def _intel_item_rates(pairs: set[tuple[str, int]], dealt: Counter) -> dict[str, 
             "id": requirement.id,
             "stakeholder": owner.name if owner else "The environment",
             "challenge": challenge_name,
-            "text": requirement.fact or requirement.description,
+            "text": personalize(requirement.fact or requirement.description, canonical_personas, resolve_markers=True),
             "gathered": found,
             "dealt": seen_in,
             "rate": round(found / seen_in, 4),
