@@ -45,6 +45,7 @@ from mlops_serious_game.domain.requirement import (
 )
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
+from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database import GameChallenge, get_session, get_user_id
 from mlops_serious_game.infrastructure.websocket.handlers.log_handler import send_events
 from mlops_serious_game.infrastructure.websocket.manager import manager
@@ -305,6 +306,7 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             row = GameChallenge(
                 user_name=username,
                 user_id=user_id,
+                run_index=current_run_index(db, user_id),
                 phase_index=phase_id,
                 challenge_index=challenge_id,
                 challenge_loop_index=1,

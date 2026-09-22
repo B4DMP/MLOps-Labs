@@ -130,6 +130,10 @@ class PitchState(BaseModel):
     emotion_deltas: dict[str, dict[str, float]] = Field(default_factory=dict)
     outcome: Optional[str] = None
     presentation_count: int = Field(default=0, description="How many times an action card has been presented in this challenge")
+    # Set only by `veto_breaker()`. This is the whole signal `simulation_handler` needs to tell
+    # the pipeline "this PASS was actually a broken veto, against this stakeholder" - see that
+    # function's docstring for why a dedicated field replaced the old patience-based one.
+    overridden_stakeholder_id: Optional[str] = None
 
     def open_objections(self) -> list[Objection]:
         return self.objections
@@ -943,6 +947,47 @@ def commit_pitch(
             cause="outcome.pass", params={},
         ))
     return updated, events
+
+
+def veto_breaker(
+    state: PitchState,
+    overridden_stakeholder_id: str,
+    names: Optional[dict[str, str]] = None,
+) -> tuple[PitchState, list[GameEvent]]:
+    """Spends an Escalation Point to push a stood veto through anyway (D15).
+
+    Only callable on a committed VETO (the caller checks `state.stage == "DONE" and state.outcome
+    == "VETO"` first): this pushes *that* card through, it does not build a new one. The
+    overridden stakeholder remembers it - `overridden_stakeholder_id` is the one field this sets
+    beyond the outcome, and it is the whole signal `simulation_handler` needs to tell the pipeline
+    this PASS was actually a broken veto. The pipeline side of that (a weight-2 grudge, degrading
+    whatever the card touched that the stakeholder owns, a distinct story beat) was never removed
+    and needed no changes; only this link back from the pitch phase had gone missing.
+    """
+    names = names or {}
+    malus = EmotionFactory.get_pitch_tuning().emotion_veto_breaker
+    updated = state.model_copy(update={
+        "stage": "DONE",
+        "outcome": "PASS",
+        "overridden_stakeholder_id": overridden_stakeholder_id,
+    })
+    events = [
+        GameEvent(
+            step="commit", kind="emotion", subject_id=overridden_stakeholder_id,
+            direction="down" if malus < 0 else ("up" if malus > 0 else "none"),
+            magnitude="large",
+            cause="emotion.veto_breaker", params={"st": _name(names, overridden_stakeholder_id)},
+        ),
+        GameEvent(
+            step="commit", kind="outcome", subject_id=overridden_stakeholder_id,
+            cause="outcome.veto_breaker", params={"st": _name(names, overridden_stakeholder_id)},
+        ),
+    ]
+    return updated, events
+
+
+def _name(names: dict[str, str], st_id: Optional[str]) -> str:
+    return names.get(st_id, st_id) if st_id else "them"
 
 
 def compute_stakeholder_primary_objection(

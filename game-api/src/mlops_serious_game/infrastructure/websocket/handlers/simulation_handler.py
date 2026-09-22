@@ -38,16 +38,16 @@ OUTCOME_MAP = {
 
 
 def _outcome_for(state: "pitch.PitchState") -> str:
-    patience = getattr(state, "patience", None)
-    if state.outcome == "PASS" and patience and any(p <= 0 for p in patience.values()):
-        # Patience at zero with the card through means it was pushed through (D7).
+    # `overridden_stakeholder_id` is set only by `pitch.veto_breaker()`, and only alongside
+    # outcome "PASS" - a PASS with it set means this was a stood veto pushed through (D15), not
+    # an ordinary pass, and the pipeline needs to know that to fire the right grudge and story.
+    if state.outcome == "PASS" and getattr(state, "overridden_stakeholder_id", None):
         return VETO_BROKEN
     return OUTCOME_MAP.get(state.outcome or "PASS", PASS)
 
 
 def _overridden(state: "pitch.PitchState") -> Optional[str]:
-    spent = [st_id for st_id, left in (getattr(state, "patience", None) or {}).items() if left <= 0]
-    return spent[0] if spent else None
+    return getattr(state, "overridden_stakeholder_id", None)
 
 
 def _story(report: Any, sim_deltas: Optional[dict] = None) -> dict[str, Any]:
@@ -157,6 +157,9 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
     sim_deltas = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids, list(ctx.all_intel))
     if sim_deltas:
         pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
+    # What the graph actually did to the metrics, so "proceed to next milestone" applies it
+    # later instead of silently dropping it (see `set_metric_changes`).
+    pitch_store.set_metric_changes(username, ctx.phase_id, ctx.challenge_id, result.report.metric_deltas)
 
     next_challenge = _next_challenge_name(username, ctx)
     events = list(result.events) + [_gate_event(next_challenge)]
