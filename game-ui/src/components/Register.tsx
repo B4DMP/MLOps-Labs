@@ -125,11 +125,15 @@ export function Register({
 
         {/* Form (Stacked by default, 2-column on small screens) */}
         <form onSubmit={handleSubmit}>
+          <p className="text-muted mb-2" style={{ fontSize: "0.78rem" }}>
+            <span className={styles.requiredMark} aria-hidden>*</span> required
+          </p>
           <div className={styles.inputGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="register-username-input" className={styles.formLabel}>
                 <Icon icon="ph:user-bold" style={{ fontSize: "1rem" }} />
                 <span>Username</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-username-input"
@@ -138,6 +142,7 @@ export function Register({
                 placeholder="Choose your username"
                 value={username}
                 autoFocus
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setUsername, e.target.value)}
               />
@@ -147,6 +152,7 @@ export function Register({
               <label htmlFor="register-campaign-key-input" className={styles.formLabel}>
                 <Icon icon="ph:key-bold" style={{ fontSize: "1rem" }} />
                 <span>Campaign Key</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-campaign-key-input"
@@ -154,6 +160,7 @@ export function Register({
                 className={styles.formInput}
                 placeholder="Enter invitation campaign key"
                 value={campaignKey}
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setCampaignKey, e.target.value)}
               />
@@ -163,6 +170,9 @@ export function Register({
               <label htmlFor="register-email-input" className={styles.formLabel}>
                 <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
                 <span>Email</span>
+                <span className="text-muted fw-normal text-lowercase" style={{ fontSize: "0.7rem", letterSpacing: 0 }}>
+                  (unless your campaign skips it)
+                </span>
               </label>
               <input
                 id="register-email-input"
@@ -195,6 +205,7 @@ export function Register({
               <label htmlFor="register-password-input" className={styles.formLabel}>
                 <Icon icon="ph:lock-key-bold" style={{ fontSize: "1rem" }} />
                 <span>Password</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-password-input"
@@ -202,6 +213,7 @@ export function Register({
                 className={styles.formInput}
                 placeholder="Choose a password"
                 value={password}
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setPassword, e.target.value)}
               />
@@ -211,6 +223,7 @@ export function Register({
               <label htmlFor="register-password-confirm-input" className={styles.formLabel}>
                 <Icon icon="ph:lock-key-bold" style={{ fontSize: "1rem" }} />
                 <span>Confirm Password</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-password-confirm-input"
@@ -218,6 +231,7 @@ export function Register({
                 className={styles.formInput}
                 placeholder="Re-enter your password"
                 value={passwordConfirm}
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setPasswordConfirm, e.target.value)}
               />
@@ -227,6 +241,7 @@ export function Register({
               <label htmlFor="register-users-on-machine-input" className={styles.formLabel}>
                 <Icon icon="ph:users-bold" style={{ fontSize: "1rem" }} />
                 <span>Players On This Device</span>
+                <span className={styles.requiredMark} aria-hidden>*</span>
               </label>
               <input
                 id="register-users-on-machine-input"
@@ -235,6 +250,7 @@ export function Register({
                 className={styles.formInput}
                 placeholder="How many people play on this device?"
                 value={usersOnMachine}
+                required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setUsersOnMachine, e.target.value)}
               />
