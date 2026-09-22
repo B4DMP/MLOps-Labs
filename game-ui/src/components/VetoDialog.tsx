@@ -1,6 +1,8 @@
 import { Icon } from "@iconify/react";
 import styles from "./VetoDialog.module.css";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import OnceIcon from "./Results/OnceIcon";
+import ROAD_BARRIER_ICON from "./Results/icons/road-barrier.json";
 
 export interface VetoInfo {
   stakeholder_id: string;
@@ -71,7 +73,7 @@ export default function VetoDialog({
         <div className={styles.header}>
           <div>
             <h2 className={styles.headerTitle}>
-              <Icon icon="ph:prohibit-bold" className={styles.headerIcon} />
+              <OnceIcon icon={ROAD_BARRIER_ICON} className={styles.headerLordicon} />
               <span>Action Proposal Vetoed</span>
             </h2>
             <p className={styles.headerSubtitle}>

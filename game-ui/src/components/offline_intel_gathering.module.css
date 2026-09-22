@@ -257,6 +257,18 @@
     margin-top: 0.1rem;
 }
 
+.introBannerLordicon {
+    display: inline-flex;
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+}
+
+.introBannerLordicon > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .introBannerBody {
     flex-grow: 1;
     font-size: 0.78rem;
@@ -335,6 +347,9 @@
 }
 
 .headerArtifactBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.65rem;
     font-weight: 600;
     background: var(--primary-bg);
@@ -343,6 +358,18 @@
     border-radius: 0.35rem;
     letter-spacing: 0.5px;
     white-space: nowrap;
+}
+
+.headerArtifactBadgeIcon {
+    display: inline-flex;
+    width: 0.9rem;
+    height: 0.9rem;
+    flex-shrink: 0;
+}
+
+.headerArtifactBadgeIcon > div {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* ==========================================================================

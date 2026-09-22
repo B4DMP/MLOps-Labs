@@ -47,9 +47,16 @@
   color: #ffffff;
 }
 
-.headerIcon {
-  color: #ef4444;
-  font-size: 1.6rem;
+.headerLordicon {
+  display: inline-flex;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+}
+
+.headerLordicon > div {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .headerSubtitle {

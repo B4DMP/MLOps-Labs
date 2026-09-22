@@ -95,18 +95,16 @@
   background: #fffdf5;
 }
 
-.bannerIcon {
-  font-size: 1.4rem;
+.bannerLordicon {
+  display: inline-flex;
+  width: 2.6rem;
+  height: 2.6rem;
   flex-shrink: 0;
-  margin-top: 0.1rem;
 }
 
-.iconSuccess {
-  color: #16a34a;
-}
-
-.iconWarning {
-  color: #d97706;
+.bannerLordicon > div {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .bannerContent {

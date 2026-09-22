@@ -1,7 +1,17 @@
+import { forwardRef, useImperativeHandle } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import VetoDialog, { type VetoInfo } from "./VetoDialog";
+
+// The header's road-barrier animation renders into a shadow root with a constructable stylesheet,
+// neither of which jsdom implements. The player's own behaviour is Lordicon's to test, not ours.
+vi.mock("@lordicon/react", () => ({
+  Player: forwardRef((_props: unknown, ref: React.Ref<{ playFromBeginning: () => void }>) => {
+    useImperativeHandle(ref, () => ({ playFromBeginning: () => {} }));
+    return <div data-testid="veto-icon" />;
+  }),
+}));
 
 const VETO_INFO: VetoInfo = {
   stakeholder_id: "automation_alex",

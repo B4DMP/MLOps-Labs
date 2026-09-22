@@ -12,6 +12,34 @@ import { useSpeech } from "./useSpeech";
 import { slotForStakeholderVoice } from "../utils/speech";
 import { StakeholderContext } from "./StakeholderProvider";
 import { useSettings } from "./SettingsProvider";
+import OnceIcon from "./Results/OnceIcon";
+import MAIL_OPEN_MARKETING_ICON from "./Results/icons/mail-open-marketing.json";
+import MESSAGES_ENGAGEMENT_ALT_ICON from "./Results/icons/messages-engagement-alt.json";
+import AVATARS_CHATTING_ICON from "./Results/icons/avatars-chatting.json";
+import FILE_POLICY_ICON from "./Results/icons/file-policy.json";
+import LIST_RULES_ICON from "./Results/icons/list-rules.json";
+import MAGNIFIER_ICON from "./Results/icons/magnifier.json";
+import RADIO_WALKIE_TALKIE_ICON from "./Results/icons/radio-walkie-talkie.json";
+import SERVER_ICON from "./Results/icons/server.json";
+import LAYERS_ICON from "./Results/icons/layers.json";
+import EYE_ICON from "./Results/icons/eye.json";
+import MICROPHONE_ICON from "./Results/icons/microphone.json";
+
+/** Every `ArtifactType` the backend enum defines (`requirement.py`), even the six only the
+ * artifact-regeneration admin tool can currently assign - the content pipeline that deals real
+ * runs only ever picks the first four (`content_gen/stages/artifacts.py`'s `ARTIFACT_TYPES`), but
+ * mapping the rest now costs nothing and means nothing needs touching if that ever widens. */
+const ARTIFACT_TYPE_ICON: Record<string, object> = {
+  email: MAIL_OPEN_MARKETING_ICON,
+  slack_message: MESSAGES_ENGAGEMENT_ALT_ICON,
+  meeting_notes: AVATARS_CHATTING_ICON,
+  document: FILE_POLICY_ICON,
+  runbook: LIST_RULES_ICON,
+  dashboard_snapshot: MAGNIFIER_ICON,
+  incident_ticket: RADIO_WALKIE_TALKIE_ICON,
+  ci_log: SERVER_ICON,
+  architecture_note: LAYERS_ICON,
+};
 
 interface OfflineIntelGatheringProps {
   onContinue: () => void;
@@ -526,6 +554,10 @@ export default function OfflineIntelGathering({
                     <div className={styles.headerArtifactMeta}>
                       <span className={styles.headerDivider}>|</span>
                       <span className={styles.headerArtifactBadge}>
+                        <OnceIcon
+                          icon={ARTIFACT_TYPE_ICON[currentArtifact.artifact_type] ?? FILE_POLICY_ICON}
+                          className={styles.headerArtifactBadgeIcon}
+                        />
                         {currentArtifact.artifact_type.toUpperCase()}
                       </span>
                     </div>
@@ -793,7 +825,7 @@ export default function OfflineIntelGathering({
                       {/* Known artifacts open the deck: say plainly why this one is not the player's to tag */}
                       {isOnKnownArtifact && (
                         <div className={`${styles.introBanner} ${styles.onRecordBanner}`}>
-                          <span className={styles.introBannerIcon}>📣</span>
+                          <OnceIcon icon={MICROPHONE_ICON} className={styles.introBannerLordicon} />
                           <span className={styles.introBannerBody}>
                             {isOnKnownFact ? (
                               <>
@@ -841,7 +873,7 @@ export default function OfflineIntelGathering({
                       {/* One-time intro banner: shown on the player's first taggable artifact, until dismissed */}
                       {showIntroBanner && currentIndex === firstPlayerIndex && (
                         <div className={styles.introBanner}>
-                          <span className={styles.introBannerIcon}>🕵️</span>
+                          <OnceIcon icon={EYE_ICON} className={styles.introBannerLordicon} />
                           <span className={styles.introBannerBody}>
                             <strong>New intel just came in.</strong> Read each item to learn more about your
                             stakeholders, then tag it below. It's saved as unconfirmed intel in their Dossier
