@@ -200,6 +200,16 @@
         "target": "req.data_contracts",
         "accepts_max_level": 2
       },
+      "branch_x": {
+        "description": "the data contracts fully governed with automated consent checks",
+        "target": "req.data_contracts",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "manual review of the data contracts",
+        "target": "req.data_contracts",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -244,6 +254,16 @@
         "metric_id": "efficiency",
         "loss": 2
       },
+      "branch_x": {
+        "description": "consent checks fully automated in the data contracts",
+        "target": "req.data_contracts",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "a faster, manual contract review",
+        "target": "req.data_contracts",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
@@ -261,6 +281,16 @@
       "concedes": {
         "metric_id": "automation",
         "loss": 3
+      },
+      "branch_x": {
+        "description": "the data contracts fully governed and automated",
+        "target": "req.data_contracts",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "a temporary manual step in contract review",
+        "target": "req.data_contracts",
+        "level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -374,6 +404,16 @@
         "metric_id": "requirements",
         "loss": 5
       },
+      "branch_x": {
+        "description": "the acceptance criteria fully governed",
+        "target": "req.acceptance_criteria",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "the acceptance criteria kept as a basic manual check",
+        "target": "req.acceptance_criteria",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -420,6 +460,16 @@
         "target": "req.data_contracts",
         "accepts_max_level": 2
       },
+      "branch_x": {
+        "description": "the data contracts fully automated",
+        "target": "req.data_contracts",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "the data contracts kept manual for this release",
+        "target": "req.data_contracts",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
@@ -462,6 +512,16 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 2
+      },
+      "branch_x": {
+        "description": "the promotion week's KPIs calculated automatically",
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "a lower, manually tracked level of cost reporting",
+        "target": "req.kpi_definition",
+        "level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1187,6 +1247,16 @@
         "metric_id": "efficiency",
         "loss": 3
       },
+      "branch_x": {
+        "description": "a fully automated model registry",
+        "target": "model.registry",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "a manual model registry",
+        "target": "model.registry",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1231,6 +1301,16 @@
         "metric_id": "requirements",
         "loss": 2
       },
+      "branch_x": {
+        "description": "a fully automated, governed evaluation process",
+        "target": "model.evaluation",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "the current, manual evaluation process",
+        "target": "model.evaluation",
+        "level": 2
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1245,10 +1325,26 @@
       "fact": "{model_monica} noted the difficulty of reproducing past model runs without a registry.",
       "reading": "{model_monica.first} would accept a manual logging process if it captures enough detail for reproduction.",
       "metric_id": "model",
-      "ops": [],
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "value": 2
+        }
+      ],
       "concedes": {
         "metric_id": "model",
         "loss": 2
+      },
+      "branch_x": {
+        "description": "automated experiment tracking",
+        "target": "model.experiment_tracking",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "the current, manual logging process",
+        "target": "model.experiment_tracking",
+        "level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1366,6 +1462,16 @@
         "target": "deploy.cicd",
         "accepts_max_level": 3
       },
+      "branch_x": {
+        "description": "pushing the deployment pipeline to full automation",
+        "target": "deploy.cicd",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "the pipeline moving with a manual approval gate",
+        "target": "deploy.cicd",
+        "level": 3
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1384,6 +1490,16 @@
       "concedes": {
         "metric_id": "requirements",
         "loss": 2
+      },
+      "branch_x": {
+        "description": "the deployment pipeline held at the audited, compliance-checked level",
+        "target": "deploy.cicd",
+        "level": 2
+      },
+      "branch_y": {
+        "description": "the deployment pipeline moving to full automation",
+        "target": "deploy.cicd",
+        "level": 4
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1428,6 +1544,16 @@
       "concedes": {
         "metric_id": "efficiency",
         "loss": 3
+      },
+      "branch_x": {
+        "description": "cost control relaxed for the new model version",
+        "target": "e.cost_serving",
+        "level": 2
+      },
+      "branch_y": {
+        "description": "cost control held at its current, strict level",
+        "target": "e.cost_serving",
+        "level": 1
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1959,6 +2085,16 @@
         "metric_id": "reliability",
         "loss": 8
       },
+      "branch_x": {
+        "description": "governed, automated drift monitoring",
+        "target": "ops.production_drift_monitoring",
+        "level": 4
+      },
+      "branch_y": {
+        "description": "drift monitoring cut back to the bare minimum",
+        "target": "ops.production_drift_monitoring",
+        "level": 1
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
@@ -2032,6 +2168,16 @@
         "metric_id": "model",
         "loss": 4
       },
+      "branch_x": {
+        "description": "drift alerts triggering retraining automatically",
+        "target": "e.alert_retrain",
+        "level": 3
+      },
+      "branch_y": {
+        "description": "the retraining trigger staying a manual step",
+        "target": "e.alert_retrain",
+        "level": 1
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -2055,6 +2201,16 @@
       "concedes": {
         "metric_id": "data",
         "loss": 5
+      },
+      "branch_x": {
+        "description": "full, granular logging",
+        "target": "ops.observability",
+        "level": 3
+      },
+      "branch_y": {
+        "description": "the current, lower-granularity logging level",
+        "target": "ops.observability",
+        "level": 2
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],

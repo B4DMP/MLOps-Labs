@@ -72,10 +72,29 @@ block. A card that clears Ruth's boundary now clears Alex too, and ch118's own s
 without ever reaching for an Escalation Point (`test_skip_no_longer_needs_the_fallback_on_ch118`).
 The Veto Breaker's own tests no longer lean on ch118 staying broken: they exercise a deliberately
 weak card/search result instead, so they will not need rewriting the next time a content gap is
-closed. Five other challenges (110, 111, 114, 115, 117) have Trade-offs with the same empty
-`branch_x`/`branch_y` shape, but - unlike ch118 - each of their high-power stakeholders also has a
-satisfiable Driver alongside it, so none of them are an unconditional veto; they are still open
-for the same content treatment on their own merits.
+closed.
+
+The same empty-`branch_x`/`branch_y` shape existed on every Trade-off in `RequirementObjects.json`
+- not just ch118's. Five other challenges (110, 111, 114, 115, 117) had it too; none were an
+unconditional veto like ch118 (each high-power stakeholder there also has a satisfiable Driver
+alongside the broken Trade-off), but the search still had to work around dead content on every one
+of them. All fifteen items across those five challenges now carry real branches, each target/level
+pair pulled from something already authored for that same challenge - the challenge's own
+`conflict` block, a sibling Driver's `suggested` level, a Boundary's `holds` level, a Fact's
+`asserts` level, or an edge's own `initial_level` in `MlopsGraph.json` - never invented. One item
+(ch117's `monica_reproducibility`) needed its target moved off `model.registry` entirely:
+`requirements_reuben`'s Boundary there is a ceiling (`holds: lte 2`), directly opposed to
+`model_monica`'s own Driver wanting `model.registry` at 4, so a Trade-off on the same node would
+have reproduced ch118's exact bug in a new challenge. It now resolves on
+`model.experiment_tracking` instead (a real, adjacent graph node matching "would accept a manual
+logging process" far more literally than the contested registry node), with the item's own `ops`
+field populated so that target is legally reachable ( `get_allowed_targets` only opens a target
+once something in the challenge's intel already points at it).
+
+Verified against the real search (`auto_card.search_card`, the same algorithm both the room UI and
+the playtest tools use), not just the config validator: all five now return `PASS` or `SOFT_PASS`
+- `test_search_finds_a_non_veto_card` in game-api/tests (removed after the check, per this repo's
+scratch-file convention) parametrized over all five and printed each outcome and min buy-in.
 
 ### Bug found and fixed: graph-driven metric deltas were never persisted
 
