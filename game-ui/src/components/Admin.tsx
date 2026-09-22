@@ -26,6 +26,7 @@ ChartJS.register(
 
 import { ConfigEditor } from "./ConfigEditor";
 import { GraphDebug } from "./GraphDebug";
+import AdminResults from "./Results/AdminResults";
 import { fetchAdminDashboard } from "../services/api/admin";
 
 export interface Campaign {
@@ -34,6 +35,7 @@ export interface Campaign {
   users: string[];
   is_active?: boolean;
   use_questionnaire?: boolean;
+  allow_replay?: boolean;
 }
 
 export interface Player {
@@ -44,6 +46,10 @@ export interface Player {
   introPercentage: number;
   outroPercentage: number;
   playTime: string;
+  /** How many games they have started; more than one means they replayed. */
+  runs?: number;
+  /** They used a playtest tool, so their data is left out of the research aggregates. */
+  playtestTainted?: boolean;
 }
 
 interface AdminProps {
@@ -52,7 +58,7 @@ interface AdminProps {
   campaigns: Campaign[];
   players: Player[];
   addCampaign: (campaignName: string, campaignKey: string, isActive?: boolean, useQuestionnaire?: boolean) => void;
-  updateCampaign?: (campaignKey: string, updates: { is_active?: boolean; use_questionnaire?: boolean; campaign_name?: string }) => void;
+  updateCampaign?: (campaignKey: string, updates: { is_active?: boolean; use_questionnaire?: boolean; allow_replay?: boolean; campaign_name?: string }) => void;
   removeCampaign: (campaignKey: string) => void;
   removePlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
@@ -85,7 +91,7 @@ export function Admin({
   questionaire_results,
 }: AdminProps) {
   // Navigation
-  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "graph_debug">("config");
+  const [activeSubpage, setActiveSubpage] = useState<"config" | "manager" | "analysis" | "results" | "graph_debug">("config");
 
   // Campaign management state
   const [campaignName, setCampaignName] = useState("");
@@ -475,6 +481,14 @@ export function Admin({
             </button>
             <button
               type="button"
+              className={`${styles.navTab} ${activeSubpage === "results" ? styles.navTabActive : ""}`}
+              onClick={() => setActiveSubpage("results")}
+            >
+              <Icon icon="ph:trophy-bold" />
+              <span>Results</span>
+            </button>
+            <button
+              type="button"
               className={`${styles.navTab} ${activeSubpage === "graph_debug" ? styles.navTabActive : ""}`}
               onClick={() => setActiveSubpage("graph_debug")}
             >
@@ -487,6 +501,7 @@ export function Admin({
             {activeSubpage === "config" && "Modify challenges, intel facts, and stakeholder configs"}
             {activeSubpage === "manager" && `Managing ${campaigns.length} campaigns and ${players.length} players`}
             {activeSubpage === "analysis" && "Research metrics and questionnaire evaluations"}
+            {activeSubpage === "results" && "How finished games went: grades, pillars, and each player's own results"}
             {activeSubpage === "graph_debug" && "Inspect the MLOps pipeline graph state per player"}
           </div>
         </div>
@@ -547,6 +562,7 @@ export function Admin({
                         <th>Access Key</th>
                         <th>Status</th>
                         <th>Questionnaire</th>
+                        <th>Replay</th>
                         <th>Enrolled Players</th>
                         <th className="text-end">Actions</th>
                       </tr>
@@ -614,6 +630,32 @@ export function Admin({
                                   <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
                                     <Icon icon="ph:prohibit-bold" />
                                     <span>Disabled</span>
+                                  </span>
+                                )}
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => updateCampaign && updateCampaign(c.key, { allow_replay: !c.allow_replay })}
+                                className="btn btn-sm p-0 border-0"
+                                style={{ background: "none", cursor: updateCampaign ? "pointer" : "default" }}
+                                title={
+                                  c.allow_replay
+                                    ? "Replay allowed: players can start another game from the results screen. Click to disallow."
+                                    : "Replay off: one run per player, as a research campaign wants. Click to allow."
+                                }
+                                disabled={!updateCampaign}
+                              >
+                                {c.allow_replay ? (
+                                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:arrows-clockwise-bold" />
+                                    <span>Allowed</span>
+                                  </span>
+                                ) : (
+                                  <span className="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 d-inline-flex align-items-center gap-1">
+                                    <Icon icon="ph:prohibit-bold" />
+                                    <span>Off</span>
                                   </span>
                                 )}
                               </button>
@@ -1432,6 +1474,12 @@ export function Admin({
           {/* ======================================================== */}
           {/* SUBPAGE 4: GRAPH DEBUG                                   */}
           {/* ======================================================== */}
+          {activeSubpage === "results" && (
+            <div className={styles.cardSurface}>
+              <AdminResults adminToken={adminToken} campaigns={campaigns} />
+            </div>
+          )}
+
           {activeSubpage === "graph_debug" && (
             <div className={styles.cardSurface}>
               <GraphDebug adminToken={adminToken} campaigns={campaigns} players={players} />

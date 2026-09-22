@@ -14,6 +14,7 @@ from mlops_serious_game.infrastructure.database import (
     get_session,
     get_user_id,
 )
+from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN
 
 # Checkpoint tables are managed internally by LangGraph, not by our ORM models, and are keyed
 # by thread_id rather than username - these are the thread naming conventions used across the
@@ -62,6 +63,7 @@ def get_campaigns_data() -> list[dict[str, Any]]:
                     "key": c.campaign_key,
                     "is_active": c.is_active,
                     "use_questionnaire": c.use_questionnaire,
+                    "allow_replay": c.allow_replay,
                     "users": get_campaign_users(c.campaign_key),
                 }
                 for c in campaigns_list
@@ -85,10 +87,24 @@ def get_player_data() -> dict[str, Any]:
                     "firstPlayed": None,
                     "campaign_name": campaigns.get(user.campaign_key, "Not Found"),
                     "campaign_key": user.campaign_key,
+                    "playtest_tainted": bool(user.playtest_tainted),
+                    "runs": 1,
                 }
 
             # 2. Add progression records
-            progressions = session.scalars(select(GameProgression)).all()
+            # The first run only: a replay must not move a player's recorded progress, or someone
+            # mid-way through their second game would show as "Completed" and a completed one as
+            # in progress. The Results page covers runs explicitly.
+            progressions = session.scalars(
+                select(GameProgression).where(GameProgression.run_index == FIRST_RUN)
+            ).all()
+            run_counts = dict(
+                session.execute(
+                    select(GameProgression.user_name, func.max(GameProgression.run_index)).group_by(
+                        GameProgression.user_name
+                    )
+                ).all()
+            )
             for prog in progressions:
                 player = prog.user_name
                 g_idx = prog.game_progress_index
@@ -112,7 +128,9 @@ def get_player_data() -> dict[str, Any]:
                         player_data[player]["firstPlayed"] = ts
 
             # 3. Add challenge records
-            game_sessions = session.scalars(select(GameChallenge)).all()
+            game_sessions = session.scalars(
+                select(GameChallenge).where(GameChallenge.run_index == FIRST_RUN)
+            ).all()
             for gs in game_sessions:
                 player = gs.user_name
                 p_idx = gs.phase_index
@@ -136,16 +154,30 @@ def get_player_data() -> dict[str, Any]:
                     ):
                         player_data[player]["lastPlayed"] = ts
 
+            for name, highest in run_counts.items():
+                if name in player_data:
+                    player_data[name]["runs"] = int(highest or 1)
+
         return player_data
     except Exception:
         return {}
 
 
-def get_valid_players_set(session=None, campaign_key: str | None = None) -> set[str]:
+def get_valid_players_set(
+    session=None, campaign_key: str | None = None, include_playtest: bool = False
+) -> set[str]:
+    """Every player whose data counts toward the campaign aggregates.
+
+    The single chokepoint behind every one of them, which is why the playtest exclusion (D10) is
+    one clause here rather than a filter added to each. An account that used a playtest tool is
+    left out by default, whole: contamination does not stay inside the challenge that caused it.
+    """
     valid_players = set()
     try:
         def _fetch(s):
             stmt = select(User.user_name)
+            if not include_playtest:
+                stmt = stmt.where(User.playtest_tainted.is_(False))
             if campaign_key and campaign_key != "all":
                 stmt = stmt.where(User.campaign_key == campaign_key)
             users = s.scalars(stmt).all()
@@ -166,7 +198,10 @@ def get_finished_players_set(session=None, campaign_key: str | None = None) -> s
         def _fetch(s):
             valid = get_valid_players_set(s, campaign_key=campaign_key)
             users = s.scalars(
-                select(GameProgression.user_name).where(GameProgression.game_progress_index == 4)
+                select(GameProgression.user_name).where(
+                    GameProgression.game_progress_index == 4,
+                    GameProgression.run_index == FIRST_RUN,
+                )
             ).all()
             return set(u for u in users if u and u in valid)
 
@@ -186,6 +221,7 @@ def calculate_intro_percentage(player_name: str) -> int:
         with get_session() as session:
             prog = session.scalar(
                 select(GameProgression).where(
+                    GameProgression.run_index == FIRST_RUN,
                     GameProgression.user_id == get_user_id(session, player_name),
                     GameProgression.game_progress_index == 1,
                 )
@@ -220,6 +256,7 @@ def calculate_outro_percentage(player_name: str) -> int:
         with get_session() as session:
             prog = session.scalar(
                 select(GameProgression).where(
+                    GameProgression.run_index == FIRST_RUN,
                     GameProgression.user_id == get_user_id(session, player_name),
                     GameProgression.game_progress_index == 4,
                 )
@@ -255,7 +292,10 @@ def calculate_intro_questionaire_average(campaign_key: str | None = None) -> int
             sum_score = 0
             player_amount = 0
             intro_progs = session.scalars(
-                select(GameProgression).where(GameProgression.game_progress_index == 1)
+                select(GameProgression).where(
+                    GameProgression.game_progress_index == 1,
+                    GameProgression.run_index == FIRST_RUN,
+                )
             ).all()
             for prog in intro_progs:
                 user = prog.user_name
@@ -278,7 +318,10 @@ def calculate_outro_questionaire_average(campaign_key: str | None = None) -> int
             sum_score = 0
             player_amount = 0
             outro_progs = session.scalars(
-                select(GameProgression).where(GameProgression.game_progress_index == 4)
+                select(GameProgression).where(
+                    GameProgression.game_progress_index == 4,
+                    GameProgression.run_index == FIRST_RUN,
+                )
             ).all()
             for prog in outro_progs:
                 user = prog.user_name
@@ -339,6 +382,7 @@ def calculate_metric_sum_per_challenge(campaign_key: str | None = None) -> list[
                 select(GameChallenge)
                 .where(
                     GameChallenge.phase_index != 0,
+                    GameChallenge.run_index == FIRST_RUN,
                     GameChallenge.user_id.in_(valid_user_ids),
                 )
                 .order_by(GameChallenge.id.asc())
@@ -444,7 +488,10 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
             expert_players = set()
 
             intro_progs = session.scalars(
-                select(GameProgression).where(GameProgression.game_progress_index == 1)
+                select(GameProgression).where(
+                    GameProgression.game_progress_index == 1,
+                    GameProgression.run_index == FIRST_RUN,
+                )
             ).all()
             for prog in intro_progs:
                 user = prog.user_name
@@ -457,7 +504,10 @@ def get_questionaire_results(campaign_key: str | None = None) -> dict[str, Any]:
                         expert_players.add(user)
 
             outro_progs = session.scalars(
-                select(GameProgression).where(GameProgression.game_progress_index == 4)
+                select(GameProgression).where(
+                    GameProgression.game_progress_index == 4,
+                    GameProgression.run_index == FIRST_RUN,
+                )
             ).all()
 
             for i, q in enumerate(QuestionFactory.intro_questions):
@@ -565,7 +615,9 @@ def get_admin_dashboard_data(campaign: str | None = None) -> dict[str, Any]:
             "outroPercentage": calculate_outro_percentage(_name),
             "playTime": play_time_str,
             "campaign_name": _data.get("campaign_name", "Not Found"),
-            "campaign_key": _data.get("campaign_key", "")
+            "campaign_key": _data.get("campaign_key", ""),
+            "runs": _data.get("runs", 1),
+            "playtestTainted": bool(_data.get("playtest_tainted", False)),
         })
 
     metric_sums = calculate_metric_sum_per_challenge(campaign_key=target_campaign_key)
@@ -587,7 +639,8 @@ def add_campaign(
     new_campaign_name: str,
     new_campaign_key: str,
     is_active: bool = True,
-    use_questionnaire: bool = True
+    use_questionnaire: bool = True,
+    allow_replay: bool = False,
 ) -> None:
     try:
         with get_session() as session:
@@ -595,7 +648,8 @@ def add_campaign(
                 campaign_name=new_campaign_name,
                 campaign_key=new_campaign_key,
                 is_active=is_active,
-                use_questionnaire=use_questionnaire
+                use_questionnaire=use_questionnaire,
+                allow_replay=allow_replay,
             )
             session.add(new_c)
     except Exception as e:
@@ -608,6 +662,7 @@ def update_campaign(
     is_active: bool | None = None,
     use_questionnaire: bool | None = None,
     campaign_name: str | None = None,
+    allow_replay: bool | None = None,
 ) -> None:
     try:
         with get_session() as session:
@@ -619,6 +674,8 @@ def update_campaign(
                     campaign.use_questionnaire = use_questionnaire
                 if campaign_name is not None:
                     campaign.campaign_name = campaign_name
+                if allow_replay is not None:
+                    campaign.allow_replay = allow_replay
     except Exception as e:
         print(f"Error updating campaign {campaign_key}: {e}")
         raise

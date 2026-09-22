@@ -9,6 +9,8 @@ const API_HOST =
 const PROTOCOL = window.location.protocol === "https:" ? "https:" : "http:";
 const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 
+import type { AdminResultsData, AdminPlayerResults } from "../../components/Results/adminTypes";
+
 export interface AdminDashboardData {
   type: "admin_data_update";
   campaigns: any[];
@@ -75,6 +77,7 @@ export async function updateAdminCampaign(
   updates: {
     is_active?: boolean;
     use_questionnaire?: boolean;
+    allow_replay?: boolean;
     campaign_name?: string;
   }
 ): Promise<AdminDashboardData> {
@@ -93,6 +96,50 @@ export async function updateAdminCampaign(
   }
 
   return response.json();
+}
+
+export type AdminResultsRunsMode = "first" | "all";
+
+export interface AdminResultsQuery {
+  campaign?: string;
+  /** Include accounts that used the playtest tools. Off by default: they are not research data. */
+  includePlaytest?: boolean;
+  /** Only each player's first run counts by default; "all" includes replays. */
+  runs?: AdminResultsRunsMode;
+}
+
+async function adminGet<T>(token: string, path: string, failure: string): Promise<T> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || failure);
+  }
+  return response.json();
+}
+
+export function fetchAdminResults(token: string, query: AdminResultsQuery = {}): Promise<AdminResultsData> {
+  const params = new URLSearchParams();
+  if (query.campaign && query.campaign !== "all") params.set("campaign", query.campaign);
+  if (query.includePlaytest) params.set("include_playtest", "true");
+  if (query.runs) params.set("runs", query.runs);
+  const suffix = params.toString() ? `?${params}` : "";
+  return adminGet(token, `/api/admin/results${suffix}`, "Failed to fetch results.");
+}
+
+export function fetchAdminPlayerResults(
+  token: string,
+  player: string,
+  run?: number,
+): Promise<AdminPlayerResults> {
+  const suffix = run != null ? `?run=${run}` : "";
+  return adminGet(
+    token,
+    `/api/admin/results/player/${encodeURIComponent(player)}${suffix}`,
+    "Failed to fetch that player's results.",
+  );
 }
 
 export async function removeAdminCampaign(
