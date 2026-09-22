@@ -253,7 +253,9 @@
 
 .actions {
   display: flex;
+  flex-direction: column;
   justify-content: flex-end;
+  gap: 0.6rem;
   min-width: 16rem;
 }
 
@@ -277,6 +279,36 @@
 
 .actionButton:hover {
   background: var(--secondary-bg);
+}
+
+/* Costs a scarce Escalation Point and leaves a mark on the stakeholder: deliberately not the
+ * primary action's color, so it never reads as the default/easy choice. */
+.vetoBreakerButton {
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #b45309;
+  background: #fff7ed;
+  color: #9a3412;
+  font-weight: 600;
+  transition: all var(--transition);
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.vetoBreakerButton:hover:not(:disabled) {
+  background: #ffedd5;
+}
+
+.vetoBreakerButton:disabled {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 @keyframes fadeIn {

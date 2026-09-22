@@ -98,6 +98,9 @@ interface PitchStatePayload {
   intel_verified?: number;
   outcome?: string | null;
   veto_info?: VetoInfo | null;
+  /** How many Escalation Points are left this playthrough (D15): 3 to start, never regenerated
+   * within a run. Spent by the Veto Breaker in `VetoDialog`. */
+  escalation_points?: number;
 }
 
 export default function PitchDebate({
@@ -193,6 +196,10 @@ export default function PitchDebate({
   const [evaluatingPitchConvId, setEvaluatingPitchConvId] = useState<string | null>(null);
   const [vetoInfo, setVetoInfo] = useState<VetoInfo | null>(null);
   const [isVetoDialogOpen, setIsVetoDialogOpen] = useState(false);
+  // Escalation Points (D15): 3 per playthrough, never regenerated. Kept only from `pitch:state`,
+  // which always carries the live count, so this never drifts from what the server actually has.
+  const [escalationPoints, setEscalationPoints] = useState<number | null>(null);
+  const [isBreakingVeto, setIsBreakingVeto] = useState(false);
   const [isCommittedLocked, setIsCommittedLocked] = useState(false);
   const hasAutoTransitionedRef = useRef(false);
 
@@ -498,6 +505,9 @@ export default function PitchDebate({
 
   useWebSocketEvent<PitchStatePayload>("pitch:state", (payload) => {
     setPitchState(payload);
+    if (payload.escalation_points !== undefined) {
+      setEscalationPoints(payload.escalation_points);
+    }
     if (payload.stage === "PITCHED" || payload.stage === "DONE") {
       setIsPitchEvaluating(false);
       setEvaluatingPitchConvId(null);
@@ -512,6 +522,9 @@ export default function PitchDebate({
     if (payload.stage === "DONE") {
       if (payload.outcome === "VETO") {
         setIsCommittedLocked(false);
+        // A refused Veto Breaker (out of points, or a race with the button) lands back here
+        // with the same still-standing veto: stop showing the button as busy.
+        setIsBreakingVeto(false);
         if (payload.veto_info) {
           setVetoInfo(payload.veto_info);
           setIsVetoDialogOpen(true);
@@ -531,6 +544,10 @@ export default function PitchDebate({
         }
       } else if (payload.outcome === "PASS" || payload.outcome === "SOFT_PASS") {
         setIsCommittedLocked(true);
+        // Covers both an ordinary pass and a broken veto (outcome is "PASS" either way): the
+        // dialog has nothing left to say once the card is through.
+        setIsVetoDialogOpen(false);
+        setIsBreakingVeto(false);
         if (!hasAutoTransitionedRef.current && onEndPitch) {
           hasAutoTransitionedRef.current = true;
           setTimeout(() => {
@@ -1010,6 +1027,11 @@ export default function PitchDebate({
     setIsCommittedLocked(true);
     emit("pitch:commit", { ...base, atomic_changes: atomicChanges });
     triggerPlayerSpeech("⚖️ Calling for final decision and committing proposal.");
+  };
+
+  const handleVetoBreaker = () => {
+    setIsBreakingVeto(true);
+    emit("pitch:veto_breaker", base);
   };
 
   const handleProceedToSimulation = () => {
@@ -1686,6 +1708,9 @@ export default function PitchDebate({
         vetoInfo={vetoInfo}
         stakeholders={stakeholders as any}
         getStakeholderColor={getStakeholderColor}
+        escalationPoints={escalationPoints}
+        onVetoBreaker={handleVetoBreaker}
+        isBreakingVeto={isBreakingVeto}
       />
 
       {/* Full Page Offline Intel Gathering View for Single Artifact Review */}

@@ -86,6 +86,24 @@ class PitchContext:
         )
 
 
+def _primary_veto_read(view: pitch.CardView) -> pitch.StakeholderRead:
+    """Which stakeholder's veto is *the* veto: boundary violations first, then lowest buy-in.
+
+    Shared by the VETO branch of `handle_pitch_commit` (who gets the malus and the chat message)
+    and by `handle_pitch_veto_breaker` (who gets overridden) - both need the same answer to "who
+    is actually blocking this," so there is exactly one place that decides it.
+    """
+    veto_reads = [
+        r for r in view.reads
+        if r.power == "high" and (r.boundary_violated or r.buy_in < VETO_THRESHOLD)
+    ]
+    veto_reads.sort(key=lambda r: (not r.boundary_violated, r.buy_in))
+    if veto_reads:
+        return veto_reads[0]
+    fallback = [r for r in view.reads if r.boundary_violated or r.buy_in < VETO_THRESHOLD]
+    return (fallback or view.reads)[0]
+
+
 def get_allowed_targets(graph: TechnicalGraph, phase_id: int, challenge_id: int, all_intel: list) -> list[str]:
     """Governance and infra nodes are viewable/editable anytime; lifecycle nodes only in their phase and challenge."""
     allowed: list[str] = []
@@ -220,6 +238,7 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "emotion_deltas": state.emotion_deltas,
         "outcome": state.outcome,
         "presentation_count": getattr(state, "presentation_count", 0),
+        "escalation_points": pitch_store.escalation_points(ctx.username),
     }
     payload.update(extra)
     return payload
@@ -599,16 +618,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
             ctx.emotions = pitch_store.apply_emotion_deltas(username, committed_state.emotion_deltas, ctx.room_ids)
     else:
         # 1. Identify high-power vetoing stakeholders
-        veto_reads = [
-            r for r in view.reads
-            if r.power == "high" and (r.boundary_violated or r.buy_in < VETO_THRESHOLD)
-        ]
-        # Sort by boundary_violated first, then lowest buy_in
-        veto_reads.sort(key=lambda r: (not r.boundary_violated, r.buy_in))
-        primary_veto_read = veto_reads[0] if veto_reads else (
-            [r for r in view.reads if r.boundary_violated or r.buy_in < VETO_THRESHOLD] or view.reads
-        )[0]
-
+        primary_veto_read = _primary_veto_read(view)
         veto_st_id = primary_veto_read.stakeholder_id
         veto_st_name = ctx.names.get(veto_st_id, veto_st_id)
         veto_st = StakeholderFactory.get_stakeholder(veto_st_id)
@@ -762,6 +772,42 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
     await _send(websocket, ctx, committed_state, view, applied=applied, veto_info=veto_info)
 
 
+async def handle_pitch_veto_breaker(websocket: WebSocket, username: str, payload: dict) -> None:
+    """Spends an Escalation Point to push a stood veto through anyway (D15).
+
+    Only usable on a committed veto - `pitch:commit` must have already landed on VETO, the same
+    way the old flow required a "stood veto" before this was available. This pushes *that* card
+    through; it does not let the player change the card first (that is just building a different
+    one via `pitch:set_card`, free, no escalation needed - the tool exists for when no card would
+    ever clear the room, not as a shortcut around building one).
+    """
+    ctx = PitchContext(username, payload.get("phase_id", 0), payload.get("challenge_id", 0))
+    state = _load_or_start(ctx)
+    if state.stage != "DONE" or state.outcome != "VETO":
+        await _send(websocket, ctx, state, ctx.view(state), error="no veto standing to push through")
+        return
+
+    points = pitch_store.escalation_points(username)
+    if points <= 0:
+        await _send(websocket, ctx, state, ctx.view(state), error="no Escalation Points left")
+        return
+
+    view = ctx.view(state)
+    overridden = _primary_veto_read(view).stakeholder_id
+    updated_state, events = pitch.veto_breaker(state, overridden, names=ctx.names)
+
+    ctx.emotions = pitch_store.apply_emotion_deltas(
+        username, {overridden: EmotionFactory.get_pitch_tuning().emotion_veto_breaker}, ctx.room_ids
+    )
+    applied = _apply_card(ctx, updated_state, view)
+    pitch_store.spend_escalation_point(username)
+
+    pitch_store.save_pitch(username, ctx.phase_id, ctx.challenge_id, updated_state)
+    await send_events(websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events])
+    # `_payload` fetches escalation_points fresh, so it already reflects the spend above.
+    await _send(websocket, ctx, updated_state, view, applied=applied, veto_info=None, veto_broken=True)
+
+
 def _apply_card(ctx: PitchContext, state: pitch.PitchState, view: pitch.CardView) -> dict[str, Any]:
     """Evaluates card operations in memory for the pitch result. The simulation phase persists the graph changes."""
     ops = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
@@ -782,4 +828,5 @@ __all__ = [
     "handle_pitch_set_card",
     "handle_pitch_evaluate",
     "handle_pitch_commit",
+    "handle_pitch_veto_breaker",
 ]
