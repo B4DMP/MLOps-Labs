@@ -148,21 +148,27 @@ def risk_band(value: float) -> str:
 
 
 def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
-    """Returns all ancestor components in the pipeline graph feeding into target."""
-    preds: set[str] = set()
+    """Returns all ancestor components in the pipeline graph feeding into target, in stable BFS
+    discovery order. `seen` is only for membership testing - the returned order must not depend
+    on set/dict iteration (which Python randomizes per-process via PYTHONHASHSEED for str keys),
+    or the same graph state can report a different `upstream_uncertain_nodes` list on every run."""
+    seen: set[str] = set()
+    preds: list[str] = []
     if graph.is_edge(target):
         edge = graph.edge(target)
         queue = [edge.from_id]
-        preds.add(edge.from_id)
+        seen.add(edge.from_id)
+        preds.append(edge.from_id)
     else:
         queue = [target]
     while queue:
         curr = queue.pop(0)
         for e in graph.pipeline_edges():
-            if e.to_id == curr and e.from_id not in preds:
-                preds.add(e.from_id)
+            if e.to_id == curr and e.from_id not in seen:
+                seen.add(e.from_id)
+                preds.append(e.from_id)
                 queue.append(e.from_id)
-    return list(preds)
+    return preds
 
 
 def _extract_target_and_level(item: Any, graph: TechnicalGraph, state: GraphState) -> tuple[Optional[str], Optional[int]]:

@@ -5,6 +5,13 @@
 - commit_pitch
 """
 
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
 from conftest import (
     make_intel_item as _item,
     make_target as _target,
@@ -41,6 +48,59 @@ def test_an_unobserved_target_predicts_nothing(real):
 
     assert (blind.known, blind.predicted, blind.capped_by) == (False, None, None)
     assert seen.known and seen.predicted is not None
+
+
+def test_find_pipeline_predecessors_is_repeatable_in_process(real):
+    """`find_pipeline_predecessors` must return the same order every time it's called with the
+    same graph and target: `predictions_for` reports its result verbatim as
+    `upstream_uncertain_nodes`, and a caller diffing two calls (or a test asserting on the exact
+    list) must not see it reshuffle."""
+    state = GraphState.from_config(real)
+    first = session.find_pipeline_predecessors(real, "deploy.shadow")
+    for _ in range(20):
+        assert session.find_pipeline_predecessors(real, "deploy.shadow") == first
+
+
+def test_find_pipeline_predecessors_order_is_stable_across_processes():
+    """Regression for a hash-order bug (ch118, `deploy.shadow`): `find_pipeline_predecessors`
+    used to build its result as a `set` and return `list(that_set)`. Set iteration order for
+    `str` keys depends on Python's per-process hash randomization (`PYTHONHASHSEED`), so the same
+    graph and target produced a different `upstream_uncertain_nodes` order - and, worse, a
+    different first/blocking node wherever a caller relied on that order - on every fresh
+    process, even with no code or data change between runs. Confirmed by running this exact
+    scenario 8x in a row inside the `api` container. Fixed by returning the BFS visitation order
+    directly instead of routing it through a set. This spawns several real subprocesses with
+    different explicit `PYTHONHASHSEED` values - only that reproduces the bug, since hash seed is
+    fixed for the lifetime of one process and an in-process repeat can't catch it.
+    """
+    config_candidates = [
+        Path("/gameConfig"),
+        Path(__file__).resolve().parent.parent.parent / "gameConfig",
+        Path(__file__).resolve().parent.parent / "gameConfig",
+    ]
+    config_dir = next((c for c in config_candidates if (c / "MlopsGraph.json").exists()), None)
+    if config_dir is None:
+        pytest.skip("gameConfig not found")
+
+    script = (
+        "from mlops_serious_game.domain.graph_factory import GraphFactory\n"
+        "from mlops_serious_game.application.pitch_debate_service.session import find_pipeline_predecessors\n"
+        "import pathlib\n"
+        f"graph = GraphFactory.load_graph(pathlib.Path({str(config_dir / 'MlopsGraph.json')!r}))\n"
+        "print(','.join(find_pipeline_predecessors(graph, 'deploy.shadow')))\n"
+    )
+
+    results = []
+    for seed in ("0", "1", "2", "42", "1337"):
+        proc = subprocess.run(
+            [sys.executable, "-c", script],
+            env={**os.environ, "PYTHONHASHSEED": seed},
+            capture_output=True, text=True, timeout=60,
+        )
+        assert proc.returncode == 0, proc.stderr
+        results.append(proc.stdout.strip())
+
+    assert len(set(results)) == 1, f"predecessor order varies by PYTHONHASHSEED: {results}"
 
 
 def test_boundary_is_checked_slotted_or_not(real):
