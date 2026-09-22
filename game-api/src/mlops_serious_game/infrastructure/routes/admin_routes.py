@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, Header, Depends, Query
 from pydantic import BaseModel
 
@@ -15,6 +15,10 @@ from mlops_serious_game.application.services.admin_service import (
     save_and_reload_config_file,
     trigger_generate_offline_intel_artifacts
 )
+from mlops_serious_game.application.services.admin_results import (
+    get_player_results,
+    get_results_dashboard,
+)
 from mlops_serious_game.config import settings
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -25,11 +29,13 @@ class CampaignAddRequest(BaseModel):
     new_campaign_key: str
     is_active: bool = True
     use_questionnaire: bool = True
+    allow_replay: bool = False
 
 
 class CampaignUpdateRequest(BaseModel):
     is_active: bool | None = None
     use_questionnaire: bool | None = None
+    allow_replay: bool | None = None
     campaign_name: str | None = None
 
 
@@ -56,6 +62,31 @@ async def get_dashboard(campaign: str | None = None, _: str = Depends(check_admi
     return {"type": "admin_data_update", **data}
 
 
+@router.get("/results")
+async def get_results(
+    campaign: str | None = None,
+    include_playtest: bool = False,
+    runs: Literal["first", "all"] = "first",
+    _: str = Depends(check_admin_token),
+):
+    """Campaign aggregates over finished runs. Playtest accounts and replays are left out unless
+    asked for, so the default numbers are the ones a study can stand behind."""
+    return get_results_dashboard(campaign, include_playtest=include_playtest, runs=runs)
+
+
+@router.get("/results/player/{player_name}")
+async def get_player_results_route(
+    player_name: str,
+    run: int | None = None,
+    refresh: bool = False,
+    _: str = Depends(check_admin_token),
+):
+    try:
+        return get_player_results(player_name, run, refresh=refresh)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.post("/campaigns")
 async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_token)):
     add_campaign(
@@ -63,6 +94,7 @@ async def create_campaign(req: CampaignAddRequest, _: str = Depends(check_admin_
         new_campaign_key=req.new_campaign_key,
         is_active=req.is_active,
         use_questionnaire=req.use_questionnaire,
+        allow_replay=req.allow_replay,
     )
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
@@ -75,6 +107,7 @@ async def patch_campaign(campaign_key: str, req: CampaignUpdateRequest, _: str =
             campaign_key=campaign_key,
             is_active=req.is_active,
             use_questionnaire=req.use_questionnaire,
+            allow_replay=req.allow_replay,
             campaign_name=req.campaign_name,
         )
         data = get_admin_dashboard_data()
