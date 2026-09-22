@@ -26,7 +26,7 @@
         "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
         "fact": "The KPI definition is currently missing from the system."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_heatwave_kpi_gap_monica_criteria_automation",
@@ -155,7 +155,7 @@
         "boundary": "She will not accept any data contract change that delays the weekly leaflet deadline.",
         "fact": "That is simply how the data contract setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_loyalty_consent_gap_reuben_kpi_baseline",
@@ -270,7 +270,7 @@
         "trade_off": "He would drop the audit requirement if the supplier delays the shipment by a week.",
         "fact": "The current workflow does not include a governance step for the acceptance criteria."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_committed_pallets_ruth_speed_trade",
@@ -298,7 +298,7 @@
         "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
         "fact": "The KPI definition is currently missing."
       },
-      "is_known": true
+      "is_known": false
     },
     {
       "id": "art_gen_committed_pallets_alex_pipeline_trade",
@@ -326,7 +326,7 @@
         "trade_off": "She would accept a manual monitoring check if the automated one is not ready.",
         "fact": "The allocation module currently has no monitoring check."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_committed_pallets_emilia_cost_trade",
@@ -413,7 +413,7 @@
         "boundary": "He will not allow unverified data to reach the feature store.",
         "fact": "That is simply how the ingestion setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_silent_ingestion_failure_reuben_boundary_validation",
@@ -542,7 +542,7 @@
         "trade_off": "He would accept automated validation if the team budget is increased.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_nightly_window_miss_ruth_ingestion_tradeoff",
@@ -686,7 +686,7 @@
         "trade_off": "He would accept a slower evaluation cycle if the documentation requirements remain strict.",
         "fact": "That is simply how the evaluation setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_heatwave_forecast_gap_dave_tradeoff_data",
@@ -831,7 +831,7 @@
         "trade_off": "{requirements_reuben.first} would accept an automated review if it included a human sign-off step.",
         "fact": "That is simply how the review process works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_override_blind_spot_monica_automation_push",
@@ -974,7 +974,7 @@
         "trade_off": "The audit trails are a nice to have feature that can be added later if the deployment is urgent.",
         "fact": "The audit trails are currently missing from the deployment pipeline configuration."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_alex_manual_approval",
@@ -1104,7 +1104,7 @@
         "trade_off": "She would accept a manual shadow run if it guarantees that the live forecast service remains stable during the promotion week.",
         "fact": "That is simply how the current deployment process is structured, with no automatic verification step before release."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_shadow_deployment_contract_alex_shadow_tradeoff",
@@ -1118,7 +1118,7 @@
         "boundary": "He will not allow any changes to the shadow environment that might introduce instability into the current deployment infrastructure.",
         "fact": "That is simply how the team currently handles shadow testing, with manual scripts run outside the main pipeline."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_shadow_deployment_contract_ruth_cicd_driver",
@@ -1132,7 +1132,7 @@
         "trade_off": "She would accept a manual trigger if the automated pipeline is not yet stable enough for nightly forecasts.",
         "fact": "That is simply what the current CI/CD configuration does, with no automatic link to the shadow environment."
       },
-      "is_known": true
+      "is_known": false
     },
     {
       "id": "art_gen_shadow_deployment_contract_reuben_gov_driver",
@@ -1247,7 +1247,7 @@
         "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the monitoring pipeline.",
         "fact": "That is simply how the monitoring setup works today."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_silent_forecast_failure_monica_driver_drift",
@@ -1392,7 +1392,7 @@
         "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",
         "fact": "The current budget for drift monitoring is zero."
       },
-      "is_known": false
+      "is_known": true
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_ruth_governed_drift",

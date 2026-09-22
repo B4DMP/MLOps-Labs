@@ -27,9 +27,11 @@ from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 CONFLICT_TARGET = "data.validation"
 
 
-def _stance(req_id: str) -> StakeholderRequirement:
+def _stance(req_id: str, stakeholder_id: str = "tess_tester", target: str | None = None) -> StakeholderRequirement:
+    payload = {"suggested": {"target": target, "level": 3}} if target else {}
     return StakeholderRequirement(
-        id=req_id, challenge_id=7, stakeholder_id="tess_tester", type="driver", description=f"Tess cares about {req_id}"
+        id=req_id, challenge_id=7, stakeholder_id=stakeholder_id, type="driver",
+        description=f"{stakeholder_id} cares about {req_id}", **payload,
     )
 
 
@@ -178,12 +180,15 @@ async def test_the_on_record_fact_leads_the_deck():
     ]
 
 
-def test_the_challenge_goes_on_record_as_the_voiced_fact_about_its_conflict_target():
+def test_the_challenge_goes_on_record_as_both_conflicting_stances_and_the_voiced_fact():
     from content_gen.assemble import on_record_ids
 
     reqs = [
-        ("ch_x", _stance("x_driver")),
-        ("ch_x", _stance("x_driver_again")),
+        ("ch_x", _stance("x_emma_driver", "emma", CONFLICT_TARGET)),
+        ("ch_x", _stance("x_emma_driver_again", "emma", CONFLICT_TARGET)),
+        ("ch_x", _stance("x_dave_boundary", "dave", CONFLICT_TARGET)),
+        ("ch_x", _stance("x_bystander", "bystander", CONFLICT_TARGET)),
+        ("ch_x", _stance("x_emma_elsewhere", "emma", "data.ingestion")),
         ("ch_x", _fact("x_elsewhere")),
         ("ch_x", _fact("x_silent", CONFLICT_TARGET)),
         ("ch_x", _fact("x_conflict", CONFLICT_TARGET)),
@@ -194,7 +199,61 @@ def test_the_challenge_goes_on_record_as_the_voiced_fact_about_its_conflict_targ
         for _, req in reqs
     }
 
-    assert on_record_ids(reqs, artifacts, {"ch_x": CONFLICT_TARGET}) == {"x_driver", "x_conflict"}
+    known = on_record_ids(
+        reqs, artifacts,
+        {"ch_x": CONFLICT_TARGET},
+        {"ch_x": {"emma", "dave"}},
+    )
+    assert known == {"x_emma_driver", "x_dave_boundary", "x_conflict"}
+
+
+def test_a_trade_off_stance_counts_by_its_branch_target_not_just_asserts_or_suggested():
+    from content_gen.assemble import on_record_ids
+
+    # A Trade-off carries its target on branch_x/branch_y, not on any field item_target reads
+    # directly - this is the losing side of a "hard"/"soft" conflict, e.g. ch_shadow_deployment_contract.
+    trade_off = StakeholderRequirement(
+        id="x_dave_tradeoff", challenge_id=7, stakeholder_id="dave", type="trade_off",
+        description="Dave would accept less if pushed",
+        branch_x={"target": CONFLICT_TARGET, "level": 4},
+        branch_y={"target": CONFLICT_TARGET, "level": 2},
+    )
+    reqs = [
+        ("ch_x", _stance("x_emma_driver", "emma", CONFLICT_TARGET)),
+        ("ch_x", trade_off),
+    ]
+    artifacts = {req.id: {"inputs": {"narrator": {"id": "tess_tester"}}} for _, req in reqs}
+
+    known = on_record_ids(
+        reqs, artifacts,
+        {"ch_x": CONFLICT_TARGET},
+        {"ch_x": {"emma", "dave"}},
+    )
+    assert known == {"x_emma_driver", "x_dave_tradeoff"}
+
+
+def test_a_conflict_stakeholder_with_no_target_matched_stance_still_goes_on_record():
+    from content_gen.assemble import on_record_ids
+
+    # Some authored Trade-offs only concede a metric (concedes.metric_id/loss), with no
+    # concedes.target and no ops at all - nothing structural ties them to the conflict target,
+    # even though they are that stakeholder's only stance in the challenge (ch_shadow_deployment_contract).
+    untargeted = StakeholderRequirement(
+        id="x_dave_untargeted", challenge_id=7, stakeholder_id="dave", type="trade_off",
+        description="Dave would give up automation for this", concedes={"metric_id": "automation", "loss": 3},
+    )
+    reqs = [
+        ("ch_x", _stance("x_emma_driver", "emma", CONFLICT_TARGET)),
+        ("ch_x", untargeted),
+    ]
+    artifacts = {req.id: {"inputs": {"narrator": {"id": "tess_tester"}}} for _, req in reqs}
+
+    known = on_record_ids(
+        reqs, artifacts,
+        {"ch_x": CONFLICT_TARGET},
+        {"ch_x": {"emma", "dave"}},
+    )
+    assert known == {"x_emma_driver", "x_dave_untargeted"}
 
 
 # ---- content generation: who voices a Fact, and how ----
