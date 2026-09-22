@@ -1,0 +1,120 @@
+{
+  "verdict": {
+    "S": {
+      "closing": "A year on, nobody at Lindenmarkt calls it \"the Shelfcast project\" any more.\nThey just call it the forecast, and they plan around it.",
+      "spiral_closing": "This cycle closes with Shelfcast trusted enough that the next argument is about what else it should decide, not whether it should decide anything.",
+      "scoreboard": {
+        "availability": "Shoppers find the article on the shelf, including in the middle aisle week.",
+        "waste": "Fresh waste is down to what the category team considers normal loss.",
+        "residual_stock": "Promotion weeks end close to clean. The warehouse is not holding last season's garden furniture.",
+        "override_rate": "Store managers rarely override the suggestion now. When they do, the team goes and looks, because it usually means something real."
+      }
+    },
+    "A": {
+      "closing": "Shelfcast runs the nightly forecast for every store, and the buyers have stopped keeping a private spreadsheet next to it.\nThat second part took longer than the first.",
+      "spiral_closing": "This cycle ends with the platform doing its job and the room mostly agreeing on what it should do next.",
+      "scoreboard": {
+        "availability": "Availability is better than the year before, clearly enough that the regions noticed.",
+        "waste": "Fresh waste is down, though nobody would call it solved.",
+        "residual_stock": "Most promotion weeks land near their allocation. The misses are smaller than they used to be.",
+        "override_rate": "Overrides have fallen. A few regions still run their own way and nobody has pushed the issue."
+      }
+    },
+    "B": {
+      "closing": "Shelfcast is live and it is genuinely better than the spreadsheets, which is not the same as the project having gone well.\nThe team knows the difference.",
+      "spiral_closing": "This cycle leaves a working platform with a list of things everyone agrees should have been done differently.",
+      "scoreboard": {
+        "availability": "Availability improved on the core range. The middle aisle is still a lottery.",
+        "waste": "Waste moved a little. The weather feed helps on the days it is right.",
+        "residual_stock": "Promotion residuals are roughly where they were, which the buyers point out regularly.",
+        "override_rate": "Overrides are down in the regions that were consulted and flat in the ones that were not."
+      }
+    },
+    "C": {
+      "closing": "Shelfcast forecasts every night and the stores work around it.\nThe platform is real; the trust that was supposed to come with it is not, yet.",
+      "spiral_closing": "This cycle ends with the platform running and the room no more convinced than when it started.",
+      "scoreboard": {
+        "availability": "Availability is about where it was. The cases everyone complained about still happen.",
+        "waste": "Fresh waste is unchanged. Nobody can agree whether that is the model or the ordering rules.",
+        "residual_stock": "Residual stock after a promotion week is still a buyer's problem, solved by instinct.",
+        "override_rate": "Store managers override roughly as often as before, and now they have a year of examples."
+      }
+    },
+    "D": {
+      "closing": "Shelfcast runs, after a fashion.\nTwice this quarter the forecast missed the morning order window and the stores ordered blind, and everyone remembers both days.",
+      "spiral_closing": "This cycle ends with more to undo than to build on, and the room knows it.",
+      "scoreboard": {
+        "availability": "Availability is worse in the regions that leaned on the suggestions. They have stopped leaning.",
+        "waste": "Waste is up on fresh, and the weekly review has started opening with it.",
+        "residual_stock": "There are pallets of an advertised promotion still in the warehouse, six weeks after the week ended.",
+        "override_rate": "The override rate is higher than before the project started. That number is the one management asks about."
+      }
+    },
+    "E": {
+      "closing": "Nobody cancels Shelfcast.\nIt keeps running, and the stores keep ignoring it, and the buyers keep their spreadsheets open beside it. A year, spent to arrive back where it began, with the added knowledge that this was the attempt.",
+      "spiral_closing": "This cycle ends with the platform trusted less than when it started, which is the one outcome the team was told to avoid.",
+      "scoreboard": {
+        "availability": "Availability is no better, and in the promotion weeks it is worse.",
+        "waste": "Fresh waste is up. The category team has gone back to ordering the way they did before.",
+        "residual_stock": "An advertised article sold out on the first morning in half the estate. A different one is still on pallets.",
+        "override_rate": "Almost every suggested order is overridden. The signal the model needs is gone, because nobody is following it."
+      }
+    }
+  },
+  "beats": [
+    {
+      "id": "stakeholder_hostile",
+      "priority": 90,
+      "when": {"stakeholder_mood_below": 0.3},
+      "text": "{st}'s trust never recovered. By the end they had stopped raising objections in meetings entirely, not because they agreed but because raising them had stopped changing anything."
+    },
+    {
+      "id": "grudge_fired",
+      "priority": 85,
+      "when": {"fired_grudges_at_least": 1},
+      "text": "A concern {st} raised and was overruled on came back later as a real incident, one that took a week to fix."
+    },
+    {
+      "id": "stage_broken",
+      "priority": 80,
+      "when": {"broken_stage": true},
+      "text": "{stage} broke and was never repaired. Every stage downstream of it has been working with whatever degraded output it produces."
+    },
+    {
+      "id": "intel_misread",
+      "priority": 70,
+      "when": {"intel_accuracy_below": 0.4},
+      "text": "The team misread what stakeholders actually needed more often than not, mistaking hard boundaries for mere preferences, so proposals kept hitting the same objections."
+    },
+    {
+      "id": "intel_sharp",
+      "priority": 65,
+      "when": {"intel_accuracy_at_least": 0.75},
+      "text": "The team consistently understood what each stakeholder actually needed before proposing anything, which is why objections stayed rare."
+    },
+    {
+      "id": "vetoed_often",
+      "priority": 60,
+      "when": {"veto_count_at_least": 2},
+      "text": "More than one proposal was rejected outright. After that the team played it safe, and nobody proposed the bigger fix again."
+    },
+    {
+      "id": "clean_run",
+      "priority": 55,
+      "when": {"veto_count_at_most": 0, "fired_grudges_at_most": 0},
+      "text": "Nothing shipped over anyone's objections. Every change that went through had the backing of the person it affected."
+    },
+    {
+      "id": "room_warm",
+      "priority": 50,
+      "when": {"relations_at_least": 0.7},
+      "text": "Relations across the room stayed strong throughout. Whoever runs the next cycle inherits people who will raise problems early."
+    },
+    {
+      "id": "default",
+      "priority": 0,
+      "when": {},
+      "text": "The team shipped what it could agree on, and left the rest for the next cycle. Most projects end this way; few admit it."
+    }
+  ]
+}

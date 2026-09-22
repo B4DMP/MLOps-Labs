@@ -11,6 +11,7 @@ from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactor
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.glossary_factory import GlossaryFactory
 from mlops_serious_game.domain.graph_factory import GraphFactory
+from mlops_serious_game.domain.epilogue_factory import EpilogueFactory
 from mlops_serious_game.domain.story_factory import StoryFactory
 from mlops_serious_game.domain.pattern import PatternFactory
 from mlops_serious_game.domain.setting_factory import SettingFactory
@@ -68,6 +69,10 @@ class GameConfigLoader:
             questions_path= (config_dir / "EvaluationQuestions.json")
             QuestionFactory.load_questions(questions_path)
             print(f"loaded questions.")
+
+            epilogue_path = (config_dir / "EndgameEpilogue.json")
+            EpilogueFactory.load(epilogue_path)
+            print(f"loaded endgame epilogue: {len(EpilogueFactory.verdicts)} bands, {len(EpilogueFactory.beats)} beats.")
             briefing_path= (config_dir / "Briefing.json")
             BriefingFactory.load_briefing(briefing_path)
 
