@@ -68,6 +68,8 @@ function dashboard(overrides: Partial<AdminResultsData> = {}): AdminResultsData 
         outro_percent_by_run: { "1": stats(70) },
       },
       metrics: {},
+      metric_series: {},
+      mood_series: {},
     },
     intel_items: {
       most_gathered: [
@@ -77,6 +79,9 @@ function dashboard(overrides: Partial<AdminResultsData> = {}): AdminResultsData 
         { id: "r9", stakeholder: "Reliability Ruth", challenge: "Intro", text: "Ruth wants rollback", gathered: 0, dealt: 4, rate: 0 },
       ],
     },
+    metric_info: {},
+    stakeholder_order: ["data_dave", "reliability_ruth"],
+    stakeholders: { data_dave: "Data Dave", reliability_ruth: "Reliability Ruth" },
     players: [
       {
         name: "alice",
@@ -207,6 +212,54 @@ describe("AdminResults", () => {
 
     const tile = (await screen.findByText("Knowledge change")).closest("div") as HTMLElement;
     expect(within(tile).getByText("n/a")).toBeInTheDocument();
+  });
+
+  it("does not show the metric evolution chart when there is nothing to plot", async () => {
+    renderPage();
+    await screen.findByText("Finished runs");
+
+    expect(screen.queryByText("Metric evolution")).not.toBeInTheDocument();
+  });
+
+  it("shows the metric evolution chart when the campaign has metric series, named from the campaign config", async () => {
+    const withMetrics = dashboard();
+    withMetrics.aggregates.metric_series = {
+      model_quality: [stats(0.4), stats(0.6)],
+    };
+    withMetrics.metric_info = {
+      model_quality: { name: "Model Fitness", metric_color: "#3b82f6", metric_icon: "ph:brain-bold" },
+    };
+    mockedResults.mockResolvedValue(withMetrics);
+    renderPage();
+
+    const section = (await screen.findByText("Metric evolution")).closest("section") as HTMLElement;
+    await userEvent.click(within(section).getByRole("button", { name: "View as table" }));
+    // The name comes from `metric_info`, not the id-derived fallback: proves the dashboard's own
+    // campaign config reaches the chart rather than every metric falling back to the same label/colour.
+    expect(within(section).getByText("Model Fitness")).toBeInTheDocument();
+    expect(within(section).queryByText("Model Quality")).not.toBeInTheDocument();
+    expect(within(section).getByText("60%")).toBeInTheDocument();
+  });
+
+  it("does not show the stakeholder mood chart when there is nothing to plot", async () => {
+    renderPage();
+    await screen.findByText("Finished runs");
+
+    expect(screen.queryByText("Stakeholder mood over time")).not.toBeInTheDocument();
+  });
+
+  it("shows the stakeholder mood chart when the campaign has mood series, named from the roster", async () => {
+    const withMood = dashboard();
+    withMood.aggregates.mood_series = {
+      data_dave: [stats(0.3), stats(0.5)],
+    };
+    mockedResults.mockResolvedValue(withMood);
+    renderPage();
+
+    const section = (await screen.findByText("Stakeholder mood over time")).closest("section") as HTMLElement;
+    await userEvent.click(within(section).getByRole("button", { name: "View as table" }));
+    expect(within(section).getByText("Data Dave")).toBeInTheDocument();
+    expect(within(section).getByText("50%")).toBeInTheDocument();
   });
 
   it("flags a playtest account in the player list", async () => {

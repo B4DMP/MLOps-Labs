@@ -172,6 +172,50 @@ def metric_summary(payloads: list[dict]) -> dict[str, dict[str, Optional[float]]
     return {metric_id: describe(values) for metric_id, values in by_metric.items()}
 
 
+def metric_series_summary(payloads: list[dict]) -> dict[str, list[dict[str, Optional[float]]]]:
+    """Each gauge's value after challenge 1, 2, 3..., averaged over the campaign.
+
+    Runs that ended earlier than others simply stop contributing past their last challenge, the same
+    way every other aggregate here treats an absent reading as absent rather than zero.
+    """
+    by_metric: dict[str, list[list[float]]] = {}
+    for payload in payloads:
+        for metric in (payload.get("metrics") or {}).get("metrics", []):
+            by_metric.setdefault(metric["id"], []).append(metric.get("series") or [])
+
+    result: dict[str, list[dict[str, Optional[float]]]] = {}
+    for metric_id, all_series in by_metric.items():
+        length = max((len(series) for series in all_series), default=0)
+        result[metric_id] = [
+            describe(series[i] for series in all_series if i < len(series))
+            for i in range(length)
+        ]
+    return result
+
+
+def mood_series_summary(payloads: list[dict]) -> dict[str, list[dict[str, Optional[float]]]]:
+    """Each stakeholder's mood after challenge 1, 2, 3..., averaged over the campaign.
+
+    A stakeholder not in the room for a given payload's challenge contributes nothing at that index
+    (their own reading is already `None` there), the same absent-not-zero treatment `describe` gives
+    every other reading here. Runs that ended earlier simply stop contributing past their last
+    challenge, exactly as `metric_series_summary` treats a shorter run.
+    """
+    by_stakeholder: dict[str, list[list[Optional[float]]]] = {}
+    for payload in payloads:
+        for stakeholder_id, series in (payload.get("mood") or {}).get("series", {}).items():
+            by_stakeholder.setdefault(stakeholder_id, []).append(series or [])
+
+    result: dict[str, list[dict[str, Optional[float]]]] = {}
+    for stakeholder_id, all_series in by_stakeholder.items():
+        length = max((len(series) for series in all_series), default=0)
+        result[stakeholder_id] = [
+            describe(series[i] for series in all_series if i < len(series))
+            for i in range(length)
+        ]
+    return result
+
+
 def aggregate_results(payloads: list[dict], *, top: int = 5) -> dict[str, Any]:
     """Everything the admin Results page shows for one set of runs."""
     overall = [(p.get("grade") or {}).get("overall") for p in payloads]
@@ -191,4 +235,6 @@ def aggregate_results(payloads: list[dict], *, top: int = 5) -> dict[str, Any]:
         "intel": intel_summary(payloads),
         "knowledge": knowledge_summary(payloads),
         "metrics": metric_summary(payloads),
+        "metric_series": metric_series_summary(payloads),
+        "mood_series": mood_series_summary(payloads),
     }

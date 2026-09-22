@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import { Line } from "react-chartjs-2";
+import type { ChartOptions } from "chart.js";
+import "./chartSetup";
 import {
   fetchAdminPlayerResults,
   fetchAdminResults,
   type AdminResultsRunsMode,
 } from "../../services/api/admin";
-import { BarRow, Empty, Section, StatTile, TileRow } from "./parts";
+import { BarRow, ChartTable, Empty, Section, StatTile, TileRow } from "./parts";
 import ResultsHero from "./ResultsHero";
 import ResultsTabs from "./ResultsTabs";
 import type { AdminPlayerResults, AdminResultsData, Stats } from "./adminTypes";
-import { prettify } from "./palette";
+import { CHART_INK, prettify, stakeholderColor } from "./palette";
 import { PILLAR_LABEL, type GradeLetter, type PillarId } from "./types";
 import type { MetricInfo } from "./tabs/MetricsTab";
 import tabStyles from "./tabs.module.css";
@@ -88,6 +91,9 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
   }, [adminToken, selected]);
 
   const agg = data?.aggregates;
+  // The campaign config carries real names/colours once the dashboard has loaded; the prop is only
+  // ever a fallback for a caller that has not threaded the dashboard through yet.
+  const metricDisplay = data?.metric_info ?? metricInfo;
 
   return (
     <div className={styles.page}>
@@ -204,6 +210,14 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
               </table>
             </div>
           </Section>
+
+          <MetricEvolution metricSeries={agg.metric_series} metricInfo={metricDisplay} />
+
+          <StakeholderEvolution
+            moodSeries={agg.mood_series}
+            stakeholderOrder={data?.stakeholder_order ?? []}
+            stakeholderNames={data?.stakeholders ?? {}}
+          />
 
           <Section title="How proposals fared">
             <TileRow>
@@ -337,11 +351,169 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
           <ResultsTabs
             key={`${detail.player}-${detail.run_index}`}
             results={detail.results}
-            metricInfo={metricInfo}
+            metricInfo={metricDisplay}
           />
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The campaign's aggregate equivalent of the per-run `MetricsTab` chart: each gauge's mean value
+ * after challenge 1, 2, 3..., averaged across every counted run.
+ */
+function MetricEvolution({
+  metricSeries,
+  metricInfo,
+}: {
+  metricSeries: Record<string, Stats[]>;
+  metricInfo: Record<string, MetricInfo>;
+}) {
+  const entries = Object.entries(metricSeries);
+  if (entries.length === 0) return null;
+
+  const info = (metricId: string): MetricInfo =>
+    metricInfo[metricId] ?? { name: prettify(metricId), metric_color: "#64748b", metric_icon: "ph:chart-line-up-bold" };
+
+  const challenges = Math.max(...entries.map(([, series]) => series.length));
+  const labels = Array.from({ length: challenges }, (_, i) => `${i + 1}`);
+
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { color: CHART_INK.secondary, usePointStyle: true, boxWidth: 8, font: { size: 11 } },
+      },
+    },
+    scales: {
+      x: {
+        title: { display: true, text: "After challenge", color: CHART_INK.secondary },
+        grid: { display: false },
+        ticks: { color: CHART_INK.secondary },
+      },
+      y: { beginAtZero: true, grid: { color: CHART_INK.grid }, ticks: { color: CHART_INK.secondary } },
+    },
+  };
+
+  return (
+    <Section
+      title="Metric evolution"
+      note="Mean of each gauge after every challenge, across every counted run. Runs that ended
+        earlier stop contributing after their last challenge, so later points can rest on fewer runs."
+    >
+      <ChartTable
+        title="How the campaign moved"
+        chart={
+          <Line
+            options={options}
+            data={{
+              labels,
+              datasets: entries.map(([metricId, series]) => ({
+                label: info(metricId).name,
+                data: series.map((point) => (point.mean == null ? null : point.mean * 100)),
+                borderColor: info(metricId).metric_color,
+                backgroundColor: info(metricId).metric_color,
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                tension: 0.25,
+                spanGaps: false,
+              })),
+            }}
+          />
+        }
+        table={{
+          columns: ["Challenge", ...entries.map(([metricId]) => info(metricId).name)],
+          rows: labels.map((label, i) => [label, ...entries.map(([, series]) => share(series[i]?.mean))]),
+        }}
+      />
+    </Section>
+  );
+}
+
+/**
+ * The campaign's aggregate equivalent of the per-run `StakeholdersTab` trajectory chart: each
+ * stakeholder's mean mood after challenge 1, 2, 3..., averaged across every counted run.
+ */
+function StakeholderEvolution({
+  moodSeries,
+  stakeholderOrder,
+  stakeholderNames,
+}: {
+  moodSeries: Record<string, Stats[]>;
+  stakeholderOrder: string[];
+  stakeholderNames: Record<string, string>;
+}) {
+  const entries = Object.entries(moodSeries);
+  if (entries.length === 0) return null;
+
+  const nameOf = (id: string) => stakeholderNames[id] ?? prettify(id);
+  const colorOf = (id: string) => stakeholderColor(id, stakeholderOrder);
+
+  const challenges = Math.max(...entries.map(([, series]) => series.length));
+  const labels = Array.from({ length: challenges }, (_, i) => `${i + 1}`);
+
+  const options: ChartOptions<"line"> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    spanGaps: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: { color: CHART_INK.secondary, usePointStyle: true, boxWidth: 8, font: { size: 11 } },
+      },
+    },
+    scales: {
+      x: {
+        title: { display: true, text: "After challenge", color: CHART_INK.secondary },
+        grid: { display: false },
+        ticks: { color: CHART_INK.secondary },
+      },
+      y: { beginAtZero: true, grid: { color: CHART_INK.grid }, ticks: { color: CHART_INK.secondary } },
+    },
+  };
+
+  return (
+    <Section
+      title="Stakeholder mood over time"
+      note="Mean mood after every challenge, across every counted run. A stakeholder not in the room
+        at a point does not count as zero, and runs that ended earlier stop contributing after their
+        last challenge, so later points can rest on fewer runs."
+    >
+      <ChartTable
+        title="How the room moved"
+        chart={
+          <Line
+            options={options}
+            data={{
+              labels,
+              datasets: entries.map(([id, series]) => ({
+                label: nameOf(id),
+                data: series.map((point) => (point.mean == null ? null : point.mean * 100)),
+                borderColor: colorOf(id),
+                backgroundColor: colorOf(id),
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBorderColor: "#ffffff",
+                pointBorderWidth: 2,
+                tension: 0.25,
+                spanGaps: false,
+              })),
+            }}
+          />
+        }
+        table={{
+          columns: ["Challenge", ...entries.map(([id]) => nameOf(id))],
+          rows: labels.map((label, i) => [label, ...entries.map(([, series]) => share(series[i]?.mean))]),
+        }}
+      />
+    </Section>
   );
 }
 

@@ -3,6 +3,7 @@
  * `services/admin_results.py`.
  */
 
+import type { MetricInfo } from "./tabs/MetricsTab";
 import type { GradeLetter, PillarId, ResultsPayload } from "./types";
 
 /** Mean, spread and range of the readings that exist. `stdev` is null below two readings, since
@@ -57,6 +58,10 @@ export interface AdminAggregates {
     outro_percent_by_run: Record<string, Stats>;
   };
   metrics: Record<string, Stats>;
+  /** Each gauge's mean value after challenge 1, 2, 3..., across the campaign. */
+  metric_series: Record<string, Stats[]>;
+  /** Each stakeholder's mean mood after challenge 1, 2, 3..., across the campaign. */
+  mood_series: Record<string, Stats[]>;
 }
 
 export interface AdminPlayerRun {
@@ -77,6 +82,13 @@ export interface AdminResultsData {
   options: { include_playtest: boolean; runs: "first" | "all"; campaign: string | null };
   aggregates: AdminAggregates;
   intel_items: { most_gathered: IntelItemRate[]; least_gathered: IntelItemRate[] };
+  /** Names, colours and icons for the metric gauges, from the campaign config directly: the admin
+   * panel has no per-player session to read this off the way the in-game HUD does. */
+  metric_info: Record<string, MetricInfo>;
+  /** Every configured stakeholder in config order, so a chart can bind a colour to the entity
+   * itself rather than to its rank in whichever runs happened to be counted. */
+  stakeholder_order: string[];
+  stakeholders: Record<string, string>;
   players: AdminResultsPlayer[];
   /** Accounts left out because they used a playtest tool, so a smaller n is never unexplained. */
   excluded_playtest_accounts: number;

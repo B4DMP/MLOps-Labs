@@ -47,6 +47,23 @@ const DASHBOARD: AdminResultsData = {
       outro_percent_by_run: { "1": stats(66, 12), "2": stats(78, 3) },
     },
     metrics: {},
+    metric_series: {
+      model: [stats(0.2, 12), stats(0.35, 11), stats(0.5, 8)],
+      automation: [stats(0.15, 12), stats(0.3, 11), stats(0.45, 8)],
+    },
+    mood_series: {
+      data_dave: [stats(0.5, 12), stats(0.6, 11), stats(0.7, 8)],
+      reliability_ruth: [stats(0.4, 12), stats(0.35, 11), stats(0.3, 8)],
+    },
+  },
+  metric_info: {
+    model: { name: "Model", metric_color: "#3b82f6", metric_icon: "lucide:brain-circuit" },
+    automation: { name: "Automation", metric_color: "#f97316", metric_icon: "lucide:settings" },
+  },
+  stakeholder_order: ["data_dave", "model_monica", "requirements_reuben", "efficiency_emilia", "automation_alex", "reliability_ruth"],
+  stakeholders: {
+    data_dave: "Data Dave", model_monica: "Model Monica", requirements_reuben: "Requirements Reuben",
+    efficiency_emilia: "Efficiency Emilia", automation_alex: "Automation Alex", reliability_ruth: "Reliability Ruth",
   },
   intel_items: {
     most_gathered: [

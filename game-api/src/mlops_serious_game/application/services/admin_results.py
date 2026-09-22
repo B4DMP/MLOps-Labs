@@ -20,6 +20,7 @@ from sqlalchemy import select
 
 from mlops_serious_game.application.results_service import aggregate, service
 from mlops_serious_game.application.services.admin_service import get_valid_players_set
+from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.persona_resolver import PersonaMap, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
@@ -148,6 +149,16 @@ def _intel_item_rates(pairs: set[tuple[str, int]], dealt: Counter) -> dict[str, 
     }
 
 
+def _metric_info() -> dict[str, dict[str, str]]:
+    """Names, colours and icons for every configured gauge, the same source the player's own HUD
+    (and its charts) are coloured from - the admin charts have no per-player session to read this
+    off, so it comes straight from the campaign config instead."""
+    return {
+        metric.id: {"name": metric.name, "metric_color": metric.metric_color, "metric_icon": metric.metric_icon}
+        for metric in MetricFactory.metrics
+    }
+
+
 def get_results_dashboard(
     campaign: str | None = None,
     *,
@@ -207,6 +218,11 @@ def get_results_dashboard(
         "options": {"include_playtest": include_playtest, "runs": runs, "campaign": key},
         "aggregates": aggregate.aggregate_results(list(selected.values())),
         "intel_items": _intel_item_rates(set(selected), dealt),
+        "metric_info": _metric_info(),
+        # Every configured stakeholder in config order plus their display names, so a chart spanning
+        # the whole campaign can bind a colour to the entity itself the same way a single run's does.
+        "stakeholder_order": list(StakeholderFactory.get_available_stakeholders()),
+        "stakeholders": service._stakeholder_names(set(StakeholderFactory.get_available_stakeholders())),
         "players": players,
         # Shown so a researcher can see that accounts were left out, and how many, rather than
         # having a smaller n with no explanation.
