@@ -76,10 +76,49 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
+.binderTitleIcon {
+  font-size: 1.6rem;
+  color: #d9b978;
+  flex-shrink: 0;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.6));
+}
+
 .headerControls {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* A standing margin note pointing at the button group, for players who might otherwise
+   never notice five bare icons are clickable. Always on rather than a one-time tip, since
+   the buttons carry no text of their own anymore. aria-hidden: every button it points at
+   already has its own aria-label, so this would only be noise to a screen reader. */
+.headerHint {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  font-style: italic;
+  color: #d9b978;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.headerHintArrow {
+  font-size: 0.7rem;
+  animation: headerHintNudge 1.6s ease-in-out infinite;
+}
+
+@keyframes headerHintNudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headerHintArrow {
+    animation: none;
+  }
 }
 
 /* Feature buttons (System / Performance / Briefing / Log): one tight group, no gaps between. */
@@ -1750,20 +1789,22 @@
   transition: width 0.4s ease;
 }
 
-/* Reopens the phase briefing from the binder header */
+/* Reopens the phase briefing from the binder header. Icon-only: HeaderIconButton portals a
+   hover/focus label to document.body (see .headerHoverTag) rather than rendering it in place. */
 .briefingButton {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  margin-right: 0.35rem;
-  padding: 2px 7px;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-right: 0;
+  padding: 0;
   border: 1px solid rgba(245, 235, 217, 0.35);
   border-radius: 4px;
   background: rgba(245, 235, 217, 0.1);
   color: #f5ebd9;
-  font-size: 0.7rem;
-  font-weight: 700;
-  white-space: nowrap;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
@@ -1784,9 +1825,25 @@
   border-color: rgba(56, 189, 248, 0.75);
 }
 
-/* Found/total badge on a header button (System, Log): a small ink-on-parchment pill so it
-   reads as part of the same binder-header chrome as the button it sits inside. */
+/* Icon + its corner badge, as one unit so the badge anchors to the button's own corner
+   rather than the icon glyph's much smaller intrinsic box (that mismatch was the badge
+   sitting on top of the icon instead of beside it). Sized to fill .briefingButton exactly. */
+.buttonIconWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  line-height: 0;
+}
+
+/* Found/total badge on a header button (System, Log): a small ink-on-parchment pill,
+   pinned to the button's corner now that buttons carry no inline label to sit beside. */
 .headerBadgeCount {
+  position: absolute;
+  top: -7px;
+  right: -7px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1794,25 +1851,120 @@
   height: 14px;
   padding: 0 4px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.35);
+  background: #2a1f18;
   color: #f5ebd9;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 800;
   line-height: 14px;
+  box-shadow: 0 0 0 1px rgba(245, 235, 217, 0.35), 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .briefingButtonActive .headerBadgeCount {
-  background: rgba(56, 189, 248, 0.3);
+  background: #0c4a6e;
   color: #e0f4ff;
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 /* Performance button badge: a status dot, not a count - health is a state, not a tally. */
 .headerBadgeDot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1.5px #2a1f18;
   flex-shrink: 0;
+}
+
+/* Hover/focus tag for a binder-header button (HeaderIconButton): portaled to document.body
+   and positioned in the viewport from the button's own rect - see the comment on
+   HeaderIconButton in the .tsx for why it can't just be an absolutely positioned child.
+   Flips down off the button to read, echoing the sketchbook's own page-flip language
+   instead of a generic tooltip fade. perspective lives here (on the wrapper the JS
+   positions) so the child's rotateX renders with real depth rather than a flat squash. */
+.headerHoverTag {
+  position: fixed;
+  transform: translateX(-50%);
+  perspective: 240px;
+  pointer-events: none;
+  /* Above the dossier window itself (z-index 9999) - portaled to a body-level sibling of
+     it, not a descendant, so it needs to out-rank the whole window, not just page content. */
+  z-index: 10000;
+}
+
+/* Parchment, not the binder's own dark leather: this tag hangs in a strip whose background
+   varies from dark leather to light tab paper depending which button it's under, so it needs
+   to read on its own rather than lean on contrast with whatever's behind it - a warm tan fill,
+   a firm dark-hairline ring (box-shadow, not just the border) plus a soft drop shadow lift it
+   off any background it lands on. Color-wise this matches .emotionRevealCard rather than
+   .debugPanel's dashed amber box, since that dashed look is a dev/debug-only signal elsewhere
+   in this file and would send the wrong read on a normal player-facing tag. */
+.headerHoverTagFlip {
+  position: relative;
+  display: inline-block;
+  /* normal + a max-width rather than nowrap: a plain label (e.g. "Settings") still hugs its
+     own width, but a button that also passes `detail` (System, Performance) can wrap that
+     second line onto two without the tag stretching edge to edge. */
+  white-space: normal;
+  max-width: 190px;
+  text-align: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #f3e5c4;
+  color: #2a1f18;
+  font-family: 'Delius', cursive;
+  border: 1px solid #7a5c2e;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 5px 12px rgba(0, 0, 0, 0.5);
+  transform-origin: top center;
+  animation: headerHoverTagFlipIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.headerHoverTagLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.headerHoverTagDetail {
+  margin-top: 2px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #5b4632;
+  letter-spacing: 0.1px;
+  line-height: 1.25;
+}
+
+/* One triangle, filled to match the tag: layering a second border-colored triangle behind it
+   at a slightly different size reads as a rendering glitch rather than an outline, so instead
+   the "ring" comes from a drop-shadow, which (unlike box-shadow) follows the triangle's actual
+   border-drawn shape rather than its bounding box. */
+.headerHoverTagFlip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #f3e5c4;
+  filter: drop-shadow(0 -1px 0.5px rgba(0, 0, 0, 0.45));
+}
+
+@keyframes headerHoverTagFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headerHoverTagFlip {
+    animation: none;
+  }
 }
 
 /* ==========================================================================

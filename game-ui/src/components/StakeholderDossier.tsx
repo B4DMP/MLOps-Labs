@@ -484,6 +484,93 @@ const EmotionRevealBadge: React.FC<{
   );
 };
 
+/** Breathing room between a header button's hover tag and the viewport edge. */
+const HEADER_TAG_EDGE_MARGIN = 6;
+
+/**
+ * One binder-header button: a fixed-size icon square, an optional corner badge, and a
+ * hover/focus label. The label is portaled to document.body and positioned from the button's
+ * own rect (same reasoning as EmotionRevealBadge above) - .binderHeader sits in a lower
+ * z-index stacking context than the tabs row below it, so an absolutely positioned descendant
+ * of the button can never paint above the tabs no matter how high its own z-index goes.
+ * Rendering outside that subtree and placing it from the button's on-screen rect sidesteps it.
+ */
+const HeaderIconButton: React.FC<{
+  icon: string;
+  label: string;
+  /** A second, smaller line under the label - current state worth a glance without a click. */
+  detail?: string;
+  ariaLabel: string;
+  active?: boolean;
+  disabled?: boolean;
+  badge?: React.ReactNode;
+  onClick?: () => void;
+  /** Overrides the leather-button look for a differently-styled anchor, e.g. .topNavArrow. */
+  buttonClassName?: string;
+}> = ({ icon, label, detail, ariaLabel, active, disabled, badge, onClick, buttonClassName }) => {
+  const [show, setShow] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const tagRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  const handleShow = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + HEADER_TAG_EDGE_MARGIN, left: rect.left + rect.width / 2 });
+    }
+    setShow(true);
+  };
+  const handleHide = () => setShow(false);
+
+  // Keep the tag inside the viewport horizontally. The header always has room below it (the
+  // tabs row, then the page), so unlike EmotionRevealBadge this never needs to flip upward.
+  useLayoutEffect(() => {
+    if (!show || !tagRef.current || !btnRef.current) return;
+    const anchor = btnRef.current.getBoundingClientRect();
+    const box = tagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(
+      Math.max(anchor.left + anchor.width / 2, HEADER_TAG_EDGE_MARGIN + half),
+      window.innerWidth - HEADER_TAG_EDGE_MARGIN - half
+    );
+    setCoords((prev) => (prev.left === left ? prev : { ...prev, left }));
+  }, [show, label, detail]);
+
+  return (
+    <button
+      ref={btnRef}
+      className={buttonClassName || `${styles.briefingButton} ${active ? styles.briefingButtonActive : ""}`}
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={handleShow}
+      onMouseLeave={handleHide}
+      onFocus={handleShow}
+      onBlur={handleHide}
+      aria-label={ariaLabel}
+    >
+      <span className={styles.buttonIconWrap}>
+        <Icon icon={icon} />
+        {badge}
+      </span>
+      {show &&
+        createPortal(
+          <div
+            ref={tagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.headerHoverTagFlip}>
+              <div className={styles.headerHoverTagLabel}>{label}</div>
+              {detail && <div className={styles.headerHoverTagDetail}>{detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
+    </button>
+  );
+};
+
 /** Stage colours for the filter row and the environment page, from the pipeline view (plan 08). */
 const STAGE_META: Record<string, { label: string; color: string }> = {
   req: { label: "Requirements", color: "#7c3aed" },
@@ -1931,6 +2018,13 @@ export default function StakeholderDossier({
   // rather than a count - it's a state, not a tally.
   const systemHealthBucket = healthBucket(systemHealth);
 
+  // The margin-note hint pointing at the header buttons only earns its keep if there is
+  // something for it to point at - a dossier with none of these handlers wired up has no
+  // button group to find.
+  const hasHeaderTools = Boolean(
+    onOpenPhaseBriefing || onPerformanceToggle || environmentIndex >= 0 || onLogToggle || onSettingsToggle
+  );
+
   if (!isOpen && !isEmbedded) return null;
 
   const windowContent = (
@@ -1956,96 +2050,100 @@ export default function StakeholderDossier({
       {/* Header Drag Handle */}
       <div className={styles.binderHeader} onMouseDown={isEmbedded ? undefined : handleMouseDown}>
         <div className={styles.binderTitle}>
-          DOSSIER
+          <Icon icon="ph:address-book-tabs-duotone" className={styles.binderTitleIcon} />
+          STAKEHOLDER DOSSIER
         </div>
         <div className={styles.headerControls}>
+          {hasHeaderTools && (
+            <div className={styles.headerHint} aria-hidden="true">
+              More info <Icon icon="ph:arrow-right-bold" className={styles.headerHintArrow} />
+            </div>
+          )}
           <div className={styles.headerButtonGroup}>
             {onOpenPhaseBriefing && (
-              <button
-                className={styles.briefingButton}
+              <HeaderIconButton
+                icon="ph:projector-screen-chart-bold"
+                label="Briefing"
+                ariaLabel="Briefing: reopen the phase briefing — objectives, current challenge, and the stakeholder power & interest radar"
                 onClick={onOpenPhaseBriefing}
-                title="Reopen the phase briefing: objectives, current challenge, and the stakeholder power & interest radar"
-              >
-                <Icon icon="ph:projector-screen-chart-bold" />
-                <span>Briefing</span>
-              </button>
+              />
             )}
             {onPerformanceToggle && (
-              <button
-                className={`${styles.briefingButton} ${isPerformanceOpen ? styles.briefingButtonActive : ""}`}
-                onClick={onPerformanceToggle}
-                title={
+              <HeaderIconButton
+                icon="ph:gauge-bold"
+                label="Performance"
+                detail={systemHealth !== undefined ? `Health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}` : undefined}
+                ariaLabel={
                   isPerformanceOpen
-                    ? "Close performance"
-                    : `Open performance — gameplay metrics and the project pipeline. System health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}`
+                    ? "Performance: close"
+                    : `Performance: open — gameplay metrics and the project pipeline. System health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}`
                 }
-              >
-                <Icon icon="ph:gauge-bold" />
-                <span>Performance</span>
-                {systemHealth !== undefined && (
-                  <span
-                    className={styles.headerBadgeDot}
-                    style={{ background: healthBucketColor(systemHealthBucket) }}
-                  />
-                )}
-              </button>
+                active={isPerformanceOpen}
+                onClick={onPerformanceToggle}
+                badge={
+                  systemHealth !== undefined ? (
+                    <span
+                      className={styles.headerBadgeDot}
+                      style={{ background: healthBucketColor(systemHealthBucket) }}
+                    />
+                  ) : undefined
+                }
+              />
             )}
             {environmentIndex >= 0 && (
-              <button
-                className={`${styles.briefingButton} ${currentPageIndex === environmentIndex ? styles.briefingButtonActive : ""}`}
+              <HeaderIconButton
+                icon="ph:buildings-bold"
+                label="System"
+                detail={systemPips.length > 0 ? describeIntelPips(systemPips) : undefined}
+                ariaLabel={`System: what you have worked out about the pipeline itself, facts not anybody's wishes — ${describeIntelPips(systemPips)}`}
+                active={currentPageIndex === environmentIndex}
                 onClick={() => requestPageChange(currentPageIndex === environmentIndex ? lastPersonPage.current : environmentIndex)}
-                title={`What you have worked out about the pipeline itself: facts, not anybody's wishes — ${describeIntelPips(systemPips)}`}
-              >
-                <Icon icon="ph:buildings-bold" />
-                <span>System</span>
-                {systemPips.length > 0 && (
-                  <span className={styles.headerBadgeCount}>
-                    {systemFoundCount}/{systemPips.length}
-                  </span>
-                )}
-              </button>
+                badge={
+                  systemPips.length > 0 ? (
+                    <span className={styles.headerBadgeCount}>
+                      {systemFoundCount}/{systemPips.length}
+                    </span>
+                  ) : undefined
+                }
+              />
             )}
             {onLogToggle && (
-              <button
-                className={`${styles.briefingButton} ${isLogOpen ? styles.briefingButtonActive : ""}`}
+              <HeaderIconButton
+                icon="ph:scroll-bold"
+                label="Log"
+                ariaLabel={isLogOpen ? "Log: close event log" : "Log: open — what's been filed and verified so far"}
+                active={isLogOpen}
                 onClick={onLogToggle}
-                title={isLogOpen ? "Close event log" : "Open the event log — what's been filed and verified so far"}
-              >
-                <Icon icon="ph:scroll-bold" />
-                <span>Log</span>
-                {Boolean(logCount) && (
-                  <span className={styles.headerBadgeCount}>{logCount}</span>
-                )}
-              </button>
+                badge={Boolean(logCount) ? <span className={styles.headerBadgeCount}>{logCount}</span> : undefined}
+              />
             )}
             {onSettingsToggle && (
-              <button
-                className={`${styles.briefingButton} ${isSettingsOpen ? styles.briefingButtonActive : ""}`}
+              <HeaderIconButton
+                icon="ph:gear-six-bold"
+                label="Settings"
+                ariaLabel={isSettingsOpen ? "Settings: close" : "Settings: open"}
+                active={isSettingsOpen}
                 onClick={onSettingsToggle}
-                title={isSettingsOpen ? "Close settings" : "Open settings"}
-              >
-                <Icon icon="ph:gear-six-bold" />
-                <span>Settings</span>
-              </button>
+              />
             )}
           </div>
           <div className={styles.headerArrowGroup}>
-            <button
-              className={styles.topNavArrow}
+            <HeaderIconButton
+              icon="ph:caret-left-bold"
+              label="Previous Stakeholder"
+              ariaLabel={currentPageIndex <= 0 ? "Previous stakeholder: none, this is the first" : "Previous Stakeholder (←)"}
               disabled={currentPageIndex <= 0}
               onClick={() => requestPageChange(currentPageIndex - 1)}
-              title={currentPageIndex <= 0 ? "First stakeholder" : "Previous Stakeholder (←)"}
-            >
-              <Icon icon="ph:caret-left-bold" />
-            </button>
-            <button
-              className={styles.topNavArrow}
+              buttonClassName={styles.topNavArrow}
+            />
+            <HeaderIconButton
+              icon="ph:caret-right-bold"
+              label="Next Stakeholder"
+              ariaLabel={currentPageIndex >= totalPages - 1 ? "Next stakeholder: none, this is the last" : "Next Stakeholder (→)"}
               disabled={currentPageIndex >= totalPages - 1}
               onClick={() => requestPageChange(currentPageIndex + 1)}
-              title={currentPageIndex >= totalPages - 1 ? "Last stakeholder" : "Next Stakeholder (→)"}
-            >
-              <Icon icon="ph:caret-right-bold" />
-            </button>
+              buttonClassName={styles.topNavArrow}
+            />
           </div>
           {canClose && (
             <button className={styles.closeButton} onClick={onClose} title="Close Sketchbook">
