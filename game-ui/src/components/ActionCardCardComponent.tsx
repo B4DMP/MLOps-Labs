@@ -144,17 +144,13 @@ export default function ActionCardCardComponent({
               return (
                 <div
                   key={idx}
-                  className={styles.changeRow}
+                  className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""}`}
                   style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
                 >
-                  <div style={{ maxWidth: "50%", minWidth: 0, flex: 1 }}>
-                    <HoverTooltip description={name}>
-                      <span className={`${styles.changeName} text-truncate`}>
-                        <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
-                        <span className="text-truncate">{name}</span>
-                      </span>
-                    </HoverTooltip>
-                  </div>
+                  <span className={`${styles.changeName} text-truncate`}>
+                    <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
+                    <span className="text-truncate">{name}</span>
+                  </span>
                   {pred?.upstream_uncertain ? (
                     <span className={`${styles.changeBadge} ${styles.changeBadgeWarning}`}>
                       <Icon icon="ph:question-fill" /> Uncertain

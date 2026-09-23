@@ -96,13 +96,17 @@
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: #f8fafc;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #f8fafc) 0%, #f8fafc 65%);
   border-top: 1px solid #e2e8f0;
   border-left: 3px solid var(--change-color, #cbd5e1);
 }
 
 .changeRow:first-child {
   border-top: none;
+}
+
+.changeRowAlt {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #eff3f7) 0%, #eff3f7 65%);
 }
 
 .changeName {
@@ -155,7 +159,6 @@
   justify-content: center;
   gap: 4px;
   padding: 5px 7px 6px;
-  margin-top: 4px;
   border-top: 1px solid #e2e8f0;
   font-size: 0.64rem;
   font-weight: 700;
