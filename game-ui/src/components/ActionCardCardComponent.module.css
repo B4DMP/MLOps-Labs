@@ -36,9 +36,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 4px 8px;
   background: linear-gradient(135deg, var(--primary-bg, #266682) 0%, #1a4a61 100%);
+  color: #ffffff;
+}
+
+.minimizedExpandHint {
+  flex-shrink: 0;
+  display: inline-flex;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.interactive:hover .minimizedExpandHint {
+  transform: translateX(2px);
   color: #ffffff;
 }
 
@@ -78,16 +91,16 @@
 .minimizedBody {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 8px;
+  gap: 3px;
+  padding: 6px 7px;
 }
 
 .changeRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 7px;
-  border-radius: 7px;
+  padding: 3px 7px;
+  border-radius: 6px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-left: 3px solid var(--change-color, #cbd5e1);
@@ -149,26 +162,6 @@
   overflow: hidden;
 }
 
-.minimizedFooter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding-top: 6px;
-  margin-top: 2px;
-  border-top: 1px solid #e2e8f0;
-  font-size: 0.64rem;
-  font-weight: 700;
-  color: var(--primary-bg, #266682);
-}
-
-.minimizedFooterIcon {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.interactive:hover .minimizedFooterIcon {
-  transform: translateX(3px);
-}
 
 .stakeholdersRow {
   display: flex;

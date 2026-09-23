@@ -59,6 +59,24 @@ export interface AtomicChange {
   attr?: string;
 }
 
+/**
+ * Collapses multiple slots that ended up targeting the same graph element down to one, keeping
+ * the last (most authoritative) value for that target. A saved proposal can carry a stale
+ * duplicate - e.g. an older `raise_to 1` for `req.acceptance_criteria` left in place alongside a
+ * newer `raise_to 4` for the same target - which otherwise burns one of only `MAX_ATOMIC_CHANGES`
+ * slots on a second, misleading row for a target that already has one.
+ */
+export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
+  const lastByTarget = new Map<string, AtomicChange>();
+  changes.forEach((c) => lastByTarget.set(c.target, c));
+  const seen = new Set<string>();
+  return changes.filter((c) => {
+    if (seen.has(c.target)) return false;
+    seen.add(c.target);
+    return true;
+  }).map((c) => lastByTarget.get(c.target)!);
+}
+
 export interface ComponentData {
   id: string;
   name: string;
@@ -304,7 +322,13 @@ export default function ComposeActionProposalModal({
   const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
-  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(initialAtomicChanges);
+  // A saved proposal can carry a stale duplicate slot for the same target (see
+  // dedupeAtomicChanges) - deduped once here so it never burns a slot or double-counts.
+  const dedupedInitialAtomicChanges = useMemo(
+    () => dedupeAtomicChanges(initialAtomicChanges),
+    [initialAtomicChanges]
+  );
+  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(dedupedInitialAtomicChanges);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
@@ -318,8 +342,8 @@ export default function ComposeActionProposalModal({
   // Slotted changes only ever reach the parent (and the stakeholders) via Confirm - closing
   // the composer any other way, or discarding, throws away anything since the last confirm.
   const isDirty = useMemo(
-    () => JSON.stringify(atomicChanges) !== JSON.stringify(initialAtomicChanges),
-    [atomicChanges, initialAtomicChanges]
+    () => JSON.stringify(atomicChanges) !== JSON.stringify(dedupedInitialAtomicChanges),
+    [atomicChanges, dedupedInitialAtomicChanges]
   );
 
   const requestClose = useCallback(() => {
@@ -443,7 +467,7 @@ export default function ComposeActionProposalModal({
   // Reset state on open
   useEffect(() => {
     if (isOpen) {
-      setAtomicChanges(initialAtomicChanges);
+      setAtomicChanges(dedupedInitialAtomicChanges);
       setSelectedCompId(null);
       setSelectedEdgeId(null);
       setHoveredCompId(null);
@@ -451,7 +475,7 @@ export default function ComposeActionProposalModal({
       setInfoTag(null);
       setConfirmingLeave(null);
     }
-  }, [isOpen, initialAtomicChanges]);
+  }, [isOpen, dedupedInitialAtomicChanges]);
 
   // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first a
   // pending leave-confirmation, then the thing you have selected, then the composer itself

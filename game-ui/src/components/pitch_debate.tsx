@@ -20,6 +20,7 @@ import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import ActionCardCardComponent from "./ActionCardCardComponent";
 import ComposeActionProposalModal, {
   type AtomicChange,
+  dedupeAtomicChanges,
   formatLevelCap,
 } from "./ComposeActionProposalModal";
 import type { IntelItem } from "./PitchActionCardModal";
@@ -566,7 +567,9 @@ export default function PitchDebate({
       setEvaluatingPitchConvId(null);
     }
     if (payload.atomic_changes) {
-      setAtomicChanges(payload.atomic_changes);
+      // A proposal saved before a target's dedup could land here still carrying two slots for
+      // the same target (see dedupeAtomicChanges) - cleaned up as it enters the client.
+      setAtomicChanges(dedupeAtomicChanges(payload.atomic_changes));
     }
     if (payload.card_item_ids) {
       setSelectedIntelIds(payload.card_item_ids);

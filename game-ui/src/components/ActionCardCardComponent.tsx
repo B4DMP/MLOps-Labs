@@ -1,11 +1,11 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./ActionCardCardComponent.module.css";
 import type { ActionCard } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
-import { formatLevel, formatLevelCap } from "./ComposeActionProposalModal";
+import { formatLevel, formatLevelCap, dedupeAtomicChanges } from "./ComposeActionProposalModal";
 import { LEVEL_META } from "../utils/stageCanvas";
 import HoverTooltip from "./HoverToolTip";
 
@@ -104,10 +104,14 @@ export default function ActionCardCardComponent({
 
   const contributingStakeholders = Array.from(contributingStakeholdersMap.values());
 
+  // A saved proposal can carry two slots for the same target (see dedupeAtomicChanges) -
+  // deduped before it's ever rendered as two identical-looking rows.
+  const atomicChanges = useMemo(() => dedupeAtomicChanges(card.atomic_changes || []), [card.atomic_changes]);
+
   if (isMinimized) {
     const progressLabel =
-      card.atomic_changes && card.atomic_changes.length > 0
-        ? `${card.atomic_changes.length}/3 Changes`
+      atomicChanges.length > 0
+        ? `${atomicChanges.length}/3 Changes`
         : addendums && addendums.length > 0
         ? `${addendums.filter((a) => a.status === "attached").length}/2 Addendums`
         : null;
@@ -125,11 +129,16 @@ export default function ActionCardCardComponent({
             <span>Action Proposal</span>
           </span>
           {progressLabel && <span className={styles.minimizedProgressPill}>{progressLabel}</span>}
+          {isInteractive && (
+            <HoverTooltip description="Click to expand">
+              <Icon icon="ph:arrow-square-out-bold" className={styles.minimizedExpandHint} />
+            </HoverTooltip>
+          )}
         </div>
 
         <div className={styles.minimizedBody}>
-          {card.atomic_changes && card.atomic_changes.length > 0 ? (
-            card.atomic_changes.map((ac, idx) => {
+          {atomicChanges.length > 0 ? (
+            atomicChanges.map((ac, idx) => {
               const name =
                 card.target_names?.[ac.target] ||
                 ac.target.split(".").pop()?.replace(/_/g, " ") ||
@@ -181,11 +190,6 @@ export default function ActionCardCardComponent({
               </span>
             </div>
           )}
-
-          <div className={styles.minimizedFooter}>
-            <span>Click to expand</span>
-            <Icon icon="ph:arrow-right-bold" className={styles.minimizedFooterIcon} />
-          </div>
         </div>
       </div>
     );
@@ -253,13 +257,13 @@ export default function ActionCardCardComponent({
       >
         <>
             {/* Atomic Changes Section in Maximized Card */}
-            {card.atomic_changes && card.atomic_changes.length > 0 && (
+            {atomicChanges.length > 0 && (
               <div className="d-flex flex-column gap-2 p-2 rounded mb-2" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                 <span className="fw-bold" style={{ fontSize: "0.78rem", color: "var(--primary-bg)" }}>
                   <Icon icon="ph:git-merge-bold" className="me-1" />
-                  Configured Atomic Changes ({card.atomic_changes.length}/3):
+                  Configured Atomic Changes ({atomicChanges.length}/3):
                 </span>
-                {card.atomic_changes.map((ac, idx) => {
+                {atomicChanges.map((ac, idx) => {
                   const name =
                     card.target_names?.[ac.target] ||
                     ac.target.split(".").pop()?.replace(/_/g, " ") ||
