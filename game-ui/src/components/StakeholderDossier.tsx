@@ -579,7 +579,6 @@ const STAGE_META: Record<string, { label: string; color: string }> = {
   model: { label: "Modeling", color: "#16a34a" },
   deploy: { label: "Deployment", color: "#d97706" },
   ops: { label: "Monitoring and Ops", color: "#dc2626" },
-  gov: { label: "Governance and Infra", color: "#64748b" },
 };
 
 const stageMeta = (id?: string | null): { label: string; color: string } =>
@@ -1223,12 +1222,23 @@ export default function StakeholderDossier({
    */
   const renderRubberStamp = (conf: string, isPublicRecord = false) => {
     const lower = conf ? conf.toLowerCase() : "unconfirmed";
+    const stampTagProps = (label: string, detail: string) => ({
+      tabIndex: 0,
+      "aria-label": `${label}: ${detail}`,
+      onMouseEnter: (e: React.MouseEvent) => showInfoTag(e, label, detail),
+      onMouseLeave: hideInfoTag,
+      onFocus: (e: React.FocusEvent) => showInfoTag(e, label, detail),
+      onBlur: hideInfoTag,
+    });
     if (lower === "verified") {
       if (isPublicRecord) {
         return (
           <div
             className={`${styles.rubberStamp} ${styles.stampOnRecord}`}
-            title="On Record: they said this openly, in a channel the whole team reads, before you started digging. Nothing left to confirm."
+            {...stampTagProps(
+              "On Record",
+              "They said this openly, in a channel the whole team reads, before you started digging. Nothing left to confirm."
+            )}
           >
             ★ ON RECORD
           </div>
@@ -1237,7 +1247,7 @@ export default function StakeholderDossier({
       return (
         <div
           className={`${styles.rubberStamp} ${styles.stampVerified}`}
-          title="Confirmed: you verified this yourself by talking to them."
+          {...stampTagProps("Confirmed", "You verified this yourself by talking to them.")}
         >
           ✓ CONFIRMED
         </div>
@@ -1247,7 +1257,10 @@ export default function StakeholderDossier({
       return (
         <div
           className={`${styles.rubberStamp} ${styles.stampInferred}`}
-          title="Inferred: your read on this held up when you tested it in conversation. Not spoken aloud, but it counts."
+          {...stampTagProps(
+            "Inferred",
+            "Your read on this held up when you tested it in conversation. Not spoken aloud, but it counts."
+          )}
         >
           ✓ INFERRED
         </div>
@@ -1257,7 +1270,10 @@ export default function StakeholderDossier({
       return (
         <div
           className={`${styles.rubberStamp} ${styles.stampRefuted}`}
-          title="Refuted: that guess did not hold up. Re-tag it and try again - this never shows the true tag."
+          {...stampTagProps(
+            "Refuted",
+            "That guess did not hold up. Re-tag it and try again - this never shows the true tag."
+          )}
         >
           ✗ REFUTED
         </div>
@@ -1266,7 +1282,10 @@ export default function StakeholderDossier({
     return (
       <div
         className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}
-        title="Unconfirmed: Confirm this item by selecting it during the Intel Verification phase, or through dialogue in the Pitch & Debate phase."
+        {...stampTagProps(
+          "Unconfirmed",
+          "Confirm this item by selecting it during the Intel Verification phase, or through dialogue in the Pitch & Debate phase."
+        )}
       >
         ? UNCONFIRMED
       </div>
@@ -1841,7 +1860,12 @@ export default function StakeholderDossier({
                 >
                   <span
                     className={styles.notePhaseSpine}
-                    title={`You picked this up in ${phaseLabel(item.discovered_phase_id, phases)}`}
+                    tabIndex={0}
+                    aria-label={`Picked up in ${phaseLabel(item.discovered_phase_id, phases)}`}
+                    onMouseEnter={(e) => showInfoTag(e, "Picked up", phaseLabel(item.discovered_phase_id, phases))}
+                    onMouseLeave={hideInfoTag}
+                    onFocus={(e) => showInfoTag(e, "Picked up", phaseLabel(item.discovered_phase_id, phases))}
+                    onBlur={hideInfoTag}
                   >
                     <span className={styles.notePhaseName}>
                       {phaseLabel(item.discovered_phase_id, phases)}
@@ -1858,7 +1882,15 @@ export default function StakeholderDossier({
                             e.stopPropagation();
                             setActiveRetagNoteId(isRetagging ? null : noteId);
                           }}
-                          title={isRefuted ? "That guess was wrong - click to re-tag" : "Click to re-tag this intel item's category"}
+                          aria-label={`${catMeta.label}: ${isRefuted ? "that guess was wrong, click to re-tag" : "click to re-tag this intel item's category"}`}
+                          onMouseEnter={(e) =>
+                            showInfoTag(e, catMeta.label, isRefuted ? "That guess was wrong — click to re-tag" : "Click to re-tag")
+                          }
+                          onMouseLeave={hideInfoTag}
+                          onFocus={(e) =>
+                            showInfoTag(e, catMeta.label, isRefuted ? "That guess was wrong — click to re-tag" : "Click to re-tag")
+                          }
+                          onBlur={hideInfoTag}
                         >
                           <span>{catMeta.icon} {catMeta.label}</span>
                           <span className={styles.reTagIconBtn} aria-label="Re-tag">
@@ -1868,7 +1900,12 @@ export default function StakeholderDossier({
                       ) : (
                         <div
                           className={`${styles.categoryBadgeStatic} ${catMeta.styleClass}`}
-                          title="Category is locked once intel is confirmed/verified"
+                          tabIndex={0}
+                          aria-label={`${catMeta.label}: category is locked once intel is confirmed/verified`}
+                          onMouseEnter={(e) => showInfoTag(e, catMeta.label, "Locked once intel is confirmed/verified")}
+                          onMouseLeave={hideInfoTag}
+                          onFocus={(e) => showInfoTag(e, catMeta.label, "Locked once intel is confirmed/verified")}
+                          onBlur={hideInfoTag}
                         >
                           <span>{catMeta.icon} {catMeta.label}</span>
                         </div>
@@ -1881,8 +1918,11 @@ export default function StakeholderDossier({
                             e.stopPropagation();
                             onOpenArtifact(item);
                           }}
-                          title="View associated artifact in Offline Intel Gathering"
                           aria-label="View associated artifact in Offline Intel Gathering"
+                          onMouseEnter={(e) => showInfoTag(e, "View artifact", "Open in Offline Intel Gathering")}
+                          onMouseLeave={hideInfoTag}
+                          onFocus={(e) => showInfoTag(e, "View artifact", "Open in Offline Intel Gathering")}
+                          onBlur={hideInfoTag}
                         >
                           <Icon icon="ph:link-bold" />
                         </button>
@@ -1906,7 +1946,12 @@ export default function StakeholderDossier({
                       {item.status && STATUS_META[item.status] && (
                         <span
                           className={`${styles.statusBadge} ${styles[STATUS_META[item.status].styleClass]}`}
-                          title={STATUS_META[item.status].title}
+                          tabIndex={0}
+                          aria-label={`${STATUS_META[item.status].label}: ${STATUS_META[item.status].title}`}
+                          onMouseEnter={(e) => showInfoTag(e, STATUS_META[item.status].label, STATUS_META[item.status].title)}
+                          onMouseLeave={hideInfoTag}
+                          onFocus={(e) => showInfoTag(e, STATUS_META[item.status].label, STATUS_META[item.status].title)}
+                          onBlur={hideInfoTag}
                         >
                           {STATUS_META[item.status].label}
                         </span>
@@ -1965,7 +2010,26 @@ export default function StakeholderDossier({
                     {sourceCaption && (
                       <div
                         className={`${styles.intelSourceCaption} ${hasArtifact && onOpenArtifact ? styles.intelSourceCaptionClickable : ""}`}
-                        title={hasArtifact && onOpenArtifact ? `${sourceCaption.title} (Click to view artifact)` : sourceCaption.title}
+                        tabIndex={0}
+                        aria-label={`${sourceCaption.text}: ${sourceCaption.title}${
+                          hasArtifact && onOpenArtifact ? " (Click to view artifact)" : ""
+                        }`}
+                        onMouseEnter={(e) =>
+                          showInfoTag(
+                            e,
+                            sourceCaption.text,
+                            hasArtifact && onOpenArtifact ? `${sourceCaption.title} Click to view artifact.` : sourceCaption.title
+                          )
+                        }
+                        onMouseLeave={hideInfoTag}
+                        onFocus={(e) =>
+                          showInfoTag(
+                            e,
+                            sourceCaption.text,
+                            hasArtifact && onOpenArtifact ? `${sourceCaption.title} Click to view artifact.` : sourceCaption.title
+                          )
+                        }
+                        onBlur={hideInfoTag}
                         onClick={hasArtifact && onOpenArtifact ? (e) => {
                           e.stopPropagation();
                           onOpenArtifact(item);
@@ -1995,7 +2059,12 @@ export default function StakeholderDossier({
                     {(item.locked_links || 0) > 0 && (
                       <div
                         className={styles.lockedRow}
-                        title="There is more to learn about this one. Keep digging in the phases ahead."
+                        tabIndex={0}
+                        aria-label="More to learn: keep digging in the phases ahead."
+                        onMouseEnter={(e) => showInfoTag(e, "More to learn", "Keep digging in the phases ahead.")}
+                        onMouseLeave={hideInfoTag}
+                        onFocus={(e) => showInfoTag(e, "More to learn", "Keep digging in the phases ahead.")}
+                        onBlur={hideInfoTag}
                       >
                         <Icon icon="ph:lock-simple-bold" className={styles.lockedIcon} />
                         <span>
@@ -2013,7 +2082,12 @@ export default function StakeholderDossier({
             {hiddenIntelCount > 0 && (
               <div
                 className={`${styles.ghostNote} ${hiddenIntelCount > 1 ? styles.ghostNoteStacked : ""}`}
-                title="Notes you have not found yet. Their pips stay hollow until you do."
+                tabIndex={0}
+                aria-label="Not found yet: their pips stay hollow until you do."
+                onMouseEnter={(e) => showInfoTag(e, "Not found yet", "Their pips stay hollow until you do.")}
+                onMouseLeave={hideInfoTag}
+                onFocus={(e) => showInfoTag(e, "Not found yet", "Their pips stay hollow until you do.")}
+                onBlur={hideInfoTag}
               >
                 <Icon icon="ph:magnifying-glass-bold" className={styles.ghostNoteIcon} />
                 <span>
@@ -2266,7 +2340,7 @@ export default function StakeholderDossier({
               keyPlayerHint || null,
               changeHint || null,
               tabPips.length > 0 ? `Intel: ${describeIntelPips(tabPips)}` : null,
-            ].filter(Boolean).join(" · ");
+            ].filter(Boolean).join("\n");
 
             return (
               <button

@@ -1943,6 +1943,7 @@
   color: #5b4632;
   letter-spacing: 0.1px;
   line-height: 1.25;
+  white-space: pre-line;
 }
 
 /* One triangle, filled to match the tag: layering a second border-colored triangle behind it
