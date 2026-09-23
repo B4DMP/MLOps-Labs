@@ -75,22 +75,34 @@
   white-space: nowrap;
 }
 
+/* No padding: change rows run edge-to-edge and rely on .minimizedPanel's own overflow:hidden
+   to clip the first/last row to its rounded corners, instead of a border floating inside a
+   padded gutter. Anything that isn't a full-bleed row (description, addendums, footer) adds
+   its own horizontal padding back. */
 .minimizedBody {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 7px 7px 6px;
+  gap: 0;
+}
+
+.minimizedBody > .stakeholdersRow {
+  margin-top: 6px;
+  padding-left: 7px;
+  padding-right: 7px;
 }
 
 .changeRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 7px;
-  border-radius: 6px;
+  padding: 5px 8px;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
   border-left: 3px solid var(--change-color, #cbd5e1);
+}
+
+.changeRow:first-child {
+  border-top: none;
 }
 
 .changeName {
@@ -142,8 +154,8 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding-top: 5px;
-  margin-top: 1px;
+  padding: 5px 7px 6px;
+  margin-top: 4px;
   border-top: 1px solid #e2e8f0;
   font-size: 0.64rem;
   font-weight: 700;
@@ -163,7 +175,8 @@
   line-height: 1.35;
   color: #475569;
   text-align: center;
-  margin: 2px 0;
+  margin: 6px 0 0;
+  padding: 0 7px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
