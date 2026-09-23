@@ -2188,7 +2188,8 @@ export default function StakeholderDossier({
             {onOpenPhaseBriefing && (
               <HeaderIconButton
                 icon="ph:projector-screen-chart-bold"
-                label="Briefing"
+                label="Phase Briefing"
+                detail={"Objectives & current challenge\nStakeholder power & interest radar"}
                 ariaLabel="Briefing: reopen the phase briefing — objectives, current challenge, and the stakeholder power & interest radar"
                 onClick={onOpenPhaseBriefing}
               />

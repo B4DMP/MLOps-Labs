@@ -1917,7 +1917,7 @@
      own width, but a button that also passes `detail` (System, Performance) can wrap that
      second line onto two without the tag stretching edge to edge. */
   white-space: normal;
-  max-width: 190px;
+  max-width: 210px;
   text-align: center;
   padding: 3px 8px;
   border-radius: 4px;
