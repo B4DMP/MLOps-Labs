@@ -188,7 +188,7 @@
   background: radial-gradient(ellipse 90% 70% at 50% 50%, #2b3035 0%, var(--engagement-bg, #212529) 70%, #14171a 100%);
   border: 3px solid var(--primary-bg, #266682);
   border-radius: 50% / 34%;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
+  box-shadow: 5px 15px 10px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
