@@ -6,6 +6,7 @@ import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { formatLevel, formatLevelCap } from "./ComposeActionProposalModal";
+import HoverTooltip from "./HoverToolTip";
 
 export interface IntelItem {
   id: string;
@@ -112,26 +113,37 @@ export default function ActionCardCardComponent({
         background: "#ffffff",
         border: "1px solid #dee2e6",
       }}
-      title={`${card.title} - ${card.description}`}
     >
       {/* Card Header matching ChallengeDescriptionCard with card title in header */}
       <div
         className={`card-header ${isMinimized ? "py-1 px-2" : "py-2 px-3"} d-flex align-items-center justify-content-between gap-2`}
         style={{ background: "var(--primary-bg)", color: "white" }}
       >
-        <span
-          className={`fw-bold text-center flex-grow-1 ${isMinimized ? "text-truncate" : ""}`}
-          style={{
-            color: "white",
-            fontSize: isMinimized ? "0.82rem" : "0.98rem",
-            lineHeight: 1.3,
-            whiteSpace: isMinimized ? undefined : "normal",
-            wordBreak: isMinimized ? undefined : "break-word",
-          }}
-          title={card.title}
-        >
-          {card.title}
-        </span>
+        {isMinimized ? (
+          <div className="flex-grow-1" style={{ minWidth: 0 }}>
+            <HoverTooltip description={card.title}>
+              <span
+                className="fw-bold text-center text-truncate d-block w-100"
+                style={{ color: "white", fontSize: "0.82rem", lineHeight: 1.3 }}
+              >
+                {card.title}
+              </span>
+            </HoverTooltip>
+          </div>
+        ) : (
+          <span
+            className="fw-bold text-center flex-grow-1"
+            style={{
+              color: "white",
+              fontSize: "0.98rem",
+              lineHeight: 1.3,
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {card.title}
+          </span>
+        )}
         <div className="d-flex align-items-center gap-1 flex-shrink-0">
           <span
             className="badge"
@@ -186,9 +198,13 @@ export default function ActionCardCardComponent({
                       className="d-flex align-items-center justify-content-between px-2 py-1 rounded"
                       style={{ background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: "0.68rem" }}
                     >
-                      <span className="fw-bold text-truncate" style={{ maxWidth: "55%" }} title={name}>
-                        ⚡ {name}
-                      </span>
+                      <div style={{ maxWidth: "55%", minWidth: 0 }}>
+                        <HoverTooltip description={name}>
+                          <span className="fw-bold text-truncate d-block w-100">
+                            ⚡ {name}
+                          </span>
+                        </HoverTooltip>
+                      </div>
                       {pred?.upstream_uncertain ? (
                         <span className="badge bg-warning text-dark" style={{ fontSize: "0.55rem" }}>
                           ❓ Uncertain
@@ -207,8 +223,9 @@ export default function ActionCardCardComponent({
                 })}
               </div>
             ) : (
+              <HoverTooltip description={card.description}>
               <p
-                className="card-text text-secondary mb-1 text-center"
+                className="card-text text-secondary mb-1 text-center w-100"
                 style={{
                   fontSize: "0.72rem",
                   lineHeight: 1.3,
@@ -218,10 +235,10 @@ export default function ActionCardCardComponent({
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                 }}
-                title={card.description}
               >
                 {card.description}
               </p>
+              </HoverTooltip>
             )}
 
             {addendums && addendums.length > 0 ? (
