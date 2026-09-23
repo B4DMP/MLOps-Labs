@@ -23,13 +23,27 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16) !important;
 }
 
-/* ── Minimized Card: the proposal chip sitting on the boardroom table ── */
+.interactive:active {
+  transform: translateY(-1px) scale(0.995);
+  transition-duration: 0.08s;
+}
+
+/* ── Minimized Card: the proposal chip sitting on the boardroom table ──
+   Materializes in rather than popping instantly: this is the moment a proposal becomes
+   "real" on the table, so it earns a beat of motion the way the pitch deck plaque and speech
+   bubbles do elsewhere on this screen (same cubic-bezier(0.16, 1, 0.3, 1) "settle" curve). */
 .minimizedPanel {
   background: #ffffff;
   border: 1px solid #dbe3ec;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+  transition: transform var(--transition, 0.2s ease), box-shadow var(--transition, 0.2s ease), border-color 0.2s ease;
+  animation: cardMaterialize 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.minimizedPanel.interactive:hover {
+  border-color: color-mix(in srgb, var(--primary-bg, #266682) 45%, #dbe3ec);
 }
 
 .minimizedHeader {
@@ -73,6 +87,8 @@
   font-weight: 800;
   color: #ffffff;
   white-space: nowrap;
+  animation: pillPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: 0.16s;
 }
 
 /* No padding: change rows run edge-to-edge and rely on .minimizedPanel's own overflow:hidden
@@ -99,14 +115,35 @@
   background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #f8fafc) 0%, #f8fafc 65%);
   border-top: 1px solid #e2e8f0;
   border-left: 3px solid var(--change-color, #cbd5e1);
+  transition: background 0.15s ease, border-left-width 0.15s ease, padding-left 0.15s ease, box-shadow 0.15s ease;
+  animation: rowSettleIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .changeRow:first-child {
   border-top: none;
 }
 
+/* Staggered by position rather than all landing at once - a proposal reads as three separate
+   commitments, so they arrive one beat apart instead of as a single block. Capped at 3 because
+   that's MAX_ATOMIC_CHANGES; a 4th+ row (shouldn't happen) just inherits the last delay. */
+.changeRow:nth-child(1) { animation-delay: 0.02s; }
+.changeRow:nth-child(2) { animation-delay: 0.08s; }
+.changeRow:nth-child(3) { animation-delay: 0.14s; }
+
 .changeRowAlt {
   background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #eff3f7) 0%, #eff3f7 65%);
+}
+
+/* Row-level hover feedback: even though the click target is the whole card, each row reads as
+   its own list item, so it should answer to the pointer on its own rather than only as a block.
+   One hover background for both zebra tones (rather than each darkening its own base) - a
+   pale "absent" grey mixed 20% into an already-pale alt row barely moved the needle. */
+.interactive .changeRow:hover,
+.interactive .changeRowAlt:hover {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 32%, #ffffff) 0%, #ffffff 85%);
+  border-left-width: 5px;
+  padding-left: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 
 .changeName {
@@ -163,6 +200,12 @@
   font-size: 0.64rem;
   font-weight: 700;
   color: var(--primary-bg, #266682);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.interactive:hover .minimizedFooter {
+  background: color-mix(in srgb, var(--primary-bg, #266682) 6%, transparent);
+  color: color-mix(in srgb, var(--primary-bg, #266682) 80%, black);
 }
 
 .minimizedFooterIcon {
@@ -366,4 +409,39 @@
   margin-top: 2px;
   font-style: italic;
   border-left: 2px solid var(--primary-bg);
+}
+
+/* ── Motion: the minimized card's mount + hover language ──
+   Two curves, matching the rest of the boardroom: (0.16, 1, 0.3, 1) for things settling into
+   place (panel, rows - same curve as this screen's speech bubbles), and the bouncier
+   (0.34, 1.56, 0.64, 1) for a small accent overshooting into rest (the progress pill, the
+   footer's arrow nudge). */
+@keyframes cardMaterialize {
+  from { opacity: 0; transform: translateY(6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rowSettleIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pillPop {
+  0% { opacity: 0; transform: scale(0.5); }
+  65% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .minimizedPanel,
+  .changeRow,
+  .minimizedProgressPill {
+    animation: none;
+  }
+  .cardContainer,
+  .changeRow,
+  .minimizedFooter,
+  .minimizedFooterIcon {
+    transition: none;
+  }
 }
