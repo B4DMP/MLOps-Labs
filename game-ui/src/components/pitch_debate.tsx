@@ -37,6 +37,11 @@ import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { faceForEmotionState } from "../utils/emotionFace";
 import { FADE_TRANSITION } from "../utils/transitions";
 
+// Intel readiness thresholds for the pitch deck's intel badge: how much of this phase's intel
+// has to be verified before pitching is worth it (ratio of verified / total for the phase).
+const READY_YELLOW = 0.35;
+const READY_GREEN = 0.6;
+
 export interface PitchDebateProps {
   currentPhase: number;
   currentChallenge: number;
@@ -228,8 +233,6 @@ export default function PitchDebate({
     () => ({ phase_id: currentPhase, challenge_id: currentChallenge }),
     [currentPhase, currentChallenge]
   );
-
-  const bgIndex = (currentChallenge + currentPhase) % 4;
 
   // ── Speech Queue System ──
   interface SpeechQueueItem {
@@ -1062,6 +1065,13 @@ export default function PitchDebate({
 
     const isFlipped = isRightSide || (isTop && topIndex !== undefined && topIndex >= 1);
 
+    // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
+    // Ryan"): split on the first space so the nameplate always breaks there, on its own two
+    // lines, the same pattern used by the dossier tabs (StakeholderDossier.tsx), instead of
+    // truncating with an ellipsis.
+    const [nameRoleWord, ...nameGivenWords] = String(st.name || "").split(" ");
+    const nameGivenName = nameGivenWords.join(" ");
+
     return (
       <div
         key={st.id}
@@ -1106,7 +1116,14 @@ export default function PitchDebate({
             borderColor: isSelected ? "#ffc107" : stakeholderColor,
           }}
         >
-          {st.name}
+          {nameGivenName ? (
+            <>
+              <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+              <span className={styles.deskNameplateLine}>{nameGivenName}</span>
+            </>
+          ) : (
+            <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+          )}
         </div>
       </div>
     );
@@ -1116,18 +1133,29 @@ export default function PitchDebate({
   const isCardComposed = Boolean(pitchedActionCard && (atomicChanges.length > 0 || selectedIntelIds.length > 0));
   const stage = pitchState?.stage || "PREPARE";
 
+  // Intel readiness for this phase: verified intel against everything there is to find, so the
+  // pitch deck's intel badge can warn the player before they walk in under-prepared.
+  const intelTotalThisPhase = pitchState?.intel_total ?? 0;
+  const intelVerifiedThisPhase = pitchState?.intel_verified ?? 0;
+  const intelReadyRatio = intelTotalThisPhase > 0 ? intelVerifiedThisPhase / intelTotalThisPhase : 1;
+  const intelReadiness: "red" | "yellow" | "green" =
+    intelReadyRatio >= READY_GREEN ? "green" : intelReadyRatio >= READY_YELLOW ? "yellow" : "red";
+  const intelReadinessText =
+    intelReadiness === "green"
+      ? "Enough verified intel to make a case."
+      : intelReadiness === "yellow"
+      ? "Thin, but you can pitch."
+      : "Not enough verified intel to pitch yet.";
+
   return (
     <div className={styles.container}>
-      {/* Main Content Canvas with Dynamic Background */}
+      {/* Main Content Canvas - background now rendered once by Game.tsx behind every
+          gameplay phase; this is just a transparent overlay over it. */}
       <div
         className={`container-fluid flex-grow-1 d-flex flex-column px-3 py-2 position-relative ${
           isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
         }`}
         style={{
-          backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           minHeight: 0,
           height: "100%",
         }}
@@ -1370,9 +1398,20 @@ export default function PitchDebate({
                                   <span className={styles.statLabel}>Tokens</span>
                                 </div>
 
-                                <div className={styles.statChipIntel} title={`${allIntelItems.length} Intel items collected`}>
+                                <div
+                                  className={`${styles.statChipIntel} ${styles[`intelReady${intelReadiness}`]}`}
+                                  title={
+                                    intelTotalThisPhase > 0
+                                      ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified this phase. ${intelReadinessText}`
+                                      : `${allIntelItems.length} Intel items collected`
+                                  }
+                                >
                                   <Icon icon="ph:files-bold" className={styles.intelStatIcon} />
-                                  <span className={styles.statNumber}>{allIntelItems.length}</span>
+                                  <span className={styles.statNumber}>
+                                    {intelTotalThisPhase > 0
+                                      ? `${intelVerifiedThisPhase}/${intelTotalThisPhase}`
+                                      : allIntelItems.length}
+                                  </span>
                                   <span className={styles.statLabel}>Intel</span>
                                 </div>
 

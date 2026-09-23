@@ -850,7 +850,28 @@ function App({ username: _username, onLogout }: AppProps) {
             />
           </motion.div>
         ) : progressionIndex === 2 ? (
-          <motion.div {...FADE_TRANSITION} key="gameplay" style={{ width: "100%", height: "100%" }}>
+          <motion.div
+            {...FADE_TRANSITION}
+            key="gameplay"
+            style={{ width: "100%", height: "100%", position: "relative" }}
+          >
+            {/* Single full-page background for every gameplay phase (offline intel, pitch
+                debate, AC simulation): each phase view used to paint this same image itself,
+                which is why removing it from one left an opaque fallback color showing through
+                instead of the phase behind it. Rendered once here so those phases can just be
+                transparent overlays over it. */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${(currentChallenge + currentPhase) % 4}-clean-s.jpg")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                zIndex: 0,
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1, width: "100%", height: "100%" }}>
             <PhasesContext.Provider
               value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
@@ -1016,6 +1037,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 </StakeholderContext.Provider>
               </MetricsContext.Provider>
             </PhasesContext.Provider>
+            </div>
           </motion.div>
         ) : progressionIndex === 3 ? (
           <motion.div {...FADE_TRANSITION} key="outro-questionnaire" style={{ width: "100%", height: "100%" }}>

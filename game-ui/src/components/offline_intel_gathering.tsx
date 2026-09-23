@@ -414,7 +414,6 @@ export default function OfflineIntelGathering({
     }, 5000);
   };
 
-  const bgIndex = (currentChallenge + currentPhase) % 4;
   const currentArtifact = artifacts[currentIndex];
   const isFinished = artifacts.length > 0 && currentIndex >= artifacts.length;
   const currentArtifactKey = currentArtifact ? currentArtifact.id : "";
@@ -501,9 +500,6 @@ export default function OfflineIntelGathering({
       {/* Main Content Area over Game Background Canvas */}
       <div
         className={`container-fluid flex-grow-1 d-flex flex-column px-2 px-md-3 py-1 position-relative overflow-auto ${styles.mainContainer}`}
-        style={{
-          backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
-        }}
       >
         {/* Main Board Grid: Left Column = Stakeholder Dossier (2/5), Right Column = Artifact Viewer & Categorization (3/5) */}
         <div className={`row g-2 align-items-stretch h-100 ${styles.boardRow}`}>

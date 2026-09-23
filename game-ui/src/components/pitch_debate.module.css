@@ -5,7 +5,6 @@
   max-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #1a1a2e);
   color: #ffffff;
   overflow: hidden;
 }
@@ -318,17 +317,23 @@
   letter-spacing: normal;
 }
 
-/* Lower Border Interaction Area */
+/* Lower Border Interaction Area: styled as a control console plate mounted on the table's
+   front rim, rather than a floating full-width button that straddles the oval's curved edge. */
 .tableLowerInteractionArea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 440px;
-  gap: 0.3rem;
-  margin-top: 2px;
+  width: 88%;
+  max-width: 390px;
+  gap: 0.4rem;
+  margin-top: 6px;
+  padding: 0.45rem 0.9rem 0.55rem;
   position: relative;
   z-index: 30;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(8, 10, 14, 0.55) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.9rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -8px 16px rgba(0, 0, 0, 0.4), 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .statChipsRowCentered {
@@ -368,11 +373,32 @@
   background: rgba(56, 189, 248, 0.15);
   border: 1px solid #38bdf8;
   color: #7dd3fc;
+  transition: background var(--transition, 0.2s ease), border-color var(--transition, 0.2s ease), color var(--transition, 0.2s ease);
 }
 
 .intelStatIcon {
   font-size: 0.85rem;
-  color: #7dd3fc;
+  color: currentColor;
+}
+
+/* Colored by whether the player has gathered enough verified intel this phase to pitch with,
+   mirroring the readiness thresholds the old pitch phase used. */
+.intelReadygreen {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+.intelReadyyellow {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: #eab308;
+  color: #facc15;
+}
+
+.intelReadyred {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #f87171;
 }
 
 .statChipConsensus {
@@ -414,10 +440,10 @@
 
 /* Action Buttons */
 .actionButton {
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--secondary-bg, #334155);
-  background: var(--primary-bg, #1a1a2e);
+  padding: 0.5rem 1.1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, var(--secondary-bg, #334155) 0%, var(--primary-bg, #1a1a2e) 100%);
   color: white;
   font-weight: 600;
   font-size: 0.78rem;
@@ -429,10 +455,13 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .actionButton:hover:not(:disabled) {
-  background: var(--secondary-bg, #334155);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary-bg, #334155) 80%, white) 0%, var(--secondary-bg, #334155) 100%);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
 }
 
 .actionButton:disabled,
@@ -482,7 +511,10 @@
 }
 
 .deskNameplate {
-  padding: 0.15rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.1rem 0.5rem 0.18rem;
   border-radius: 4px;
   background: rgba(15, 23, 42, 0.9);
   border: 1.5px solid var(--st-color, #38bdf8);
@@ -490,8 +522,13 @@
   font-size: 0.65rem;
   font-weight: 700;
   text-align: center;
+  max-width: 112px;
+  line-height: 1.15;
+}
+
+.deskNameplateLine {
   white-space: nowrap;
-  max-width: 110px;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }

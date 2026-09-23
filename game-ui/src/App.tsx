@@ -437,7 +437,7 @@ function App() {
         height: "100vh",
         overflow: "hidden",
         position: "relative",
-        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3.png")`,
+        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3-clean-s.jpg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
