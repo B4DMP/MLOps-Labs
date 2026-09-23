@@ -1244,7 +1244,7 @@ export default function PitchDebate({
                   >
                     {/* Upper Section: Challenge & Boardroom Scene (Left) + Chat History (Right) */}
                     <div
-                      className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
+                      className={`flex-grow-1 row gx-2 align-items-stretch position-relative ${
                         isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
                       } ${isDraggingCard ? styles.singleDropZoneActive : ""}`}
                       style={{ minHeight: 0, zIndex: isAnySpeechActive ? 3100 : 1 }}
