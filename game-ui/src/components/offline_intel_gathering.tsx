@@ -1,4 +1,5 @@
-import { Fragment, useState, useEffect, useRef, useContext } from "react";
+import { Fragment, useState, useEffect, useRef, useContext, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Icon } from "@iconify/react";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
@@ -174,6 +175,39 @@ export default function OfflineIntelGathering({
   const hasRequestedRef = useRef(false);
   const resetConfirmTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    top: number;
+    anchorX: number;
+    left: number;
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({ label, detail, top: rect.bottom + 6, anchorX, left: anchorX });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(
+      Math.max(infoTag.anchorX, 6 + half),
+      window.innerWidth - 6 - half
+    );
+    setInfoTag((prev) => (prev && prev.left !== left ? { ...prev, left } : prev));
+  }, [infoTag?.anchorX, infoTag?.label, infoTag?.detail]);
+
+  useEffect(() => {
+    if (!infoTag) return;
+    const handleScroll = () => hideInfoTag();
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [infoTag]);
 
   useEffect(() => {
     return () => {
@@ -572,7 +606,10 @@ export default function OfflineIntelGathering({
                     type="button"
                     onClick={stopNarration}
                     className={styles.narrationControlButton}
-                    title="Stop reading this artifact aloud"
+                    onMouseEnter={(e) => showInfoTag(e, "Stop Narration", "Stop reading this artifact aloud")}
+                    onMouseLeave={hideInfoTag}
+                    onFocus={(e) => showInfoTag(e, "Stop Narration", "Stop reading this artifact aloud")}
+                    onBlur={hideInfoTag}
                     aria-label="Stop reading this artifact aloud"
                   >
                     <Icon icon="ph:speaker-slash-bold" />
@@ -583,7 +620,10 @@ export default function OfflineIntelGathering({
                     type="button"
                     onClick={() => currentArtifact && narrateArtifact(currentArtifact, currentArtifactKey)}
                     className={styles.narrationControlButton}
-                    title="Listen to this artifact again"
+                    onMouseEnter={(e) => showInfoTag(e, "Listen Again", "Read this artifact aloud")}
+                    onMouseLeave={hideInfoTag}
+                    onFocus={(e) => showInfoTag(e, "Listen Again", "Read this artifact aloud")}
+                    onBlur={hideInfoTag}
                     aria-label="Listen to this artifact again"
                   >
                     <Icon icon="ph:arrow-clockwise-bold" />
@@ -595,15 +635,44 @@ export default function OfflineIntelGathering({
                   <div className={styles.navPillsContainer}>
                     <button
                       type="button"
-                      onClick={handleResetClick}
+                      onClick={() => {
+                        hideInfoTag();
+                        handleResetClick();
+                      }}
                       disabled={taggedArtifactsCount === 0}
                       className={`${styles.resetTagsButton} ${
                         isConfirmingReset ? styles.resetTagsButtonConfirming : ""
                       }`}
-                      title={
+                      onMouseEnter={(e) =>
+                        showInfoTag(
+                          e,
+                          isConfirmingReset ? "Confirm reset?" : "Reset all",
+                          taggedArtifactsCount === 0
+                            ? "Nothing categorized yet"
+                            : isConfirmingReset
+                              ? "Click again to confirm resetting all categories"
+                              : "Clear every category you have picked\nand start again from the first artifact"
+                        )
+                      }
+                      onMouseLeave={hideInfoTag}
+                      onFocus={(e) =>
+                        showInfoTag(
+                          e,
+                          isConfirmingReset ? "Confirm reset?" : "Reset all",
+                          taggedArtifactsCount === 0
+                            ? "Nothing categorized yet"
+                            : isConfirmingReset
+                              ? "Click again to confirm resetting all categories"
+                              : "Clear every category you have picked\nand start again from the first artifact"
+                        )
+                      }
+                      onBlur={hideInfoTag}
+                      aria-label={
                         taggedArtifactsCount === 0
                           ? "Nothing categorized yet"
-                          : "Clear every category you have picked and start again from the first artifact"
+                          : isConfirmingReset
+                            ? "Confirm reset: clear all categories"
+                            : "Reset all categories"
                       }
                     >
                       <Icon
@@ -626,10 +695,20 @@ export default function OfflineIntelGathering({
                         isOnRecordStance(previous) &&
                         previous.stakeholder_id !== art.stakeholder_id
                       );
+                      const pillLabel = `Item ${idx + 1}: ${art.stakeholder_name}`;
+                      const pillStatus = art.is_known
+                        ? (isOnRecordFact(art) ? "On record: about the system" : "On record, nothing to tag")
+                        : (isTagged ? `Categorized: ${intelTagMeta(taggedTypes[key])?.label ?? "Tagged"}` : "Uncategorized");
+                      const pillDetail = [
+                        pillStatus,
+                        isCurrent ? "Currently viewing" : "Click to jump to item",
+                      ].join("\n");
+
                       const pill = (
                         <button
                           key={key || idx}
                           onClick={() => {
+                            hideInfoTag();
                             if (transitionTimeoutRef.current) {
                               clearTimeout(transitionTimeoutRef.current);
                               transitionTimeoutRef.current = null;
@@ -647,11 +726,11 @@ export default function OfflineIntelGathering({
                                 ? styles.navPillTagged
                                 : styles.navPillUntagged
                           } ${isCurrent ? styles.navPillCurrent : ""}`}
-                          title={`Jump to item ${idx + 1}: ${art.stakeholder_name} (${
-                            art.is_known
-                              ? isOnRecordFact(art) ? "On record: about the system" : "On record, nothing to tag"
-                              : isTagged ? "Categorized" : "Uncategorized"
-                          })`}
+                          onMouseEnter={(e) => showInfoTag(e, pillLabel, pillDetail)}
+                          onMouseLeave={hideInfoTag}
+                          onFocus={(e) => showInfoTag(e, pillLabel, pillDetail)}
+                          onBlur={hideInfoTag}
+                          aria-label={`${pillLabel}: ${pillStatus}`}
                         >
                           {art.is_known ? (
                             <Icon icon={isOnRecordFact(art) ? intelTagMeta("fact").icon : "ph:megaphone-simple-bold"} />
@@ -667,7 +746,25 @@ export default function OfflineIntelGathering({
                         <span key={`seam-${key || idx}`} className={styles.conflictSeam}>
                           <span
                             className={styles.conflictSeamBolt}
-                            title={`${previous?.stakeholder_name} and ${art.stakeholder_name} want different things here. Sorting that out is the job.`}
+                            onMouseEnter={(e) =>
+                              showInfoTag(
+                                e,
+                                "Stakeholder Conflict",
+                                `${previous?.stakeholder_name} and ${art.stakeholder_name} want different things here.\nSorting that out is the job.`
+                              )
+                            }
+                            onMouseLeave={hideInfoTag}
+                            onFocus={(e) =>
+                              showInfoTag(
+                                e,
+                                "Stakeholder Conflict",
+                                `${previous?.stakeholder_name} and ${art.stakeholder_name} want different things here.\nSorting that out is the job.`
+                              )
+                            }
+                            onBlur={hideInfoTag}
+                            tabIndex={0}
+                            role="note"
+                            aria-label={`Conflict between ${previous?.stakeholder_name} and ${art.stakeholder_name}`}
                           >
                             <Icon icon="ph:lightning-fill" aria-hidden="true" />
                           </span>
@@ -678,6 +775,7 @@ export default function OfflineIntelGathering({
                     <button
                       type="button"
                       onClick={() => {
+                        hideInfoTag();
                         if (transitionTimeoutRef.current) {
                           clearTimeout(transitionTimeoutRef.current);
                           transitionTimeoutRef.current = null;
@@ -693,7 +791,27 @@ export default function OfflineIntelGathering({
                             ? styles.navPillSummaryReady
                             : styles.navPillSummary
                       }`}
-                      title={allTagged ? "View Summary & Continue to Pitch" : "View Categorization Summary"}
+                      onMouseEnter={(e) =>
+                        showInfoTag(
+                          e,
+                          allTagged ? "Ready for Summary" : "Categorization Summary",
+                          allTagged
+                            ? "All items categorized!\nView summary & continue to pitch"
+                            : `Review progress (${taggedArtifactsCount}/${totalArtifactsCount} categorized)`
+                        )
+                      }
+                      onMouseLeave={hideInfoTag}
+                      onFocus={(e) =>
+                        showInfoTag(
+                          e,
+                          allTagged ? "Ready for Summary" : "Categorization Summary",
+                          allTagged
+                            ? "All items categorized!\nView summary & continue to pitch"
+                            : `Review progress (${taggedArtifactsCount}/${totalArtifactsCount} categorized)`
+                        )
+                      }
+                      onBlur={hideInfoTag}
+                      aria-label={allTagged ? "View Summary & Continue to Pitch" : "View Categorization Summary"}
                     >
                       <Icon icon={allTagged ? "ph:check-bold" : "ph:list-bullets-bold"} />
                       <span>Summary</span>
@@ -1123,6 +1241,22 @@ export default function OfflineIntelGathering({
         events={events}
         onItemClick={jumpToIntelItem}
       />
+
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.headerHoverTagFlip}>
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
