@@ -389,10 +389,12 @@
   color: #4ade80;
 }
 
+/* Deliberately orange, not the tokens chip's gold/yellow (#facc15) - the two chips sit right
+   next to each other, and a shared color read as "same status" rather than "caution". */
 .intelReadyyellow {
-  background: rgba(234, 179, 8, 0.15);
-  border-color: #eab308;
-  color: #facc15;
+  background: rgba(249, 115, 22, 0.15);
+  border-color: #f97316;
+  color: #fb923c;
 }
 
 .intelReadyred {
@@ -422,6 +424,22 @@
   font-weight: 600;
   text-transform: uppercase;
   opacity: 0.85;
+}
+
+/* Stacks the static "Intel" label over a short, always-visible readiness word (Ready to
+   pitch / Still thin / Not enough yet) so players don't have to hover to notice the color
+   coding means something is actually wrong. */
+.statLabelStack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.statReadinessWord {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .pitchExplainerText {
@@ -775,5 +793,76 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ==========================================================================
+   Boardroom Hover Info Tag (ported from offline_intel_gathering.module.css's
+   .headerHoverTag* / StakeholderDossier's tab info-tag) - replaces plain `title` tooltips
+   on the pitch deck table's chips, plaque and action buttons.
+   ========================================================================== */
+.headerHoverTag {
+  position: fixed;
+  transform: translateX(-50%);
+  perspective: 240px;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+@keyframes navHoverTagFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+/* Light tag, deliberately not the dark theme the rest of the page uses - against the boardroom's
+   dark background a dark tooltip has low contrast and half-disappears; a light card pops instead. */
+.headerHoverTagFlip {
+  position: relative;
+  display: inline-block;
+  white-space: normal;
+  max-width: 230px;
+  text-align: center;
+  padding: 4px 10px 5px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: inherit;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transform-origin: top center;
+  animation: navHoverTagFlipIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.headerHoverTagLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #0f172a;
+}
+
+.headerHoverTagDetail {
+  margin-top: 2px;
+  font-size: 0.63rem;
+  font-weight: 500;
+  color: #266682;
+  letter-spacing: 0.1px;
+  line-height: 1.25;
+  white-space: pre-line;
+}
+
+.headerHoverTagFlip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #f8fafc;
+  filter: drop-shadow(0 -1px 0.5px rgba(0, 0, 0, 0.15));
 }
 
