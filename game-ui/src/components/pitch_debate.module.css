@@ -563,9 +563,13 @@
   position: relative;
 }
 
+/* Selection reads as emphasis in the stakeholder's OWN color (glow + tinted fill), not a
+   hardcoded gold swap - a hardcoded color there would visually reassign the stakeholder a
+   different identity color the moment they're selected. */
 .seatedSelected .deskNameplate {
-  border-color: #ffc107 !important;
-  color: #ffc107 !important;
+  background: color-mix(in srgb, var(--st-color, #38bdf8) 22%, rgba(15, 23, 42, 0.9));
+  border-width: 2px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-color, #38bdf8) 45%, transparent), 0 0 10px color-mix(in srgb, var(--st-color, #38bdf8) 55%, transparent);
 }
 
 .seatedAvatarViewport {
@@ -601,8 +605,7 @@
 }
 
 .activeDeskNameplate {
-  border-color: #ffc107 !important;
-  color: #ffc107 !important;
+  font-weight: 800;
 }
 
 /* ── Speech Bubble Over Seated Stakeholder ── */

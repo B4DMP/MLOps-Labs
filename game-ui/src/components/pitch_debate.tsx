@@ -1143,12 +1143,15 @@ export default function PitchDebate({
           />
         </div>
 
-        {/* Conference Desk Nameplate (NO satisfaction/resistance gauge, as requested) */}
+        {/* Conference Desk Nameplate (NO satisfaction/resistance gauge, as requested). Selection
+            is shown as emphasis (glow + tinted fill) in the stakeholder's OWN color, not a
+            hardcoded gold override - that used to make a selected stakeholder's nameplate go
+            yellow regardless of their actual accent color (e.g. Requirements Ryan's purple). */}
         <div
           className={`${styles.deskNameplate} ${isSelected ? styles.activeDeskNameplate : ""}`}
           style={{
-            color: isSelected ? "#ffc107" : stakeholderColor,
-            borderColor: isSelected ? "#ffc107" : stakeholderColor,
+            color: stakeholderColor,
+            borderColor: stakeholderColor,
           }}
         >
           {nameGivenName ? (
@@ -1264,7 +1267,10 @@ export default function PitchDebate({
                   >
                     <ComposeActionProposalModal
                       isOpen={isPitchModalOpen}
-                      onClose={() => setIsPitchModalOpen(false)}
+                      onClose={() => {
+                        hideInfoTag();
+                        setIsPitchModalOpen(false);
+                      }}
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
                       initialAtomicChanges={atomicChanges}
@@ -1405,6 +1411,7 @@ export default function PitchDebate({
                                     role="button"
                                     onClick={() => {
                                       if (isPlaqueActive) {
+                                        hideInfoTag();
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
@@ -1567,6 +1574,7 @@ export default function PitchDebate({
                                       type="button"
                                       className={styles.actionButton}
                                       onClick={() => {
+                                        hideInfoTag();
                                         setIsVetoDialogOpen(false);
                                         setIsPitchModalOpen(true);
                                       }}
@@ -1582,7 +1590,10 @@ export default function PitchDebate({
                                     <button
                                       type="button"
                                       className={styles.actionButton}
-                                      onClick={handleProceedToSimulation}
+                                      onClick={() => {
+                                        hideInfoTag();
+                                        handleProceedToSimulation();
+                                      }}
                                       onMouseEnter={(e) => showInfoTag(e, "Continue", "Move on to the simulation phase")}
                                       onMouseLeave={hideInfoTag}
                                       onFocus={(e) => showInfoTag(e, "Continue", "Move on to the simulation phase")}
@@ -1609,7 +1620,10 @@ export default function PitchDebate({
                                     className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     style={{ flex: 1 }}
                                     disabled={isPitchDebating}
-                                    onClick={() => setIsPitchModalOpen(true)}
+                                    onClick={() => {
+                                      hideInfoTag();
+                                      setIsPitchModalOpen(true);
+                                    }}
                                     onMouseEnter={(e) =>
                                       showInfoTag(
                                         e,
@@ -1639,7 +1653,10 @@ export default function PitchDebate({
                                     className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     style={{ flex: 1.5 }}
                                     disabled={isPitchDebating}
-                                    onClick={handlePitchCommit}
+                                    onClick={() => {
+                                      hideInfoTag();
+                                      handlePitchCommit();
+                                    }}
                                     onMouseEnter={(e) =>
                                       showInfoTag(
                                         e,
@@ -1672,7 +1689,10 @@ export default function PitchDebate({
                                     isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""
                                   }`}
                                   disabled={isSpeechBubbleCoveringButton}
-                                  onClick={() => setIsPitchModalOpen(true)}
+                                  onClick={() => {
+                                    hideInfoTag();
+                                    setIsPitchModalOpen(true);
+                                  }}
                                   onMouseEnter={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
                                   onMouseLeave={hideInfoTag}
                                   onFocus={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
