@@ -317,6 +317,55 @@
   letter-spacing: normal;
 }
 
+/* Carries the same intel-readiness color coding as the Intel stat chip onto the plaque itself
+   (once it's clickable), so the "should I pitch yet" signal shows up right where the player
+   clicks to start, not only in a separate badge they might not connect to it. */
+.tableCenterPlaqueReadygreen {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.tableCenterPlaqueReadygreen .tableCenterPlaqueIcon {
+  color: #4ade80;
+}
+
+.tableCenterPlaqueReadyyellow {
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.tableCenterPlaqueReadyyellow .tableCenterPlaqueIcon {
+  color: #fb923c;
+}
+
+.tableCenterPlaqueReadyred {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.tableCenterPlaqueReadyred .tableCenterPlaqueIcon {
+  color: #f87171;
+}
+
+.tableCenterPlaqueReadyWord {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.tableCenterPlaqueReadygreen .tableCenterPlaqueReadyWord {
+  color: #4ade80;
+}
+
+.tableCenterPlaqueReadyyellow .tableCenterPlaqueReadyWord {
+  color: #fb923c;
+}
+
+.tableCenterPlaqueReadyred .tableCenterPlaqueReadyWord {
+  color: #f87171;
+}
+
 /* Lower Border Interaction Area: styled as a control console plate mounted on the table's
    front rim, rather than a floating full-width button that straddles the oval's curved edge. */
 .tableLowerInteractionArea {

@@ -1186,6 +1186,16 @@ export default function PitchDebate({
   const intelReadinessShortLabel =
     intelReadiness === "green" ? "Ready to pitch" : intelReadiness === "yellow" ? "Still thin" : "Not enough yet";
 
+  // The "PITCH DECK" plaque carries the same readiness color coding as the Intel stat chip once
+  // it's actually clickable - falls back to the old neutral blue "active" cue when there's no
+  // per-phase intel total to color it by yet.
+  const isPlaqueActive = (!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating;
+  const plaqueReadyClass = isPlaqueActive
+    ? intelTotalThisPhase > 0
+      ? styles[`tableCenterPlaqueReady${intelReadiness}`]
+      : styles.tableCenterPlaqueActive
+    : "";
+
   return (
     <div className={styles.container}>
       {/* Main Content Canvas - background now rendered once by Game.tsx behind every
@@ -1390,15 +1400,11 @@ export default function PitchDebate({
                                   />
                                 ) : (
                                   <div
-                                    className={`${styles.tableCenterPlaque} ${
-                                      (!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating
-                                        ? styles.tableCenterPlaqueActive
-                                        : ""
-                                    }`}
+                                    className={`${styles.tableCenterPlaque} ${plaqueReadyClass}`}
                                     tabIndex={0}
                                     role="button"
                                     onClick={() => {
-                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                      if (isPlaqueActive) {
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
@@ -1406,11 +1412,18 @@ export default function PitchDebate({
                                       showInfoTag(
                                         e,
                                         "Pitch Deck",
-                                        isCommittedLocked && pitchState?.outcome !== "VETO"
-                                          ? "Action card committed"
-                                          : isPitchDebating
-                                          ? "Wait until all stakeholder messages have appeared in conversation history"
-                                          : "Configure up to 3 graph changes"
+                                        [
+                                          isCommittedLocked && pitchState?.outcome !== "VETO"
+                                            ? "Action card committed"
+                                            : isPitchDebating
+                                            ? "Wait until all stakeholder messages have appeared in conversation history"
+                                            : "Configure up to 3 graph changes",
+                                          isPlaqueActive && intelTotalThisPhase > 0
+                                            ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
+                                            : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join("\n")
                                       )
                                     }
                                     onMouseLeave={hideInfoTag}
@@ -1418,11 +1431,18 @@ export default function PitchDebate({
                                       showInfoTag(
                                         e,
                                         "Pitch Deck",
-                                        isCommittedLocked && pitchState?.outcome !== "VETO"
-                                          ? "Action card committed"
-                                          : isPitchDebating
-                                          ? "Wait until all stakeholder messages have appeared in conversation history"
-                                          : "Configure up to 3 graph changes"
+                                        [
+                                          isCommittedLocked && pitchState?.outcome !== "VETO"
+                                            ? "Action card committed"
+                                            : isPitchDebating
+                                            ? "Wait until all stakeholder messages have appeared in conversation history"
+                                            : "Configure up to 3 graph changes",
+                                          isPlaqueActive && intelTotalThisPhase > 0
+                                            ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
+                                            : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join("\n")
                                       )
                                     }
                                     onBlur={hideInfoTag}
@@ -1430,6 +1450,9 @@ export default function PitchDebate({
                                     <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
                                     <span>PITCH DECK</span>
                                     <span className={styles.tableCenterPlaqueSub}>Click to compose action proposal</span>
+                                    {isPlaqueActive && intelTotalThisPhase > 0 && (
+                                      <span className={styles.tableCenterPlaqueReadyWord}>{intelReadinessShortLabel}</span>
+                                    )}
                                   </div>
                                 )}
                               </div>
