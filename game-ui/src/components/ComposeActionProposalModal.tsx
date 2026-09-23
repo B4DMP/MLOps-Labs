@@ -145,6 +145,9 @@ export interface ComposeActionProposalModalProps {
   currentPhase: number;
   currentChallenge: number;
   initialAtomicChanges?: AtomicChange[];
+  /** Opens the composer with this target already selected in the inspector - e.g. the player
+   *  clicked a specific change row on the pitch deck's card rather than the card generally. */
+  initialSelectedTargetId?: string;
   onConfirmProposal: (atomicChanges: AtomicChange[]) => void;
   allowedTargets?: string[];
   upstreamMap?: Record<string, string[]>;
@@ -316,6 +319,7 @@ export default function ComposeActionProposalModal({
   currentPhase,
   currentChallenge: _currentChallenge,
   initialAtomicChanges = [],
+  initialSelectedTargetId,
   onConfirmProposal,
   allowedTargets = [],
   upstreamMap = {},
@@ -478,18 +482,32 @@ export default function ComposeActionProposalModal({
 
   const graphState = localGraphState || propGraphState;
 
-  // Reset state on open
+  // Reset state on open - or, if the player clicked a specific change row rather than the
+  // pitch deck's card generally, jump straight to that target's inspector instead of clearing
+  // the selection. allEdgesMap/allComponentsMap are read here rather than listed as effect
+  // deps: they're derived from graph state that ticks fairly often while the modal is open, and
+  // re-running this on every tick would yank the player's own in-modal selection back to the
+  // opening target.
   useEffect(() => {
     if (isOpen) {
       setAtomicChanges(dedupedInitialAtomicChanges);
-      setSelectedCompId(null);
-      setSelectedEdgeId(null);
+      if (initialSelectedTargetId && allEdgesMap.has(initialSelectedTargetId)) {
+        setSelectedEdgeId(initialSelectedTargetId);
+        setSelectedCompId(null);
+      } else if (initialSelectedTargetId && allComponentsMap.has(initialSelectedTargetId)) {
+        setSelectedCompId(initialSelectedTargetId);
+        setSelectedEdgeId(null);
+      } else {
+        setSelectedCompId(null);
+        setSelectedEdgeId(null);
+      }
       setHoveredCompId(null);
       setHoveredEdgeId(null);
       setInfoTag(null);
       setConfirmingLeave(null);
     }
-  }, [isOpen, dedupedInitialAtomicChanges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, dedupedInitialAtomicChanges, initialSelectedTargetId]);
 
   // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first a
   // pending leave-confirmation, then the thing you have selected, then the composer itself

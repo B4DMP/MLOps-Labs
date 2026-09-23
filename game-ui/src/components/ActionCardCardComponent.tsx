@@ -37,6 +37,10 @@ export interface ActionCardCardComponentProps {
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
   onClick?: () => void;
+  /** A single change row was clicked (its own graph target id) - lets the caller open the
+   *  composer already focused on that target's inspector, instead of just opening it. Row
+   *  clicks stop propagation, so this fires instead of `onClick`, not in addition to it. */
+  onSelectChange?: (target: string) => void;
   className?: string;
   isInteractive?: boolean;
   isMinimized?: boolean;
@@ -51,6 +55,7 @@ export default function ActionCardCardComponent({
   stakeholders: propStakeholders,
   getStakeholderColor: propGetColor,
   onClick,
+  onSelectChange,
   className = "",
   isInteractive = false,
   isMinimized = false,
@@ -144,8 +149,18 @@ export default function ActionCardCardComponent({
               return (
                 <div
                   key={idx}
-                  className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""}`}
+                  className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""} ${
+                    onSelectChange ? styles.changeRowClickable : ""
+                  }`}
                   style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
+                  onClick={
+                    onSelectChange
+                      ? (e) => {
+                          e.stopPropagation();
+                          onSelectChange(ac.target);
+                        }
+                      : undefined
+                  }
                 >
                   <span className={`${styles.changeName} text-truncate`}>
                     <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />

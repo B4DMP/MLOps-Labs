@@ -134,6 +134,12 @@
   background: linear-gradient(90deg, color-mix(in srgb, var(--change-color, #cbd5e1) 7%, #eff3f7) 0%, #eff3f7 65%);
 }
 
+/* A row that opens straight to its own target in the composer's inspector, rather than just
+   opening the composer - its own cursor, distinct from the card's overall "open" cursor. */
+.changeRowClickable {
+  cursor: pointer;
+}
+
 /* Row-level hover feedback: even though the click target is the whole card, each row reads as
    its own list item, so it should answer to the pointer on its own rather than only as a block.
    One hover background for both zebra tones (rather than each darkening its own base) - a
@@ -206,6 +212,17 @@
 .interactive:hover .minimizedFooter {
   background: color-mix(in srgb, var(--primary-bg, #266682) 6%, transparent);
   color: color-mix(in srgb, var(--primary-bg, #266682) 80%, black);
+}
+
+/* Its own hover, on top of the whole-card tint above: this is the one part of the card that
+   most directly promises "click here", so it gets a clearer answer than the rest of the card. */
+.minimizedFooter:hover {
+  background: color-mix(in srgb, var(--primary-bg, #266682) 12%, transparent);
+  color: color-mix(in srgb, var(--primary-bg, #266682) 95%, black);
+}
+
+.minimizedFooter:hover .minimizedFooterIcon {
+  transform: translateX(3px);
 }
 
 .minimizedFooterIcon {

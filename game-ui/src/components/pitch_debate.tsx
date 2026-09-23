@@ -166,6 +166,9 @@ export default function PitchDebate({
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("requirements_reuben");
   const [showDashboard, setShowDashboard] = useState(false);
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
+  // Set when a specific change row on the pitch deck's card is clicked, rather than the card
+  // generally - tells the composer which target's inspector to open straight to.
+  const [composerFocusTargetId, setComposerFocusTargetId] = useState<string | undefined>(undefined);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
   const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
   const [eventsOpen, setEventsOpen] = useState(false);
@@ -1294,6 +1297,7 @@ export default function PitchDebate({
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
                       initialAtomicChanges={atomicChanges}
+                      initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
                       allowedTargets={pitchState?.allowed_targets || []}
                       upstreamMap={pitchState?.upstream_map || {}}
@@ -1434,6 +1438,13 @@ export default function PitchDebate({
                                     isInteractive={(!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating}
                                     onClick={() => {
                                       if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                        setComposerFocusTargetId(undefined);
+                                        setIsPitchModalOpen(true);
+                                      }
+                                    }}
+                                    onSelectChange={(target) => {
+                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                        setComposerFocusTargetId(target);
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
@@ -1446,6 +1457,7 @@ export default function PitchDebate({
                                     onClick={() => {
                                       if (isPlaqueActive) {
                                         hideInfoTag();
+                                        setComposerFocusTargetId(undefined);
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
@@ -1610,6 +1622,7 @@ export default function PitchDebate({
                                       onClick={() => {
                                         hideInfoTag();
                                         setIsVetoDialogOpen(false);
+                                        setComposerFocusTargetId(undefined);
                                         setIsPitchModalOpen(true);
                                       }}
                                       onMouseEnter={(e) => showInfoTag(e, "Revise & Re-Pitch", "Open the proposal builder to answer the veto")}
@@ -1656,6 +1669,7 @@ export default function PitchDebate({
                                     disabled={isPitchDebating}
                                     onClick={() => {
                                       hideInfoTag();
+                                      setComposerFocusTargetId(undefined);
                                       setIsPitchModalOpen(true);
                                     }}
                                     onMouseEnter={(e) =>
@@ -1725,6 +1739,7 @@ export default function PitchDebate({
                                   disabled={isSpeechBubbleCoveringButton}
                                   onClick={() => {
                                     hideInfoTag();
+                                    setComposerFocusTargetId(undefined);
                                     setIsPitchModalOpen(true);
                                   }}
                                   onMouseEnter={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
@@ -1958,6 +1973,7 @@ export default function PitchDebate({
         onClose={() => setIsVetoDialogOpen(false)}
         onReviseProposal={() => {
           setIsVetoDialogOpen(false);
+          setComposerFocusTargetId(undefined);
           setIsPitchModalOpen(true);
         }}
         vetoInfo={vetoInfo}
