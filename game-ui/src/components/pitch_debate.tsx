@@ -65,6 +65,9 @@ export interface PitchDebateProps {
   /** Asks the embedded dossier to show this stakeholder - set when the player follows a
    *  component owner link out of the Performance Dashboard. */
   focusStakeholderId?: string;
+  /** Asks the embedded dossier to jump to and pop this intel item - set when the player
+   *  follows an intel reference out of the Performance Dashboard. */
+  focusIntelId?: string;
   onOpenPhaseBriefing?: () => void;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
@@ -129,6 +132,7 @@ export default function PitchDebate({
   onUpdateIntelItems,
   dossierData = [],
   focusStakeholderId,
+  focusIntelId,
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
@@ -210,6 +214,17 @@ export default function PitchDebate({
     }
     prevFocusStakeholderRef.current = focusStakeholderId;
   }, [focusStakeholderId]);
+
+  // Same, for an intel reference followed from the dashboard: jump the dossier to it and
+  // let it pop, same as clicking one of this screen's own references does.
+  const prevFocusIntelRef = useRef<string | undefined>(focusIntelId);
+  useEffect(() => {
+    if (focusIntelId && focusIntelId !== prevFocusIntelRef.current) {
+      setHighlightedIntelId(focusIntelId);
+      setTimeout(() => setHighlightedIntelId(null), 3000);
+    }
+    prevFocusIntelRef.current = focusIntelId;
+  }, [focusIntelId]);
 
   const handleOpenArtifact = (item: IntelEntry) => {
     if (!item.artifact && !item.artifact_type) return;
@@ -1286,6 +1301,20 @@ export default function PitchDebate({
                       stakeholders={stakeholders as any}
                       getStakeholderColor={getStakeholderColor}
                       graphState={graphState}
+                      // Same figures the pitch deck's own Intel stat chip shows, so the two
+                      // screens never disagree about how ready the player is to pitch.
+                      intelTotal={pitchState?.intel_total ?? 0}
+                      intelVerified={pitchState?.intel_verified ?? 0}
+                      // The dossier is already open in the left column, so an owner link just
+                      // switches its page rather than opening a second modal on top.
+                      onOpenStakeholder={(stakeholderId) => setSelectedStakeholderId(stakeholderId)}
+                      // Same for an intel reference: jump the dossier to it and let it pop,
+                      // rather than opening a second reader inside the composer.
+                      onSelectIntel={(intelId, stakeholderId) => {
+                        if (stakeholderId) setSelectedStakeholderId(stakeholderId);
+                        setHighlightedIntelId(intelId);
+                        setTimeout(() => setHighlightedIntelId(null), 3000);
+                      }}
                     />
                   </motion.div>
                 ) : (

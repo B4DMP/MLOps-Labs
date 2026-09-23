@@ -84,6 +84,9 @@ export interface IntelEntry {
   discovered_phase_id?: number | null;
   /** The graph target the note is about, and the stage that target sits in. */
   target?: string | null;
+  /** How many intel items exist about this target in total, found or not - the per-target
+   *  counterpart to `intel_total` on the stakeholder entry. Same for every note sharing a target. */
+  target_total?: number | null;
   stage_id?: string | null;
   stage_name?: string | null;
   /** Read off the graph every time: "open", "addressed" or "stale". */

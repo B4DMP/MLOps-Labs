@@ -51,6 +51,9 @@ interface OfflineIntelGatheringProps {
   setIsDossierOpen?: (open: boolean) => void;
   dossierData?: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  /** An intel item clicked from outside this screen (e.g. the Performance Dashboard): the
+   *  dossier jumps to it and pops it into view, same as clicking a reference in here does. */
+  focusIntelId?: string;
   challengeTitle?: string;
   challengeDescription?: string;
   challengeIntro?: string;
@@ -114,6 +117,7 @@ export default function OfflineIntelGathering({
   onTagArtifact,
   dossierData = [],
   activeStakeholderId,
+  focusIntelId,
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
@@ -139,6 +143,14 @@ export default function OfflineIntelGathering({
     setHighlightedIntelId(itemId);
     highlightTimeoutRef.current = setTimeout(() => setHighlightedIntelId(null), 2500);
   };
+  // Same jump, triggered from outside this screen (a note clicked in the Performance Dashboard).
+  const prevFocusIntelRef = useRef<string | undefined>(focusIntelId);
+  useEffect(() => {
+    if (focusIntelId && focusIntelId !== prevFocusIntelRef.current) {
+      jumpToIntelItem(focusIntelId);
+    }
+    prevFocusIntelRef.current = focusIntelId;
+  }, [focusIntelId]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
   const [loading, setLoading] = useState(!singleArtifact);

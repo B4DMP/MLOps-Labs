@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import type { Stakeholder } from "./StakeholderProvider";
-import type { StakeholderDossierEntry } from "./StakeholderDossier";
+import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
@@ -144,9 +145,37 @@ export interface ComposeActionProposalModalProps {
   dossierData?: StakeholderDossierEntry[];
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
+  /** Opens the stakeholder's dossier page. Owner chips become links when this is given. */
+  onOpenStakeholder?: (stakeholderId: string) => void;
+  /** Jumps the (already open, embedded) dossier to a specific intel item and pops it into
+   *  view there. Intel references become links when this is given. */
+  onSelectIntel?: (intelId: string, stakeholderId?: string) => void;
+  /** The same intel-readiness figures the pitch deck's own "Intel" stat chip reads
+   *  (pitchState.intel_total / intel_verified) - shown here identically so the two screens
+   *  never disagree about how ready the player is to pitch. */
+  intelTotal?: number;
+  intelVerified?: number;
 }
 
 const MAX_ATOMIC_CHANGES = 3;
+
+/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
+interface LinkedNote {
+  item: IntelEntry;
+  stakeholderName: string;
+  stakeholderId?: string;
+}
+
+const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
+  public_record: { icon: "ph:megaphone-bold", label: "Said openly in the team channel" },
+  interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
+  debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
+  offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
+};
+
+function noteSourceMeta(item: IntelEntry) {
+  return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()] ?? NOTE_SOURCE_META.offline_artifact;
+}
 
 /**
  * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads the
@@ -204,17 +233,23 @@ function LevelPicker({
   value,
   current,
   onChange,
+  onShowTag,
+  onHideTag,
 }: {
   levels: number[];
   value: number;
   current: number;
   onChange: (level: number) => void;
+  onShowTag?: (e: React.SyntheticEvent, label: string, detail?: string) => void;
+  onHideTag?: () => void;
 }) {
   return (
     <div className={styles.levelPicker} role="group" aria-label="Target maturity level">
       {levels.map((lvl) => {
         const isTarget = value === lvl;
         const isCurrent = current === lvl;
+        const label = formatLevelCap(lvl);
+        const detail = isCurrent ? "Where it runs today" : `Propose raising to ${formatLevel(lvl)}`;
         return (
           <button
             key={lvl}
@@ -228,11 +263,10 @@ function LevelPicker({
               ["--rung-on-fill" as string]: levelMeta(lvl).onFill,
             }}
             onClick={() => onChange(lvl)}
-            title={
-              isCurrent
-                ? `${formatLevelCap(lvl)} - where it runs today`
-                : `Propose raising to ${formatLevel(lvl)}`
-            }
+            onMouseEnter={(e) => onShowTag?.(e, label, detail)}
+            onMouseLeave={onHideTag}
+            onFocus={(e) => onShowTag?.(e, label, detail)}
+            onBlur={onHideTag}
           >
             <Icon icon={levelMeta(lvl).icon} className={styles.levelOptionIcon} aria-hidden />
             <span className={styles.levelOptionName}>{formatLevelCap(lvl)}</span>
@@ -255,10 +289,16 @@ export default function ComposeActionProposalModal({
   upstreamMap = {},
   predictions = [],
   boundaryWarnings: _boundaryWarnings = [],
+  // Superseded by dossierData's own intel_total for the header's found/total count, which
+  // reflects everything the player has actually found rather than just this challenge's set.
   intelItems: _intelItems = [],
   graphState: propGraphState = null,
   dossierData = [],
   stakeholders = {},
+  onOpenStakeholder,
+  onSelectIntel,
+  intelTotal = 0,
+  intelVerified = 0,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
   const highlight = useGlossaryHighlighter("action_proposal");
@@ -270,6 +310,120 @@ export default function ComposeActionProposalModal({
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [activeStageId, setActiveStageId] = useState<string>("req");
+
+  // Whether to leave the composer, or discard its slots, needs confirming first: null means
+  // no confirmation is pending, otherwise which action is waiting on one.
+  const [confirmingLeave, setConfirmingLeave] = useState<"close" | "discard" | null>(null);
+
+  // Slotted changes only ever reach the parent (and the stakeholders) via Confirm - closing
+  // the composer any other way, or discarding, throws away anything since the last confirm.
+  const isDirty = useMemo(
+    () => JSON.stringify(atomicChanges) !== JSON.stringify(initialAtomicChanges),
+    [atomicChanges, initialAtomicChanges]
+  );
+
+  const requestClose = useCallback(() => {
+    if (isDirty) setConfirmingLeave("close");
+    else onClose();
+  }, [isDirty, onClose]);
+
+  const requestDiscard = useCallback(() => {
+    if (isDirty) setConfirmingLeave("discard");
+    else setAtomicChanges([]);
+  }, [isDirty]);
+
+  const confirmLeave = () => {
+    if (confirmingLeave === "close") onClose();
+    else if (confirmingLeave === "discard") setAtomicChanges([]);
+    setConfirmingLeave(null);
+  };
+  const cancelLeave = () => setConfirmingLeave(null);
+
+  // Native "leave site?" prompt for a page refresh or tab close - the in-app confirmation
+  // above only covers ways of leaving that this component can intercept.
+  useEffect(() => {
+    if (!isOpen || !isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isOpen, isDirty]);
+
+  // Hover/focus info tag (ported from StakeholderDossier.tsx / pitch_debate.tsx's own
+  // showInfoTag) - a flip-in tag anchored to whatever's hovered/focused, replacing plain
+  // `title` tooltips throughout the composer's chrome and canvas. Flips above its anchor
+  // when there isn't room below (the footer buttons sit right at the window's bottom edge),
+  // the same pass StakeholderDossier's EmotionRevealBadge and HoverToolTip.tsx already do.
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    anchorTop: number;
+    anchorBottom: number;
+    anchorX: number;
+    top: number;
+    left: number;
+    placement: "above" | "below";
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as Element).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({
+      label,
+      detail,
+      anchorTop: rect.top,
+      anchorBottom: rect.bottom,
+      anchorX,
+      top: rect.bottom + 6,
+      left: anchorX,
+      placement: "below",
+    });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  /** Spread onto any element to give it the hover/focus tag in one line, same shape as the
+   *  dossier's own stampTagProps. */
+  const tagProps = (label: string, detail?: string) => ({
+    onMouseEnter: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
+    onMouseLeave: hideInfoTag,
+    onFocus: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
+    onBlur: hideInfoTag,
+  });
+
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(Math.max(infoTag.anchorX, 6 + half), window.innerWidth - 6 - half);
+
+    let top = infoTag.anchorBottom + 6;
+    let placement: "above" | "below" = "below";
+    if (top + box.height > window.innerHeight - 6) {
+      const above = infoTag.anchorTop - 6 - box.height;
+      if (above >= 6) {
+        top = above;
+        placement = "above";
+      } else {
+        top = Math.max(6, window.innerHeight - 6 - box.height);
+      }
+    }
+
+    setInfoTag((prev) =>
+      prev && prev.left === left && prev.top === top && prev.placement === placement
+        ? prev
+        : prev && { ...prev, left, top, placement }
+    );
+  }, [infoTag?.anchorX, infoTag?.anchorTop, infoTag?.anchorBottom, infoTag?.label, infoTag?.detail]);
+
+  useEffect(() => {
+    if (!infoTag) return;
+    const handleScroll = () => hideInfoTag();
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [infoTag]);
 
   // Selected edge form state
   const [selectedEdgeTargetLevel, setSelectedEdgeTargetLevel] = useState<number | null>(null);
@@ -294,25 +448,30 @@ export default function ComposeActionProposalModal({
       setSelectedEdgeId(null);
       setHoveredCompId(null);
       setHoveredEdgeId(null);
+      setInfoTag(null);
+      setConfirmingLeave(null);
     }
   }, [isOpen, initialAtomicChanges]);
 
-  // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first the
-  // thing you have selected, then the composer itself.
+  // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first a
+  // pending leave-confirmation, then the thing you have selected, then the composer itself
+  // (routed through the same dirty check as the close button, not straight to onClose).
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (selectedCompId || selectedEdgeId) {
+      if (confirmingLeave) {
+        cancelLeave();
+      } else if (selectedCompId || selectedEdgeId) {
         setSelectedCompId(null);
         setSelectedEdgeId(null);
       } else {
-        onClose();
+        requestClose();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, selectedCompId, selectedEdgeId, onClose]);
+  }, [isOpen, selectedCompId, selectedEdgeId, confirmingLeave, requestClose]);
 
   // Request graph state on open and listen to live updates
   useEffect(() => {
@@ -466,19 +625,44 @@ export default function ComposeActionProposalModal({
    * former and not the latter, the composer should say so rather than refusing flatly.
    */
   const notesByTarget = useMemo(() => {
-    const byTarget: Record<string, Array<{ text: string; who: string }>> = {};
+    const byTarget: Record<string, LinkedNote[]> = {};
     dossierData.forEach((entry) => {
       (entry.intel_items ?? []).forEach((item) => {
         const target = item.target || item.debug?.target;
         if (!target) return;
         (byTarget[target] ||= []).push({
-          text: item.fact || item.description,
-          who: entry.is_environment ? "the environment" : entry.name,
+          item,
+          stakeholderName: entry.is_environment ? "the environment" : entry.name,
+          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
         });
       });
     });
     return byTarget;
   }, [dossierData]);
+
+  // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
+  // intel items exist for this target in total. `target_total` is the same on every note
+  // sharing a target, so the first one carries it.
+  const intelCountLabel = useCallback((notes: LinkedNote[]) => {
+    const total = notes[0]?.item.target_total;
+    return total && total > notes.length
+      ? `${notes.length} of ${total} found`
+      : `${notes.length} found`;
+  }, []);
+
+  // Selecting a component elsewhere in the canvas - via a "held back by" or "capped by"
+  // reference - should jump the view there too, switching stage tabs if it lives in another.
+  const jumpToComponent = useCallback(
+    (targetId: string) => {
+      const comp = allComponentsMap.get(targetId);
+      if (comp?.stage_id && comp.stage_id !== activeStageId) {
+        setActiveStageId(comp.stage_id);
+      }
+      setSelectedCompId(targetId);
+      setSelectedEdgeId(null);
+    },
+    [allComponentsMap, activeStageId]
+  );
 
   // Selected Edge state
   const selectedEdgeData = selectedEdgeId ? allEdgesMap.get(selectedEdgeId) : null;
@@ -593,10 +777,33 @@ export default function ComposeActionProposalModal({
         </div>
 
         <div className="d-flex align-items-center gap-2">
+          {intelTotal > 0 && (
+            <div
+              className={styles.intelIndicator}
+              tabIndex={0}
+              {...tagProps(
+                "Intel Readiness",
+                "How much of the intel relevant to this challenge you've verified so far"
+              )}
+            >
+              <Icon icon="ph:notebook-bold" />
+              <span>
+                {intelVerified} / {intelTotal} Intel Verified
+              </span>
+            </div>
+          )}
+
           <div
             className={`${styles.slotsIndicator} ${
               atomicChanges.length === MAX_ATOMIC_CHANGES ? styles.slotsFull : ""
             }`}
+            tabIndex={0}
+            {...tagProps(
+              "Proposal Slots",
+              atomicChanges.length === MAX_ATOMIC_CHANGES
+                ? "All 3 slots are used - remove one to add another"
+                : "Up to 3 changes can go into one proposal"
+            )}
           >
             <Icon icon="ph:cpu-bold" />
             <span>
@@ -607,9 +814,9 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={styles.closeBtn}
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Back to boardroom"
-            title="Back to boardroom"
+            {...tagProps("Back to Boardroom", "Leave the composer without proposing anything (Esc)")}
           >
             <Icon icon="ph:arrow-u-up-left-bold" />
             <span>Back to Boardroom</span>
@@ -636,11 +843,10 @@ export default function ComposeActionProposalModal({
               className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""} ${
                 isOtherPhase ? styles.stageTabViewOnly : ""
               }`}
-              title={
-                isOtherPhase
-                  ? `${stage.name} - phase ${stage.phase_id}, view only in this challenge`
-                  : `${stage.name} - the phase you are in`
-              }
+              {...tagProps(
+                stage.name,
+                isOtherPhase ? `Phase ${stage.phase_id} - view only in this challenge` : "The phase you are in"
+              )}
             >
               <Icon
                 className={styles.stageTabIcon}
@@ -815,6 +1021,12 @@ export default function ComposeActionProposalModal({
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
                     const showHandle = !isSlotted && !isOtherPhase && e.knowledge !== "unknown";
+                    const edgeTagDetail =
+                      e.knowledge === "unknown"
+                        ? "Undiscovered - its maturity and trigger are unconfirmed"
+                        : `Runs ${formatLevel(e.level)}${
+                            hasTrigger ? `, started by ${formatTrigger(e.trigger)}` : ""
+                          }\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
 
                     return (
                       <g key={e.id}>
@@ -867,11 +1079,6 @@ export default function ComposeActionProposalModal({
                             x={mx}
                             y={my}
                             glyph={hasTrigger ? TRIGGER_ICONS[e.trigger!] ?? "?" : undefined}
-                            title={`${from.name} to ${to.name}
-Runs ${formatLevel(e.level)}${
-                              hasTrigger ? `, started by ${formatTrigger(e.trigger)}` : ""
-                            }
-Click to edit this connection`}
                             color={color}
                             active={isSelected || isSlotted}
                             onClick={() => {
@@ -896,15 +1103,15 @@ Click to edit this connection`}
                             setSelectedEdgeId(isSelected ? null : e.id);
                             setSelectedCompId(null);
                           }}
-                          onMouseEnter={() => setHoveredEdgeId(e.id)}
-                          onMouseLeave={() => setHoveredEdgeId(null)}
-                        >
-                          <title>
-                            {`Edge: ${from.name} ➔ ${to.name} (${e.id})\nLevel: ${formatLevel(e.level)}\nTrigger: ${
-                              e.trigger || "none"
-                            }`}
-                          </title>
-                        </line>
+                          onMouseEnter={(e2) => {
+                            setHoveredEdgeId(e.id);
+                            showInfoTag(e2, `${from.name} → ${to.name}`, edgeTagDetail);
+                          }}
+                          onMouseLeave={() => {
+                            setHoveredEdgeId(null);
+                            hideInfoTag();
+                          }}
+                        />
                       </g>
                     );
                   })}
@@ -956,6 +1163,26 @@ Click to edit this connection`}
                     const safeId = c.id.replace(/\./g, "_");
                     const compChange = atomicChanges.find((change) => change.target === c.id);
                     const previewLevel = typeof compChange?.value === "number" ? compChange.value : undefined;
+                    const nodeTagStatus = isUnknown
+                      ? "Not discovered yet"
+                      : isOtherPhase
+                      ? "View only - belongs to another phase"
+                      : isBroken
+                      ? "Current status: Broken"
+                      : upstreamCheck.uncertain
+                      ? `Current status: Uncertain - held up by ${upstreamCheck.unknownNodes
+                          .map((id) => allComponentsMap.get(id)?.name ?? id)
+                          .join(", ")}, still undiscovered`
+                      : isStarved
+                      ? "Current status: Starved - something upstream is broken, so nothing reaches it"
+                      : c.capped_by
+                      ? `Current status: Held back by ${allComponentsMap.get(c.capped_by)?.name ?? c.capped_by}`
+                      : `Current status: ${formatLevel(c.effective ?? c.nominal ?? 1)}`;
+                    const nodeTagProposed =
+                      isSlotted && typeof compChange?.value === "number"
+                        ? `\nProposed: ${formatLevel(c.nominal ?? 1)} → ${formatLevel(compChange.value)}`
+                        : "";
+                    const nodeTagDetail = `${nodeTagStatus}${nodeTagProposed}\nClick to inspect`;
 
                     return (
                       <g
@@ -966,8 +1193,14 @@ Click to edit this connection`}
                           setSelectedCompId(isSelected ? null : c.id);
                           setSelectedEdgeId(null);
                         }}
-                        onMouseEnter={() => setHoveredCompId(c.id)}
-                        onMouseLeave={() => setHoveredCompId(null)}
+                        onMouseEnter={(e) => {
+                          setHoveredCompId(c.id);
+                          showInfoTag(e, c.name || c.id, nodeTagDetail);
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredCompId(null);
+                          hideInfoTag();
+                        }}
                       >
                         <g className={isBroken ? "node-broken" : undefined}>
                         {/* Card face */}
@@ -1091,7 +1324,6 @@ Click to edit this connection`}
         {/* Right: Inspector & Slots Panel */}
         <div className={styles.sidebarArea}>
           <div className={styles.sidebarContent}>
-            {/* ── Selected EDGE Inspector ── */}
             {selectedEdgeData ? (
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
@@ -1099,10 +1331,25 @@ Click to edit this connection`}
                     <Icon icon="ph:flow-arrow-bold" className={styles.inspectorIcon} />
                     <div className={styles.inspectorHeadingText}>
                       <span className={styles.inspectorTitle}>
-                        {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id} →{" "}
-                        {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
+                        <button
+                          type="button"
+                          className={styles.inlineJumpLink}
+                          onClick={() => jumpToComponent(selectedEdgeData.from_id)}
+                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id)}
+                        >
+                          {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id}
+                        </button>{" "}
+                        →{" "}
+                        <button
+                          type="button"
+                          className={styles.inlineJumpLink}
+                          onClick={() => jumpToComponent(selectedEdgeData.to_id)}
+                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id)}
+                        >
+                          {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
+                        </button>
                       </span>
-                      <span className={styles.inspectorSubtitle} title={selectedEdgeData.id}>
+                      <span className={styles.inspectorSubtitle}>
                         workflow · {selectedEdgeData.kind} ·{" "}
                         {selectedEdgeData.slack === 1 ? "soft dependency" : "hard dependency"}
                       </span>
@@ -1112,7 +1359,7 @@ Click to edit this connection`}
                     type="button"
                     className={styles.inspectorClose}
                     onClick={() => setSelectedEdgeId(null)}
-                    title="Close inspector"
+                    {...tagProps("Close inspector")}
                   >
                     <Icon icon="ph:x-bold" />
                   </button>
@@ -1152,6 +1399,38 @@ Click to edit this connection`}
                         </span>
                       </div>
 
+                      {/* Intel notes filed against this connection - shown before the picker
+                          so the evidence informs the decision. */}
+                      {(notesByTarget[selectedEdgeData.id]?.length ?? 0) > 0 && (
+                        <div className={styles.notesSection}>
+                          <span className={styles.notesSectionLabel}>
+                            <Icon icon="ph:notebook-bold" /> Intel on this connection ({intelCountLabel(notesByTarget[selectedEdgeData.id])})
+                          </span>
+                          <div className={styles.noteLinkList}>
+                            {notesByTarget[selectedEdgeData.id].map((note) => {
+                              const meta = noteSourceMeta(note.item);
+                              return (
+                                <button
+                                  key={note.item.id}
+                                  type="button"
+                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                  disabled={!onSelectIntel}
+                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
+                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
+                                >
+                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
+                                  <span className={styles.noteLinkText}>
+                                    {note.item.fact || note.item.description}
+                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
+                                  </span>
+                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Edge Edit Form */}
                       <div className={styles.formStack}>
                         <div className={styles.formGroup}>
@@ -1159,6 +1438,7 @@ Click to edit this connection`}
                             <Icon icon="ph:arrow-fat-line-up-bold" />
                             <span>Raise to</span>
                           </label>
+                          <p className={styles.formHint}>Choose the level to propose for this connection.</p>
                           <LevelPicker
                             levels={
                               selectedEdgeData.allowed_levels && selectedEdgeData.allowed_levels.length > 0
@@ -1181,6 +1461,8 @@ Click to edit this connection`}
                                 setSelectedEdgeTargetTrigger("none");
                               }
                             }}
+                            onShowTag={showInfoTag}
+                            onHideTag={hideInfoTag}
                           />
                         </div>
 
@@ -1292,32 +1574,53 @@ Click to edit this connection`}
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
                   <div className={styles.inspectorHeading}>
-                    <Icon icon="ph:cube-bold" className={styles.inspectorIcon} />
+                    <Icon icon={selectedCompData.icon || "ph:cube-bold"} className={styles.inspectorIcon} />
                     <div className={styles.inspectorHeadingText}>
-                      <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
-                      <span className={styles.inspectorSubtitle} title={selectedCompData.id}>
-                        {graphState?.stages?.find((st) => st.id === (selectedCompData.stage_id || activeStageId))
-                          ?.name ?? "component"}
-                      </span>
-                      {selectedCompData.owner_id && (
-                        <span className={styles.inspectorOwner}>
-                          <StakeholderAvatarComponent
-                            stakeholderId={selectedCompData.owner_id}
-                            avatar={stakeholders[selectedCompData.owner_id]?.avatar}
-                            stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                            size={16}
-                            hoverToSuspicious={false}
-                          />
-                          <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
-                        </span>
-                      )}
+                      <div className={styles.inspectorTitleRow}>
+                        <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
+                        {selectedCompData.owner_id && (
+                          onOpenStakeholder ? (
+                            <button
+                              type="button"
+                              className={styles.ownerLink}
+                              onClick={() => onOpenStakeholder(selectedCompData.owner_id!)}
+                              {...tagProps(
+                                "Owner",
+                                `Open ${stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id}'s dossier page`
+                              )}
+                            >
+                              <StakeholderAvatarComponent
+                                stakeholderId={selectedCompData.owner_id}
+                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
+                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                size={16}
+                                hoverToSuspicious={false}
+                                className={styles.ownerLinkAvatar}
+                              />
+                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
+                              <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
+                            </button>
+                          ) : (
+                            <span className={styles.inspectorOwner}>
+                              <StakeholderAvatarComponent
+                                stakeholderId={selectedCompData.owner_id}
+                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
+                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                size={16}
+                                hoverToSuspicious={false}
+                              />
+                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button
                     type="button"
                     className={styles.inspectorClose}
                     onClick={() => setSelectedCompId(null)}
-                    title="Close inspector"
+                    {...tagProps("Close inspector")}
                   >
                     <Icon icon="ph:x-bold" />
                   </button>
@@ -1337,17 +1640,33 @@ Click to edit this connection`}
                         {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
                           <div className={styles.fogPointers}>
                             <span className={styles.fogPointersLabel}>Your notes point here:</span>
-                            {notesByTarget[selectedCompData.id].map((note, i) => (
-                              <span key={i} className={styles.fogPointer}>
-                                <Icon icon="ph:quotes-bold" />
-                                <span>
-                                  {note.text} <em>- {note.who}</em>
+                            {notesByTarget[selectedCompData.id].map((note, i) =>
+                              onSelectIntel ? (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  className={styles.fogPointerLink}
+                                  onClick={() => onSelectIntel(note.item.id, note.stakeholderId)}
+                                  {...tagProps(noteSourceMeta(note.item).label, "Click to jump to it in your dossier")}
+                                >
+                                  <Icon icon="ph:quotes-bold" />
+                                  <span>
+                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
+                                  </span>
+                                  <Icon icon="ph:arrow-bend-up-left-bold" className={styles.fogPointerGo} />
+                                </button>
+                              ) : (
+                                <span key={i} className={styles.fogPointer}>
+                                  <Icon icon="ph:quotes-bold" />
+                                  <span>
+                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
+                                  </span>
                                 </span>
-                              </span>
-                            ))}
+                              )
+                            )}
                             <span className={styles.fogHint}>
-                              An opinion about this component is not an observation of it. File the
-                              Fact that describes how it runs, or investigate the component itself.
+                              An opinion about this component is not an observation of it. Only
+                              investigating it directly, with an engagement card, confirms how it runs.
                             </span>
                           </div>
                         )}
@@ -1365,7 +1684,7 @@ Click to edit this connection`}
                     /* Editable Component Controls */
                     <>
                       <div className={styles.statusStrip}>
-                        <span className={styles.statusLabel}>Runs</span>
+                        <span className={styles.statusLabel}>Current status</span>
                         <span className={styles.statusValue}>{formatLevel(selectedCompData.nominal ?? 1)}</span>
                       </div>
 
@@ -1376,7 +1695,20 @@ Click to edit this connection`}
                           <div>
                             <strong>Status uncertain:</strong>{" "}
                             {highlight("an upstream pipeline dependency is still undiscovered")} (
-                            <em>{selectedUpstreamStatus.unknownNodes.join(", ")}</em>).
+                            {selectedUpstreamStatus.unknownNodes.map((nodeId, i) => (
+                              <em key={nodeId}>
+                                {i > 0 && ", "}
+                                <button
+                                  type="button"
+                                  className={styles.inlineJumpLink}
+                                  onClick={() => jumpToComponent(nodeId)}
+                                  {...tagProps("Jump to it", "Still undiscovered - its status is why this one is uncertain")}
+                                >
+                                  {allComponentsMap.get(nodeId)?.name ?? nodeId}
+                                </button>
+                              </em>
+                            ))}
+                            ).
                           </div>
                         </div>
                       ) : selectedCompData.capped_by &&
@@ -1388,7 +1720,15 @@ Click to edit this connection`}
                           <div>
                             <strong>Held back:</strong> {highlight("this component is capped at")}{" "}
                             <strong>{formatLevel(selectedCompData.effective)}</strong> by{" "}
-                            <strong>{highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}</strong>.{" "}
+                            <button
+                              type="button"
+                              className={styles.inlineJumpLink}
+                              onClick={() => jumpToComponent(selectedCompData.capped_by!)}
+                              {...tagProps("Jump to it", "The bottleneck holding this component back")}
+                            >
+                              {highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}
+                            </button>
+                            .{" "}
                             {highlight("Raising it alone changes nothing until that bottleneck is dealt with.")}
                           </div>
                         </div>
@@ -1403,6 +1743,38 @@ Click to edit this connection`}
                         </div>
                       )}
 
+                      {/* Intel notes filed against this component - what backs the banner above,
+                          shown before the picker so the evidence informs the decision. */}
+                      {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
+                        <div className={styles.notesSection}>
+                          <span className={styles.notesSectionLabel}>
+                            <Icon icon="ph:notebook-bold" /> Intel on this component ({intelCountLabel(notesByTarget[selectedCompData.id])})
+                          </span>
+                          <div className={styles.noteLinkList}>
+                            {notesByTarget[selectedCompData.id].map((note) => {
+                              const meta = noteSourceMeta(note.item);
+                              return (
+                                <button
+                                  key={note.item.id}
+                                  type="button"
+                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                  disabled={!onSelectIntel}
+                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
+                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
+                                >
+                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
+                                  <span className={styles.noteLinkText}>
+                                    {note.item.fact || note.item.description}
+                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
+                                  </span>
+                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Component Level Selector */}
                       <div className={styles.formStack}>
                         <div className={styles.formGroup}>
@@ -1410,6 +1782,7 @@ Click to edit this connection`}
                             <Icon icon="ph:arrow-fat-line-up-bold" />
                             <span>Raise to</span>
                           </label>
+                          <p className={styles.formHint}>Choose the level to propose for this component.</p>
                           <LevelPicker
                             levels={
                               selectedCompData.allowed_levels && selectedCompData.allowed_levels.length > 0
@@ -1419,6 +1792,8 @@ Click to edit this connection`}
                             value={selectedCompTargetLevel ?? (selectedCompData.nominal ?? 1)}
                             current={selectedCompData.nominal ?? 1}
                             onChange={setSelectedCompTargetLevel}
+                            onShowTag={showInfoTag}
+                            onHideTag={hideInfoTag}
                           />
                         </div>
                       </div>
@@ -1540,6 +1915,7 @@ Click to edit this connection`}
                           setSelectedEdgeId(null);
                         }
                       }}
+                      {...tagProps(displayName, "Click to open it in the inspector")}
                     >
                       <div className={styles.slotHeader}>
                         <div className="d-flex align-items-center gap-2">
@@ -1553,7 +1929,7 @@ Click to edit this connection`}
                             ev.stopPropagation();
                             handleRemoveSlot(idx);
                           }}
-                          title="Remove change"
+                          {...tagProps("Remove change", "Frees this slot for a different change")}
                         >
                           <Icon icon="ph:x-bold" />
                           <span>Remove</span>
@@ -1602,8 +1978,8 @@ Click to edit this connection`}
           <button
             type="button"
             className={styles.secondaryBtn}
-            onClick={onClose}
-            title="Leave the composer without proposing anything (Esc)"
+            onClick={requestClose}
+            {...tagProps("Back to Boardroom", "Leave the composer without proposing anything (Esc)")}
           >
             <Icon icon="ph:arrow-u-up-left-bold" />
             <span>Back to Boardroom</span>
@@ -1612,9 +1988,9 @@ Click to edit this connection`}
           <button
             type="button"
             className={styles.secondaryBtn}
-            onClick={() => setAtomicChanges([])}
+            onClick={requestDiscard}
             disabled={atomicChanges.length === 0}
-            title="Empty every slot and start the proposal again"
+            {...tagProps("Discard changes", "Empty every slot and start the proposal again")}
           >
             Discard changes
           </button>
@@ -1624,12 +2000,65 @@ Click to edit this connection`}
             className={`${styles.actionButton} ${styles.footerConfirm}`}
             disabled={atomicChanges.length === 0}
             onClick={handleConfirm}
+            {...tagProps(
+              "Confirm Proposal",
+              "Sends this straight to the stakeholders for their reaction - a weak proposal can upset them. You can still revise it before the final decision."
+            )}
           >
             <Icon icon="ph:check-bold" />
             <span>Confirm proposal ({atomicChanges.length})</span>
           </button>
         </div>
       </div>
+
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div
+              className={`${styles.headerHoverTagFlip} ${
+                infoTag.placement === "above" ? styles.headerHoverTagAbove : ""
+              }`}
+            >
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {confirmingLeave && (
+        <div
+          className={styles.leaveConfirmOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) cancelLeave();
+          }}
+        >
+          <div className={styles.leaveConfirmCard} role="alertdialog" aria-modal="true">
+            <div className={styles.leaveConfirmTitle}>
+              <Icon icon="ph:warning-bold" style={{ fontSize: "1.3rem" }} />
+              <span>{confirmingLeave === "close" ? "Leave without proposing?" : "Discard these changes?"}</span>
+            </div>
+            <p className={styles.leaveConfirmBody}>
+              {confirmingLeave === "close"
+                ? "Your slot changes have not been sent to the stakeholders. Leaving now loses them."
+                : "This empties every slot you've configured. It can't be undone."}
+            </p>
+            <div className={styles.leaveConfirmActions}>
+              <button type="button" className={styles.secondaryBtn} onClick={cancelLeave} autoFocus>
+                Keep editing
+              </button>
+              <button type="button" className={`${styles.actionButton} ${styles.dangerButton}`} onClick={confirmLeave}>
+                {confirmingLeave === "close" ? "Leave anyway" : "Discard"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

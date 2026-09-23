@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo,
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
-import IntelArtifactViewer from "./IntelArtifactViewer";
 import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
 import { StakeholderContext } from "./StakeholderProvider";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
@@ -134,6 +133,9 @@ export interface PerformanceDashboardProps {
   dossierData?: StakeholderDossierEntry[];
   /** Opens the dossier on a stakeholder's page. Owners become links when this is given. */
   onOpenStakeholder?: (stakeholderId: string) => void;
+  /** Opens the dossier on a specific intel item and pops it into view there. Intel
+   *  references become links when this is given. */
+  onSelectIntel?: (intelId: string, stakeholderId?: string) => void;
 }
 
 /** What sits on one side of the stage being inspected. */
@@ -145,10 +147,11 @@ interface StageNeighbour {
   color?: string;
 }
 
-/** One dossier note, carrying the page it was found on so the artifact can be attributed. */
+/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
 interface LinkedNote {
   item: IntelEntry;
   stakeholderName: string;
+  stakeholderId?: string;
 }
 
 const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
@@ -161,11 +164,6 @@ const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
 function noteSourceMeta(item: IntelEntry) {
   return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()]
     ?? NOTE_SOURCE_META.offline_artifact;
-}
-
-/** A note can be opened as an artifact only when there is a document behind it. */
-function artifactContentOf(item: IntelEntry): string | null {
-  return item.artifact?.content || item.debug?.artifact?.content || null;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -609,6 +607,7 @@ export default function PerformanceDashboard({
   currentPhase = 0,
   dossierData,
   onOpenStakeholder,
+  onSelectIntel,
 }: PerformanceDashboardProps) {
   const isDashboardOpen = isOpen ?? isVisible ?? false;
   const handleClose = useCallback(() => {
@@ -623,7 +622,6 @@ export default function PerformanceDashboard({
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
-  const [openNote, setOpenNote] = useState<LinkedNote | null>(null);
 
   /** Dossier notes that are about a given graph target, flattened across stakeholder pages. */
   const notesByTarget = useMemo(() => {
@@ -632,13 +630,26 @@ export default function PerformanceDashboard({
       (entry.intel_items ?? []).forEach((item) => {
         const target = item.target || item.debug?.target;
         if (!target) return;
-        (byTarget[target] ||= []).push({ item, stakeholderName: entry.name });
+        (byTarget[target] ||= []).push({
+          item,
+          stakeholderName: entry.name,
+          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
+        });
       });
     });
     return byTarget;
   }, [dossierData]);
 
   const linkedNotes = selectedComp ? notesByTarget[selectedComp] ?? [] : [];
+
+  // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
+  // intel items exist for this component in total. `target_total` is the same on every note
+  // sharing a target, so the first one carries it.
+  const linkedNotesTotal = linkedNotes[0]?.item.target_total;
+  const linkedNotesLabel =
+    linkedNotesTotal && linkedNotesTotal > linkedNotes.length
+      ? `${linkedNotes.length} of ${linkedNotesTotal} found`
+      : `${linkedNotes.length} found`;
 
   const stageRefs = useRef<Record<string, HTMLElement | null>>({});
   const buttonsRowRef = useRef<HTMLDivElement | null>(null);
@@ -652,18 +663,12 @@ export default function PerformanceDashboard({
     if (!isDashboardOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (openNote) setOpenNote(null);
-      else if (selectedComp) setSelectedComp(null);
+      if (selectedComp) setSelectedComp(null);
       else handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isDashboardOpen, selectedComp, openNote, handleClose]);
-
-  // Changing what is selected drops an open artifact: it belonged to the old selection.
-  useEffect(() => {
-    setOpenNote(null);
-  }, [selectedComp, selectedStage]);
+  }, [isDashboardOpen, selectedComp, handleClose]);
 
   const requestState = useCallback(() => {
     emit("graph:state_request", { phase_id: currentPhase });
@@ -1074,40 +1079,7 @@ export default function PerformanceDashboard({
 
                 {/* Right column: the inspector spans the strip and the architecture */}
                 <div className={styles.detailsColumn}>
-                  {openNote ? (
-                    <div className={styles.detailsCard}>
-                      <div className={styles.detailsCardHeader}>
-                        <span className="d-flex align-items-center gap-2">
-                          <Icon icon={noteSourceMeta(openNote.item).icon} />
-                          <span>{selComponentData?.name ?? "Intel artifact"}</span>
-                        </span>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-link text-white text-decoration-none p-0"
-                          onClick={() => setOpenNote(null)}
-                          title="Back to the component"
-                          style={{ fontSize: "0.78rem" }}
-                        >
-                          ✕ Close
-                        </button>
-                      </div>
-                      <div className={styles.artifactBody}>
-                        <IntelArtifactViewer
-                          content={artifactContentOf(openNote.item) ?? ""}
-                          artifactType={openNote.item.artifact?.artifact_type || openNote.item.artifact_type || "document"}
-                          stakeholderName={openNote.item.artifact?.stakeholder_name || openNote.stakeholderName}
-                          isPublicRecord={(openNote.item.source || "").toLowerCase() === "public_record"}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary m-2"
-                        onClick={() => setOpenNote(null)}
-                      >
-                        ← Back to {selComponentData?.name ?? "component"}
-                      </button>
-                    </div>
-                  ) : activeStage && activeTechnical ? (
+                  {activeStage && activeTechnical ? (
                     <div className={styles.detailsCard}>
                         <div className={styles.detailsCardHeader}>
                           <span className="d-flex align-items-center gap-2">
@@ -1237,27 +1209,26 @@ export default function PerformanceDashboard({
                               {linkedNotes.length > 0 && (
                                 <div>
                                   <span className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.68rem" }}>
-                                    Intel on this component:
+                                    Intel on this component ({linkedNotesLabel}):
                                   </span>
                                   <div className={styles.noteLinkList}>
-                                    {linkedNotes.map(({ item, stakeholderName }) => {
+                                    {linkedNotes.map(({ item, stakeholderId }) => {
                                       const meta = noteSourceMeta(item);
-                                      const openable = Boolean(artifactContentOf(item));
                                       return (
                                         <button
                                           key={item.id}
                                           type="button"
-                                          className={`${styles.noteLink} ${openable ? "" : styles.noteLinkFlat}`}
-                                          disabled={!openable}
-                                          onClick={() => openable && setOpenNote({ item, stakeholderName })}
-                                          title={openable ? `Open the ${meta.label.toLowerCase()}` : meta.label}
+                                          className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                          disabled={!onSelectIntel}
+                                          onClick={() => onSelectIntel?.(item.id, stakeholderId)}
+                                          title={onSelectIntel ? "Jump to this note in your dossier" : meta.label}
                                         >
                                           <Icon icon={meta.icon} className={styles.noteLinkIcon} />
                                           <span className={styles.noteLinkText}>
                                             {item.fact || item.description}
                                           </span>
-                                          {openable && (
-                                            <Icon icon="ph:arrow-square-out-bold" className={styles.noteLinkGo} />
+                                          {onSelectIntel && (
+                                            <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />
                                           )}
                                         </button>
                                       );

@@ -122,6 +122,9 @@ function App({ username: _username, onLogout }: AppProps) {
   // dossier-derived state, so Game.tsx just keeps it updated for the websocket handlers.
   const [, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
+  // An intel reference clicked from the Performance Dashboard (which sits above both phase
+  // screens): the dossier it opens should jump straight to that item and pop it into view.
+  const [focusIntelId, setFocusIntelId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
   const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
@@ -896,6 +899,14 @@ function App({ username: _username, onLogout }: AppProps) {
                       setIsDossierOpen(true);
                       setIsPerformanceOpen(false);
                     }}
+                    // Same for an intel reference: step aside and let the dossier jump to it
+                    // and pop it into view, rather than reading it inside the dashboard itself.
+                    onSelectIntel={(intelId, stakeholderId) => {
+                      if (stakeholderId) setActiveStakeholderId(stakeholderId);
+                      setFocusIntelId(intelId);
+                      setIsDossierOpen(true);
+                      setIsPerformanceOpen(false);
+                    }}
                   />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
@@ -939,6 +950,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           setIsDossierOpen={setIsDossierOpen}
                           dossierData={dossierData}
                           activeStakeholderId={activeStakeholderId}
+                          focusIntelId={focusIntelId}
                           challengeTitle={challengeTitle}
                           challengeDescription={challengeDescription}
                           challengeIntro={challengeIntro}
@@ -973,6 +985,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
                           dossierData={dossierData}
                           focusStakeholderId={activeStakeholderId}
+                          focusIntelId={focusIntelId}
                           onOpenPhaseBriefing={openBriefingForReview}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
