@@ -449,33 +449,34 @@ const EmotionRevealBadge: React.FC<{
       {hasReveal &&
         show &&
         createPortal(
-          <div
-            ref={cardRef}
-            className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
-            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
-            aria-hidden="true"
-          >
-            <div className={styles.emotionRevealTitle}>{revealTitle}</div>
-            <div className={styles.emotionRevealDims}>
-              {gatingDims.map((dim, idx) => {
-                const meta = EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium;
-                return (
-                  <div className={styles.emotionDimRow} key={idx}>
-                    <span className={styles.emotionDimName}>
-                      {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
-                    </span>
-                    <span className={styles.emotionDimSegments}>
-                      {[1, 2, 3].map((seg) => (
-                        <span
-                          key={seg}
-                          className={`${styles.emotionDimSegment} ${seg <= meta.level ? meta.fillClass : ""}`}
-                        />
-                      ))}
-                    </span>
-                    <span className={`${styles.emotionDimWord} ${meta.wordClass}`}>{meta.label}</span>
-                  </div>
-                );
-              })}
+          <div className={styles.emotionRevealAnchor} style={{ top: `${coords.top}px`, left: `${coords.left}px` }}>
+            <div
+              ref={cardRef}
+              className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
+              aria-hidden="true"
+            >
+              <div className={styles.emotionRevealTitle}>{revealTitle}</div>
+              <div className={styles.emotionRevealDims}>
+                {gatingDims.map((dim, idx) => {
+                  const meta = EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium;
+                  return (
+                    <div className={styles.emotionDimRow} key={idx}>
+                      <span className={styles.emotionDimName}>
+                        {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
+                      </span>
+                      <span className={styles.emotionDimSegments}>
+                        {[1, 2, 3].map((seg) => (
+                          <span
+                            key={seg}
+                            className={`${styles.emotionDimSegment} ${seg <= meta.level ? meta.fillClass : ""}`}
+                          />
+                        ))}
+                      </span>
+                      <span className={`${styles.emotionDimWord} ${meta.wordClass}`}>{meta.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>,
           document.body
@@ -707,6 +708,40 @@ export default function StakeholderDossier({
   /** Which answer-key panel is unfolded: a note id, or `page-<stakeholder id>`. Debug builds only. */
   const [openDebugId, setOpenDebugId] = useState<string | null>(null);
   const toggleDebug = (id: string) => setOpenDebugId((prev) => (prev === id ? null : id));
+
+  // The same flip-down hover/focus tag HeaderIconButton uses, but shared across every
+  // stakeholder tab and every power/interest/intel badge instead of one hook instance per
+  // element: only one can ever be visible at a time, and several of these anchors are built
+  // inside .map() loops, where a per-element hook call would break the Rules of Hooks.
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    top: number;
+    anchorX: number;
+    left: number;
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({ label, detail, top: rect.bottom + HEADER_TAG_EDGE_MARGIN, anchorX, left: anchorX });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  // Keep the tag inside the viewport horizontally, same as HeaderIconButton's own pass.
+  // Recomputed from the fixed anchorX (not the previous left) so repeat adjustments - e.g. its
+  // detail text changing width while it's already showing - never drift it off its anchor.
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(
+      Math.max(infoTag.anchorX, HEADER_TAG_EDGE_MARGIN + half),
+      window.innerWidth - HEADER_TAG_EDGE_MARGIN - half
+    );
+    setInfoTag((prev) => (prev && prev.left !== left ? { ...prev, left } : prev));
+  }, [infoTag?.anchorX, infoTag?.label, infoTag?.detail]);
 
   // Dossier filters (plan 05). `null` means the player has not touched the stage row yet, so it
   // keeps following the challenge's focus stages as those change.
@@ -1421,6 +1456,12 @@ export default function StakeholderDossier({
       activeEmotionColors[emotionDisplay] ||
       activeEmotionColors[emotionDisplay.toLowerCase()] ||
       "#64748b";
+    const powerDetail = `${(st.power || stObj?.power || "low").toUpperCase()} — ${
+      (st.power || stObj?.power || "").toLowerCase() === "high" ? "strong authority" : "limited authority"
+    }`;
+    const interestDetail = `${(st.interest || stObj?.interest || "low").toUpperCase()} — ${
+      (st.interest || stObj?.interest || "").toLowerCase() === "high" ? "closely engaged" : "loosely engaged"
+    }`;
 
     return (
       <>
@@ -1489,11 +1530,12 @@ export default function StakeholderDossier({
               />
               <div
                 className={styles.powerInterestBadge}
-                title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (${
-                  (st.power || stObj?.power || "").toLowerCase() === "high"
-                    ? "strong authority"
-                    : "limited authority"
-                })`}
+                tabIndex={0}
+                aria-label={`Power: ${powerDetail}`}
+                onMouseEnter={(e) => showInfoTag(e, "Power", powerDetail)}
+                onMouseLeave={hideInfoTag}
+                onFocus={(e) => showInfoTag(e, "Power", powerDetail)}
+                onBlur={hideInfoTag}
               >
                 <Icon
                   icon="ph:lightning-bold"
@@ -1513,11 +1555,12 @@ export default function StakeholderDossier({
               </div>
               <div
                 className={styles.powerInterestBadge}
-                title={`Interest: ${(st.interest || stObj?.interest || "low").toUpperCase()} (${
-                  (st.interest || stObj?.interest || "").toLowerCase() === "high"
-                    ? "closely engaged"
-                    : "loosely engaged"
-                })`}
+                tabIndex={0}
+                aria-label={`Interest: ${interestDetail}`}
+                onMouseEnter={(e) => showInfoTag(e, "Interest", interestDetail)}
+                onMouseLeave={hideInfoTag}
+                onFocus={(e) => showInfoTag(e, "Interest", interestDetail)}
+                onBlur={hideInfoTag}
               >
                 <Icon
                   icon="ph:eye-bold"
@@ -1536,7 +1579,15 @@ export default function StakeholderDossier({
                 </span>
               </div>
               {intelPips.length > 0 && (
-                <div className={styles.powerInterestBadge} title={describeIntelPips(intelPips)}>
+                <div
+                  className={styles.powerInterestBadge}
+                  tabIndex={0}
+                  aria-label={`Intel: ${describeIntelPips(intelPips)}`}
+                  onMouseEnter={(e) => showInfoTag(e, "Intel", describeIntelPips(intelPips))}
+                  onMouseLeave={hideInfoTag}
+                  onFocus={(e) => showInfoTag(e, "Intel", describeIntelPips(intelPips))}
+                  onBlur={hideInfoTag}
+                >
                   <Icon icon="ph:push-pin-bold" className={`${styles.metricIcon} ${styles.intelBadgeInk}`} />
                   <span className={styles.intelPips}>
                     {intelPips.map((status, idx) => (
@@ -2153,6 +2204,24 @@ export default function StakeholderDossier({
         </div>
       </div>
 
+      {/* Shared flip-down tag for the stakeholder tabs and the power/interest/intel badges -
+          see the note on the infoTag state above for why this is one portal, not one per anchor. */}
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.headerHoverTagFlip}>
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
+
       {/* Physical Bookmark Tabs (Top Bar) */}
       {effectiveDossierData.length > 0 && (
         <div className={styles.tabsContainer}>
@@ -2192,6 +2261,12 @@ export default function StakeholderDossier({
             // lines, rather than wherever the browser happens to wrap a too-narrow single line.
             const [tabRoleWord, ...tabGivenNameWords] = st.name.split(" ");
             const tabGivenName = tabGivenNameWords.join(" ");
+            const tabTagDetail = [
+              `Emotional State: ${emotion}`,
+              keyPlayerHint || null,
+              changeHint || null,
+              tabPips.length > 0 ? `Intel: ${describeIntelPips(tabPips)}` : null,
+            ].filter(Boolean).join(" · ");
 
             return (
               <button
@@ -2199,11 +2274,11 @@ export default function StakeholderDossier({
                 ref={idx === currentPageIndex ? activeTabRef : null}
                 className={`${styles.tabButton} ${isActive ? styles.activeTab : ""}`}
                 onClick={() => requestPageChange(idx)}
-                title={`${st.name} (Emotional State: ${emotion})${
-                  keyPlayerHint ? ` - ${keyPlayerHint}` : ""
-                }${changeHint ? ` - ${changeHint}` : ""}${
-                  tabPips.length > 0 ? ` - Intel: ${describeIntelPips(tabPips)}` : ""
-                }`}
+                aria-label={`${st.name}: ${tabTagDetail}`}
+                onMouseEnter={(e) => showInfoTag(e, st.name, tabTagDetail)}
+                onMouseLeave={hideInfoTag}
+                onFocus={(e) => showInfoTag(e, st.name, tabTagDetail)}
+                onBlur={hideInfoTag}
                 style={
                   {
                     "--tab-color": stColor,

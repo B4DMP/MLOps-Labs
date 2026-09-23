@@ -671,33 +671,43 @@
   opacity: 0.55;
 }
 
-.emotionRevealCard {
-  /* Positioned in the viewport (top/left set from getBoundingClientRect in JS), not relative to
-     any dossier ancestor - see the note above on why. */
+/* Positioning + the 3D viewing context live on this wrapper (top/left set from
+   getBoundingClientRect in JS, not relative to any dossier ancestor - see the note above on
+   why). perspective has to sit on a parent of the flipping card, not the card itself, or
+   rotateX renders as a flat squash instead of real depth - same split as .headerHoverTag /
+   .headerHoverTagFlip, whose flip-down motion this now matches. */
+.emotionRevealAnchor {
   position: fixed;
+  perspective: 420px;
+  /* Above the dossier window itself (z-index 9999) - it's portaled to a body-level sibling of
+     it, not a descendant, so it needs to out-rank the whole window, not just page content. */
+  z-index: 10000;
+}
+
+.emotionRevealCard {
   width: 210px;
   background: #fffdf6;
   border: 1px solid #a9884a;
   border-radius: 3px 10px 10px 10px;
   padding: 9px 11px 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
-  /* Above the dossier window itself (z-index 9999) - it's portaled to a body-level sibling of
-     it, not a descendant, so it needs to out-rank the whole window, not just page content. */
-  z-index: 10000;
   font-family: 'Inter', system-ui, sans-serif;
   cursor: default;
   white-space: normal;
-  animation: emotionRevealIn 0.12s ease-out;
+  /* Hinges from the top-left corner, where the card actually attaches to the badge, so it
+     reads as dropping open from that point rather than growing from its own center. */
+  transform-origin: top left;
+  animation: emotionRevealFlipIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes emotionRevealIn {
+@keyframes emotionRevealFlipIn {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: rotateX(-90deg);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: rotateX(0deg);
   }
 }
 
