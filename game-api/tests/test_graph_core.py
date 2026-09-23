@@ -75,10 +75,10 @@ def _ctx(graph, state, patterns=()):
 
 def test_real_config_loads_and_is_a_dag(config_dir):
     graph = GraphFactory.load_graph(config_dir / "MlopsGraph.json")
-    assert len(graph.components) == 34
-    assert len(graph.edges) == 40
+    assert len(graph.components) == 28
+    assert len(graph.edges) == 31
     assert sorted(GraphFactory.topo_order) == sorted(c.id for c in graph.components)
-    assert {s.id for s in graph.stages} == {"req", "data", "model", "deploy", "ops", "gov"}
+    assert {s.id for s in graph.stages} == {"req", "data", "model", "deploy", "ops"}
     assert graph.levels == ["broken", "absent", "manual", "automated", "governed"]
     StoryFactory.load(config_dir / "MlopsStoryFragments.json", graph)
 
@@ -494,20 +494,13 @@ def test_flows_report_weakest_crossing_edge():
     assert (flow.level, flow.weakest_edge_id) == (1, "e.mid_side")
 
 
-def test_feedback_and_governance_flows_are_kept_apart():
-    """A `feedback` edge is a real backward loop; a `governs` edge is oversight, not a loop -
-    bundling them under one field drew governance as if it were a feedback arc (code review)."""
+def test_feedback_flows_are_reported_separately_from_pipeline_flows():
+    """A `feedback` edge is a real backward loop and must never be drawn as a forward pipeline arrow."""
     fb = _graph(feedback_kind="feedback")
     fb_state = GraphState.from_config(fb)
     feedback = stage_graph(fb, fb_state, compute_effective(fb, fb_state))
     assert [f.weakest_edge_id for f in feedback.feedback_flows] == ["e.sink_src"]
-    assert feedback.governance_flows == []
-
-    g = _graph(feedback_kind="governs")
-    state = GraphState.from_config(g)
-    governs = stage_graph(g, state, compute_effective(g, state))
-    assert governs.feedback_flows == []
-    assert [f.weakest_edge_id for f in governs.governance_flows] == ["e.sink_src"]
+    assert all(f.weakest_edge_id != "e.sink_src" for f in feedback.flows)
 
 
 # ---------- story ----------
@@ -524,6 +517,5 @@ def test_story_prefers_the_most_specific_fragment(config_dir):
     ).state
     assert story_for(graph, state, "data.validation").startswith("Great Expectations validates")
     # Targets outside generated content fall back to the generic line.
-    assert story_for(graph, state, "gov.iam") == "Access Control and IAM is run by people, by hand or from a script someone starts."
-    assert story_for(graph, state, "e.iam_gateway").startswith("Someone moves work from Access Control and IAM")
+    assert story_for(graph, state, "e.alert_retrain") == "Nothing moves from Alerting System to Retraining Trigger."
     assert ("data.validation", 3) not in missing_specific_fragments(graph)

@@ -189,14 +189,14 @@ def _target_room_ids(card, requested: list[str], room_ids: list[str]) -> list[st
 
 def _is_component_allowed_for_phase(comp_id: str, phase_id: int) -> bool:
     phase_prefixes = {
-        0: {"req", "gov"},
-        1: {"req", "gov"},
-        2: {"data", "gov"},
-        3: {"model", "gov"},
-        4: {"deploy", "gov"},
-        5: {"ops", "gov"},
+        0: {"req"},
+        1: {"req"},
+        2: {"data"},
+        3: {"model"},
+        4: {"deploy"},
+        5: {"ops"},
     }
-    allowed = phase_prefixes.get(phase_id, {"req", "gov"})
+    allowed = phase_prefixes.get(phase_id, {"req"})
     prefix = comp_id.split(".")[0] if "." in comp_id else comp_id
     return prefix in allowed
 
@@ -221,7 +221,7 @@ async def handle_gather_open(websocket: WebSocket, username: str, payload: dict)
             await manager.send_event(
                 websocket=websocket,
                 event="system:error",
-                payload={"message": "Component is not relevant to the current phase or governance and infrastructure."},
+                payload={"message": "Component is not relevant to the current phase."},
             )
             return
 

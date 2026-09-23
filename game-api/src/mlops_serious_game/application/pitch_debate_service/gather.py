@@ -105,8 +105,6 @@ STAKEHOLDER_DOMAIN_COMPONENTS: dict[str, list[str]] = {
     "monica": ["model.training_pipeline", "model.registry", "model.experiment_tracking", "model.evaluation"],
     "requirements_reuben": ["req.acceptance_criteria", "req.kpi_definition", "req.data_contracts", "req.risk_assessment"],
     "reuben": ["req.acceptance_criteria", "req.kpi_definition", "req.data_contracts", "req.risk_assessment"],
-    "efficiency_emilia": ["gov.cost_monitoring", "gov.compute_scheduling", "gov.iac", "gov.audit"],
-    "emilia": ["gov.cost_monitoring", "gov.compute_scheduling", "gov.iac", "gov.audit"],
     "automation_alex": ["deploy.cicd", "deploy.serving", "deploy.orchestration", "deploy.containerization"],
     "alex": ["deploy.cicd", "deploy.serving", "deploy.orchestration", "deploy.containerization"],
     "reliability_ruth": ["ops.performance_monitoring", "ops.observability", "ops.alerting", "ops.rollback"],
@@ -202,7 +200,7 @@ def top_referenced_components(
 
 
 def get_allowed_stages_for_phase(phase_id: int, graph: Optional[Any] = None) -> set[str]:
-    """Returns the set of allowed stage IDs: current phase's stage + 'gov'."""
+    """Returns the set of allowed stage IDs: just the current phase's stage."""
     phase_map = {0: "req", 1: "req", 2: "data", 3: "model", 4: "deploy", 5: "ops"}
     stage_id = phase_map.get(phase_id, "req")
     if graph is not None and hasattr(graph, "stages"):
@@ -210,7 +208,7 @@ def get_allowed_stages_for_phase(phase_id: int, graph: Optional[Any] = None) -> 
             if getattr(s, "phase_id", None) == phase_id:
                 stage_id = s.id
                 break
-    return {stage_id, "gov"}
+    return {stage_id}
 
 
 def is_component_in_allowed_stages(cid: str, allowed_stages: set[str], graph: Optional[Any] = None) -> bool:

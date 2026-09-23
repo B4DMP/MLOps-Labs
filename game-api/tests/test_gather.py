@@ -69,7 +69,7 @@ def test_gather_options_for_team_sync_up():
     conv = _conv(card_id="eng_3", turns_left=1)
     room_pools = {
         "reuben": [_req("r1", IntelTag.DRIVER, "req.acceptance_criteria")],
-        "emilia": [_req("r2", IntelTag.BOUNDARY, "gov.cost_monitoring")],
+        "emilia": [_req("r2", IntelTag.BOUNDARY, "ops.alerting")],
     }
     opts = gather.gather_options_for(conv, [], [], [], seed="test-seed", room_pools=room_pools, phase_id=1)
     assert all(o.option == "component_query" for o in opts)
@@ -132,13 +132,13 @@ def test_gather_options_excludes_already_clicked():
 
 
 def test_gather_options_includes_stakeholder_items_across_domains():
-    # Stakeholder intel items across domains (e.g. data, model, gov, req) are included
+    # Stakeholder intel items across domains (e.g. data, model, ops, req) are included
     conv = _conv(card_id="eng_2", turns_left=1)
     pool = [
         _req("r1", IntelTag.DRIVER, "req.acceptance_criteria"),
         _req("r2", IntelTag.BOUNDARY, "data.validation"),
         _req("r3", IntelTag.DRIVER, "model.training"),
-        _req("r4", IntelTag.DRIVER, "gov.cost_monitoring"),
+        _req("r4", IntelTag.DRIVER, "ops.alerting"),
     ]
     opts = gather.gather_options_for(conv, [], pool, [], seed="test-seed", phase_id=1)
     comp_ids = [o.component_id for o in opts if o.option == "component_query"]
@@ -146,7 +146,7 @@ def test_gather_options_includes_stakeholder_items_across_domains():
     assert "data.validation" in comp_ids
     assert "model.training" in comp_ids
     assert "req.acceptance_criteria" in comp_ids
-    assert "gov.cost_monitoring" in comp_ids
+    assert "ops.alerting" in comp_ids
 
 
 def test_gather_options_team_sync_ranks_by_frequency():
@@ -475,7 +475,6 @@ def test_resolve_component_owner():
     assert resolve_component_owner("req.kpi_definition", graph) == "requirements_reuben"
     assert resolve_component_owner("deploy.cicd", graph) == "automation_alex"
     assert resolve_component_owner("ops.observability", graph) == "reliability_ruth"
-    assert resolve_component_owner("gov.cost_monitoring", graph) == "efficiency_emilia"
 
 
 @pytest.mark.anyio
@@ -587,11 +586,6 @@ async def test_conduct_component_investigation_turn_lifts_fog_of_war():
 
 def test_is_component_allowed_for_phase():
     from mlops_serious_game.infrastructure.websocket.handlers.gather_handler import _is_component_allowed_for_phase
-
-    # Governance components are allowed across all phases
-    for p in range(6):
-        assert _is_component_allowed_for_phase("gov.iam", p) is True
-        assert _is_component_allowed_for_phase("gov.cost_monitoring", p) is True
 
     # Phase 1: Requirements allowed, others not
     assert _is_component_allowed_for_phase("req.kpi_definition", 1) is True

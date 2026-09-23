@@ -22,7 +22,6 @@ from mlops_serious_game.domain.graph import MAX_LEVEL, GraphState, Level, Techni
 class StageView(BaseModel):
     id: str
     name: str
-    band: bool
     maturity: float
     pattern_effect: float
     broken: int
@@ -43,11 +42,7 @@ class FlowView(BaseModel):
 class StageGraphView(BaseModel):
     stages: list[StageView]
     flows: list[FlowView]
-    # Split by edge kind (D-question 12, code review): a `feedback` edge is a real backward loop
-    # (e.g. Monitoring back to Modeling); a `governs` edge is oversight, not a loop. Bundling both
-    # under one name drew every governance edge as if it were a feedback arc.
     feedback_flows: list[FlowView] = []
-    governance_flows: list[FlowView] = []
     system_health: float
 
 
@@ -93,7 +88,6 @@ def stage_graph(
             StageView(
                 id=s.id,
                 name=s.name,
-                band=s.band,
                 maturity=round(maturity, 3),
                 pattern_effect=effect,
                 broken=broken,
@@ -118,30 +112,27 @@ def stage_graph(
             weakest[(a, b)] = (level, e.id)
     flows = [FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in weakest.items()]
 
-    # Cross-stage non-pipeline edges, weakest per stage pair — feedback and governance kept apart
-    # (D-question 12): a `feedback` edge is a real backward loop, a `governs` edge is oversight,
-    # not a loop, and should never be drawn as one.
-    def _cross_stage_weakest(kind: str) -> list[FlowView]:
-        weakest_by_pair: dict[tuple[str, str], tuple[int, str]] = {}
-        for e in graph.edges:
-            if e.kind != kind or not e.stage_flow:
-                continue
-            a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
-            if a == b:
-                continue
-            level = effective.edges[e.id]
-            if (a, b) not in weakest_by_pair or level < weakest_by_pair[(a, b)][0]:
-                weakest_by_pair[(a, b)] = (level, e.id)
-        return [FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in weakest_by_pair.items()]
-
-    feedback_flows = _cross_stage_weakest("feedback")
-    governance_flows = _cross_stage_weakest("governs")
+    # Cross-stage feedback edges, weakest per stage pair: a real backward loop
+    # (e.g. Monitoring back to Modeling), never drawn as a forward pipeline arrow.
+    weakest_feedback: dict[tuple[str, str], tuple[int, str]] = {}
+    for e in graph.edges:
+        if e.kind != "feedback" or not e.stage_flow:
+            continue
+        a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
+        if a == b:
+            continue
+        level = effective.edges[e.id]
+        if (a, b) not in weakest_feedback or level < weakest_feedback[(a, b)][0]:
+            weakest_feedback[(a, b)] = (level, e.id)
+    feedback_flows = [
+        FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in weakest_feedback.items()
+    ]
 
     total_weight = sum(s.weight for s in graph.stages)
     by_id = {v.id: v for v in stages}
     system = sum(by_id[s.id].health * s.weight for s in graph.stages) / total_weight if total_weight else 0.0
 
     return StageGraphView(
-        stages=stages, flows=flows, feedback_flows=feedback_flows, governance_flows=governance_flows,
+        stages=stages, flows=flows, feedback_flows=feedback_flows,
         system_health=round(system, 1),
     )

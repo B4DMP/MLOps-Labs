@@ -223,26 +223,12 @@
   --seg-line: var(--primary-bg);
 }
 
-/* Cross-cutting rather than a step of the pipeline, so it carries a warm outline instead of
-   being pushed out of the rail: it belongs to every phase, not to none of them. */
-.stageTabGov {
-  --seg-bg: #fffaf2;
-  --seg-line: #e8b878;
-}
-
-.stageTabGov:hover {
-  --seg-bg: #fff4e4;
-  --seg-line: #d99b46;
-}
-
 /* The segment you are working in. Last, and specific enough to beat every other state:
    a selected view-only stage is still selected. */
 .stageTab.stageTabActive,
 .stageTab.stageTabActive:hover,
 .stageTabViewOnly.stageTabActive,
-.stageTabViewOnly.stageTabActive:hover,
-.stageTabGov.stageTabActive,
-.stageTabGov.stageTabActive:hover {
+.stageTabViewOnly.stageTabActive:hover {
   --seg-bg: var(--primary-bg);
   --seg-line: var(--secondary-bg);
   color: #ffffff;

@@ -50,13 +50,11 @@
         "deploy.orchestration": 0.8,
         "deploy.containerization": 0.6,
         "ops.retraining_trigger": 0.6,
-        "gov.iac": 0.6,
         "e.registry_cicd": 0.4,
         "e.cicd_container": 0.4,
         "e.container_orch": 0.4,
         "e.alert_retrain": 0.4,
-        "e.retrain_train": 0.4,
-        "gov.compute_scheduling": 0.3
+        "e.retrain_train": 0.4
       }
     },
     {
@@ -138,8 +136,6 @@
         "req.acceptance_criteria": 0.8,
         "req.data_contracts": 0.6,
         "req.risk_assessment": 0.6,
-        "gov.audit": 0.4,
-        "gov.model_cards": 0.4,
         "e.risk_acceptance": 0.3,
         "e.acceptance_eval": 0.3
       }
@@ -161,13 +157,8 @@
       ],
       "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
       "component_weights": {
-        "gov.cost_monitoring": 1.0,
-        "gov.compute_scheduling": 0.8,
         "model.hpo": 0.4,
-        "deploy.orchestration": 0.4,
-        "gov.iac": 0.3,
-        "e.cost_serving": 0.3,
-        "e.compute_train": 0.3
+        "deploy.orchestration": 0.4
       }
     },
     {
@@ -187,13 +178,8 @@
       ],
       "metric_desc": "How well the team manages time, compute, and budget relative to outcomes.",
       "component_weights": {
-        "gov.cost_monitoring": 1.0,
-        "gov.compute_scheduling": 0.8,
         "model.hpo": 0.4,
-        "deploy.orchestration": 0.4,
-        "gov.iac": 0.3,
-        "e.cost_serving": 0.3,
-        "e.compute_train": 0.3
+        "deploy.orchestration": 0.4
       }
     },
     {

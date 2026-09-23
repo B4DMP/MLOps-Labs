@@ -169,48 +169,35 @@
       "name": "Requirements",
       "phase_id": 1,
       "weight": 0.8,
-      "owner_role": "requirements_reuben",
-      "band": false
+      "owner_role": "requirements_reuben"
     },
     {
       "id": "data",
       "name": "Data",
       "phase_id": 2,
       "weight": 1.0,
-      "owner_role": "data_dave",
-      "band": false
+      "owner_role": "data_dave"
     },
     {
       "id": "model",
       "name": "Modeling",
       "phase_id": 3,
       "weight": 1.0,
-      "owner_role": "model_monica",
-      "band": false
+      "owner_role": "model_monica"
     },
     {
       "id": "deploy",
       "name": "Deployment",
       "phase_id": 4,
       "weight": 1.0,
-      "owner_role": "automation_alex",
-      "band": false
+      "owner_role": "automation_alex"
     },
     {
       "id": "ops",
       "name": "Monitoring and Ops",
       "phase_id": 5,
       "weight": 1.0,
-      "owner_role": "reliability_ruth",
-      "band": false
-    },
-    {
-      "id": "gov",
-      "name": "Governance and Infra",
-      "phase_id": null,
-      "weight": 0.7,
-      "owner_role": null,
-      "band": true
+      "owner_role": "reliability_ruth"
     }
   ],
   "components": [
@@ -1013,161 +1000,6 @@
         "y": 220
       },
       "icon": "ph:arrow-u-down-left-bold"
-    },
-    {
-      "id": "gov.iam",
-      "stage_id": "gov",
-      "name": "Access Control and IAM",
-      "owner_role": "reliability_ruth",
-      "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "attributes": {
-        "tool": {
-          "values": [
-            "none",
-            "ldap",
-            "keycloak",
-            "cloud_iam"
-          ],
-          "initial": "none"
-        }
-      },
-      "layout": {
-        "x": 80,
-        "y": 100
-      },
-      "icon": "ph:shield-check-bold"
-    },
-    {
-      "id": "gov.audit",
-      "stage_id": "gov",
-      "name": "Audit Logging and Compliance",
-      "owner_role": "requirements_reuben",
-      "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "attributes": {},
-      "layout": {
-        "x": 240,
-        "y": 100
-      },
-      "icon": "ph:clipboard-text-bold"
-    },
-    {
-      "id": "gov.model_cards",
-      "stage_id": "gov",
-      "name": "Model Documentation and Cards",
-      "owner_role": "model_monica",
-      "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        4
-      ],
-      "attributes": {},
-      "layout": {
-        "x": 400,
-        "y": 100
-      },
-      "icon": "ph:identification-card-bold"
-    },
-    {
-      "id": "gov.cost_monitoring",
-      "stage_id": "gov",
-      "name": "Cost Monitoring",
-      "owner_role": "efficiency_emilia",
-      "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "attributes": {},
-      "layout": {
-        "x": 400,
-        "y": 220
-      },
-      "icon": "ph:currency-dollar-bold"
-    },
-    {
-      "id": "gov.iac",
-      "stage_id": "gov",
-      "name": "Infrastructure as Code",
-      "owner_role": "automation_alex",
-      "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "attributes": {
-        "tool": {
-          "values": [
-            "none",
-            "ansible",
-            "pulumi",
-            "terraform"
-          ],
-          "initial": "none"
-        }
-      },
-      "layout": {
-        "x": 80,
-        "y": 220
-      },
-      "icon": "ph:code-bold"
-    },
-    {
-      "id": "gov.compute_scheduling",
-      "stage_id": "gov",
-      "name": "Compute Scheduling",
-      "owner_role": "efficiency_emilia",
-      "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "attributes": {
-        "tool": {
-          "values": [
-            "none",
-            "manual_booking",
-            "slurm",
-            "kubernetes_quotas"
-          ],
-          "initial": "none"
-        }
-      },
-      "layout": {
-        "x": 240,
-        "y": 220
-      },
-      "icon": "ph:calendar-bold"
     }
   ],
   "edges": [
@@ -1878,204 +1710,6 @@
         "scheduled",
         "on_metric_threshold",
         "on_alert"
-      ]
-    },
-    {
-      "id": "e.iam_gateway",
-      "from": "gov.iam",
-      "to": "deploy.api_gateway",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 2,
-      "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.iam_fs",
-      "from": "gov.iam",
-      "to": "data.feature_store",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.audit_registry",
-      "from": "gov.audit",
-      "to": "model.registry",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.cards_registry",
-      "from": "gov.model_cards",
-      "to": "model.registry",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.cost_serving",
-      "from": "gov.cost_monitoring",
-      "to": "deploy.serving",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.iac_orch",
-      "from": "gov.iac",
-      "to": "deploy.orchestration",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.compute_train",
-      "from": "gov.compute_scheduling",
-      "to": "model.training_pipeline",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 2,
-      "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.risk_audit",
-      "from": "req.risk_assessment",
-      "to": "gov.audit",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
-      ]
-    },
-    {
-      "id": "e.risk_cards",
-      "from": "req.risk_assessment",
-      "to": "gov.model_cards",
-      "kind": "governs",
-      "slack": 1,
-      "initial_level": 1,
-      "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
-      "allowed_triggers": [
-        "none",
-        "manual_request",
-        "scheduled",
-        "on_approval"
       ]
     }
   ],

@@ -73,8 +73,8 @@ def _stage_band(
 
 
 def _stage_reached(stage: Stage, current_phase_id: Optional[int]) -> bool:
-    """Governance band is always visible; everything else waits until its phase is current (D33)."""
-    if stage.band or stage.phase_id is None:
+    """A stage is reached once its phase is current (D33)."""
+    if stage.phase_id is None:
         return True
     if current_phase_id is None:
         return True
@@ -118,7 +118,6 @@ def build_graph_state(
                 "id": s.id,
                 "name": s.name,
                 "phase_id": s.phase_id,
-                "band": s.band,
                 "locked": True,
             })
             continue
@@ -132,7 +131,6 @@ def build_graph_state(
             "id": s.id,
             "name": s.name,
             "phase_id": s.phase_id,
-            "band": s.band,
             "locked": False,
             "health": sv.health,
             "health_band": band,
@@ -151,10 +149,6 @@ def build_graph_state(
     feedback_flows = [
         {"from": f.from_stage, "to": f.to_stage, "level": f.level, "weakest_edge_id": f.weakest_edge_id}
         for f in stage_view.feedback_flows
-    ]
-    governance_flows = [
-        {"from": f.from_stage, "to": f.to_stage, "level": f.level, "weakest_edge_id": f.weakest_edge_id}
-        for f in stage_view.governance_flows
     ]
 
     # Technical: one entry per stage. Stages the player has not reached yet still ship their
@@ -290,7 +284,6 @@ def build_graph_state(
         "stages": stages,
         "flows": flows,
         "feedback_flows": feedback_flows,
-        "governance_flows": governance_flows,
         "technical": technical,
         "system_health": stage_view.system_health,
     }

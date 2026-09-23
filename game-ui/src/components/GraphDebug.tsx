@@ -5,7 +5,7 @@ import type { Campaign, Player } from "./Admin";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface StageDebug {
-  id: string; name: string; band: boolean;
+  id: string; name: string;
   health: number; maturity: number; broken: number; starved?: number; starved_ids?: string[]; debt: number; pattern_effect: number;
 }
 interface ComponentDebug {
@@ -148,7 +148,7 @@ function StagesSection({ data }: { data: StageDebug[] }) {
     <Section title="1. Stages" count={rows.length}>
       <FilterInput value={q} onChange={setQ} />
       <Tbl
-        cols={["id", "name", "health", "maturity", "broken", "starved", "debt", "pattern Δ", "band"]}
+        cols={["id", "name", "health", "maturity", "broken", "starved", "debt", "pattern Δ"]}
         rows={rows.map((r) => [
           <code>{r.id}</code>,
           r.name,
@@ -158,7 +158,6 @@ function StagesSection({ data }: { data: StageDebug[] }) {
           r.starved ? `${r.starved} (${(r.starved_ids ?? []).join(", ")})` : "0",
           String(r.debt),
           (r.pattern_effect >= 0 ? "+" : "") + r.pattern_effect,
-          r.band ? "✓" : "",
         ])}
       />
     </Section>

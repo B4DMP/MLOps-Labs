@@ -26,7 +26,7 @@ export interface IntelItem {
 export interface MLOpsComponentInfo {
   id: string;
   name: string;
-  group: "Requirements" | "Data" | "Model" | "Deployment" | "Operations" | "Governance";
+  group: "Requirements" | "Data" | "Model" | "Deployment" | "Operations";
   icon: string;
   description: string;
 }
@@ -237,50 +237,6 @@ export const MLOPS_COMPONENTS: MLOpsComponentInfo[] = [
     icon: "ph:arrow-u-up-left-bold",
     description: "Quickly revert traffic to the previous stable model version when production incidents occur.",
   },
-
-  // Governance
-  {
-    id: "gov.iam",
-    name: "Access Control and IAM",
-    group: "Governance",
-    icon: "ph:key-bold",
-    description: "Enforce least-privilege role-based access to training datasets, models, and secret credentials.",
-  },
-  {
-    id: "gov.audit",
-    name: "Audit Logging and Compliance",
-    group: "Governance",
-    icon: "ph:clipboard-text-bold",
-    description: "Maintain tamper-evident compliance logs of model training, approvals, and deployments.",
-  },
-  {
-    id: "gov.model_cards",
-    name: "Model Documentation and Cards",
-    group: "Governance",
-    icon: "ph:article-bold",
-    description: "Document intended use cases, known limitations, training procedures, and bias evaluations.",
-  },
-  {
-    id: "gov.cost_monitoring",
-    name: "Cost Monitoring",
-    group: "Governance",
-    icon: "ph:currency-dollar-bold",
-    description: "Track cloud compute, GPU allocation, inference spending, and budget utilization per model.",
-  },
-  {
-    id: "gov.iac",
-    name: "Infrastructure as Code",
-    group: "Governance",
-    icon: "ph:code-block-bold",
-    description: "Manage reproducible cloud infrastructure and MLOps clusters using declarative templates.",
-  },
-  {
-    id: "gov.compute_scheduling",
-    name: "Compute Scheduling",
-    group: "Governance",
-    icon: "ph:calendar-check-bold",
-    description: "Optimize batch GPU cluster scheduling, spot instance management, and job preemption.",
-  },
 ];
 
 const PHASE_TO_COMPONENT_GROUP: Record<number, "Requirements" | "Data" | "Model" | "Deployment" | "Operations"> = {
@@ -410,11 +366,9 @@ export default function EngagementCardTargetModal({
     return item.stakeholder_id === selectedStakeholderFilter;
   });
 
-  // Filter components: only current phase components + governance and infra components
+  // Filter components: only current phase components
   const currentPhaseGroup = PHASE_TO_COMPONENT_GROUP[currentPhase] || "Requirements";
-  const filteredComponents = MLOPS_COMPONENTS.filter(
-    (comp) => comp.group === currentPhaseGroup || comp.group === "Governance"
-  );
+  const filteredComponents = MLOPS_COMPONENTS.filter((comp) => comp.group === currentPhaseGroup);
 
   const getGroupCategoryClass = (group: string) => {
     switch (group) {
@@ -428,8 +382,6 @@ export default function EngagementCardTargetModal({
         return styles.categoryTagDefault;
       case "Operations":
         return styles.categoryTagFriction;
-      case "Governance":
-        return styles.categoryTagRequirement;
       default:
         return styles.categoryTagDefault;
     }

@@ -84,8 +84,7 @@ function StageRow({ stage }: { stage: PipelineStage }) {
 /** The Performance Dashboard, frozen at the end of the run and read as a list. */
 export default function PipelineTab({ results }: { results: ResultsPayload }) {
   const { pipeline, is_spiral } = results;
-  const stages = pipeline.stages.filter((s) => !s.band);
-  const cross = pipeline.stages.filter((s) => s.band);
+  const stages = pipeline.stages;
   const reached = pipeline.stages.filter((s) => !s.locked);
 
   if (reached.length === 0) {
@@ -138,16 +137,6 @@ export default function PipelineTab({ results }: { results: ResultsPayload }) {
           ))}
         </div>
       </Section>
-
-      {cross.length > 0 && (
-        <Section title="Running alongside every stage" note="Governance and infrastructure belong to no single stage.">
-          <div className={styles.rowList}>
-            {cross.map((stage) => (
-              <StageRow key={stage.id} stage={stage} />
-            ))}
-          </div>
-        </Section>
-      )}
     </>
   );
 }

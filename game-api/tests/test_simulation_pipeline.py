@@ -18,7 +18,7 @@ from mlops_serious_game.application.graph_service.pipeline import (
     simulate,
     simulation_events,
 )
-from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry
+from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, SeenEntry, TechnicalGraph
 from mlops_serious_game.domain.grudge import FiredGrudge, Grudge
 
 
@@ -274,8 +274,23 @@ def test_veto_broken_degrades_only_what_this_card_touched_that_they_own(real):
 
 def test_owner_resolution_falls_back_to_the_stage_owner(real):
     assert real.owner_of("data.validation") == "data_dave", "no owner of its own, so the stage owns it"
-    assert real.owner_of("gov.cost_monitoring") == "efficiency_emilia", "its own owner wins"
     assert owner_buyin_from_reads([_read("data_dave", buy_in=0.2)]) == {"data_dave": 0.2}
+
+
+def test_owner_resolution_prefers_the_components_own_owner():
+    graph = TechnicalGraph.model_validate({
+        "levels": ["broken", "absent", "manual", "automated", "governed"],
+        "triggers": ["none"],
+        "instance_kinds": {},
+        "instance_states": ["active"],
+        "stages": [{"id": "a", "name": "Stage A", "owner_role": "stage_owner"}],
+        "components": [
+            {"id": "a.owned", "stage_id": "a", "name": "Owned", "owner_role": "component_owner",
+             "initial_level": 1, "allowed_levels": [0, 1]},
+        ],
+        "edges": [],
+    })
+    assert graph.owner_of("a.owned") == "component_owner"
 
 
 def test_the_card_observes_what_it_touched(real):

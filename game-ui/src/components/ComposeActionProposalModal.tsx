@@ -401,16 +401,12 @@ export default function ComposeActionProposalModal({
 
       // 2. Stage / Phase check
       const sId = targetStageId || comp?.stage_id || (edge ? allComponentsMap.get(edge.to_id)?.stage_id : undefined);
-      if (sId === "gov" || sId === "infra") {
-        return { editable: true };
-      }
-
       if (sId && sId !== phaseStageId) {
         const stageObj = graphState?.stages?.find((s) => s.id === sId);
         const pNum = stageObj?.phase_id ?? "?";
         return {
           editable: false,
-          reason: `This belongs to ${stageObj?.name || sId} (phase ${pNum}). This challenge can only change things in your current phase and in Governance and Infra.`,
+          reason: `This belongs to ${stageObj?.name || sId} (phase ${pNum}). This challenge can only change things in your current phase.`,
         };
       }
 
@@ -624,10 +620,9 @@ export default function ComposeActionProposalModal({
       {/* ── Stage Tabs Bar ── */}
       <div className={styles.stageTabsBar}>
         {(graphState?.stages || []).map((stage) => {
-          const isGov = stage.id === "gov";
           const isActivePhase = stage.id === phaseStageId;
           const isSelected = activeStageId === stage.id;
-          const isOtherPhase = !isGov && !isActivePhase;
+          const isOtherPhase = !isActivePhase;
 
           return (
             <button
@@ -640,27 +635,19 @@ export default function ComposeActionProposalModal({
               }}
               className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""} ${
                 isOtherPhase ? styles.stageTabViewOnly : ""
-              } ${isGov ? styles.stageTabGov : ""}`}
+              }`}
               title={
                 isOtherPhase
                   ? `${stage.name} - phase ${stage.phase_id}, view only in this challenge`
-                  : isGov
-                  ? `${stage.name} - editable in every phase`
                   : `${stage.name} - the phase you are in`
               }
             >
               <Icon
                 className={styles.stageTabIcon}
-                icon={
-                  isGov
-                    ? "ph:shield-check-bold"
-                    : isOtherPhase
-                    ? "ph:eye-bold"
-                    : "ph:cube-bold"
-                }
+                icon={isOtherPhase ? "ph:eye-bold" : "ph:cube-bold"}
               />
               <span className={styles.stageTabName}>{stage.name}</span>
-              {(isActivePhase || isGov) && (
+              {isActivePhase && (
                 <span className={styles.stageTabDot} aria-label="editable in this challenge" />
               )}
             </button>

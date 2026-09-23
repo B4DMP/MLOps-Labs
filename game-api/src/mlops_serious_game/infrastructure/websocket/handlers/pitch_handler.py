@@ -111,7 +111,7 @@ def get_allowed_targets(
     all_intel: list,
     knowledge: Optional["Knowledge"] = None,
 ) -> list[str]:
-    """Governance and infra nodes are viewable/editable anytime; lifecycle nodes only in their phase and challenge.
+    """Lifecycle nodes are viewable/editable only in their phase and challenge.
 
     A component the player has actually investigated (present in `knowledge.seen`, e.g. via the
     "investigate component" engagement card) is always allowed too, even when it has no pre-authored
@@ -119,9 +119,6 @@ def get_allowed_targets(
     in the same stage does have an authored requirement.
     """
     allowed: list[str] = []
-    for c in graph.components:
-        if c.stage_id in ("gov", "infra"):
-            allowed.append(c.id)
 
     # Phase 0 is the introduction phase; it is skipped for stage calculations (maps to Phase 1: 'req')
     effective_phase = 1 if phase_id == 0 else phase_id

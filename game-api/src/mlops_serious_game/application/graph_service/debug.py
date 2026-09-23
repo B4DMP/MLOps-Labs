@@ -43,7 +43,6 @@ def build_graph_debug(
         stages.append({
             "id": s.id,
             "name": s.name,
-            "band": s.band,
             "health": sv.health,
             "maturity": sv.maturity,
             "broken": sv.broken,

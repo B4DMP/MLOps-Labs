@@ -346,126 +346,6 @@
       ]
     },
     {
-      "id": "ap_cost_blindness",
-      "kind": "anti",
-      "name": "Cost Blindness",
-      "description": "Compute hungry workloads run with nobody watching the bill.",
-      "when": {
-        "all": [
-          {
-            "component": "gov.cost_monitoring",
-            "op": "lte",
-            "level": 1
-          },
-          {
-            "any": [
-              {
-                "component": "model.hpo",
-                "op": "gte",
-                "level": 3,
-                "on": "nominal"
-              },
-              {
-                "component": "deploy.orchestration",
-                "op": "gte",
-                "level": 3,
-                "on": "nominal"
-              },
-              {
-                "component": "gov.compute_scheduling",
-                "op": "gte",
-                "level": 3,
-                "on": "nominal"
-              }
-            ]
-          }
-        ]
-      },
-      "stage_effects": {
-        "gov": -10,
-        "model": -4
-      },
-      "story": "The cloud bill doubled and nobody can say why.",
-      "tags": [
-        "cost"
-      ]
-    },
-    {
-      "id": "ap_shadow_it_access",
-      "kind": "anti",
-      "name": "Shadow IT Access",
-      "description": "Data and endpoints are reachable by whoever knows the address.",
-      "when": {
-        "all": [
-          {
-            "component": "gov.iam",
-            "op": "lte",
-            "level": 2
-          },
-          {
-            "any": [
-              {
-                "component": "deploy.api_gateway",
-                "op": "gte",
-                "level": 3,
-                "on": "nominal"
-              },
-              {
-                "component": "data.feature_store",
-                "op": "gte",
-                "level": 3,
-                "on": "nominal"
-              }
-            ]
-          }
-        ]
-      },
-      "stage_effects": {
-        "gov": -12,
-        "deploy": -4
-      },
-      "story": "Access is granted by asking a colleague for the password.",
-      "tags": [
-        "security",
-        "governance"
-      ]
-    },
-    {
-      "id": "ap_undocumented_handover",
-      "kind": "anti",
-      "name": "Undocumented Handover",
-      "description": "Models are promoted without documentation or agreed acceptance criteria.",
-      "when": {
-        "all": [
-          {
-            "component": "model.registry",
-            "op": "gte",
-            "level": 3,
-            "on": "nominal"
-          },
-          {
-            "component": "gov.model_cards",
-            "op": "lte",
-            "level": 1
-          },
-          {
-            "component": "req.acceptance_criteria",
-            "op": "lte",
-            "level": 2
-          }
-        ]
-      },
-      "stage_effects": {
-        "gov": -8,
-        "req": -6
-      },
-      "story": "The model was handed over with a slack message and a thumbs up.",
-      "tags": [
-        "governance",
-        "requirements"
-      ]
-    },
-    {
       "id": "dp_continuous_training",
       "kind": "design",
       "name": "Continuous Training",
@@ -822,17 +702,12 @@
       ]
     },
     {
-      "id": "dp_iac_everywhere",
+      "id": "dp_full_deploy_automation",
       "kind": "design",
-      "name": "Infrastructure as Code",
-      "description": "Every environment is declared in code and rebuilt by the pipeline.",
+      "name": "Full Deploy Automation",
+      "description": "Containerization and orchestration hand off to each other with no manual step.",
       "when": {
         "all": [
-          {
-            "component": "gov.iac",
-            "op": "gte",
-            "level": 3
-          },
           {
             "component": "deploy.containerization",
             "op": "gte",
@@ -861,32 +736,21 @@
         ]
       },
       "stage_effects": {
-        "deploy": 8,
-        "gov": 8
+        "deploy": 8
       },
-      "story": "Any environment can be torn down and rebuilt from the repository.",
+      "story": "Any environment can be torn down and rebuilt from the pipeline.",
       "tags": [
         "automation",
         "infrastructure"
       ]
     },
     {
-      "id": "dp_least_privilege",
+      "id": "dp_gateway_automation",
       "kind": "design",
-      "name": "Least Privilege",
-      "description": "Access is granted per role, logged, and enforced at the gateway.",
+      "name": "Automated Gateway Serving",
+      "description": "The API gateway is wired to serving with no one hand-carrying traffic between them.",
       "when": {
         "all": [
-          {
-            "component": "gov.iam",
-            "op": "gte",
-            "level": 3
-          },
-          {
-            "component": "gov.audit",
-            "op": "gte",
-            "level": 3
-          },
           {
             "component": "deploy.api_gateway",
             "op": "gte",
@@ -900,20 +764,18 @@
         ]
       },
       "stage_effects": {
-        "gov": 10,
-        "deploy": 4
+        "deploy": 6
       },
-      "story": "Everyone can reach exactly what their role needs, and every access is logged.",
+      "story": "Requests reach the model through a gateway nobody has to babysit.",
       "tags": [
-        "security",
-        "governance"
+        "automation"
       ]
     },
     {
-      "id": "dp_documented_promotion",
+      "id": "dp_risk_gated_promotion",
       "kind": "design",
-      "name": "Documented Promotion",
-      "description": "Every promoted model carries a model card and a risk assessment.",
+      "name": "Risk-Gated Promotion",
+      "description": "A model only reaches the registry once its risk has actually been assessed.",
       "when": {
         "all": [
           {
@@ -925,11 +787,6 @@
             "edge": "e.risk_acceptance",
             "op": "gte",
             "level": 3
-          },
-          {
-            "component": "gov.model_cards",
-            "op": "gte",
-            "level": 2
           },
           {
             "component": "model.registry",
@@ -944,12 +801,39 @@
         ]
       },
       "stage_effects": {
-        "gov": 8,
-        "req": 4
+        "req": 4,
+        "model": 4
       },
-      "story": "Every model in production comes with a card that says what it is for and where it fails.",
+      "story": "No model reaches the registry without its risk assessment signed off first.",
       "tags": [
-        "governance"
+        "requirements"
+      ]
+    },
+    {
+      "id": "dp_automated_tuning",
+      "kind": "design",
+      "name": "Automated Tuning",
+      "description": "Hyperparameter search runs and feeds training with no one babysitting the job.",
+      "when": {
+        "all": [
+          {
+            "component": "model.hpo",
+            "op": "gte",
+            "level": 3
+          },
+          {
+            "edge": "e.hpo_train",
+            "op": "gte",
+            "level": 3
+          }
+        ]
+      },
+      "stage_effects": {
+        "model": 6
+      },
+      "story": "Tuning runs on its own and feeds straight into training.",
+      "tags": [
+        "automation"
       ]
     },
     {
@@ -1049,52 +933,12 @@
         ]
       },
       "stage_effects": {
-        "data": 6,
-        "gov": 4
+        "data": 6
       },
       "story": "Every prediction can be traced back to the labels it learned from.",
       "tags": [
         "reproducibility",
         "governance"
-      ]
-    },
-    {
-      "id": "dp_efficient_tuning",
-      "kind": "design",
-      "name": "Efficient Tuning",
-      "description": "Hyperparameter search runs on scheduled compute, not on whatever is free.",
-      "when": {
-        "all": [
-          {
-            "component": "model.hpo",
-            "op": "gte",
-            "level": 3
-          },
-          {
-            "edge": "e.hpo_train",
-            "op": "gte",
-            "level": 3
-          },
-          {
-            "component": "gov.compute_scheduling",
-            "op": "gte",
-            "level": 3
-          },
-          {
-            "component": "gov.cost_monitoring",
-            "op": "gte",
-            "level": 3
-          }
-        ]
-      },
-      "stage_effects": {
-        "model": 6,
-        "gov": 4
-      },
-      "story": "Tuning runs overnight on reserved capacity, and someone watches what it costs.",
-      "tags": [
-        "cost",
-        "automation"
       ]
     },
     {

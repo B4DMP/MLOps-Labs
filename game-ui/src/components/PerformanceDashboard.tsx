@@ -56,7 +56,6 @@ interface PatternRef {
 interface StageData {
   id: string;
   name: string;
-  band: boolean;
   locked: boolean;
   phase_id?: number;
   health?: number;
@@ -114,7 +113,6 @@ interface GraphStatePayload {
   stages: StageData[];
   flows: FlowData[];
   feedback_flows: FlowData[];
-  governance_flows: FlowData[];
   technical: Record<string, TechnicalStage>;
   system_health: number;
 }
@@ -226,20 +224,16 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
   );
 }
 
-const GOVERNANCE_COLOR = "#b45309";
-
 function CrossStageArcs({
   pipelineStages,
   flows,
   centres,
   width,
-  variant,
 }: {
   pipelineStages: StageData[];
   flows: FlowData[];
   centres: Record<string, number>;
   width: number;
-  variant: "feedback" | "governance";
 }) {
   const N = pipelineStages.length;
   const lockedIds = new Set(pipelineStages.filter((s) => s.locked).map((s) => s.id));
@@ -252,12 +246,10 @@ function CrossStageArcs({
   });
   if (N === 0 || arcs.length === 0 || width <= 0) return null;
 
-  const prefix = variant === "governance" ? "gv" : "fb";
   const W = width;
-  const H = variant === "governance" ? 28 : 48;
+  const H = 48;
   const cx = (i: number) => centres[pipelineStages[i].id];
-  const colorFor = (level: number) =>
-    variant === "governance" ? GOVERNANCE_COLOR : statusColor(level === 0 ? "broken" : level >= 3 ? "healthy" : "degraded");
+  const colorFor = (level: number) => statusColor(level === 0 ? "broken" : level >= 3 ? "healthy" : "degraded");
 
   return (
     <svg
@@ -270,7 +262,7 @@ function CrossStageArcs({
     >
       <defs>
         {arcs.map((f) => {
-          const key = `${prefix}-${f.from}-${f.to}`.replace(/\./g, "_");
+          const key = `fb-${f.from}-${f.to}`.replace(/\./g, "_");
           const color = colorFor(f.level);
           return (
             <marker key={key} id={key} markerWidth="6" markerHeight="6" refX="4.5" refY="3" orient="auto">
@@ -287,7 +279,7 @@ function CrossStageArcs({
         const dist = Math.abs(fi - ti);
         const arcTop = Math.max(2, H - dist * Math.floor((H - 2) / Math.max(N - 1, 1)));
         const color = colorFor(f.level);
-        const key = `${prefix}-${f.from}-${f.to}`.replace(/\./g, "_");
+        const key = `fb-${f.from}-${f.to}`.replace(/\./g, "_");
         return (
           <path
             key={key}
@@ -295,7 +287,7 @@ function CrossStageArcs({
             fill="none"
             stroke={color}
             strokeWidth={1.75}
-            strokeDasharray={variant === "governance" ? "2 3" : f.level === 0 ? "4 2" : undefined}
+            strokeDasharray={f.level === 0 ? "4 2" : undefined}
             markerEnd={`url(#${key})`}
             opacity={0.9}
           />
@@ -307,18 +299,16 @@ function CrossStageArcs({
 
 /** Connector between two stage buttons: a dashed pipe with an arrowhead, so the strip
  *  reads as a direction of travel rather than a row of ties. */
-function StageConnector({ flow, band, toId }: { flow?: FlowData; band: boolean; toId: string }) {
+function StageConnector({ flow, toId }: { flow?: FlowData; toId: string }) {
   const W = 34;
   const H = 14;
   const markerId = `conn-${toId}`.replace(/\./g, "_");
-  const color = band
-    ? "#94a3b8"
-    : !flow
-      ? "#cbd5e1"
-      : flow.level === 0
-        ? statusColor("broken")
-        : statusColor(flow.level >= 3 ? "healthy" : "degraded");
-  const animation = band || !flow
+  const color = !flow
+    ? "#cbd5e1"
+    : flow.level === 0
+      ? statusColor("broken")
+      : statusColor(flow.level >= 3 ? "healthy" : "degraded");
+  const animation = !flow
     ? undefined
     : flow.level === 0
       ? "pipe-dead"
@@ -329,11 +319,9 @@ function StageConnector({ flow, band, toId }: { flow?: FlowData; band: boolean; 
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ flexShrink: 0, overflow: "visible" }}>
       <title>
-        {band
-          ? "Cross-cutting governance and infrastructure"
-          : flow
-            ? `Flow between stages: ${LEVEL_LABELS[flow.level]}`
-            : "No flow between these stages yet"}
+        {flow
+          ? `Flow between stages: ${LEVEL_LABELS[flow.level]}`
+          : "No flow between these stages yet"}
       </title>
       <defs>
         <marker id={markerId} markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
@@ -346,8 +334,8 @@ function StageConnector({ flow, band, toId }: { flow?: FlowData; band: boolean; 
         x2={W - 7}
         y2={H / 2}
         stroke={color}
-        strokeWidth={band ? 1.75 : 2.25}
-        strokeDasharray={band ? "4 3" : animation ? undefined : "4 3"}
+        strokeWidth={2.25}
+        strokeDasharray={animation ? undefined : "4 3"}
         className={animation}
         markerEnd={`url(#${markerId})`}
       />
@@ -801,15 +789,6 @@ export default function PerformanceDashboard({
         ? ids.map(stageName).join(" and ")
         : `${stageName(ids[0])} +${ids.length - 1}`;
 
-    const crossCutting: StageNeighbour = {
-      icon: "ph:arrows-out-line-horizontal-bold",
-      label: "runs alongside every stage",
-      title: "Governance and infrastructure is cross-cutting: it has no single stage before or after it.",
-      color: GOVERNANCE_COLOR,
-    };
-
-    if (activeStage.band) return { inbound: crossCutting, outbound: crossCutting };
-
     const pipelineInto = peers(graphState.flows, "from");
     const pipelineOut = peers(graphState.flows, "to");
     const feedbackInto = peers(graphState.feedback_flows ?? [], "from");
@@ -938,17 +917,9 @@ export default function PerformanceDashboard({
                     <div style={{ width: "max-content", minWidth: "100%", padding: "2px 2px" }}>
                       <CrossStageArcs
                         pipelineStages={pipelineStages}
-                        flows={graphState.governance_flows ?? []}
-                        centres={centres.centres}
-                        width={centres.width}
-                        variant="governance"
-                      />
-                      <CrossStageArcs
-                        pipelineStages={pipelineStages}
                         flows={graphState.feedback_flows ?? []}
                         centres={centres.centres}
                         width={centres.width}
-                        variant="feedback"
                       />
                       <div
                         ref={buttonsRowRef}
@@ -966,7 +937,7 @@ export default function PerformanceDashboard({
                               ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
                               {i > 0 && (
-                                <StageConnector flow={flow} band={stage.band} toId={stage.id} />
+                                <StageConnector flow={flow} toId={stage.id} />
                               )}
                               <button
                                 type="button"
@@ -1046,12 +1017,6 @@ export default function PerformanceDashboard({
                             <span className="d-flex align-items-center gap-1">
                               <svg width="16" height="6" aria-hidden><line x1="0" y1="3" x2="16" y2="3" stroke={statusColor("healthy")} strokeWidth="2" /></svg>
                               feedback loop
-                            </span>
-                          )}
-                          {(graphState.governance_flows?.length ?? 0) > 0 && (
-                            <span className="d-flex align-items-center gap-1">
-                              <svg width="16" height="6" aria-hidden><line x1="0" y1="3" x2="16" y2="3" stroke={GOVERNANCE_COLOR} strokeWidth="2" strokeDasharray="2 3" /></svg>
-                              governance
                             </span>
                           )}
                         </div>

@@ -19,7 +19,7 @@
           "stage_effects": {
             "type": "object",
             "title": "Health change per stage (negative for anti, positive for design)",
-            "propertyNames": {"enum": ["req", "data", "model", "deploy", "ops", "gov"]},
+            "propertyNames": {"enum": ["req", "data", "model", "deploy", "ops"]},
             "additionalProperties": {"type": "number"}
           },
           "story": {"type": "string"},

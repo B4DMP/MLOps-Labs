@@ -44,7 +44,7 @@ def parse_level(value: Any) -> int:
 # Triggers that mean nobody or a person starts the work. Every other trigger is automatic.
 NON_AUTOMATIC_TRIGGERS = frozenset({"none", "manual_request"})
 
-EdgeKind = Literal["pipeline", "feedback", "governs"]
+EdgeKind = Literal["pipeline", "feedback"]
 OpKind = Literal[
     "raise_to", "set_to", "set_trigger", "set_attr", "instance_upsert", "set_instance_prop", "observe"
 ]
@@ -81,7 +81,6 @@ class Stage(BaseModel):
     phase_id: Optional[int] = None
     weight: float = 1.0
     owner_role: Optional[str] = None
-    band: bool = Field(default=False, description="Cross-cutting band drawn under the pipeline, not a step in it")
 
 
 class Component(BaseModel):

@@ -93,8 +93,9 @@ def test_outcome_for_reads_the_override_field_not_the_removed_patience_field():
 def _a_veto_worthy_card():
     """A card weak enough to still lose the room: `deploy.shadow` only reaches 1, short of both
     the governed level Ruth's boundary and Alex's trade-offs accept (4) and the manual level
-    Alex's trade-offs would also accept on their own (2), plus `gov.audit`, a target nobody in
-    the room owns strongly enough to matter here. Alex, high-power, stays vetoed.
+    Alex's trade-offs would also accept on their own (2), plus `deploy.serving`, a second target
+    this challenge's own intel already references (so it stays legal here). Alex, high-power,
+    stays vetoed.
 
     `e.cicd_shadow` is deliberately not on this card: its endpoints are not both in this
     challenge's allowed-target set (`deploy.cicd` is not), so it is not a legal target here at
@@ -102,7 +103,7 @@ def _a_veto_worthy_card():
     """
     return [
         {"target": "deploy.shadow", "kind": "raise_to", "value": 1},
-        {"target": "gov.audit", "kind": "raise_to", "value": 2},
+        {"target": "deploy.serving", "kind": "raise_to", "value": 2},
     ]
 
 
@@ -321,12 +322,8 @@ async def test_the_pushed_through_card_actually_lands_on_the_graph(migrated_db):
         log_manager.send_event = AsyncMock()
         await simulation_handler.handle_simulation_run(_mock_ws(), "alice", ids)
 
-    # gov.audit is owned by requirements_reuben, not the overridden Alex, so this is not
-    # `veto_degradation_ops` (see the test just below for that interaction) - it is the ordinary
-    # owner-buyin cap: the weak fixture card also leaves reuben's own driver on deploy.shadow
-    # unsatisfied, so his buy-in caps how much of the gov.audit raise actually sticks.
     replay_state = graph_store.load_state("alice").state
-    assert replay_state.level("gov.audit") == 1
+    assert replay_state.level("deploy.serving") == 1
 
 
 @pytest.mark.anyio
@@ -337,8 +334,8 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
     ch118 makes this visible in full: `deploy.shadow` starts at 0, the fixture card raises it to
     1, and Alex owns it, so the same low buy-in that caused the veto in the first place also caps
     how much of the raise actually sticks (`apply_ops`' owner-buyin mechanic). The card is not
-    silently dropped (the report says so, and `gov.audit` in the sibling test shows an unrelated
-    target *does* land); Alex's own component is just the one place overriding them costs
+    silently dropped (the report says so, and `deploy.serving` in the sibling test shows an
+    unrelated target *does* land); Alex's own component is just the one place overriding them costs
     something visible.
     """
     from mlops_serious_game.application.graph_service import store as graph_store

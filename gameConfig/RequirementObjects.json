@@ -1537,7 +1537,7 @@
       "ops": [
         {
           "kind": "raise_to",
-          "target": "e.cost_serving",
+          "target": "deploy.orchestration",
           "value": 2
         }
       ],
@@ -1547,12 +1547,12 @@
       },
       "branch_x": {
         "description": "cost control relaxed for the new model version",
-        "target": "e.cost_serving",
+        "target": "deploy.orchestration",
         "level": 2
       },
       "branch_y": {
         "description": "cost control held at its current, strict level",
-        "target": "e.cost_serving",
+        "target": "deploy.orchestration",
         "level": 1
       },
       "branch_x_atoms": [],

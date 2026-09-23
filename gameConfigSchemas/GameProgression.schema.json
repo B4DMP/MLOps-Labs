@@ -306,8 +306,7 @@
                 "data",
                 "model",
                 "deploy",
-                "ops",
-                "gov"
+                "ops"
               ]
             }
           }

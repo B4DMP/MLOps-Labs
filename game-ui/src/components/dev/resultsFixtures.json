@@ -389,7 +389,6 @@
     {
      "id": "s0",
      "name": "Requirements",
-     "band": false,
      "locked": false,
      "health": 88.0,
      "status": "healthy",
@@ -401,7 +400,6 @@
     {
      "id": "s1",
      "name": "Data Engineering",
-     "band": false,
      "locked": false,
      "health": 90.0,
      "status": "healthy",
@@ -413,7 +411,6 @@
     {
      "id": "s2",
      "name": "Model Engineering",
-     "band": false,
      "locked": false,
      "health": 74.0,
      "status": "healthy",
@@ -431,7 +428,6 @@
     {
      "id": "s3",
      "name": "Deployment",
-     "band": false,
      "locked": false,
      "health": 76.0,
      "status": "healthy",
@@ -443,22 +439,12 @@
     {
      "id": "s4",
      "name": "Monitoring",
-     "band": false,
      "locked": false,
      "health": 60.0,
      "status": "healthy",
      "maturity": 2,
      "debt": 0,
      "broken": 0,
-     "patterns": []
-    },
-    {
-     "id": "gov",
-     "name": "Governance",
-     "band": true,
-     "locked": false,
-     "health": 83.0,
-     "status": "degraded",
      "patterns": []
     }
    ]
@@ -877,7 +863,6 @@
     {
      "id": "s0",
      "name": "Requirements",
-     "band": false,
      "locked": false,
      "health": 58.0,
      "status": "degraded",
@@ -889,7 +874,6 @@
     {
      "id": "s1",
      "name": "Data Engineering",
-     "band": false,
      "locked": false,
      "health": 60.0,
      "status": "degraded",
@@ -901,7 +885,6 @@
     {
      "id": "s2",
      "name": "Model Engineering",
-     "band": false,
      "locked": false,
      "health": 44.0,
      "status": "degraded",
@@ -913,7 +896,6 @@
     {
      "id": "s3",
      "name": "Deployment",
-     "band": false,
      "locked": false,
      "health": 46.0,
      "status": "degraded",
@@ -931,22 +913,12 @@
     {
      "id": "s4",
      "name": "Monitoring",
-     "band": false,
      "locked": false,
      "health": 30.0,
      "status": "degraded",
      "maturity": 2,
      "debt": 0,
      "broken": 0,
-     "patterns": []
-    },
-    {
-     "id": "gov",
-     "name": "Governance",
-     "band": true,
-     "locked": false,
-     "health": 53.0,
-     "status": "degraded",
      "patterns": []
     }
    ]
@@ -1373,7 +1345,6 @@
     {
      "id": "s0",
      "name": "Requirements",
-     "band": false,
      "locked": false,
      "health": 24.0,
      "status": "broken",
@@ -1385,7 +1356,6 @@
     {
      "id": "s1",
      "name": "Data Engineering",
-     "band": false,
      "locked": false,
      "health": 26.0,
      "status": "broken",
@@ -1397,7 +1367,6 @@
     {
      "id": "s2",
      "name": "Model Engineering",
-     "band": false,
      "locked": false,
      "health": 10.0,
      "status": "broken",
@@ -1409,7 +1378,6 @@
     {
      "id": "s3",
      "name": "Deployment",
-     "band": false,
      "locked": false,
      "health": 12.0,
      "status": "broken",
@@ -1427,22 +1395,12 @@
     {
      "id": "s4",
      "name": "Monitoring",
-     "band": false,
      "locked": false,
      "health": 5,
      "status": "broken",
      "maturity": 2,
      "debt": 0,
      "broken": 0,
-     "patterns": []
-    },
-    {
-     "id": "gov",
-     "name": "Governance",
-     "band": true,
-     "locked": false,
-     "health": 19.0,
-     "status": "degraded",
      "patterns": []
     }
    ]

@@ -34,11 +34,6 @@ COMPONENT_FACT_FALLBACKS: dict[str, str] = {
     "ops.observability": "System telemetry reveals distributed tracing across inference and data processing microservices is absent.",
     "ops.alerting": "Incident response logs show alert routing depends on manual escalation without automated paging rules.",
     "ops.rollback": "Rollback audit indicates recovery from faulty deployment requires manual container redeployment.",
-    "gov.cost_monitoring": "Cloud infrastructure telemetry shows compute allocation lacks cost attribution per model training workload.",
-    "gov.compute_scheduling": "Compute cluster metrics show GPU worker nodes experience high idle times without priority job queuing.",
-    "gov.iac": "Infrastructure audit reveals cloud provisioning contains undocumented manual configurations outside IaC templates.",
-    "gov.audit": "Audit trail logs show model deployment approvals and data access permissions are recorded in offline spreadsheets.",
-    "gov.compliance_tracking": "Compliance telemetry confirms regulatory adherence and data retention policies lack automated validation.",
 }
 
 

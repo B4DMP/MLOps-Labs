@@ -84,7 +84,6 @@ describe("stage canvas sizing", () => {
       ["modeling", 4, 2],
       ["deployment", 4, 2],
       ["ops", 3, 2],
-      ["governance", 3, 2],
     ];
     const scales = stages.map(([, cols, rows]) => {
       const { width, height } = compactLayout(grid(cols, rows));

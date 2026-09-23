@@ -686,7 +686,7 @@ def invent_trade_off_branches(
             break
 
     if not alt_target:
-        alt_target = "ops.alerting" if primary_target != "ops.alerting" else "gov.audit"
+        alt_target = "ops.alerting" if primary_target != "ops.alerting" else "req.acceptance_criteria"
         alt_level = 2
 
     def _pretty_name(target_str: str) -> str:

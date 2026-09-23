@@ -178,7 +178,6 @@ ROLE_SENSITIVITIES = {
 }
 
 SUBSYSTEM_SENSITIVITIES = {
-    "gov": {"perceived_risk": 0.25, "trust": 0.20},
     "ops": {"stress": 0.30, "perceived_risk": 0.20},
     "deploy": {"stress": -0.20, "sense_of_control": 0.25},
     "model": {"confidence": 0.30, "interest": 0.15},

@@ -33,7 +33,6 @@ STAGE_TO_DEFAULT_OWNER: dict[str, str] = {
     "model": "model_monica",
     "deploy": "automation_alex",
     "ops": "reliability_ruth",
-    "gov": "efficiency_emilia",
     "infra": "efficiency_emilia",
 }
 
@@ -49,9 +48,6 @@ def resolve_component_owner(component_id: str, graph: Optional[TechnicalGraph] =
                 owner = graph.owner_of(component_id)
                 if owner:
                     return owner
-                comp = graph.component(component_id)
-                if getattr(comp, "stage_id", "") == "gov":
-                    return "efficiency_emilia"
         except Exception as e:
             logger.debug(f"[component_investigation_service] Error resolving owner from graph: {e}")
 
