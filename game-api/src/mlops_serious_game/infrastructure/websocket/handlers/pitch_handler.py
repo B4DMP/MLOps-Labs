@@ -244,6 +244,7 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "intel_verified": len([
             i for i in held
             if getattr(i, "challenge_id", None) == ctx.challenge_id
+            and getattr(i, "stakeholder_id", None)
             and counts_toward_readiness(getattr(i, "intel_type", None))
         ]),
         "emotion_deltas": state.emotion_deltas,
