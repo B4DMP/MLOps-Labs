@@ -513,6 +513,7 @@ export default function OfflineIntelGathering({
                 dossierData={dossierData || []}
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
                 showPhaseChangeBadges={!singleArtifact}
+                cheatSheetActiveSection="Digging for Intel"
                 onOpenPhaseBriefing={onOpenPhaseBriefing}
                 onPerformanceToggle={onPerformanceToggle}
                 isPerformanceOpen={isPerformanceOpen}

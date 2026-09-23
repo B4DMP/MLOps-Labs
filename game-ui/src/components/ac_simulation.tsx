@@ -22,6 +22,7 @@ import { MetricsContext } from "./MetricProvider";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import type { ActionCard } from "../types/ActionCard";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
+import CheatSheetModal from "./CheatSheetModal";
 import styles from "./ac_simulation.module.css";
 
 const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
@@ -191,6 +192,7 @@ export default function AcSimulation({
 
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
   useWebSocketEvent<DeltaReportPayload>("graph:delta_report", (data) => setPayload(data));
 
@@ -271,6 +273,15 @@ export default function AcSimulation({
             <span>Settings</span>
           </button>
         )}
+        <button
+          type="button"
+          className={styles.dashboardLink}
+          onClick={() => setIsCheatSheetOpen(true)}
+          title="Cheat Sheet"
+        >
+          <Icon icon="ph:book-bookmark-bold" />
+          <span>Cheat Sheet</span>
+        </button>
       </div>
 
       {/* ── Body Area ── */}
@@ -835,6 +846,11 @@ export default function AcSimulation({
           </button>
         </div>
       </div>
+      <CheatSheetModal
+        isOpen={isCheatSheetOpen}
+        onClose={() => setIsCheatSheetOpen(false)}
+        activeSectionTitle="Simulate"
+      />
     </div>
   );
 }

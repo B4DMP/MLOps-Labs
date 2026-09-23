@@ -11,6 +11,7 @@ import PowerInterestMatrix from "./PowerInterestMatrix";
 import PhaseOverview from "./PhaseOverview";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import CheatSheetModal from "./CheatSheetModal";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -33,6 +34,11 @@ interface PrePhaseDialogProps {
    * The briefing then just closes again instead of starting the round.
    */
   isReview?: boolean;
+  /** Opens/closes the settings panel. Hidden while `isReview`: the dossier that reopened this
+   * briefing already has its own Settings button, and showing a second one here would be
+   * redundant. */
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
 }
 
 export default function PrePhaseDialog({
@@ -46,6 +52,8 @@ export default function PrePhaseDialog({
   challengeAmount,
   isNewChallenge = false,
   isReview = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
   const { settings } = useSettings();
@@ -54,6 +62,7 @@ export default function PrePhaseDialog({
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
   const wasReviewRef = useRef(false);
   if (isOpen) {
     wasReviewRef.current = isReview;
@@ -183,6 +192,32 @@ export default function PrePhaseDialog({
                 <span className={styles.phaseBadge}>
                   Phase {displayPhaseNumber} of {totalPlayablePhases}
                 </span>
+              )}
+              {/* Hidden on a review reopen: the dossier behind this already has its own
+                  Settings and Cheat Sheet buttons, so a second pair here would be redundant. */}
+              {!isReview && (
+                <>
+                  {onSettingsToggle && (
+                    <button
+                      type="button"
+                      className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
+                      onClick={onSettingsToggle}
+                      title={isSettingsOpen ? "Close settings" : "Open settings"}
+                    >
+                      <Icon icon="ph:gear-six-bold" />
+                      <span>Settings</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.dashboardLink}
+                    onClick={() => setIsCheatSheetOpen(true)}
+                    title="Cheat Sheet"
+                  >
+                    <Icon icon="ph:book-bookmark-bold" />
+                    <span>Cheat Sheet</span>
+                  </button>
+                </>
               )}
               {isReview && (
                 <button
@@ -348,6 +383,11 @@ export default function PrePhaseDialog({
 
           {/* Fixed, click-through overlay the radar portals its bubbles into */}
           <div ref={setBubbleLayer} className={styles.bubbleLayer} />
+          <CheatSheetModal
+            isOpen={isCheatSheetOpen}
+            onClose={() => setIsCheatSheetOpen(false)}
+            activeSectionTitle="Briefing"
+          />
       </div>
   );
 

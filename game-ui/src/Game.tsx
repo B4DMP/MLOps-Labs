@@ -914,6 +914,8 @@ function App({ username: _username, onLogout }: AppProps) {
                     challengeIntro={challengeIntro}
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
+                    onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
+                    isSettingsOpen={isSettingsOpen}
                   />
 
                   <AnimatePresence mode="wait">

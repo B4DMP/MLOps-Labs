@@ -1230,10 +1230,12 @@ export default function PitchDebate({
                   isEmbedded={true}
                   dossierData={dossierData || []}
                   activeStakeholderId={selectedStakeholderId}
+                  onActiveStakeholderChange={(id) => setSelectedStakeholderId(id ?? "")}
                   highlightedIntelId={highlightedIntelId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
                   buyInInfoMap={buyInInfoMap}
+                  cheatSheetActiveSection="Pitch & Debate"
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}

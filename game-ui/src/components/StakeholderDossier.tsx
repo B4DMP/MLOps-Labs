@@ -12,6 +12,7 @@ import GlossaryText from "./glossary/GlossaryText";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
+import CheatSheetModal from "./CheatSheetModal";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -129,6 +130,12 @@ export interface StakeholderDossierProps {
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  /** Fires when the player navigates the dossier itself (tab click, prev/next arrow, System
+   *  toggle) - not when `activeStakeholderId` drives the page from outside. Lets an embedding
+   *  scene (e.g. the pitch deck table) keep its own "selected stakeholder" in sync with
+   *  whichever page the dossier is showing, in both directions. Called with `null` when the
+   *  player switches to the System page, since no stakeholder is showing there. */
+  onActiveStakeholderChange?: (stakeholderId: string | null) => void;
   highlightedIntelId?: string | null;
   currentPhase?: number;
   currentChallenge?: number;
@@ -158,6 +165,10 @@ export interface StakeholderDossierProps {
   isSettingsOpen?: boolean;
   /** Opens the associated offline artifact for an intel item */
   onOpenArtifact?: (item: IntelEntry) => void;
+  /** Which cheat sheet card matches the screen the dossier is embedded in right now. The cheat
+   * sheet scrolls to it and gives it a one-time pop when opened. Omit where no screen maps
+   * cleanly (e.g. the briefing itself never embeds the dossier). */
+  cheatSheetActiveSection?: "Briefing" | "Digging for Intel" | "Pitch & Debate" | "Simulate";
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -657,6 +668,7 @@ export default function StakeholderDossier({
   onClose,
   dossierData,
   activeStakeholderId,
+  onActiveStakeholderChange,
   highlightedIntelId,
   currentPhase: propPhase,
   currentChallenge: propChallenge = 0,
@@ -675,6 +687,7 @@ export default function StakeholderDossier({
   onSettingsToggle,
   isSettingsOpen = false,
   onOpenArtifact,
+  cheatSheetActiveSection,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
@@ -755,6 +768,9 @@ export default function StakeholderDossier({
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  /** The cheat sheet is static reference content, so it needs no state from outside. */
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
   // Track fading out highlight state
   const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
@@ -1011,6 +1027,11 @@ export default function StakeholderDossier({
     if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
+    if (onActiveStakeholderChange) {
+      onActiveStakeholderChange(
+        targetIndex === environmentIndex ? null : effectiveDossierData[targetIndex]?.stakeholder_id ?? null
+      );
+    }
   };
 
   // Helper to find a stakeholder page index by ID, name, or sub-matches
@@ -2252,6 +2273,14 @@ export default function StakeholderDossier({
                 onClick={onSettingsToggle}
               />
             )}
+            <HeaderIconButton
+              icon="ph:question-bold"
+              label="Cheat Sheet"
+              detail="Quick reference for every phase"
+              ariaLabel="Cheat Sheet: quick reference for every phase, in plain language"
+              active={isCheatSheetOpen}
+              onClick={() => setIsCheatSheetOpen(true)}
+            />
           </div>
           <div className={styles.headerArrowGroup}>
             <HeaderIconButton
@@ -2442,10 +2471,19 @@ export default function StakeholderDossier({
     </div>
   );
 
+  const cheatSheet = (
+    <CheatSheetModal
+      isOpen={isCheatSheetOpen}
+      onClose={() => setIsCheatSheetOpen(false)}
+      activeSectionTitle={cheatSheetActiveSection}
+    />
+  );
+
   if (isEmbedded) {
     return (
       <div style={{ width: "100%", height: "100%", minHeight: "450px", position: "relative", pointerEvents: "auto" }}>
         {windowContent}
+        {cheatSheet}
       </div>
     );
   }
@@ -2453,6 +2491,7 @@ export default function StakeholderDossier({
   return (
     <div className={styles.dossierOverlay}>
       {windowContent}
+      {cheatSheet}
     </div>
   );
 }

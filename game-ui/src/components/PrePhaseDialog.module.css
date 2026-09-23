@@ -91,6 +91,35 @@
   flex-shrink: 0;
 }
 
+/* Mirrors ac_simulation.module.css's .dashboardLink exactly, so the Settings/Cheat Sheet
+   buttons look the same wherever a player finds them. */
+.dashboardLink {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--transition, 0.2s ease);
+}
+
+.dashboardLink:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.dashboardLinkActive {
+  background: rgba(255, 255, 255, 0.32);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 /* Title block: never the thing that gives way when the header runs short of room. */
 .headerTitleGroup {
   flex-shrink: 0;
