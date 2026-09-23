@@ -580,7 +580,7 @@ export default function OfflineIntelGathering({
                       Every artifact reveals something, about a stakeholder or about the system itself. Whoever
                       wrote it, read closely, then tag it below. Your call is saved as <strong>unconfirmed</strong>{" "}
                       intel in the Stakeholder Dossier. You'll get to confirm or correct it later by talking to them directly during
-                      the pitch phase. Not sure yet? Use ◀ ▶ or the numbered tabs above to jump around
+                      the pitch phase. Not sure yet? Use the numbered tabs above to jump around
                       before you lock everything in.
                     </span>
                   </span>

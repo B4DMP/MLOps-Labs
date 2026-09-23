@@ -97,7 +97,6 @@ export interface PatternRef {
 export interface PipelineStage {
   id: string;
   name: string;
-  band: boolean;
   locked: boolean;
   health?: number;
   status?: "healthy" | "degraded" | "broken";

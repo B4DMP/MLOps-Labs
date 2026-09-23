@@ -1861,10 +1861,10 @@ export default function StakeholderDossier({
                   <span
                     className={styles.notePhaseSpine}
                     tabIndex={0}
-                    aria-label={`Picked up in ${phaseLabel(item.discovered_phase_id, phases)}`}
-                    onMouseEnter={(e) => showInfoTag(e, "Picked up", phaseLabel(item.discovered_phase_id, phases))}
+                    aria-label={`Discovered during ${phaseLabel(item.discovered_phase_id, phases)}`}
+                    onMouseEnter={(e) => showInfoTag(e, "Discovered during", phaseLabel(item.discovered_phase_id, phases))}
                     onMouseLeave={hideInfoTag}
-                    onFocus={(e) => showInfoTag(e, "Picked up", phaseLabel(item.discovered_phase_id, phases))}
+                    onFocus={(e) => showInfoTag(e, "Discovered during", phaseLabel(item.discovered_phase_id, phases))}
                     onBlur={hideInfoTag}
                   >
                     <span className={styles.notePhaseName}>
