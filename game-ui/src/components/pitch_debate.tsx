@@ -1661,11 +1661,10 @@ export default function PitchDebate({
                                   <span>Presenting Action Proposal...</span>
                                 </button>
                               ) : stage === "PITCHED" ? (
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="d-flex align-items-center gap-2">
                                   <button
                                     type="button"
-                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
-                                    style={{ flex: 1 }}
+                                    className={`${styles.actionButton} ${styles.actionButtonAuto} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     disabled={isPitchDebating}
                                     onClick={() => {
                                       hideInfoTag();
@@ -1698,8 +1697,7 @@ export default function PitchDebate({
                                   </button>
                                   <button
                                     type="button"
-                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
-                                    style={{ flex: 1.5 }}
+                                    className={`${styles.actionButton} ${styles.actionButtonAuto} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     disabled={isPitchDebating}
                                     onClick={() => {
                                       hideInfoTag();
