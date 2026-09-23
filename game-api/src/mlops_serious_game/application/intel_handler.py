@@ -32,9 +32,21 @@ from mlops_serious_game.application.pitch_debate_service.chains import (
     get_intel_artifact_chain,
 )
 from mlops_serious_game.application.pitch_debate_service.state import DialogueOption
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
 from mlops_serious_game.infrastructure.database import IntelItem, GameSession, get_session, get_user_id
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
 from mlops_serious_game.config import settings
+
+
+def _username_from_ws(ws: WebSocket) -> str:
+    """The websocket handshake authenticates off the `mlops_player` cookie alone now, not a
+    `username` query param (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie) - this
+    is the one place left that re-derives it from the connection instead of taking it as an
+    already-resolved argument."""
+    username = verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME))
+    if username is None:
+        raise ValueError("No valid player session on this websocket connection.")
+    return username
 
 
 def intel_rows(session, user_id: int, run_index: Optional[int] = None):
@@ -577,7 +589,7 @@ async def store_intel_item(curr_challenge: Challenge, ws: WebSocket, intel_item:
         intel_item.discovered_phase_id = curr_challenge.phase_id
         intel_item.discovered_challenge_template = curr_challenge.template_id
     with get_session() as session:
-        username = ws.query_params["username"]
+        username = _username_from_ws(ws)
         user_id = get_user_id(session, username)
         records = intel_rows(session, user_id)
 
@@ -610,7 +622,7 @@ async def retrieve_intel_items(curr_challenge: Challenge, ws: WebSocket) -> List
     intel_items: List[StakeholderIntelItem] = []
 
     with get_session() as session:
-        records = intel_rows(session, get_user_id(session, ws.query_params["username"]))
+        records = intel_rows(session, get_user_id(session, _username_from_ws(ws)))
 
         dirty = False
         for record in records:
@@ -1165,7 +1177,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     environment page grouped by stage. Placement follows the player's own tag, never the true
     one, so the page a note sits on can never give the answer away.
     """
-    username = ws.query_params["username"]
+    username = _username_from_ws(ws)
     collected_items = await retrieve_intel_items(curr_challenge, ws)
     # This challenge's notes win where the archive holds the same id: they are the fresher read.
     items_by_id: Dict[str, StakeholderIntelItem] = {

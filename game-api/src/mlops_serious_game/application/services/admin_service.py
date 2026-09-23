@@ -22,8 +22,12 @@ from mlops_serious_game.infrastructure.database.run_scope import FIRST_RUN
 CHECKPOINT_TABLES = ("checkpoints", "checkpoint_writes", "checkpoint_blobs")
 
 
-def _player_thread_ids(player_name: str) -> list[str]:
-    return [f"MLOps_Convo_{player_name}", f"Online_Intel_{player_name}"]
+def _player_thread_ids(user_id: int) -> list[str]:
+    """Keyed by user_id, not username - see D-user-id in
+    docs/plans/session-persistence-and-url-routing.md. Doesn't cover the per-challenge
+    Action_Card_Pitch_*/Action_Card_Veto_* threads (variable-length suffix, pre-existing gap not
+    introduced by this plan)."""
+    return [f"MLOps_Convo_{user_id}", f"Online_Intel_{user_id}"]
 
 
 def _delete_checkpoints_for_threads(session, thread_ids: list[str]) -> None:
@@ -701,7 +705,7 @@ def _cleanup_and_delete_user(session, user: User) -> None:
     GraphOpLog, GameEventRow all go with it. Only the LangGraph checkpoint tables (not
     ORM-mapped, keyed by thread_id rather than a FK) still need explicit cleanup here.
     """
-    _delete_checkpoints_for_threads(session, _player_thread_ids(user.user_name))
+    _delete_checkpoints_for_threads(session, _player_thread_ids(user.id))
     session.delete(user)
     session.flush()
 

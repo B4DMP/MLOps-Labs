@@ -25,6 +25,8 @@ import SettingsPanel from "./components/SettingsPanel";
 import LoadingScreen from "./components/LoadingScreen";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
+import { replaceProgress, type GamePhaseLabel } from "./utils/urlSync";
+import { hasSeenBriefing, markBriefingSeen } from "./utils/seenBriefings";
 import type { StakeholderDossierEntry } from "./components/StakeholderDossier";
 import type { StakeholderAvatar } from "./types/StakeholderAvatar";
 import { colorForStakeholderId } from "./types/StakeholderAvatar";
@@ -62,13 +64,14 @@ interface Metric {
 
 interface AppProps {
   username: string;
+  onLogout: () => void;
 }
 
 
 
-function App({ username: _username }: AppProps) {
+function App({ username: _username, onLogout }: AppProps) {
   const debug: boolean = false;
-  const { emit, subscribe, isConnected } = useGameWebSocket();
+  const { emit, subscribe, isConnected, username } = useGameWebSocket();
 
   const sendJsonMessage = (data: any) => {
     emit(data.type, data);
@@ -123,6 +126,29 @@ function App({ username: _username }: AppProps) {
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
   const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
 
+  // Write-only URL telemetry (docs/plans/session-persistence-and-url-routing.md, D-url-tiers) -
+  // never read back on load, since the server's own stored progression is the sole authority on
+  // where a player actually is (D-server-truth, D-no-client-cache). Named phases, not raw
+  // phase/challenge/loop indices - the address bar should read like "the pitch phase", not
+  // "/game/p2/c110/1?stakeholder=__environment__".
+  useEffect(() => {
+    let phase: GamePhaseLabel | null = null;
+    if (progressionIndex === 4) {
+      phase = "report";
+    } else if (progressionIndex === 2) {
+      if (isPhaseDialogueOpen) {
+        phase = "briefing";
+      } else if (challengeLoopId === 0) {
+        phase = "offline-intel";
+      } else if (challengeLoopId === 1 || challengeLoopId === 2) {
+        phase = "pitch";
+      } else if (challengeLoopId === 3) {
+        phase = "simulation";
+      }
+    }
+    replaceProgress(phase);
+  }, [progressionIndex, isPhaseDialogueOpen, challengeLoopId]);
+
   const stakeholdersRef = useRef<Record<string, Stakeholder>>({});
   const metricsRef = useRef<Record<string, Metric>>({});
   const currentPhaseRef = useRef<number>(0);
@@ -175,25 +201,35 @@ function App({ username: _username }: AppProps) {
 
         if (prevShownChallengeKeyRef.current !== challengeKey) {
           prevShownChallengeKeyRef.current = challengeKey;
-          setIsNewChallenge(true);
 
-          // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
-          if (currentPhase === 0 && !isIntro1StartedRef.current) {
-            isIntro1StartedRef.current = true;
-            setIsIntro1Started(true);
-            setTimeout(() => {
-              introJs()
-                .setOptions({
-                  group: "intro1",
-                  exitOnEsc: false,
-                  exitOnOverlayClick: false,
-                })
-                .oncomplete(() => setIsPhaseDialogueOpen(true))
-                .onexit(() => setIsPhaseDialogueOpen(true))
-                .start();
-            }, 100);
+          // Reloading mid-challenge rebuilds all of this component's state from scratch, so
+          // without this check a player who already dismissed this challenge's briefing would be
+          // sent right back into it on every refresh. hasSeenBriefing is a best-effort, per-player
+          // localStorage mirror (see utils/seenBriefings.ts) - it only suppresses this dialog and
+          // never affects which phase/challenge the server thinks the player is in.
+          if (hasSeenBriefing(username, challengeKey)) {
+            setIsNewChallenge(false);
           } else {
-            setIsPhaseDialogueOpen(true);
+            setIsNewChallenge(true);
+
+            // If phase 0 and intro1 hasn't run yet, run intro1 then open PrePhaseDialog
+            if (currentPhase === 0 && !isIntro1StartedRef.current) {
+              isIntro1StartedRef.current = true;
+              setIsIntro1Started(true);
+              setTimeout(() => {
+                introJs()
+                  .setOptions({
+                    group: "intro1",
+                    exitOnEsc: false,
+                    exitOnOverlayClick: false,
+                  })
+                  .oncomplete(() => setIsPhaseDialogueOpen(true))
+                  .onexit(() => setIsPhaseDialogueOpen(true))
+                  .start();
+              }, 100);
+            } else {
+              setIsPhaseDialogueOpen(true);
+            }
           }
         }
       }
@@ -760,7 +796,7 @@ function App({ username: _username }: AppProps) {
   return (
     <div style={{ width: "100%", height: "100%", overflow: "hidden", position: "relative" }}>
       <ErrorDialog errorMsg={lastError} setIsOpen={setIsInErrorUi} isOpen={isInErrorUi} />
-      <SettingsPanel isVisible={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsPanel isVisible={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onLogout={onLogout} />
       {/* Gameplay has its own gear in the dossier header; everywhere else (questionnaire,
           briefing, end screen) gets this small fixed one instead, since none of those screens
           have a persistent header of their own. */}
@@ -844,7 +880,10 @@ function App({ username: _username }: AppProps) {
                     isOpen={isPhaseDialogueOpen}
                     setIsOpen={(open) => {
                       setIsPhaseDialogueOpen(open);
-                      if (!open) setIsBriefingReview(false);
+                      if (!open) {
+                        setIsBriefingReview(false);
+                        markBriefingSeen(username, `${currentPhase}:${currentChallenge}`);
+                      }
                     }}
                     isReview={isBriefingReview}
                     // Reviewing from the dossier just re-shows the existing briefing, never a "NEW" tag.

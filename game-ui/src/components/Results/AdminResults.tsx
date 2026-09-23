@@ -62,7 +62,7 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
     setLoading(true);
     setError(null);
     try {
-      setData(await fetchAdminResults(adminToken, { campaign, runs, includePlaytest }));
+      setData(await fetchAdminResults({ campaign, runs, includePlaytest }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to fetch results.");
     } finally {
@@ -78,7 +78,7 @@ export default function AdminResults({ adminToken, campaigns, metricInfo = {} }:
     if (!selected) return;
     let cancelled = false;
     setDetailError(null);
-    fetchAdminPlayerResults(adminToken, selected.player, selected.run)
+    fetchAdminPlayerResults(selected.player, selected.run)
       .then((result) => {
         if (!cancelled) setDetail(result);
       })

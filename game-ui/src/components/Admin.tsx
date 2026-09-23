@@ -63,6 +63,7 @@ export interface Player {
 interface AdminProps {
   adminToken?: string;
   onDashboardUpdate?: (data: any) => void;
+  onLogout?: () => void;
   campaigns: Campaign[];
   players: Player[];
   addCampaign: (
@@ -101,6 +102,7 @@ type SortDirection = "asc" | "desc";
 export function Admin({
   adminToken = "",
   onDashboardUpdate,
+  onLogout,
   campaigns,
   players,
   addCampaign,
@@ -132,7 +134,7 @@ export function Admin({
     setEmailLoading(true);
     setEmailErrorMessage(null);
     try {
-      const status = await fetchAdminEmailStatus(adminToken);
+      const status = await fetchAdminEmailStatus();
       setEmailStatus(status);
     } catch (err: any) {
       setEmailErrorMessage(err.message || "Failed to load SMTP status.");
@@ -154,7 +156,7 @@ export function Admin({
     setEmailSuccessMessage(null);
     setEmailErrorMessage(null);
     try {
-      const res = await sendAdminTestEmail(adminToken, recipientEmail, emailTemplate);
+      const res = await sendAdminTestEmail(recipientEmail, emailTemplate);
       setEmailSuccessMessage(res.message);
     } catch (err: any) {
       setEmailErrorMessage(err.message || "Failed to send test email.");
@@ -193,7 +195,7 @@ export function Admin({
     setAnalysisCampaignFilter(newFilter);
     if (adminToken && onDashboardUpdate) {
       try {
-        const data = await fetchAdminDashboard(adminToken, newFilter);
+        const data = await fetchAdminDashboard(newFilter);
         onDashboardUpdate(data);
       } catch (err) {
         console.error("Failed to fetch campaign dashboard data:", err);
@@ -526,6 +528,17 @@ export function Admin({
               <Icon icon="ph:arrow-square-out-bold" />
               <span>Game Login</span>
             </a>
+            {onLogout && (
+              <button
+                type="button"
+                className={styles.openGameButton}
+                onClick={onLogout}
+                title="Log out of the admin session"
+              >
+                <Icon icon="ph:sign-out-bold" />
+                <span>Logout</span>
+              </button>
+            )}
           </div>
         </div>
 

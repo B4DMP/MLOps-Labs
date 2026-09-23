@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Home } from "./components/Home";
 import { Login } from "./components/Login";
 import { Register } from "./components/Register";
@@ -17,6 +17,9 @@ import {
   verifyEmailCode,
   forgotPassword,
   resetPassword,
+  whoami,
+  logout as logoutApi,
+  adminLogout as adminLogoutApi,
 } from "./services/api/auth";
 import {
   fetchAdminDashboard,
@@ -31,6 +34,7 @@ import GlossaryProvider from "./components/glossary/GlossaryProvider";
 import SettingsProvider from "./components/SettingsProvider";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "./utils/transitions";
+import { pushScreen, currentScreenPath } from "./utils/urlSync";
 
 interface Campaign {
   name: string;
@@ -51,6 +55,12 @@ interface Player {
   playTime: string;
 }
 
+// Not a real secret - identity rides the httpOnly `mlops_player`/`mlops_admin` cookies now
+// (docs/plans/session-persistence-and-url-routing.md, D-cookies). This is only a truthy sentinel
+// so the existing `if (!adminToken) return` mount-guards in Admin.tsx/ConfigEditor.tsx/
+// AdminResults.tsx/GraphDebug.tsx keep working without threading a real credential through them.
+const ADMIN_SESSION_SENTINEL = "admin-session-active";
+
 function App() {
   const [isInLoginUi, setIsInLoginUi] = useState(false);
   const [isInRegisterUi, setIsInRegisterUi] = useState(false);
@@ -66,6 +76,10 @@ function App() {
   const [registerError, setRegisterError] = useState("");
   const [isInAdminUi, setIsInAdminUi] = useState(false);
   const [adminToken, setAdminToken] = useState("");
+
+  // Whether the initial `whoami` check (mount-time session restore) is still in flight - shows
+  // LoadingScreen instead of flashing Home first (docs/plans/session-persistence-and-url-routing.md).
+  const [isInitializing, setIsInitializing] = useState(true);
 
   // Held only in memory so "Resend code" on the verify screen can re-trigger a login (which
   // regenerates the code for an unverified account) without asking the user to retype it.
@@ -88,10 +102,7 @@ function App() {
   const [outroQuestionaireAverage, setOutroQuestionaireAverage] = useState(0);
   const [questionaireResults, setQuestionaireResults] = useState<any>([]);
 
-  // `token` isn't persisted or sent anywhere yet - no player-authenticated REST endpoint exists
-  // for it to gate. It's accepted here so the call sites read naturally and it's available to
-  // wire up once one does.
-  const enterGameAsPlayer = (loggedInUsername: string, _token: string, muted: boolean) => {
+  const enterGameAsPlayer = (loggedInUsername: string, muted: boolean) => {
     setUsername(loggedInUsername);
     setStartMuted(muted);
     setIsInLoginUi(false);
@@ -101,6 +112,107 @@ function App() {
     setIsInResetPasswordUi(false);
     setPendingPassword("");
     setIsInGame(true);
+    pushScreen("/game");
+  };
+
+  const enterAdminUi = async () => {
+    setAdminToken(ADMIN_SESSION_SENTINEL);
+    setIsInLoginUi(false);
+    setIsInRegisterUi(false);
+    setIsInAdminUi(true);
+    pushScreen("/admin");
+    const dashData = await fetchAdminDashboard();
+    updateAdminState(dashData);
+  };
+
+  // Path-scoped guard logic (docs/plans/session-persistence-and-url-routing.md, D-guards):
+  // `/game` and `/` ask `whoami` and look at `player` only; `/admin` looks at `admin` only;
+  // `/login`/`/register`/etc render unconditionally, never consulting either cookie for gating -
+  // an already-authenticated admin can still reach the game's own Login form without being
+  // redirected away from it. Anything else (an unknown path, or a mid-flow screen like `/verify`
+  // reached on a cold load with no in-memory state to drive it) falls back to Home. Shared between
+  // the initial cold-load check and `popstate` (Back/Forward), so navigating with the browser's
+  // own buttons re-derives the right screen instead of leaving stale UI up.
+  const applyRouting = async (path: ReturnType<typeof currentScreenPath>) => {
+    if (path === "/login") {
+      setIsInLoginUi(true);
+      return;
+    }
+    if (path === "/register") {
+      setIsInRegisterUi(true);
+      return;
+    }
+    if (path === "/admin") {
+      const result = await whoami();
+      if (result.admin) {
+        await enterAdminUi();
+      } else {
+        setIsInLoginUi(true);
+        pushScreen("/login");
+      }
+      return;
+    }
+    // "/game", "/", and any unrecognized path fall through to the player check - an unknown
+    // path lands on Home exactly like "/" does once no player session is found.
+    const result = await whoami();
+    if (result.player) {
+      enterGameAsPlayer(result.player.username, false);
+    } else if (path === "/game") {
+      setIsInLoginUi(true);
+      pushScreen("/login");
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await applyRouting(currentScreenPath());
+      } finally {
+        setIsInitializing(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      applyRouting(currentScreenPath());
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSessionExpired = () => {
+    setIsInGame(false);
+    setIsInAdminUi(false);
+    setUsername("");
+    setAdminToken("");
+    setIsInLoginUi(true);
+    pushScreen("/login");
+    setLoginError("Your session expired. Please log in again.");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } finally {
+      setIsInGame(false);
+      setUsername("");
+      setIsInLoginUi(true);
+      pushScreen("/login");
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      await adminLogoutApi();
+    } finally {
+      setIsInAdminUi(false);
+      setAdminToken("");
+      setIsInLoginUi(true);
+      pushScreen("/login");
+    }
   };
 
   const handleLoginSubmit = async (inputUsername: string, password: string, loginStartMuted: boolean) => {
@@ -108,14 +220,10 @@ function App() {
     setLoginError("");
     try {
       const data = await loginUser(inputUsername, password);
-      if (data.type === "login_success" && data.token) {
-        enterGameAsPlayer(inputUsername, data.token, loginStartMuted);
-      } else if (data.type === "admin_login_success" && data.token) {
-        setAdminToken(data.token);
-        setIsInLoginUi(false);
-        setIsInAdminUi(true);
-        const dashData = await fetchAdminDashboard(data.token);
-        updateAdminState(dashData);
+      if (data.type === "login_success") {
+        enterGameAsPlayer(inputUsername, loginStartMuted);
+      } else if (data.type === "admin_login_success") {
+        await enterAdminUi();
       } else if (data.type === "verification_required") {
         setUsername(inputUsername);
         setPendingPassword(password);
@@ -123,6 +231,7 @@ function App() {
         setVerifyError("");
         setIsInLoginUi(false);
         setIsInVerifyUi(true);
+        pushScreen("/verify");
       }
     } catch (err: any) {
       const msg = err.message || "An unknown error occurred during login.";
@@ -156,12 +265,8 @@ function App() {
         usersOnMachine,
         campaignKey,
       });
-      if (data.type === "admin_login_success" && data.token) {
-        setAdminToken(data.token);
-        setIsInRegisterUi(false);
-        setIsInAdminUi(true);
-        const dashData = await fetchAdminDashboard(data.token);
-        updateAdminState(dashData);
+      if (data.type === "admin_login_success") {
+        await enterAdminUi();
       } else if (data.type === "register_pending_verification") {
         setUsername(inputUsername);
         setPendingPassword(password);
@@ -169,9 +274,10 @@ function App() {
         setVerifyError("");
         setIsInRegisterUi(false);
         setIsInVerifyUi(true);
-      } else if (data.type === "login_success" && data.token) {
+        pushScreen("/verify");
+      } else if (data.type === "login_success") {
         // Test campaigns skip verification entirely - registration logs straight into the game.
-        enterGameAsPlayer(inputUsername, data.token, registerStartMuted);
+        enterGameAsPlayer(inputUsername, registerStartMuted);
       }
     } catch (err: any) {
       const msg = err.message || "An unknown error occurred during registration.";
@@ -187,8 +293,8 @@ function App() {
     setIsAuthenticating(true);
     setVerifyError("");
     try {
-      const data = await verifyEmailCode(username, code);
-      enterGameAsPlayer(username, data.token, pendingStartMuted);
+      await verifyEmailCode(username, code);
+      enterGameAsPlayer(username, pendingStartMuted);
     } catch (err: any) {
       setVerifyError(err.message || "Verification failed.");
     } finally {
@@ -203,9 +309,9 @@ function App() {
       const data = await loginUser(username, pendingPassword);
       if (data.type === "verification_required") {
         // A fresh code has been emailed - nothing else to do here.
-      } else if (data.type === "login_success" && data.token) {
+      } else if (data.type === "login_success") {
         // Already got verified in the meantime (e.g. via another tab) - just log in.
-        enterGameAsPlayer(username, data.token, pendingStartMuted);
+        enterGameAsPlayer(username, pendingStartMuted);
       }
     } catch (err: any) {
       setVerifyError(err.message || "Could not resend the code.");
@@ -223,6 +329,7 @@ function App() {
       setResetPasswordError("");
       setIsInForgotPasswordUi(false);
       setIsInResetPasswordUi(true);
+      pushScreen("/reset-password");
     } catch (err: any) {
       setForgotPasswordError(err.message || "Could not request a password reset.");
     } finally {
@@ -234,8 +341,8 @@ function App() {
     setIsAuthenticating(true);
     setResetPasswordError("");
     try {
-      const data = await resetPassword(username, code, newPassword, newPasswordConfirm);
-      enterGameAsPlayer(username, data.token, false);
+      await resetPassword(username, code, newPassword, newPasswordConfirm);
+      enterGameAsPlayer(username, false);
     } catch (err: any) {
       setResetPasswordError(err.message || "Could not reset your password.");
     } finally {
@@ -264,7 +371,7 @@ function App() {
   ) => {
     try {
       const updated = await addAdminCampaign(
-        adminToken, newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign, requireEmailVerification
+        newCampaignName, newCampaignKey, isActive, useQuestionnaire, isTestCampaign, requireEmailVerification
       );
       updateAdminState(updated);
     } catch (err: any) {
@@ -285,7 +392,7 @@ function App() {
     }
   ) => {
     try {
-      const updated = await updateAdminCampaign(adminToken, campaignKey, updates);
+      const updated = await updateAdminCampaign(campaignKey, updates);
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to update campaign.");
@@ -295,7 +402,7 @@ function App() {
 
   const handleRemoveCampaign = async (removeCampaignKey: string) => {
     try {
-      const updated = await removeAdminCampaign(adminToken, removeCampaignKey);
+      const updated = await removeAdminCampaign(removeCampaignKey);
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to remove campaign.");
@@ -305,7 +412,7 @@ function App() {
 
   const handleRemovePlayer = async (playerName: string) => {
     try {
-      const updated = await removeAdminPlayer(adminToken, playerName);
+      const updated = await removeAdminPlayer(playerName);
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to remove player.");
@@ -315,7 +422,7 @@ function App() {
 
   const handleRemoveAllPlayers = async () => {
     try {
-      const updated = await removeAllAdminPlayers(adminToken);
+      const updated = await removeAllAdminPlayers();
       updateAdminState(updated);
     } catch (err: any) {
       setLastError(err.message || "Failed to delete all players.");
@@ -369,7 +476,13 @@ function App() {
           // inline loading state via the `isLoading` prop. It still applies as a fallback for
           // transitions that have no form of their own to stay on (entering the game, entering
           // the admin dashboard while its data loads).
-          if (isInLoginUi) {
+          if (isInitializing) {
+            return (
+              <div key="initializing" style={screenStyle}>
+                <LoadingScreen />
+              </div>
+            );
+          } else if (isInLoginUi) {
             return (
               <div key="login" style={screenStyle}>
                 <Login
@@ -380,10 +493,12 @@ function App() {
                     setForgotPasswordError("");
                     setIsInLoginUi(false);
                     setIsInForgotPasswordUi(true);
+                    pushScreen("/forgot-password");
                   }}
                   onBack={() => {
                     setLoginError("");
                     setIsInLoginUi(false);
+                    pushScreen("/");
                   }}
                   isLoading={isAuthenticating}
                   errorMessage={loginError}
@@ -400,6 +515,7 @@ function App() {
                   onBack={() => {
                     setRegisterError("");
                     setIsInRegisterUi(false);
+                    pushScreen("/");
                   }}
                   isLoading={isAuthenticating}
                   errorMessage={registerError}
@@ -418,6 +534,7 @@ function App() {
                     setVerifyError("");
                     setPendingPassword("");
                     setIsInVerifyUi(false);
+                    pushScreen("/");
                   }}
                   isLoading={isAuthenticating}
                   isResending={isResendingCode}
@@ -435,6 +552,7 @@ function App() {
                     setForgotPasswordError("");
                     setIsInForgotPasswordUi(false);
                     setIsInLoginUi(true);
+                    pushScreen("/login");
                   }}
                   isLoading={isAuthenticating}
                   errorMessage={forgotPasswordError}
@@ -451,6 +569,7 @@ function App() {
                   onBack={() => {
                     setResetPasswordError("");
                     setIsInResetPasswordUi(false);
+                    pushScreen("/");
                   }}
                   isLoading={isAuthenticating}
                   errorMessage={resetPasswordError}
@@ -467,10 +586,10 @@ function App() {
           } else if (isInGame) {
             return (
               <motion.div {...FADE_TRANSITION} key="game" style={screenStyle}>
-                <WebSocketProvider username={username}>
+                <WebSocketProvider username={username} onAuthFailure={handleSessionExpired}>
                   <GlossaryProvider>
                     <SettingsProvider username={username} startMuted={startMuted}>
-                      <Game username={username} />
+                      <Game username={username} onLogout={handleLogout} />
                     </SettingsProvider>
                   </GlossaryProvider>
                 </WebSocketProvider>
@@ -482,6 +601,7 @@ function App() {
                 <Admin
                   adminToken={adminToken}
                   onDashboardUpdate={updateAdminState}
+                  onLogout={handleAdminLogout}
                   campaigns={campaigns}
                   players={players}
                   sum_per_challenge_increase={sumPerChallengeIncrease}
@@ -505,10 +625,12 @@ function App() {
                   onLogin={() => {
                     setLoginError("");
                     setIsInLoginUi(true);
+                    pushScreen("/login");
                   }}
                   onRegister={() => {
                     setRegisterError("");
                     setIsInRegisterUi(true);
+                    pushScreen("/register");
                   }}
                 />
               </div>

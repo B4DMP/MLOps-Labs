@@ -10,6 +10,7 @@ from mlops_serious_game.application.online_intel_service.state import OnlineInte
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.Challenge import Challenge
 from mlops_serious_game.domain.persona_resolver import personalize
+from mlops_serious_game.infrastructure.database import get_session, get_user_id
 
 
 async def run_engagement_card_workflow(
@@ -39,7 +40,14 @@ async def run_engagement_card_workflow(
     Returns:
         tuple[str, list[dict], OnlineIntelState]: Player message, stakeholder responses, and final state.
     """
-    thread_id = session_id or f"Online_Intel_{username}"
+    if session_id:
+        thread_id = session_id
+    else:
+        # Keyed by user_id, not username - see D-user-id in
+        # docs/plans/session-persistence-and-url-routing.md.
+        with get_session() as intel_session:
+            intel_user_id = get_user_id(intel_session, username)
+        thread_id = f"Online_Intel_{intel_user_id}"
     challenge_desc = (
         f"{curr_challenge.name}: {curr_challenge.roundIntroduction} "
         f"{personalize(curr_challenge.description, resolve_markers=True)}"

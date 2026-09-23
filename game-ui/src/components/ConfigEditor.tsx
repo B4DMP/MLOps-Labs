@@ -297,7 +297,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     setIsLoading(true);
     setStatusMessage(null);
     try {
-      const files = await fetchAdminConfigs(adminToken);
+      const files = await fetchAdminConfigs();
       setConfigFiles(files);
       if (files.length > 0 && !selectedFilename) {
         setSelectedFilename(files[0].filename);
@@ -318,7 +318,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     setStatusMessage(null);
     setJsonError(null);
     try {
-      const res = await fetchAdminConfigFile(adminToken, filename);
+      const res = await fetchAdminConfigFile(filename);
       setSchema(res.schema || {});
       setUiSchema(res.uischema || null);
       setOriginalData(res.data);
@@ -358,13 +358,13 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     });
 
     try {
-      const res = await generateOfflineIntelArtifacts(adminToken);
+      const res = await generateOfflineIntelArtifacts();
       setStatusMessage({
         text: res.message || "Successfully generated offline intel artifacts!",
         type: "success",
       });
       // Reload config files and select OfflineIntelArtifacts.json
-      const files = await fetchAdminConfigs(adminToken);
+      const files = await fetchAdminConfigs();
       setConfigFiles(files);
       setSelectedFilename("OfflineIntelArtifacts.json");
       await loadSingleConfig("OfflineIntelArtifacts.json");
@@ -418,7 +418,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
     setIsSaving(true);
     setStatusMessage(null);
     try {
-      const res = await saveAdminConfigFile(adminToken, selectedFilename, currentData);
+      const res = await saveAdminConfigFile(selectedFilename, currentData);
       setOriginalData(res.file.data);
       setCurrentData(res.file.data);
       setSchema(res.file.schema || schema);

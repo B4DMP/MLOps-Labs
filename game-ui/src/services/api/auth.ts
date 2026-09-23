@@ -1,3 +1,5 @@
+import { csrfHeaders } from "../../utils/csrf";
+
 const API_HOST =
   import.meta.env.VITE_API_HOST ||
   (import.meta.env.MODE === "development"
@@ -7,22 +9,21 @@ const API_HOST =
 const PROTOCOL = window.location.protocol === "https:" ? "https:" : "http:";
 const BASE_URL = `${PROTOCOL}//${API_HOST}`;
 
+// Identity rides an httpOnly cookie now, never a token the JS holds
+// (docs/plans/session-persistence-and-url-routing.md, D-cookies/D-login-response).
 export interface LoginResponse {
   type: "login_success" | "admin_login_success" | "verification_required";
   username?: string;
-  token?: string;
 }
 
 export interface RegisterResponse {
   type: "register_pending_verification" | "admin_login_success" | "login_success";
   username?: string;
-  token?: string;
 }
 
 export interface VerifyEmailResponse {
   type: "login_success";
   username: string;
-  token: string;
 }
 
 export interface ForgotPasswordResponse {
@@ -33,13 +34,23 @@ export interface ForgotPasswordResponse {
 export interface ResetPasswordResponse {
   type: "login_success";
   username: string;
-  token: string;
 }
 
-async function postJson<T>(path: string, body: Record<string, unknown>, errorFallback: string): Promise<T> {
+export interface WhoamiResponse {
+  player: { username: string } | null;
+  admin: { valid: true } | null;
+}
+
+async function postJson<T>(
+  path: string,
+  body: Record<string, unknown>,
+  errorFallback: string,
+  extraHeaders: Record<string, string> = {}
+): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...extraHeaders },
     body: JSON.stringify(body),
   });
 
@@ -99,5 +110,80 @@ export async function resetPassword(
     "/api/auth/reset-password",
     { username, code, new_password: newPassword, new_password_confirm: newPasswordConfirm },
     "Could not reset your password."
+  );
+}
+
+/** Always resolves, never throws on "nobody is logged in" - that's a normal `{player: null,
+ * admin: null}` response, not an error (docs/plans/session-persistence-and-url-routing.md,
+ * D-whoami). Also the sliding-expiration keepalive target - call this periodically while a game
+ * or admin tab is open, not just once at mount. */
+export async function whoami(): Promise<WhoamiResponse> {
+  const response = await fetch(`${BASE_URL}/api/auth/whoami`, { credentials: "include" });
+  if (!response.ok) {
+    return { player: null, admin: null };
+  }
+  return response.json();
+}
+
+export async function logout(): Promise<void> {
+  await fetch(`${BASE_URL}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeaders() },
+  });
+}
+
+export async function adminLogout(): Promise<void> {
+  await fetch(`${BASE_URL}/api/auth/admin-logout`, {
+    method: "POST",
+    credentials: "include",
+    headers: { ...csrfHeaders() },
+  });
+}
+
+function postJsonWithCsrf<T>(path: string, body: Record<string, unknown>, errorFallback: string): Promise<T> {
+  return postJson(path, body, errorFallback, csrfHeaders());
+}
+
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  newPasswordConfirm: string
+): Promise<{ type: string }> {
+  return postJsonWithCsrf(
+    "/api/auth/change-password",
+    {
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_confirm: newPasswordConfirm,
+    },
+    "Could not change your password."
+  );
+}
+
+export function changeEmail(newEmail: string): Promise<{ type: string }> {
+  return postJsonWithCsrf(
+    "/api/auth/change-email",
+    { new_email: newEmail },
+    "Could not start the email change."
+  );
+}
+
+export function confirmEmailChange(code: string): Promise<{ type: string }> {
+  return postJsonWithCsrf(
+    "/api/auth/confirm-email-change",
+    { code },
+    "Could not confirm the email change."
+  );
+}
+
+export function changeUsername(
+  newUsername: string,
+  currentPassword: string
+): Promise<{ type: string; username: string }> {
+  return postJsonWithCsrf(
+    "/api/auth/change-username",
+    { new_username: newUsername, current_password: currentPassword },
+    "Could not change your username."
   );
 }

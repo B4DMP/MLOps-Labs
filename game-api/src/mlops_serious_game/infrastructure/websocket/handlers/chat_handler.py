@@ -35,10 +35,30 @@ async def handle_chat_message(
     payload: dict,
 ) -> None:
     try:
-        session_id = payload.get("session_id") or f"MLOps_Convo_{username}"
+        # LangGraph checkpoint tables are keyed by user_id, not username, so a username change
+        # doesn't orphan conversation history (docs/plans/session-persistence-and-url-routing.md,
+        # D-user-id).
+        with get_session() as db_session:
+            thread_user_id = get_user_id(db_session, username)
+            latest_challenge = db_session.scalars(
+                select(GameChallenge)
+                .where(GameChallenge.user_id == thread_user_id)
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            # phase_id/challenge_id come from the player's own stored progression, never the
+            # client's claim (docs/plans/session-persistence-and-url-routing.md, D-server-truth) -
+            # a crafted payload asserting a different phase/challenge must not be able to pull
+            # dialogue, action-card or intel state from somewhere else in the game. Only a
+            # brand-new player with no GameChallenge row at all yet falls back to the payload,
+            # since there is nothing server-side to trust or protect at that point.
+            if latest_challenge is not None:
+                phase_id = latest_challenge.phase_index
+                challenge_id = latest_challenge.challenge_index
+            else:
+                phase_id = payload.get("phase_id", 0)
+                challenge_id = payload.get("challenge_id", 0)
+        session_id = payload.get("session_id") or f"MLOps_Convo_{thread_user_id}"
         challenge_context = payload.get("challenge", "")
-        phase_id = payload.get("phase_id", 0)
-        challenge_id = payload.get("challenge_id", 0)
 
         option_id = payload.get("option_id")
         dialogue_option = payload.get("dialogue_option")

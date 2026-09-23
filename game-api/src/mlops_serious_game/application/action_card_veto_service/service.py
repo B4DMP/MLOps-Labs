@@ -4,6 +4,7 @@ from opik.integrations.langchain import OpikTracer
 
 from mlops_serious_game.application.action_card_veto_service.graph import create_action_card_veto_graph
 from mlops_serious_game.application.action_card_veto_service.state import ActionCardVetoState
+from mlops_serious_game.infrastructure.database import get_session, get_user_id
 
 
 async def run_action_card_veto_workflow(
@@ -36,7 +37,14 @@ async def run_action_card_veto_workflow(
     Returns:
         tuple[str, ActionCardVetoState]: Generated veto message and final state.
     """
-    thread_id = session_id or f"Action_Card_Veto_{username}_{phase_id}_{challenge_id}_{stakeholder_id}"
+    if session_id:
+        thread_id = session_id
+    else:
+        # Keyed by user_id, not username - see D-user-id in
+        # docs/plans/session-persistence-and-url-routing.md.
+        with get_session() as veto_session:
+            veto_user_id = get_user_id(veto_session, username)
+        thread_id = f"Action_Card_Veto_{veto_user_id}_{phase_id}_{challenge_id}_{stakeholder_id}"
 
     graph_builder = create_action_card_veto_graph()
     graph = graph_builder.compile()

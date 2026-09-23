@@ -6,17 +6,37 @@ from typing import Optional
 
 import bcrypt
 import jwt
+from fastapi import Response
 from jwt.exceptions import InvalidTokenError
 from loguru import logger
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from mlops_serious_game.application.services.email_service import build_code_email, send_email
 from mlops_serious_game.config import settings
-from mlops_serious_game.infrastructure.database import Campaign, User, get_session
+from mlops_serious_game.infrastructure.database import (
+    Campaign,
+    GameChallenge,
+    GameProgression,
+    GameResult,
+    GameSession,
+    IntelItem,
+    User,
+    UserSettings,
+    get_session,
+)
+from mlops_serious_game.infrastructure.database.models import GameEventRow, GraphOpLog
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
+
+# Reissue a cookie once its token has less than half its lifetime left, so a session that stays
+# active (even only over the websocket - see the frontend keepalive) never expires mid-game.
+_SLIDING_REFRESH_THRESHOLD = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES / 2)
+
+PLAYER_COOKIE_NAME = "mlops_player"
+ADMIN_COOKIE_NAME = "mlops_admin"
+CSRF_COOKIE_NAME = "mlops_csrf"
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _MIN_PASSWORD_LENGTH = 8
@@ -45,18 +65,130 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     return encoded_jwt
 
 
-def verify_admin_token(token: str) -> bool:
+def decode_token(token: str | None) -> dict | None:
+    """Returns the token's payload, or None if it's missing, malformed, or expired."""
     if not token:
-        return False
+        return None
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("sub") == settings.ADMIN_USER
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
     except InvalidTokenError:
-        return False
+        return None
+
+
+def verify_admin_token(token: str) -> bool:
+    payload = decode_token(token)
+    return payload is not None and payload.get("sub") == settings.ADMIN_USER
+
+
+def verify_player_token(token: str) -> str | None:
+    """Returns the token's username if it's a valid, unexpired player token, else None."""
+    payload = decode_token(token)
+    if payload is None or payload.get("role") != "player":
+        return None
+    return payload.get("sub")
 
 
 def _create_player_token(username: str) -> str:
     return create_access_token(data={"sub": username, "role": "player"})
+
+
+def _create_admin_token() -> str:
+    return create_access_token(
+        data={"sub": settings.ADMIN_USER},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+
+
+def _generate_csrf_token() -> str:
+    import secrets
+    return secrets.token_urlsafe(32)
+
+
+def _set_csrf_cookie_if_absent(response: Response, *, existing: str | None, secure: bool) -> None:
+    if existing:
+        return
+    # Not a secret - a random nonce the frontend reads back and echoes as a header, so it must
+    # stay JS-readable (httponly=False) for the double-submit check to work at all.
+    response.set_cookie(
+        CSRF_COOKIE_NAME,
+        _generate_csrf_token(),
+        httponly=False,
+        secure=secure,
+        samesite="lax",
+        path="/",
+    )
+
+
+def set_player_cookie(
+    response: Response, username: str, *, secure: bool, existing_csrf: str | None = None
+) -> None:
+    response.set_cookie(
+        PLAYER_COOKIE_NAME,
+        _create_player_token(username),
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        path="/",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
+
+
+def set_admin_cookie(response: Response, *, secure: bool, existing_csrf: str | None = None) -> None:
+    response.set_cookie(
+        ADMIN_COOKIE_NAME,
+        _create_admin_token(),
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        # Scoped to /api, not just /api/admin: /api/auth/whoami (which every screen calls to
+        # check both sessions) is outside /api/admin, so a tighter scope would never let whoami
+        # see this cookie at all. /api still excludes the one thing worth excluding - /ws, which
+        # admin never needs.
+        path="/api",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    _set_csrf_cookie_if_absent(response, existing=existing_csrf, secure=secure)
+
+
+def clear_player_cookie(response: Response) -> None:
+    response.delete_cookie(PLAYER_COOKIE_NAME, path="/")
+
+
+def clear_admin_cookie(response: Response) -> None:
+    response.delete_cookie(ADMIN_COOKIE_NAME, path="/api")
+
+
+def _remaining_lifetime(payload: dict) -> timedelta:
+    exp = datetime.datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+    return exp - datetime.datetime.now(timezone.utc)
+
+
+def sliding_refresh_player(
+    token: str | None, response: Response, *, secure: bool, existing_csrf: str | None = None
+) -> str | None:
+    """If the player token is valid and close to expiring, reissue its cookie on `response`.
+    Returns the current username, or None if the token isn't a valid player token."""
+    payload = decode_token(token)
+    if payload is None or payload.get("role") != "player":
+        return None
+    username = payload.get("sub")
+    if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
+        set_player_cookie(response, username, secure=secure, existing_csrf=existing_csrf)
+    return username
+
+
+def sliding_refresh_admin(
+    token: str | None, response: Response, *, secure: bool, existing_csrf: str | None = None
+) -> bool:
+    """Same as sliding_refresh_player, for the admin cookie. Returns whether the token is
+    currently a valid admin token."""
+    payload = decode_token(token)
+    if payload is None or payload.get("sub") != settings.ADMIN_USER:
+        return False
+    if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
+        set_admin_cookie(response, secure=secure, existing_csrf=existing_csrf)
+    return True
 
 
 def _hash_password(password: str) -> str:
@@ -356,3 +488,142 @@ def reset_password(username: str, code: str, new_password: str, new_password_con
         user.is_verified = True
 
         return {"success": True, "username": username, "token": _create_player_token(username)}
+
+
+# --- Profile management (docs/plans/session-persistence-and-url-routing.md) ---
+# Reachable while already logged in, cookie-authenticated - a different trust boundary from the
+# pre-login flows above, which is why each of these re-verifies the current password rather than
+# just trusting the session for anything identity-changing.
+
+def change_password(username: str, current_password: str, new_password: str, new_password_confirm: str) -> dict:
+    current_password = current_password or ""
+    new_password = new_password or ""
+    new_password_confirm = new_password_confirm or ""
+
+    if not current_password or not new_password:
+        return {"success": False, "error": "All fields are required."}
+    if new_password != new_password_confirm:
+        return {"success": False, "error": "Passwords do not match."}
+    if len(new_password) < _MIN_PASSWORD_LENGTH:
+        return {"success": False, "error": f"Password must be at least {_MIN_PASSWORD_LENGTH} characters long."}
+
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user is None or not _verify_password(current_password, user.password_hash):
+            return {"success": False, "error": "Current password is incorrect."}
+
+        user.password_hash = _hash_password(new_password)
+
+    return {"success": True}
+
+
+async def request_email_change(username: str, new_email: str) -> dict:
+    new_email = new_email.strip() if new_email else ""
+
+    if not new_email:
+        return {"success": False, "error": "A new email address is required."}
+    if not _EMAIL_RE.match(new_email):
+        return {"success": False, "error": "Please enter a valid email address."}
+
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user is None:
+            return {"success": False, "error": "Account not found."}
+        if user.email.lower() == new_email.lower():
+            return {"success": False, "error": "That's already your current email address."}
+        if session.scalar(select(User).where(User.email == new_email)) is not None:
+            return {"success": False, "error": "An account with this email already exists."}
+
+        code = _generate_code()
+        user.pending_email = new_email
+        user.email_change_code = code
+        user.email_change_code_expires_at = (
+            datetime.datetime.utcnow() + timedelta(minutes=settings.VERIFICATION_CODE_TTL_MINUTES)
+        )
+
+    try:
+        # Sent to the *new* address, not the old one - that's what actually stops a typo'd or
+        # someone-else's address from silently taking over the account: only the person who can
+        # read mail at the new address can produce the code that finishes the change.
+        await _send_code_email(new_email, username, code, "email_change")
+    except Exception as e:
+        logger.error(f"Could not send email-change verification to {new_email}: {e}")
+        return {
+            "success": False,
+            "error": "We couldn't send a verification email right now. Please try again shortly.",
+        }
+
+    return {"success": True}
+
+
+def confirm_email_change(username: str, code: str) -> dict:
+    code = code.strip() if code else ""
+    if not code:
+        return {"success": False, "error": "A code is required."}
+
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user is None:
+            return {"success": False, "error": "Account not found."}
+
+        if not user.pending_email or not user.email_change_code or not user.email_change_code_expires_at:
+            return {
+                "success": False,
+                "error": "No email change is pending. Please request a new code.",
+            }
+        if datetime.datetime.utcnow() > user.email_change_code_expires_at:
+            return {"success": False, "error": "This code has expired. Please request a new one."}
+        if user.email_change_code != code:
+            return {"success": False, "error": "Invalid code."}
+
+        user.email = user.pending_email
+        user.pending_email = None
+        user.email_change_code = None
+        user.email_change_code_expires_at = None
+
+    return {"success": True}
+
+
+def _rename_denormalized_username(session, user_id: int, new_username: str) -> None:
+    """Every per-player table still carries a legacy `user_name`/`player` string column
+    alongside its real `user_id` FK (docs/done/pk-migration.md - kept as write-only debt pending
+    a future drop migration, not the join key). Nothing depends on these being correct - queries
+    all go through user_id - but leaving them stale after a rename would be a confusing landmine
+    for anyone reading the tables directly (admin tooling, ad-hoc queries), so they're kept in
+    sync here at rename time rather than left to silently drift.
+    """
+    for model, column in (
+        (GameProgression, GameProgression.user_name),
+        (GameChallenge, GameChallenge.user_name),
+        (GameSession, GameSession.player),
+        (IntelItem, IntelItem.user_name),
+        (GraphOpLog, GraphOpLog.user_name),
+        (GameEventRow, GameEventRow.user_name),
+        (UserSettings, UserSettings.user_name),
+        (GameResult, GameResult.user_name),
+    ):
+        session.execute(update(model).where(model.user_id == user_id).values({column: new_username}))
+
+
+def change_username(username: str, new_username: str, current_password: str) -> dict:
+    new_username = new_username.strip() if new_username else ""
+    current_password = current_password or ""
+
+    if not new_username or not current_password:
+        return {"success": False, "error": "All fields are required."}
+
+    with get_session() as session:
+        user = session.scalar(select(User).where(User.user_name == username))
+        if user is None or not _verify_password(current_password, user.password_hash):
+            return {"success": False, "error": "Current password is incorrect."}
+
+        if new_username == username:
+            return {"success": True, "username": username}
+
+        if session.scalar(select(User).where(User.user_name == new_username)) is not None:
+            return {"success": False, "error": "This username already exists. Please choose another username."}
+
+        user.user_name = new_username
+        _rename_denormalized_username(session, user.id, new_username)
+
+    return {"success": True, "username": new_username}

@@ -54,6 +54,10 @@ CODE_EMAIL_COPY = {
         "Password Reset Code",
         "enter this code in the game to confirm it's you and set a new password.",
     ),
+    "email_change": (
+        "Email Change Code",
+        "enter this code in the game to confirm this new address and finish updating your account.",
+    ),
 }
 
 

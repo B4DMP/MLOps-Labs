@@ -13,6 +13,7 @@ from mlops_serious_game.config import settings
 from mlops_serious_game.application.pitch_debate_service import reset_conversation_state
 from .opik_utils import configure
 
+from mlops_serious_game.infrastructure.middleware.csrf import CSRFMiddleware
 from mlops_serious_game.infrastructure.routes.auth_routes import router as auth_router
 from mlops_serious_game.infrastructure.routes.admin_routes import router as admin_router
 from mlops_serious_game.infrastructure.routes.glossary_routes import router as glossary_router
@@ -50,11 +51,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # A wildcard is rejected by browsers once credentials (cookies) are involved, so this has to
+    # be the real, configured origin list rather than "*" now that auth rides cookies.
+    allow_origins=settings.FRONTEND_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(CSRFMiddleware)
 
 # Include REST Routers
 app.include_router(auth_router)

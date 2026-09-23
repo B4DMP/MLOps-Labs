@@ -370,7 +370,7 @@ interface GraphDebugProps {
   players: Player[];
 }
 
-export function GraphDebug({ adminToken, campaigns, players }: GraphDebugProps) {
+export function GraphDebug({ campaigns, players }: GraphDebugProps) {
   const [username, setUsername] = useState("");
   const [data, setData] = useState<GraphDebugPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -394,7 +394,7 @@ export function GraphDebug({ adminToken, campaigns, players }: GraphDebugProps) 
     setLoading(true);
     setError("");
     try {
-      setData(await fetchGraphDebug(adminToken, name));
+      setData(await fetchGraphDebug(name));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

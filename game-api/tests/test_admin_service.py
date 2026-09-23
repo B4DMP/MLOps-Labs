@@ -136,7 +136,9 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
         step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
     ))
     session.add(UserSettings(user_name=username, user_id=user.id, mute_tts=True))
-    for thread_id in (f"MLOps_Convo_{username}", f"Online_Intel_{username}"):
+    # Checkpoint thread ids are keyed by user_id, not username
+    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
+    for thread_id in (f"MLOps_Convo_{user.id}", f"Online_Intel_{user.id}"):
         session.execute(
             sqlalchemy.text("INSERT INTO checkpoints (thread_id) VALUES (:t)"), {"t": thread_id}
         )
@@ -150,7 +152,7 @@ def _seed_player(session, *, username: str, campaign_key: str) -> "User":
     return user
 
 
-def _row_counts(session, username: str) -> dict[str, int]:
+def _row_counts(session, username: str, user_id: int) -> dict[str, int]:
     from mlops_serious_game.infrastructure.database.models import (
         GameProgression, GameChallenge, GameSession, IntelItem, GraphOpLog, GameEventRow,
         UserSettings,
@@ -186,8 +188,10 @@ def _row_counts(session, username: str) -> dict[str, int]:
             .where(UserSettings.user_name == username)
         ),
     }
+    # Checkpoint thread ids are keyed by user_id, not username
+    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
     for table in CHECKPOINT_TABLES:
-        for thread_id in (f"MLOps_Convo_{username}", f"Online_Intel_{username}"):
+        for thread_id in (f"MLOps_Convo_{user_id}", f"Online_Intel_{user_id}"):
             key = f"{table}:{thread_id}"
             counts[key] = session.execute(
                 sqlalchemy.text(f"SELECT count(*) FROM {table} WHERE thread_id = :t"), {"t": thread_id}
@@ -200,16 +204,16 @@ def test_remove_player_clears_every_table(migrated_db):
     from mlops_serious_game.application.services import admin_service
 
     with get_session() as session:
-        _seed_player(session, username="alice", campaign_key="camp-1")
+        alice_id = _seed_player(session, username="alice", campaign_key="camp-1").id
 
     with get_session() as session:
-        before = _row_counts(session, "alice")
+        before = _row_counts(session, "alice", alice_id)
     assert all(v > 0 for v in before.values()), before
 
     admin_service.remove_player("alice")
 
     with get_session() as session:
-        after = _row_counts(session, "alice")
+        after = _row_counts(session, "alice", alice_id)
     assert all(v == 0 for v in after.values()), after
 
 
@@ -218,14 +222,14 @@ def test_remove_all_players_clears_every_table(migrated_db):
     from mlops_serious_game.application.services import admin_service
 
     with get_session() as session:
-        _seed_player(session, username="bob", campaign_key="camp-1")
-        _seed_player(session, username="carol", campaign_key="camp-2")
+        bob_id = _seed_player(session, username="bob", campaign_key="camp-1").id
+        carol_id = _seed_player(session, username="carol", campaign_key="camp-2").id
 
     admin_service.remove_all_players()
 
     with get_session() as session:
-        after_bob = _row_counts(session, "bob")
-        after_carol = _row_counts(session, "carol")
+        after_bob = _row_counts(session, "bob", bob_id)
+        after_carol = _row_counts(session, "carol", carol_id)
     assert all(v == 0 for v in after_bob.values()), after_bob
     assert all(v == 0 for v in after_carol.values()), after_carol
 
@@ -237,16 +241,16 @@ def test_remove_campaign_clears_every_table_for_every_user(migrated_db):
     from mlops_serious_game.application.services import admin_service
 
     with get_session() as session:
-        _seed_player(session, username="dave", campaign_key="camp-multi")
-        _seed_player(session, username="erin", campaign_key="camp-multi")
-        _seed_player(session, username="frank", campaign_key="camp-other")
+        dave_id = _seed_player(session, username="dave", campaign_key="camp-multi").id
+        erin_id = _seed_player(session, username="erin", campaign_key="camp-multi").id
+        frank_id = _seed_player(session, username="frank", campaign_key="camp-other").id
 
     admin_service.remove_campaign("camp-multi")
 
     with get_session() as session:
-        after_dave = _row_counts(session, "dave")
-        after_erin = _row_counts(session, "erin")
-        after_frank = _row_counts(session, "frank")
+        after_dave = _row_counts(session, "dave", dave_id)
+        after_erin = _row_counts(session, "erin", erin_id)
+        after_frank = _row_counts(session, "frank", frank_id)
 
     assert all(v == 0 for v in after_dave.values()), after_dave
     assert all(v == 0 for v in after_erin.values()), after_erin
@@ -268,16 +272,18 @@ def test_reset_player_clears_every_table_but_recreates_the_user(migrated_db):
     from mlops_serious_game.application.services import admin_service
 
     with get_session() as session:
-        _seed_player(session, username="grace", campaign_key="camp-1")
+        grace_id = _seed_player(session, username="grace", campaign_key="camp-1").id
 
     with get_session() as session:
-        before = _row_counts(session, "grace")
+        before = _row_counts(session, "grace", grace_id)
     assert all(v > 0 for v in before.values()), before
 
     admin_service.reset_player("grace")
 
     with get_session() as session:
-        after = _row_counts(session, "grace")
+        # Deliberately re-check against the *pre-reset* user_id: the whole point of this test is
+        # that the old identity's checkpoint threads are gone, not the new user's (which has none).
+        after = _row_counts(session, "grace", grace_id)
         user = session.scalar(sqlalchemy.select(User).where(User.user_name == "grace"))
         assert user is not None
         assert user.campaign_key == "camp-1"

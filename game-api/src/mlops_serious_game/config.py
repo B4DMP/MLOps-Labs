@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +18,25 @@ class Settings(BaseSettings):
     ADMIN_USER: str
     ADMIN_KEY: str
     SECRET_KEY: str
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def _warn_on_weak_secret_key(cls, value: str) -> str:
+        # HS256 (auth_service.py's ALGORITHM) wants a key of at least 32 bytes; PyJWT already
+        # warns about this on every single token mint/verify, buried under other startup log
+        # noise - surface it once, clearly, here instead. Warns rather than raises: a live
+        # dev/course deployment shouldn't get bricked over a key that's merely weaker than ideal,
+        # but the fix (put a longer SECRET_KEY in .env, e.g. `python -c "import secrets;
+        # print(secrets.token_urlsafe(32))"`) should be obvious and easy to act on.
+        if len(value.encode("utf-8")) < 32:
+            import warnings
+            warnings.warn(
+                "SECRET_KEY is shorter than the 32 bytes HS256 wants for a secure HMAC key. "
+                "Generate a longer one, e.g.: python -c \"import secrets; "
+                "print(secrets.token_urlsafe(32))\" - and put it in .env as SECRET_KEY=...",
+                stacklevel=2,
+            )
+        return value
 
     # -- WestAI / RWTH Proxy Configuration --
     WESTAI_API_KEY: str | None = Field(
@@ -164,6 +183,22 @@ class Settings(BaseSettings):
 
     # --- Auth: email verification / password reset ---
     VERIFICATION_CODE_TTL_MINUTES: int = 10
+
+    # --- Auth: cookie-based sessions ---
+    # Origins allowed to hold the auth cookies / open the websocket. CORS with
+    # allow_credentials=True cannot use "*" (the browser rejects it), and the websocket handshake
+    # checks the Origin header against this same list. Comma-separated in the env var.
+    FRONTEND_ORIGINS: list[str] = Field(
+        default=["http://localhost:5173"],
+        validation_alias=AliasChoices("FRONTEND_ORIGINS", "FRONTEND_ORIGIN"),
+    )
+
+    @field_validator("FRONTEND_ORIGINS", mode="before")
+    @classmethod
+    def _split_frontend_origins(cls, value):
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",") if origin.strip()]
+        return value
 
 import os
 

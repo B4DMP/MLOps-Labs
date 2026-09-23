@@ -1,4 +1,5 @@
 import type { GraphDebugPayload } from "../../components/GraphDebug";
+import { csrfHeaders } from "../../utils/csrf";
 
 const API_HOST =
   import.meta.env.VITE_API_HOST ||
@@ -24,14 +25,17 @@ export interface AdminDashboardData {
   questionaire_results: any;
 }
 
-export async function fetchAdminDashboard(token: string, campaign?: string): Promise<AdminDashboardData> {
+// Every call below authenticates via the httpOnly `mlops_admin` cookie (`credentials:
+// "include"`), never a token the JS holds - docs/plans/session-persistence-and-url-routing.md,
+// D-cookies. Mutating calls (POST/PATCH/DELETE) also attach the CSRF header (D-csrf); plain GETs
+// don't need it.
+
+export async function fetchAdminDashboard(campaign?: string): Promise<AdminDashboardData> {
   const queryParam = campaign && campaign !== "all" ? `?campaign=${encodeURIComponent(campaign)}` : "";
   const response = await fetch(`${BASE_URL}/api/admin/dashboard${queryParam}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
 
   if (!response.ok) {
@@ -43,7 +47,6 @@ export async function fetchAdminDashboard(token: string, campaign?: string): Pro
 }
 
 export async function addAdminCampaign(
-  token: string,
   newCampaignName: string,
   newCampaignKey: string,
   isActive: boolean = true,
@@ -53,10 +56,8 @@ export async function addAdminCampaign(
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify({
       new_campaign_name: newCampaignName,
       new_campaign_key: newCampaignKey,
@@ -76,7 +77,6 @@ export async function addAdminCampaign(
 }
 
 export async function updateAdminCampaign(
-  token: string,
   campaignKey: string,
   updates: {
     is_active?: boolean;
@@ -89,10 +89,8 @@ export async function updateAdminCampaign(
 ): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify(updates),
   });
 
@@ -114,10 +112,11 @@ export interface AdminResultsQuery {
   runs?: AdminResultsRunsMode;
 }
 
-async function adminGet<T>(token: string, path: string, failure: string): Promise<T> {
+async function adminGet<T>(path: string, failure: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -126,38 +125,31 @@ async function adminGet<T>(token: string, path: string, failure: string): Promis
   return response.json();
 }
 
-export function fetchAdminResults(token: string, query: AdminResultsQuery = {}): Promise<AdminResultsData> {
+export function fetchAdminResults(query: AdminResultsQuery = {}): Promise<AdminResultsData> {
   const params = new URLSearchParams();
   if (query.campaign && query.campaign !== "all") params.set("campaign", query.campaign);
   if (query.includePlaytest) params.set("include_playtest", "true");
   if (query.runs) params.set("runs", query.runs);
   const suffix = params.toString() ? `?${params}` : "";
-  return adminGet(token, `/api/admin/results${suffix}`, "Failed to fetch results.");
+  return adminGet(`/api/admin/results${suffix}`, "Failed to fetch results.");
 }
 
 export function fetchAdminPlayerResults(
-  token: string,
   player: string,
   run?: number,
 ): Promise<AdminPlayerResults> {
   const suffix = run != null ? `?run=${run}` : "";
   return adminGet(
-    token,
     `/api/admin/results/player/${encodeURIComponent(player)}${suffix}`,
     "Failed to fetch that player's results.",
   );
 }
 
-export async function removeAdminCampaign(
-  token: string,
-  campaignKey: string
-): Promise<AdminDashboardData> {
+export async function removeAdminCampaign(campaignKey: string): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/campaigns/${encodeURIComponent(campaignKey)}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
   });
 
   if (!response.ok) {
@@ -168,16 +160,11 @@ export async function removeAdminCampaign(
   return response.json();
 }
 
-export async function removeAdminPlayer(
-  token: string,
-  playerName: string
-): Promise<AdminDashboardData> {
+export async function removeAdminPlayer(playerName: string): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players/${encodeURIComponent(playerName)}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
   });
 
   if (!response.ok) {
@@ -188,15 +175,11 @@ export async function removeAdminPlayer(
   return response.json();
 }
 
-export async function removeAllAdminPlayers(
-  token: string
-): Promise<AdminDashboardData> {
+export async function removeAllAdminPlayers(): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
   });
 
   if (!response.ok) {
@@ -228,13 +211,11 @@ export interface ConfigUpdateResponse {
   dashboard?: AdminDashboardData;
 }
 
-export async function fetchAdminConfigs(token: string): Promise<ConfigFileInfo[]> {
+export async function fetchAdminConfigs(): Promise<ConfigFileInfo[]> {
   const response = await fetch(`${BASE_URL}/api/admin/configs`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
 
   if (!response.ok) {
@@ -246,16 +227,11 @@ export async function fetchAdminConfigs(token: string): Promise<ConfigFileInfo[]
   return data.files || [];
 }
 
-export async function fetchAdminConfigFile(
-  token: string,
-  filename: string
-): Promise<ConfigFileData> {
+export async function fetchAdminConfigFile(filename: string): Promise<ConfigFileData> {
   const response = await fetch(`${BASE_URL}/api/admin/configs/${encodeURIComponent(filename)}`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
 
   if (!response.ok) {
@@ -267,16 +243,13 @@ export async function fetchAdminConfigFile(
 }
 
 export async function saveAdminConfigFile(
-  token: string,
   filename: string,
   content: any
 ): Promise<ConfigUpdateResponse> {
   const response = await fetch(`${BASE_URL}/api/admin/configs/${encodeURIComponent(filename)}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify({ data: content }),
   });
 
@@ -288,15 +261,13 @@ export async function saveAdminConfigFile(
   return response.json();
 }
 
-export async function fetchGraphDebug(token: string, username: string): Promise<GraphDebugPayload> {
+export async function fetchGraphDebug(username: string): Promise<GraphDebugPayload> {
   const response = await fetch(
     `${BASE_URL}/api/admin/graph-debug?username=${encodeURIComponent(username)}`,
     {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
     }
   );
 
@@ -308,15 +279,11 @@ export async function fetchGraphDebug(token: string, username: string): Promise<
   return response.json();
 }
 
-export async function generateOfflineIntelArtifacts(
-  token: string
-): Promise<{ status: string; count?: number; message: string }> {
+export async function generateOfflineIntelArtifacts(): Promise<{ status: string; count?: number; message: string }> {
   const response = await fetch(`${BASE_URL}/api/admin/generate-offline-intel`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
   });
 
   if (!response.ok) {
@@ -338,13 +305,11 @@ export interface AdminEmailStatus {
   has_password: boolean;
 }
 
-export async function fetchAdminEmailStatus(token: string): Promise<AdminEmailStatus> {
+export async function fetchAdminEmailStatus(): Promise<AdminEmailStatus> {
   const response = await fetch(`${BASE_URL}/api/admin/email/status`, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
   });
 
   if (!response.ok) {
@@ -358,16 +323,13 @@ export async function fetchAdminEmailStatus(token: string): Promise<AdminEmailSt
 export type AdminTestEmailTemplate = "generic" | "verification" | "password_reset";
 
 export async function sendAdminTestEmail(
-  token: string,
   recipientEmail: string,
   template: AdminTestEmailTemplate = "generic"
 ): Promise<{ type: string; message: string }> {
   const response = await fetch(`${BASE_URL}/api/admin/email/test`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
     body: JSON.stringify({ recipient_email: recipientEmail, template }),
   });
 
@@ -378,6 +340,3 @@ export async function sendAdminTestEmail(
 
   return response.json();
 }
-
-
-

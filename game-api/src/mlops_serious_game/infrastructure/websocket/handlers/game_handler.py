@@ -232,7 +232,16 @@ async def get_dialogue_options(
     If dialogue options are already saved in the LangGraph checkpoint for this thread, returns those.
     Otherwise, generates new options and persists them into the checkpoint.
     """
-    thread_id = session_id or (f"MLOps_Convo_{username}" if username else None)
+    if session_id:
+        thread_id = session_id
+    elif username:
+        # Keyed by user_id, not username - see D-user-id in
+        # docs/plans/session-persistence-and-url-routing.md.
+        with get_session() as dialogue_session:
+            dialogue_user_id = get_user_id(dialogue_session, username)
+        thread_id = f"MLOps_Convo_{dialogue_user_id}"
+    else:
+        thread_id = None
     if thread_id:
         existing_options = await get_checkpoint_dialogue_options(thread_id)
         if existing_options:
@@ -890,8 +899,34 @@ async def handle_state_update_request(
     payload: dict,
 ) -> tuple[int, int, int]:
     try:
-        phase_id = payload.get("phase_id", 0)
-        challenge_id = payload.get("challenge_id", 0)
+        # phase_id/challenge_id come from the player's own stored progression, never the client's
+        # claim (docs/plans/session-persistence-and-url-routing.md, D-server-truth): a crafted
+        # payload asserting a different phase/challenge must not be able to redirect this update
+        # at some other challenge's row. Only a brand-new player with no GameChallenge row at all
+        # yet falls back to the payload, since there is nothing server-side to trust yet.
+        #
+        # challenge_loop_index is deliberately NOT overridden the same way: unlike phase/challenge
+        # (pure "where"), it is the actual command this handler acts on - "advance to this stage" -
+        # and internal callers (e.g. playtest_handler's skip-challenge tool) rely on being able to
+        # set it ahead of whatever is currently stored. Overriding it from stored state instead of
+        # trusting the payload was tried and breaks that legitimate advance mechanism (verified by
+        # test_playtest.py/test_playtest_veto_breaker.py failing when it was). It remains an
+        # unresolved gap - a crafted payload can still claim to be further along in the current
+        # challenge's stages than it really is - noted in the plan's Open questions rather than
+        # silently left undocumented.
+        with get_session() as db_session:
+            state_user_id = get_user_id(db_session, username)
+            latest_challenge = db_session.scalars(
+                select(GameChallenge)
+                .where(GameChallenge.user_id == state_user_id)
+                .order_by(GameChallenge.id.desc())
+            ).first()
+            if latest_challenge is not None:
+                phase_id = latest_challenge.phase_index
+                challenge_id = latest_challenge.challenge_index
+            else:
+                phase_id = payload.get("phase_id", 0)
+                challenge_id = payload.get("challenge_id", 0)
         challenge_loop_index = payload.get("challenge_loop_index", 0)
         metric_values = payload.get("metric_values", [])
         action_card = payload.get("action_card", {})
@@ -1112,8 +1147,12 @@ async def handle_state_update_request(
                 handle_chat_message,
             )
 
+            # Keyed by user_id, not username - see D-user-id in
+            # docs/plans/session-persistence-and-url-routing.md.
+            with get_session() as chat_session:
+                chat_thread_user_id = get_user_id(chat_session, username)
             chat_payload = {
-                "session_id": f"MLOps_Convo_{username}",
+                "session_id": f"MLOps_Convo_{chat_thread_user_id}",
                 "challenge": challenge.name
                 + ": "
                 + challenge.roundIntroduction

@@ -150,7 +150,12 @@ async def determine_intel_items_node(state: OnlineIntelState, config: RunnableCo
 
     # Fetch all already collected/known intel items for this user in DB
     collected_items = await retrieve_intel_items(curr_challenge, ws) if ws else []
-    username = ws.query_params.get("username", "") if ws else ""
+    # Identity comes from the `mlops_player` cookie, not a `username` query param, since the
+    # websocket handshake no longer takes one at all (docs/plans/session-persistence-and-url-routing.md,
+    # D-ws-cookie). Only used here to seed a deterministic shuffle, so an unresolvable cookie
+    # degrades to "" rather than raising.
+    from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, verify_player_token
+    username = (verify_player_token(ws.cookies.get(PLAYER_COOKIE_NAME)) or "") if ws else ""
     # Folds in how much the player already knows, so a replayed card does not always turn up
     # the exact same order (D49) without needing a dedicated play-count column.
     seed = f"{username}|{curr_challenge.id}|{state['card_id']}|{len(collected_items)}"

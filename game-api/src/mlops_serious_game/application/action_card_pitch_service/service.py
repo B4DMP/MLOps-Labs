@@ -9,6 +9,7 @@ from mlops_serious_game.application.action_card_pitch_service.state import (
     ActionCardPitchState,
     StakeholderPitchContext,
 )
+from mlops_serious_game.infrastructure.database import get_session, get_user_id
 
 
 async def run_action_card_pitch_workflow(
@@ -44,7 +45,14 @@ async def run_action_card_pitch_workflow(
     Returns:
         tuple[str, list[dict], ActionCardPitchState]: Generated player message, stakeholder responses, and final state.
     """
-    thread_id = session_id or f"Action_Card_Pitch_{username}_{phase_id}_{challenge_id}_{pitch_attempt}"
+    if session_id:
+        thread_id = session_id
+    else:
+        # Keyed by user_id, not username - see D-user-id in
+        # docs/plans/session-persistence-and-url-routing.md.
+        with get_session() as pitch_session:
+            pitch_user_id = get_user_id(pitch_session, username)
+        thread_id = f"Action_Card_Pitch_{pitch_user_id}_{phase_id}_{challenge_id}_{pitch_attempt}"
 
     graph_builder = create_action_card_pitch_graph()
     graph = graph_builder.compile()

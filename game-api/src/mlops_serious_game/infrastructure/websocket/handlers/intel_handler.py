@@ -283,7 +283,14 @@ async def handle_play_engagement_card(websocket: WebSocket, username: str, paylo
     challenge_id = payload.get("challenge_id", 0)
     card_id = payload.get("card_id")
     stakeholder_ids = payload.get("stakeholder_ids", [])
-    session_id = payload.get("session_id") or f"Online_Intel_{username}"
+    if payload.get("session_id"):
+        session_id = payload["session_id"]
+    else:
+        # Keyed by user_id, not username - see D-user-id in
+        # docs/plans/session-persistence-and-url-routing.md.
+        with get_session() as intel_session:
+            intel_user_id = get_user_id(intel_session, username)
+        session_id = f"Online_Intel_{intel_user_id}"
 
     curr_challenge = PhaseFactory.translate_challenge_index(
         challenge_index=challenge_id,

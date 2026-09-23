@@ -3,9 +3,15 @@ import asyncio
 import json
 from collections.abc import Awaitable, Callable
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from mlops_serious_game.application.persona_service import personas_or_default
+from mlops_serious_game.application.services.auth_service import (
+    PLAYER_COOKIE_NAME,
+    verify_player_token,
+)
+from mlops_serious_game.config import settings
+from mlops_serious_game.infrastructure.database import get_session, get_user_id
 from mlops_serious_game.domain.persona_resolver import bind_personas, personalize
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 
@@ -86,12 +92,29 @@ EVENT_REGISTRY: dict[str, HandlerFunc] = {
 
 
 @router.websocket("/ws")
-async def unified_websocket_endpoint(
-    websocket: WebSocket,
-    username: str = Query("guest")
-):
+async def unified_websocket_endpoint(websocket: WebSocket):
+    # Defense in depth: SameSite=Lax already stops a cross-site page's WS attempt from carrying
+    # the cookie, but the handshake isn't covered by CORS preflight the way a fetch is, so check
+    # Origin too (docs/plans/session-persistence-and-url-routing.md, D-origin-check).
+    origin = websocket.headers.get("origin")
+    if origin not in settings.FRONTEND_ORIGINS:
+        await websocket.close(code=4403)
+        return
+
+    # Identity comes only from the signed cookie now - there is nothing left to cross-check a
+    # client-supplied username against (D-ws-cookie), which is what actually closes the "connect
+    # as anyone by guessing their username" gap this replaces.
+    username = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
+    if username is None:
+        await websocket.close(code=4401)
+        return
+
     await manager.connect(websocket, username)
-    session_id = f"MLOps_Convo_{username}"
+    # Keyed by user_id, not username, so a username change doesn't orphan conversation history
+    # (docs/plans/session-persistence-and-url-routing.md, D-user-id).
+    with get_session() as db_session:
+        thread_user_id = get_user_id(db_session, username)
+    session_id = f"MLOps_Convo_{thread_user_id}"
     last_gamestate_id = (0,0,0)
     emotion_values_dict={}
 

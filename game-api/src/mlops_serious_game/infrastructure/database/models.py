@@ -39,6 +39,12 @@ class User(Base):
     # account can never be confused with (or short-circuit) the registration-verification path.
     password_reset_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
     password_reset_code_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
+    # Pending email change (docs/plans/session-persistence-and-url-routing.md, Profile
+    # management): mirrors the password-reset pair above - `email` only ever updates once the
+    # code sent to `pending_email` is confirmed, never on request alone.
+    pending_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    email_change_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    email_change_code_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Campaign(Base):

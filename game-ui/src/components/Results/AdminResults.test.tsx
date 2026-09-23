@@ -126,7 +126,7 @@ describe("AdminResults", () => {
     renderPage();
 
     await waitFor(() => expect(mockedResults).toHaveBeenCalled());
-    expect(mockedResults).toHaveBeenLastCalledWith("tok", { campaign: "all", runs: "first", includePlaytest: false });
+    expect(mockedResults).toHaveBeenLastCalledWith({ campaign: "all", runs: "first", includePlaytest: false });
     expect(screen.getByRole("button", { name: "First runs only" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("checkbox", { name: /Include playtest accounts/ })).not.toBeChecked();
   });
@@ -155,13 +155,13 @@ describe("AdminResults", () => {
     await screen.findByText("Finished runs");
 
     await userEvent.click(screen.getByRole("button", { name: "All runs" }));
-    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith("tok", { campaign: "all", runs: "all", includePlaytest: false }));
+    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith({ campaign: "all", runs: "all", includePlaytest: false }));
 
     await userEvent.click(screen.getByRole("checkbox", { name: /Include playtest accounts/ }));
-    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith("tok", { campaign: "all", runs: "all", includePlaytest: true }));
+    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith({ campaign: "all", runs: "all", includePlaytest: true }));
 
     await userEvent.selectOptions(screen.getByRole("combobox"), "camp-1");
-    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith("tok", { campaign: "camp-1", runs: "all", includePlaytest: true }));
+    await waitFor(() => expect(mockedResults).toHaveBeenLastCalledWith({ campaign: "camp-1", runs: "all", includePlaytest: true }));
   });
 
   it("says how many playtest accounts were left out, rather than showing a smaller n unexplained", async () => {
@@ -286,7 +286,7 @@ describe("AdminResults", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /Run 2: A/ }));
 
-    await waitFor(() => expect(mockedPlayer).toHaveBeenCalledWith("tok", "alice", 2));
+    await waitFor(() => expect(mockedPlayer).toHaveBeenCalledWith("alice", 2));
     expect(await screen.findByText("alice, run 1")).toBeInTheDocument();
     // The same hero and tabs the player had.
     expect(screen.getByRole("region", { name: "Run summary" })).toBeInTheDocument();

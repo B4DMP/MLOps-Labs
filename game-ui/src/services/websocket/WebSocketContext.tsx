@@ -6,9 +6,17 @@ export const WebSocketContext = createContext<WebSocketContextValue | null>(null
 interface WebSocketProviderProps {
   children: React.ReactNode;
   username?: string;
+  /** Called when the handshake is rejected as unauthenticated (close code 4401 - the
+   * `mlops_player` cookie is missing or expired, docs/plans/session-persistence-and-url-routing.md
+   * D9). The reconnect loop stops rather than retrying forever against a cookie that can't
+   * suddenly become valid again; the caller should clear its session state and show Login with
+   * an expired-session message. */
+  onAuthFailure?: () => void;
 }
 
-export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, username: initialUsername = "" }) => {
+export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
+  children, username: initialUsername = "", onAuthFailure,
+}) => {
   const [username, setUsername] = useState<string>(initialUsername);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -39,7 +47,12 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
       reconnectTimeoutRef.current = null;
     }
 
-    const wsUrl = `${WS_PROTO}//${API_HOST}/ws?username=${encodeURIComponent(username)}`;
+    // No username in the URL anymore - the browser attaches the httpOnly `mlops_player` cookie
+    // automatically (same-site), and the server derives identity from that alone
+    // (docs/plans/session-persistence-and-url-routing.md, D-ws-cookie). `username` here is only
+    // used locally to decide *whether* to connect and to trigger a reconnect when it changes
+    // (e.g. after a username change - see the Profile section).
+    const wsUrl = `${WS_PROTO}//${API_HOST}/ws`;
     console.log(`[WebSocket] Connecting to ${wsUrl}...`);
     const ws = new WebSocket(wsUrl);
     (ws as any).isClosedIntentionally = false;
@@ -102,19 +115,24 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children, 
       console.error("[WebSocket] Connection error:", err);
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       if ((ws as any).isClosedIntentionally) return;
-      console.log("[WebSocket] Unified socket closed");
+      console.log("[WebSocket] Unified socket closed", event.code);
       setIsConnected(false);
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
 
-      if (username && !(ws as any).isClosedIntentionally) {
+      if (event.code === 4401 || event.code === 4403) {
+        onAuthFailure?.();
+        return;
+      }
+
+      if (username) {
         reconnectTimeoutRef.current = setTimeout(() => {
           connect();
         }, 3000);
       }
     };
-  }, [username, API_HOST, WS_PROTO]);
+  }, [username, API_HOST, WS_PROTO, onAuthFailure]);
 
   useEffect(() => {
     if (username) {

@@ -1,8 +1,8 @@
 from typing import Any, Literal
-from fastapi import APIRouter, HTTPException, Header, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from pydantic import BaseModel
 
-from mlops_serious_game.application.services.auth_service import verify_admin_token
+from mlops_serious_game.application.services.auth_service import ADMIN_COOKIE_NAME, verify_admin_token
 from mlops_serious_game.application.services.admin_service import (
     get_admin_dashboard_data,
     add_campaign,
@@ -47,14 +47,8 @@ class ConfigUpdateRequest(BaseModel):
     data: Any
 
 
-def check_admin_token(authorization: str = Header(None, alias="Authorization")):
-    token = ""
-    if authorization:
-        if authorization.startswith("Bearer "):
-            token = authorization.split("Bearer ", 1)[1]
-        else:
-            token = authorization
-
+def check_admin_token(request: Request):
+    token = request.cookies.get(ADMIN_COOKIE_NAME, "")
     if not verify_admin_token(token):
         raise HTTPException(status_code=401, detail="Unauthorized admin access")
     return token
