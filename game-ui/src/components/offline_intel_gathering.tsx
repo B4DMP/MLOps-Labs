@@ -827,7 +827,7 @@ export default function OfflineIntelGathering({
                 {loading ? (
                   <div className="card-body bg-light p-4 text-center my-3 d-flex flex-column justify-content-center align-items-center flex-grow-1">
                     <div className={`spinner-border text-primary mb-3 ${styles.loadingSpinner}`} role="status" />
-                    <h5 className="fw-bold text-dark mb-2">Generating Offline Intel Artifacts...</h5>
+                    <h5 className="fw-bold text-dark mb-2">Loading Offline Intel Artifacts...</h5>
                     <p className="text-muted fs-6 mb-0">Analyzing scenario specifications across stakeholder items.</p>
                   </div>
                 ) : isFinished ? (
