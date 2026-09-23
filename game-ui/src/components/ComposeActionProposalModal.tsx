@@ -60,21 +60,35 @@ export interface AtomicChange {
 }
 
 /**
- * Collapses multiple slots that ended up targeting the same graph element down to one, keeping
- * the last (most authoritative) value for that target. A saved proposal can carry a stale
- * duplicate - e.g. an older `raise_to 1` for `req.acceptance_criteria` left in place alongside a
- * newer `raise_to 4` for the same target - which otherwise burns one of only `MAX_ATOMIC_CHANGES`
- * slots on a second, misleading row for a target that already has one.
+ * Collapses multiple slots that ended up targeting the same graph element down to one. A saved
+ * proposal can carry a stale duplicate - e.g. an older `raise_to 1` for `req.acceptance_criteria`
+ * left in place alongside a newer `raise_to 4` for the same target - which otherwise burns one of
+ * only `MAX_ATOMIC_CHANGES` slots on a second, misleading row for a target that already has one.
+ *
+ * `raise_to` is monotonic (the composer only ever lets a player raise a target, never lower it),
+ * so for numeric values the higher one is the one the player actually meant - array position
+ * alone doesn't say which came later. Non-numeric changes (trigger/attr) fall back to keeping
+ * whichever occurs last, since there's no ordering to compare them by.
  */
 export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
-  const lastByTarget = new Map<string, AtomicChange>();
-  changes.forEach((c) => lastByTarget.set(c.target, c));
+  const winnerByTarget = new Map<string, AtomicChange>();
+  changes.forEach((c) => {
+    const current = winnerByTarget.get(c.target);
+    if (!current) {
+      winnerByTarget.set(c.target, c);
+      return;
+    }
+    const isHigherValue = typeof c.value === "number" && typeof current.value === "number" && c.value > current.value;
+    if (isHigherValue || typeof c.value !== "number") {
+      winnerByTarget.set(c.target, c);
+    }
+  });
   const seen = new Set<string>();
   return changes.filter((c) => {
     if (seen.has(c.target)) return false;
     seen.add(c.target);
     return true;
-  }).map((c) => lastByTarget.get(c.target)!);
+  }).map((c) => winnerByTarget.get(c.target)!);
 }
 
 export interface ComponentData {
