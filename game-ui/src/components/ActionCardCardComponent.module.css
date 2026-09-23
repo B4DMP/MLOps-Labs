@@ -42,19 +42,6 @@
   color: #ffffff;
 }
 
-.minimizedExpandHint {
-  flex-shrink: 0;
-  display: inline-flex;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.8);
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.interactive:hover .minimizedExpandHint {
-  transform: translateX(2px);
-  color: #ffffff;
-}
-
 .minimizedEyebrow {
   display: flex;
   align-items: center;
@@ -91,15 +78,15 @@
 .minimizedBody {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 6px 7px;
+  gap: 6px;
+  padding: 7px 7px 6px;
 }
 
 .changeRow {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 3px 7px;
+  padding: 4px 7px;
   border-radius: 6px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -148,6 +135,27 @@
   background: rgba(100, 116, 139, 0.14);
   color: #475569;
   border-color: rgba(100, 116, 139, 0.4);
+}
+
+.minimizedFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding-top: 5px;
+  margin-top: 1px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--primary-bg, #266682);
+}
+
+.minimizedFooterIcon {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.interactive:hover .minimizedFooterIcon {
+  transform: translateX(3px);
 }
 
 .minimizedDescription {

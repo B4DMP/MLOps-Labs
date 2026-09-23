@@ -225,7 +225,7 @@
   gap: 2rem;
   width: 100%;
   margin-top: -24px;
-  margin-bottom: 2px;
+  margin-bottom: 16px;
   position: relative;
   z-index: 20;
 }
@@ -535,6 +535,14 @@
 .actionButtonDisabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Shrinks a button to its content instead of stretching the full console width - for a single
+   action with a short label, where full width just reads as an oversized target. */
+.actionButtonAuto {
+  width: auto;
+  padding-left: 1.4rem;
+  padding-right: 1.4rem;
 }
 
 .actionButtonBlocked {

@@ -1719,7 +1719,7 @@ export default function PitchDebate({
                               ) : (
                                 <button
                                   type="button"
-                                  className={`${styles.actionButton} ${
+                                  className={`${styles.actionButton} ${styles.actionButtonAuto} ${
                                     isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""
                                   }`}
                                   disabled={isSpeechBubbleCoveringButton}
@@ -1733,7 +1733,7 @@ export default function PitchDebate({
                                   onBlur={hideInfoTag}
                                 >
                                   <Icon icon="ph:git-merge-bold" />
-                                  <span>Assemble Action Proposal (Up to 3 Changes)</span>
+                                  <span>Assemble Action Proposal</span>
                                 </button>
                               )}
                             </div>

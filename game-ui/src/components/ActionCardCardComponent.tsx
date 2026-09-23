@@ -129,11 +129,6 @@ export default function ActionCardCardComponent({
             <span>Action Proposal</span>
           </span>
           {progressLabel && <span className={styles.minimizedProgressPill}>{progressLabel}</span>}
-          {isInteractive && (
-            <HoverTooltip description="Click to expand">
-              <Icon icon="ph:arrow-square-out-bold" className={styles.minimizedExpandHint} />
-            </HoverTooltip>
-          )}
         </div>
 
         <div className={styles.minimizedBody}>
@@ -190,6 +185,11 @@ export default function ActionCardCardComponent({
               </span>
             </div>
           )}
+
+          <div className={styles.minimizedFooter}>
+            <span>Click to expand</span>
+            <Icon icon="ph:arrow-right-bold" className={styles.minimizedFooterIcon} />
+          </div>
         </div>
       </div>
     );
