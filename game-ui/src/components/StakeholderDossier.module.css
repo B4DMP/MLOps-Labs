@@ -568,6 +568,184 @@
   font-size: 0.85rem;
 }
 
+/* ==========================================================================
+   Emotion reveal (plan: dossier emotion headroom): a hover/focus card off the
+   emotion badge showing which dimensions are gating the current state. Costs
+   nothing at rest beyond the micro-ticks; the breakdown itself only appears
+   on hover or keyboard focus, same interaction the other badges' title
+   tooltip already offers, just upgraded to a small visual card.
+
+   The card is portaled to document.body (see HoverToolTip.tsx for the same
+   pattern elsewhere in this file) rather than absolutely positioned inside
+   the badge: the dossier page scrolls (.pageScroll, overflow-y: auto) and
+   its sticky notes each set their own transform for the paper-tilt look,
+   which - independently of any z-index - makes them establish their own
+   stacking contexts. An absolutely positioned descendant can't out-rank
+   that from inside the scrolling page no matter how high its z-index goes,
+   so the fix is to render it outside that DOM subtree entirely and place it
+   with viewport coordinates instead. */
+
+.emotionBadge {
+  position: relative;
+}
+
+.emotionMicroTicks {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 3px;
+  padding-left: 5px;
+  border-left: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.emotionMicroTick {
+  width: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  align-self: center;
+}
+
+.emotionTickLow {
+  height: 5px;
+  opacity: 0.4;
+}
+
+.emotionTickMedium {
+  height: 8px;
+  opacity: 0.65;
+}
+
+.emotionTickHigh {
+  height: 11px;
+  opacity: 0.95;
+}
+
+/* A neutral stakeholder still has a closest edge - ticks read as hollow/outlined rather than
+   solid, so "leaning toward" reads distinct from "currently" at a glance. */
+.emotionMicroTicksPending {
+  border-left-style: dashed;
+}
+
+.emotionMicroTickPending {
+  background: transparent !important;
+  border: 1px solid currentColor;
+  opacity: 0.55;
+}
+
+.emotionRevealCard {
+  /* Positioned in the viewport (top/left set from getBoundingClientRect in JS), not relative to
+     any dossier ancestor - see the note above on why. */
+  position: fixed;
+  width: 210px;
+  background: #fffdf6;
+  border: 1px solid #a9884a;
+  border-radius: 3px 10px 10px 10px;
+  padding: 9px 11px 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  /* Above the dossier window itself (z-index 9999) - it's portaled to a body-level sibling of
+     it, not a descendant, so it needs to out-rank the whole window, not just page content. */
+  z-index: 10000;
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: default;
+  white-space: normal;
+  animation: emotionRevealIn 0.12s ease-out;
+}
+
+@keyframes emotionRevealIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emotionRevealCard {
+    animation: none;
+  }
+}
+
+.emotionRevealCardPending {
+  border-style: dashed;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
+}
+
+.emotionRevealTitle {
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b6252;
+  margin-bottom: 7px;
+}
+
+.emotionRevealDims {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.emotionDimRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.emotionDimName {
+  width: 84px;
+  flex: none;
+  color: #57534e;
+}
+
+/* Three discrete cells, not a proportional bar - the backend only ever hands over one of three
+   buckets, so a smoothly-filled bar would claim more precision than the data actually has. */
+.emotionDimSegments {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+}
+
+.emotionDimSegment {
+  flex: 1;
+  height: 6px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.emotionFillLow {
+  background: #64748b;
+}
+
+.emotionFillMedium {
+  background: #b8863f;
+}
+
+.emotionFillHigh {
+  background: #b5443a;
+}
+
+.emotionDimWord {
+  width: 32px;
+  flex: none;
+  text-align: right;
+  font-weight: 700;
+}
+
+.emotionWordLow {
+  color: #64748b;
+}
+
+.emotionWordMedium {
+  color: #b8863f;
+}
+
+.emotionWordHigh {
+  color: #b5443a;
+}
+
 .highlightRed {
   background: linear-gradient(180deg, transparent 50%, rgba(252, 165, 165, 0.8) 50%);
   padding: 1px 6px;

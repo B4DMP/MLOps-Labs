@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./StakeholderDossier.module.css";
-import { StakeholderContext } from "./StakeholderProvider";
+import { StakeholderContext, type EmotionGatingInfo } from "./StakeholderProvider";
 
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
@@ -308,6 +309,179 @@ const describeIntelPips = (pips: IntelPipStatus[]): string => {
     .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
   const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
   return breakdown.length > 0 ? `${summary}: ${breakdown.join(", ")}` : summary;
+};
+
+/** Display labels for the emotion factory's 7 dimensions (game-api EmotionValueConfig.json).
+ * Short enough for a badge; never the raw score, only the bucket the backend already sorted it into. */
+const EMOTION_DIMENSION_LABEL: Record<string, string> = {
+  trust: "Trust",
+  interest: "Interest",
+  stress: "Stress",
+  confidence: "Confidence",
+  perceived_risk: "Perceived risk",
+  sense_of_control: "Sense of control",
+  fairness: "Fairness",
+};
+
+/** Level/tick styling for each bucket. The backend only ever hands over one of three buckets, so
+ * the reveal shows exactly three discrete steps rather than a continuous-looking bar - `level` is
+ * how many of the three segments light up, never a percentage. */
+const EMOTION_BUCKET_META: Record<
+  "low" | "medium" | "high",
+  { label: string; level: 1 | 2 | 3; tickClass: string; fillClass: string; wordClass: string }
+> = {
+  low: { label: "Low", level: 1, tickClass: styles.emotionTickLow, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
+  medium: { label: "Med", level: 2, tickClass: styles.emotionTickMedium, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
+  high: { label: "High", level: 3, tickClass: styles.emotionTickHigh, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+};
+
+/** Screen-reader text for the emotion reveal, since the visual card is aria-hidden. */
+const describeGatingDimensions = (dims: { metric: string; bucket: string }[] | undefined): string => {
+  if (!dims || dims.length === 0) return "";
+  return dims
+    .map((d) => {
+      const bucketLabel = EMOTION_BUCKET_META[d.bucket as "low" | "medium" | "high"]?.label || d.bucket;
+      return `${EMOTION_DIMENSION_LABEL[d.metric] || d.metric}: ${bucketLabel}`;
+    })
+    .join(", ");
+};
+
+/** Breathing room kept between the reveal card and both the badge and the viewport edge,
+ * mirroring HoverToolTip.tsx's own EDGE_MARGIN. */
+const EMOTION_REVEAL_EDGE_MARGIN = 8;
+
+/**
+ * The emotion badge plus its hover/focus reveal card. The card is portaled to document.body
+ * (same pattern as HoverToolTip.tsx) rather than absolutely positioned inside the badge: the
+ * dossier page scrolls and its sticky notes each carry their own CSS transform for the paper
+ * tilt, which makes every note its own stacking context independent of z-index - an absolutely
+ * positioned descendant of the scrolling page can never out-rank that from the inside, no matter
+ * how high its z-index goes. Rendering outside that DOM subtree and positioning it from the
+ * badge's on-screen rect sidesteps the problem entirely.
+ */
+const EmotionRevealBadge: React.FC<{
+  emotionDisplay: string;
+  emotionColor: string;
+  gatingInfo?: EmotionGatingInfo;
+}> = ({ emotionDisplay, emotionColor, gatingInfo }) => {
+  const gatingDims = gatingInfo?.dimensions || [];
+  const hasReveal = gatingDims.length > 0;
+  const isCurrent = gatingInfo?.is_current ?? true;
+  // Neutral is its own reading, not a discount on some other mood - the dimensions shown are
+  // simply the ones with the most room to move, named without borrowing a state that hasn't
+  // actually triggered.
+  const revealTitle = isCurrent ? `Why ${emotionDisplay.toLowerCase()}` : "Steady for now";
+
+  const [show, setShow] = useState(false);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+
+  const handleShow = () => {
+    if (anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + EMOTION_REVEAL_EDGE_MARGIN, left: rect.left });
+    }
+    setShow(true);
+  };
+  const handleHide = () => setShow(false);
+
+  // Flip above the badge when the card would run off the bottom of the window, and keep it
+  // inside the viewport horizontally. Mirrors HoverToolTip's own layout pass.
+  useLayoutEffect(() => {
+    if (!show || !cardRef.current || !anchorRef.current) return;
+    const anchor = anchorRef.current.getBoundingClientRect();
+    const box = cardRef.current.getBoundingClientRect();
+
+    let top = anchor.bottom + EMOTION_REVEAL_EDGE_MARGIN;
+    if (top + box.height > window.innerHeight - EMOTION_REVEAL_EDGE_MARGIN) {
+      const above = anchor.top - EMOTION_REVEAL_EDGE_MARGIN - box.height;
+      top =
+        above >= EMOTION_REVEAL_EDGE_MARGIN
+          ? above
+          : Math.max(EMOTION_REVEAL_EDGE_MARGIN, window.innerHeight - EMOTION_REVEAL_EDGE_MARGIN - box.height);
+    }
+    const left = Math.min(
+      Math.max(anchor.left, EMOTION_REVEAL_EDGE_MARGIN),
+      window.innerWidth - EMOTION_REVEAL_EDGE_MARGIN - box.width
+    );
+
+    setCoords((prev) => (prev.top === top && prev.left === left ? prev : { top, left }));
+  }, [show]);
+
+  const ariaLabel = hasReveal
+    ? `Emotional state: ${emotionDisplay}. ${describeGatingDimensions(gatingDims)}`
+    : undefined;
+
+  return (
+    <div
+      ref={anchorRef}
+      className={`${styles.powerInterestBadge} ${styles.emotionBadge}`}
+      tabIndex={hasReveal ? 0 : undefined}
+      title={hasReveal ? undefined : `Emotional State: "${emotionDisplay}"`}
+      aria-label={ariaLabel}
+      onMouseEnter={hasReveal ? handleShow : undefined}
+      onMouseLeave={hasReveal ? handleHide : undefined}
+      onFocus={hasReveal ? handleShow : undefined}
+      onBlur={hasReveal ? handleHide : undefined}
+    >
+      <Icon
+        icon={iconForEmotionState(emotionDisplay)}
+        className={styles.metricIcon}
+        style={{ color: emotionColor }}
+      />
+      <span style={{ color: emotionColor, fontWeight: 700 }}>{emotionDisplay.toUpperCase()}</span>
+      {hasReveal && (
+        <span
+          className={`${styles.emotionMicroTicks} ${!isCurrent ? styles.emotionMicroTicksPending : ""}`}
+          aria-hidden="true"
+        >
+          {gatingDims.slice(0, 3).map((dim, idx) => (
+            <span
+              key={idx}
+              className={`${styles.emotionMicroTick} ${
+                (EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium).tickClass
+              } ${!isCurrent ? styles.emotionMicroTickPending : ""}`}
+            />
+          ))}
+        </span>
+      )}
+      {hasReveal &&
+        show &&
+        createPortal(
+          <div
+            ref={cardRef}
+            className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.emotionRevealTitle}>{revealTitle}</div>
+            <div className={styles.emotionRevealDims}>
+              {gatingDims.map((dim, idx) => {
+                const meta = EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium;
+                return (
+                  <div className={styles.emotionDimRow} key={idx}>
+                    <span className={styles.emotionDimName}>
+                      {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
+                    </span>
+                    <span className={styles.emotionDimSegments}>
+                      {[1, 2, 3].map((seg) => (
+                        <span
+                          key={seg}
+                          className={`${styles.emotionDimSegment} ${seg <= meta.level ? meta.fillClass : ""}`}
+                        />
+                      ))}
+                    </span>
+                    <span className={`${styles.emotionDimWord} ${meta.wordClass}`}>{meta.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>,
+          document.body
+        )}
+    </div>
+  );
 };
 
 /** Stage colours for the filter row and the environment page, from the pipeline view (plan 08). */
@@ -1221,19 +1395,11 @@ export default function StakeholderDossier({
               />
             </div>
             <div className={styles.stakeholderMetaRow}>
-              <div
-                className={styles.powerInterestBadge}
-                title={`Emotional State: "${emotionDisplay}"`}
-              >
-                <Icon
-                  icon={iconForEmotionState(emotionDisplay)}
-                  className={styles.metricIcon}
-                  style={{ color: emotionColor }}
-                />
-                <span style={{ color: emotionColor, fontWeight: 700 }}>
-                  {emotionDisplay.toUpperCase()}
-                </span>
-              </div>
+              <EmotionRevealBadge
+                emotionDisplay={emotionDisplay}
+                emotionColor={emotionColor}
+                gatingInfo={stObj?.emotion_dimensions}
+              />
               <div
                 className={styles.powerInterestBadge}
                 title={`Power: ${(st.power || stObj?.power || "low").toUpperCase()} (${

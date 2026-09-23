@@ -318,6 +318,7 @@ function App({ username: _username }: AppProps) {
           const associatedMetric = currentMetrics[st.metric_id] || Object.values(currentMetrics).find((m: any) => m.id === st.metric_id);
           st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || colorForStakeholderId(stId));
           st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
+          st.emotion_dimensions = (data.emotion_dimensions && data.emotion_dimensions[st.id]) || st.emotion_dimensions;
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
           }
@@ -443,6 +444,7 @@ function App({ username: _username }: AppProps) {
               updated[stId] = {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
+                emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
               };
             }
           });
@@ -470,6 +472,7 @@ function App({ username: _username }: AppProps) {
               updated[stId] = {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
+                emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
               };
             }
           });
@@ -586,6 +589,7 @@ function App({ username: _username }: AppProps) {
               updated[stId] = {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
+                emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
               };
             }
           });

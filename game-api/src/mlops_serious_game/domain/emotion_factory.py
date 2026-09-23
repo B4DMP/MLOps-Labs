@@ -10,6 +10,7 @@ from mlops_serious_game.domain.emotion import (
     EmotionValues,
     EmotionalStateRule,
     PitchTuning,
+    TriggerCondition,
     apply_emotion_delta,
     get_patience_malus,
 )
@@ -121,15 +122,16 @@ class EmotionFactory:
         return cls.config.emotion_prompts if cls.config else {}
 
     @classmethod
-    def derive_emotional_state(cls, ev: EmotionValues) -> str:
-        """Computes resulting emotion intensity scores and returns the highest scoring emotion
-        among triggered conditions, falling back to 'neutral'.
+    def _derive_winning_rule(cls, ev: EmotionValues) -> tuple[str, Optional[EmotionalStateRule]]:
+        """Shared by derive_emotional_state and derive_gating_dimensions: the highest scoring
+        state among triggered conditions, together with the rule that won (None for 'neutral',
+        since neutral has no conditions to point back to).
         """
         cls.ensure_loaded()
         if not cls.config or not cls.config.emotional_states:
-            return "neutral"
+            return "neutral", None
 
-        triggered_scores: dict[str, float] = {}
+        triggered: dict[str, tuple[float, EmotionalStateRule]] = {}
 
         for state_name, rule in cls.config.emotional_states.items():
             if state_name == "neutral":
@@ -143,13 +145,104 @@ class EmotionFactory:
                     break
 
             if all_met:
-                score = rule.formula.calculate(ev)
-                triggered_scores[state_name] = score
+                triggered[state_name] = (rule.formula.calculate(ev), rule)
 
-        if not triggered_scores:
-            return "neutral"
+        if not triggered:
+            return "neutral", None
 
-        return max(triggered_scores, key=triggered_scores.get)
+        winning_state = max(triggered, key=lambda name: triggered[name][0])
+        return winning_state, triggered[winning_state][1]
+
+    @classmethod
+    def derive_emotional_state(cls, ev: EmotionValues) -> str:
+        """Computes resulting emotion intensity scores and returns the highest scoring emotion
+        among triggered conditions, falling back to 'neutral'.
+        """
+        state_name, _ = cls._derive_winning_rule(ev)
+        return state_name
+
+    @staticmethod
+    def _bucket_dimension_value(value: float) -> str:
+        if value <= 0.34:
+            return "low"
+        if value >= 0.66:
+            return "high"
+        return "medium"
+
+    @staticmethod
+    def _condition_gap(cond: TriggerCondition, val: float) -> float:
+        """How far a value sits from satisfying one condition - 0 once it's met, otherwise the
+        distance still to close. Used only to rank states by how close they are to firing."""
+        if cond.op in ("<=", "<"):
+            return max(0.0, val - cond.value)
+        if cond.op in (">=", ">"):
+            return max(0.0, cond.value - val)
+        return abs(val - cond.value)
+
+    @classmethod
+    def _nearest_rule(cls, ev: EmotionValues) -> tuple[Optional[str], Optional[EmotionalStateRule]]:
+        """When nothing is triggered, the non-neutral state whose conditions sit closest to firing -
+        the edge a neutral stakeholder is nearest to tipping over. Ties keep dict order (config order).
+        """
+        cls.ensure_loaded()
+        if not cls.config or not cls.config.emotional_states:
+            return None, None
+
+        best_state: Optional[str] = None
+        best_rule: Optional[EmotionalStateRule] = None
+        best_gap: Optional[float] = None
+
+        for state_name, rule in cls.config.emotional_states.items():
+            if state_name == "neutral" or not rule.conditions:
+                continue
+            gap = 0.0
+            for cond in rule.conditions:
+                val = ev.get(cond.metric, 0.5) if isinstance(ev, dict) else getattr(ev, cond.metric, 0.5)
+                gap += cls._condition_gap(cond, val)
+            if best_gap is None or gap < best_gap:
+                best_gap, best_state, best_rule = gap, state_name, rule
+
+        return best_state, best_rule
+
+    @classmethod
+    def derive_gating_dimensions(cls, ev: EmotionValues) -> dict[str, Any]:
+        """Which emotion dimensions are gating the stakeholder's current state, bucketed
+        Low/Medium/High rather than exposing the raw score - for the dossier's emotion reveal.
+        Neutral has no conditions of its own, so a neutral stakeholder still gets a reading: the
+        dimensions belonging to whichever state sits closest to tipping them over, flagged
+        `is_current: False` so the UI can read it as "leaning toward" rather than "currently".
+        """
+        state_name, rule = cls._derive_winning_rule(ev)
+        is_current = rule is not None
+        if not is_current:
+            state_name, rule = cls._nearest_rule(ev)
+        if not rule:
+            return {"state": None, "is_current": False, "dimensions": []}
+
+        dims: list[dict[str, str]] = []
+        seen: set[str] = set()
+        for cond in rule.conditions:
+            if cond.metric in seen:
+                continue
+            seen.add(cond.metric)
+            val = ev.get(cond.metric, 0.5) if isinstance(ev, dict) else getattr(ev, cond.metric, 0.5)
+            dims.append({"metric": cond.metric, "bucket": cls._bucket_dimension_value(val)})
+        return {"state": state_name, "is_current": is_current, "dimensions": dims}
+
+    @classmethod
+    def get_emotion_dimensions_dict(cls, emotion_values_dict: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        """Returns a mapping of stakeholder_id -> gating info, mirroring get_emotion_states_dict."""
+        ret = {}
+        for key, ev in (emotion_values_dict or {}).items():
+            if isinstance(ev, dict):
+                ret[key] = cls.derive_gating_dimensions(ev)
+            elif hasattr(ev, "model_dump"):
+                ret[key] = cls.derive_gating_dimensions(ev.model_dump())
+            elif hasattr(ev, "dict"):
+                ret[key] = cls.derive_gating_dimensions(ev.dict())
+            else:
+                ret[key] = {"state": None, "is_current": False, "dimensions": []}
+        return ret
 
     @classmethod
     def derive_facial_expression_for_state(cls, state_name: str) -> str:
