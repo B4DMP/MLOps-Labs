@@ -349,6 +349,34 @@ const EMOTION_BUCKET_META: Record<
   high: { label: "High", level: 3, tickClass: styles.emotionTickHigh, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
 };
 
+/** Dimensions where a *drop* is the good outcome for the stakeholder (less stress, less
+ *  perceived risk). Mirrors ac_simulation.tsx's INVERTED_EMOTION_DIMENSIONS - everything else
+ *  defaults to "higher is better". */
+const INVERTED_EMOTION_DIMENSIONS = new Set(["stress", "perceived_risk", "frustration", "fear", "anxiety"]);
+
+/** Good/bad colours, independent of the low/medium/high magnitude above - a dimension's reading
+ *  can be low-magnitude and still bad news (low trust) or high-magnitude and good news (high
+ *  trust), so the colour can't just follow the bucket directly. Green matches .pipConfirmed's
+ *  existing "good" green elsewhere in this stylesheet. */
+const EMOTION_VALENCE_COLOR = {
+  good: { fillClass: styles.emotionFillGood, wordClass: styles.emotionWordGood },
+  bad: { fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+};
+
+/**
+ * Bucket styling for one dimension's reading. `level`/`label` stay true to the actual magnitude
+ * bucket (a "High" stress reading is still labelled High), but the fill/word colour is chosen by
+ * whether that bucket is good or bad news for this specific dimension.
+ */
+const getEmotionBucketMeta = (metric: string, bucket: "low" | "medium" | "high") => {
+  const magnitude = EMOTION_BUCKET_META[bucket] || EMOTION_BUCKET_META.medium;
+  if (bucket === "medium") return magnitude;
+  const inverted = INVERTED_EMOTION_DIMENSIONS.has(metric.toLowerCase());
+  const isGood = inverted ? bucket === "low" : bucket === "high";
+  const valence = EMOTION_VALENCE_COLOR[isGood ? "good" : "bad"];
+  return { ...magnitude, fillClass: valence.fillClass, wordClass: valence.wordClass };
+};
+
 /** Screen-reader text for the emotion reveal, since the visual card is aria-hidden. */
 const describeGatingDimensions = (dims: { metric: string; bucket: string }[] | undefined): string => {
   if (!dims || dims.length === 0) return "";
@@ -454,7 +482,7 @@ const EmotionRevealBadge: React.FC<{
             <span
               key={idx}
               className={`${styles.emotionMicroTick} ${
-                (EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium).tickClass
+                getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high").tickClass
               } ${!isCurrent ? styles.emotionMicroTickPending : ""}`}
             />
           ))}
@@ -472,7 +500,7 @@ const EmotionRevealBadge: React.FC<{
               <div className={styles.emotionRevealTitle}>{revealTitle}</div>
               <div className={styles.emotionRevealDims}>
                 {gatingDims.map((dim, idx) => {
-                  const meta = EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium;
+                  const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
                   return (
                     <div className={styles.emotionDimRow} key={idx}>
                       <span className={styles.emotionDimName}>
@@ -482,7 +510,7 @@ const EmotionRevealBadge: React.FC<{
                         {[1, 2, 3].map((seg) => (
                           <span
                             key={seg}
-                            className={`${styles.emotionDimSegment} ${seg <= meta.level ? meta.fillClass : ""}`}
+                            className={`${styles.emotionDimSegment} ${seg === meta.level ? meta.fillClass : ""}`}
                           />
                         ))}
                       </span>

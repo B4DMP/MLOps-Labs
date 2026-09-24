@@ -776,6 +776,17 @@
   background: #b5443a;
 }
 
+/* Valence colours (good/bad), as opposed to the magnitude colours above (low/medium/high) -
+   a dimension's reading can be low-magnitude and still bad news (e.g. low trust), so the two
+   scales are picked independently. Green matches .pipConfirmed's existing "good" green. */
+.emotionFillGood {
+  background: #16a34a;
+}
+
+.emotionWordGood {
+  color: #16a34a;
+}
+
 .emotionDimWord {
   width: 32px;
   flex: none;
