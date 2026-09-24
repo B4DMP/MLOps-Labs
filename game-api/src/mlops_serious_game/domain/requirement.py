@@ -48,6 +48,7 @@ def describe_tag(tag) -> str:
 
 class TargetLevel(BaseModel):
     target: str
+    axis: str  # "automation" | "governance" - required, see 00-plan.md §10.1
     level: int
 
 
@@ -56,12 +57,14 @@ class Concession(BaseModel):
     metric_id: Optional[str] = None
     loss: Optional[int] = None
     target: Optional[str] = None
+    axis: Optional[str] = None  # required alongside accepts_max_level
     accepts_max_level: Optional[int] = None
 
 
 class FactAssertion(BaseModel):
     """What a Fact says about one target of the graph."""
     target: str
+    axis: Optional[str] = None  # required alongside `level`; a level-less Fact (e.g. trigger-only) needs none
     level: Optional[int] = None
     trigger: Optional[str] = None
 
@@ -115,6 +118,7 @@ class TradeOffBranch(BaseModel):
     name: Optional[str] = None
     description: str = ""
     target: Optional[str] = None
+    axis: Optional[str] = None  # required alongside `level`
     level: Optional[int] = None
     ops: list[dict] = Field(default_factory=list)
     atoms: list[str] = Field(default_factory=list)
@@ -170,8 +174,9 @@ class StakeholderRequirement(BaseModel):
         return self
 
 
-def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str], Optional[int]]:
-    """The graph target a payload is about, and the level it asks for, whichever field carries it.
+def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str], Optional[int], Optional[str]]:
+    """The graph target a payload is about, the level it asks for, and which axis - whichever
+    fields carry them.
 
     The single source of truth for this lookup: `session.py`, `objections.py`, `intel_handler.py`
     and `requirement_factory.py` each grew their own version of this with a different priority
@@ -180,34 +185,32 @@ def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str]
     - matching the order the D42 chain-matching gate already relied on. In practice an authored
     item carries exactly one of these per its `type` tag, so the order only matters for the rare
     item that carries more than one; `concedes` has no level of its own (`Concession` only tracks
-    `loss`/`accepts_max_level`), so it returns `None` for level.
+    `loss`/`accepts_max_level`), so it returns `None` for level/axis.
     """
     asserts = getattr(item, "asserts", None)
     if asserts is not None and getattr(asserts, "target", None):
-        return asserts.target, getattr(asserts, "level", None)
+        return asserts.target, getattr(asserts, "level", None), getattr(asserts, "axis", None)
 
     holds = getattr(item, "holds", None)
     if holds is not None:
         if isinstance(holds, dict) and holds.get("component"):
-            return holds["component"], holds.get("level")
+            return holds["component"], holds.get("level"), holds.get("axis")
         elif hasattr(holds, "component") and getattr(holds, "component", None):
-            return holds.component, getattr(holds, "level", None)
+            return holds.component, getattr(holds, "level", None), getattr(holds, "axis", None)
 
     suggested = getattr(item, "suggested", None)
     if suggested is not None and getattr(suggested, "target", None):
-        return suggested.target, getattr(suggested, "level", None)
+        return suggested.target, getattr(suggested, "level", None), getattr(suggested, "axis", None)
 
     concedes = getattr(item, "concedes", None)
     if concedes is not None and getattr(concedes, "target", None):
-        return concedes.target, None
+        return concedes.target, None, None
 
     for raw in getattr(item, "ops", None) or []:
         if isinstance(raw, dict) and raw.get("target"):
-            from mlops_serious_game.domain.graph import GraphOp
-            op = GraphOp.model_validate({**raw, "source_kind": "action_card"})
-            return op.target, op.value if isinstance(op.value, int) else None
+            return raw["target"], raw.get("value") if isinstance(raw.get("value"), int) else None, raw.get("axis")
 
-    return None, None
+    return None, None, None
 
 
 def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metric_label: Optional[str]) -> str:
@@ -221,7 +224,7 @@ def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metr
 
 def item_target(item: "StakeholderRequirement") -> Optional[str]:
     """`item_target_and_level(item)[0]` - the target only, for callers that don't need the level."""
-    target, _ = item_target_and_level(item)
+    target, _, _ = item_target_and_level(item)
     return target
 
 

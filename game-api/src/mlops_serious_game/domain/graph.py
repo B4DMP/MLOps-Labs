@@ -3,6 +3,11 @@
 The technical graph (components and the edges between them) is authored in
 gameConfig/MlopsGraph.json. Player state is never stored as a snapshot: it is the fold of
 an append-only op log, see application/graph_service.
+
+Two independent maturity axes (docs/plans/graph-governance-automation-rework/00-plan.md):
+`AutomationState` (is the work done by a person or by tooling) and `GovernanceLevel` (how
+strictly a target's content/hand-off is reviewed). There is no combined "level" mechanic -
+every op, predicate clause and debt entry names the axis it operates on explicitly.
 """
 
 from enum import IntEnum
@@ -11,34 +16,91 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
 
-class Level(IntEnum):
-    """Maturity of a component or edge. `broken` sits below `absent` on purpose: a failing
-    check nobody trusts is worse than no check. Who starts an automated edge is its trigger."""
+class AutomationState(IntEnum):
+    """Is the work on a target done by a person or by tooling. `broken` sits below `absent` on
+    purpose: a failing check nobody trusts is worse than no check. Decoupled from
+    `GovernanceLevel` - a target can be manual-but-strictly-reviewed or automated-but-
+    unsupervised. Never player-settable to `broken`: only world events/challenges/admin may."""
 
     BROKEN = 0
     ABSENT = 1
     MANUAL = 2
     AUTOMATED = 3
-    GOVERNED = 4
 
 
-MAX_LEVEL = int(Level.GOVERNED)
+MAX_AUTOMATION = int(AutomationState.AUTOMATED)
 
 
-def parse_level(value: Any) -> int:
-    """Accepts 4, "4" or "automated"."""
+class GovernanceLevel(IntEnum):
+    """How strictly a target's content (component) or hand-off (edge) is reviewed. Independent
+    of `AutomationState` - governance never caps `EffectiveView`, it only affects
+    metrics/requirements/patterns."""
+
+    NONE = 0
+    PARTIAL_1 = 1
+    PARTIAL_2 = 2
+    FULL = 3
+
+
+MAX_GOVERNANCE = int(GovernanceLevel.FULL)
+
+Axis = Literal["automation", "governance"]
+
+
+def parse_automation(value: Any) -> int:
+    """Accepts 3, "3" or "automated"."""
     if isinstance(value, str):
         if value.isdigit():
             value = int(value)
         else:
             try:
-                return int(Level[value.upper()])
+                return int(AutomationState[value.upper()])
             except KeyError:
-                raise ValueError(f"unknown level '{value}'") from None
+                raise ValueError(f"unknown automation state '{value}'") from None
     level = int(value)
-    if not Level.BROKEN <= level <= MAX_LEVEL:
-        raise ValueError(f"level {level} out of range")
+    if not AutomationState.BROKEN <= level <= MAX_AUTOMATION:
+        raise ValueError(f"automation level {level} out of range")
     return level
+
+
+def parse_governance(value: Any) -> int:
+    """Accepts 3, "3" or "full"."""
+    if isinstance(value, str):
+        if value.isdigit():
+            value = int(value)
+        else:
+            try:
+                return int(GovernanceLevel[value.upper()])
+            except KeyError:
+                raise ValueError(f"unknown governance level '{value}'") from None
+    level = int(value)
+    if not GovernanceLevel.NONE <= level <= MAX_GOVERNANCE:
+        raise ValueError(f"governance level {level} out of range")
+    return level
+
+
+def parse_axis_level(axis: Axis, value: Any) -> int:
+    return parse_governance(value) if axis == "governance" else parse_automation(value)
+
+
+NARRATIVE_TIER_NAMES = ("broken", "absent", "manual", "automated", "governed")
+NARRATIVE_TIERS = len(NARRATIVE_TIER_NAMES)  # see narrative_tier()
+
+
+def narrative_tier(automation: int, governance: int) -> int:
+    """A single 0-4 storytelling tier for authored flavor text (MlopsStoryFragments.json) only -
+    never used for gameplay logic (predicates, requirements, capping and scoring all read the two
+    real axes directly, see graph_predicates.py and application/graph_service). Broken/absent
+    automation gates governance out of the tier entirely: nothing exists yet (or it's failing) to
+    have been reviewed, so a target can't narrate as "governed" while its automation sits at
+    broken or absent, however far its governance axis independently is."""
+    if automation <= AutomationState.ABSENT:
+        return int(automation)
+    if governance >= GovernanceLevel.FULL:
+        return 4  # narrated as "governed"
+    if automation >= AutomationState.AUTOMATED:
+        return 3  # narrated as "automated"
+    return int(automation)
 
 
 # Triggers that mean nobody or a person starts the work. Every other trigger is automatic.
@@ -83,21 +145,49 @@ class Stage(BaseModel):
     owner_role: Optional[str] = None
 
 
+class Option(BaseModel):
+    """One player-facing action: moves a target exactly one step up a single axis
+    (docs/plans/graph-governance-automation-rework/00-plan.md §2.3/§2.4). `to_level` is the rung
+    it lands on; the rung it starts from is whatever the target currently sits at - an option is
+    only offered when the target's current value on that axis is the allowed rung immediately
+    below `to_level`. Authored individually per component/edge, never a generic reusable type."""
+
+    to_level: int
+    trigger: Optional[str] = Field(default=None, description="Automation options on edges only")
+    name: str
+    description: str
+
+
+class AttributeOption(BaseModel):
+    """One player-facing action for a component attribute: sets it to `to_value`, one slot,
+    exactly like an automation/governance Option (00-plan.md §2.5)."""
+
+    to_value: str
+    name: str
+    description: str
+
+
 class Component(BaseModel):
     id: str
     stage_id: str
     name: str
     owner_role: Optional[str] = Field(default=None, description="None means the stage owner")
     weight: float = 1.0
-    initial_level: int
-    allowed_levels: list[int]
+    initial_automation: int
+    initial_governance: int
+    allowed_automation: list[int]
+    allowed_governance: list[int]
     attributes: dict[str, AttributeDef] = Field(default_factory=dict)
+    automation_options: list[Option] = Field(default_factory=list)
+    governance_options: list[Option] = Field(default_factory=list)
+    attribute_options: dict[str, list[AttributeOption]] = Field(default_factory=dict)
     layout: Optional[dict] = Field(default=None, description="SVG layout hint {x, y} for the stage modal")
     icon: Optional[str] = Field(default=None, description="Iconify icon name for this component")
 
 
 class Edge(BaseModel):
-    """A workflow between two components. Pipeline edges cap what flows downstream."""
+    """A workflow between two components. Pipeline edges cap what flows downstream (automation
+    axis only - governance never caps, 00-plan.md decision 1)."""
 
     id: str
     from_id: str = Field(alias="from")
@@ -113,10 +203,14 @@ class Edge(BaseModel):
             "the lifecycle and must not be drawn as one."
         ),
     )
-    initial_level: int
+    initial_automation: int
+    initial_governance: int
     initial_trigger: str = "none"
-    allowed_levels: list[int]
+    allowed_automation: list[int]
+    allowed_governance: list[int]
     allowed_triggers: list[str]
+    automation_options: list[Option] = Field(default_factory=list)
+    governance_options: list[Option] = Field(default_factory=list)
 
     model_config = {"populate_by_name": True}
 
@@ -126,12 +220,14 @@ class Edge(BaseModel):
         return next((t for t in self.allowed_triggers if t not in NON_AUTOMATIC_TRIGGERS), None)
 
 
-def trigger_for_level(edge: Edge, level: int, current: Optional[str]) -> Optional[str]:
-    """The trigger an edge must carry at `level`: none when absent or broken, manual_request when
-    manual, an automatic one when automated or governed (keeping the current one if it fits)."""
-    if level <= Level.ABSENT:
+def trigger_for_automation(edge: Edge, automation: int, current: Optional[str]) -> Optional[str]:
+    """The trigger an edge must carry at automation state `automation`: none when absent or
+    broken, manual_request when manual, an automatic one when automated (keeping the current one
+    if it fits). Triggers are an automation-axis concept only (00-plan.md §2.2) - governance never
+    changes what trigger an edge carries."""
+    if automation <= AutomationState.ABSENT:
         return "none"
-    if level == Level.MANUAL:
+    if automation == AutomationState.MANUAL:
         return "manual_request"
     if current is not None and current not in NON_AUTOMATIC_TRIGGERS:
         return current
@@ -156,7 +252,8 @@ class GraphThresholds(BaseModel):
 
 
 class TechnicalGraph(BaseModel):
-    levels: list[str]
+    automation_states: list[str]
+    governance_levels: list[str]
     triggers: list[str]
     instance_kinds: dict[str, InstanceKind]
     instance_states: list[str]
@@ -210,10 +307,24 @@ class TechnicalGraph(BaseModel):
     def is_target(self, target_id: str) -> bool:
         return self.is_component(target_id) or self.is_edge(target_id)
 
-    def allowed_levels(self, target_id: str) -> list[int]:
-        if self.is_component(target_id):
-            return self._components[target_id].allowed_levels
-        return self._edges[target_id].allowed_levels
+    def _target(self, target_id: str):
+        return self._components[target_id] if self.is_component(target_id) else self._edges[target_id]
+
+    def allowed_automation(self, target_id: str) -> list[int]:
+        return self._target(target_id).allowed_automation
+
+    def allowed_governance(self, target_id: str) -> list[int]:
+        return self._target(target_id).allowed_governance
+
+    def allowed_for(self, target_id: str, axis: Axis) -> list[int]:
+        return self.allowed_automation(target_id) if axis == "automation" else self.allowed_governance(target_id)
+
+    def options_for(self, target_id: str, axis: Axis) -> list[Option]:
+        target = self._target(target_id)
+        return target.automation_options if axis == "automation" else target.governance_options
+
+    def attribute_options_for(self, component_id: str, attr: str) -> list[AttributeOption]:
+        return self._components[component_id].attribute_options.get(attr, [])
 
     def owner_of(self, target_id: str) -> Optional[str]:
         """Component owner, falling back to its stage owner. Edges belong to the owner of the
@@ -260,16 +371,22 @@ class TechnicalGraph(BaseModel):
 
 
 class EffectiveView(BaseModel):
-    components: dict[str, int] = Field(default_factory=dict)
-    edges: dict[str, int] = Field(default_factory=dict)
+    """Automation is capped by upstream (00-plan.md decision 1); governance always equals its
+    nominal value, kept as its own dict here so predicate/UI code can read "effective governance"
+    uniformly even though it never actually differs from nominal."""
+
+    automation: dict[str, int] = Field(default_factory=dict)
+    governance: dict[str, int] = Field(default_factory=dict)
     capped_by: dict[str, str] = Field(
         default_factory=dict, description="Binding constraint per capped target: an edge id or an upstream component id"
     )
 
-    def level(self, target_id: str) -> int:
-        if target_id in self.components:
-            return self.components[target_id]
-        return self.edges[target_id]
+    def value(self, target_id: str, axis: Axis) -> int:
+        source = self.automation if axis == "automation" else self.governance
+        return source[target_id]
+
+    def narrative(self, target_id: str) -> int:
+        return narrative_tier(self.automation[target_id], self.governance[target_id])
 
 
 class Instance(BaseModel):
@@ -290,8 +407,20 @@ class GraphOp(BaseModel):
     target: str
     value: Any = None
     attr: Optional[str] = Field(default=None, description="Attribute name for set_attr")
+    axis: Optional[Axis] = Field(
+        default=None, description="Required for raise_to/set_to: which axis it moves. Unused by other op kinds."
+    )
     intended: Optional[int] = Field(
         default=None, description="Set when an unhappy owner degraded a raise: the level that was asked for"
+    )
+    degraded_by: Optional[str] = Field(
+        default=None,
+        description=(
+            "Who caused the degradation, when it wasn't the target's owner - set by neglect "
+            "sabotage (docs/plans/graph-governance-automation-rework/02-neglected-stakeholder-"
+            "sabotage.md). None means the usual owner-buyin degradation, attributed to "
+            "graph.owner_of(target) as before."
+        ),
     )
     source_kind: SourceKind = "admin"
     source_id: Optional[str] = None
@@ -305,7 +434,9 @@ class GraphOp(BaseModel):
         if self.kind == "set_instance_prop" and self.attr is None and "." in self.target:
             self.target, self.attr = self.target.rsplit(".", 1)
         if self.kind in ("raise_to", "set_to"):
-            self.value = parse_level(self.value)
+            if self.axis is None:
+                raise ValueError(f"{self.kind} op on '{self.target}' must name an axis")
+            self.value = parse_axis_level(self.axis, self.value)
         return self
 
 
@@ -320,6 +451,7 @@ class DebtEntry(BaseModel):
     target_id: str
     intended_level: int
     applied_level: int
+    axis: Axis
     owner_id: Optional[str] = None
     source_id: Optional[str] = None
 
@@ -327,8 +459,10 @@ class DebtEntry(BaseModel):
 class GraphState(BaseModel):
     """Ground truth. Built by folding the op log, never persisted as such."""
 
-    component_levels: dict[str, int] = Field(default_factory=dict)
-    edge_levels: dict[str, int] = Field(default_factory=dict)
+    component_automation: dict[str, int] = Field(default_factory=dict)
+    component_governance: dict[str, int] = Field(default_factory=dict)
+    edge_automation: dict[str, int] = Field(default_factory=dict)
+    edge_governance: dict[str, int] = Field(default_factory=dict)
     edge_triggers: dict[str, str] = Field(default_factory=dict)
     attrs: dict[str, dict[str, str]] = Field(default_factory=dict)
     instances: dict[str, Instance] = Field(default_factory=dict)
@@ -340,25 +474,49 @@ class GraphState(BaseModel):
     @classmethod
     def from_config(cls, graph: TechnicalGraph) -> "GraphState":
         return cls(
-            component_levels={c.id: c.initial_level for c in graph.components},
-            edge_levels={e.id: e.initial_level for e in graph.edges},
+            component_automation={c.id: c.initial_automation for c in graph.components},
+            component_governance={c.id: c.initial_governance for c in graph.components},
+            edge_automation={e.id: e.initial_automation for e in graph.edges},
+            edge_governance={e.id: e.initial_governance for e in graph.edges},
             edge_triggers={e.id: e.initial_trigger for e in graph.edges},
             attrs={c.id: {name: a.initial for name, a in c.attributes.items()} for c in graph.components},
             instances={i.id: graph.with_default_props(i) for i in graph.initial_instances},
         )
 
-    def level(self, target_id: str) -> int:
-        if target_id in self.component_levels:
-            return self.component_levels[target_id]
-        return self.edge_levels[target_id]
+    def automation(self, target_id: str) -> int:
+        if target_id in self.component_automation:
+            return self.component_automation[target_id]
+        return self.edge_automation[target_id]
+
+    def governance(self, target_id: str) -> int:
+        if target_id in self.component_governance:
+            return self.component_governance[target_id]
+        return self.edge_governance[target_id]
+
+    def value(self, target_id: str, axis: Axis) -> int:
+        return self.automation(target_id) if axis == "automation" else self.governance(target_id)
+
+    def axis_dict(self, target_id: str, axis: Axis) -> dict[str, int]:
+        """The single stored dict a target's value for `axis` lives in, for mutating callers
+        (`apply.py`)."""
+        is_component = target_id in self.component_automation or target_id in self.component_governance
+        if axis == "automation":
+            return self.component_automation if is_component else self.edge_automation
+        return self.component_governance if is_component else self.edge_governance
+
+    def narrative(self, target_id: str) -> int:
+        """Discrete 0-4 storytelling tier (`narrative_tier`) for authored flavor text only."""
+        return narrative_tier(self.automation(target_id), self.governance(target_id))
 
 
 class SeenEntry(BaseModel):
     """What the player saw of one target, and when."""
 
     seq: int
-    nominal: int
-    effective: int
+    nominal_automation: int
+    nominal_governance: int
+    effective_automation: int
+    effective_governance: int
     trigger: Optional[str] = None
     attrs: dict[str, str] = Field(default_factory=dict)
 

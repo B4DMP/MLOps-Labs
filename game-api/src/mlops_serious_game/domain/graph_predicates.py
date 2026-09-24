@@ -1,8 +1,8 @@
 """Boolean predicate trees over the graph. Shared by patterns, Boundaries and challenge preconditions.
 
 Clauses:
-    {"component": id, "op": "gte", "level": 4, "on": "effective" | "nominal"}
-    {"edge": id, "op": "lte", "level": 1, "on": ...}
+    {"component": id, "axis": "automation" | "governance", "op": "gte", "level": "automated", "on": "effective" | "nominal"}
+    {"edge": id, "axis": "governance", "op": "lte", "level": "partial_1", "on": ...}
     {"edge": id, "trigger": "eq" | "ne", "value": "on_alert"}
     {"attr": "stage.component.attr", "op": "eq" | "ne", "value": "public_cloud"}
     {"instance": {"kind": "model", "state": "active", "component": id, "op": "exists",
@@ -17,7 +17,7 @@ import operator
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from mlops_serious_game.domain.graph import EffectiveView, GraphState, TechnicalGraph, parse_level
+from mlops_serious_game.domain.graph import Axis, EffectiveView, GraphState, TechnicalGraph, parse_axis_level
 
 _OPS: dict[str, Callable[[Any, Any], bool]] = {
     "eq": operator.eq,
@@ -28,6 +28,7 @@ _OPS: dict[str, Callable[[Any, Any], bool]] = {
     "gte": operator.ge,
 }
 _EQUALITY = ("eq", "ne")
+_AXES = ("automation", "governance")
 
 
 class PredicateError(ValueError):
@@ -54,11 +55,11 @@ def _cmp(op: str, actual: Any, expected: Any) -> bool:
     return _OPS[op](actual, expected)
 
 
-def _level_of(ctx: PredicateContext, target: str, on: str) -> int:
+def _level_of(ctx: PredicateContext, target: str, on: str, axis: Axis) -> int:
     if on == "nominal":
-        return ctx.state.level(target)
+        return ctx.state.value(target, axis)
     if on == "effective":
-        return ctx.effective.level(target)
+        return ctx.effective.value(target, axis)
     raise PredicateError(f"unknown 'on' value '{on}'")
 
 
@@ -103,8 +104,12 @@ def evaluate(pred: Any, ctx: PredicateContext) -> PredicateResult:
 
     for key in ("component", "edge"):
         if key in pred:
-            actual = _level_of(ctx, pred[key], pred.get("on", "effective"))
-            value = _cmp(pred.get("op", "gte"), actual, parse_level(pred["level"]))
+            axis = pred.get("axis")
+            if axis not in _AXES:
+                raise PredicateError(f"'{key}' clause needs an 'axis' of 'automation' or 'governance', got {axis!r}")
+            actual = _level_of(ctx, pred[key], pred.get("on", "effective"), axis)
+            expected = parse_axis_level(axis, pred["level"])
+            value = _cmp(pred.get("op", "gte"), actual, expected)
             return PredicateResult(value, {**pred, "actual": actual, "result": value})
 
     if "instance" in pred:
@@ -193,10 +198,14 @@ def validate_predicate(pred: Any, graph: TechnicalGraph, pattern_ids: set[str] |
                     errors.append(f"unknown {key} '{p[key]}'")
                 if p.get("op", "gte") not in _OPS:
                     errors.append(f"unknown op '{p.get('op')}'")
-                try:
-                    parse_level(p.get("level"))
-                except (ValueError, TypeError):
-                    errors.append(f"invalid level {p.get('level')!r}")
+                axis = p.get("axis")
+                if axis not in _AXES:
+                    errors.append(f"'{key}' clause needs an 'axis' of 'automation' or 'governance', got {axis!r}")
+                else:
+                    try:
+                        parse_axis_level(axis, p.get("level"))
+                    except (ValueError, TypeError):
+                        errors.append(f"invalid level {p.get('level')!r} for axis '{axis}'")
                 return
         if "instance" in p:
             spec = p["instance"]

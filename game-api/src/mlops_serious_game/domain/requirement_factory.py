@@ -145,8 +145,10 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
             target = graph.resolve(r.suggested.target)
             if not graph.is_target(target):
                 errors.append(f"{where}: suggests unknown target '{r.suggested.target}'")
-            elif r.suggested.level not in graph.allowed_levels(target):
-                errors.append(f"{where}: level {r.suggested.level} not allowed on '{target}'")
+            elif r.suggested.axis not in ("automation", "governance"):
+                errors.append(f"{where}: suggests an unknown axis '{r.suggested.axis}'")
+            elif r.suggested.level not in graph.allowed_for(target, r.suggested.axis):
+                errors.append(f"{where}: {r.suggested.axis} level {r.suggested.level} not allowed on '{target}'")
         if r.holds is not None:
             if r.type != IntelTag.BOUNDARY:
                 errors.append(f"{where}: only Boundaries carry 'holds'")

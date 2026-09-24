@@ -5,12 +5,15 @@ from pydantic import BaseModel, Field
 
 class ConflictPosition(BaseModel):
     stakeholder_id: str
+    axis: Literal["automation", "governance"]
     wants: int
 
 
 class ChallengeConflict(BaseModel):
     """The two-sided disagreement that frames a challenge. `soft`: the losing side holds a
-    Trade-off on the target. `hard`: it holds a Boundary."""
+    Trade-off on the target. `hard`: it holds a Boundary. Each position names its own axis
+    (docs/plans/graph-governance-automation-rework/00-plan.md) - the classic shape is one side
+    pushing automation, the other pushing governance on the same target, not just "how far"."""
 
     type: Literal["soft", "hard"]
     target: str
@@ -39,6 +42,15 @@ class Challenge(BaseModel):
     on_enter_ops: list[dict] = Field(default_factory=list, description="World event ops fired when the challenge starts")
     on_exit_ops: list[dict] = Field(default_factory=list, description="World event ops fired in the simulation that closes the challenge")
     stalemate_ops: list[dict] = Field(default_factory=list, description="World event ops fired when the pitch ends in stalemate")
+    baseline_sweep_ops: list[dict] = Field(
+        default_factory=list,
+        description=(
+            "Stage best-practice baseline (01-challenge-scheduling.md sec 2): quietly raises "
+            "conflict-untouched components/edges in the stage between challenges. Kept separate "
+            "from on_exit_ops because it must skip whatever this round's card (or its veto "
+            "degradation) already touched - unlike on_exit_ops, which always fires."
+        ),
+    )
     conflict: Optional["ChallengeConflict"] = None
     focus_stage_ids: list[str] = Field(default_factory=list)
 
