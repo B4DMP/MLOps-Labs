@@ -4,7 +4,8 @@ import {
   BOX_W,
   LEVEL_EMPTY,
   LEVEL_ICON_SIZE,
-  levelMeta,
+  axisMeta,
+  formatAxisLevel,
   NODE_TITLE_LH,
   NODE_TITLE_Y,
   NODE_ICON_DISC,
@@ -135,57 +136,98 @@ export function NodeDefs({ prefix }: { prefix: string }) {
   );
 }
 
+/** Rungs 1..3 of an axis: the notches a meter track draws. Rung 0 (broken / none) is the
+ *  empty track, never a notch of its own. */
+const TRACK_RUNGS = [1, 2, 3];
+
 /**
- * The maturity ladder, drawn as five notches.
+ * The two maturity axes, drawn as two short tracks on one row: automation (blue) on the left,
+ * governance (violet) on the right, with a wider gap between them than between notches.
+ * Two tracks rather than one longer ladder because the axes are independent - a manual but
+ * fully governed component must not read as "halfway up" anything.
  *
- * Each notch carries its own rung's colour permanently, so the meter reports *position* and
- * not merely length: a glance at which colour the filled run ends on says which rung the
- * component sits on. A rung that was built but does not run (something upstream caps it) is
- * drawn in its own colour at a third opacity, a ghost of what was paid for.
+ * Each notch carries its own rung's colour permanently, so a track reports *position* and not
+ * merely length: a glance at which colour the filled run ends on says which rung the target
+ * sits on. An automation rung that was built but does not run (something upstream caps it) is
+ * drawn in its own colour at a third opacity, a ghost of what was paid for. Governance never
+ * caps (00-plan.md decision 1), so its track has no ghost state. A rung above the target's
+ * ceiling is drawn as an outline only: there is no option that reaches it.
+ *
+ * A broken target lights its first automation notch in broken red instead of leaving the
+ * track empty, so broken never reads as merely "absent".
  */
 export function LevelMeter({
-  nominal,
-  effective,
-  previewLevel,
+  automation,
+  effectiveAutomation,
+  governance,
+  maxAutomation = 3,
+  maxGovernance = 3,
+  previewAutomation,
+  previewGovernance,
   y,
   width = BOX_W - NODE_PAD_X - 12,
 }: {
-  nominal: number;
-  effective?: number;
-  /** A slotted proposal's target level, in the compose canvas only: drawn as translucent
-   *  rungs ahead of what is actually built, so the proposed state reads on the diagram
-   *  itself rather than only in the sidebar. */
-  previewLevel?: number;
+  automation: number;
+  effectiveAutomation?: number;
+  governance?: number;
+  /** The highest rung this target allows on each axis (max of `allowed_*`). */
+  maxAutomation?: number;
+  maxGovernance?: number;
+  /** A slotted proposal's target rung per axis, in the compose canvas only: drawn as
+   *  translucent notches ahead of what is actually built, so the proposed state reads on the
+   *  diagram itself rather than only in the sidebar. */
+  previewAutomation?: number;
+  previewGovernance?: number;
   y: number;
   width?: number;
 }) {
-  const CELLS = 5;
   const gap = 2.5;
-  const cell = (width - gap * (CELLS - 1)) / CELLS;
-  const runsAt = effective ?? nominal;
+  const groupGap = 9;
+  const cells = TRACK_RUNGS.length * 2;
+  const cell = (width - groupGap - gap * (cells - 2)) / cells;
+  const trackW = TRACK_RUNGS.length * cell + (TRACK_RUNGS.length - 1) * gap;
+  const runsAt = effectiveAutomation ?? automation;
+  const gov = governance ?? 0;
+
+  const notch = (
+    key: string,
+    x: number,
+    fill: string,
+    opacity: number,
+    outlineOnly: boolean,
+  ) =>
+    outlineOnly ? (
+      <rect key={key} x={x + 0.5} y={0.5} width={cell - 1} height={3} rx={1.5} fill="none" stroke={LEVEL_EMPTY} strokeWidth={1} strokeDasharray="2 1.5" />
+    ) : (
+      <rect key={key} x={x} y={0} width={cell} height={4} rx={2} fill={fill} opacity={opacity} />
+    );
 
   return (
     <g transform={`translate(${NODE_PAD_X}, ${y})`}>
-      {Array.from({ length: CELLS }, (_, i) => {
-        const built = i <= nominal;
-        const running = i <= runsAt;
-        const isPreview = previewLevel !== undefined && i > nominal && i <= previewLevel;
-
-        let fill = LEVEL_EMPTY;
-        let opacity = 1;
-        if (isPreview) {
-          fill = NODE_COLORS.selected;
-          opacity = 0.4;
-        } else if (built && running) {
-          fill = levelMeta(i).color;
-        } else if (built) {
-          // Paid for, not delivering: its own rung colour, ghosted.
-          fill = levelMeta(i).color;
-          opacity = 0.33;
+      <title>{`Automation: ${formatAxisLevel("automation", automation)}${
+        effectiveAutomation !== undefined && effectiveAutomation < automation
+          ? ` (runs as ${formatAxisLevel("automation", effectiveAutomation)})`
+          : ""
+      } · Governance: ${formatAxisLevel("governance", gov)}`}</title>
+      {TRACK_RUNGS.map((r, i) => {
+        const x = i * (cell + gap);
+        if (r > maxAutomation) return notch(`a${r}`, x, LEVEL_EMPTY, 1, true);
+        const isPreview = previewAutomation !== undefined && r > automation && r <= previewAutomation;
+        if (isPreview) return notch(`a${r}`, x, NODE_COLORS.selected, 0.4, false);
+        if (automation === 0 && r === 1) return notch(`a${r}`, x, axisMeta("automation", 0).color, 1, false);
+        if (r <= automation) {
+          // Paid for but not delivering: its own rung colour, ghosted.
+          return notch(`a${r}`, x, axisMeta("automation", r).color, r <= runsAt ? 1 : 0.33, false);
         }
-        return (
-          <rect key={i} x={i * (cell + gap)} y={0} width={cell} height={4} rx={2} fill={fill} opacity={opacity} />
-        );
+        return notch(`a${r}`, x, LEVEL_EMPTY, 1, false);
+      })}
+      {TRACK_RUNGS.map((r, i) => {
+        const x = trackW + groupGap + i * (cell + gap);
+        if (r > maxGovernance) return notch(`g${r}`, x, LEVEL_EMPTY, 1, true);
+        const isPreview = previewGovernance !== undefined && r > gov && r <= previewGovernance;
+        if (isPreview) return notch(`g${r}`, x, NODE_COLORS.selected, 0.4, false);
+        if (r <= gov) return notch(`g${r}`, x, axisMeta("governance", r).color, 1, false);
+        return notch(`g${r}`, x, LEVEL_EMPTY, 1, false);
       })}
     </g>
   );
@@ -252,17 +294,23 @@ export function NodeTitleAberration({
 }
 
 /**
- * The level caption: the rung's icon and its word, in the rung's colour. Drawn wherever a
- * node reports what it runs at, so the same colour that ends the meter's filled run also
- * carries the word for it.
+ * The level caption: the automation rung's icon and its word, in the rung's colour. Drawn
+ * wherever a node reports what it runs at, so the same colour that ends the automation
+ * track's filled run also carries the word for it. When the target has any governance, that
+ * rung's glyph sits at the right end of the row (spelled out on hover) - the word itself would
+ * not fit beside the automation word at caption size.
  */
 export function LevelCaption({
   level,
+  governance,
   y,
   text,
   color,
 }: {
+  /** The automation rung the target runs at. */
   level: number;
+  /** The governance rung; its glyph is drawn only from partial_1 upwards. */
+  governance?: number;
   y: number;
   /** Overrides the rung's own word, for the cases that are about something else: a starved
    *  component, a stage the player may only look at, an uncertain upstream. */
@@ -270,7 +318,8 @@ export function LevelCaption({
   /** Overrides the rung's colour, for those same cases. */
   color?: string;
 }) {
-  const meta = levelMeta(level);
+  const meta = axisMeta("automation", level);
+  const govMeta = governance !== undefined && governance > 0 ? axisMeta("governance", governance) : null;
   const tint = color ?? meta.ink;
   // The glyph is centred on the caption's own baseline, so a 14px icon sits beside 8px text
   // without either one hanging off the row.
@@ -295,6 +344,19 @@ export function LevelCaption({
       >
         {(text ?? meta.label).toUpperCase()}
       </text>
+      {govMeta && (
+        <g>
+          <title>{`Governance: ${govMeta.label}`}</title>
+          <Icon
+            icon={govMeta.icon}
+            width={LEVEL_ICON_SIZE - 2}
+            height={LEVEL_ICON_SIZE - 2}
+            color={govMeta.ink}
+            x={BOX_W - 12 - (LEVEL_ICON_SIZE - 2)}
+            y={iconTop + 1}
+          />
+        </g>
+      )}
     </g>
   );
 }
@@ -556,8 +618,9 @@ export function TriggerChip({
   );
 }
 
-/** Edge stroke width by level: a flat "automated or not" split reads as binary, but the
- *  ladder from broken to governed is five rungs, and the line should say which one. */
+/** Edge stroke width by automation rung: a flat "automated or not" split reads as binary, but
+ *  the ladder from broken to automated is four rungs, and the line should say which one.
+ *  Governance deliberately does not widen the line - it never changes what flows. */
 export function edgeStrokeWidth(level: number | undefined | null): number {
   if (level === undefined || level === null) return 1.5;
   return 1.25 + level * 0.4;

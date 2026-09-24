@@ -10,13 +10,15 @@ interface StageDebug {
 }
 interface ComponentDebug {
   id: string; stage_id: string; name: string; owner: string;
-  nominal: number; effective: number; knowledge: string;
-  capped_by?: string; seen_level?: number; seen_at?: number; attrs?: Record<string, string>;
+  nominal_automation: number; nominal_governance: number;
+  effective_automation: number; effective_governance: number; knowledge: string;
+  capped_by?: string; seen_automation?: number; seen_governance?: number; seen_at?: number; attrs?: Record<string, string>;
 }
 interface EdgeDebug {
   id: string; from: string; to: string; kind: string;
-  level: number; effective: number; trigger: string; knowledge: string;
-  capped_by?: string; seen_level?: number; seen_at?: number;
+  automation: number; governance: number;
+  effective_automation: number; effective_governance: number; trigger: string; knowledge: string;
+  capped_by?: string; seen_automation?: number; seen_governance?: number; seen_at?: number;
 }
 interface InstanceDebug {
   id: string; kind: string; component_id: string; name: string; state: string;
@@ -53,13 +55,24 @@ export interface GraphDebugPayload {
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
-const LEVEL_LABEL = ["broken", "absent", "manual", "automated", "governed"];
-const LEVEL_COLOR = ["#dc3545", "#6c757d", "#ffc107", "#0dcaf0", "#198754"];
+// Two independent axes (docs/plans/graph-governance-automation-rework/00-plan.md §2.1).
+const AUTOMATION_LABEL = ["broken", "absent", "manual", "automated"];
+const AUTOMATION_COLOR = ["#dc3545", "#6c757d", "#ffc107", "#0dcaf0"];
+const GOVERNANCE_LABEL = ["none", "partial_1", "partial_2", "full"];
+const GOVERNANCE_COLOR = ["#adb5bd", "#d0bfff", "#b197fc", "#9775fa"];
 
-function levelBadge(n: number) {
-  const label = LEVEL_LABEL[n] ?? String(n);
-  const color = LEVEL_COLOR[n] ?? "#888";
+function levelBadge(n: number, axis: "automation" | "governance" = "automation") {
+  const labels = axis === "automation" ? AUTOMATION_LABEL : GOVERNANCE_LABEL;
+  const colors = axis === "automation" ? AUTOMATION_COLOR : GOVERNANCE_COLOR;
+  const label = labels[n] ?? String(n);
+  const color = colors[n] ?? "#888";
   return <span style={{ background: color, color: "#000", borderRadius: 4, padding: "1px 6px", fontSize: 11, fontWeight: 600 }}>{label}</span>;
+}
+
+/** Nominal and effective on one axis, collapsed to one badge when they agree. */
+function axisCell(nominal: number, effective: number, axis: "automation" | "governance") {
+  if (nominal === effective) return levelBadge(nominal, axis);
+  return <span style={{ whiteSpace: "nowrap" }}>{levelBadge(nominal, axis)} → {levelBadge(effective, axis)}</span>;
 }
 
 function knowledgeBadge(k: string) {
@@ -171,14 +184,14 @@ function ComponentsSection({ data }: { data: ComponentDebug[] }) {
     <Section title="2. Components" count={rows.length}>
       <FilterInput value={q} onChange={setQ} />
       <Tbl
-        cols={["id", "stage", "name", "owner", "nominal", "effective", "knowledge", "capped by"]}
+        cols={["id", "stage", "name", "owner", "automation (nom → eff)", "governance (nom → eff)", "knowledge", "capped by"]}
         rows={rows.map((r) => [
           <code>{r.id}</code>,
           r.stage_id,
           r.name,
           r.owner ?? "—",
-          levelBadge(r.nominal),
-          levelBadge(r.effective),
+          axisCell(r.nominal_automation, r.effective_automation, "automation"),
+          axisCell(r.nominal_governance, r.effective_governance, "governance"),
           knowledgeBadge(r.knowledge),
           r.capped_by ? <code style={{ fontSize: 11 }}>{r.capped_by}</code> : null,
         ])}
@@ -194,14 +207,14 @@ function EdgesSection({ data }: { data: EdgeDebug[] }) {
     <Section title="3. Edges" count={rows.length}>
       <FilterInput value={q} onChange={setQ} />
       <Tbl
-        cols={["id", "from", "to", "kind", "level", "effective", "trigger", "knowledge", "capped by"]}
+        cols={["id", "from", "to", "kind", "automation (nom → eff)", "governance (nom → eff)", "trigger", "knowledge", "capped by"]}
         rows={rows.map((r) => [
           <code>{r.id}</code>,
           <code>{r.from}</code>,
           <code>{r.to}</code>,
           r.kind,
-          levelBadge(r.level),
-          levelBadge(r.effective),
+          axisCell(r.automation, r.effective_automation, "automation"),
+          axisCell(r.governance, r.effective_governance, "governance"),
           r.trigger,
           knowledgeBadge(r.knowledge),
           r.capped_by ? <code style={{ fontSize: 11 }}>{r.capped_by}</code> : null,

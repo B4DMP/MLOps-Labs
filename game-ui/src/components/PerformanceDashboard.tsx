@@ -36,7 +36,8 @@ import {
   nodeFace,
   BOX_W,
   BOX_H,
-  LEVEL_LABELS,
+  AUTOMATION_LABELS,
+  formatAxisLevel,
   TRIGGER_ICONS,
   compactLayout,
   edgeEnds,
@@ -80,14 +81,18 @@ interface ComponentData {
   name: string;
   owner_id?: string;
   knowledge: "unknown" | "current" | "stale";
-  nominal?: number;
-  effective?: number;
+  nominal_automation?: number;
+  nominal_governance?: number;
+  effective_automation?: number;
+  effective_governance?: number;
+  allowed_automation?: number[];
+  allowed_governance?: number[];
   capped_by?: string;
   story?: string;
   seen_at?: number;
   icon?: string;
   layout?: { x: number; y: number };
-  debt?: Array<{ intended: number; applied: number; owner_id?: string }>;
+  debt?: Array<{ intended: number; applied: number; axis?: "automation" | "governance"; owner_id?: string }>;
   instances?: Array<{ id: string; kind: string; name: string; state: string; props: Record<string, string> }>;
 }
 
@@ -97,7 +102,8 @@ interface EdgeData {
   to_id: string;
   kind: string;
   knowledge: "unknown" | "current" | "stale";
-  level?: number;
+  automation?: number;
+  governance?: number;
   trigger?: string;
   story?: string;
   seen_at?: number;
@@ -188,8 +194,46 @@ function healthText(stage: StageData): string {
   return HEALTH_BUCKET_WORD[healthBucket(stage.health)];
 }
 
+/** Highest rung a target allows on an axis, or the axis maximum when the payload omits it. */
+function axisCeiling(allowed?: number[]): number {
+  return allowed && allowed.length > 0 ? Math.max(...allowed) : 3;
+}
+
+/** Governance pips: one per rung above `none`, violet, no capped state (governance never caps). */
+function GovernancePips({ level }: { level: number }) {
+  return (
+    <span className="d-inline-flex gap-1 align-items-center" title={`Governance: ${formatAxisLevel("governance", level)}`}>
+      {[1, 2, 3].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 2,
+            display: "inline-block",
+            background: i <= level ? "#7c3aed" : "transparent",
+            border: `1px solid ${i <= level ? "#7c3aed" : "#d8cff5"}`,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** Both axes side by side: automation as round pips (green, orange where capped), governance
+ *  as violet squares - different shapes so the two never read as one scale. */
+function AxisPips({ c }: { c: ComponentData }) {
+  return (
+    <span className="d-inline-flex gap-2 align-items-center">
+      <LevelPips nominal={c.nominal_automation ?? 1} effective={c.effective_automation} />
+      <GovernancePips level={c.nominal_governance ?? 0} />
+    </span>
+  );
+}
+
+/** Automation pips, broken..automated. */
 function LevelPips({ nominal, effective }: { nominal: number; effective?: number }) {
-  const MAX = 4;
+  const MAX = AUTOMATION_LABELS.length - 1;
   return (
     <span className="d-inline-flex gap-1 align-items-center">
       {Array.from({ length: MAX + 1 }, (_, i) => {
@@ -208,7 +252,7 @@ function LevelPips({ nominal, effective }: { nominal: number; effective?: number
         return (
           <span
             key={i}
-            title={LEVEL_LABELS[i]}
+            title={`Automation: ${AUTOMATION_LABELS[i]}`}
             style={{
               width: 10,
               height: 10,
@@ -320,7 +364,7 @@ function StageConnector({ flow, toId }: { flow?: FlowData; toId: string }) {
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ flexShrink: 0, overflow: "visible" }}>
       <title>
         {flow
-          ? `Flow between stages: ${LEVEL_LABELS[flow.level]}`
+          ? `Flow between stages: ${formatAxisLevel("automation", flow.level)}`
           : "No flow between these stages yet"}
       </title>
       <defs>
@@ -348,7 +392,7 @@ function railColor(c: ComponentData): string {
   if (c.knowledge === "unknown") return NODE_COLORS.unknown;
   // Broken is what this component is; capped covers what its upstream does to it, starving
   // included. Reading `effective` here would paint every victim of one break as broken.
-  if ((c.nominal ?? 1) === 0) return NODE_COLORS.broken;
+  if ((c.nominal_automation ?? 1) === 0) return NODE_COLORS.broken;
   if (c.capped_by) return NODE_COLORS.capped;
   if (c.knowledge === "stale") return NODE_COLORS.stale;
   return NODE_COLORS.healthy;
@@ -388,8 +432,10 @@ function StageSvg({
         const [ax, ay, bx, by] = edgeEnds(from.x, from.y, to.x, to.y);
         const x1b = ax, y1b = ay, x2b = bx, y2b = by;
         const known = e.knowledge !== "unknown";
-        const color = known ? (e.level === 0 ? "#dc3545" : e.level && e.level >= 3 ? "#16a34a" : "#ea580c") : "#94a3b8";
-        const isAutomated = known && e.level !== undefined && e.level !== null && e.level >= 3;
+        // Flow is an automation question only; governance never changes what gets through.
+        const lvl = e.automation;
+        const color = known ? (lvl === 0 ? "#dc3545" : lvl && lvl >= 3 ? "#16a34a" : "#ea580c") : "#94a3b8";
+        const isAutomated = known && lvl !== undefined && lvl !== null && lvl >= 3;
         return (
           <g key={e.id} opacity={e.knowledge === "stale" ? 0.6 : 1}>
             <defs>
@@ -400,11 +446,11 @@ function StageSvg({
             <line
               x1={x1b} y1={y1b} x2={x2b} y2={y2b}
               stroke={color}
-              strokeWidth={edgeStrokeWidth(known ? e.level : undefined)}
+              strokeWidth={edgeStrokeWidth(known ? lvl : undefined)}
               className={
                 !known ? undefined
-                  : e.level === 0 ? "pipe-dead"
-                  : e.level != null && e.level >= 3 ? "pipe-flow"
+                  : lvl === 0 ? "pipe-dead"
+                  : lvl != null && lvl >= 3 ? "pipe-flow"
                   : "pipe-flow-slow"
               }
               strokeDasharray={e.knowledge === "unknown" ? "4 3" : undefined}
@@ -416,6 +462,7 @@ function StageSvg({
                 x={(x1b + x2b) / 2}
                 y={(y1b + y2b) / 2 - 4}
                 label={TRIGGER_ICONS[e.trigger] ?? "?"}
+                title={`Automation: ${formatAxisLevel("automation", lvl)} · Governance: ${formatAxisLevel("governance", e.governance ?? 0)}`}
                 color={color}
               />
             )}
@@ -431,10 +478,10 @@ function StageSvg({
         const isSelected = selectedComponentId === c.id;
         const isUnknown = c.knowledge === "unknown";
         const rail = railColor(c);
-        const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
+        const isBroken = !isUnknown && (c.nominal_automation ?? 1) === 0;
         // Runs at nothing, but is not itself broken: something upstream is down. Saying
         // BROKEN here would blame the victim of a break for the break.
-        const isStarved = !isUnknown && !isBroken && (c.effective ?? 1) === 0;
+        const isStarved = !isUnknown && !isBroken && (c.effective_automation ?? 1) === 0;
         const rawName = c.name || c.id.split(".").pop()?.replace(/_/g, " ") || c.id;
         const lines = wrapLabel(rawName, 17);
 
@@ -502,11 +549,19 @@ function StageSvg({
               </text>
             ) : (
               <>
-                {c.nominal !== undefined && (
-                  <LevelMeter nominal={c.nominal} effective={c.effective} y={NODE_METER_Y} />
+                {c.nominal_automation !== undefined && (
+                  <LevelMeter
+                    automation={c.nominal_automation}
+                    effectiveAutomation={c.effective_automation}
+                    governance={c.nominal_governance}
+                    maxAutomation={axisCeiling(c.allowed_automation)}
+                    maxGovernance={axisCeiling(c.allowed_governance)}
+                    y={NODE_METER_Y}
+                  />
                 )}
                 <LevelCaption
-                  level={c.effective ?? c.nominal ?? 0}
+                  level={c.effective_automation ?? c.nominal_automation ?? 0}
+                  governance={c.nominal_governance}
                   y={NODE_CAPTION_Y}
                   // Starved is about upstream, not about a rung, so it keeps the rail's colour.
                   text={isStarved ? "starved" : undefined}
@@ -1176,22 +1231,29 @@ export default function PerformanceDashboard({
                                 )}
                               </div>
 
-                              {selComponentData.knowledge !== "unknown" && selComponentData.nominal !== undefined ? (
+                              {selComponentData.knowledge !== "unknown" && selComponentData.nominal_automation !== undefined ? (
                                 <>
                                   <div className="p-2 rounded bg-light border">
                                     <div className="d-flex align-items-center justify-content-between mb-1">
-                                      <span className="small text-muted fw-semibold">Implementation Level:</span>
-                                      <LevelPips nominal={selComponentData.nominal} effective={selComponentData.effective} />
+                                      <span className="small text-muted fw-semibold">Automation:</span>
+                                      <LevelPips nominal={selComponentData.nominal_automation} effective={selComponentData.effective_automation} />
+                                    </div>
+                                    <div className="small mb-2" style={{ color: "var(--text-primary, #1e293b)" }}>
+                                      Runs <strong>{formatAxisLevel("automation", selComponentData.effective_automation ?? selComponentData.nominal_automation)}</strong>
+                                      {selComponentData.capped_by && selComponentData.effective_automation !== undefined && selComponentData.effective_automation < selComponentData.nominal_automation && (
+                                        <> (set up for <strong>{formatAxisLevel("automation", selComponentData.nominal_automation)}</strong>)</>
+                                      )}
+                                    </div>
+                                    <div className="d-flex align-items-center justify-content-between mb-1">
+                                      <span className="small text-muted fw-semibold">Governance:</span>
+                                      <GovernancePips level={selComponentData.nominal_governance ?? 0} />
                                     </div>
                                     <div className="small" style={{ color: "var(--text-primary, #1e293b)" }}>
-                                      Runs <strong>{LEVEL_LABELS[selComponentData.effective ?? selComponentData.nominal ?? 0]}</strong>
-                                      {selComponentData.capped_by && selComponentData.effective !== undefined && selComponentData.nominal !== undefined && selComponentData.effective < selComponentData.nominal && (
-                                        <> (set up for <strong>{LEVEL_LABELS[selComponentData.nominal]}</strong>)</>
-                                      )}
+                                      Its output is <strong>{formatAxisLevel("governance", selComponentData.nominal_governance ?? 0)}</strong>
                                     </div>
                                   </div>
 
-                                  {selComponentData.capped_by && selComponentData.effective !== undefined && selComponentData.nominal !== undefined && selComponentData.effective < selComponentData.nominal && (
+                                  {selComponentData.capped_by && selComponentData.effective_automation !== undefined && selComponentData.nominal_automation !== undefined && selComponentData.effective_automation < selComponentData.nominal_automation && (
                                     <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#9a3412", background: "#fff7ed", border: "1px solid #ffedd5" }}>
                                       <strong>⛓ Held Back:</strong> Bottlenecked by <strong>{selComponentData.capped_by}</strong>. Raising this component changes nothing until that is addressed.
                                     </div>
@@ -1199,7 +1261,7 @@ export default function PerformanceDashboard({
 
                                   {selComponentData.debt && selComponentData.debt.length > 0 && (
                                     <div className="p-2 rounded" style={{ fontSize: "0.78rem", color: "#854d0e", background: "#fefce8", border: "1px solid #fef08a" }}>
-                                      <strong>🧾 Technical Debt:</strong> Meant to be <strong>{LEVEL_LABELS[selComponentData.debt[0].intended]}</strong>, landed <strong>{LEVEL_LABELS[selComponentData.debt[0].applied]}</strong>
+                                      <strong>🧾 Technical Debt:</strong> {selComponentData.debt[0].axis === "governance" ? "Governance meant" : "Meant"} to be <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].intended)}</strong>, landed <strong>{formatAxisLevel(selComponentData.debt[0].axis ?? "automation", selComponentData.debt[0].applied)}</strong>
                                       {selComponentData.debt[0].owner_id && <> without support from {selComponentData.debt[0].owner_id.replace(/_/g, " ")}</>}.
                                     </div>
                                   )}
@@ -1302,9 +1364,7 @@ export default function PerformanceDashboard({
                                         </span>
                                       </div>
                                       <div className="d-flex align-items-center gap-2 flex-shrink-0">
-                                        {c.knowledge !== "unknown" && c.nominal !== undefined && (
-                                          <LevelPips nominal={c.nominal} effective={c.effective} />
-                                        )}
+                                        {c.knowledge !== "unknown" && c.nominal_automation !== undefined && <AxisPips c={c} />}
                                         <Icon icon="ph:arrow-right-bold" style={{ color: "var(--primary-bg)", fontSize: "0.85rem" }} />
                                       </div>
                                     </div>

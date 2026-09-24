@@ -1,11 +1,31 @@
 import { useContext } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./ActionCardCardComponent.module.css";
-import type { ActionCard } from "../types/ActionCard";
+import type { ActionCard, AtomicChange, ItemPrediction } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
-import { formatLevel, formatLevelCap } from "./ComposeActionProposalModal";
+import { AXIS_TITLES, formatAxisLevel, formatAxisLevelCap } from "../utils/stageCanvas";
+import { describeAtomicChange } from "../utils/graphOptions";
+
+/** The prediction for one slotted change: backend predictions are per (target, axis). */
+function predictionFor(card: ActionCard, ac: AtomicChange): ItemPrediction | undefined {
+  // Attribute choices get no prediction; do not borrow a raise's on the same target.
+  if (ac.kind === "set_attr" || !ac.axis) return undefined;
+  return card.predictions?.find((p) => p.target === ac.target && (!p.axis || p.axis === ac.axis));
+}
+
+/** The step a change asks for, in one short phrase: "Governance → fully governed". */
+function stepBadge(ac: AtomicChange): string {
+  if (ac.kind === "set_attr") return `${(ac.attr ?? "attribute").replace(/_/g, " ")} → ${String(ac.value)}`;
+  if (!ac.axis) return "No axis - ignored";
+  return `${AXIS_TITLES[ac.axis]} → ${formatAxisLevel(ac.axis, ac.value)}`;
+}
+
+/** What the player picked, by the option's own name when the card carries it. */
+function changeLabel(card: ActionCard, ac: AtomicChange, idx: number): string {
+  return card.atomic_change_labels?.[idx] || describeAtomicChange(ac).title;
+}
 
 export interface IntelItem {
   id: string;
@@ -179,14 +199,16 @@ export default function ActionCardCardComponent({
                     card.target_names?.[ac.target] ||
                     ac.target.split(".").pop()?.replace(/_/g, " ") ||
                     ac.target;
-                  const pred = card.predictions?.find((p) => p.target === ac.target);
+                  const pred = predictionFor(card, ac);
+                  const label = changeLabel(card, ac, idx);
                   return (
                     <div
                       key={idx}
                       className="d-flex align-items-center justify-content-between px-2 py-1 rounded"
                       style={{ background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: "0.68rem" }}
+                      title={`${name}: ${label}`}
                     >
-                      <span className="fw-bold text-truncate" style={{ maxWidth: "55%" }} title={name}>
+                      <span className="fw-bold text-truncate" style={{ maxWidth: "55%" }}>
                         ⚡ {name}
                       </span>
                       {pred?.upstream_uncertain ? (
@@ -195,11 +217,14 @@ export default function ActionCardCardComponent({
                         </span>
                       ) : pred?.capped_by ? (
                         <span className="badge bg-secondary" style={{ fontSize: "0.55rem" }}>
-                          ⛓ Capped: {formatLevelCap(pred.effective_predicted)}
+                          ⛓ Capped: {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
                         </span>
                       ) : (
-                        <span className="badge bg-success" style={{ fontSize: "0.55rem" }}>
-                          Advance to {formatLevelCap(pred?.predicted ?? ac.value)}
+                        <span
+                          className="badge"
+                          style={{ fontSize: "0.55rem", background: ac.axis === "governance" ? "#6d28d9" : "#198754" }}
+                        >
+                          {stepBadge(ac)}
                         </span>
                       )}
                     </div>
@@ -281,21 +306,26 @@ export default function ActionCardCardComponent({
                     card.target_names?.[ac.target] ||
                     ac.target.split(".").pop()?.replace(/_/g, " ") ||
                     ac.target;
-                  const pred = card.predictions?.find((p) => p.target === ac.target);
+                  const pred = predictionFor(card, ac);
+                  const label = changeLabel(card, ac, idx);
                   return (
                     <div
                       key={idx}
                       className="d-flex flex-column gap-1 p-2 rounded bg-white border"
                       style={{ fontSize: "0.75rem" }}
                     >
-                      <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center justify-content-between gap-2">
                         <span className="fw-bold text-dark">
                           ⚡ {name}
                         </span>
-                        <span className="badge bg-primary">
-                          Advance to {formatLevelCap(pred?.predicted ?? ac.value)}
+                        <span
+                          className="badge"
+                          style={{ background: ac.axis === "governance" ? "#6d28d9" : "var(--primary-bg)" }}
+                        >
+                          {stepBadge(ac)}
                         </span>
                       </div>
+                      {label !== stepBadge(ac) && <div className="text-secondary">{label}</div>}
                       {pred?.upstream_uncertain && (
                         <div className="text-warning fw-semibold" style={{ fontSize: "0.7rem" }}>
                           ❓ Functional Status Uncertain: Upstream predecessor is undiscovered.
@@ -303,7 +333,7 @@ export default function ActionCardCardComponent({
                       )}
                       {pred?.capped_by && (
                         <div className="text-danger fw-semibold" style={{ fontSize: "0.7rem" }}>
-                          ⛓ Bottlenecked: Functional throughput capped at "{formatLevel(pred.effective_predicted)}" by {pred.capped_by}.
+                          ⛓ Bottlenecked: Functional throughput capped at "{formatAxisLevel(pred.axis ?? ac.axis ?? "automation", pred.predicted)}" by {pred.capped_by}.
                         </div>
                       )}
                     </div>

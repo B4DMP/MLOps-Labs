@@ -17,10 +17,8 @@ import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import ActionCardCardComponent from "./ActionCardCardComponent";
-import ComposeActionProposalModal, {
-  type AtomicChange,
-  formatLevelCap,
-} from "./ComposeActionProposalModal";
+import ComposeActionProposalModal, { type AtomicChange } from "./ComposeActionProposalModal";
+import { describeAtomicChange, findGraphTarget } from "../utils/graphOptions";
 import type { IntelItem } from "./PitchActionCardModal";
 import EngagementCards from "./EngagementCards";
 import type { EngagementCard } from "../types/EngagementCard";
@@ -842,16 +840,16 @@ export default function PitchDebate({
     if (!pitchState) return null;
     if (atomicChanges.length > 0) {
       const title = `Action Proposal (${atomicChanges.length} Change${atomicChanges.length > 1 ? "s" : ""})`;
+      // Each change is one authored option: name it by the option, with the axis step after it.
+      const described = atomicChanges.map((ac) => describeAtomicChange(ac, findGraphTarget(graphState?.technical, ac.target)));
       const description = atomicChanges
-        .map((ac) => {
-          const pred = pitchState.predictions?.find((p: any) => p.target === ac.target);
-          const next = pred?.predicted ?? ac.value;
+        .map((ac, idx) => {
           const isEdge = ac.target.startsWith("e.");
           const targetName = isEdge
             ? `Edge ${ac.target.replace(/^e\./, "").replace(/_/g, " ")}`
             : ac.target.split(".").pop()?.replace(/_/g, " ") || ac.target;
-
-          return `• Advance ${targetName} to ${formatLevelCap(next)}`;
+          const { title, detail } = described[idx];
+          return title === detail ? `• ${targetName}: ${detail}` : `• ${targetName}: ${title} (${detail})`;
         })
         .join(" ");
       return {
@@ -859,6 +857,7 @@ export default function PitchDebate({
         title,
         description,
         atomic_changes: atomicChanges,
+        atomic_change_labels: described.map((d) => d.title),
         predictions: pitchState.predictions || [],
         current_phase: currentPhase,
         challenge_id: currentChallenge,
@@ -879,7 +878,7 @@ export default function PitchDebate({
       } as ActionCard;
     }
     return null;
-  }, [pitchState, atomicChanges, selectedIntelIds, allIntelItems, currentPhase, currentChallenge]);
+  }, [pitchState, atomicChanges, selectedIntelIds, allIntelItems, currentPhase, currentChallenge, graphState]);
 
   // Inspect Intel handler
   const handleInspectIntel = (intel: RevealedIntel, stakeholderId?: string) => {
