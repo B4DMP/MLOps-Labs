@@ -134,14 +134,17 @@ class Context:
         return out
 
     def graph_slice(self, stage_id: str) -> dict:
-        """Components and edges of one stage, as the model should see them."""
+        """Components and edges of one stage, as the model should see them: start value and allowed
+        values per axis (automation and governance are independent, 00-plan.md §2.1)."""
         g = self.graph
         comps = [
             {
                 "id": c.id,
                 "name": c.name,
-                "start_level": c.initial_level,
-                "allowed_levels": c.allowed_levels,
+                "start_automation": c.initial_automation,
+                "start_governance": c.initial_governance,
+                "allowed_automation": c.allowed_automation,
+                "allowed_governance": c.allowed_governance,
                 "owner": g.owner_of(c.id),
                 "attributes": {k: a.values for k, a in c.attributes.items()},
             }
@@ -155,8 +158,11 @@ class Context:
                 "from": e.from_id,
                 "to": e.to_id,
                 "kind": e.kind,
-                "start_level": e.initial_level,
-                "allowed_levels": e.allowed_levels,
+                "start_automation": e.initial_automation,
+                "start_governance": e.initial_governance,
+                "start_trigger": e.initial_trigger,
+                "allowed_automation": e.allowed_automation,
+                "allowed_governance": e.allowed_governance,
                 "allowed_triggers": e.allowed_triggers,
             }
             for e in g.edges

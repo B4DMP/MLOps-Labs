@@ -36,12 +36,12 @@ class FragmentsStage:
         for c in g.components:
             if c.stage_id in stage_ids:
                 items.append(WorkItem(self.name, f"fragments:{c.id}", {
-                    "target": c.id, "kind": "component", "name": c.name, "levels": c.allowed_levels,
+                    "target": c.id, "kind": "component", "name": c.name, "levels": narrative_tiers(c),
                 }))
         for e in g.edges:
             if e.kind == "pipeline" and g.stage_of(e.id) in stage_ids:
                 items.append(WorkItem(self.name, f"fragments:{e.id}", {
-                    "target": e.id, "kind": "edge", "levels": e.allowed_levels,
+                    "target": e.id, "kind": "edge", "levels": narrative_tiers(e),
                     "name": f"hand over from {g.component(e.from_id).name} to {g.component(e.to_id).name}",
                 }))
         return items
@@ -65,3 +65,11 @@ class FragmentsStage:
 
     def summary(self, output: dict) -> str:
         return " / ".join(v for v in output.values() if v)[:120]
+
+
+def narrative_tiers(target) -> list[int]:
+    """The 0-4 storytelling tiers a target can reach from its two axes, the same set the game's
+    fragment gate (story.missing_specific_fragments) asks lines for."""
+    from mlops_serious_game.domain.graph import narrative_tier
+
+    return sorted({narrative_tier(a, g) for a in target.allowed_automation for g in target.allowed_governance})

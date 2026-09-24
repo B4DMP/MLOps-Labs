@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.stages.common import (
-    GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
+    AXES, GAME_RULES, GAME_WORDS, LEVEL_TALK, WISH_WORDS, domain_errors, op_dict, parse_json_field, render,
     system_for, text_errors, tokenize_names,
 )
 
@@ -24,9 +24,13 @@ EXAMPLE_READINGS = {
 }
 
 
+AxisName = Literal["automation", "governance"]
+
+
 class StanceOp(BaseModel):
     kind: Literal["raise_to", "set_trigger", "set_attr"]
     target: str
+    axis: Optional[AxisName] = Field(default=None, description="raise_to only (required there): which axis value is on")
     value: Union[int, str]
     attr: Optional[str] = None
 
@@ -75,14 +79,17 @@ class ItemOut(BaseModel):
     readings: Readings = Field(description="the second sentence for each of the four tags; the item's tag picks the true one")
     metric_id: Optional[str] = None
     suggested_target: Optional[str] = None
+    suggested_axis: Optional[AxisName] = Field(default=None, description="driver: axis of suggested_level")
     suggested_level: Optional[int] = None
     holds: Any = Field(default=None, description="boundary only: predicate object that must hold")
     ops: list[StanceOp] = Field(default_factory=list)
     concedes_metric: Optional[str] = None
     concedes_loss: Optional[int] = None
     concedes_target: Optional[str] = None
+    concedes_axis: Optional[AxisName] = Field(default=None, description="required with concedes_max_level")
     concedes_max_level: Optional[int] = None
     asserts_target: Optional[str] = None
+    asserts_axis: Optional[AxisName] = Field(default=None, description="required with asserts_level")
     asserts_level: Optional[int] = None
     asserts_trigger: Optional[str] = None
 
@@ -125,28 +132,37 @@ accept changes" are wrong: they could apply to any item and tell the player noth
   trade_off "Migrating to automated validation would mean rewriting those rules, which costs a sprint."
   fact      "That is simply how the validation setup works today."
 
+Every level in a payload is on one axis, automation or governance, and must name it. Pick the
+axis the item is really about: "automate it" is automation, "review it", "sign it off", "keep it
+by hand but controlled" is governance. Prefer asking for one step up on one axis over a big jump.
+
 Tags and payloads:
 - driver: something a stakeholder wants improved, more is better. Needs metric_id (one of the
-  metrics given), suggested_target (a component or edge in the focus stage) and suggested_level
-  (higher than its current level). The reading is a direction: more is better."
+  metrics given), suggested_target (a component or edge in the focus stage), suggested_axis and
+  suggested_level (higher than its current level on that axis). The reading is a direction: more
+  is better.
 - boundary: a line a stakeholder will not cross. Needs holds, a JSON predicate that must be
-  true after the player's proposal (e.g. {"component": "data.validation", "op": "gte", "level": 3}),
-  and ops that make it true (e.g. raise_to data.validation 3). The reading is a refusal.
+  true after the player's proposal (e.g. {"component": "data.validation", "axis": "automation",
+  "op": "gte", "level": 3}), and ops that make it true (e.g. {"kind": "raise_to", "target":
+  "data.validation", "axis": "automation", "value": 3}). The reading is a refusal.
 - trade_off: something a stakeholder would give up or accept losing. Needs concedes_metric with
-  concedes_loss (1 to 10), or concedes_target with concedes_max_level. May carry ops such as
-  set_attr sourcing bought. The reading is acceptance of a cost.
+  concedes_loss (1 to 10), or concedes_target with concedes_axis and concedes_max_level (the
+  highest level on that axis they would settle for). May carry ops such as set_attr sourcing
+  bought. The reading is acceptance of a cost.
 - fact: how the system is right now, nobody's wish. stakeholder_id null. Needs asserts_target (a
-  focus stage component or edge) and asserts_level equal to its CURRENT level given below (and
-  asserts_trigger for edges if you state it). Neutral wording with no wishes or opinions.
+  focus stage component or edge), asserts_axis and asserts_level equal to its CURRENT level on that
+  axis given below (and asserts_trigger for edges if you state it). Neutral wording with no wishes
+  or opinions.
 
-Predicate language: {"component": id, "op": "gte"|"lte"|..., "level": 0..4}, {"edge": id, ...},
-{"all": [...]}, {"any": [...]}, {"not": {...}}. Ops: raise_to (value = level), set_trigger (value
-= trigger), set_attr (attr = attribute name, value = one of its values)."""
+Predicate language: {"component": id, "axis": "automation"|"governance", "op": "gte"|"lte"|...,
+"level": 0..3}, {"edge": id, "axis": ..., ...}, {"all": [...]}, {"any": [...]}, {"not": {...}}.
+Ops: raise_to (axis = automation or governance, value = level on it), set_trigger (value =
+trigger), set_attr (attr = attribute name, value = one of its values)."""
 
 
 class ItemsStage:
     name = "items"
-    prompt_version = "i8"
+    prompt_version = "i9"  # i9: automation/governance axes
     upstream = "templates"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -203,7 +219,8 @@ class ItemsStage:
             "Stakeholders in the room:", render(i["roster"]),
             "Metrics:", render(i["metrics"]),
             "Focus stage graph:", render(i["graph"]),
-            "Current levels and triggers right after the challenge starts (facts must match these):", render(i["current"]),
+            "Current automation, governance and triggers right after the challenge starts (facts must match "
+            "these on the axis they name):", render(i["current"]),
             *feedback,
         ])
         out, usage = await llm.structured(ItemsOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
@@ -235,17 +252,19 @@ class ItemsStage:
                 "ops": [op_dict(o) for o in it.get("ops") or []],
             }
             if it.get("suggested_target") is not None and it.get("suggested_level") is not None:
-                data["suggested"] = {"target": it["suggested_target"], "level": it["suggested_level"]}
+                data["suggested"] = {"target": it["suggested_target"], "axis": it.get("suggested_axis"),
+                                     "level": it["suggested_level"]}
             if any(it.get(k) is not None for k in ("concedes_metric", "concedes_target")):
                 data["concedes"] = {
                     "metric_id": it.get("concedes_metric"),
                     "loss": it.get("concedes_loss"),
                     "target": it.get("concedes_target"),
+                    "axis": it.get("concedes_axis"),
                     "accepts_max_level": it.get("concedes_max_level"),
                 }
             if it.get("asserts_target") is not None:
-                data["asserts"] = {"target": it["asserts_target"], "level": it.get("asserts_level"),
-                                   "trigger": it.get("asserts_trigger")}
+                data["asserts"] = {"target": it["asserts_target"], "axis": it.get("asserts_axis"),
+                                   "level": it.get("asserts_level"), "trigger": it.get("asserts_trigger")}
             reqs.append(StakeholderRequirement.model_validate(data))
         return reqs
 
@@ -274,6 +293,7 @@ class ItemsStage:
                 errors += perr
                 if holds is not None and not perr:
                     errors += [f"{it['key']} holds: {e}" for e in validate_predicate(holds, g)]
+            errors += axis_errors(it, g)
         if errors:
             return errors
         try:
@@ -362,8 +382,9 @@ class ItemsStage:
                     errors.append(f"{where}: a fact states no wishes or refusals, rewrite it neutrally")
                 a = r.asserts
                 if a and a.target in current:
-                    if a.level is not None and a.level != current[a.target]["level"]:
-                        errors.append(f"{where}: {a.target} is at level {current[a.target]['level']}, not {a.level}")
+                    if a.level is not None and a.level != current[a.target][a.axis]:
+                        errors.append(f"{where}: {a.target} {a.axis} is at level {current[a.target][a.axis]}, "
+                                      f"not {a.level}")
                     if a.trigger is not None and a.trigger != current[a.target].get("trigger"):
                         errors.append(f"{where}: {a.target} trigger is {current[a.target].get('trigger')}, not {a.trigger}")
                 elif a:
@@ -375,9 +396,11 @@ class ItemsStage:
                 errors.append(f"{where}: the fact must name the stakeholder as {{{r.stakeholder_id}}}")
             if r.type == "driver":
                 if not (r.metric_id and r.suggested):
-                    errors.append(f"{where}: a driver needs metric_id and a suggested target and level")
-                elif r.suggested.target in current and r.suggested.level <= current[r.suggested.target]["level"]:
-                    errors.append(f"{where}: suggested level must be above the current level {current[r.suggested.target]['level']}")
+                    errors.append(f"{where}: a driver needs metric_id and a suggested target, axis and level")
+                elif (r.suggested.target in current
+                      and r.suggested.level <= current[r.suggested.target][r.suggested.axis]):
+                    errors.append(f"{where}: suggested {r.suggested.axis} level must be above the current "
+                                  f"{r.suggested.axis} level {current[r.suggested.target][r.suggested.axis]}")
                 elif r.suggested.target not in stage_targets:
                     errors.append(f"{where}: suggested target must be in the focus stage")
             if r.type == "boundary" and (r.holds is None or not r.ops):
@@ -412,7 +435,8 @@ class ItemsStage:
 
 
 def current_levels(ctx, challenge: dict) -> dict:
-    """Nominal level and trigger of every focus stage target right after the challenge's world event."""
+    """Nominal automation, governance and trigger of every focus stage target right after the
+    challenge's world event."""
     from mlops_serious_game.application.graph_service.apply import apply_ops
     from mlops_serious_game.domain.graph import GraphOp
 
@@ -422,11 +446,43 @@ def current_levels(ctx, challenge: dict) -> dict:
     out = {}
     for comp in g.components:
         if comp.stage_id == stage_id:
-            out[comp.id] = {"level": state.level(comp.id)}
+            out[comp.id] = {"automation": state.automation(comp.id), "governance": state.governance(comp.id)}
     for e in g.edges:
         if g.stage_of(e.id) == stage_id:
-            out[e.id] = {"level": state.level(e.id), "trigger": state.edge_triggers.get(e.id)}
+            out[e.id] = {"automation": state.automation(e.id), "governance": state.governance(e.id),
+                         "trigger": state.edge_triggers.get(e.id)}
     return out
+
+
+# (level field, axis field, target field, label) per payload that carries a level.
+_LEVEL_FIELDS = (
+    ("suggested_level", "suggested_axis", "suggested_target", "suggested"),
+    ("concedes_max_level", "concedes_axis", "concedes_target", "concedes"),
+    ("asserts_level", "asserts_axis", "asserts_target", "asserts"),
+)
+
+
+def axis_errors(it: dict, graph) -> list[str]:
+    """No level without an axis, and the level must be allowed on that axis of its target.
+
+    The game's load gate only checks this for `suggested`; a Fact or a concession with a level on
+    no axis would load and then compare against nothing, so it is caught here."""
+    errors = []
+    key = it.get("key")
+    for level_f, axis_f, target_f, label in _LEVEL_FIELDS:
+        level, axis, target = it.get(level_f), it.get(axis_f), it.get(target_f)
+        if level is None:
+            continue
+        if axis not in AXES:
+            errors.append(f"{key}: {level_f} needs {axis_f}, 'automation' or 'governance'")
+        elif target and graph.is_target(target) and level not in graph.allowed_for(target, axis):
+            errors.append(f"{key}: {label} {axis} level {level} is not allowed on '{target}', "
+                          f"allowed {graph.allowed_for(target, axis)}")
+    for n, op in enumerate(it.get("ops") or []):
+        get = op.get if isinstance(op, dict) else lambda k, o=op: getattr(o, k, None)
+        if get("kind") == "raise_to" and get("axis") not in AXES:
+            errors.append(f"{key}: ops[{n}] raise_to needs an axis, 'automation' or 'governance'")
+    return errors
 
 
 def wrong_readings(output: dict, requirement_id: str, slug: str) -> dict:

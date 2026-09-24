@@ -34,39 +34,40 @@ TEMPLATE = {
                    "before anyone trains again, #efficiency_emilia# thinks that is money spent on the wrong problem.",
     "round_introduction": "Overnight the export job failed and the labelling tool stopped with it. Nobody noticed until "
                           "the morning stand up.",
-    "preconditions": {"component": "data.validation", "op": "lte", "level": 1},
+    "preconditions": {"component": "data.validation", "axis": "automation", "op": "lte", "level": 1},
     "priority": 60,
     "on_enter_ops": [
-        {"kind": "set_to", "target": "data.ingestion", "value": "0", "reason": "the nightly export died"},
-        {"kind": "set_to", "target": "data.labeling", "value": "0", "reason": "the labelling tool lost its input"},
+        {"kind": "set_to", "target": "data.ingestion", "axis": "automation", "value": "0", "reason": "the nightly export died"},
+        {"kind": "set_to", "target": "data.labeling", "axis": "automation", "value": "0", "reason": "the labelling tool lost its input"},
     ],
-    "stalemate_ops": [{"kind": "set_to", "target": "e.validate_version", "value": "0", "reason": "nobody owned the hand over"}],
+    "stalemate_ops": [{"kind": "set_to", "target": "e.validate_version", "axis": "automation", "value": "0", "reason": "nobody owned the hand over"}],
     "conflict": {"target": "data.validation",
-                 "positions": [{"stakeholder_id": "data_dave", "wants": 3}, {"stakeholder_id": "efficiency_emilia", "wants": 1}]},
+                 "positions": [{"stakeholder_id": "data_dave", "axis": "automation", "wants": 3},
+                               {"stakeholder_id": "efficiency_emilia", "axis": "automation", "wants": 1}]},
 }
 
 ITEMS = {"items": [
     {"key": "dave_validation", "tag": "driver", "stakeholder_id": "data_dave",
      "fact": "{data_dave} wants every incoming batch validated automatically.",
      "readings": {"driver": "D: He would take any improvement he can get.", "boundary": "B: He would take any improvement he can get.", "trade_off": "T: He would take any improvement he can get.", "fact": "F: He would take any improvement he can get."},
-     "metric_id": "data", "suggested_target": "data.validation", "suggested_level": 3},
+     "metric_id": "data", "suggested_target": "data.validation", "suggested_axis": "automation", "suggested_level": 3},
     {"key": "dave_versioning", "tag": "trade_off", "stakeholder_id": "data_dave",
      "fact": "{data_dave} brought up versioning for each dataset.",
      "readings": {"driver": "D: More versioning is always better in his book.", "boundary": "B: He will not hand over a dataset that has no version.", "trade_off": "T: He would let versioning wait a sprint if ingestion gets fixed first.", "fact": "F: That is how the datasets are handled today."},
-     "concedes_target": "data.versioning", "concedes_max_level": 1},
+     "concedes_target": "data.versioning", "concedes_axis": "automation", "concedes_max_level": 1},
     {"key": "ruth_ingestion", "tag": "boundary", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the ingestion job running again.",
      "readings": {"driver": "D: She will not sign off on anything until it is.", "boundary": "B: She will not sign off on anything until it is.", "trade_off": "T: She will not sign off on anything until it is.", "fact": "F: She will not sign off on anything until it is."},
-     "holds": {"component": "data.ingestion", "op": "gte", "level": 2},
-     "ops": [{"kind": "raise_to", "target": "data.ingestion", "value": "2"}]},
+     "holds": {"component": "data.ingestion", "axis": "automation", "op": "gte", "level": 2},
+     "ops": [{"kind": "raise_to", "target": "data.ingestion", "axis": "automation", "value": "2"}]},
     {"key": "ruth_handover", "tag": "driver", "stakeholder_id": "reliability_ruth",
      "fact": "{reliability_ruth} wants the hand over into validation to run on its own.",
      "readings": {"driver": "D: Every step closer to that helps her.", "boundary": "B: Every step closer to that helps her.", "trade_off": "T: Every step closer to that helps her.", "fact": "F: Every step closer to that helps her."},
-     "metric_id": "reliability", "suggested_target": "e.ingest_validate", "suggested_level": 3},
+     "metric_id": "reliability", "suggested_target": "e.ingest_validate", "suggested_axis": "automation", "suggested_level": 3},
     {"key": "emilia_cost", "tag": "trade_off", "stakeholder_id": "efficiency_emilia",
      "fact": "{efficiency_emilia} agreed to discuss automated validation.",
      "readings": {"driver": "D: She can live with paying for it if the outages end.", "boundary": "B: She can live with paying for it if the outages end.", "trade_off": "T: She can live with paying for it if the outages end.", "fact": "F: She can live with paying for it if the outages end."},
-     "concedes_target": "data.validation", "concedes_max_level": 3},
+     "concedes_target": "data.validation", "concedes_axis": "automation", "concedes_max_level": 3},
     {"key": "reuben_contract", "tag": "trade_off", "stakeholder_id": "requirements_reuben",
      "fact": "{requirements_reuben} brought up the data contract on every ingestion run.",
      "readings": {"driver": "D: The closer the better, as far as he is concerned.", "boundary": "B: No run of his goes ahead without that contract.", "trade_off": "T: He would drop the contract on the smaller feeds to get the outage closed.", "fact": "F: That is what the ingestion setup does today."},
@@ -74,15 +75,15 @@ ITEMS = {"items": [
     {"key": "fact_ingestion", "tag": "fact",
      "fact": "The ingestion job has produced no new records since last night.",
      "readings": {"driver": "D: That is simply the current state of the pipeline.", "boundary": "B: That is simply the current state of the pipeline.", "trade_off": "T: That is simply the current state of the pipeline.", "fact": "F: That is simply the current state of the pipeline."},
-     "asserts_target": "data.ingestion", "asserts_level": 0},
+     "asserts_target": "data.ingestion", "asserts_axis": "automation", "asserts_level": 0},
     {"key": "fact_handover", "tag": "fact",
      "fact": "New data is moved into validation by hand, on request.",
      "readings": {"driver": "D: That is how it works today.", "boundary": "B: That is how it works today.", "trade_off": "T: That is how it works today.", "fact": "F: That is how it works today."},
-     "asserts_target": "e.ingest_validate", "asserts_level": 2, "asserts_trigger": "manual_request"},
+     "asserts_target": "e.ingest_validate", "asserts_axis": "automation", "asserts_level": 2, "asserts_trigger": "manual_request"},
     {"key": "fact_versioning", "tag": "fact",
      "fact": "Datasets are not versioned at all.",
      "readings": {"driver": "D: Nothing more to it than that.", "boundary": "B: Nothing more to it than that.", "trade_off": "T: Nothing more to it than that.", "fact": "F: Nothing more to it than that."},
-     "asserts_target": "data.versioning", "asserts_level": 1},
+     "asserts_target": "data.versioning", "asserts_axis": "automation", "asserts_level": 1},
 ]}
 
 FILLER = ("This note sums up where things stand with the data pipeline this week and what it means for the "
@@ -262,7 +263,7 @@ def test_rejected_answer_is_retried_with_the_errors_as_feedback(env):
 
 def test_template_that_does_no_damage_fails(env):
     ctx, ledger = env
-    harmless = dict(TEMPLATE, on_enter_ops=[{"kind": "set_to", "target": "data.validation", "value": "1", "reason": "x"}])
+    harmless = dict(TEMPLATE, on_enter_ops=[{"kind": "set_to", "target": "data.validation", "axis": "automation", "value": "1", "reason": "x"}])
     report = run("templates", ctx, ledger, FakeLLM(lambda *a: harmless), max_attempts=2)
     assert "on_enter_ops only moves" in report.failed["templates:p2:s0"]
     assert ledger.get("templates:p2:s0").status == "failed"
@@ -300,6 +301,25 @@ def test_items_checks_catch_false_facts_and_missing_conflict_trade_off(env):
     errors = STAGES["items"].check(bad, item, ctx)
     assert any("is at level 0, not 2" in e for e in errors)
     assert any("soft conflict" in e for e in errors)
+
+
+def test_items_checks_need_an_axis_on_every_level(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+
+    bad = json.loads(json.dumps(ITEMS))
+    del bad["items"][6]["asserts_axis"]
+    del bad["items"][1]["concedes_axis"]
+    del bad["items"][2]["ops"][0]["axis"]
+    bad["items"][0]["suggested_axis"] = "governance"  # data.validation allows governance 0 or 3 only
+    bad["items"][0]["suggested_level"] = 2
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("asserts_level needs asserts_axis" in e for e in errors)
+    assert any("concedes_max_level needs concedes_axis" in e for e in errors)
+    assert any("raise_to needs an axis" in e for e in errors)
+    assert any("governance level 2 is not allowed on 'data.validation'" in e for e in errors)
 
 
 def test_items_checks_keep_game_words_out_of_the_dossier(env):

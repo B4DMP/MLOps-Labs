@@ -9,7 +9,14 @@ from pydantic import BaseModel
 DASHES = re.compile(r"—|–|--")
 MARKDOWN = re.compile(r"(\*\*|__|^#+\s|^\s*[-*]\s)", re.M)
 WISH_WORDS = re.compile(r"\b(want|wants|wish|prefer|prefers|insist|insists|refuse|refuses|demand|demands|hope|hopes)\b", re.I)
+# The 0-4 storytelling tier (domain.graph.narrative_tier), used only for story fragments. Gameplay
+# levels live on two separate axes, see AXIS_NAMES.
 LEVEL_NAMES = ["broken", "absent", "manual", "automated", "governed"]
+AXES = ("automation", "governance")
+AXIS_NAMES = {
+    "automation": ["broken", "absent", "manual", "automated"],
+    "governance": ["none", "partial_1", "partial_2", "full"],
+}
 # Shared across templates.py and items.py gates (code-review finding: they each had their own,
 # identically-named but subtly different, copy of this - templates.py's also matched decimals
 # like "2.5", items.py's didn't). One shared, more inclusive pattern for both.
@@ -29,7 +36,12 @@ GAME_WORDS = re.compile(r"\b(components?|stages?)\b", re.I)
 
 GAME_RULES = """You write content for a serious game about stakeholder management in MLOps projects.
 The player is the project manager. The game state is a technical graph of MLOps components and the
-workflows (edges) between them. Levels: 0 broken, 1 absent, 2 manual, 3 automated, 4 governed.
+workflows (edges) between them. Every component and edge sits on two independent axes:
+  automation: 0 broken, 1 absent, 2 manual (done by hand), 3 automated (done by tooling)
+  governance: 0 none (nobody reviews it), 1 and 2 partial review, 3 full (formal, strict sign off)
+A target can be manual but fully governed, or automated with no governance at all. Every level you
+write belongs to exactly one axis and must name it ("axis": "automation" or "governance"); only the
+values in a target's allowed_automation / allowed_governance lists are valid on that axis.
 Use only ids that appear in the lists you are given. Never invent ids.
 Never use dashes of any kind (no em dash, no en dash, no double hyphen). Use commas or periods.
 No markdown, no headings, no bullet lists inside text fields."""
