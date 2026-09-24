@@ -205,6 +205,96 @@ def test_a_null_voice_clears_the_stored_choice(migrated_db):
     assert svc.update_settings("alice", {"voice_male": None})["voice_male"] is None
 
 
+def test_tts_backend_round_trips(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    result = svc.update_settings("alice", {"tts_backend": "webspeech"})
+
+    assert result["tts_backend"] == "webspeech"
+    assert svc.get_settings("alice")["tts_backend"] == "webspeech"
+
+
+def test_an_unknown_tts_backend_value_is_dropped(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+    svc.update_settings("alice", {"tts_backend": "webspeech"})
+
+    result = svc.update_settings("alice", {"tts_backend": "carrier-pigeon"})
+
+    assert result["tts_backend"] == "webspeech"  # unchanged, the bad value was dropped
+
+
+def test_tts_backend_defaults_to_auto(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    assert svc.get_settings("alice")["tts_backend"] == "auto"
+
+
+def test_player_voice_gender_defaults_to_male(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    assert svc.get_settings("alice")["player_voice_gender"] == "male"
+
+
+def test_player_voice_gender_round_trips(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    result = svc.update_settings("alice", {"player_voice_gender": "female"})
+
+    assert result["player_voice_gender"] == "female"
+    assert svc.get_settings("alice")["player_voice_gender"] == "female"
+
+
+def test_an_unknown_player_voice_gender_value_is_dropped(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+    svc.update_settings("alice", {"player_voice_gender": "female"})
+
+    result = svc.update_settings("alice", {"player_voice_gender": "carrier-pigeon"})
+
+    assert result["player_voice_gender"] == "female"  # unchanged, the bad value was dropped
+
+
+def test_speech_rate_defaults_to_one(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    assert svc.get_settings("alice")["speech_rate"] == 1.0
+
+
+def test_speech_rate_round_trips(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+
+    result = svc.update_settings("alice", {"speech_rate": 1.25})
+
+    assert result["speech_rate"] == 1.25
+    assert svc.get_settings("alice")["speech_rate"] == 1.25
+
+
+def test_an_out_of_range_speech_rate_is_dropped(migrated_db):
+    from mlops_serious_game.application.services import user_settings_service as svc
+
+    _seed_user()
+    svc.update_settings("alice", {"speech_rate": 1.25})
+
+    result = svc.update_settings("alice", {"speech_rate": 5.0})
+
+    assert result["speech_rate"] == 1.25  # unchanged, the out-of-range value was dropped
+
+
 # ---------- payload sanitation ----------
 
 def test_unknown_and_wrongly_typed_fields_are_dropped(migrated_db):
@@ -317,6 +407,9 @@ async def test_handle_settings_get_sends_defaults_plus_can_reset_account(migrate
             "voice_female": None,
             "voice_narrator": None,
             "voice_player": None,
+            "tts_backend": "auto",
+            "player_voice_gender": "male",
+            "speech_rate": 1.0,
             "can_reset_account": True,
             "can_playtest": False,
         },

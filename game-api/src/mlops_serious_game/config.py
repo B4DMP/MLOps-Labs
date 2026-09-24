@@ -167,6 +167,11 @@ class Settings(BaseSettings):
     # on in production - it exists so a local dev environment doesn't need SMTP configured or a
     # test campaign set up in the admin panel just to create a throwaway account.
     ENABLE_DEV_ACCOUNTS: bool = False
+    # Server-side narration via edge-tts (docs/plans/player-settings-and-tts.md). It calls
+    # Microsoft's unofficial Edge read-aloud backend, so this is the kill switch if that endpoint
+    # ever breaks or gets rate-limited: flipping it off makes the route 503 and every client falls
+    # back to window.speechSynthesis automatically, no frontend deploy needed.
+    TTS_BACKEND_ENABLED: bool = True
 
     # --- Paths Configuration ---
     EVALUATION_DATASET_FILE_PATH: Path = Path("data/evaluation_dataset.json")

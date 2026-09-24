@@ -12,6 +12,7 @@ from loguru import logger
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 
+from mlops_serious_game.application.services import user_settings_service
 from mlops_serious_game.application.services.email_service import build_code_email, send_email
 from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.database import (
@@ -276,6 +277,7 @@ async def register_user(
     password_confirm: str,
     users_on_machine: int,
     campaign_key: str,
+    player_voice_gender: str | None = None,
 ) -> dict:
     username = username.strip() if username else ""
     email = email.strip() if email else ""
@@ -283,6 +285,10 @@ async def register_user(
     password = password or ""
     password_confirm = password_confirm or ""
     campaign_key = campaign_key.strip() if campaign_key else ""
+    # A preference, not a security field - garbage or an unset value quietly falls back to the
+    # default rather than failing registration over it.
+    if player_voice_gender not in user_settings_service.PLAYER_VOICE_GENDER_VALUES:
+        player_voice_gender = user_settings_service.DEFAULT_SETTINGS["player_voice_gender"]
 
     if campaign_key == settings.ADMIN_KEY and username == settings.ADMIN_USER:
         access_token = create_access_token(
@@ -351,29 +357,36 @@ async def register_user(
                 is_verified=True,
             )
             session.add(new_user)
-            return {
-                "success": True,
-                "is_admin": False,
-                "skip_verification": True,
-                "username": username,
-                "token": _create_player_token(username),
-            }
+        else:
+            code = _generate_code()
+            new_user = User(
+                user_name=username,
+                campaign_key=campaign_key,
+                campaign_id=campaign.id,
+                email=email,
+                password_hash=_hash_password(password),
+                users_on_machine=users_on_machine,
+                is_verified=False,
+                verification_code=code,
+                verification_code_expires_at=(
+                    datetime.datetime.utcnow() + timedelta(minutes=settings.VERIFICATION_CODE_TTL_MINUTES)
+                ),
+            )
+            session.add(new_user)
 
-        code = _generate_code()
-        new_user = User(
-            user_name=username,
-            campaign_key=campaign_key,
-            campaign_id=campaign.id,
-            email=email,
-            password_hash=_hash_password(password),
-            users_on_machine=users_on_machine,
-            is_verified=False,
-            verification_code=code,
-            verification_code_expires_at=(
-                datetime.datetime.utcnow() + timedelta(minutes=settings.VERIFICATION_CODE_TTL_MINUTES)
-            ),
-        )
-        session.add(new_user)
+    # The `with` block above has now committed the new user, so `user_settings_service` (which
+    # opens its own session) can resolve `user_id` and seed the row - it would be a silent no-op
+    # if called any earlier.
+    user_settings_service.update_settings(username, {"player_voice_gender": player_voice_gender})
+
+    if skip_email_verification:
+        return {
+            "success": True,
+            "is_admin": False,
+            "skip_verification": True,
+            "username": username,
+            "token": _create_player_token(username),
+        }
 
     try:
         await _send_code_email(email, username, code, "verification")
