@@ -11,7 +11,8 @@
       "metric_id": "model",
       "suggested": {
         "target": "req.kpi_definition",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -31,7 +32,20 @@
       "ops": [],
       "concedes": {
         "target": "req.kpi_definition",
-        "accepts_max_level": 4
+        "accepts_max_level": 3,
+        "axis": "governance"
+      },
+      "branch_x": {
+        "description": "the KPI definition brought under full governance, since it clearly supports the agreed business goals",
+        "target": "req.kpi_definition",
+        "level": 3,
+        "axis": "governance"
+      },
+      "branch_y": {
+        "description": "the KPI definition kept manual",
+        "target": "req.kpi_definition",
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -50,7 +64,8 @@
       "ops": [],
       "concedes": {
         "target": "req.acceptance_criteria",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -68,7 +83,8 @@
       "ops": [],
       "concedes": {
         "target": "req.risk_assessment",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -86,7 +102,8 @@
       "metric_id": "model",
       "suggested": {
         "target": "req.data_contracts",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -105,13 +122,15 @@
       "holds": {
         "component": "req.kpi_definition",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.kpi_definition",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -132,7 +151,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.kpi_definition",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -148,7 +168,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.acceptance_criteria",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -164,7 +185,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.risk_assessment",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -178,7 +200,8 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "req.data_contracts",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -198,17 +221,20 @@
       "ops": [],
       "concedes": {
         "target": "req.data_contracts",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x": {
         "description": "the data contracts fully governed with automated consent checks",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "manual review of the data contracts",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -227,18 +253,40 @@
       "holds": {
         "component": "req.kpi_definition",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.kpi_definition",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
+    },
+    {
+      "id": "gen_loyalty_consent_gap_reuben_kpi_documentation",
+      "challenge_id": 114,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} asked for the KPI definitions to be formally documented before model evaluation resumes. A documented KPI baseline unblocks model evaluation for the loyalty basket forecasts.",
+      "fact": "{requirements_reuben} asked for the KPI definitions to be formally documented before model evaluation resumes.",
+      "reading": "A documented KPI baseline unblocks model evaluation for the loyalty basket forecasts.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 2,
+        "axis": "automation"
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Formal documentation of the KPI baseline has been raised as a blocker by {requirements_reuben}."
     },
     {
       "id": "gen_loyalty_consent_gap_emilia_efficiency_focus",
@@ -257,12 +305,14 @@
       "branch_x": {
         "description": "consent checks fully automated in the data contracts",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "a faster, manual contract review",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -285,12 +335,14 @@
       "branch_x": {
         "description": "the data contracts fully governed and automated",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "a temporary manual step in contract review",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -308,7 +360,8 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -329,7 +382,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.data_contracts",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -345,7 +399,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.kpi_definition",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -361,7 +416,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.risk_assessment",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -376,13 +432,15 @@
       "holds": {
         "component": "req.acceptance_criteria",
         "op": "gte",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.acceptance_criteria",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -407,12 +465,14 @@
       "branch_x": {
         "description": "the acceptance criteria fully governed",
         "target": "req.acceptance_criteria",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "the acceptance criteria kept as a basic manual check",
         "target": "req.acceptance_criteria",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -430,13 +490,15 @@
       "metric_id": "efficiency",
       "suggested": {
         "target": "req.kpi_definition",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.kpi_definition",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -458,17 +520,20 @@
         "metric_id": "automation",
         "loss": 3,
         "target": "req.data_contracts",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x": {
         "description": "the data contracts fully automated",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "the data contracts kept manual for this release",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -485,13 +550,15 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "req.acceptance_criteria",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "req.acceptance_criteria",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -516,12 +583,14 @@
       "branch_x": {
         "description": "the promotion week's KPIs calculated automatically",
         "target": "req.kpi_definition",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "a lower, manually tracked level of cost reporting",
         "target": "req.kpi_definition",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -541,7 +610,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.acceptance_criteria",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -557,7 +627,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.kpi_definition",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -573,7 +644,8 @@
       "atoms": [],
       "asserts": {
         "target": "req.risk_assessment",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -587,7 +659,8 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "data.ingestion",
-        "level": 4
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -607,7 +680,8 @@
       "ops": [],
       "concedes": {
         "target": "data.ingestion",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -626,18 +700,40 @@
       "holds": {
         "component": "data.validation",
         "op": "gte",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
+    },
+    {
+      "id": "gen_silent_ingestion_failure_reuben_driver_validation_governance",
+      "challenge_id": 120,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} pushed for governed validation checks before any data reaches the feature store. Governed validation checks give the requirements team an auditable gate against another silent store gap.",
+      "fact": "{requirements_reuben} pushed for governed validation checks before any data reaches the feature store.",
+      "reading": "Governed validation checks give the requirements team an auditable gate against another silent store gap.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "data.validation",
+        "level": 3,
+        "axis": "governance"
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Governed validation checks ahead of the feature store have been raised by {requirements_reuben}."
     },
     {
       "id": "gen_silent_ingestion_failure_emilia_tradeoff_feature",
@@ -653,7 +749,8 @@
         "metric_id": "efficiency",
         "loss": 5,
         "target": "data.feature_store",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -672,7 +769,8 @@
       "ops": [],
       "concedes": {
         "target": "data.versioning",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -690,7 +788,8 @@
       "metric_id": "data",
       "suggested": {
         "target": "data.validation",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -711,7 +810,8 @@
       "atoms": [],
       "asserts": {
         "target": "data.ingestion",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -727,7 +827,8 @@
       "atoms": [],
       "asserts": {
         "target": "data.validation",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -744,7 +845,8 @@
       "asserts": {
         "target": "e.ingest_validate",
         "level": 2,
-        "trigger": "manual_request"
+        "trigger": "manual_request",
+        "axis": "automation"
       }
     },
     {
@@ -758,13 +860,15 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "data.validation",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -784,13 +888,15 @@
       "holds": {
         "component": "data.validation",
         "op": "lte",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 1
+          "value": 1,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -812,7 +918,8 @@
         "metric_id": "automation",
         "loss": 3,
         "target": "data.ingestion",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -833,7 +940,8 @@
         "metric_id": "efficiency",
         "loss": 4,
         "target": "data.validation",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -854,7 +962,20 @@
         "metric_id": "requirements",
         "loss": 2,
         "target": "data.validation",
-        "accepts_max_level": 3
+        "accepts_max_level": 3,
+        "axis": "automation"
+      },
+      "branch_x": {
+        "description": "data validation kept rigorously tested and formally governed",
+        "target": "data.validation",
+        "level": 3,
+        "axis": "governance"
+      },
+      "branch_y": {
+        "description": "data validation fully automated, with lighter manual testing rigor",
+        "target": "data.validation",
+        "level": 3,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -872,13 +993,15 @@
       "metric_id": "efficiency",
       "suggested": {
         "target": "data.validation",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "data.validation",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -899,7 +1022,8 @@
       "atoms": [],
       "asserts": {
         "target": "data.validation",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -915,7 +1039,8 @@
       "atoms": [],
       "asserts": {
         "target": "data.ingestion",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -932,7 +1057,8 @@
       "asserts": {
         "target": "e.ingest_validate",
         "level": 2,
-        "trigger": "manual_request"
+        "trigger": "manual_request",
+        "axis": "automation"
       }
     },
     {
@@ -948,7 +1074,8 @@
       "atoms": [],
       "asserts": {
         "target": "data.feature_store",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -962,13 +1089,15 @@
       "metric_id": "model",
       "suggested": {
         "target": "model.evaluation",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.evaluation",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -987,18 +1116,21 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "model.evaluation",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "holds": {
         "component": "model.evaluation",
         "op": "lte",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.evaluation",
-          "value": 1
+          "value": 1,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1016,14 +1148,16 @@
       "metric_id": "data",
       "suggested": {
         "target": "model.training_pipeline",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [],
       "concedes": {
         "metric_id": "data",
         "loss": 3,
         "target": "model.training_pipeline",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1041,13 +1175,15 @@
       "metric_id": "efficiency",
       "suggested": {
         "target": "model.evaluation",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.evaluation",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1066,12 +1202,14 @@
       "metric_id": "model",
       "suggested": {
         "target": "model.evaluation",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "concedes": {
         "target": "model.evaluation",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1089,14 +1227,16 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "model.evaluation",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "ops": [],
       "concedes": {
         "metric_id": "requirements",
         "loss": 2,
         "target": "model.evaluation",
-        "accepts_max_level": 1
+        "accepts_max_level": 1,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1116,7 +1256,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.evaluation",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -1132,7 +1273,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.training_pipeline",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1148,7 +1290,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.registry",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -1164,7 +1307,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.hpo",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -1180,7 +1324,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.registry",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -1194,13 +1339,15 @@
       "holds": {
         "component": "model.registry",
         "op": "lte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.registry",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1219,13 +1366,15 @@
       "metric_id": "model",
       "suggested": {
         "target": "model.registry",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.registry",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -1250,12 +1399,14 @@
       "branch_x": {
         "description": "a fully automated model registry",
         "target": "model.registry",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "a manual model registry",
         "target": "model.registry",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1273,13 +1424,15 @@
       "metric_id": "data",
       "suggested": {
         "target": "model.training_pipeline",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "model.training_pipeline",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1304,12 +1457,14 @@
       "branch_x": {
         "description": "a fully automated, governed evaluation process",
         "target": "model.evaluation",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "the current, manual evaluation process",
         "target": "model.evaluation",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1329,7 +1484,8 @@
         {
           "kind": "raise_to",
           "target": "model.experiment_tracking",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "concedes": {
@@ -1339,12 +1495,14 @@
       "branch_x": {
         "description": "automated experiment tracking",
         "target": "model.experiment_tracking",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "the current, manual logging process",
         "target": "model.experiment_tracking",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1363,7 +1521,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.evaluation",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1379,7 +1538,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.training_pipeline",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1395,7 +1555,8 @@
       "atoms": [],
       "asserts": {
         "target": "model.hpo",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -1409,7 +1570,8 @@
       "metric_id": "automation",
       "suggested": {
         "target": "deploy.cicd",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -1429,13 +1591,15 @@
       "holds": {
         "component": "deploy.cicd",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "deploy.cicd",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1460,17 +1624,20 @@
       ],
       "concedes": {
         "target": "deploy.cicd",
-        "accepts_max_level": 3
+        "accepts_max_level": 3,
+        "axis": "automation"
       },
       "branch_x": {
         "description": "pushing the deployment pipeline to full automation",
         "target": "deploy.cicd",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "the pipeline moving with a manual approval gate",
         "target": "deploy.cicd",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1494,12 +1661,14 @@
       "branch_x": {
         "description": "the deployment pipeline held at the audited, compliance-checked level",
         "target": "deploy.cicd",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_y": {
         "description": "the deployment pipeline moving to full automation",
         "target": "deploy.cicd",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1517,7 +1686,8 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "deploy.serving",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [],
       "branch_x_atoms": [],
@@ -1538,7 +1708,8 @@
         {
           "kind": "raise_to",
           "target": "deploy.orchestration",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "concedes": {
@@ -1548,12 +1719,14 @@
       "branch_x": {
         "description": "cost control relaxed for the new model version",
         "target": "deploy.orchestration",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_y": {
         "description": "cost control held at its current, strict level",
         "target": "deploy.orchestration",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1573,7 +1746,8 @@
       "atoms": [],
       "asserts": {
         "target": "deploy.cicd",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -1590,7 +1764,8 @@
       "asserts": {
         "target": "e.registry_cicd",
         "level": 2,
-        "trigger": "manual_request"
+        "trigger": "manual_request",
+        "axis": "automation"
       }
     },
     {
@@ -1606,7 +1781,8 @@
       "atoms": [],
       "asserts": {
         "target": "deploy.serving",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1622,7 +1798,8 @@
       "atoms": [],
       "asserts": {
         "target": "deploy.canary_ab",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -1636,13 +1813,15 @@
       "holds": {
         "component": "deploy.shadow",
         "op": "gte",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "deploy.shadow",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -1670,12 +1849,14 @@
       "branch_x": {
         "description": "governing the shadow environment on its own",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "leaving the shadow deployment a manual step",
         "target": "deploy.shadow",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1689,7 +1870,8 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "e.cicd_shadow",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
@@ -1714,13 +1896,15 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "deploy.shadow",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "deploy.shadow",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -1747,12 +1931,14 @@
       "branch_x": {
         "description": "running an automated shadow environment",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "accepting a manual shadow run instead",
         "target": "deploy.shadow",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1775,12 +1961,14 @@
       "branch_x": {
         "description": "automating the shadow environment's orchestration",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "keeping the shadow orchestration a manual step",
         "target": "deploy.shadow",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1796,7 +1984,8 @@
       "atoms": [],
       "asserts": {
         "target": "deploy.shadow",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -1813,7 +2002,8 @@
       "asserts": {
         "target": "e.cicd_shadow",
         "level": 1,
-        "trigger": "none"
+        "trigger": "none",
+        "axis": "automation"
       }
     },
     {
@@ -1829,7 +2019,8 @@
       "atoms": [],
       "asserts": {
         "target": "deploy.serving",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -1843,13 +2034,15 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "ops.performance_monitoring",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.performance_monitoring",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -1869,12 +2062,26 @@
         {
           "kind": "raise_to",
           "target": "ops.performance_monitoring",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "concedes": {
         "target": "ops.performance_monitoring",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
+      },
+      "branch_x": {
+        "description": "model performance monitoring moved to a governed, automated state",
+        "target": "ops.performance_monitoring",
+        "level": 3,
+        "axis": "governance"
+      },
+      "branch_y": {
+        "description": "a manual monthly audit of the performance monitoring logs",
+        "target": "ops.performance_monitoring",
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1892,13 +2099,15 @@
       "metric_id": "model",
       "suggested": {
         "target": "ops.production_drift_monitoring",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -1917,23 +2126,46 @@
       "metric_id": "requirements",
       "suggested": {
         "target": "ops.observability",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "holds": {
         "component": "ops.observability",
         "op": "gte",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.observability",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": []
+    },
+    {
+      "id": "gen_silent_forecast_failure_reuben_driver_observability",
+      "challenge_id": 119,
+      "stakeholder_id": "requirements_reuben",
+      "type": "driver",
+      "description": "{requirements_reuben} pushed for automated observability across the logging pipeline before approving any changes. Automated observability lets the requirements team confirm forecast job health without manually diving into logs.",
+      "fact": "{requirements_reuben} pushed for automated observability across the logging pipeline before approving any changes.",
+      "reading": "Automated observability lets the requirements team confirm forecast job health without manually diving into logs.",
+      "metric_id": "requirements",
+      "suggested": {
+        "target": "ops.observability",
+        "level": 3,
+        "axis": "automation"
+      },
+      "ops": [],
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "Automated observability for the forecast job logging pipeline has been raised by {requirements_reuben}."
     },
     {
       "id": "gen_silent_forecast_failure_ruth_tradeoff_alerting",
@@ -1947,12 +2179,14 @@
         {
           "kind": "raise_to",
           "target": "ops.alerting",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "concedes": {
         "target": "ops.alerting",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1971,12 +2205,14 @@
         {
           "kind": "raise_to",
           "target": "ops.retraining_trigger",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "concedes": {
         "target": "ops.retraining_trigger",
-        "accepts_max_level": 2
+        "accepts_max_level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1996,7 +2232,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.performance_monitoring",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -2012,7 +2249,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.alerting",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -2029,7 +2267,8 @@
       "asserts": {
         "target": "e.perf_alert",
         "level": 0,
-        "trigger": "none"
+        "trigger": "none",
+        "axis": "automation"
       }
     },
     {
@@ -2046,7 +2285,8 @@
       "asserts": {
         "target": "e.observe_perf",
         "level": 1,
-        "trigger": "none"
+        "trigger": "none",
+        "axis": "automation"
       }
     },
     {
@@ -2063,7 +2303,8 @@
       "asserts": {
         "target": "e.drift_alert",
         "level": 1,
-        "trigger": "none"
+        "trigger": "none",
+        "axis": "automation"
       }
     },
     {
@@ -2078,7 +2319,8 @@
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 0
+          "value": 0,
+          "axis": "automation"
         }
       ],
       "concedes": {
@@ -2088,12 +2330,14 @@
       "branch_x": {
         "description": "governed, automated drift monitoring",
         "target": "ops.production_drift_monitoring",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "branch_y": {
         "description": "drift monitoring cut back to the bare minimum",
         "target": "ops.production_drift_monitoring",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2110,13 +2354,15 @@
       "metric_id": "reliability",
       "suggested": {
         "target": "ops.production_drift_monitoring",
-        "level": 4
+        "level": 3,
+        "axis": "governance"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 4
+          "value": 3,
+          "axis": "governance"
         }
       ],
       "branch_x_atoms": [],
@@ -2135,13 +2381,15 @@
       "holds": {
         "component": "ops.production_drift_monitoring",
         "op": "gte",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.production_drift_monitoring",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -2161,7 +2409,8 @@
         {
           "kind": "raise_to",
           "target": "e.alert_retrain",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "concedes": {
@@ -2171,12 +2420,14 @@
       "branch_x": {
         "description": "drift alerts triggering retraining automatically",
         "target": "e.alert_retrain",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "branch_y": {
         "description": "the retraining trigger staying a manual step",
         "target": "e.alert_retrain",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2195,7 +2446,8 @@
         {
           "kind": "raise_to",
           "target": "ops.observability",
-          "value": 2
+          "value": 2,
+          "axis": "automation"
         }
       ],
       "concedes": {
@@ -2205,12 +2457,14 @@
       "branch_x": {
         "description": "full, granular logging",
         "target": "ops.observability",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "branch_y": {
         "description": "the current, lower-granularity logging level",
         "target": "ops.observability",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2227,13 +2481,15 @@
       "metric_id": "efficiency",
       "suggested": {
         "target": "ops.observability",
-        "level": 3
+        "level": 3,
+        "axis": "automation"
       },
       "ops": [
         {
           "kind": "raise_to",
           "target": "ops.observability",
-          "value": 3
+          "value": 3,
+          "axis": "automation"
         }
       ],
       "branch_x_atoms": [],
@@ -2254,7 +2510,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.production_drift_monitoring",
-        "level": 0
+        "level": 0,
+        "axis": "automation"
       }
     },
     {
@@ -2270,7 +2527,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.alerting",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     },
     {
@@ -2286,7 +2544,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.observability",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       }
     },
     {
@@ -2302,7 +2561,8 @@
       "atoms": [],
       "asserts": {
         "target": "ops.retraining_trigger",
-        "level": 1
+        "level": 1,
+        "axis": "automation"
       }
     }
   ]
