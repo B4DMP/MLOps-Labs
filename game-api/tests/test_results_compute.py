@@ -143,6 +143,121 @@ def test_escalation_nudges_the_score_down_without_erasing_it():
     assert pillar.score > 0.8
 
 
+# ── Gate 7 (GDD.txt "CAPTURE Gate 7") ────────────────────────────────────────
+
+
+def test_metric_compliance_counts_metrics_at_or_above_the_threshold():
+    metrics = [{"id": "model", "ratio": 0.6}, {"id": "data", "ratio": 0.4}]
+    pillar = c.metric_compliance(metrics, ratio_threshold=0.5)
+    assert pillar.score == pytest.approx(0.5)
+    assert pillar.detail["compliant"] == ["model"]
+
+
+def test_metric_compliance_with_no_metrics_scores_zero_with_a_reason():
+    pillar = c.metric_compliance([])
+    assert pillar.score == 0.0
+    assert "reason" in pillar.detail
+
+
+def test_change_scope_counts_absent_or_below_as_still_planned():
+    rows = [
+        {"nominal_automation": 0, "has_debt": False},  # broken: still planned
+        {"nominal_automation": 1, "has_debt": False},  # absent: still planned
+        {"nominal_automation": 2, "has_debt": False},  # manual: realized
+    ]
+    assert c.change_scope(rows).score == pytest.approx(2 / 3)
+
+
+def test_change_scope_weights_a_debt_carrying_gap_more_heavily():
+    """A target that was fought over (soft failure / overridden veto) and still didn't land
+    signals more than one nobody ever contested."""
+    plain_gap = c.change_scope([
+        {"nominal_automation": 1, "has_debt": False}, {"nominal_automation": 2, "has_debt": False},
+    ])
+    contested_gap = c.change_scope([
+        {"nominal_automation": 1, "has_debt": True}, {"nominal_automation": 2, "has_debt": False},
+    ])
+    assert contested_gap.score > plain_gap.score
+
+
+def test_change_scope_with_no_observed_targets_scores_zero_with_a_reason():
+    pillar = c.change_scope([])
+    assert pillar.score == 0.0
+    assert "reason" in pillar.detail
+
+
+def test_drift_magnitude_is_the_debt_weighted_share_of_targets_carrying_debt():
+    rows = [{"nominal_automation": 2, "has_debt": True}, {"nominal_automation": 2, "has_debt": False}]
+    pillar = c.drift_magnitude(rows)
+    # The debt-carrying row counts double (GATE7_DEBT_WEIGHT): 2 / (2 + 1).
+    assert pillar.score == pytest.approx(2 / 3)
+    assert pillar.detail["targets_with_debt"] == 1
+
+
+def test_gate7_retirement_fires_on_unviable_satisfaction_or_compliance_before_anything_else():
+    """7e overrides even a spotless graph: an unhappy room or missed KPIs make the system not
+    worth continuing regardless of how little is left unbuilt."""
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.1, metric_compliance_score=0.9,
+        change_scope_score=0.0, drift_magnitude_score=0.0,
+    )
+    assert result.code == "7e"
+    assert result.allowed_modes == ["fresh"]
+
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.9, metric_compliance_score=0.1,
+        change_scope_score=0.0, drift_magnitude_score=0.0,
+    )
+    assert result.code == "7e"
+
+
+def test_gate7_major_iteration_fires_on_large_change_scope_when_viable():
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.8, metric_compliance_score=0.8,
+        change_scope_score=0.9, drift_magnitude_score=0.0,
+    )
+    assert result.code == "7a"
+    assert result.allowed_modes == ["fresh"]
+
+
+def test_gate7_continuous_monitoring_is_the_clean_win():
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.9, metric_compliance_score=0.9,
+        change_scope_score=0.05, drift_magnitude_score=0.05,
+    )
+    assert result.code == "7d"
+    assert result.result == "win"
+    assert result.allowed_modes == ["fresh", "spiral"]
+
+
+def test_gate7_model_update_fires_on_high_drift_when_otherwise_sound():
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.8, metric_compliance_score=0.8,
+        change_scope_score=0.3, drift_magnitude_score=0.5,
+    )
+    assert result.code == "7c"
+    assert result.result == "win_with_debt"
+    assert result.allowed_modes == ["fresh", "spiral"]
+
+
+def test_gate7_minor_iteration_is_the_middle_ground():
+    result = c.gate7_outcome(
+        stakeholder_satisfaction=0.8, metric_compliance_score=0.8,
+        change_scope_score=0.3, drift_magnitude_score=0.2,
+    )
+    assert result.code == "7b"
+    assert result.result == "win_with_debt"
+    assert result.allowed_modes == ["fresh", "spiral"]
+
+
+def test_gate7_readings_are_reported_for_the_results_screen():
+    result = c.gate7_outcome(0.8, 0.8, 0.3, 0.2)
+    assert result.readings == {
+        "stakeholder_satisfaction": 0.8, "metric_compliance": 0.8,
+        "change_scope": 0.3, "drift_magnitude": 0.2,
+    }
+
+
 # ── Reading outcomes off the event log ───────────────────────────────────────
 
 
