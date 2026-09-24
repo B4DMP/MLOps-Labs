@@ -925,10 +925,44 @@ def evaluate_pitch(
     return new_pitch_state, view, items_to_correct
 
 
+def _describe_change(graph: TechnicalGraph, change: "AtomicChange") -> Optional[str]:
+    """A short player-facing phrase for one proposed graph change, e.g. "raising Data Validation
+    to Automated" - without this, the commit event can only say the room's verdict, never what
+    it was a verdict *on*."""
+    target = change.target
+    name: Optional[str] = None
+    if graph.is_component(target):
+        name = graph.component(target).name
+    elif graph.is_edge(target):
+        name = getattr(graph.edge(target), "name", None) or target
+    if not name:
+        return None
+    if change.kind == "raise_to" and isinstance(change.value, int):
+        level_name = graph.levels[change.value] if 0 <= change.value < len(graph.levels) else str(change.value)
+        return f"raising {name} to {level_name}"
+    if change.trigger:
+        return f"changing {name}'s trigger to {change.trigger}"
+    return f"changing {name}"
+
+
+def _changes_summary(graph: Optional[TechnicalGraph], changes: list["AtomicChange"]) -> str:
+    """Every proposed change, joined for a sentence - falls back to "your proposal" when the
+    graph is not available (defensive: every real caller has one) or nothing in it is nameable."""
+    if not graph or not changes:
+        return "your proposal"
+    parts = [d for d in (_describe_change(graph, c) for c in changes) if d]
+    if not parts:
+        return "your proposal"
+    if len(parts) == 1:
+        return parts[0]
+    return ", ".join(parts[:-1]) + " and " + parts[-1]
+
+
 def commit_pitch(
     state: PitchState,
     view: CardView,
     names: Optional[dict[str, str]] = None,
+    graph: Optional[TechnicalGraph] = None,
 ) -> tuple[PitchState, list[GameEvent]]:
     """Locks in the pitch outcome upon player commit."""
     names = names or {}
@@ -936,21 +970,28 @@ def commit_pitch(
         "stage": "DONE",
         "outcome": view.outcome,
     })
+    change = _changes_summary(graph, state.atomic_changes)
     events: list[GameEvent] = []
     if view.outcome == "VETO":
+        # A stood veto never reaches the simulator (`_outcome_for`'s own comment: "a veto that
+        # was never broken never gets here") - nothing gets applied, so this has no simulation
+        # to lead into. It stays its own beat, not folded into a step that never happens.
         events.append(GameEvent(
             step="commit", kind="outcome", subject_id=None,
-            cause="outcome.veto", params={"st": "the room"},
+            cause="outcome.veto", params={"st": "the room", "change": change},
         ))
     elif view.outcome == "SOFT_PASS":
+        # Everything else here does reach the simulator, so it's logged as `simulation`'s own
+        # opening line - "here's the card that got applied" - rather than a separate step the
+        # log then has to visually reconnect to what follows from it.
         events.append(GameEvent(
-            step="commit", kind="outcome", subject_id=None,
-            cause="outcome.soft_pass", params={},
+            step="simulation", kind="outcome", subject_id=None,
+            cause="outcome.soft_pass", params={"change": change},
         ))
     else:
         events.append(GameEvent(
-            step="commit", kind="outcome", subject_id=None,
-            cause="outcome.pass", params={},
+            step="simulation", kind="outcome", subject_id=None,
+            cause="outcome.pass", params={"change": change},
         ))
     return updated, events
 
@@ -978,14 +1019,16 @@ def veto_breaker(
         "overridden_stakeholder_id": overridden_stakeholder_id,
     })
     events = [
+        # This always resolves to PASS and does proceed to simulate (unlike a stood veto), so it
+        # belongs with `commit_pitch`'s own PASS/SOFT_PASS events under `simulation`.
         GameEvent(
-            step="commit", kind="emotion", subject_id=overridden_stakeholder_id,
+            step="simulation", kind="emotion", subject_id=overridden_stakeholder_id,
             direction="down" if malus < 0 else ("up" if malus > 0 else "none"),
             magnitude="large",
             cause="emotion.veto_breaker", params={"st": _name(names, overridden_stakeholder_id)},
         ),
         GameEvent(
-            step="commit", kind="outcome", subject_id=overridden_stakeholder_id,
+            step="simulation", kind="outcome", subject_id=overridden_stakeholder_id,
             cause="outcome.veto_breaker", params={"st": _name(names, overridden_stakeholder_id)},
         ),
     ]

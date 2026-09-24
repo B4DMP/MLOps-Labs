@@ -20,6 +20,7 @@ from mlops_serious_game.domain.requirement import (
     IntelSource,
     IntelTag,
     StakeholderIntelItem,
+    truncate_detail,
 )
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
@@ -317,7 +318,11 @@ async def conduct_component_investigation_turn(
         direction="up",
         magnitude="clear",
         cause="intel.revealed",
-        params={"st": st_name, "component": comp_name},
+        params={
+            "st": st_name,
+            "component": comp_name,
+            "detail": truncate_detail(getattr(intel_item, "description", None) or getattr(intel_item, "gist", None)),
+        },
         refs={"item_id": intel_item.id},
     )
 

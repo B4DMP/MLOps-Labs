@@ -620,7 +620,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         return
 
     view = ctx.view(state)
-    committed_state, events = pitch.commit_pitch(state, view, names=ctx.names)
+    committed_state, events = pitch.commit_pitch(state, view, names=ctx.names, graph=ctx.graph)
     applied: dict[str, Any] = {}
     veto_info: Optional[dict[str, Any]] = None
 

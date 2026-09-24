@@ -515,6 +515,7 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
             known_ids=known_ids,
             seed=seed,
             stakeholder_name=st_name,
+            graph=graph,
         )
     elif option == "generic_query":
         pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge.id, conversation.stakeholder_id)
@@ -524,6 +525,7 @@ async def handle_gather_ask(websocket: WebSocket, username: str, payload: dict) 
             known_ids=known_ids,
             seed=seed,
             stakeholder_name=st_name,
+            graph=graph,
         )
     elif option == "investigate_component" or card_id == "eng_5":
         comp_id = chosen_component or conversation.component_id or conversation.stakeholder_id

@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.requirement import IntelTag, item_target
+from mlops_serious_game.domain.requirement import IntelTag, item_target, truncate_detail
 
 GatherOptionKind = Literal[
     "component_query",
@@ -775,7 +775,11 @@ def resolve_component_query(
             direction="up",
             magnitude="clear",
             cause="intel.revealed",
-            params={"st": stakeholder_name, "component": component_display_name(component_id, graph)},
+            params={
+                "st": stakeholder_name,
+                "component": component_display_name(component_id, graph),
+                "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
+            },
             refs={"item_id": item.id},
         )
         for item in ordered
@@ -827,7 +831,11 @@ def resolve_team_sync_up(
                     direction="up",
                     magnitude="clear",
                     cause="intel.revealed",
-                    params={"st": st_name, "component": component_display_name(component_id, graph)},
+                    params={
+                        "st": st_name,
+                        "component": component_display_name(component_id, graph),
+                        "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
+                    },
                     refs={"item_id": item.id},
                 ))
 
@@ -853,6 +861,7 @@ def resolve_priority_query(
     known_ids: set[str],
     seed: str,
     stakeholder_name: str,
+    graph: Optional[Any] = None,
 ) -> TurnOutcome:
     """Reveals the stakeholder's highest priority undiscovered item (Boundary > Driver > Trade-Off > Fact)."""
     if not conversation.is_open:
@@ -887,6 +896,7 @@ def resolve_priority_query(
     updated = _spend_turn(conversation, asked_option="priority_query").model_copy(
         update={"discovered_item_ids": conversation.discovered_item_ids + [item.id]}
     )
+    item_component_id = component_for_item(item, graph)
     event = GameEvent(
         step="gather",
         kind="intel",
@@ -894,7 +904,11 @@ def resolve_priority_query(
         direction="up",
         magnitude="clear",
         cause="intel.revealed",
-        params={"st": stakeholder_name},
+        params={
+            "st": stakeholder_name,
+            "component": component_display_name(item_component_id, graph) if item_component_id else "the system",
+            "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
+        },
         refs={"item_id": item.id},
     )
     return TurnOutcome(
@@ -913,6 +927,7 @@ def resolve_generic_query(
     known_ids: set[str],
     seed: str,
     stakeholder_name: str,
+    graph: Optional[Any] = None,
 ) -> TurnOutcome:
     """Reveals 1 random undiscovered item in stable order."""
     if not conversation.is_open:
@@ -927,6 +942,7 @@ def resolve_generic_query(
     updated = _spend_turn(conversation, asked_option="generic_query").model_copy(
         update={"discovered_item_ids": conversation.discovered_item_ids + [item.id]}
     )
+    item_component_id = component_for_item(item, graph)
     event = GameEvent(
         step="gather",
         kind="intel",
@@ -934,7 +950,11 @@ def resolve_generic_query(
         direction="up",
         magnitude="clear",
         cause="intel.revealed",
-        params={"st": stakeholder_name},
+        params={
+            "st": stakeholder_name,
+            "component": component_display_name(item_component_id, graph) if item_component_id else "the system",
+            "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
+        },
         refs={"item_id": item.id},
     )
     return TurnOutcome(
@@ -981,7 +1001,14 @@ def resolve_investigate_component(
         direction="up",
         magnitude="clear",
         cause="intel.revealed",
-        params={"st": component_name, "component": component_name},
+        # A Fact has no stakeholder to have "let it slip" (D51: "the stakeholder, or None for a
+        # Fact") - `st` reads as "the system itself" here, same fallback `intel.artifact_filed`
+        # uses, rather than the previous bug of reusing the component name for both slots.
+        params={
+            "st": "the system itself",
+            "component": component_name,
+            "detail": truncate_detail(getattr(item, "description", None) or getattr(item, "gist", None)),
+        },
         refs={"item_id": item.id},
     )
     return TurnOutcome(

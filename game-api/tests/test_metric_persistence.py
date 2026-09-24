@@ -263,3 +263,66 @@ async def test_simulation_records_its_own_metric_deltas_on_the_challenge_row(mig
 
     card = _action_card("alice", challenge.phase_id, challenge.id)
     assert card.get("metric_changes", {}) == reported_deltas
+
+
+@pytest.mark.anyio
+async def test_reopening_the_simulation_screen_does_not_redo_its_one_time_effects(migrated_db):
+    """`ac_simulation.tsx` fires `simulation:run` on every mount, not just the first - so a player
+    who leaves and reopens the report (or just gets remounted) must not see it happen twice.
+    `run_simulation` itself already guards the report; this checks the two things bolted on
+    beside it in `handle_simulation_run` - the gate's own log line, and the emotion shift the
+    report's deltas drive - are gated the same way, not repeated once per mount."""
+    from mlops_serious_game.application.event_log_service.store import load_events
+    from mlops_serious_game.application.pitch_debate_service import store as pitch_store
+    from mlops_serious_game.application.playtest_service import auto_card, service
+    from mlops_serious_game.domain.phase_factory import PhaseFactory
+    from mlops_serious_game.infrastructure.websocket.handlers.pitch_handler import (
+        PitchContext, get_allowed_targets, handle_pitch_commit,
+    )
+    from mlops_serious_game.infrastructure.websocket.handlers.playtest_handler import _observe_everything
+    from mlops_serious_game.infrastructure.websocket.handlers.simulation_handler import handle_simulation_run
+
+    user_id = await _begun_game()
+    challenge_id = _dealt_challenge(user_id)
+    challenge = PhaseFactory.get_challenge_by_id(challenge_id)
+    ids = {"phase_id": challenge.phase_id, "challenge_id": challenge.id}
+
+    service.auto_gather("alice", challenge)
+    ctx = PitchContext("alice", challenge.phase_id, challenge.id)
+    _observe_everything("alice", challenge, ctx)
+    ctx = PitchContext("alice", challenge.phase_id, challenge.id)
+
+    result = auto_card.search_card(
+        graph=ctx.graph, state=ctx.state, knowledge=ctx.knowledge, all_intel=list(ctx.all_intel),
+        room=ctx.room, emotions=ctx.emotions,
+        allowed=get_allowed_targets(ctx.graph, ctx.phase_id, ctx.challenge_id, list(ctx.all_intel)),
+        seed="simulation-idempotent-test",
+    )
+    assert result is not None and result.found_non_veto
+
+    with patch("mlops_serious_game.infrastructure.websocket.handlers.pitch_handler.manager") as m1, \
+         patch("mlops_serious_game.infrastructure.websocket.handlers.simulation_handler.manager") as m2, \
+         patch("mlops_serious_game.infrastructure.websocket.handlers.log_handler.manager") as m3:
+        for m in (m1, m2, m3):
+            m.send_event = AsyncMock()
+            m.send_error = AsyncMock()
+        await handle_pitch_commit(MagicMock(), "alice", {**ids, "atomic_changes": [c.model_dump() for c in result.changes]})
+
+        await handle_simulation_run(MagicMock(), "alice", ids)
+        emotions_after_first = pitch_store.emotion_values("alice", room_ids := list(ctx.room_ids))
+        events_after_first = load_events("alice")
+        gate_lines_after_first = [e for e in events_after_first if e.cause in ("outcome.gate_next", "outcome.gate_end")]
+        assert len(gate_lines_after_first) == 1
+
+        # Simulate the player leaving and reopening the report: same phase/challenge, another
+        # `simulation:run` round-trip, nothing new committed in between.
+        await handle_simulation_run(MagicMock(), "alice", ids)
+        await handle_simulation_run(MagicMock(), "alice", ids)
+
+    emotions_after_repeats = pitch_store.emotion_values("alice", room_ids)
+    events_after_repeats = load_events("alice")
+    gate_lines_after_repeats = [e for e in events_after_repeats if e.cause in ("outcome.gate_next", "outcome.gate_end")]
+
+    assert emotions_after_repeats == emotions_after_first, "reopening the report reshifted emotions"
+    assert len(gate_lines_after_repeats) == 1, "reopening the report logged the gate line again"
+    assert len(events_after_repeats) == len(events_after_first), "reopening the report re-logged simulation events"

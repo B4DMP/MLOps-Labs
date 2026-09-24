@@ -564,6 +564,17 @@ def _stage_label(graph: TechnicalGraph, target_id: str) -> str:
     return stage.name if stage else "the pipeline"
 
 
+def _metric_label(metric_id: str) -> str:
+    """The metric's display name, same one `MetricTab` shows - a log line should never make the
+    player translate a config id (`model_intro`) back into the gauge they already know by name."""
+    from mlops_serious_game.domain.metric_factory import MetricFactory
+
+    try:
+        return MetricFactory.get_metric(metric_id).name
+    except Exception:
+        return metric_id
+
+
 def simulation_events(
     report: DeltaReport,
     graph: TechnicalGraph,
@@ -614,7 +625,7 @@ def simulation_events(
         events.append(GameEvent(
             step="simulation", kind="metric", subject_id=metric_id,
             direction="up" if delta > 0 else "down", magnitude=_metric_magnitude(delta),
-            cause="metric.moved", params={"metric": metric_id},
+            cause="metric.moved", params={"metric": _metric_label(metric_id)},
         ))
 
     for grudge in report.grudges.created:
