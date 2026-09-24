@@ -37,7 +37,7 @@
         },
         {
           "stakeholder_id": "automation_alex",
-          "power": "low",
+          "power": "high",
           "interest": "low"
         },
         {
@@ -66,7 +66,7 @@
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "power": "low",
+          "power": "high",
           "interest": "low"
         },
         {
@@ -100,7 +100,7 @@
         },
         {
           "stakeholder_id": "efficiency_emilia",
-          "power": "low",
+          "power": "high",
           "interest": "low"
         }
       ],
@@ -129,7 +129,7 @@
         },
         {
           "stakeholder_id": "efficiency_emilia",
-          "power": "low",
+          "power": "high",
           "interest": "low"
         }
       ],
@@ -158,7 +158,7 @@
         },
         {
           "stakeholder_id": "requirements_reuben",
-          "power": "low",
+          "power": "high",
           "interest": "low"
         }
       ],
@@ -183,7 +183,8 @@
           "kind": "set_to",
           "target": "req.acceptance_criteria",
           "value": 0,
-          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week"
+          "reason": "The team paused the sign off process to rush the supplier data integration for the locked promotion week",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -191,7 +192,8 @@
           "kind": "set_to",
           "target": "req.risk_assessment",
           "value": 0,
-          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation"
+          "reason": "Without agreed criteria, the risk review was abandoned and the allocation logic went live without validation",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -200,18 +202,58 @@
         "positions": [
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "req"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.risk_assessment",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.risk_acceptance",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 111,
@@ -228,12 +270,14 @@
           {
             "component": "ops.production_drift_monitoring",
             "op": "eq",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           },
           {
             "component": "ops.observability",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -243,7 +287,8 @@
           "kind": "set_to",
           "target": "ops.production_drift_monitoring",
           "value": 0,
-          "reason": "budget freeze on automated monitoring tools"
+          "reason": "budget freeze on automated monitoring tools",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -251,7 +296,8 @@
           "kind": "set_to",
           "target": "e.observe_drift",
           "value": 0,
-          "reason": "data pipeline to drift monitor disconnected due to cost"
+          "reason": "data pipeline to drift monitor disconnected due to cost",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -260,18 +306,107 @@
         "positions": [
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 1
+            "wants": 1,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           }
         ]
       },
       "focus_stage_ids": [
         "ops"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.observability",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.retraining_trigger",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.alerting",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.rollback",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.performance_monitoring",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.observe_perf",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.observe_drift",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.perf_alert",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.drift_alert",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.alert_retrain",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.alert_rollback",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 112,
@@ -290,7 +425,8 @@
           "kind": "set_to",
           "target": "model.evaluation",
           "value": 0,
-          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation."
+          "reason": "The evaluation scripts failed to parse the new weather feed format, halting all model validation.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -298,7 +434,8 @@
           "kind": "set_to",
           "target": "e.train_eval",
           "value": 0,
-          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing."
+          "reason": "Without an agreed evaluation path, the pipeline link between training and testing was disabled to prevent unverified models from progressing.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -307,18 +444,86 @@
         "positions": [
           {
             "stakeholder_id": "model_monica",
-            "wants": 3
+            "wants": 3,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 1
+            "wants": 1,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "model"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.hpo",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.hpo_train",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.train_tracking",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.train_eval",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 113,
@@ -337,7 +542,8 @@
           "kind": "set_to",
           "target": "req.kpi_definition",
           "value": 0,
-          "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items."
+          "reason": "The heatwave invalidated the current static KPI definitions, leaving the team without a clear metric to judge forecast accuracy for seasonal items.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -345,7 +551,8 @@
           "kind": "set_to",
           "target": "req.acceptance_criteria",
           "value": 0,
-          "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability."
+          "reason": "Without an agreed KPI framework, the next promotion week will be planned without any objective measure of forecast reliability.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -354,11 +561,13 @@
         "positions": [
           {
             "stakeholder_id": "model_monica",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -382,12 +591,14 @@
           {
             "component": "req.data_contracts",
             "op": "eq",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           },
           {
             "component": "req.kpi_definition",
             "op": "eq",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           }
         ]
       },
@@ -397,7 +608,8 @@
           "kind": "set_to",
           "target": "req.data_contracts",
           "value": 0,
-          "reason": "compliance audit found missing consent fields in the schema"
+          "reason": "compliance audit found missing consent fields in the schema",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -405,7 +617,8 @@
           "kind": "set_to",
           "target": "req.kpi_definition",
           "value": 0,
-          "reason": "legal team blocked KPI sign off due to unresolved data rights"
+          "reason": "legal team blocked KPI sign off due to unresolved data rights",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -414,18 +627,58 @@
         "positions": [
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "req"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.data_contracts",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.risk_assessment",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.risk_acceptance",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 115,
@@ -440,7 +693,8 @@
       "preconditions": {
         "component": "deploy.cicd",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "fallback": false,
       "on_enter_ops": [
@@ -448,7 +702,8 @@
           "kind": "set_to",
           "target": "deploy.cicd",
           "value": 0,
-          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent."
+          "reason": "The deployment pipeline was halted after a compliance audit flagged the use of loyalty data without verified consent.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -456,7 +711,8 @@
           "kind": "set_to",
           "target": "deploy.canary_ab",
           "value": 0,
-          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores."
+          "reason": "The canary testing infrastructure was disabled to prevent any unverified model from reaching a subset of stores.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -465,18 +721,121 @@
         "positions": [
           {
             "stakeholder_id": "automation_alex",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "deploy"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.orchestration",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.cicd",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.canary_ab",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.containerization",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_container",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.container_orch",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.orch_serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.serving_gateway",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_canary",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.canary_serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_shadow",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 116,
@@ -495,7 +854,8 @@
           "kind": "set_to",
           "target": "data.validation",
           "value": 0,
-          "reason": "The validation service crashed due to resource contention during the peak ingestion window."
+          "reason": "The validation service crashed due to resource contention during the peak ingestion window.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -503,7 +863,8 @@
           "kind": "set_to",
           "target": "e.ingest_validate",
           "value": 0,
-          "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store."
+          "reason": "The link between ingestion and validation is broken, so no data is checked before it reaches the feature store.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -512,18 +873,100 @@
         "positions": [
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 3
+            "wants": 3,
+            "axis": "automation"
           },
           {
             "stakeholder_id": "data_dave",
-            "wants": 1
+            "wants": 1,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "data"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.versioning",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.training_drift_check",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.ingestion",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.feature_store",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.validate_version",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.version_fs",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.label_version",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.version_driftcheck",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 117,
@@ -540,12 +983,14 @@
           {
             "component": "model.registry",
             "op": "lte",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           },
           {
             "component": "model.evaluation",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -555,7 +1000,8 @@
           "kind": "set_to",
           "target": "model.registry",
           "value": 0,
-          "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast."
+          "reason": "The registry service crashed during a weekly retrain, leaving no record of which model version is currently serving the forecast.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -563,7 +1009,8 @@
           "kind": "set_to",
           "target": "e.eval_registry",
           "value": 0,
-          "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone."
+          "reason": "Without an agreed promotion path, the link between evaluation and registry is severed, forcing manual handovers that are error prone.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -572,18 +1019,86 @@
         "positions": [
           {
             "stakeholder_id": "model_monica",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "requirements_reuben",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "model"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "model.registry",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.hpo",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.experiment_tracking",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.training_pipeline",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "model.evaluation",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.hpo_train",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.train_tracking",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.train_eval",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.eval_registry",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 118,
@@ -602,7 +1117,8 @@
           "kind": "set_to",
           "target": "deploy.shadow",
           "value": 0,
-          "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run"
+          "reason": "The shadow environment was taken offline to free up compute for the promotion allocation run",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -610,7 +1126,8 @@
           "kind": "set_to",
           "target": "e.cicd_shadow",
           "value": 0,
-          "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs"
+          "reason": "The pipeline step to trigger shadow runs was disabled to prevent further compute costs",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -619,18 +1136,121 @@
         "positions": [
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "automation_alex",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "deploy"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "deploy.orchestration",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.cicd",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.api_gateway",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.shadow",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.canary_ab",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "deploy.containerization",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_container",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.container_orch",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.orch_serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.serving_gateway",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_canary",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.canary_serving",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.cicd_shadow",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 119,
@@ -649,7 +1269,8 @@
           "kind": "set_to",
           "target": "e.perf_alert",
           "value": 0,
-          "reason": "the connection between performance monitoring and alerting was severed during a recent infrastructure change"
+          "reason": "the connection between performance monitoring and alerting was severed during a recent infrastructure change",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -657,7 +1278,8 @@
           "kind": "set_to",
           "target": "ops.performance_monitoring",
           "value": 0,
-          "reason": "the monitoring job was disabled to reduce compute costs while the team debated the fix"
+          "reason": "the monitoring job was disabled to reduce compute costs while the team debated the fix",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -666,18 +1288,107 @@
         "positions": [
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "efficiency_emilia",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "ops"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.observability",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.retraining_trigger",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.alerting",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.rollback",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "ops.performance_monitoring",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.observe_perf",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.observe_drift",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.perf_alert",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.drift_alert",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.alert_retrain",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.alert_rollback",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     },
     {
       "id": 120,
@@ -692,7 +1403,8 @@
       "preconditions": {
         "component": "data.ingestion",
         "op": "gte",
-        "level": 2
+        "level": 2,
+        "axis": "automation"
       },
       "fallback": false,
       "on_enter_ops": [
@@ -700,7 +1412,8 @@
           "kind": "set_to",
           "target": "data.ingestion",
           "value": 0,
-          "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data."
+          "reason": "The nightly batch job crashed due to a schema mismatch in the new store master data.",
+          "axis": "automation"
         }
       ],
       "stalemate_ops": [
@@ -708,7 +1421,8 @@
           "kind": "set_to",
           "target": "e.ingest_validate",
           "value": 0,
-          "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating."
+          "reason": "Without a resolution on ingestion reliability, the validation link is disabled to prevent bad data from propagating.",
+          "axis": "automation"
         }
       ],
       "conflict": {
@@ -717,18 +1431,100 @@
         "positions": [
           {
             "stakeholder_id": "reliability_ruth",
-            "wants": 4
+            "wants": 3,
+            "axis": "governance"
           },
           {
             "stakeholder_id": "data_dave",
-            "wants": 2
+            "wants": 2,
+            "axis": "automation"
           }
         ]
       },
       "focus_stage_ids": [
         "data"
       ],
-      "generated": true
+      "generated": true,
+      "on_exit_ops": [],
+      "baseline_sweep_ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.versioning",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.training_drift_check",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.ingestion",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.feature_store",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "data.labeling",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.ingest_validate",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.validate_version",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.version_fs",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.label_version",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        },
+        {
+          "kind": "raise_to",
+          "target": "e.version_driftcheck",
+          "axis": "automation",
+          "value": 2,
+          "reason": "the team quietly brought this up to a basic working standard between challenges"
+        }
+      ]
     }
   ],
   "ActionCardImages": [
