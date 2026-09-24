@@ -37,6 +37,7 @@ import type { GameEventPayload } from "../types/GameEvent";
 import type { IntelTag } from "../types/IntelTag";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { faceForEmotionState } from "../utils/emotionFace";
+import EmotionEmoji from "./EmotionEmoji";
 import { FADE_TRANSITION } from "../utils/transitions";
 
 // Intel readiness thresholds for the pitch deck's intel badge: how much of this phase's intel
@@ -1146,6 +1147,7 @@ export default function PitchDebate({
             }}
           >
             {activeSpeakingState.message}
+            <EmotionEmoji emotionState={st.emotional_state} className={styles.bubbleEmotionEmoji} />
           </div>
         )}
 

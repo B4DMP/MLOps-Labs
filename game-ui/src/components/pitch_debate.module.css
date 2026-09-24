@@ -645,6 +645,12 @@
   pointer-events: auto;
 }
 
+.bubbleEmotionEmoji {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+}
+
 .tableSpeechBubble::after {
   content: "";
   position: absolute;
