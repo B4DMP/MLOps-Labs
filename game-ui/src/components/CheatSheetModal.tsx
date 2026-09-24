@@ -60,6 +60,16 @@ const STAMP_LEGEND: {
   { label: "✗ REFUTED", styleKey: "refuted", detail: "That guess was wrong. Re-tag it." },
 ];
 
+/** Mirrors gameConfig/GameEngagementCards.json's six cards, in that file's order. */
+const ENGAGEMENT_CARD_LEGEND: { icon: string; label: string; detail: string }[] = [
+  { icon: "ph:seal-check-bold", label: "Verify Intel Item", detail: "Fact-check one unconfirmed note." },
+  { icon: "ph:user-focus-bold", label: "1-to-1 Meeting", detail: "Deep-dive one stakeholder, 3 questions." },
+  { icon: "ph:magnifying-glass-bold", label: "Probe Requirements", detail: "Ask one stakeholder about a component." },
+  { icon: "ph:users-bold", label: "Team Sync-Up", detail: "Ask everyone at once. Once per phase." },
+  { icon: "ph:chat-teardrop-text-bold", label: "Ask Generic Question", detail: "Cheap read on sentiment and preferences." },
+  { icon: "ph:cpu-bold", label: "Investigate Component", detail: "Inspect a component for hard facts." },
+];
+
 const SECTIONS: CheatSheetSection[] = [
   {
     icon: "ph:address-book-tabs-duotone",
@@ -89,6 +99,7 @@ const SECTIONS: CheatSheetSection[] = [
     glyph: "Read artifact → tag what it says about them",
     bullets: [
       "Read each artifact, then tag what it says about them with one of the four below.",
+      "Confirming what you've tagged comes next phase, by asking about it with an Engagement Card.",
     ],
   },
   {
@@ -99,7 +110,7 @@ const SECTIONS: CheatSheetSection[] = [
     bullets: [
       <>
         Play an Engagement Card to talk to a stakeholder, verify an intel item, or inspect a
-        pipeline component.
+        pipeline component (table below).
       </>,
       <>
         Each card costs <TokenChip />. You get a limited supply per round.
@@ -238,6 +249,19 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
                   <li key={i}>{bullet}</li>
                 ))}
               </ul>
+              {section.title === "This Dossier" && (
+                <div className={styles.tagLegend}>
+                  <div className={styles.legendLabel}>How sure you are about it</div>
+                  {STAMP_LEGEND.map((stamp) => (
+                    <div key={stamp.label} className={styles.tagChip}>
+                      <span className={`${styles.miniStamp} ${STAMP_STYLE_CLASS[stamp.styleKey]}`}>
+                        {stamp.label}
+                      </span>
+                      <span className={styles.tagChipDetail}>{stamp.detail}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {section.title === "Briefing" && (
                 <div className={styles.tagLegend}>
                   {CHANGE_BADGES.map((badge) => (
@@ -270,15 +294,14 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
                   ))}
                 </div>
               )}
-              {section.title === "Digging for Intel" && (
+              {section.title === "Pitch & Debate" && (
                 <div className={styles.tagLegend}>
-                  <div className={styles.legendLabel}>How sure you are about it</div>
-                  {STAMP_LEGEND.map((stamp) => (
-                    <div key={stamp.label} className={styles.tagChip}>
-                      <span className={`${styles.miniStamp} ${STAMP_STYLE_CLASS[stamp.styleKey]}`}>
-                        {stamp.label}
-                      </span>
-                      <span className={styles.tagChipDetail}>{stamp.detail}</span>
+                  <div className={styles.legendLabel}>Engagement Cards</div>
+                  {ENGAGEMENT_CARD_LEGEND.map((card) => (
+                    <div key={card.label} className={styles.tagChip}>
+                      <Icon icon={card.icon} />
+                      <span className={styles.tagChipLabel}>{card.label}</span>
+                      <span className={styles.tagChipDetail}>{card.detail}</span>
                     </div>
                   ))}
                 </div>
