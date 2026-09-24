@@ -125,6 +125,9 @@ function App({ username: _username, onLogout }: AppProps) {
   // An intel reference clicked from the Performance Dashboard (which sits above both phase
   // screens): the dossier it opens should jump straight to that item and pop it into view.
   const [focusIntelId, setFocusIntelId] = useState<string | undefined>(undefined);
+  // A component clicked from the simulation debrief's Component Implementation Log: the
+  // dashboard it opens should jump straight to that component's stage and selection.
+  const [focusComponentId, setFocusComponentId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
   const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
@@ -907,6 +910,7 @@ function App({ username: _username, onLogout }: AppProps) {
                       setIsDossierOpen(true);
                       setIsPerformanceOpen(false);
                     }}
+                    focusComponentId={focusComponentId}
                   />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
@@ -1045,6 +1049,12 @@ function App({ username: _username, onLogout }: AppProps) {
                           isPerformanceOpen={isPerformanceOpen}
                           onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
                           isSettingsOpen={isSettingsOpen}
+                          // A component name in the implementation log jumps the dashboard
+                          // straight to it, same as a dossier note linking to its component.
+                          onOpenComponent={(componentId) => {
+                            setFocusComponentId(componentId);
+                            setIsPerformanceOpen(true);
+                          }}
                         />
                       </motion.div>
                     )}

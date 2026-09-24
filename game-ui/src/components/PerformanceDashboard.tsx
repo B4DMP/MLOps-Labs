@@ -136,6 +136,9 @@ export interface PerformanceDashboardProps {
   /** Opens the dossier on a specific intel item and pops it into view there. Intel
    *  references become links when this is given. */
   onSelectIntel?: (intelId: string, stakeholderId?: string) => void;
+  /** Jump straight to this component's stage and selection - e.g. a link from the simulation
+   *  debrief's Component Implementation Log. Re-jumps whenever the id changes. */
+  focusComponentId?: string;
 }
 
 /** What sits on one side of the stage being inspected. */
@@ -169,6 +172,13 @@ function noteSourceMeta(item: IntelEntry) {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const EMPTY_STAGES: StageData[] = [];
+
+/** Same icon the component's own graph node uses (authored per-component in MlopsGraph.json) -
+ *  falls back to a generic glyph only if a component was never given one. Used anywhere this
+ *  dashboard lists components outside the SVG canvas itself (which reads `c.icon` directly). */
+function componentGlyph(icon?: string): string {
+  return icon || "ph:cube-bold";
+}
 
 function statusColor(status?: string): string {
   if (status === "healthy") return "#16a34a";
@@ -608,6 +618,7 @@ export default function PerformanceDashboard({
   dossierData,
   onOpenStakeholder,
   onSelectIntel,
+  focusComponentId,
 }: PerformanceDashboardProps) {
   const isDashboardOpen = isOpen ?? isVisible ?? false;
   const handleClose = useCallback(() => {
@@ -704,6 +715,24 @@ export default function PerformanceDashboard({
       }
     }
   }, [selectedStage, pipelineStages, currentPhase]);
+
+  // A link elsewhere (e.g. the simulation debrief's Component Implementation Log) jumps the
+  // dashboard straight to a component - re-jumps whenever the id changes, same "changed since
+  // last render" idiom as the dossier's focusIntelId. Waits on graphState since that's what
+  // actually knows which stage the component lives in.
+  const prevFocusComponentRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!focusComponentId || !graphState) return;
+    if (focusComponentId === prevFocusComponentRef.current) return;
+    prevFocusComponentRef.current = focusComponentId;
+    const stage = pipelineStages.find((s) =>
+      graphState.technical[s.id]?.components.some((c) => c.id === focusComponentId)
+    );
+    if (stage) {
+      setSelectedStage(stage.id);
+      setSelectedComp(focusComponentId);
+    }
+  }, [focusComponentId, graphState, pipelineStages]);
 
   useLayoutEffect(() => {
     if (!isDashboardOpen || !buttonsRowRef.current) return;
@@ -1104,7 +1133,10 @@ export default function PerformanceDashboard({
                             /* Detailed view for selected component */
                             <>
                               <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <span style={{ fontSize: "1.2rem" }}>{selComponentData.knowledge !== "unknown" ? "🧩" : "🌫"}</span>
+                                <Icon
+                                  icon={componentGlyph(selComponentData.icon)}
+                                  style={{ fontSize: "1.2rem", color: "var(--primary-bg, #266682)" }}
+                                />
                                 <span className="fw-bold fs-6" style={{ color: "var(--text-primary, #1e293b)" }}>
                                   {selComponentData.name}
                                 </span>
@@ -1257,7 +1289,7 @@ export default function PerformanceDashboard({
                                 </span>
                               </div>
 
-                              <div className="d-flex flex-column gap-2" style={{ overflowY: "auto" }}>
+                              <div className="d-flex flex-column gap-2" style={{ overflowY: "auto", overflowX: "hidden" }}>
                                 {activeTechnical.components.map((c) => {
                                   return (
                                     <div
@@ -1267,7 +1299,10 @@ export default function PerformanceDashboard({
                                       title="Click to view details"
                                     >
                                       <div className="d-flex align-items-center gap-2 min-width-0">
-                                        <span style={{ fontSize: "1rem" }}>{c.knowledge !== "unknown" ? "🧩" : "🌫"}</span>
+                                        <Icon
+                                          icon={componentGlyph(c.icon)}
+                                          style={{ fontSize: "1rem", color: "var(--primary-bg, #266682)", flexShrink: 0 }}
+                                        />
                                         <span className="fw-semibold text-truncate" style={{ fontSize: "0.82rem", color: "var(--text-primary, #1e293b)" }}>
                                           {c.name || c.id.split(".").pop()}
                                         </span>

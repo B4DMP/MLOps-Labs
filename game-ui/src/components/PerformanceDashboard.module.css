@@ -344,7 +344,6 @@
 .componentListItem:hover {
   border-color: var(--primary-bg);
   background: rgba(38, 102, 130, 0.04);
-  transform: translateX(1px);
 }
 
 .componentListItemActive {

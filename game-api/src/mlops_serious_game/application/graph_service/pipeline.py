@@ -67,21 +67,26 @@ class TargetDelta(BaseModel):
     owner_name: Optional[str] = None
     status: str = "flawless"  # "flawless", "capped", "delayed", "degraded"
     story: str = ""
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class WorldEventDelta(BaseModel):
     target: str
+    name: str = ""
     before: int
     after: int
     reason: str = ""
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class Propagation(BaseModel):
     """A target nobody touched whose effective level moved because something upstream did."""
 
     target: str
+    name: str = ""
     effective: LevelPair
     via: Optional[str] = None
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class PatternDiff(BaseModel):
@@ -411,6 +416,17 @@ def _capped_by(graph: TechnicalGraph, evaluation: GraphEvaluation, target: str) 
     return {"id": why, "level": _effective(evaluation, why)}
 
 
+def _target_display(graph: TechnicalGraph, target: str) -> tuple[str, Optional[str]]:
+    """Name and icon for any report target (component or edge) - same source the SVG canvas
+    itself reads (`icon` on the component, from MlopsGraph.json), so a target mentioned in the
+    Component Implementation Log or the Ripple Effects list reads as the same thing either way.
+    Edges have no icon of their own."""
+    if graph.is_component(target):
+        component = graph.component(target)
+        return component.name, component.icon
+    return getattr(graph.edge(target), "name", None) or target, None
+
+
 def _story(graph: TechnicalGraph, state: GraphState, target: str) -> str:
     from mlops_serious_game.application.graph_service.story import story_for
 
@@ -451,11 +467,7 @@ def _target_deltas(
         else:
             status = "flawless"
 
-        target_name = (
-            graph.component(target).name
-            if graph.is_component(target)
-            else (getattr(graph.edge(target), "name", None) or target)
-        )
+        target_name, target_icon = _target_display(graph, target)
 
         deltas.append(TargetDelta(
             id=target,
@@ -469,6 +481,7 @@ def _target_deltas(
             owner_name=owner_name,
             status=status,
             story=_story(graph, after_state, target),
+            icon=target_icon,
         ))
     return deltas
 
@@ -484,10 +497,13 @@ def _propagated(
         was, now = _effective(before, target), _effective(after, target)
         if was == now:
             continue
+        name, icon = _target_display(graph, target)
         out.append(Propagation(
             target=target,
+            name=name,
             effective=LevelPair(before=was, after=now),
             via=after.effective.capped_by.get(target),
+            icon=icon,
         ))
     return out
 
@@ -684,14 +700,19 @@ def simulate(
 
     # Kept as two passes (not one merged dict) so a target hit by both a world op and a grudge
     # reports each event's own before-level, not the other batch's.
-    events = [
-        WorldEventDelta(target=op.target, before=world_before[op.target], after=state.level(op.target), reason=op.reason or "")
-        for op in world
-        if graph.is_target(op.target)
-    ] + [
-        WorldEventDelta(target=op.target, before=grudge_before[op.target], after=state.level(op.target), reason=op.reason or "")
-        for op in grudge_ops
-        if graph.is_target(op.target)
+    def _world_event(op: GraphOp, before_levels: dict[str, int]) -> WorldEventDelta:
+        name, icon = _target_display(graph, op.target)
+        return WorldEventDelta(
+            target=op.target,
+            name=name,
+            before=before_levels[op.target],
+            after=state.level(op.target),
+            reason=op.reason or "",
+            icon=icon,
+        )
+
+    events = [_world_event(op, world_before) for op in world if graph.is_target(op.target)] + [
+        _world_event(op, grudge_before) for op in grudge_ops if graph.is_target(op.target)
     ]
     world_targets = list({**world_before, **grudge_before})
 
