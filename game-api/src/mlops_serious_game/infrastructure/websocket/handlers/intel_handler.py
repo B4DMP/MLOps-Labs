@@ -7,6 +7,7 @@ from mlops_serious_game.domain.persona_resolver import personalize
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 from mlops_serious_game.domain.engagementCardFactory import EngagementCardFactory
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
+from mlops_serious_game.domain.requirement import tag_label, truncate_detail
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database import get_session, GameChallenge, IntelItem, get_user_id
 from mlops_serious_game.application.online_intel_service.service import (
@@ -44,7 +45,28 @@ async def handle_get_offline_artifacts(websocket: WebSocket, username: str, payl
 
     # The dossier is persistent (plan 05): what the player found in earlier phases stays.
     # Load known dispute intel items into DB as verified for the new challenge
-    load_known_intel_items_for_challenge(curr_challenge, username)
+    _, newly_on_record = load_known_intel_items_for_challenge(curr_challenge, username)
+
+    # The deck/dossier already carries these (they're written above); without this the Event Log
+    # has nothing to show for a baseline item that was never actually "found", only auto_card and
+    # tagged items ever produced a `send_events` call. `newly_on_record` (not every known item)
+    # keeps a re-entry into the same challenge from repeating this every time.
+    if newly_on_record:
+        on_record_events = []
+        for item in newly_on_record:
+            subject_name = "the system itself"
+            if item.stakeholder_id:
+                st = StakeholderFactory.get_stakeholder(item.stakeholder_id)
+                subject_name = personalize(st.name) if st else item.stakeholder_id
+            fact, reading = item.shown_parts()
+            detail = " ".join(part.strip() for part in (fact, reading) if part and part.strip())
+            on_record_events.append(GameEvent(
+                step="offline", kind="intel", direction="none", cause="intel.on_record",
+                subject_id=item.stakeholder_id,
+                params={"tag": tag_label(item.categorized_type), "st": subject_name, "detail": truncate_detail(detail)},
+                refs={"item_id": item.id},
+            ).stamped(phase_id=phase_id, challenge_id=challenge_id))
+        await send_events(websocket, username, on_record_events)
 
     artifacts = await generate_offline_intel_artifacts(curr_challenge, username=username)
     await manager.send_event(
@@ -95,11 +117,20 @@ async def handle_tag_item(websocket: WebSocket, username: str, payload: dict) ->
                 "intel_item": item_dict
             }
         )
-        # No tag leaks (plan 11): logs that an intel item was filed, never whether the tag was
-        # right. `refs.item_id` still points at the item itself, so the log can jump to it (D51)
-        # without naming what it says or whether the guess was correct.
+        # No tag leaks (plan 11): says what the player themselves just filed it as, who it
+        # concerns, and the same wording they just saw on the ack above - never whether that tag
+        # is right. `refs.item_id` still points at the item itself, so the log can jump to it
+        # (D51) without naming what it says beyond what's already on screen, or confirming the
+        # guess.
+        subject_name = "the system itself"
+        if intel_item.stakeholder_id:
+            st = StakeholderFactory.get_stakeholder(intel_item.stakeholder_id)
+            subject_name = personalize(st.name) if st else intel_item.stakeholder_id
+        detail = " ".join(part.strip() for part in (item_dict["fact"], item_dict["reading"]) if part and part.strip())
         await send_events(websocket, username, [GameEvent(
             step="offline", kind="intel", direction="none", cause="intel.artifact_filed",
+            subject_id=intel_item.stakeholder_id,
+            params={"tag": tag_label(intel_item.categorized_type), "st": subject_name, "detail": truncate_detail(detail)},
             refs={"item_id": intel_item.id},
         ).stamped(phase_id=phase_id, challenge_id=challenge_id)])
 

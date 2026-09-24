@@ -235,16 +235,26 @@ def _phase_of_challenge(challenge_id: Optional[int]) -> Optional[int]:
         return None
 
 
-def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: str) -> List[StakeholderIntelItem]:
-    """Loads all is_known==True intel items for the current challenge into the DB as verified and returns them."""
+def load_known_intel_items_for_challenge(
+    curr_challenge: Challenge, username: str
+) -> tuple[List[StakeholderIntelItem], List[StakeholderIntelItem]]:
+    """Loads all is_known==True intel items for the current challenge into the DB as verified.
+
+    Returns `(all_known_items, newly_added_items)`: the first is every known item for this
+    challenge (freshly added or already on record), the same as this function always returned;
+    the second is only the ones actually written to the DB by this call, so a caller that wants to
+    log "this just went on the record" doesn't repeat itself on every re-entry into the same
+    challenge (e.g. `handle_get_offline_artifacts` firing again on a reconnect).
+    """
     known_artifacts = [
         art for art in OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
         if art.is_known
     ]
     if not known_artifacts:
-        return []
+        return [], []
 
     loaded_items: List[StakeholderIntelItem] = []
+    newly_added: List[StakeholderIntelItem] = []
     with get_session() as session:
         user_id = get_user_id(session, username)
         records = intel_rows(session, user_id)
@@ -279,6 +289,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                 session.add(new_record)
                 existing_ids.add(req.id)
                 loaded_items.append(new_item)
+                newly_added.append(new_item)
             else:
                 for r in records:
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
@@ -302,7 +313,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                         loaded_items.append(StakeholderIntelItem(**data))
                         break
         session.commit()
-    return loaded_items
+    return loaded_items, newly_added
 
 
 # ── Plan 05: Persistent dossier ───────────────────────────────────────────────

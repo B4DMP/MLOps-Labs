@@ -23,7 +23,7 @@
   "tokens.spent": { "text": "spent on {card} with {st}", "group": "tokens" },
   "card.turn_lost": { "text": "{n} turn(s) with {st} went unused when the conversation closed", "group": "card" },
 
-  "intel.revealed": { "text": "{st} let something slip: a new intel item filed", "group": "intel" },
+  "intel.revealed": { "text": "{st} let something slip about {component}: {detail}", "group": "intel" },
   "intel.inferred": { "text": "inferred: the read on {st} holds up under questioning", "group": "intel" },
   "intel.refuted": { "text": "refuted: that wasn't it with {st} - retag and try again", "group": "intel" },
   "intel.gist_heard": { "text": "the gist of it: {gist}", "group": "intel" },
@@ -31,24 +31,29 @@
   "emotion.refuted": { "text": "colder: {st} noticed the guess was wrong", "group": "emotion" },
   "emotion.one_on_one_miss": { "text": "colder: {st} says that's not quite it", "group": "emotion" },
 
-  "outcome.pass": { "text": "the room came around", "group": "outcome" },
-  "outcome.soft_pass": { "text": "the room went along with it, reluctantly", "group": "outcome" },
-  "outcome.veto": { "text": "{st} would not have it", "group": "outcome" },
+  "outcome.pass": { "text": "the room came around on {change}", "group": "outcome" },
+  "outcome.soft_pass": { "text": "the room went along with {change}, reluctantly", "group": "outcome" },
+  "outcome.veto": { "text": "{st} would not have {change}", "group": "outcome" },
   "outcome.veto_breaker": { "text": "the card went through over {st}'s objection", "group": "outcome" },
   "outcome.conceded": { "text": "you let {st} have it", "group": "outcome" },
   "outcome.stalemate": { "text": "nobody moved, and the moment passed", "group": "outcome" },
-  "outcome.gate_next": { "text": "next up: {challenge}, in {phase}", "group": "outcome" },
-  "outcome.gate_end": { "text": "nothing left to deal - the game ends here", "group": "outcome" },
+  "outcome.gate_next": { "text": "you're moving on to {phase} - next up: {challenge}", "group": "outcome" },
+  "outcome.gate_end": { "text": "there's no phase left to move on to - the game ends here", "group": "outcome" },
 
   "graph.moved": { "text": "{name} moved", "group": "graph" },
-  "graph.moved_unknown": { "text": "something in {stage} got worse or better - you have not looked at it yet", "group": "graph" },
+  "graph.moved_unknown": { "text": "an undiscovered part of {stage} just changed - dig into the system to find out what", "group": "graph" },
   "metric.moved": { "text": "{metric} shifted", "group": "metric" },
+
+  "emotion.simulation_clean": { "text": "warmer: {st} sees it delivered clean, nothing cut", "group": "emotion" },
+  "emotion.simulation_capped": { "text": "colder: {st} sees it came in capped, short of what was promised", "group": "emotion" },
+  "emotion.simulation_debt": { "text": "colder: {st} sees the shortcuts it took to get there", "group": "emotion" },
 
   "grudge.written": { "text": "{st} will remember this", "group": "grudge" },
   "grudge.fired": { "text": "{st}'s grudge came due", "group": "grudge" },
 
-  "intel.artifact_filed": { "text": "an intel item was filed", "group": "intel" },
+  "intel.artifact_filed": { "text": "filed as {tag}, about {st}: {detail}", "group": "intel" },
+  "intel.on_record": { "text": "already on the record as {tag}, about {st}: {detail}", "group": "intel" },
   "intel.verified_confirmed": { "text": "confirmed: {st} said it themselves", "group": "intel" },
   "intel.verified_corrected": { "text": "corrected: it wasn't what you filed it as", "group": "intel" },
-  "graph.facts_observed": { "text": "{n} fact(s) about the system came into view as you left", "group": "graph" }
+  "graph.facts_observed": { "text": "leaving offline research: {n} fact(s) you read right just showed up on the system map", "group": "graph" }
 }
