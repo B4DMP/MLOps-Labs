@@ -25,6 +25,7 @@ from mlops_serious_game.application.pitch_debate_service.state import (
 from mlops_serious_game.application.graph_service import store as graph_store
 from mlops_serious_game.application.graph_service.story import story_for
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
+from mlops_serious_game.domain.graph import NARRATIVE_TIER_NAMES
 from mlops_serious_game.domain.graph_factory import GraphFactory
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
 
@@ -582,8 +583,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
             if owned:
                 lines = []
                 for c in owned:
-                    lv = graph_state.level(c.id)
-                    level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                    level_name = NARRATIVE_TIER_NAMES[graph_state.narrative(c.id)]
                     fragment = story_for(tech_graph, graph_state, c.id)
                     lines.append(f"- {c.name} ({level_name}): {fragment}")
                 owned_components = "\n".join(lines)
@@ -611,8 +611,7 @@ async def conversation_node(state: PitchDebateState, config: RunnableConfig):
                             continue
                         seen.add(t)
                         try:
-                            lv = graph_state.level(t)
-                            level_name = tech_graph.levels[lv] if lv < len(tech_graph.levels) else str(lv)
+                            level_name = NARRATIVE_TIER_NAMES[graph_state.narrative(t)]
                             comp_name = tech_graph.component(t).name if tech_graph.is_component(t) else t
                             lines.append(f"- {comp_name} ({t}): currently {level_name}")
                         except Exception:

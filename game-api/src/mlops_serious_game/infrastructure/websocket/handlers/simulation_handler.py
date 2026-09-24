@@ -111,7 +111,7 @@ def _calculate_simulation_emotion_deltas(
         if not st_targets and all_intel:
             for item in all_intel:
                 if getattr(item, "stakeholder_id", None) == st_id:
-                    t, _ = item_target_and_level(item)
+                    t, _, _ = item_target_and_level(item)
                     if t and t in card_targets:
                         st_targets.add(t)
 

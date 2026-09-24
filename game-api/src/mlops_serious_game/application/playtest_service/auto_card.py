@@ -69,30 +69,31 @@ def candidate_changes(
     """
     allowed_set = set(allowed)
     candidates: list[pitch.AtomicChange] = []
-    seen: set[tuple[str, int]] = set()
+    seen: set[tuple[str, str, int]] = set()
 
-    def consider(target: Optional[str], level: Optional[int]) -> None:
-        if not target or level is None or target not in allowed_set or not graph.is_target(target):
+    def consider(target: Optional[str], level: Optional[int], axis: Optional[str]) -> None:
+        if not target or level is None or axis is None or target not in allowed_set or not graph.is_target(target):
             return
         if knowledge is not None and knowledge.state_of(target, state) == "unknown":
             return
-        if level <= state.level(target) or level not in graph.allowed_levels(target):
+        if level <= state.value(target, axis) or level not in graph.allowed_for(target, axis):
             return
-        if (target, level) in seen:
+        if (target, axis, level) in seen:
             return
-        seen.add((target, level))
-        candidates.append(pitch.AtomicChange(target=target, kind="raise_to", value=level))
+        seen.add((target, axis, level))
+        candidates.append(pitch.AtomicChange(target=target, kind="raise_to", axis=axis, value=level))
 
     for item in all_intel:
-        target, level = item_target_and_level(item)
-        consider(target, level)
+        target, level, axis = item_target_and_level(item)
+        consider(target, level, axis)
 
     for target in sorted(allowed_set):
         if not graph.is_target(target):
             continue
-        higher = [level for level in graph.allowed_levels(target) if level > state.level(target)]
-        if higher:
-            consider(target, min(higher))
+        for axis in ("automation", "governance"):
+            higher = [level for level in graph.allowed_for(target, axis) if level > state.value(target, axis)]
+            if higher:
+                consider(target, min(higher), axis)
     return candidates
 
 

@@ -131,7 +131,7 @@ def get_allowed_targets(
     if phase_stage_id:
         challenge_targets = set()
         for r in all_intel:
-            target, _ = item_target_and_level(r)
+            target, _, _ = item_target_and_level(r)
             if target and graph.is_component(target):
                 challenge_targets.add(target)
         if knowledge is not None:
@@ -296,10 +296,11 @@ async def handle_pitch_set_card(websocket: WebSocket, username: str, payload: di
             )
             return
         kind = c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to")
+        axis = c.get("axis") if isinstance(c, dict) else getattr(c, "axis", None)
         val = c.get("value") if isinstance(c, dict) else getattr(c, "value", None)
         trigger = c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None)
         attr = c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None)
-        valid_changes.append(pitch.AtomicChange(target=target, kind=kind, value=val, trigger=trigger, attr=attr))
+        valid_changes.append(pitch.AtomicChange(target=target, kind=kind, axis=axis, value=val, trigger=trigger, attr=attr))
 
     state.atomic_changes = valid_changes
     state.stage = "PREPARE"
@@ -319,6 +320,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
                 kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
+                axis=c.get("axis") if isinstance(c, dict) else getattr(c, "axis", None),
                 value=c.get("value") if isinstance(c, dict) else getattr(c, "value", None),
                 trigger=c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None),
                 attr=c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None),
@@ -384,15 +386,17 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     )
 
     card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
-    level_names = ["Broken", "Absent", "Manual", "Automated", "Governed"]
+    automation_names = ["Broken", "Absent", "Manual", "Automated"]
+    governance_names = ["No governance", "Partially governed", "Mostly governed", "Fully governed"]
     commitments = []
     for op in card_ops_list:
         target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
         if op.kind in ("raise_to", "set_to"):
             try:
                 lvl_val = int(op.value) if op.value is not None else 1
-                lvl_str = level_names[lvl_val] if 0 <= lvl_val <= 4 else str(lvl_val)
-                commitments.append(f"- Raise {target_name} to {lvl_str} (Level {lvl_val})")
+                names = governance_names if op.axis == "governance" else automation_names
+                lvl_str = names[lvl_val] if 0 <= lvl_val < len(names) else str(lvl_val)
+                commitments.append(f"- Raise {target_name} {op.axis or ''} to {lvl_str} (level {lvl_val})")
             except (ValueError, TypeError):
                 commitments.append(f"- Update {target_name}: {op.value}")
         elif op.kind == "set_trigger":
@@ -602,6 +606,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
             pitch.AtomicChange(
                 target=c.get("target") if isinstance(c, dict) else getattr(c, "target", None),
                 kind=c.get("kind", "raise_to") if isinstance(c, dict) else getattr(c, "kind", "raise_to"),
+                axis=c.get("axis") if isinstance(c, dict) else getattr(c, "axis", None),
                 value=c.get("value") if isinstance(c, dict) else getattr(c, "value", None),
                 trigger=c.get("trigger") if isinstance(c, dict) else getattr(c, "trigger", None),
                 attr=c.get("attr") if isinstance(c, dict) else getattr(c, "attr", None),
@@ -665,15 +670,17 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         # 4. Compute primary objection details
         card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
         card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
-        level_names = ["Broken", "Absent", "Manual", "Automated", "Governed"]
+        automation_names = ["Broken", "Absent", "Manual", "Automated"]
+        governance_names = ["No governance", "Partially governed", "Mostly governed", "Fully governed"]
         commitments = []
         for op in card_ops_list:
             target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
             if op.kind in ("raise_to", "set_to"):
                 try:
                     lvl_val = int(op.value) if op.value is not None else 1
-                    lvl_str = level_names[lvl_val] if 0 <= lvl_val <= 4 else str(lvl_val)
-                    commitments.append(f"- Raise {target_name} to {lvl_str} (Level {lvl_val})")
+                    names = governance_names if op.axis == "governance" else automation_names
+                    lvl_str = names[lvl_val] if 0 <= lvl_val < len(names) else str(lvl_val)
+                    commitments.append(f"- Raise {target_name} {op.axis or ''} to {lvl_str} (level {lvl_val})")
                 except (ValueError, TypeError):
                     commitments.append(f"- Update {target_name}: {op.value}")
             elif op.kind == "set_trigger":

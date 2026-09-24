@@ -24,11 +24,11 @@ from typing import Any, Iterable, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
-from mlops_serious_game.application.graph_service.apply import ApplyResult, apply_ops
+from mlops_serious_game.application.graph_service.apply import ApplyResult, apply_ops, pick_neglect_target
 from mlops_serious_game.application.graph_service.scheduler import stable_rank
 from mlops_serious_game.application.graph_service.view import GraphEvaluation, evaluate_graph
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.graph import DebtEntry, GraphOp, GraphState, Knowledge, TechnicalGraph
+from mlops_serious_game.domain.graph import Axis, DebtEntry, GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.grudge import (
     GRUDGE_EFFECTS,
     GRUDGE_LIFETIME,
@@ -57,6 +57,7 @@ class LevelPair(BaseModel):
 
 class TargetDelta(BaseModel):
     id: str
+    axis: Axis
     name: str = ""
     stage: str
     nominal: LevelPair
@@ -71,13 +72,15 @@ class TargetDelta(BaseModel):
 
 class WorldEventDelta(BaseModel):
     target: str
+    axis: Axis
     before: int
     after: int
     reason: str = ""
 
 
 class Propagation(BaseModel):
-    """A target nobody touched whose effective level moved because something upstream did."""
+    """A target nobody touched whose effective automation moved because something upstream did.
+    Automation-only: governance never caps and so never propagates (00-plan.md decision 1)."""
 
     target: str
     effective: LevelPair
@@ -179,25 +182,26 @@ def consequence_ops(active: Sequence[str], patterns: Sequence[Pattern]) -> list[
 
 
 def veto_degradation_ops(
-    graph: TechnicalGraph, state: GraphState, stakeholder_id: str, card_targets: Sequence[str]
+    graph: TechnicalGraph, state: GraphState, stakeholder_id: str, card_touches: Sequence[tuple[str, Axis]]
 ) -> list[GraphOp]:
-    """A Veto Breaker costs the overridden stakeholder one level on whatever this card itself
+    """A Veto Breaker costs the overridden stakeholder one step on whatever axis this card itself
     touched that they own (D-question 2): components and edges alike ("hybrid" - `owner_of` is
-    edge-aware), but scoped to `card_targets` only, never their whole area and never anything
+    edge-aware), but scoped to `card_touches` only, never their whole area and never anything
     up/downstream the card didn't touch. Already-lowest targets are left alone, so the punishment
     cannot be repeated into rubble by pressing the same button twice.
     """
     ops: list[GraphOp] = []
-    for target in card_targets:
+    for target, axis in card_touches:
         if graph.owner_of(target) != stakeholder_id:
             continue
-        current = state.level(target)
-        below = [lv for lv in graph.allowed_levels(target) if lv < current]
+        current = state.value(target, axis)
+        below = [lv for lv in graph.allowed_for(target, axis) if lv < current]
         if not below:
             continue
         ops.append(GraphOp(
             kind="set_to",
             target=target,
+            axis=axis,
             value=max(below),
             source_kind="world_event",
             source_id=f"veto_broken:{stakeholder_id}",
@@ -215,16 +219,20 @@ def _grudge_effect(grudge: Grudge, seed: str) -> str:
     return GRUDGE_EFFECTS[stable_rank(seed, f"{grudge.stakeholder_id}|{grudge.age}") % len(GRUDGE_EFFECTS)]
 
 
-def _degrade_target(graph: TechnicalGraph, state: GraphState, stakeholder_id: str) -> Optional[str]:
-    """The best thing the stakeholder owns: the higher it stands, the more the slip is felt."""
+def _degrade_target(graph: TechnicalGraph, state: GraphState, stakeholder_id: str) -> Optional[tuple[str, Axis]]:
+    """The best thing the stakeholder owns, on whichever axis stands highest: the higher it
+    stands, the more the slip is felt."""
     owned = [
-        (state.component_levels[c.id], c.id)
+        (state.value(c.id, axis), c.id, axis)
         for c in graph.components
-        if graph.owner_of(c.id) == stakeholder_id and any(lv < state.component_levels[c.id] for lv in c.allowed_levels)
+        if graph.owner_of(c.id) == stakeholder_id
+        for axis in ("automation", "governance")
+        if any(lv < state.value(c.id, axis) for lv in graph.allowed_for(c.id, axis))
     ]
     if not owned:
         return None
-    return max(owned, key=lambda pair: (pair[0], pair[1]))[1]
+    level, target, axis = max(owned, key=lambda t: (t[0], t[1], t[2]))
+    return target, axis
 
 
 def fire_grudges(
@@ -254,17 +262,18 @@ def fire_grudges(
 
         new_ops: list[GraphOp] = []
         if effect == "degrade":
-            target = _degrade_target(graph, working, grudge.stakeholder_id)
-            if target is not None:
-                allowed = graph.allowed_levels(target)
-                level = working.level(target)
+            picked = _degrade_target(graph, working, grudge.stakeholder_id)
+            if picked is not None:
+                target, axis = picked
+                allowed = graph.allowed_for(target, axis)
+                level = working.value(target, axis)
                 for _ in range(grudge.weight):
                     below = [lv for lv in allowed if lv < level]
                     if not below:
                         break
                     level = max(below)
                 new_ops.append(GraphOp(
-                    kind="set_to", target=target, value=level, source_kind="world_event",
+                    kind="set_to", target=target, axis=axis, value=level, source_kind="world_event",
                     source_id=f"grudge:{grudge.stakeholder_id}",
                     reason=f"{grudge.stakeholder_id} stopped going out of their way here",
                 ))
@@ -395,16 +404,18 @@ def metric_deltas(
 
 
 def _effective(evaluation: GraphEvaluation, target: str) -> Optional[int]:
-    if target in evaluation.effective.components:
-        return evaluation.effective.components[target]
-    return evaluation.effective.edges.get(target)
+    """Effective automation - metrics and capping both read this axis only (00-plan.md decision
+    1: governance never caps, so "effective" for scoring purposes is always automation)."""
+    return evaluation.effective.automation.get(target)
 
 
 # ---------------------------------------------------------------------------
 # The report
 # ---------------------------------------------------------------------------
 
-def _capped_by(graph: TechnicalGraph, evaluation: GraphEvaluation, target: str) -> Optional[dict]:
+def _capped_by(graph: TechnicalGraph, evaluation: GraphEvaluation, target: str, axis: Axis) -> Optional[dict]:
+    if axis != "automation":
+        return None  # only automation is ever capped (00-plan.md decision 1)
     why = evaluation.effective.capped_by.get(target)
     if why is None or not graph.is_target(why):
         return None
@@ -422,23 +433,25 @@ def _story(graph: TechnicalGraph, state: GraphState, target: str) -> str:
 
 def _target_deltas(
     graph: TechnicalGraph,
-    targets: Iterable[str],
+    touches: Iterable[tuple[str, Axis]],
     before_state: GraphState,
     after_state: GraphState,
     before: GraphEvaluation,
     after: GraphEvaluation,
-    degraded_by: dict[str, Optional[str]],
+    degraded_by: dict[tuple[str, Axis], Optional[str]],
     debt_created: Optional[Sequence[Any]] = None,
     names: Optional[dict[str, str]] = None,
 ) -> list[TargetDelta]:
     names = names or {}
-    debt_targets = {getattr(d, "target_id", None) for d in (debt_created or []) if getattr(d, "target_id", None)}
+    debt_touches = {
+        (d.target_id, d.axis) for d in (debt_created or []) if getattr(d, "target_id", None)
+    }
     deltas: list[TargetDelta] = []
-    for target in targets:
+    for target, axis in touches:
         if not graph.is_target(target):
             continue
-        capped = _capped_by(graph, after, target)
-        degraded = degraded_by.get(target)
+        capped = _capped_by(graph, after, target, axis)
+        degraded = degraded_by.get((target, axis))
         owner_id = graph.owner_of(target)
         owner_name = names.get(owner_id, owner_id) if owner_id else None
 
@@ -446,7 +459,7 @@ def _target_deltas(
             status = "degraded"
         elif capped:
             status = "capped"
-        elif target in debt_targets:
+        elif (target, axis) in debt_touches:
             status = "delayed"
         else:
             status = "flawless"
@@ -459,10 +472,13 @@ def _target_deltas(
 
         deltas.append(TargetDelta(
             id=target,
+            axis=axis,
             name=target_name,
             stage=graph.stage_of(target),
-            nominal=LevelPair(before=before_state.level(target), after=after_state.level(target)),
-            effective=LevelPair(before=_effective(before, target), after=_effective(after, target)),
+            nominal=LevelPair(before=before_state.value(target, axis), after=after_state.value(target, axis)),
+            effective=LevelPair(
+                before=before.effective.value(target, axis), after=after.effective.value(target, axis)
+            ),
             capped_by=capped,
             degraded_by=degraded,
             owner_id=owner_id,
@@ -476,9 +492,10 @@ def _target_deltas(
 def _propagated(
     graph: TechnicalGraph, touched: set[str], before: GraphEvaluation, after: GraphEvaluation
 ) -> list[Propagation]:
-    """Everything the player did not touch that moved anyway. This is what makes capping fair."""
+    """Everything the player did not touch that moved anyway. This is what makes capping fair.
+    Automation-only: governance never caps and so never propagates (00-plan.md decision 1)."""
     out: list[Propagation] = []
-    for target in list(before.effective.components) + list(before.effective.edges):
+    for target in before.effective.automation:
         if target in touched:
             continue
         was, now = _effective(before, target), _effective(after, target)
@@ -653,62 +670,100 @@ def simulate(
 
         card = card_ops(list(card_items), graph=graph, state=before_state)
 
-    applied: ApplyResult = apply_ops(graph, before_state, card, owner_buyin)   # 4
+    card_touches_raw = list(dict.fromkeys(
+        (op.target, op.axis) for op in card
+        if op.kind == "raise_to" and op.axis is not None and graph.is_target(op.target)
+    ))
+    neglect = pick_neglect_target(graph, card_touches_raw, reads)
+
+    applied: ApplyResult = apply_ops(graph, before_state, card, owner_buyin, neglect)  # 4
     state = applied.state
     mid = evaluate(state)                                                      # 5
 
-    card_targets = [op.target for op in applied.resolved_ops if graph.is_target(op.target)]
-    seen: set[str] = set()
-    card_targets = [t for t in card_targets if not (t in seen or seen.add(t))]
+    card_touches: list[tuple[str, Axis]] = []
+    seen_touches: set[tuple[str, Axis]] = set()
+    for op in applied.resolved_ops:
+        if op.axis is None or not graph.is_target(op.target):
+            continue
+        pair = (op.target, op.axis)
+        if pair not in seen_touches:
+            seen_touches.add(pair)
+            card_touches.append(pair)
 
     world: list[GraphOp] = []                                                  # 6
     if challenge is not None:
         raw = getattr(challenge, "stalemate_ops" if outcome == STALEMATE else "on_exit_ops", [])
         world += _ops_from_raw(raw, f"exit:{getattr(challenge, 'template_id', '')}")
+        if outcome != STALEMATE:
+            touched_this_round = set(card_touches)
+            sweep_raw = [
+                op for op in getattr(challenge, "baseline_sweep_ops", [])
+                if (op.get("target"), op.get("axis")) not in touched_this_round
+            ]
+            world += _ops_from_raw(sweep_raw, f"sweep:{getattr(challenge, 'template_id', '')}")
     world += consequence_ops(mid.active_patterns, patterns)
     if outcome == VETO_BROKEN and overridden_stakeholder_id:
-        world += veto_degradation_ops(graph, state, overridden_stakeholder_id, card_targets)
+        world += veto_degradation_ops(graph, state, overridden_stakeholder_id, card_touches)
 
-    # Levels are read before each batch so the report says what that event itself changed.
-    world_before = {op.target: state.level(op.target) for op in world if graph.is_target(op.target)}
+    # Levels are read before each batch so the report says what that event itself changed. Only
+    # raise_to/set_to ops carry an axis and so a reportable level; other op kinds (set_trigger,
+    # set_attr) a world event might also fire are not level changes and are skipped here.
+    world_before = {
+        (op.target, op.axis): state.value(op.target, op.axis)
+        for op in world if op.axis is not None and graph.is_target(op.target)
+    }
     state = apply_ops(graph, state, world).state                               # 7
 
     grudge_ops, fired, pending, kept = fire_grudges(                           # 9
         graph, state, grudges, seed, upcoming_world_events
     )
-    grudge_before = {op.target: state.level(op.target) for op in grudge_ops if graph.is_target(op.target)}
+    grudge_before = {
+        (op.target, op.axis): state.value(op.target, op.axis)
+        for op in grudge_ops if op.axis is not None and graph.is_target(op.target)
+    }
     state = apply_ops(graph, state, grudge_ops).state
     after = evaluate(state)                                                    # 8, on the settled graph
 
-    degraded_by = {d.target_id: d.owner_id for d in applied.debt_created}
+    degraded_by = {(d.target_id, d.axis): d.owner_id for d in applied.debt_created}
 
     # Kept as two passes (not one merged dict) so a target hit by both a world op and a grudge
     # reports each event's own before-level, not the other batch's.
     events = [
-        WorldEventDelta(target=op.target, before=world_before[op.target], after=state.level(op.target), reason=op.reason or "")
+        WorldEventDelta(
+            target=op.target, axis=op.axis, before=world_before[(op.target, op.axis)],
+            after=state.value(op.target, op.axis), reason=op.reason or "",
+        )
         for op in world
-        if graph.is_target(op.target)
+        if op.axis is not None and graph.is_target(op.target)
     ] + [
-        WorldEventDelta(target=op.target, before=grudge_before[op.target], after=state.level(op.target), reason=op.reason or "")
+        WorldEventDelta(
+            target=op.target, axis=op.axis, before=grudge_before[(op.target, op.axis)],
+            after=state.value(op.target, op.axis), reason=op.reason or "",
+        )
         for op in grudge_ops
-        if graph.is_target(op.target)
+        if op.axis is not None and graph.is_target(op.target)
     ]
-    world_targets = list({**world_before, **grudge_before})
+    world_touches = list({**world_before, **grudge_before})
 
-    touched = set(card_targets) | set(world_targets)
+    # Propagation is automation-only (00-plan.md decision 1): only that axis ever moves anything
+    # it wasn't directly told to.
+    touched = {t for t, axis in card_touches if axis == "automation"} | {
+        t for t, axis in world_touches if axis == "automation"
+    }
     stage_health, system_health = _health(before, after)
     created = grudges_created(outcome, reads, getattr(challenge, "template_id", None), overridden_stakeholder_id)
     stakeholders = _stakeholder_execution(reads, outcome, overridden_stakeholder_id, names)
 
     observe = [                                                                # 11
-        GraphOp(kind="observe", target=target, source_kind="action_card") for target in card_targets
+        GraphOp(kind="observe", target=target, source_kind="action_card")
+        for target in dict.fromkeys(t for t, _ in card_touches)
     ]
 
     report = DeltaReport(
         outcome=outcome,
         targets=_target_deltas(
             graph,
-            card_targets,
+            card_touches,
             before_state,
             state,
             before,
