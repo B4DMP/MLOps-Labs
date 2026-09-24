@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_override_blind_spot",
   "stage": "items",
-  "input_hash": "4a3b53ee188f9cb5749d288bf849f2600f7faa7464958e24d294c0157c98c139",
+  "input_hash": "213dc7ae37870610f3c05eedc59873c822bf197961fc4de8dc9a218b4232b118",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 5,
+  "attempts": 1,
   "inputs": {
     "challenge": {
       "phase_id": 3,
@@ -402,66 +402,6 @@
             "on_metric_threshold",
             "on_alert"
           ]
-        },
-        {
-          "id": "e.audit_registry",
-          "from": "gov.audit",
-          "to": "model.registry",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.cards_registry",
-          "from": "gov.model_cards",
-          "to": "model.registry",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.compute_train",
-          "from": "gov.compute_scheduling",
-          "to": "model.training_pipeline",
-          "kind": "governs",
-          "start_level": 2,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
         }
       ],
       "instances": [
@@ -542,18 +482,6 @@
       "e.retrain_train": {
         "level": 1,
         "trigger": "none"
-      },
-      "e.audit_registry": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.cards_registry": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.compute_train": {
-        "level": 2,
-        "trigger": "manual_request"
       }
     },
     "metrics": [
@@ -589,7 +517,7 @@
         "key": "registry_gap",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The model registry is missing from the system.",
+        "fact": "The model registry is broken.",
         "readings": {
           "driver": "Adding the registry would allow the team to track every version of the demand forecast model.",
           "boundary": "The deployment workflow cannot function without a record of which model version is active.",
@@ -697,7 +625,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "a fully automated model registry",
+        "branch_x_target": "model.registry",
+        "branch_x_level": 4,
+        "branch_y_description": "a manual model registry",
+        "branch_y_target": "model.registry",
+        "branch_y_level": 2
       },
       {
         "key": "dave_data_quality",
@@ -752,7 +686,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "a fully automated, governed evaluation process",
+        "branch_x_target": "model.evaluation",
+        "branch_x_level": 4,
+        "branch_y_description": "the current, manual evaluation process",
+        "branch_y_target": "model.evaluation",
+        "branch_y_level": 2
       },
       {
         "key": "monica_reproducibility",
@@ -769,14 +709,27 @@
         "suggested_target": null,
         "suggested_level": null,
         "holds": null,
-        "ops": [],
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "model.experiment_tracking",
+            "value": 2,
+            "attr": null
+          }
+        ],
         "concedes_metric": "model",
         "concedes_loss": 2,
         "concedes_target": null,
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "automated experiment tracking",
+        "branch_x_target": "model.experiment_tracking",
+        "branch_x_level": 4,
+        "branch_y_description": "the current, manual logging process",
+        "branch_y_target": "model.experiment_tracking",
+        "branch_y_level": 2
       },
       {
         "key": "evaluation_harness_state",

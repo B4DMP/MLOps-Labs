@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_committed_pallets_fact_acceptance_missing",
   "stage": "artifacts",
-  "input_hash": "adc8f39a6fed31864830a712fc3262b0223a86edfb060bfb92344b30a3557a87",
+  "input_hash": "b1ea0886f440878d9b15360c752ccc82838513fd688e3332811876c6ba3367ef",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 2,
   "inputs": {
@@ -10,8 +10,8 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The acceptance criteria for the allocation module are currently missing. That is simply how the acceptance criteria setup works today.",
-      "fact": "The acceptance criteria for the allocation module are currently missing.",
+      "description": "The acceptance criteria for the allocation module are currently broken. That is simply how the acceptance criteria setup works today.",
+      "fact": "The acceptance criteria for the allocation module are currently broken.",
       "reading": "That is simply how the acceptance criteria setup works today.",
       "metric_id": null,
       "suggested": null,
@@ -41,11 +41,11 @@
       "name": "The Committed Pallets",
       "description": ""
     },
-    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "The allocation module branch in the repository does not contain a file defining acceptance criteria. The build pipeline executes the nightly forecast job for every store without referencing that file. The promotion allocation script runs when a buyer locks a middle aisle week, processing spreadsheet inputs directly. No validation step checks for the criteria before the output is served to the ordering system. The store manager app displays the suggested order during the morning window. The system compiles and deploys successfully. Data flows to the distribution centres as usual. The retraining cycle completes without flagging the missing document. The code runs on schedule for all regions. The absence of the criteria file does not interrupt the data pipeline or the generation of replenishment orders.",
+    "content": "I was tracing the promotion allocation workflow and noticed the automated acceptance criteria checks have stopped firing. The configuration file was altered during the last infrastructure migration, which left the validation pipeline dormant. Because the automated trigger is silent, the team now runs the validation steps manually before each release. Developers submit a pull request, and a reviewer opens the test environment to verify the allocation logic against the sample data sets. This manual verification happens every time a feature branch is merged into the main trunk. No alerts are generated in the build log when the criteria are not met, so the human check is the only step confirming that the code meets the defined standards before it is deployed to production.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The artifact describes the current operational state of the system, noting that the absence of the acceptance criteria file does not interrupt the pipeline or order generation, without expressing any wish, refusal, or stated need."
+    "reclassify_reason": "The text objectively describes the current state of the workflow, the cause of the failure (configuration alteration), and the resulting manual process without expressing any wishes, refusals, or stated trade-offs."
   }
 }

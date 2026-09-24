@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_shadow_deployment_contract",
   "stage": "items",
-  "input_hash": "b1d89a2e766ee745885bdf4c708682960b48bddfc4d96f1b48e40ee4adc1e840",
+  "input_hash": "5c9bc23d65bffa3733082ce9a86ead4c156980efa1f75a5d6db1eb823217fb52",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "challenge": {
       "phase_id": 4,
@@ -445,66 +445,6 @@
             "on_metric_threshold",
             "on_alert"
           ]
-        },
-        {
-          "id": "e.iam_gateway",
-          "from": "gov.iam",
-          "to": "deploy.api_gateway",
-          "kind": "governs",
-          "start_level": 2,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.cost_serving",
-          "from": "gov.cost_monitoring",
-          "to": "deploy.serving",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.iac_orch",
-          "from": "gov.iac",
-          "to": "deploy.orchestration",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
         }
       ],
       "instances": [
@@ -592,18 +532,6 @@
         "trigger": "none"
       },
       "e.rollback_serving": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.iam_gateway": {
-        "level": 2,
-        "trigger": "manual_request"
-      },
-      "e.cost_serving": {
-        "level": 1,
-        "trigger": "none"
-      },
-      "e.iac_orch": {
         "level": 1,
         "trigger": "none"
       }
@@ -694,7 +622,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "governing the shadow environment on its own",
+        "branch_x_target": "deploy.shadow",
+        "branch_x_level": 4,
+        "branch_y_description": "leaving the shadow deployment a manual step",
+        "branch_y_target": "deploy.shadow",
+        "branch_y_level": 2
       },
       {
         "key": "ruth_cicd_driver",
@@ -780,7 +714,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "running an automated shadow environment",
+        "branch_x_target": "deploy.shadow",
+        "branch_x_level": 4,
+        "branch_y_description": "accepting a manual shadow run instead",
+        "branch_y_target": "deploy.shadow",
+        "branch_y_level": 2
       },
       {
         "key": "alex_orch_tradeoff",
@@ -804,18 +744,24 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "automating the shadow environment's orchestration",
+        "branch_x_target": "deploy.shadow",
+        "branch_x_level": 4,
+        "branch_y_description": "keeping the shadow orchestration a manual step",
+        "branch_y_target": "deploy.shadow",
+        "branch_y_level": 2
       },
       {
         "key": "fact_shadow_missing",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The shadow deployment environment is missing from the system, so no new model version can be verified against live traffic.",
+        "fact": "The shadow deployment environment is broken, so no new model version can be verified against live traffic.",
         "readings": {
           "driver": "The team wants the shadow environment to be built and integrated into the CI/CD pipeline to enable automated validation of new models.",
           "boundary": "The stakeholder will not allow any new model to be deployed without a functioning shadow environment to verify its performance.",
           "trade_off": "The stakeholder would accept a temporary manual workaround if the shadow environment cannot be built in time for the promotion week.",
-          "fact": "That is simply the current state of the system, with no shadow deployment setup present."
+          "fact": "That is simply the current state of the system, with the shadow deployment setup in a broken state."
         },
         "metric_id": null,
         "suggested_target": null,

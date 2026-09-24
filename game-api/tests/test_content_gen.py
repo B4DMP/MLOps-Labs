@@ -302,6 +302,23 @@ def test_items_checks_catch_false_facts_and_missing_conflict_trade_off(env):
     assert any("soft conflict" in e for e in errors)
 
 
+def test_items_checks_catch_missing_wording_on_a_broken_level(env):
+    ctx, ledger = env
+    run("templates", ctx, ledger, FakeLLM(respond))
+    ledger.approve(["templates:p2:s0"])
+    [item] = STAGES["items"].plan(ctx)
+
+    bad = json.loads(json.dumps(ITEMS))
+    bad["items"][6]["fact"] = "The ingestion job is currently missing."  # level 0 is broken, not absent
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("reads as absent" in e for e in errors)
+
+    bad = json.loads(json.dumps(ITEMS))
+    bad["items"][8]["fact"] = "Datasets are broken and not versioned at all."  # level 1 is absent, not broken
+    errors = STAGES["items"].check(bad, item, ctx)
+    assert any("reads as something that existed and failed" in e for e in errors)
+
+
 def test_items_checks_keep_game_words_out_of_the_dossier(env):
     ctx, ledger = env
     run("templates", ctx, ledger, FakeLLM(respond))
@@ -537,6 +554,29 @@ def test_a_bare_stakeholder_id_gets_re_braced_not_left_as_plain_text(env):
     assert out == "{requirements_reuben} mentioned governed data quality checks."
     # An id that is already correctly braced must not be double-wrapped.
     assert tokenize_names("{requirements_reuben} agreed.", ctx.stakeholders) == "{requirements_reuben} agreed."
+
+
+def test_artifact_hint_distinguishes_broken_from_absent():
+    """Code-review finding: _asserts_absent used `level <= 1`, so a level 0 (broken: it existed and
+    stopped working) fact got the same ABSENT_HINT as level 1 (absent: it never existed), telling
+    the model to write "does not exist" for something that broke."""
+    from content_gen.stages.artifacts import ABSENT_HINT, BROKEN_HINT, _asserts_absent, _asserts_broken
+    from mlops_serious_game.domain.requirement import FactAssertion, StakeholderRequirement
+
+    def fact(level):
+        return StakeholderRequirement(
+            id="x", challenge_id=1, type="fact", description="d",
+            asserts=FactAssertion(target="req.x", level=level),
+        )
+
+    broken = fact(0)
+    absent = fact(1)
+    manual = fact(2)
+
+    assert _asserts_broken(broken) and not _asserts_absent(broken)
+    assert _asserts_absent(absent) and not _asserts_broken(absent)
+    assert not _asserts_broken(manual) and not _asserts_absent(manual)
+    assert ABSENT_HINT != BROKEN_HINT
 
 
 def test_bare_stakeholder_id_errors_flags_a_leak_and_clears_once_fixed():

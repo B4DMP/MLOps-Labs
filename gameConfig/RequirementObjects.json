@@ -123,8 +123,8 @@
       "id": "gen_heatwave_kpi_gap_fact_kpi_missing",
       "challenge_id": 113,
       "type": "fact",
-      "description": "The KPI definition is missing from the system. That is simply how the KPI setup works today.",
-      "fact": "The KPI definition is missing from the system.",
+      "description": "The KPI definition is broken in the system. That is simply how the KPI setup works today.",
+      "fact": "The KPI definition is broken in the system.",
       "reading": "That is simply how the KPI setup works today.",
       "ops": [],
       "branch_x_atoms": [],
@@ -203,12 +203,16 @@
       "branch_x": {
         "description": "the data contracts fully governed with automated consent checks",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "manual review of the data contracts",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -257,12 +261,16 @@
       "branch_x": {
         "description": "consent checks fully automated in the data contracts",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "a faster, manual contract review",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -285,12 +293,16 @@
       "branch_x": {
         "description": "the data contracts fully governed and automated",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "a temporary manual step in contract review",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -320,8 +332,8 @@
       "id": "gen_loyalty_consent_gap_fact_contracts_missing",
       "challenge_id": 114,
       "type": "fact",
-      "description": "The data contracts are currently missing from the system. That is simply how the data contract setup works today.",
-      "fact": "The data contracts are currently missing from the system.",
+      "description": "The data contracts are currently broken in the system. That is simply how the data contract setup works today.",
+      "fact": "The data contracts are currently broken in the system.",
       "reading": "That is simply how the data contract setup works today.",
       "ops": [],
       "branch_x_atoms": [],
@@ -407,12 +419,16 @@
       "branch_x": {
         "description": "the acceptance criteria fully governed",
         "target": "req.acceptance_criteria",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the acceptance criteria kept as a basic manual check",
         "target": "req.acceptance_criteria",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -463,12 +479,16 @@
       "branch_x": {
         "description": "the data contracts fully automated",
         "target": "req.data_contracts",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the data contracts kept manual for this release",
         "target": "req.data_contracts",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -516,12 +536,16 @@
       "branch_x": {
         "description": "the promotion week's KPIs calculated automatically",
         "target": "req.kpi_definition",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "a lower, manually tracked level of cost reporting",
         "target": "req.kpi_definition",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -532,8 +556,8 @@
       "id": "gen_committed_pallets_fact_acceptance_missing",
       "challenge_id": 110,
       "type": "fact",
-      "description": "The acceptance criteria for the allocation module are currently missing. That is simply how the acceptance criteria setup works today.",
-      "fact": "The acceptance criteria for the allocation module are currently missing.",
+      "description": "The acceptance criteria for the allocation module are currently broken. That is simply how the acceptance criteria setup works today.",
+      "fact": "The acceptance criteria for the allocation module are currently broken.",
       "reading": "That is simply how the acceptance criteria setup works today.",
       "ops": [],
       "branch_x_atoms": [],
@@ -1171,8 +1195,8 @@
       "id": "gen_override_blind_spot_registry_gap",
       "challenge_id": 117,
       "type": "fact",
-      "description": "The model registry is missing from the system. That is simply how the model registry setup works today.",
-      "fact": "The model registry is missing from the system.",
+      "description": "The model registry is broken. That is simply how the model registry setup works today.",
+      "fact": "The model registry is broken.",
       "reading": "That is simply how the model registry setup works today.",
       "ops": [],
       "branch_x_atoms": [],
@@ -1250,12 +1274,16 @@
       "branch_x": {
         "description": "a fully automated model registry",
         "target": "model.registry",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "a manual model registry",
         "target": "model.registry",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1304,12 +1332,16 @@
       "branch_x": {
         "description": "a fully automated, governed evaluation process",
         "target": "model.evaluation",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the current, manual evaluation process",
         "target": "model.evaluation",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1339,12 +1371,16 @@
       "branch_x": {
         "description": "automated experiment tracking",
         "target": "model.experiment_tracking",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the current, manual logging process",
         "target": "model.experiment_tracking",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1465,12 +1501,16 @@
       "branch_x": {
         "description": "pushing the deployment pipeline to full automation",
         "target": "deploy.cicd",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the pipeline moving with a manual approval gate",
         "target": "deploy.cicd",
-        "level": 3
+        "level": 3,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1494,12 +1534,16 @@
       "branch_x": {
         "description": "the deployment pipeline held at the audited, compliance-checked level",
         "target": "deploy.cicd",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the deployment pipeline moving to full automation",
         "target": "deploy.cicd",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1548,12 +1592,16 @@
       "branch_x": {
         "description": "cost control relaxed for the new model version",
         "target": "deploy.orchestration",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "cost control held at its current, strict level",
         "target": "deploy.orchestration",
-        "level": 1
+        "level": 1,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -1663,20 +1711,24 @@
         "metric_id": "automation",
         "loss": 3
       },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The manual shadow deployment process keeps coming up whenever the team discusses changes to the CI/CD pipeline.",
       "branch_x": {
         "description": "governing the shadow environment on its own",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "leaving the shadow deployment a manual step",
         "target": "deploy.shadow",
-        "level": 2
-      }
+        "level": 2,
+        "ops": [],
+        "atoms": []
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual shadow deployment process keeps coming up whenever the team discusses changes to the CI/CD pipeline."
     },
     {
       "id": "gen_shadow_deployment_contract_ruth_cicd_driver",
@@ -1741,19 +1793,23 @@
         "metric_id": "efficiency",
         "loss": 2
       },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
       "branch_x": {
         "description": "running an automated shadow environment",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "accepting a manual shadow run instead",
         "target": "deploy.shadow",
-        "level": 2
-      }
+        "level": 2,
+        "ops": [],
+        "atoms": []
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": []
     },
     {
       "id": "gen_shadow_deployment_contract_alex_orch_tradeoff",
@@ -1768,28 +1824,32 @@
         "metric_id": "automation",
         "loss": 4
       },
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
-      "atoms": [],
-      "gist": "The manual configuration process for the shadow environment orchestration layer has been raised during recent model version deployments.",
       "branch_x": {
         "description": "automating the shadow environment's orchestration",
         "target": "deploy.shadow",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "keeping the shadow orchestration a manual step",
         "target": "deploy.shadow",
-        "level": 2
-      }
+        "level": 2,
+        "ops": [],
+        "atoms": []
+      },
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "gist": "The manual configuration process for the shadow environment orchestration layer has been raised during recent model version deployments."
     },
     {
       "id": "gen_shadow_deployment_contract_fact_shadow_missing",
       "challenge_id": 118,
       "type": "fact",
-      "description": "The shadow deployment environment is missing from the system, so no new model version can be verified against live traffic. That is simply the current state of the system, with no shadow deployment setup present.",
-      "fact": "The shadow deployment environment is missing from the system, so no new model version can be verified against live traffic.",
-      "reading": "That is simply the current state of the system, with no shadow deployment setup present.",
+      "description": "The shadow deployment environment is broken, so no new model version can be verified against live traffic. That is simply the current state of the system, with the shadow deployment setup in a broken state.",
+      "fact": "The shadow deployment environment is broken, so no new model version can be verified against live traffic.",
+      "reading": "That is simply the current state of the system, with the shadow deployment setup in a broken state.",
       "ops": [],
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2088,12 +2148,16 @@
       "branch_x": {
         "description": "governed, automated drift monitoring",
         "target": "ops.production_drift_monitoring",
-        "level": 4
+        "level": 4,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "drift monitoring cut back to the bare minimum",
         "target": "ops.production_drift_monitoring",
-        "level": 1
+        "level": 1,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2171,12 +2235,16 @@
       "branch_x": {
         "description": "drift alerts triggering retraining automatically",
         "target": "e.alert_retrain",
-        "level": 3
+        "level": 3,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the retraining trigger staying a manual step",
         "target": "e.alert_retrain",
-        "level": 1
+        "level": 1,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2205,12 +2273,16 @@
       "branch_x": {
         "description": "full, granular logging",
         "target": "ops.observability",
-        "level": 3
+        "level": 3,
+        "ops": [],
+        "atoms": []
       },
       "branch_y": {
         "description": "the current, lower-granularity logging level",
         "target": "ops.observability",
-        "level": 2
+        "level": 2,
+        "ops": [],
+        "atoms": []
       },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
@@ -2245,8 +2317,8 @@
       "id": "gen_cost_crisis_drift_gap_fact_drift_absent",
       "challenge_id": 111,
       "type": "fact",
-      "description": "Production drift monitoring is absent. That is simply the state of the system today.",
-      "fact": "Production drift monitoring is absent.",
+      "description": "Production drift monitoring is broken. That is simply the state of the system today.",
+      "fact": "Production drift monitoring is broken.",
       "reading": "That is simply the state of the system today.",
       "ops": [],
       "branch_x_atoms": [],

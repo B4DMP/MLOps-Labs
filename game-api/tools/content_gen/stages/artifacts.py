@@ -160,10 +160,20 @@ def envelope_errors(content: str) -> list[str]:
 
 ABSENT_HINT = ("The fact is that something does not exist. Describe only how the work is done today "
                "without it, as observed events or numbers. No consequences, risks, costs or benefits.")
+# Level 0 is broken (it existed and stopped working, or work on it stalled), not level 1's absent
+# (it never existed): reusing ABSENT_HINT for level 0 told the model to write "does not exist" for
+# something that broke, contradicting the fact sentence it was given.
+BROKEN_HINT = ("The fact is that something exists but is broken: it used to work, or someone started "
+               "it, and it stopped or stalled. Describe the workaround people use today because it "
+               "does not work, never that it does not exist. No consequences, risks, costs or benefits.")
 
 
 def _asserts_absent(req) -> bool:
-    return req.type == "fact" and req.asserts is not None and req.asserts.level is not None and req.asserts.level <= 1
+    return req.type == "fact" and req.asserts is not None and req.asserts.level == 1
+
+
+def _asserts_broken(req) -> bool:
+    return req.type == "fact" and req.asserts is not None and req.asserts.level == 0
 
 
 def _stable_index(key: str, n: int) -> int:
@@ -190,7 +200,7 @@ def narrator_for(req, roster: list[dict], graph) -> Optional[dict]:
 
 class ArtifactsStage:
     name = "artifacts"
-    prompt_version = "a6"
+    prompt_version = "a7"
     upstream = "items"
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -217,7 +227,8 @@ class ArtifactsStage:
                         # Fact artifacts get no conflict description: given the dispute, the model
                         # narrates it and the fact stops reading as a fact.
                         "challenge": {"name": challenge["name"], "description": "" if is_fact else challenge["description"]},
-                        **({"hint": ABSENT_HINT} if _asserts_absent(req) else {}),
+                        **({"hint": ABSENT_HINT} if _asserts_absent(req)
+                           else {"hint": BROKEN_HINT} if _asserts_broken(req) else {}),
                     },
                 ))
         return items

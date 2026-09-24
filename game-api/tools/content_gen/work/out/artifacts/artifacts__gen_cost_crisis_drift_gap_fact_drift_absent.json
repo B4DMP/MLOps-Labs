@@ -1,17 +1,17 @@
 {
   "item_id": "artifacts:gen_cost_crisis_drift_gap_fact_drift_absent",
   "stage": "artifacts",
-  "input_hash": "fafb497543b32f2958b08a61114ca79d8adb810cf9e4198b47d29bae0cb8720d",
+  "input_hash": "bbb084305eceb79365db2a7f4ac26742a864ad3d7777cebea79967f27163cd03",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 3,
+  "attempts": 2,
   "inputs": {
     "requirement": {
       "id": "gen_cost_crisis_drift_gap_fact_drift_absent",
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "Production drift monitoring is absent. That is simply the state of the system today.",
-      "fact": "Production drift monitoring is absent.",
+      "description": "Production drift monitoring is broken. That is simply the state of the system today.",
+      "fact": "Production drift monitoring is broken.",
       "reading": "That is simply the state of the system today.",
       "metric_id": null,
       "suggested": null,
@@ -41,11 +41,11 @@
       "name": "The Cost Cliff",
       "description": ""
     },
-    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "I pulled the pipeline execution logs for the past month. The nightly forecast job completes for all stores. The weekly model retraining also runs on schedule. Between those two events, the live predictions are served to the ordering system without any intermediate validation step. There is no background process comparing the output against the incoming till scan data. The service continues to emit the numbers from the last training run until the next retrain finishes. The only activity recorded in that interval is the standard health check for service uptime. No other monitoring tasks are configured in the deployment configuration.",
+    "content": "The production drift monitoring pipeline has been throwing errors since the last deployment. The automated alerts that used to flag when forecast accuracy dipped below threshold no longer fire. The team now relies on a manual workaround, checking the validation metrics dashboard every morning before the forecast job starts to see if anything looks off. This process depends on someone remembering to look. It is the only way we currently catch issues before they hit the stores. The underlying service is still deployed, but the configuration is stale and the connection to the feature store times out, which is why the automated checks fail.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text exclusively describes the current state of the pipeline, logs, and configuration without expressing any wishes, refusals, trade-offs, or specific needs."
+    "reclassify_reason": "The text describes the current operational state, specific technical failures, and the manual workaround in use without expressing a wish, refusal, acceptance, or explicit trade-off."
   }
 }

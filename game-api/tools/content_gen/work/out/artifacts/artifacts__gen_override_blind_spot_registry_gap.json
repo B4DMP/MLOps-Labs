@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_override_blind_spot_registry_gap",
   "stage": "artifacts",
-  "input_hash": "87fc5ac8b7780e0ef0bbd207a6c67772b6e6d7c836568d367a6da420b207fa2a",
+  "input_hash": "0cd3785fa346aad4a2eb2c958157adcba72237600928579e6b8c21dcef20b6d0",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,8 +10,8 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The model registry is missing from the system. That is simply how the model registry setup works today.",
-      "fact": "The model registry is missing from the system.",
+      "description": "The model registry is broken. That is simply how the model registry setup works today.",
+      "fact": "The model registry is broken.",
       "reading": "That is simply how the model registry setup works today.",
       "metric_id": null,
       "suggested": null,
@@ -41,11 +41,11 @@
       "name": "The Override Blind Spot",
       "description": ""
     },
-    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "I have been tracing the weekly retraining pipeline for the last few days. The job pulls the latest point of sale scan lines and stock on hand data from the store systems. It then compiles the feature set and fits the new parameters. When the process finishes, the updated weights are written directly to the serving endpoint. There is no central store where these versions are recorded. I have to look at the file timestamps in the object storage bucket to figure out which model is currently live. If I need to roll back to a previous iteration, I have to dig through the raw logs to find the exact commit hash. The deployment step simply overwrites the active file without leaving a trace of what was there before. This is the standard workflow I follow every week when the models are refreshed.",
+    "content": "I pulled the last three training runs to check version consistency and found the registry entries are incomplete. The metadata for the active production model is missing, so the system cannot verify which weights are currently serving the morning order window. I used to log every artifact automatically, but that pipeline stalled two weeks ago. Now I manually copy the model hash into a shared spreadsheet before each retraining cycle. The registry interface loads, but the search function returns empty results for any query, forcing me to navigate directly to the storage bucket to locate the correct file. I have not touched the configuration since the outage, so the broken state persists across every weekly retrain.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the current operational workflow and its lack of versioning controls as a neutral observation of how the system functions, without expressing a wish, refusal, or stated trade-off."
+    "reclassify_reason": "The text exclusively describes the current state of the MLOps infrastructure, including missing metadata, a stalled pipeline, and a broken search function, without expressing any wishes, refusals, or trade-offs."
   }
 }
