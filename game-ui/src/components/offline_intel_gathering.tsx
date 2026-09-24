@@ -6,6 +6,7 @@ import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGa
 import IntelArtifactViewer from "./IntelArtifactViewer";
 import StakeholderDossier, { type IntelDebugInfo, type StakeholderDossierEntry } from "./StakeholderDossier";
 import EventLogModal from "./EventLogModal";
+import PhaseOverview from "./PhaseOverview";
 import type { GameEventPayload } from "../types/GameEvent";
 import styles from "./offline_intel_gathering.module.css";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
@@ -593,11 +594,21 @@ export default function OfflineIntelGathering({
             <div
               className={`transparent-div shadow-lg w-100 ${styles.transparentDivWrapper}`}
             >
+              {/* Where-am-I-in-the-project rail, shared with the Performance Dashboard and
+                  Phase Briefing headers, sitting above the title row so it doesn't compete
+                  with the title and nav pills for the same horizontal space. This header is
+                  much narrower than either of those, so it renders in the tiny variant: only
+                  the current phase keeps its label, the rest collapse to a representative
+                  icon for that phase (name still reachable on hover). */}
+              <div className={styles.headerPhaseRail}>
+                <PhaseOverview compact />
+              </div>
+
               {/* Header Title inside transparent-div - Merged Artifact Info */}
               <div className={styles.headerRow}>
                 <div className={styles.headerTitleGroup}>
                   <span className="transparent-div-label mb-0">
-                    🔍 Offline Intel Gathering
+                    <OnceIcon icon={MAGNIFIER_ICON} className={styles.headerTitleLordicon} /> Offline Intel Gathering
                   </span>
                   <span className={styles.infoTooltipWrapper}>
                     <button

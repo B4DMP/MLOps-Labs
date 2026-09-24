@@ -159,20 +159,14 @@ export default function IntelArtifactViewer({
           <div className={styles.breadcrumbs}>
             <span>📚 Enterprise Wiki</span> / <span>MLOps Governance</span> / <span>Meeting Minutes</span>
           </div>
-          <span className={styles.wikiStatusTag}>SUMMARY</span>
+          <div className={styles.wikiStatusGroup}>
+            <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
+            <span className={styles.wikiStatusTag}>SUMMARY</span>
+          </div>
         </div>
 
         {/* Body */}
         <div className={styles.wikiBody}>
-          <h3 className={styles.wikiTitle}>
-            📌 Executive Alignment & Stakeholder Minutes
-          </h3>
-
-          <div className={styles.metaRow}>
-            <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
-            <span className={styles.metaChip}>📅 Date: Q3 Alignment Sync</span>
-          </div>
-
           <div className={styles.executiveCallout}>
             <strong>Executive Takeaway / Stance:</strong>
             <div className={styles.markdownContent}>

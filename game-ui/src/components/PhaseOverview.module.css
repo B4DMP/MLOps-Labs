@@ -63,6 +63,22 @@
   padding-left: 0.7em;
 }
 
+/* Compact variant: a phase that isn't the current one drops its label and shrinks to just
+   its marker icon (the name is still reachable via the hover tip), so the rail fits a header
+   with much less horizontal room. The grid column widths that make this actually narrower
+   are set by the component (`compact` prop), not here. */
+.iconOnly {
+  gap: 0;
+  padding: 0.3em 0.5em;
+  margin-left: -0.45em;
+  justify-content: center;
+}
+
+.iconOnly.first {
+  margin-left: 0;
+  padding-left: 0.5em;
+}
+
 .first::before {
   clip-path: polygon(
     0 0,
@@ -73,15 +89,33 @@
   );
 }
 
-/* Phases already played: settled, quiet, still legibly "done". */
+/* Phases already played: settled, quiet, still legibly "done". These four (.done, .active,
+   .upcoming and their :hover states) are the FULL RAIL's scheme - white-based tints over the
+   solid dark teal `.header` background that the Performance Dashboard and Phase Briefing put
+   this rail on. The `.compact` rail (below) sits on a different, lighter/translucent card
+   instead and gets its own black-based versions of the same four rules, scoped under
+   `.compact` - the two rails read differently on purpose: don't let one scheme leak into the
+   other, or the tints stop matching what's actually behind them. */
 .done {
   --seg-bg: rgba(255, 255, 255, 0.26);
   color: #ffffff;
 }
 
-/* The phase the player is in: the one bright segment in the rail. */
+/* The phase the player is in: distinct, but a tint rather than a solid white slab - a fully
+   opaque white segment was pulling the eye away from everything else in the rail. The marker
+   circle carries the strong white/primary contrast instead (matching how "done" gets its own
+   green circle), so "current" still reads instantly without the whole segment shouting.
+   Brighter than `.done`'s 0.26, not fainter - it was briefly dimmer than an already-played
+   phase, which is what erased the seam between them; the notch between two segments only reads
+   as a notch when there's an actual brightness step across it.
+
+   Dark text here, not white: everywhere else in the rail is light text on a dark-ish fill, but
+   this fill is the one light one, so it's the one place that pairing flips - same call already
+   made for `.active .marker` below (a dark icon on its white circle rather than a white one).
+   No shadow trick needed, no extra element, and it stays exactly as transparent as it is now -
+   it's a foreground/background pairing problem, not a "make white more visible" problem. */
 .active {
-  --seg-bg: #ffffff;
+  --seg-bg: rgba(255, 255, 255, 0.4);
   color: var(--primary-bg, #266682);
   font-weight: 700;
   z-index: 2;
@@ -109,28 +143,44 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* Bigger than the row actually needs, and given back the difference as negative block margin
+   (same overflow-without-growing-the-row trick `.compact .marker` below takes further) - the
+   full rail's icons had been reading small next to the title beside them. */
 .marker {
   flex-shrink: 0;
-  width: 1.35em;
-  height: 1.35em;
+  width: 1.55em;
+  height: 1.55em;
+  margin-block: -0.1em;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85em;
+  font-size: 1.05em;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+/* Compact only: a bigger marker circle still, without a taller rail - negative block margin
+   gives back exactly the height the larger circle added, so it still only takes up the base
+   1.35em for layout purposes (what sets the row's height) while visibly poking past the rail's
+   top and bottom edge. `.step` is `overflow: visible` by default, so nothing here clips it. */
+.compact .marker {
+  width: 1.85em;
+  height: 1.85em;
+  font-size: 1.15em;
+  margin-block: -0.25em;
 }
 
 .active .marker {
-  background: var(--primary-bg, #266682);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--primary-bg, #266682);
 }
 
 .done .marker {
-  background: #16a34a;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  color: #4ade80;
 }
 
 .stepName {
@@ -176,7 +226,13 @@
   transform: translateY(0);
 }
 
-.step:last-child .tip {
+/* The tail (always the actual last child) and every step in the rail's second half both open
+   their tip toward the rail instead of away from it - a left-anchored tip past the midpoint
+   was the one running off the header/card's own right edge before reaching whatever space is
+   past it. `.tipFlip` is set by the component (it knows the phase count; this stylesheet
+   doesn't), one per phase index past the midpoint. */
+.step:last-child .tip,
+.tipFlip .tip {
   left: auto;
   right: 0;
 }
@@ -199,7 +255,7 @@
 .nextCycle {
   /* The face matches the header ground, so only the 1px rim reads: present, not solid. */
   --seg-bg: var(--primary-bg, #266682);
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.35);
   cursor: help;
   justify-content: center;
   padding: 0.3em 0.45em 0.3em 0.85em;
@@ -208,20 +264,27 @@
 .nextCycle:hover,
 .nextCycle:focus-within {
   --seg-bg: rgba(255, 255, 255, 0.16);
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .nextCycleIcon {
   position: relative;
   z-index: 1;
-  font-size: 1.05em;
+  /* Smaller than a phase marker (0.95em) - it's a footnote on the rail, not another phase, and
+     it had been reading as the single largest icon in the whole bunch. */
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
 }
 
 /* Two stacked clipped layers give the tail an outline on every edge, notch included: the
    ::before is the outline, the ::after is the face inset over it. A border on a clipped
-   layer gets sliced by the notch, which is what made this read as a dashed rectangle. */
+   layer gets sliced by the notch, which is what made this read as a dashed rectangle.
+   Flat on the right, not pointed: the tail is the last thing in the rail, so a chevron tip
+   there was pointing at nothing after it. It keeps its left notch, same as every other
+   segment - only the direction that implies "something follows" is gone. */
 .nextCycle::before {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.12);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.6em 50%);
 }
 
 .nextCycle::after {
@@ -229,14 +292,118 @@
   position: absolute;
   inset: 1px;
   background: var(--seg-bg);
-  clip-path: polygon(
-    0 0,
-    calc(100% - 0.6em) 0,
-    100% 50%,
-    calc(100% - 0.6em) 100%,
-    0 100%,
-    0.6em 50%
-  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.6em 50%);
   transition: background-color 0.15s ease;
+}
+
+/* Compact variant: keeps the chevron notch - it's what reads as "these run in a pipeline" at
+   any size, icon-only included. What it does need is a bit more room than its host header's
+   own padding leaves it: bleeds slightly past the parent on both sides (into that padding, not
+   past the card - the card itself still clips at its edge) so the chevrons and the active
+   phase's label aren't fighting the header's own inset for space. */
+.compact {
+  font-size: 0.75em;
+  margin-inline: -0.7rem;
+  width: calc(100% + 1.4rem);
+  /* A brighter, lighter-tinted primary-bg for anything that needs to sit legibly on the black
+     tints below (the plain dark `var(--primary-bg)` used for `.active`'s text on the full
+     rail's white tint reads fine there, but is far too close in value to these black fills). */
+  --primary-bright: color-mix(in srgb, var(--primary-bg, #266682) 55%, white 45%);
+}
+
+/* This rail's own color scheme: black-based tints instead of the full rail's white-based ones
+   above, because it sits on the offline-intel header's lighter/translucent card rather than a
+   solid dark teal bar - white tints there ran too bright/glary, black tints read as recessed
+   chips instead. Scoped entirely under `.compact` so the full rail (Performance Dashboard /
+   Phase Briefing, still on a solid teal `.header`) keeps the white-based scheme unchanged -
+   black tints there would have next to no contrast against an already-dark background. */
+.compact .done {
+  --seg-bg: rgba(0, 0, 0, 0.26);
+}
+
+.compact .active {
+  --seg-bg: rgba(0, 0, 0, 0.4);
+  /* The plain `var(--primary-bg)` text color above is too dark to read against this black
+     tint (dark text on a near-black chip) - `--primary-bright`, defined on `.compact` above,
+     is the same brand color lightened enough to actually show up here. */
+  color: var(--primary-bright);
+}
+
+.compact .upcoming {
+  --seg-bg: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Hover brightens here (lower opacity, not higher) - these are black tints, so *less* black
+   is what reads as "lit up"; that's the opposite direction from the full rail's white tints
+   above, where more opacity is what reads as brighter. */
+.compact .done:hover,
+.compact .done:focus-within {
+  --seg-bg: rgba(0, 0, 0, 0.16);
+}
+
+.compact .upcoming:hover,
+.compact .upcoming:focus-within {
+  --seg-bg: rgba(0, 0, 0, 0.18);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.compact .active:hover,
+.compact .active:focus-within {
+  --seg-bg: rgba(0, 0, 0, 0.26);
+}
+
+.compact .done .marker {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* Motion for the compact bar's hover state: the segment brightens (above) and its marker
+   grows and lifts slightly, so hovering a phase feels like picking it up off the rail rather
+   than just a color swap. Scoped to `.compact` - the full rail doesn't get this, it was never
+   asked for there and its markers are already smaller/simpler by design. */
+.compact .step:hover .marker,
+.compact .step:focus-within .marker {
+  transform: scale(1.15) translateY(-1px);
+}
+
+.compact .nextCycle:hover .nextCycleIcon,
+.compact .nextCycle:focus-within .nextCycleIcon {
+  transform: scale(1.25);
+}
+
+/* Horizontal weight follows importance, not vertical size: current > upcoming > already-done >
+   the tail, which isn't even a phase. Only inline padding changes between them - same height,
+   same font, same marker size - so the rail still reads as one continuous strip, just one
+   where the segments that matter get more of it. */
+/* These two are the seams that should actually read as breaks in the ribbon, not joins: the
+   active phase is a distinct "you are here" marker, not one more link in the done/upcoming
+   chain, and the tail is not a phase at all. Both keep their left chevron notch - only the
+   overlap changes, to the same minimal reveal `.iconOnly` already has against its own 0.6em
+   notch (-0.45em, not a full -0.6em cancel), so the gap here matches the gap already between
+   the upcoming icons rather than introducing a bigger, different-looking one. */
+.compact .active,
+.compact .nextCycle {
+  margin-left: -0.45em;
+}
+
+.compact .active {
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+}
+
+.compact .iconOnly.upcoming {
+  padding-left: 2.0em;
+  padding-right: 2.0em;
+}
+
+.compact .iconOnly.done {
+  padding-left: 1.5em;
+  padding-right: 1.5em;
+}
+
+.compact .nextCycle {
+  padding-left: 0.75em;
+  padding-right: 0.75em;
+  font-size: 1.25em;
 }
 

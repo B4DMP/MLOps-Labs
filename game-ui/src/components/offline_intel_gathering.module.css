@@ -111,8 +111,8 @@
     height: 100%;
     min-height: 0;
     display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    row-gap: 0.4rem;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    row-gap: 0.3rem;
 }
 
 .journalCard {
@@ -136,6 +136,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.5rem;
     flex-shrink: 0;
 }
 
@@ -144,6 +145,54 @@
     align-items: center;
     gap: 0.4rem;
     flex-wrap: wrap;
+}
+
+/* Replaces the static magnifying-glass emoji in the title - plays once on mount, then replays
+   on hover (OnceIcon's own behavior), so glancing at or hovering the title gives a little life
+   to what used to be a still glyph. Sized against the label's own 0.65rem, not the icon's
+   native size.
+   Bigger box (1.15rem) than what should actually affect the line - `margin-block` gives back
+   exactly the difference from the original 0.85rem, split evenly top and bottom, so the icon
+   reads larger without the label's own line growing to fit it (same trick the phase rail's
+   marker circles use to overflow their row without taller rows). Free room is what limits how
+   far this can go: the card padding above (`.transparentDivWrapper`, 0.5rem) and the row-gap
+   below it (0.3rem) are what an icon bleeding past its own line box would eat into before it
+   started visibly colliding with something - 1.15rem is comfortably inside that, not the edge
+   of it. */
+.headerTitleLordicon {
+    display: inline-flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-block: -0.75rem;
+    vertical-align: -1em;
+    margin-right: 0.1rem;
+}
+
+.headerTitleLordicon > div {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Its own row above the title bar, full width, so the rail never has to fight the title or
+   the nav pills for horizontal space - it's the `compact` variant's narrowness (PhaseOverview)
+   that keeps it from dominating the header, not a share of some other row's leftover space. No
+   background of its own: it shares the same translucent card as the title row right below it,
+   the same way that row's own icons and pills read fine against it - a solid fill here read as
+   a separate block bolted on top rather than part of the same header. */
+.headerPhaseRail {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 0;
+    font-size: 0.8em;
+    /* The rail's hover tooltip is an absolutely-positioned child that spills downward past the
+       rail's own box, over the title row below. Without this, that title row (being later in
+       DOM order, and just as un-positioned as this element) paints over it regardless of any
+       z-index set deeper inside the rail - z-index only orders elements within the same
+       stacking context, and nothing here was establishing one relative to its sibling. Giving
+       this wrapper its own explicit stacking position lifts everything inside it, tooltip
+       included, above that sibling. */
+    position: relative;
+    z-index: 2;
 }
 
 /* ==========================================================================
@@ -168,12 +217,15 @@
     font-size: 0.85rem;
     padding: 0;
     cursor: help;
-    transition: background var(--transition);
+    transition: background var(--transition), transform var(--transition);
 }
 
+/* Same feel as the phase rail's own icon markers now have: it grows and brightens on hover,
+   rather than fading out or losing its background. */
 .infoTooltipButton:hover,
 .infoTooltipButton:focus-visible {
     background: rgba(255, 255, 255, 0.32);
+    transform: scale(1.15);
 }
 
 /* ==========================================================================
@@ -194,12 +246,13 @@
     font-size: 0.95rem;
     padding: 0;
     cursor: pointer;
-    transition: background var(--transition);
+    transition: background var(--transition), transform var(--transition);
 }
 
 .narrationControlButton:hover,
 .narrationControlButton:focus-visible {
     background: rgba(255, 255, 255, 0.28);
+    transform: scale(1.12);
 }
 
 /* Cycles through the app's accent colors while narration plays, so Stop reads as "something is
@@ -533,6 +586,30 @@
     gap: 0.25rem;
 }
 
+/* Same grow-and-brighten feel as the phase rail's markers, not a bootstrap-default fade: each
+   pill keeps whatever background color its state already gave it (re-asserted here rather than
+   left to `.btn:hover`'s own default, which would otherwise win on specificity and wash it back
+   toward transparent) and just gets brighter and a little bigger. */
+.navPill:hover,
+.navPill:focus-visible {
+    transform: scale(1.12);
+    filter: brightness(1.3);
+    opacity: 1;
+}
+
+.navPillUntagged:hover,
+.navPillUntagged:focus-visible { background-color: #6c757d; }
+.navPillTagged:hover,
+.navPillTagged:focus-visible { background-color: #d97706; }
+.navPillOnRecord:hover,
+.navPillOnRecord:focus-visible { background-color: #1d4ed8; }
+.navPillOnRecordFact:hover,
+.navPillOnRecordFact:focus-visible { background-color: #7c3aed; }
+.navPillSummary:hover,
+.navPillSummary:focus-visible { background-color: #475569; }
+.navPillSummaryReady:hover,
+.navPillSummaryReady:focus-visible { background-color: #059669; }
+
 /* ==========================================================================
    Active Tagging View
    ========================================================================== */
@@ -546,7 +623,7 @@
     flex: 1 1 auto;
     min-height: 0;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(200px, 42%);
+    grid-template-rows: minmax(0, 1fr) minmax(180px, 38%);
 }
 
 .activeCardBody {
@@ -863,13 +940,14 @@
     font-weight: 700;
     white-space: nowrap;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .resetTagsButton:hover:not(:disabled) {
     background: rgba(220, 38, 38, 0.2);
     border-color: rgba(220, 38, 38, 0.6);
     color: #fecaca;
+    transform: scale(1.06);
 }
 
 .resetTagsButton:disabled {
