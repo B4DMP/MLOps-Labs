@@ -34,12 +34,12 @@ from mlops_serious_game.domain.graph import GraphOp
 from mlops_serious_game.domain.metric_factory import MetricFactory
 from mlops_serious_game.domain.phase_factory import PhaseFactory
 from mlops_serious_game.infrastructure.database.connection import get_session
-from mlops_serious_game.infrastructure.database.models import GameChallenge
+from mlops_serious_game.infrastructure.database.models import GameChallenge, GameProgression
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index
 from mlops_serious_game.infrastructure.database.user_lookup import get_user_id
 
 from ..manager import manager
-from .game_handler import handle_state_update_request
+from .game_handler import handle_state_update_request, select_first_challenge
 from .pitch_handler import (
     PitchContext,
     get_allowed_targets,
@@ -60,22 +60,45 @@ async def _allowed(websocket: WebSocket) -> bool:
     return False
 
 
-def _current(username: str) -> Optional[tuple[Challenge, GameChallenge]]:
-    """The challenge the player is on now: the latest row of the current run, and its challenge."""
+def _current(username: str) -> Optional[tuple[Challenge, Optional[GameChallenge]]]:
+    """The challenge the player is on now: the latest row of the current run, and its challenge.
+
+    A player who has been handed their first challenge (`game:state_update`, progress index 2 -
+    see `handle_progress_update`) but has not yet played a card has no `GameChallenge` row at all:
+    that row is only written on the player's first gather action. Without a fallback, the playtest
+    tools would wrongly report "no challenge in progress" for exactly the state a human player is
+    already looking at on `/game/offline-intel`. When there is no row, but the player's run has
+    reached that state, recompute the same first challenge `handle_progress_update` would have
+    dealt them (deterministic per-username, so it lands on the same one) and report it with no row
+    to match, letting the caller fall back to fresh-challenge defaults.
+    """
     with get_session() as session:
         user_id = get_user_id(session, username)
+        run_index = current_run_index(session, user_id)
         row = session.scalars(
             select(GameChallenge)
-            .where(GameChallenge.user_id == user_id, GameChallenge.run_index == current_run_index(session, user_id))
+            .where(GameChallenge.user_id == user_id, GameChallenge.run_index == run_index)
             .order_by(GameChallenge.id.desc())
         ).first()
-        if row is None:
-            return None
-        challenge = PhaseFactory.translate_challenge_index(
-            challenge_index=row.challenge_index, phase_index=row.phase_index
+        if row is not None:
+            challenge = PhaseFactory.translate_challenge_index(
+                challenge_index=row.challenge_index, phase_index=row.phase_index
+            )
+            session.expunge(row)
+            return (challenge, row) if challenge else None
+
+        reached_game_state = session.scalar(
+            select(GameProgression.id).where(
+                GameProgression.user_id == user_id,
+                GameProgression.run_index == run_index,
+                GameProgression.game_progress_index >= 2,
+            )
         )
-        session.expunge(row)
-        return (challenge, row) if challenge else None
+        if reached_game_state is None:
+            return None
+
+    challenge = select_first_challenge(username)
+    return (challenge, None) if challenge else None
 
 
 def _observe_everything(username: str, challenge: Challenge, ctx: PitchContext) -> None:
@@ -179,10 +202,10 @@ async def handle_playtest_auto_card(websocket: WebSocket, username: str, payload
     )
 
 
-def _metric_values_for(row: GameChallenge) -> list:
+def _metric_values_for(row: Optional[GameChallenge]) -> list:
     """The values the real client would send when the player proceeds: what is stored for the
-    challenge, or the starting values if nothing is."""
-    stored = list(row.metric_values) if isinstance(row.metric_values, list) else []
+    challenge, or the starting values if nothing is (including a player with no row at all yet)."""
+    stored = list(row.metric_values) if row is not None and isinstance(row.metric_values, list) else []
     if stored:
         return stored
     return [MetricFactory.get_metric(m).start_value for m in MetricFactory.get_available_metrics()]
@@ -269,7 +292,7 @@ async def handle_playtest_skip_challenge(websocket: WebSocket, username: str, pa
             "metric_values": _metric_values_for(row),
             "action_card_id": None,
             "messages": [],
-            "attention_tokens": row.attention_tokens,
+            "attention_tokens": row.attention_tokens if row is not None else challenge.attention_tokens,
         },
     )
     # The client's screens were left mid-challenge; reloading re-runs the normal game init and lands
