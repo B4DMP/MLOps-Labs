@@ -77,6 +77,7 @@ async def test_determine_intel_items_node_engagement_card():
 async def test_retag_challenge_specific_stance_updates_description():
     import uuid
     from unittest.mock import AsyncMock
+    from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
     from mlops_serious_game.application.intel_handler import handle_intel_tagging, retrieve_dossier_data
     from mlops_serious_game.domain.phase_factory import PhaseFactory
     from mlops_serious_game.domain.requirement import IntelTag, join_wording
@@ -103,7 +104,7 @@ async def test_retag_challenge_specific_stance_updates_description():
     unique_user = f"test_retag_user_{uuid.uuid4()}"
     ensure_test_user(unique_user)
     mock_ws = AsyncMock()
-    mock_ws.query_params = {"username": unique_user}
+    mock_ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(unique_user)}
 
     # The first wrong tag is the other plain stance, where the dossier shows the item's stored
     # reading for that tag. The second is Trade-off, which goes down the branch inventing path and

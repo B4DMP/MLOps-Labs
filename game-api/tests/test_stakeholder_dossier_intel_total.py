@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mlops_serious_game.application.intel_handler import retrieve_dossier_data
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
 from mlops_serious_game.domain.requirement import StakeholderIntelItem, StakeholderRequirement
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
 from mlops_serious_game.domain.stakeholder import Stakeholder
@@ -44,7 +45,8 @@ async def test_dossier_counts_the_whole_intel_pool_found_or_not():
     challenge.id = 7
     challenge.phase_id = 0
     ws = AsyncMock()
-    ws.query_params = {"username": f"test_intel_total_{uuid.uuid4()}"}
+    username = f"test_intel_total_{uuid.uuid4()}"
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     # The session lookup only feeds the convincer fields; stub it so this never touches the database.
     with patch.object(RequirementFactory, "requirements", pool + unrelated), \
