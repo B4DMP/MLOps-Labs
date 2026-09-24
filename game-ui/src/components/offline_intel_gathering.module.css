@@ -202,6 +202,57 @@
     background: rgba(255, 255, 255, 0.28);
 }
 
+/* Cycles through the app's accent colors while narration plays, so Stop reads as "something is
+   live" at a glance rather than sitting there identically to Listen Again. */
+.narrationControlButtonPulsing {
+    animation: narrationControlPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes narrationControlPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(46, 122, 158, 0.55);
+        background: rgba(46, 122, 158, 0.35);
+    }
+    33% {
+        box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
+        background: rgba(255, 193, 7, 0.3);
+    }
+    66% {
+        box-shadow: 0 0 0 4px rgba(38, 102, 130, 0.25);
+        background: rgba(38, 102, 130, 0.35);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrationControlButtonPulsing {
+        animation: none;
+        background: rgba(46, 122, 158, 0.35);
+    }
+}
+
+.narrationLoading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.05rem;
+    animation: narrationLoadingSpin 0.9s linear infinite;
+}
+
+@keyframes narrationLoadingSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrationLoading {
+        animation: none;
+    }
+}
+
 .infoTooltipContent {
     position: absolute;
     top: calc(100% + 8px);

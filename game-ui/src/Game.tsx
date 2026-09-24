@@ -946,6 +946,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           currentChallenge={currentChallenge}
                           onTagArtifact={(stId) => setActiveStakeholderId(stId)}
                           onOpenPhaseBriefing={openBriefingForReview}
+                          isPhaseBriefingOpen={isPhaseDialogueOpen}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
                           onSettingsToggle={() => setIsSettingsOpen((v) => !v)}

@@ -1,5 +1,6 @@
 import styles from "./IntelArtifactViewer.module.css";
-import { GlossaryMarkdown } from "./glossary/GlossaryText";
+import GlossaryText, { GlossaryMarkdown } from "./glossary/GlossaryText";
+import SpokenText from "./SpokenText";
 
 interface IntelArtifactViewerProps {
   content: string;
@@ -11,6 +12,10 @@ interface IntelArtifactViewerProps {
    * has to interpret must not look like it came from the same room.
    */
   isPublicRecord?: boolean;
+  /** Which sentence of `content` narration is currently reading, or null when this artifact
+   * isn't the one being narrated right now (see `offline_intel_gathering.tsx`'s `narrateArtifact`).
+   * Passed straight through to `SpokenText`. */
+  activeSentenceIndex?: number | null;
 }
 
 export default function IntelArtifactViewer({
@@ -18,11 +23,29 @@ export default function IntelArtifactViewer({
   artifactType,
   stakeholderName,
   isPublicRecord = false,
+  activeSentenceIndex = null,
 }: IntelArtifactViewerProps) {
   const type = (artifactType || "").toLowerCase();
   const name = stakeholderName || "Stakeholder";
   const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@enterprise.internal`;
   const initial = name.charAt(0).toUpperCase();
+  // While this artifact is actively narrating, swap the block-level markdown rendering for
+  // SpokenText's inline one: react-markdown wraps every sentence in its own <p>, which breaks
+  // the flowing sentence-by-sentence layout SpokenText needs. Glossary term highlighting still
+  // applies per sentence via GlossaryText (the inline-only highlighter, safe to nest inline)
+  // rather than being lost - only markdown's own bold/link syntax renders as literal characters
+  // during that window. Full markdown+glossary rendering is back the instant narration stops or
+  // moves to a different artifact.
+  const renderContent = () =>
+    activeSentenceIndex != null ? (
+      <SpokenText
+        text={content}
+        activeSentenceIndex={activeSentenceIndex}
+        renderSentence={(sentence) => <GlossaryText text={sentence} surface="intel_artifacts" />}
+      />
+    ) : (
+      <GlossaryMarkdown content={content} surface="intel_artifacts" />
+    );
 
   // ==========================================================================
   // 1. WORKMAIL PRO (Corporate Webmail Client)
@@ -55,7 +78,7 @@ export default function IntelArtifactViewer({
 
         {/* Email Body */}
         <div className={`${styles.mailBody} ${styles.markdownContent}`}>
-          <GlossaryMarkdown content={content} surface="intel_artifacts" />
+          {renderContent()}
         </div>
 
         {/* Corporate Email Signature */}
@@ -110,7 +133,7 @@ export default function IntelArtifactViewer({
           </div>
 
           <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
-            <GlossaryMarkdown content={content} surface="intel_artifacts" />
+            {renderContent()}
           </div>
 
           {/* Emoji Reactions & Thread Bar */}
@@ -153,7 +176,7 @@ export default function IntelArtifactViewer({
           <div className={styles.executiveCallout}>
             <strong>Executive Takeaway / Stance:</strong>
             <div className={styles.markdownContent}>
-              <GlossaryMarkdown content={content} surface="intel_artifacts" />
+              {renderContent()}
             </div>
           </div>
 
@@ -190,7 +213,7 @@ export default function IntelArtifactViewer({
         </div>
 
         <div className={`${styles.specContentBox} ${styles.markdownContent}`}>
-          <GlossaryMarkdown content={content} surface="intel_artifacts" />
+          {renderContent()}
         </div>
       </div>
     </div>

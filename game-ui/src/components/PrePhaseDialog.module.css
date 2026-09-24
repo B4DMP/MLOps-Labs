@@ -276,6 +276,51 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Cycles through the app's accent colors while narration plays, so the stop control reads as
+   "something is live" at a glance rather than sitting there identically to Play Again. */
+.briefingNarrationButtonPulsing {
+  animation: briefingNarrationPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes briefingNarrationPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(46, 122, 158, 0.55);
+    background: rgba(46, 122, 158, 0.35);
+  }
+  33% {
+    box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.25);
+    background: rgba(255, 193, 7, 0.3);
+  }
+  66% {
+    box-shadow: 0 0 0 4px rgba(38, 102, 130, 0.25);
+    background: rgba(38, 102, 130, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .briefingNarrationButtonPulsing {
+    animation: none;
+    background: rgba(46, 122, 158, 0.35);
+  }
+}
+
+.briefingNarrationLoading {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.95rem;
+  animation: briefingNarrationSpin 0.9s linear infinite;
+}
+
+@keyframes briefingNarrationSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .briefingNarrationLoading {
+    animation: none;
+  }
+}
+
 .missionCardBody {
   padding: 1rem;
   display: flex;

@@ -8,6 +8,15 @@ export interface PlayerSettings {
   voice_female: string | null;
   voice_narrator: string | null;
   voice_player: string | null;
+  /** "auto" prefers server-side edge-tts narration and falls back to window.speechSynthesis on
+   * failure; "webspeech" forces the old client-only behaviour. */
+  tts_backend: "auto" | "webspeech";
+  /** Which of the server's two player voices narrates the player's own lines. Chosen at
+   * registration, editable later here in Settings. */
+  player_voice_gender: "male" | "female";
+  /** Multiplier on narration speed for both TTS paths - 1 is unchanged, below slower, above
+   * faster. Editable here in Settings. */
+  speech_rate: number;
 }
 
 export const DEFAULT_SETTINGS: PlayerSettings = {
@@ -17,6 +26,9 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   voice_female: null,
   voice_narrator: null,
   voice_player: null,
+  tts_backend: "auto",
+  player_voice_gender: "male",
+  speech_rate: 1,
 };
 
 interface SettingsContextValue {
@@ -88,6 +100,9 @@ function toPlayerSettings(data: Record<string, unknown> | undefined | null): Pla
     voice_female: asVoiceName(data?.voice_female),
     voice_narrator: asVoiceName(data?.voice_narrator),
     voice_player: asVoiceName(data?.voice_player),
+    tts_backend: data?.tts_backend === "webspeech" ? "webspeech" : "auto",
+    player_voice_gender: data?.player_voice_gender === "female" ? "female" : "male",
+    speech_rate: typeof data?.speech_rate === "number" ? data.speech_rate : 1,
   };
 }
 

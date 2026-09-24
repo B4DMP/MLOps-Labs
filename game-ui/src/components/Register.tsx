@@ -13,7 +13,8 @@ interface RegisterProps {
     passwordConfirm: string,
     usersOnMachine: number,
     campaignKey: string,
-    startMuted: boolean
+    startMuted: boolean,
+    playerVoiceGender: "male" | "female"
   ) => void;
   readyState: ReadyState;
   onBack: () => void;
@@ -38,6 +39,7 @@ export function Register({
   const [usersOnMachine, setUsersOnMachine] = useState("1");
   const [campaignKey, setCampaignKey] = useState("");
   const [startMuted, setStartMuted] = useState(false);
+  const [playerVoiceGender, setPlayerVoiceGender] = useState<"male" | "female">("female");
 
   // Whether email is actually required depends on the campaign (test campaigns skip it
   // entirely), which only the backend knows - so the form doesn't require it client-side, and
@@ -60,7 +62,8 @@ export function Register({
         passwordConfirm,
         parseInt(usersOnMachine, 10),
         campaignKey.trim(),
-        startMuted
+        startMuted,
+        playerVoiceGender
       );
     }
   };
@@ -81,10 +84,17 @@ export function Register({
         transition={{ duration: 0.22, ease: "easeOut" }}
       >
 
-        <h2 className={styles.cardTitle}>Register</h2>
-        <p className={styles.cardSubtitle}>
-          Join a study campaign and begin your MLOps Labs session. <br /> Your game will be saved automatically.
-        </p>
+        <div className={styles.titleRow}>
+          <div>
+            <h2 className={styles.cardTitle}>Register</h2>
+            <p className={styles.cardSubtitle}>
+              Join a study campaign and begin your MLOps Labs session.
+            </p>
+          </div>
+          <span className={styles.requiredLegend}>
+            <span className={styles.requiredMark} aria-hidden>*</span> required
+          </span>
+        </div>
 
         {/* Inline Error Alert */}
         {errorMessage && (
@@ -118,16 +128,13 @@ export function Register({
               style={{ color: "#38bdf8", fontSize: "1.25rem" }}
             />
             <div>
-              <strong>Research Consent:</strong> By playing, you agree that your in-game actions will be logged and analyzed for scientific research, and that all published results are strictly anonymized.
+              <strong>Research Consent:</strong> By playing, you agree that your in-game actions will be logged and analyzed for scientific research. All published results are strictly anonymized. 
             </div>
           </div>
         </div>
 
         {/* Form (Stacked by default, 2-column on small screens) */}
         <form onSubmit={handleSubmit}>
-          <p className="text-muted mb-2" style={{ fontSize: "0.78rem" }}>
-            <span className={styles.requiredMark} aria-hidden>*</span> required
-          </p>
           <div className={styles.inputGrid}>
             <div className={styles.formGroup}>
               <label htmlFor="register-username-input" className={styles.formLabel}>
@@ -170,9 +177,6 @@ export function Register({
               <label htmlFor="register-email-input" className={styles.formLabel}>
                 <Icon icon="ph:envelope-bold" style={{ fontSize: "1rem" }} />
                 <span>Email</span>
-                <span className="text-muted fw-normal text-lowercase" style={{ fontSize: "0.7rem", letterSpacing: 0 }}>
-                  (unless your campaign skips it)
-                </span>
               </label>
               <input
                 id="register-email-input"
@@ -237,8 +241,11 @@ export function Register({
               />
             </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="register-users-on-machine-input" className={styles.formLabel}>
+          </div>
+
+          <div className={styles.compactRow}>
+            <div className={styles.compactCard}>
+              <label htmlFor="register-users-on-machine-input" className={styles.formLabel} style={{ marginBottom: 0 }}>
                 <Icon icon="ph:users-bold" style={{ fontSize: "1rem" }} />
                 <span>Players On This Device</span>
                 <span className={styles.requiredMark} aria-hidden>*</span>
@@ -247,30 +254,78 @@ export function Register({
                 id="register-users-on-machine-input"
                 type="number"
                 min={1}
-                className={styles.formInput}
-                placeholder="How many people play on this device?"
+                max={10}
+                className={`${styles.formInput} ${styles.usersInput}`}
                 value={usersOnMachine}
                 required
                 disabled={isLoading}
                 onChange={(e) => handleInputChange(setUsersOnMachine, e.target.value)}
               />
+              <p className={styles.compactHint}>
+                Just so we know how many people played together. This has no effect on gameplay.
+              </p>
             </div>
-          </div>
 
-          <div className="form-check form-switch d-flex align-items-center gap-2 mb-1">
-            <input
-              type="checkbox"
-              role="switch"
-              id="register-start-muted"
-              className="form-check-input mt-0"
-              checked={startMuted}
-              disabled={isLoading}
-              onChange={(e) => setStartMuted(e.target.checked)}
-            />
-            <label htmlFor="register-start-muted" className={styles.formLabel} style={{ cursor: "pointer", marginBottom: 0 }}>
-              <Icon icon="ph:speaker-slash-bold" style={{ fontSize: "1rem" }} />
-              <span>Start muted</span>
-            </label>
+            <div className={styles.compactCard}>
+              <div className="d-flex align-items-center gap-2">
+                <Icon
+                  icon={startMuted ? "ph:speaker-slash-bold" : "ph:speaker-high-bold"}
+                  style={{ fontSize: "1rem", color: "rgba(255, 255, 255, 0.9)" }}
+                />
+                <span className={styles.formLabel} style={{ marginBottom: 0 }}>
+                  Narration
+                </span>
+              </div>
+              <div className={`${styles.segmentedToggle} ${styles.compactCardControl}`} role="group" aria-label="Narration">
+                {([false, true] as const).map((muted) => (
+                  <button
+                    key={String(muted)}
+                    type="button"
+                    className={`${styles.segmentedOption} ${
+                      startMuted === muted ? styles.segmentedOptionActive : ""
+                    }`}
+                    disabled={isLoading}
+                    aria-pressed={startMuted === muted}
+                    onClick={() => setStartMuted(muted)}
+                  >
+                    <Icon icon={muted ? "ph:microphone-slash-duotone" : "ph:microphone-duotone"} style={{ fontSize: "1rem" }} />
+                    <span>{muted ? "Muted" : "Speaking"}</span>
+                  </button>
+                ))}
+              </div>
+              <p className={styles.compactHint}>
+                This game uses synthetic voices to voice the stakeholders you'll interact with.
+              </p>
+            </div>
+
+            <div className={styles.compactCard}>
+              <div className="d-flex align-items-center gap-2">
+                <Icon icon="ph:microphone-bold" style={{ fontSize: "1rem", color: "rgba(255, 255, 255, 0.9)" }} />
+                <span className={styles.formLabel} style={{ marginBottom: 0 }}>
+                  Your voice
+                </span>
+              </div>
+              <div className={`${styles.segmentedToggle} ${styles.compactCardControl}`} role="group" aria-label="Your voice">
+                {(["male", "female"] as const).map((gender) => (
+                  <button
+                    key={gender}
+                    type="button"
+                    className={`${styles.segmentedOption} ${
+                      playerVoiceGender === gender ? styles.segmentedOptionActive : ""
+                    }`}
+                    disabled={isLoading}
+                    aria-pressed={playerVoiceGender === gender}
+                    onClick={() => setPlayerVoiceGender(gender)}
+                  >
+                    <Icon icon={gender === "male" ? "ph:gender-male-duotone" : "ph:gender-female-duotone"} style={{ fontSize: "1rem" }} />
+                    <span>{gender === "male" ? "Male" : "Female"}</span>
+                  </button>
+                ))}
+              </div>
+              <p className={styles.compactHint}>
+                Your lines will be narrated by a synthetic voice during the game.
+              </p>
+            </div>
           </div>
 
           <div className={styles.buttonRow}>

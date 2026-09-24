@@ -333,7 +333,14 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
 
   const handlePreview = (slot: VoiceSlot, voiceName: string | null, text: string) => {
     cancelSpeech();
-    speak(text, { slot, seed: slot, voiceName });
+    speak(text, {
+      slot,
+      seed: slot,
+      voiceName,
+      // "You" is the only slot this affects - previewing it should reflect whichever gender is
+      // currently selected (including a change not yet saved), not the ungendered fallback voice.
+      playerGender: slot === "player" ? settings.player_voice_gender : undefined,
+    });
   };
 
   const updateVoice = (field: VoiceSlotConfig["field"], value: string) => {
@@ -381,43 +388,117 @@ export default function SettingsPanel({ isVisible, onClose, onLogout }: Settings
               />
             </label>
 
-            {voices.length === 0 ? (
-              <p className={styles.diagnostic}>
-                {typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("linux")
-                  ? "No speech voices found. On Linux, this usually means speech-dispatcher is not installed."
-                  : "Your browser reports no speech voices available."}
-              </p>
-            ) : (
-              <div className={styles.voiceGrid}>
-                {VOICE_SLOTS.map(({ slot, label, field, previewText }) => (
-                  <div key={slot} className={styles.voiceRow}>
-                    <span className={styles.voiceLabel}>{label}</span>
-                    <select
-                      className="form-select form-select-sm"
-                      disabled={settings.mute_tts}
-                      value={settings[field] ?? ""}
-                      onChange={(e) => updateVoice(field, e.target.value)}
-                    >
-                      <option value="">Automatic</option>
-                      {englishVoices.map((v) => (
-                        <option key={v.name} value={v.name}>
-                          {v.localService === false ? `${v.name} (online)` : v.name}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className={styles.previewButton}
-                      disabled={settings.mute_tts}
-                      onClick={() => handlePreview(slot, settings[field], previewText)}
-                      title="Hear a preview in this voice"
-                      aria-label={`Preview the ${label} voice`}
-                    >
-                      <Icon icon="ph:speaker-high-bold" />
-                    </button>
-                  </div>
+            <div className={styles.speedRow}>
+              <span className={styles.toggleText}>
+                <span className={styles.toggleLabel}>Narration speed</span>
+                <span className={styles.toggleHint}>
+                  How fast stakeholders, the narrator and your own lines are read aloud.
+                </span>
+              </span>
+              <div className={styles.speedControl}>
+                <input
+                  type="range"
+                  min={0.75}
+                  max={1.5}
+                  step={0.05}
+                  disabled={settings.mute_tts}
+                  value={settings.speech_rate}
+                  aria-label="Narration speed"
+                  onChange={(e) => updateSettings({ speech_rate: parseFloat(e.target.value) })}
+                />
+                <span className={styles.speedValue}>{settings.speech_rate.toFixed(2)}x</span>
+              </div>
+            </div>
+
+            <label className={styles.toggleRow}>
+              <span className={styles.toggleText}>
+                <span className={styles.toggleLabel}>Server voices (recommended)</span>
+                <span className={styles.toggleHint}>
+                  Narrates with higher-quality voices from the server. Works the same on any
+                  browser or OS, but needs a network connection - turn this off to use only your
+                  browser's own voices instead.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                className="form-check-input"
+                aria-label="Server voices (recommended)"
+                disabled={settings.mute_tts}
+                checked={settings.tts_backend === "auto"}
+                onChange={(e) =>
+                  updateSettings({ tts_backend: e.target.checked ? "auto" : "webspeech" })
+                }
+              />
+            </label>
+
+            <div className={styles.voiceGenderRow}>
+              <span className={styles.toggleText}>
+                <span className={styles.toggleLabel}>Your voice</span>
+                <span className={styles.toggleHint}>
+                  This is how your own lines will be narrated when you speak in the pitch.
+                </span>
+              </span>
+              <div className={styles.segmentedToggle} role="group" aria-label="Your voice">
+                {(["male", "female"] as const).map((gender) => (
+                  <button
+                    key={gender}
+                    type="button"
+                    className={`${styles.segmentedOption} ${
+                      settings.player_voice_gender === gender ? styles.segmentedOptionActive : ""
+                    }`}
+                    disabled={settings.mute_tts}
+                    aria-pressed={settings.player_voice_gender === gender}
+                    onClick={() => updateSettings({ player_voice_gender: gender })}
+                  >
+                    {gender === "male" ? "Male" : "Female"}
+                  </button>
                 ))}
               </div>
+            </div>
+
+            {/* These per-slot browser-voice pickers only ever apply when Server voices is off
+                (or if a server request fails and falls back) - while Server voices is on,
+                narration always uses the server's own voice for each speaker, so showing them
+                (even disabled) would just be confusing dead controls. Hidden outright instead. */}
+            {settings.tts_backend !== "auto" && (
+              voices.length === 0 ? (
+                <p className={styles.diagnostic}>
+                  {typeof navigator !== "undefined" && navigator.userAgent.toLowerCase().includes("linux")
+                    ? "No speech voices found. On Linux, this usually means speech-dispatcher is not installed."
+                    : "Your browser reports no speech voices available."}
+                </p>
+              ) : (
+                <div className={styles.voiceGrid}>
+                  {VOICE_SLOTS.map(({ slot, label, field, previewText }) => (
+                    <div key={slot} className={styles.voiceRow}>
+                      <span className={styles.voiceLabel}>{label}</span>
+                      <select
+                        className="form-select form-select-sm"
+                        disabled={settings.mute_tts}
+                        value={settings[field] ?? ""}
+                        onChange={(e) => updateVoice(field, e.target.value)}
+                      >
+                        <option value="">Automatic</option>
+                        {englishVoices.map((v) => (
+                          <option key={v.name} value={v.name}>
+                            {v.localService === false ? `${v.name} (online)` : v.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className={styles.previewButton}
+                        disabled={settings.mute_tts}
+                        onClick={() => handlePreview(slot, settings[field], previewText)}
+                        title="Hear a preview in this voice"
+                        aria-label={`Preview the ${label} voice`}
+                      >
+                        <Icon icon="ph:speaker-high-bold" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
             )}
           </AccordionSection>
 

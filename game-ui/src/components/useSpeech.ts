@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useSettings } from "./SettingsProvider";
-import { cancelSpeech, speak, type SpeakOptions, type VoiceSlot } from "../utils/speech";
+import { cancelSpeech, speakAuto, type SpeakOptions, type VoiceSlot } from "../utils/speech";
 
 const VOICE_FIELD: Record<VoiceSlot, "voice_male" | "voice_female" | "voice_narrator" | "voice_player"> = {
   male: "voice_male",
@@ -20,13 +20,19 @@ export function useSpeech() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  const speakSlot = useCallback((text: string, opts: Omit<SpeakOptions, "voiceName">) => {
+  const speakSlot = useCallback((text: string, opts: Omit<SpeakOptions, "voiceName" | "rate" | "playerGender">) => {
     const current = settingsRef.current;
     if (current.mute_tts) {
       opts.onEnd?.();
       return () => {};
     }
-    return speak(text, { ...opts, voiceName: current[VOICE_FIELD[opts.slot]] });
+    return speakAuto(text, {
+      ...opts,
+      voiceName: current[VOICE_FIELD[opts.slot]],
+      backend: current.tts_backend,
+      rate: current.speech_rate,
+      playerGender: current.player_voice_gender,
+    });
   }, []);
 
   useEffect(() => () => cancelSpeech(), []);

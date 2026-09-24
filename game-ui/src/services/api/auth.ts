@@ -74,6 +74,7 @@ export interface RegisterFields {
   passwordConfirm: string;
   usersOnMachine: number;
   campaignKey: string;
+  playerVoiceGender: "male" | "female";
 }
 
 export async function registerUser(fields: RegisterFields): Promise<RegisterResponse> {
@@ -87,6 +88,7 @@ export async function registerUser(fields: RegisterFields): Promise<RegisterResp
       password_confirm: fields.passwordConfirm,
       users_on_machine: fields.usersOnMachine,
       campaign_key: fields.campaignKey,
+      player_voice_gender: fields.playerVoiceGender,
     },
     "Registration failed."
   );

@@ -60,6 +60,10 @@ interface OfflineIntelGatheringProps {
   challengeAmount?: number;
   /** Lets the embedded dossier reopen the phase briefing. */
   onOpenPhaseBriefing?: () => void;
+  /** True while PrePhaseDialog is narrating the phase/challenge introduction. Artifact
+   *  auto-narration waits for that to finish - both call the same shared speech arbiter, and
+   *  without this an artifact mounted at the same time would cut the phase briefing off. */
+  isPhaseBriefingOpen?: boolean;
   /** Opens performance (gameplay metrics + the project pipeline) from the dossier, as in the pitch phase. */
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
@@ -119,6 +123,7 @@ export default function OfflineIntelGathering({
   activeStakeholderId,
   focusIntelId,
   onOpenPhaseBriefing,
+  isPhaseBriefingOpen = false,
   onPerformanceToggle,
   isPerformanceOpen = false,
   onSettingsToggle,
@@ -438,6 +443,11 @@ export default function OfflineIntelGathering({
   const narratedArtifactKeysRef = useRef<Set<string>>(new Set());
   const [isNarrating, setIsNarrating] = useState(false);
   const narrationCancelRef = useRef<() => void>(() => {});
+  // Which sentence of the currently-narrating artifact is playing, for SpokenText inside
+  // IntelArtifactViewer. Keyed by artifact id below so a stale index from the previous artifact
+  // never briefly highlights the wrong one after paging to a new card.
+  const [narratingArtifactKey, setNarratingArtifactKey] = useState<string | null>(null);
+  const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
 
   // `markKey` is only recorded as narrated once the reading actually completes - not when it
   // starts - so React StrictMode's dev-only double-invoke (mount, cleanup, mount again) can't
@@ -450,11 +460,16 @@ export default function OfflineIntelGathering({
     const slot = speaker ? slotForStakeholderVoice(speaker.voice) : "narrator";
 
     setIsNarrating(true);
+    setNarratingArtifactKey(artifact.id);
+    setActiveSentenceIndex(null);
     narrationCancelRef.current = speakTts(artifact.content, {
       slot,
       seed: artifact.stakeholder_id || undefined,
+      onSentence: ({ index }) => setActiveSentenceIndex(index),
       onEnd: () => {
         setIsNarrating(false);
+        setNarratingArtifactKey(null);
+        setActiveSentenceIndex(null);
         if (markKey) narratedArtifactKeysRef.current.add(markKey);
       },
     });
@@ -463,18 +478,26 @@ export default function OfflineIntelGathering({
   const stopNarration = () => {
     narrationCancelRef.current();
     setIsNarrating(false);
+    setNarratingArtifactKey(null);
+    setActiveSentenceIndex(null);
   };
 
   useEffect(() => {
+    // The phase/challenge briefing narrates first and uses the same shared speech arbiter -
+    // starting an artifact reading here would cut it off. Once the briefing closes, this effect
+    // re-runs (isPhaseBriefingOpen is a dep) and narrates the artifact that's on screen then.
+    if (isPhaseBriefingOpen) return;
     if (!currentArtifactKey || !currentArtifact?.content) return;
     if (narratedArtifactKeysRef.current.has(currentArtifactKey)) return;
     narrateArtifact(currentArtifact, currentArtifactKey);
     return () => {
       narrationCancelRef.current();
       setIsNarrating(false);
+      setNarratingArtifactKey(null);
+      setActiveSentenceIndex(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id]);
+  }, [currentArtifactKey, currentArtifact?.content, currentArtifact?.stakeholder_id, isPhaseBriefingOpen]);
 
   // Known artifacts arrive pre-tagged and locked, so they stay out of every progress count:
   // the player should see how many calls are theirs to make, not a number they cannot move.
@@ -609,19 +632,37 @@ export default function OfflineIntelGathering({
 
                 {/* Per-utterance narration controls: Stop only while actually reading; Listen
                     again whenever there is something to read and the player hasn't muted
-                    narration globally. Both are independent of the settings panel's mute_tts. */}
+                    narration globally. Both are independent of the settings panel's mute_tts.
+                    The spinner covers the gap between "narration requested" and the first
+                    sentence actually playing (network/synthesis latency on the server voice
+                    path) - activeSentenceIndex is still null in that window. */}
+                {isNarrating && activeSentenceIndex === null && (
+                  <Icon
+                    icon="ph:circle-notch-bold"
+                    className={styles.narrationLoading}
+                    aria-hidden="true"
+                  />
+                )}
                 {isNarrating && (
                   <button
                     type="button"
-                    onClick={stopNarration}
-                    className={styles.narrationControlButton}
-                    onMouseEnter={(e) => showInfoTag(e, "Stop Narration", "Stop reading this artifact aloud")}
+                    onClick={() => {
+                      // This button unmounts the instant isNarrating flips false, before the
+                      // browser ever gets to dispatch a mouseleave/blur at the now-gone element -
+                      // hideInfoTag() never runs on its own, so the hover card is stuck showing
+                      // "Stop" until the player happens to hover another info-tag button. Calling
+                      // it here explicitly closes it the moment the click is handled.
+                      stopNarration();
+                      hideInfoTag();
+                    }}
+                    className={`${styles.narrationControlButton} ${styles.narrationControlButtonPulsing}`}
+                    onMouseEnter={(e) => showInfoTag(e, "Stop", "Stop reading this artifact aloud")}
                     onMouseLeave={hideInfoTag}
-                    onFocus={(e) => showInfoTag(e, "Stop Narration", "Stop reading this artifact aloud")}
+                    onFocus={(e) => showInfoTag(e, "Stop", "Stop reading this artifact aloud")}
                     onBlur={hideInfoTag}
                     aria-label="Stop reading this artifact aloud"
                   >
-                    <Icon icon="ph:speaker-slash-bold" />
+                    <Icon icon="ph:stop-circle-bold" />
                   </button>
                 )}
                 {!settings.mute_tts && currentArtifact?.content && (
@@ -1033,6 +1074,9 @@ export default function OfflineIntelGathering({
                               artifactType={currentArtifact.artifact_type}
                               stakeholderName={currentArtifact.stakeholder_name}
                               isPublicRecord={Boolean(currentArtifact.is_known)}
+                              activeSentenceIndex={
+                                narratingArtifactKey === currentArtifactKey ? activeSentenceIndex : null
+                              }
                             />
                           </motion.div>
                         </AnimatePresence>

@@ -251,7 +251,8 @@ function App() {
     passwordConfirm: string,
     usersOnMachine: number,
     campaignKey: string,
-    registerStartMuted: boolean
+    registerStartMuted: boolean,
+    playerVoiceGender: "male" | "female"
   ) => {
     setIsAuthenticating(true);
     setRegisterError("");
@@ -264,6 +265,7 @@ function App() {
         passwordConfirm,
         usersOnMachine,
         campaignKey,
+        playerVoiceGender,
       });
       if (data.type === "admin_login_success") {
         await enterAdminUi();

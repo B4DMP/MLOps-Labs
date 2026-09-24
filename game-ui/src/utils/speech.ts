@@ -16,6 +16,8 @@
  * one fails. A voice the player picked by hand in the settings panel always wins over both.
  */
 
+import { fetchTtsAudioUrl } from "./speechBackend";
+
 export type VoiceSlot = "male" | "female" | "narrator" | "player";
 
 /* Includes the online "Natural"/neural voice names alongside the local ones, since those are
@@ -42,6 +44,8 @@ const SEEDED_SLOTS = new Set<VoiceSlot>(["male", "female"]);
 
 const PITCH_MIN = 0;
 const PITCH_MAX = 2;
+const RATE_MIN = 0.5;
+const RATE_MAX = 2;
 /** With only 6 shipped stakeholders splitting 2 gender slots (so ~3 per slot, sharing one
  * installed voice), a narrow spread leaves real hash collisions audible - Efficiency Erica and
  * Reliability Ruth landed 0.07 apart at the original 0.15 (still only 0.14 apart after doubling
@@ -127,12 +131,15 @@ function voicePool(
  * choice on one machine may not exist on another, which is exactly why an unresolved name falls
  * through to the regex rather than erroring.
  *
- * `narrator` and `player` have no gender regex: absent a stored preference they just take the
- * first voice in the pool, which is an online one wherever the browser offers any. `male`/
- * `female` match by name within that same order, so a matching online voice beats a matching
- * local one; when nothing in the installed set matches either gender regex (the common Linux
- * outcome with only language-named voices), both resolve to the same first voice, differentiated
- * only by `pitchFor`'s baseline.
+ * `narrator` has no gender regex: absent a stored preference it just takes the first voice in the
+ * pool, which is an online one wherever the browser offers any. `male`/`female` match by name
+ * within that same order, so a matching online voice beats a matching local one; when nothing in
+ * the installed set matches either gender regex (the common Linux outcome with only
+ * language-named voices), both resolve to the same first voice, differentiated only by
+ * `pitchFor`'s baseline. `player` behaves the same way as whichever gender `playerGender` names
+ * (the player's own "Your voice" setting) - falling back to the ungendered `narrator`-style pick
+ * when it's not given, since a caller that doesn't know the player's chosen gender has nothing
+ * else to go on.
  *
  * `localOnly` excludes the network voices, including a stored one: it is for the retry after an
  * online voice has already failed, where re-picking it would just fail again.
@@ -142,6 +149,7 @@ export function pickVoice(
   slot: VoiceSlot,
   preferredName?: string | null,
   localOnly = false,
+  playerGender?: "male" | "female" | null,
 ): SpeechSynthesisVoice | null {
   if (preferredName) {
     const preferred = voices.find((v) => v.name === preferredName);
@@ -151,9 +159,10 @@ export function pickVoice(
   const pool = voicePool(voices, localOnly);
   if (pool.length === 0) return null;
 
-  if (slot === "narrator" || slot === "player") return pool[0];
+  const genderedSlot = slot === "player" ? playerGender : slot;
+  if (genderedSlot !== "male" && genderedSlot !== "female") return pool[0];
 
-  const regex = slot === "male" ? MALE_REGEX : FEMALE_REGEX;
+  const regex = genderedSlot === "male" ? MALE_REGEX : FEMALE_REGEX;
   return pool.find((v) => regex.test(v.name)) ?? pool[0];
 }
 
@@ -176,10 +185,20 @@ function hashSeed(seed: string): number {
  * The pitch to speak `slot` at. Seeded slots get a deterministic offset in
  * `[-PITCH_SPREAD, PITCH_SPREAD]` derived from a hash of `seed` (a stakeholder id), so the same
  * stakeholder sounds the same every time they speak, within a session and across reloads.
- * Unseeded slots (and a seeded slot with no seed) return the plain baseline.
+ * Unseeded slots (and a seeded slot with no seed) return the plain baseline - for `player`, that
+ * baseline follows `playerGender` (the male/female baselines `male`/`female` already use) when
+ * given, so the player's own lines actually sound different between the two genders instead of
+ * always reading at the same flat pitch.
  */
-export function pitchFor(seed: string | undefined | null, slot: VoiceSlot): number {
-  const baseline = BASELINE_PITCH[slot];
+export function pitchFor(
+  seed: string | undefined | null,
+  slot: VoiceSlot,
+  playerGender?: "male" | "female" | null,
+): number {
+  const baseline =
+    slot === "player" && (playerGender === "male" || playerGender === "female")
+      ? BASELINE_PITCH[playerGender]
+      : BASELINE_PITCH[slot];
   if (!seed || !SEEDED_SLOTS.has(slot)) return baseline;
 
   const h = hashSeed(seed);
@@ -200,24 +219,26 @@ export function stripForSpeech(text: string): string {
     .trim();
 }
 
-/** Splits `text` into utterances of roughly `maxLen` characters, breaking at sentence
- * boundaries rather than mid-word, so Chrome's ~15s network voice cutoff never lands mid-word. */
-export function chunkText(text: string, maxLen: number = MAX_CHUNK_CHARS): string[] {
+/** Canonical sentence splitter: the single source of truth for "where does one sentence end and
+ * the next begin" across both narration (chunkText, below) and the sentence-highlight UI
+ * (`SpokenText`), so the indices `onSentence` reports always line up with what the UI renders.
+ * Keeps each match's trailing whitespace attached rather than trimming it here, so a caller that
+ * wants to reconstruct the original spacing between sentences still can. */
+export function splitSentences(text: string): string[] {
   if (!text) return [];
-  const sentences = text.match(/[^.!?]+[.!?]*(?:\s+|$)/g) ?? [text];
-  const chunks: string[] = [];
-  let current = "";
+  return text.match(/[^.!?]+[.!?]*(?:\s+|$)/g) ?? [text];
+}
 
-  for (const sentence of sentences) {
-    if (current && (current + sentence).length > maxLen) {
-      chunks.push(current.trim());
-      current = sentence;
-    } else {
-      current += sentence;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-  return chunks;
+/** Splits `text` into one utterance per sentence (trimmed), breaking only at sentence boundaries
+ * so Chrome's ~15s network voice cutoff never lands mid-word. `maxLen` is kept only as the
+ * threshold past which a single sentence counts as long for callers that care (nothing merges
+ * multiple sentences into one chunk anymore); an oversized sentence still becomes its own
+ * (oversized) chunk rather than being force-split mid-sentence. */
+export function chunkText(text: string, _maxLen: number = MAX_CHUNK_CHARS): string[] {
+  if (!text) return [];
+  return splitSentences(text)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
 }
 
 export interface SpeakOptions {
@@ -226,32 +247,72 @@ export interface SpeakOptions {
   seed?: string | null;
   /** A stored `SpeechSynthesisVoice.name`; falls back to regex matching when unresolvable. */
   voiceName?: string | null;
+  /** Multiplier on top of the slot's baseline rate - the player's speech-speed setting
+   *  (`useSpeech` applies this from `settings.speech_rate`; 1 leaves the baseline unchanged). */
+  rate?: number;
+  /** The player's own "Your voice" setting (`settings.player_voice_gender`) - only consulted for
+   *  the `player` slot, where it picks the gendered voice/pitch instead of the ungendered
+   *  fallback, so toggling it actually changes how the player's own lines sound. Ignored for
+   *  every other slot. */
+  playerGender?: "male" | "female" | null;
   onEnd?: () => void;
+  /** Called right before each sentence's audio actually starts playing (not before it's
+   * fetched/synthesized), so a caller can sync a UI highlight to what the player actually hears
+   * rather than to network/synthesis latency. */
+  onSentence?: (info: { index: number; total: number; text: string }) => void;
+}
+
+/** Module-level narration arbiter: `window.speechSynthesis` used to serialize `speak()` calls for
+ * free (one global browser queue), so two components narrating never actually overlapped. Backend
+ * narration plays through independent `HTMLAudioElement`s instead, which broke that implicit
+ * guarantee - two components can now genuinely talk over each other. This restores "only one
+ * narration plays at a time, globally" for both paths: every `speak()`/`speakAuto()` call stops
+ * whatever the previous one started before it begins its own. */
+let currentGeneration = 0;
+let currentStop: (() => void) | null = null;
+
+/** Cleans and sentence-chunks `text` the same way for every narration path, so `speak()` and the
+ * backend path in `speakAuto()` always agree on what counts as "one sentence". */
+function toSpeechChunks(text: string): string[] {
+  const clean = stripForSpeech(text).slice(0, MAX_NARRATED_CHARS);
+  if (!clean) return [];
+  return chunkText(clean);
 }
 
 /**
- * Speaks `text` in `slot`'s voice, chunked and cleaned. Returns a cancel function; calling it
- * (or `cancelSpeech()`) stops the whole utterance queue, not just the current chunk.
+ * Speaks `text` in `slot`'s voice, one sentence at a time. Returns a cancel function; calling it
+ * (or `cancelSpeech()`) stops the whole utterance queue, not just the current sentence.
  *
  * A no-op (returns a no-op cancel, still calls `onEnd`) when there is nothing left to say after
  * cleaning, or when the browser has no `speechSynthesis` at all.
+ *
+ * Starting this always stops whatever narration was previously started via `speak()` or
+ * `speakAuto()`, from any component - see the module-level arbiter comment above.
  */
 export function speak(text: string, opts: SpeakOptions): () => void {
+  currentStop?.();
+  const myGeneration = ++currentGeneration;
+  const clearStop = () => {
+    if (myGeneration === currentGeneration) currentStop = null;
+  };
+
   if (!hasSpeechSynthesis()) {
     opts.onEnd?.();
+    clearStop();
     return () => {};
   }
 
   const synth = window.speechSynthesis;
-  const clean = stripForSpeech(text).slice(0, MAX_NARRATED_CHARS);
-  if (!clean) {
+  const chunks = toSpeechChunks(text);
+  if (chunks.length === 0) {
     opts.onEnd?.();
+    clearStop();
     return () => {};
   }
 
-  const chunks = chunkText(clean);
-  const pitch = pitchFor(opts.seed, opts.slot);
-  const rate = opts.slot === "narrator" ? 0.95 : 1;
+  const pitch = pitchFor(opts.seed, opts.slot, opts.playerGender);
+  const baseRate = opts.slot === "narrator" ? 0.95 : 1;
+  const rate = Math.max(RATE_MIN, Math.min(RATE_MAX, baseRate * (opts.rate ?? 1)));
   let cancelled = false;
   let index = 0;
   /* Set once an online voice has failed. Preferring network voices means an offline player, a
@@ -264,10 +325,11 @@ export function speak(text: string, opts: SpeakOptions): () => void {
     if (cancelled) return;
     if (index >= chunks.length) {
       opts.onEnd?.();
+      clearStop();
       return;
     }
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
-    const voice = pickVoice(synth.getVoices(), opts.slot, opts.voiceName, localOnly);
+    const voice = pickVoice(synth.getVoices(), opts.slot, opts.voiceName, localOnly, opts.playerGender);
     if (voice) utterance.voice = voice;
     utterance.pitch = pitch;
     utterance.rate = rate;
@@ -284,15 +346,19 @@ export function speak(text: string, opts: SpeakOptions): () => void {
       index += 1;
       speakNext();
     };
+    opts.onSentence?.({ index, total: chunks.length, text: chunks[index] });
     synth.speak(utterance);
   };
 
   speakNext();
 
-  return () => {
+  const cancel = () => {
     cancelled = true;
     synth.cancel();
+    clearStop();
   };
+  currentStop = cancel;
+  return cancel;
 }
 
 /** Stops whatever `speak()` queued, wherever it was called from. */
@@ -300,4 +366,150 @@ export function cancelSpeech(): void {
   if (hasSpeechSynthesis()) {
     window.speechSynthesis.cancel();
   }
+}
+
+export interface SpeakAutoOptions extends SpeakOptions {
+  /** The player's `tts_backend` setting. "auto" tries the server voice first and falls back to
+   * `speak()` on any failure; "webspeech" goes straight to `speak()`. */
+  backend: "auto" | "webspeech";
+}
+
+/**
+ * Fetches and plays `chunks` (one backend request per sentence) in sequence, calling
+ * `opts.onSentence` right before each sentence's audio starts playing. Prefetches the next
+ * sentence's audio as soon as the current one begins playing (not after it ends), so there is no
+ * audible network gap between sentences. Returns a cancel function synchronously; rejects the
+ * returned promise (once, via `onFailure`) if any fetch or playback in the sequence fails, so the
+ * caller can fall back to re-speaking the whole line via `speak()` - resuming the backend path
+ * mid-line after a partial failure is not worth the complexity here.
+ */
+function speakBackendChunks(
+  chunks: string[],
+  opts: Pick<SpeakOptions, "slot" | "seed" | "onSentence">,
+  onDone: () => void,
+  onFailure: () => void,
+): () => void {
+  let cancelled = false;
+  let settled = false;
+  let currentAudio: HTMLAudioElement | null = null;
+
+  const cancel = () => {
+    cancelled = true;
+    currentAudio?.pause();
+  };
+
+  (async () => {
+    try {
+      let nextUrl = fetchTtsAudioUrl(chunks[0], opts);
+      for (let i = 0; i < chunks.length; i += 1) {
+        const url = await nextUrl;
+        if (cancelled) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        const audio = new Audio(url);
+        currentAudio = audio;
+        opts.onSentence?.({ index: i, total: chunks.length, text: chunks[i] });
+        await audio.play();
+        // Kick off the next sentence's fetch now that this one is audibly playing, so the
+        // network round-trip overlaps with playback instead of creating a gap after it.
+        if (i + 1 < chunks.length) nextUrl = fetchTtsAudioUrl(chunks[i + 1], opts);
+        await new Promise<void>((resolve, reject) => {
+          audio.onended = () => resolve();
+          audio.onerror = () => reject(new Error("Backend TTS playback failed"));
+        });
+        URL.revokeObjectURL(url);
+        currentAudio = null;
+        if (cancelled) return;
+      }
+      if (!cancelled && !settled) {
+        settled = true;
+        onDone();
+      }
+    } catch {
+      if (!cancelled && !settled) {
+        settled = true;
+        onFailure();
+      }
+    }
+  })();
+
+  return cancel;
+}
+
+/**
+ * Entry point that orchestrates server-side narration ahead of the `window.speechSynthesis`
+ * fallback (docs/plans/player-settings-and-tts.md). Keeps `speak()` itself untouched as the
+ * fallback path - this only decides which one runs first.
+ *
+ * Returns synchronously, same as `speak()`, even though the backend call is async: the cancel
+ * function closes over whichever attempt is still in flight, so calling it before the network
+ * request resolves still stops the line before it starts.
+ *
+ * Starting this always stops whatever narration was previously started via `speak()` or
+ * `speakAuto()`, from any component - see the module-level arbiter comment above.
+ */
+export function speakAuto(text: string, opts: SpeakAutoOptions): () => void {
+  currentStop?.();
+  const myGeneration = ++currentGeneration;
+
+  if (opts.backend === "webspeech") {
+    // speak() runs its own arbiter turn (it re-reads currentStop/currentGeneration itself), so
+    // this call's entry is superseded immediately - that's fine, there is nothing to cancel yet.
+    return speak(text, opts);
+  }
+
+  const setStop = (fn: (() => void) | null) => {
+    if (myGeneration === currentGeneration) currentStop = fn;
+  };
+
+  const chunks = toSpeechChunks(text);
+  if (chunks.length === 0) {
+    opts.onEnd?.();
+    setStop(null);
+    return () => {};
+  }
+
+  // `stopped` covers every way this call's backend attempt ends: an external cancel, natural
+  // completion, or handing off to the webspeech fallback. Once true, `cancel()` no longer touches
+  // the (finished) backend attempt - it only needs to reach the fallback, if one is running.
+  let stopped = false;
+  let fallbackCancel: (() => void) | null = null;
+
+  const cancel = () => {
+    if (stopped) {
+      fallbackCancel?.();
+      return;
+    }
+    stopped = true;
+    backendCancel();
+    setStop(null);
+  };
+
+  const fallbackToWebspeech = () => {
+    if (stopped) return;
+    stopped = true;
+    // Neutralize the arbiter entry for this call before speak() runs its own arbiter turn -
+    // otherwise speak()'s own `currentStop?.()` would reach back into this very `cancel` and
+    // immediately mark itself stopped, before `fallbackCancel` is even assigned.
+    setStop(null);
+    // Re-speaks the whole line from the start rather than resuming mid-sentence: an acceptable
+    // simplification for what should be a rare, already-degraded path (the backend just failed).
+    fallbackCancel = speak(text, opts);
+  };
+
+  const backendCancel = speakBackendChunks(
+    chunks,
+    opts,
+    () => {
+      if (stopped) return;
+      stopped = true;
+      setStop(null);
+      opts.onEnd?.();
+    },
+    fallbackToWebspeech,
+  );
+
+  currentStop = cancel;
+  return cancel;
 }

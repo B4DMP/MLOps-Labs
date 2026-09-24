@@ -4,6 +4,8 @@ import { StakeholderContext } from "./StakeholderProvider";
 import { PhasesContext } from "./PhaseProvider";
 import styles from "./ChallengeDescriptionCard.module.css";
 import GlossaryText from "./glossary/GlossaryText";
+import SpokenText from "./SpokenText";
+import { splitSentences } from "../utils/speech";
 
 export function parseChallengeDescription(description?: string) {
   if (!description) return [];
@@ -69,6 +71,11 @@ export interface ChallengeDescriptionCardProps {
    * `prevShownPhaseRef` in Game.tsx, but tracking `currentChallenge`).
    */
   isNew?: boolean;
+  /** Which sentence of "title. intro" (PrePhaseDialog's own narration pass, see
+   *  `buildBriefingNarration`) is playing right now - negative while phase_introduction is still
+   *  being read (nothing here yet), then 0-based across the title and intro once it's their turn.
+   *  Null whenever nothing is being narrated at all (muted, finished, review reopen). */
+  activeSentenceIndex?: number | null;
 }
 
 export default function ChallengeDescriptionCard({
@@ -80,6 +87,7 @@ export default function ChallengeDescriptionCard({
   traversedChallenges,
   is_minimized = true,
   isNew = false,
+  activeSentenceIndex = null,
 }: ChallengeDescriptionCardProps) {
   const { stakeholders } = useContext(StakeholderContext);
   const { phases, currentPhase } = useContext(PhasesContext);
@@ -100,6 +108,17 @@ export default function ChallengeDescriptionCard({
     Math.max(1, traversedCount),
     totalChallengeCount
   );
+
+  // Same split PrePhaseDialog's `buildBriefingNarration` implicitly makes by joining
+  // "title. intro" into one narration pass - the title always reads as its own sentence(s)
+  // first, then the intro's own sentences follow at this offset.
+  const titleSentenceCount = splitSentences(challengeTitle)
+    .map((s) => s.trim())
+    .filter(Boolean).length;
+  const isTitleActive =
+    activeSentenceIndex != null && activeSentenceIndex >= 0 && activeSentenceIndex < titleSentenceCount;
+  const introActiveSentenceIndex =
+    activeSentenceIndex != null ? activeSentenceIndex - titleSentenceCount : null;
 
   const renderFormattedText = (text: string) => {
     const tokens = parseChallengeDescription(text);
@@ -173,6 +192,7 @@ export default function ChallengeDescriptionCard({
       >
         <span className={`fw-bold ${styles.cardTitle}`}>
           {challengeTitle}
+          {isTitleActive && <span className={styles.titleCaret} aria-hidden="true" />}
         </span>
         <span className={`badge ${styles.counterBadge}`}>
           Challenge {displayChallengeNumber}/{totalChallengeCount}
@@ -187,7 +207,15 @@ export default function ChallengeDescriptionCard({
                 : `text-secondary mb-1 ${styles.introExpanded}`
             }`}
           >
-            {renderFormattedText(challengeIntro)}
+            {activeSentenceIndex != null ? (
+              <SpokenText
+                text={challengeIntro}
+                activeSentenceIndex={introActiveSentenceIndex}
+                renderSentence={(sentence) => renderFormattedText(sentence)}
+              />
+            ) : (
+              renderFormattedText(challengeIntro)
+            )}
           </p>
         )}
         {!is_minimized && challengeDescription && (
