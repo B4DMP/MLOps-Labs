@@ -191,7 +191,7 @@ export default function CheatSheetModal({ isOpen, onClose, activeSectionTitle }:
       >
         <div className={styles.header}>
           <h1 className={styles.headerTitle}>
-            <Icon icon="ph:book-bookmark-bold" className={styles.headerIcon} />
+            <Icon icon="ph:question-bold" className={styles.headerIcon} />
             <span>Cheat Sheet</span>
           </h1>
           <button

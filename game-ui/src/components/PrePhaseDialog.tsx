@@ -267,7 +267,7 @@ export default function PrePhaseDialog({
                     onClick={() => setIsCheatSheetOpen(true)}
                     title="Cheat Sheet"
                   >
-                    <Icon icon="ph:book-bookmark-bold" />
+                    <Icon icon="ph:question-bold" />
                     <span>Cheat Sheet</span>
                   </button>
                 </>
