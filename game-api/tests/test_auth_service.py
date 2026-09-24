@@ -1,13 +1,24 @@
 """Unit tests for the cookie/token helpers added for session persistence
 (docs/plans/session-persistence-and-url-routing.md). No DB/network needed - these are pure
-JWT + cookie-header manipulation."""
+JWT + cookie-header manipulation, except for `verify_player_token`/`sliding_refresh_player`'s
+`player_exists` check (a stale-but-unexpired cookie must not outlive the user it names, see
+docs/plans/graph-governance-automation-rework), which is monkeypatched here rather than exercised
+against a real database - that gate has its own dedicated tests below."""
 
 from datetime import timedelta
 
+import pytest
 from fastapi import Response
 
 from mlops_serious_game.application.services import auth_service
 from mlops_serious_game.config import settings
+
+
+@pytest.fixture(autouse=True)
+def _player_always_exists(monkeypatch):
+    """The default for every test in this file: a token's subject is a real user. Tests of the
+    existence gate itself override this per-test."""
+    monkeypatch.setattr(auth_service, "player_exists", lambda username: True)
 
 
 def _set_cookie_names(response: Response) -> list[str]:
@@ -102,6 +113,26 @@ def test_sliding_refresh_player_returns_none_for_invalid_token():
     response = Response()
     assert auth_service.sliding_refresh_player(None, response, secure=False) is None
     assert auth_service.sliding_refresh_player("garbage", response, secure=False) is None
+    assert _set_cookie_names(response) == []
+
+
+def test_verify_player_token_rejects_a_signature_valid_token_for_a_user_that_no_longer_exists(monkeypatch):
+    """A stale cookie from before a database reset decodes fine but must not authenticate - this
+    is what turned a missing `users` row into a raw NOT NULL crash deep in a handler."""
+    monkeypatch.setattr(auth_service, "player_exists", lambda username: False)
+    player_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+
+    assert auth_service.verify_player_token(player_token) is None
+
+
+def test_sliding_refresh_player_reports_logged_out_for_a_user_that_no_longer_exists(monkeypatch):
+    monkeypatch.setattr(auth_service, "player_exists", lambda username: False)
+    fresh_token = auth_service.create_access_token(data={"sub": "alice", "role": "player"})
+    response = Response()
+
+    username = auth_service.sliding_refresh_player(fresh_token, response, secure=False)
+
+    assert username is None
     assert _set_cookie_names(response) == []
 
 

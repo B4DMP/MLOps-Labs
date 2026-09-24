@@ -130,6 +130,26 @@ def test_logout_clears_player_cookie(client, registered_player):
     assert client.get("/api/auth/whoami").json()["player"] is None
 
 
+def test_whoami_treats_a_deleted_users_cookie_as_logged_out(client, registered_player):
+    """The token itself is a self-contained signed JWT and stays cryptographically valid after its
+    row is gone (a database reset, an account deletion) - `whoami` must not report the player as
+    logged in on a cookie nothing backs, or the frontend sails into gameplay on a phantom identity
+    that then crashes the first real DB write (NOT NULL on `user_id`)."""
+    username, password = registered_player
+    client.post("/api/auth/login", json={"username": username, "password": password})
+    assert client.get("/api/auth/whoami").json()["player"] is not None
+
+    with get_session() as session:
+        session.execute(select(User).where(User.user_name == username))  # sanity: exists so far
+        row = session.scalar(select(User).where(User.user_name == username))
+        session.delete(row)
+
+    response = client.get("/api/auth/whoami")
+    assert response.json()["player"] is None
+    # And the now-useless cookie is not kept sending itself forever.
+    assert PLAYER_COOKIE_NAME not in client.cookies
+
+
 def test_admin_logout_clears_admin_cookie_only(client, registered_player):
     username, password = registered_player
     client.post("/api/auth/login", json={"username": username, "password": password})

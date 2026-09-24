@@ -103,7 +103,9 @@ async def unified_websocket_endpoint(websocket: WebSocket):
 
     # Identity comes only from the signed cookie now - there is nothing left to cross-check a
     # client-supplied username against (D-ws-cookie), which is what actually closes the "connect
-    # as anyone by guessing their username" gap this replaces.
+    # as anyone by guessing their username" gap this replaces. `verify_player_token` also checks
+    # that a `User` row still backs the name, so a stale cookie from before a database reset is
+    # refused here rather than reaching a handler's DB write.
     username = verify_player_token(websocket.cookies.get(PLAYER_COOKIE_NAME))
     if username is None:
         await websocket.close(code=4401)
