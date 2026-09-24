@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { hasSeenBriefing, markBriefingSeen } from "./seenBriefings";
+import { clearSeenBriefings, hasSeenBriefing, markBriefingSeen } from "./seenBriefings";
 
 afterEach(() => {
   window.localStorage.clear();
@@ -40,6 +40,37 @@ describe("seenBriefings", () => {
       expect(() => markBriefingSeen("alice", "0:0")).not.toThrow();
     } finally {
       window.localStorage.setItem = original;
+    }
+  });
+
+  it("forgets every seen challenge for that username once cleared", () => {
+    markBriefingSeen("alice", "0:0");
+    markBriefingSeen("alice", "1:0");
+    clearSeenBriefings("alice");
+    expect(hasSeenBriefing("alice", "0:0")).toBe(false);
+    expect(hasSeenBriefing("alice", "1:0")).toBe(false);
+  });
+
+  it("clearing one username's mirror leaves another's untouched", () => {
+    markBriefingSeen("alice", "0:0");
+    markBriefingSeen("bob", "0:0");
+    clearSeenBriefings("alice");
+    expect(hasSeenBriefing("bob", "0:0")).toBe(true);
+  });
+
+  it("does not throw when clearing a username with nothing stored", () => {
+    expect(() => clearSeenBriefings("nobody")).not.toThrow();
+  });
+
+  it("does not throw when localStorage is unavailable during clear", () => {
+    const original = window.localStorage.removeItem;
+    window.localStorage.removeItem = () => {
+      throw new Error("storage disabled");
+    };
+    try {
+      expect(() => clearSeenBriefings("alice")).not.toThrow();
+    } finally {
+      window.localStorage.removeItem = original;
     }
   });
 });

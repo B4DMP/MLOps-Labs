@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { clearSeenBriefings } from "../utils/seenBriefings";
 
 export interface PlayerSettings {
   auto_skip_conversations: boolean;
@@ -123,8 +124,11 @@ interface SettingsProviderProps {
  *
  * Seeds from `game:init_data` (so the very first paint already knows whether to mute) and stays
  * current off `settings:data`, which both `settings:get`/`settings:update` answer with. On
- * `settings:account_reset` the local mirror is dropped and the page reloads into the fresh
- * account rather than trying to reconcile stale in-memory state.
+ * `settings:account_reset` the local mirror is dropped, along with the `seenBriefings` mirror
+ * (otherwise a reset account gets dealt the same deterministic first challenge and looks
+ * "already briefed" for it, silently suppressing the briefing dialog - see `seenBriefings.ts`),
+ * and the page reloads into the fresh account rather than trying to reconcile stale in-memory
+ * state.
  */
 export default function SettingsProvider({ children, username, startMuted = false }: SettingsProviderProps) {
   const { emit, subscribe } = useGameWebSocket();
@@ -160,6 +164,7 @@ export default function SettingsProvider({ children, username, startMuted = fals
     });
     const unsubReset = subscribe("settings:account_reset", () => {
       clearMirror(username);
+      clearSeenBriefings(username);
       window.location.reload();
     });
     return () => {
