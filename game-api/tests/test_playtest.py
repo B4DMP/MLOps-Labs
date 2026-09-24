@@ -82,8 +82,8 @@ def test_candidates_are_only_legal_known_targets_raised_to_a_higher_level():
     for change in candidates:
         assert change.target in allowed
         assert change.kind == "raise_to"
-        assert change.value > world["state"].level(change.target)
-        assert change.value in world["graph"].allowed_levels(change.target)
+        assert change.value > world["state"].value(change.target, change.axis)
+        assert change.value in world["graph"].allowed_for(change.target, change.axis)
 
 
 def test_a_target_the_player_has_not_looked_at_is_never_proposed():
@@ -100,17 +100,19 @@ def test_the_intel_driven_candidates_include_what_the_intel_actually_asks_for():
 
     world = _world()
     candidates = {
-        (c.target, c.value)
+        (c.target, c.axis, c.value)
         for c in auto_card.candidate_changes(
             world["graph"], world["state"], _AllKnown(), world["allowed"], world["all_intel"]
         )
     }
     asked = {
-        item_target_and_level(item)
+        (t, a, lvl)
         for item in world["all_intel"]
-        if item_target_and_level(item)[0] in set(world["allowed"])
-        and item_target_and_level(item)[1] is not None
-        and item_target_and_level(item)[1] > world["state"].level(item_target_and_level(item)[0])
+        for t, lvl, a in [item_target_and_level(item)]
+        if t in set(world["allowed"])
+        and lvl is not None
+        and a is not None
+        and lvl > world["state"].value(t, a)
     }
     assert asked, "the fixture challenge should ask for at least one raise"
     assert asked <= candidates

@@ -28,7 +28,7 @@ CONFLICT_TARGET = "data.validation"
 
 
 def _stance(req_id: str, stakeholder_id: str = "tess_tester", target: str | None = None) -> StakeholderRequirement:
-    payload = {"suggested": {"target": target, "level": 3}} if target else {}
+    payload = {"suggested": {"target": target, "axis": "automation", "level": 3}} if target else {}
     return StakeholderRequirement(
         id=req_id, challenge_id=7, stakeholder_id=stakeholder_id, type="driver",
         description=f"{stakeholder_id} cares about {req_id}", **payload,
@@ -215,8 +215,8 @@ def test_a_trade_off_stance_counts_by_its_branch_target_not_just_asserts_or_sugg
     trade_off = StakeholderRequirement(
         id="x_dave_tradeoff", challenge_id=7, stakeholder_id="dave", type="trade_off",
         description="Dave would accept less if pushed",
-        branch_x={"target": CONFLICT_TARGET, "level": 4},
-        branch_y={"target": CONFLICT_TARGET, "level": 2},
+        branch_x={"target": CONFLICT_TARGET, "axis": "governance", "level": 3},
+        branch_y={"target": CONFLICT_TARGET, "axis": "automation", "level": 2},
     )
     reqs = [
         ("ch_x", _stance("x_emma_driver", "emma", CONFLICT_TARGET)),
@@ -422,7 +422,7 @@ def test_observe_tagged_facts_logs_one_event_naming_how_many(monkeypatch):
 
     fact_item = StakeholderIntelItem(
         id="f1", challenge_id=7, type=IntelTag.FACT, categorized_type=IntelTag.FACT,
-        asserts={"target": "data.ingestion", "level": 2}, description="How data.ingestion is",
+        asserts={"target": "data.ingestion", "axis": "automation", "level": 2}, description="How data.ingestion is",
     )
     row = SimpleNamespace(intel_item_data=fact_item.model_dump(mode="json"))
     fake_session = MagicMock()

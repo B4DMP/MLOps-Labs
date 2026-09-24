@@ -53,7 +53,7 @@ def test_patience_malus_structure():
 def test_evaluate_pitch_presentation_count_1_has_no_malus(test_graph):
     """The first presentation of an action card in a challenge incurs no patience malus."""
     state = GraphState.from_config(test_graph)
-    item = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "level": 3})
+    item = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "axis": "automation", "level": 3})
     room = [("reliability_ruth", "high")]
     emotions = {
         "reliability_ruth": {
@@ -102,8 +102,8 @@ def test_evaluate_pitch_presentation_count_1_has_no_malus(test_graph):
 def test_evaluate_pitch_repeat_presentations_apply_patience_malus(test_graph):
     """Repeated presentations (> 1) apply cumulative patience malus to all stakeholders."""
     state = GraphState.from_config(test_graph)
-    item1 = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "level": 3})
-    item2 = _item("d2", "data_dave", "driver", suggested={"target": "data.validation", "level": 3})
+    item1 = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "axis": "automation", "level": 3})
+    item2 = _item("d2", "data_dave", "driver", suggested={"target": "data.validation", "axis": "automation", "level": 3})
     room = [("reliability_ruth", "high"), ("data_dave", "low")]
     emotions = {
         "reliability_ruth": {
@@ -195,7 +195,7 @@ def test_evaluate_pitch_repeat_presentations_apply_patience_malus(test_graph):
 def test_clamping_with_extreme_patience_malus(test_graph):
     """Emotion values never exceed [0.0, 1.0] even after many repeated presentations."""
     state = GraphState.from_config(test_graph)
-    item = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "level": 3})
+    item = _item("d1", "reliability_ruth", "driver", suggested={"target": "ops.alerting", "axis": "automation", "level": 3})
     room = [("reliability_ruth", "high")]
     emotions = {
         "reliability_ruth": {

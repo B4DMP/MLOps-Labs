@@ -69,8 +69,8 @@ def test_rename_rewrites_everything_and_keeps_old_logs_replaying(config):
 
     graph = _load(config / "MlopsGraph.json")
     assert graph.aliases == {"data.validation": "data.validation_gate"}
-    old_log = [LoggedOp(seq=0, op=GraphOp(kind="set_to", target="data.validation", value=4))]
-    assert replay(graph, old_log).state.level("data.validation_gate") == 4
+    old_log = [LoggedOp(seq=0, op=GraphOp(kind="set_to", target="data.validation", axis="governance", value=3))]
+    assert replay(graph, old_log).state.value("data.validation_gate", "governance") == 3
 
 
 def test_dry_run_changes_nothing(config):
@@ -88,10 +88,11 @@ def test_retire_component_drops_its_edges_and_reports_leftovers(config):
 def test_ops_on_retired_ids_are_skipped_on_replay(config):
     graph_refactor.retire(config, "e.cicd_shadow")
     graph = _load(config / "MlopsGraph.json")
-    log = [LoggedOp(seq=0, op=GraphOp(kind="set_to", target="e.cicd_shadow", value=4))]
+    log = [LoggedOp(seq=0, op=GraphOp(kind="set_to", target="e.cicd_shadow", axis="governance", value=3))]
     result = replay(graph, log)
     assert result.rejected == []
-    assert "e.cicd_shadow" not in result.state.edge_levels
+    assert "e.cicd_shadow" not in result.state.edge_automation
+    assert "e.cicd_shadow" not in result.state.edge_governance
 
 
 def test_rename_refuses_collisions_and_kind_changes(config):

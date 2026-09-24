@@ -86,7 +86,7 @@ def test_compute_stakeholder_primary_objection_ranks_uncovered_drivers_and_trade
         stakeholder_id="data_dave",
         type="driver",
         description="Upgrade data versioning",
-        suggested=TargetLevel(target="data.versioning", level=3),
+        suggested=TargetLevel(target="data.versioning", axis="automation", level=3),
         atoms=["raise_to(data.versioning, 3)"],
     )
     d2 = StakeholderRequirement(
@@ -95,7 +95,7 @@ def test_compute_stakeholder_primary_objection_ranks_uncovered_drivers_and_trade
         stakeholder_id="data_dave",
         type="driver",
         description="Upgrade data validation",
-        suggested=TargetLevel(target="data.validation", level=3),
+        suggested=TargetLevel(target="data.validation", axis="automation", level=3),
         atoms=["raise_to(data.validation, 3)"],
     )
 
@@ -123,7 +123,7 @@ def test_compute_stakeholder_primary_objection_returns_approval_when_fully_satis
         stakeholder_id="data_dave",
         type="driver",
         description="Upgrade data versioning",
-        suggested=TargetLevel(target="data.versioning", level=3),
+        suggested=TargetLevel(target="data.versioning", axis="automation", level=3),
         atoms=["raise_to(data.versioning, 3)"],
     )
 
