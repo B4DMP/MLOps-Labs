@@ -148,6 +148,33 @@ def test_trade_off_branch_ops_derivation():
     assert ops_y[0].target == "data.validation"
 
 
+def test_card_ops_puts_automation_before_governance_regardless_of_item_order():
+    """A governance raise is rejected outright on a target that isn't implemented yet
+    (apply.py's `_apply_one`), and `replay` re-derives ground truth from these same logged ops
+    with no lookahead - so whichever order the room's items happen to list a target's automation
+    and governance asks in (here, deliberately governance first), the ops built from them must
+    still put automation first."""
+    ask_governance = _item("g1", "requirements_reuben", "driver", suggested=_target("data.validation", 3, axis="governance"))
+    ask_automation = _item("a1", "reliability_ruth", "driver", suggested=_target("data.validation", 2, axis="automation"))
+    ops = session.card_ops([ask_governance, ask_automation])
+    assert [(op.axis, op.value) for op in ops] == [("automation", 2), ("governance", 3)]
+
+
+def test_atomic_changes_to_ops_puts_automation_before_governance_regardless_of_change_order(real):
+    """Same guarantee, from the composer's own AtomicChange list rather than accepted items -
+    the player can still queue a target's governance step before its automation step in the
+    array (the ladder disallows it live, but a stale/replayed proposal shouldn't rely on that)."""
+    from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
+
+    state = GraphState.from_config(real)
+    changes = [
+        AtomicChange(target="data.validation", kind="raise_to", axis="governance", value=3),
+        AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2),
+    ]
+    ops = session.atomic_changes_to_ops(real, state, changes)
+    assert [(op.axis, op.value) for op in ops] == [("automation", 2), ("governance", 3)]
+
+
 # ---------- evaluate_pitch & commit_pitch ----------
 
 def test_evaluate_pitch_detects_misclassification_and_returns_refutation(real):

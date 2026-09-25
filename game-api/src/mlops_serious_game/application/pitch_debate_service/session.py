@@ -234,6 +234,16 @@ def _extract_target_and_level(
     return None, None, None
 
 
+def _automation_before_governance(ops: list[GraphOp]) -> list[GraphOp]:
+    """A batch that raises both axes on the same target must apply automation first - governance
+    is rejected outright on a target that isn't implemented yet (apply.py's `_apply_one`), and
+    `replay` re-derives ground truth from these same logged ops with no lookahead of its own, so
+    the order they're logged in is the only thing that can make this work regardless of which
+    order the player's own choices (or a pitch's accepted stances) happened to name them in.
+    Stable, so a chain of several steps on the same axis keeps its own relative order."""
+    return sorted(ops, key=lambda op: op.axis == "governance")
+
+
 def atomic_changes_to_ops(
     graph: TechnicalGraph,
     state: GraphState,
@@ -322,7 +332,7 @@ def atomic_changes_to_ops(
                         source_kind="action_card",
                     )
                 )
-    return ops
+    return _automation_before_governance(ops)
 
 
 def card_items(all_intel: list, card_item_ids: set[str]) -> list:
@@ -398,7 +408,7 @@ def card_ops(
                 value=item.get("value"), source_kind="action_card",
             ))
 
-    return ops
+    return _automation_before_governance(ops)
 
 
 

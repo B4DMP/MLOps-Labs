@@ -110,10 +110,11 @@ def test_a_break_propagates_to_what_it_feeds(real):
 
 def test_an_unhappy_owner_makes_the_raise_land_lower(real):
     """Governance's ladder is binary (none/full) for real content today, so a single step already
-    asks for `full` - the natural "big ask" for a degradation test under the new axes."""
+    asks for `full` - the natural "big ask" for a degradation test under the new axes. Implemented
+    first (governance is not player-facing on a target nobody has built yet)."""
     result = simulate(
         real,
-        _start(real),
+        _with(real, _start(real), _raise("data.validation", 2)),
         outcome=SOFT_PASS,
         card_items=[_item("i1", _raise("data.validation", 3, axis="governance"))],
         reads=[_read("data_dave", power="low", buy_in=0.1)],
@@ -129,7 +130,7 @@ def test_an_unhappy_owner_makes_the_raise_land_lower(real):
 def test_debt_is_repaid_by_a_later_card_with_a_happy_owner(real):
     unhappy = simulate(
         real,
-        _start(real),
+        _with(real, _start(real), _raise("data.validation", 2)),
         outcome=SOFT_PASS,
         card_items=[_item("i1", _raise("data.validation", 3, axis="governance"))],
         reads=[_read("data_dave", power="low", buy_in=0.1)],

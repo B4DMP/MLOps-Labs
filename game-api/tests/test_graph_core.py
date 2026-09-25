@@ -282,6 +282,51 @@ def test_edge_cannot_outrun_its_source():
     assert compute_effective(g, state).automation["e.src_mid"] == 1
 
 
+# ---------- governance requires an implemented target ----------
+
+def test_governance_is_rejected_on_a_target_not_yet_implemented():
+    """e.sink_src starts at automation=absent(1) - nothing to review until a player raises it to
+    manual or above (00-plan.md decision 5's follow-up)."""
+    g = _graph()
+    op = GraphOp(kind="raise_to", target="e.sink_src", axis="governance", value=1, source_kind="action_card")
+    result = _apply(g, op)
+    assert result.state.value("e.sink_src", "governance") == 0
+    assert len(result.rejected) == 1
+    assert result.rejected[0].reason == "players cannot govern a target that is not implemented"
+
+
+def test_governance_lands_once_the_same_batch_implements_it_first():
+    """Automation and governance for the same target can land in one action card, as long as the
+    automation raise is ordered before the governance one - the composer only ever offers the
+    governance step once its automation step is already slotted (graphOptions.ts's isImplemented)."""
+    g = _graph()
+    result = _apply(
+        g,
+        GraphOp(kind="raise_to", target="e.sink_src", axis="automation", value=2, source_kind="action_card"),
+        GraphOp(kind="raise_to", target="e.sink_src", axis="governance", value=1, source_kind="action_card"),
+    )
+    assert result.state.value("e.sink_src", "automation") == 2
+    assert result.state.value("e.sink_src", "governance") == 1
+    assert result.rejected == []
+
+
+def test_governance_before_its_automation_in_the_same_batch_is_rejected():
+    """apply_ops itself stays strictly sequential, with no lookahead across the batch - the same
+    ops get replayed later with no batch boundaries to look ahead within, so apply_ops and replay
+    must always agree. Ordering automation before governance for the same target is instead the
+    job of whoever builds the ops list (atomic_changes_to_ops/card_ops's
+    `_automation_before_governance`, tested in test_pitch_session.py)."""
+    g = _graph()
+    result = _apply(
+        g,
+        GraphOp(kind="raise_to", target="e.sink_src", axis="governance", value=1, source_kind="action_card"),
+        GraphOp(kind="raise_to", target="e.sink_src", axis="automation", value=2, source_kind="action_card"),
+    )
+    assert result.state.value("e.sink_src", "automation") == 2
+    assert result.state.value("e.sink_src", "governance") == 0
+    assert len(result.rejected) == 1
+
+
 # ---------- degradation and debt ----------
 
 def test_unhappy_owner_degrades_an_action_card_raise_and_records_debt():

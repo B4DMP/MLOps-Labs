@@ -53,7 +53,13 @@ def _level_below(level: int, allowed: list[int]) -> Optional[int]:
 def resolve_step_cap(graph: TechnicalGraph, state: GraphState, op: GraphOp) -> GraphOp:
     """Caps a player raise to one step on one axis, per
     docs/plans/graph-governance-automation-rework/00-plan.md §2.3 - one slot moves one step,
-    never more, regardless of what the underlying content asks for."""
+    never more, regardless of what the underlying content asks for.
+
+    Automation's "one step" from broken or absent is manual, not absent - both are resting
+    states nobody can raise to on purpose (00-plan.md's governance-requires-implemented
+    follow-up), so the rung after either of them is whatever is above ABSENT, mirroring
+    graphOptions.ts's `floorOn`. Governance's floor is already its own bottom rung (0), so this
+    changes nothing there."""
     if op.kind != "raise_to" or op.source_kind != "action_card":
         return op
     axis: Axis = op.axis
@@ -62,7 +68,8 @@ def resolve_step_cap(graph: TechnicalGraph, state: GraphState, op: GraphOp) -> G
     requested = snap_down(int(op.value), allowed)
     if requested <= current:
         return op
-    next_rung = min(a for a in allowed if a > current)
+    floor = AutomationState.ABSENT if axis == "automation" else 0
+    next_rung = min(a for a in allowed if a > max(current, floor))
     if next_rung >= requested:
         return op
     return op.model_copy(update={"value": next_rung})
@@ -193,6 +200,20 @@ def _apply_one(
             # and broken is the floor, so this guard only matters for a (today unused) action-card
             # set_to - defense in depth against a mis-authored future option.
             result.rejected.append(RejectedOp(op=op, reason="players cannot set a target to broken"))
+            return
+        if (
+            op.source_kind == "action_card"
+            and axis == "governance"
+            and state.value(op.target, "automation") < AutomationState.MANUAL
+        ):
+            # There is nothing to review on a target nobody has implemented yet - governance
+            # options are only ever offered once automation has reached manual or above
+            # (graphOptions.ts's isImplemented). Whoever builds a batch that raises both axes on
+            # the same target (the composer, or a pitch's accepted stances) must put the
+            # automation op first - atomic_changes_to_ops/card_ops both sort for this, so this
+            # sequential per-op check is defense in depth, not the ordering authority: this is
+            # also what `replay` re-derives from the same logged ops, so it can never look ahead.
+            result.rejected.append(RejectedOp(op=op, reason="players cannot govern a target that is not implemented"))
             return
         allowed = graph.allowed_for(op.target, axis)
         state_dict = state.axis_dict(op.target, axis)

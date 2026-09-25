@@ -106,6 +106,31 @@ export function projectedOn(t: OptionTarget, axis: Axis, changes: AtomicChange[]
   );
 }
 
+/** The automation rung a target must reach before it exists to be reviewed at all - there is
+ *  nothing to sign off on a target nobody has implemented yet. */
+const IMPLEMENTED_AT = 2; // AutomationState.MANUAL
+
+/** Whether a target is built enough for governance to apply to it, counting whatever automation
+ *  step is already slotted in the same proposal (so "implement it" and "sign off" can land in
+ *  one card, implement first). */
+export function isImplemented(t: OptionTarget, changes: AtomicChange[]): boolean {
+  return projectedOn(t, "automation", changes) >= IMPLEMENTED_AT;
+}
+
+/**
+ * The one authored step up to `IMPLEMENTED_AT` reads differently depending on where a component
+ * starts: broken (it existed and stopped) is a repair, absent (it never existed) is a first
+ * build - same option, same destination rung, but the player-facing name is chosen here from the
+ * current state rather than fixed in content. Edge automation options already name what they do
+ * (e.g. "Trigger Manually") and are left alone.
+ */
+export function optionDisplayName(t: OptionTarget, axis: Axis, option: GraphOption): string {
+  if (axis === "automation" && !isEdgeTarget(t) && option.to_level === IMPLEMENTED_AT && nominalOn(t, axis) === 0) {
+    return "Fix It";
+  }
+  return option.name;
+}
+
 /**
  * Where one option stands for this card:
  * - `done`: the target already sits at or above its rung.
@@ -124,6 +149,7 @@ export function optionStatus(
 ): OptionStatus {
   if (changes.some((c) => isStepOn(c, t.id, axis) && c.value === option.to_level)) return "slotted";
   if (option.to_level <= nominalOn(t, axis)) return "done";
+  if (axis === "governance" && !isImplemented(t, changes)) return "later";
   const projected = projectedOn(t, axis, changes);
   const nextRung = allowedOn(t, axis).find((l) => l > Math.max(projected, floorOn(axis)));
   return option.to_level === nextRung ? "next" : "later";
@@ -234,7 +260,10 @@ export function describeAtomicChange(
   const detail =
     `${AXIS_TITLES[change.axis]} → ${formatAxisLevel(change.axis, change.value)}` +
     (change.trigger ? `, started by ${formatTrigger(change.trigger)}` : "");
-  return { title: option?.name ?? detail, detail, axis: change.axis };
+  // A raise_to's option is always a GraphOption, never an AttributeOption (that's set_attr-only,
+  // handled above) - the "to_level" check just proves it to the type checker.
+  const title = option && "to_level" in option ? (t ? optionDisplayName(t, change.axis, option) : option.name) : detail;
+  return { title, detail, axis: change.axis };
 }
 
 /** Finds a component or edge anywhere in a `graph:state` payload's technical section. */

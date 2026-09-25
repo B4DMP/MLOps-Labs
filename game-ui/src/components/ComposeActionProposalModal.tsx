@@ -56,7 +56,9 @@ import {
   ceilingOn,
   describeAtomicChange,
   dropUnscopedChanges,
+  isImplemented,
   nominalOn,
+  optionDisplayName,
   optionStatus,
   optionsOn,
   projectedOn,
@@ -86,31 +88,22 @@ export type { GraphOption, AttributeOption } from "../utils/graphOptions";
  */
 /** A change touching both axes of the same target is two legitimate slots, not a duplicate - so
  *  the dedup key carries the axis (and the attribute, for a set_attr on a multi-attribute target). */
+/** Everything that makes two changes the same slot - deliberately including `value`: a target
+ *  can carry several genuinely different steps chained on the same axis ("Implement It" then
+ *  "Automate It", one slot each), and those must never collapse into each other. Only a change
+ *  indistinguishable in every field from another is the stale duplicate this guards against. */
 function dedupeKey(c: AtomicChange): string {
-  return `${c.target}::${c.axis ?? ""}::${c.attr ?? ""}`;
+  return `${c.target}::${c.kind ?? "raise_to"}::${c.axis ?? ""}::${c.attr ?? ""}::${c.value}::${c.trigger ?? ""}`;
 }
 
 export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
-  const winnerByKey = new Map<string, AtomicChange>();
-  changes.forEach((c) => {
-    const key = dedupeKey(c);
-    const current = winnerByKey.get(key);
-    if (!current) {
-      winnerByKey.set(key, c);
-      return;
-    }
-    const isHigherValue = typeof c.value === "number" && typeof current.value === "number" && c.value > current.value;
-    if (isHigherValue || typeof c.value !== "number") {
-      winnerByKey.set(key, c);
-    }
-  });
   const seen = new Set<string>();
   return changes.filter((c) => {
     const key = dedupeKey(c);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).map((c) => winnerByKey.get(dedupeKey(c))!);
+  });
 }
 
 export interface ComponentData {
@@ -360,6 +353,9 @@ function OptionLadder({
   const ceiling = ceilingOn(target, axis);
   const options = optionsOn(target, axis);
   const now = axisMeta(axis, nominal);
+  // Nothing to review on a target nobody has implemented yet - there's no governance ladder to
+  // climb until an automation step has landed it at manual or above.
+  const governanceLocked = axis === "governance" && !isImplemented(target, changes);
 
   const statusLabel: Record<OptionStatus, string> = {
     done: "In place",
@@ -385,9 +381,17 @@ function OptionLadder({
           <AxisPipRow axis={axis} level={nominal} projected={projected} ceiling={ceiling} />
         </span>
       </div>
-      <span className={styles.axisHint}>{AXIS_HINTS[kind][axis]}</span>
+      <span className={styles.axisHint}>
+        {AXIS_HINTS[kind][axis]}
+        {governanceLocked && " Nothing to review until it's implemented."}
+      </span>
 
-      {options.length === 0 ? (
+      {governanceLocked ? (
+        <span className={styles.axisEmpty}>
+          <Icon icon="ph:lock-simple-bold" /> Implement it on automation first - you can't govern something that
+          doesn't exist yet.
+        </span>
+      ) : options.length === 0 ? (
         <span className={styles.axisEmpty}>
           {nominal >= ceiling
             ? `${formatAxisLevel(axis, ceiling)} is as far as this goes on ${AXIS_TITLES[axis].toLowerCase()}.`
@@ -416,7 +420,7 @@ function OptionLadder({
               >
                 <Icon icon={status === "done" ? "ph:check-circle-bold" : rung.icon} className={styles.optionIcon} aria-hidden />
                 <div className={styles.optionText}>
-                  <span className={styles.optionName}>{option.name}</span>
+                  <span className={styles.optionName}>{optionDisplayName(target, axis, option)}</span>
                   {showDescription && <span className={styles.optionDesc}>{option.description}</span>}
                   <span className={styles.optionMeta}>
                     <span className={styles.optionTag} title={`${AXIS_TITLES[axis]} rung this step lands on`}>
@@ -1400,8 +1404,12 @@ export default function ComposeActionProposalModal({
                     // what is built as translucent notches.
                     const previewAutomation = projectedOn(c, "automation", atomicChanges);
                     const previewGovernance = projectedOn(c, "governance", atomicChanges);
-                    const automationChange = atomicChanges.find((change) => change.target === c.id && change.axis === "automation");
-                    const governanceChange = atomicChanges.find((change) => change.target === c.id && change.axis === "governance");
+                    // A target can carry several chained steps on the same axis (one slot each,
+                    // "Implement It" then "Automate It") - the settled rung each would land on is
+                    // `previewAutomation`/`previewGovernance` above, never any single change's own
+                    // value, which might just be one link in that chain.
+                    const automationQueued = previewAutomation !== nominalOn(c, "automation");
+                    const governanceQueued = previewGovernance !== nominalOn(c, "governance");
                     const nodeTagStatus = isUnknown
                       ? "Not discovered yet"
                       : isOtherPhase
@@ -1421,16 +1429,16 @@ export default function ComposeActionProposalModal({
                           c.nominal_governance ?? 0
                         )}`;
                     const nodeTagProposed = [
-                      typeof automationChange?.value === "number"
+                      automationQueued
                         ? `\nProposed automation: ${formatAxisLevel("automation", c.nominal_automation ?? 1)} → ${formatAxisLevel(
                             "automation",
-                            automationChange.value
+                            previewAutomation
                           )}`
                         : "",
-                      typeof governanceChange?.value === "number"
+                      governanceQueued
                         ? `\nProposed governance: ${formatAxisLevel("governance", c.nominal_governance ?? 0)} → ${formatAxisLevel(
                             "governance",
-                            governanceChange.value
+                            previewGovernance
                           )}`
                         : "",
                     ].join("");

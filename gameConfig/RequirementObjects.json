@@ -451,6 +451,12 @@
         {
           "kind": "raise_to",
           "target": "req.acceptance_criteria",
+          "value": 2,
+          "axis": "automation"
+        },
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
           "value": 3,
           "axis": "governance"
         }
@@ -728,6 +734,12 @@
         "axis": "governance"
       },
       "ops": [
+        {
+          "kind": "raise_to",
+          "target": "data.validation",
+          "value": 2,
+          "axis": "automation"
+        },
         {
           "kind": "raise_to",
           "target": "data.validation",

@@ -219,7 +219,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "KPI Definition runs as a manual step someone executes by hand"
         }
       ],
@@ -258,7 +258,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Acceptance Criteria runs as a manual step someone executes by hand"
         }
       ],
@@ -298,7 +298,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Data Contracts runs as a manual step someone executes by hand"
         },
         {
@@ -342,7 +342,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Risk Assessment runs as a manual step someone executes by hand"
         }
       ],
@@ -401,7 +401,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Data Ingestion Pipeline runs as a manual step someone executes by hand"
         },
         {
@@ -500,7 +500,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Data Validation runs as a manual step someone executes by hand"
         },
         {
@@ -599,7 +599,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Feature Store runs as a manual step someone executes by hand"
         },
         {
@@ -689,7 +689,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Data Versioning runs as a manual step someone executes by hand"
         },
         {
@@ -762,7 +762,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Data Labeling Pipeline runs as a manual step someone executes by hand"
         },
         {
@@ -825,7 +825,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Training Data Drift Check runs as a manual step someone executes by hand"
         },
         {
@@ -880,7 +880,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Experiment Tracking runs as a manual step someone executes by hand"
         },
         {
@@ -962,7 +962,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Model Registry runs as a manual step someone executes by hand"
         },
         {
@@ -1052,7 +1052,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Training Pipeline runs as a manual step someone executes by hand"
         },
         {
@@ -1125,7 +1125,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Hyperparameter Tuning runs as a manual step someone executes by hand"
         },
         {
@@ -1188,7 +1188,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Model Evaluation Harness runs as a manual step someone executes by hand"
         },
         {
@@ -1243,7 +1243,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "CI/CD Pipeline runs as a manual step someone executes by hand"
         },
         {
@@ -1326,7 +1326,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Model Serving Endpoint runs as a manual step someone executes by hand"
         },
         {
@@ -1411,7 +1411,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Canary and A/B Testing runs as a manual step someone executes by hand"
         },
         {
@@ -1456,7 +1456,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Shadow Deployment runs as a manual step someone executes by hand"
         },
         {
@@ -1510,7 +1510,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Containerization runs as a manual step someone executes by hand"
         },
         {
@@ -1578,7 +1578,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Orchestration runs as a manual step someone executes by hand"
         },
         {
@@ -1651,7 +1651,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "API Gateway runs as a manual step someone executes by hand"
         },
         {
@@ -1714,7 +1714,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Model Performance Monitoring runs as a manual step someone executes by hand"
         },
         {
@@ -1769,7 +1769,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Production Drift Monitoring runs as a manual step someone executes by hand"
         },
         {
@@ -1842,7 +1842,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Alerting System runs as a manual step someone executes by hand"
         },
         {
@@ -1915,7 +1915,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Logging and Observability runs as a manual step someone executes by hand"
         },
         {
@@ -1978,7 +1978,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Retraining Trigger runs as a manual step someone executes by hand"
         },
         {
@@ -2023,7 +2023,7 @@
       "automation_options": [
         {
           "to_level": 2,
-          "name": "Go Manual",
+          "name": "Implement It",
           "description": "Rollback Mechanism runs as a manual step someone executes by hand"
         },
         {

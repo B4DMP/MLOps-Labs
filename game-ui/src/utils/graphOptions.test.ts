@@ -6,6 +6,7 @@ import {
   describeAtomicChange,
   dropUnscopedChanges,
   findGraphTarget,
+  optionDisplayName,
   optionStatus,
   projectedOn,
   removeChangeAt,
@@ -73,9 +74,12 @@ describe("option status", () => {
   });
 
   it("keeps the axes apart: a governance step does not move automation", () => {
-    const changes = addOption([], ingestion, "governance", ingestion.governance_options![0], 3);
-    expect(projectedOn(ingestion, "automation", changes)).toBe(1);
-    expect(projectedOn(ingestion, "governance", changes)).toBe(1);
+    // Implemented (automation: manual) so the governance step is not blocked by isImplemented -
+    // this test is about axis independence, not about the implementation gate.
+    const implemented: OptionTarget = { ...ingestion, nominal_automation: 2 };
+    const changes = addOption([], implemented, "governance", implemented.governance_options![0], 3);
+    expect(projectedOn(implemented, "automation", changes)).toBe(2);
+    expect(projectedOn(implemented, "governance", changes)).toBe(1);
   });
 
   it("marks steps at or below the built rung as done", () => {
@@ -94,6 +98,28 @@ describe("option status", () => {
     const broken: OptionTarget = { ...ingestion, nominal_automation: 0 };
     expect(optionStatus(broken, "automation", scriptStep, [])).toBe("next");
     expect(optionStatus(broken, "automation", platformStep, [])).toBe("later");
+  });
+});
+
+describe("option display name", () => {
+  it("reads the manual step as a repair once the component is broken, a build otherwise", () => {
+    const broken: OptionTarget = { ...ingestion, nominal_automation: 0 };
+    const absent: OptionTarget = { ...ingestion, nominal_automation: 1 };
+    expect(optionDisplayName(broken, "automation", scriptStep)).toBe("Fix It");
+    expect(optionDisplayName(absent, "automation", scriptStep)).toBe(scriptStep.name);
+  });
+
+  it("leaves an edge's own automation option name alone even when broken", () => {
+    const broken: OptionTarget = { ...handoff, automation: 0 };
+    const step = handoff.automation_options![0];
+    expect(optionDisplayName(broken, "automation", step)).toBe(step.name);
+  });
+
+  it("never relabels a governance option", () => {
+    const broken: OptionTarget = { ...ingestion, nominal_automation: 0 };
+    expect(optionDisplayName(broken, "governance", ingestion.governance_options![0])).toBe(
+      ingestion.governance_options![0].name
+    );
   });
 });
 
