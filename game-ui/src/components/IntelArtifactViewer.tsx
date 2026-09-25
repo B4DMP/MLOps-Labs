@@ -27,7 +27,7 @@ export default function IntelArtifactViewer({
 }: IntelArtifactViewerProps) {
   const type = (artifactType || "").toLowerCase();
   const name = stakeholderName || "Stakeholder";
-  const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@enterprise.internal`;
+  const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@linden.markt`;
   const initial = name.charAt(0).toUpperCase();
   // While this artifact is actively narrating, swap the block-level markdown rendering for
   // SpokenText's inline one: react-markdown wraps every sentence in its own <p>, which breaks
@@ -69,7 +69,7 @@ export default function IntelArtifactViewer({
                 {name} <span className={styles.senderEmail}>&lt;{emailAddr}&gt;</span>
               </div>
               <div className={styles.recipientLine}>
-                <strong>To:</strong> MLOps Engineering Team &lt;mlops-team@enterprise.internal&gt;, <strong>Cc:</strong> Architecture Board
+                <strong>To:</strong> MLOps Engineering Team &lt;mlops-team@linden.markt&gt;, <strong>Cc:</strong> Architecture Board
               </div>
             </div>
             <div className={styles.mailDate}>Today, 09:14 AM</div>
