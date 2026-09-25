@@ -907,10 +907,14 @@ export default function StakeholderDossier({
     prevHighlightedIdRef.current = highlightedIntelId;
   }, [highlightedIntelId]);
 
-  // Position state for window dragging
+  // Position state for window dragging. Committed to React state only once, on mouse-up - see
+  // handleMouseDown below for why the drag itself never calls setPosition.
   const [position, setPosition] = useState({ x: 120, y: 60 });
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
+  // The window's own DOM node, moved directly during a drag rather than through React state -
+  // see handleMouseDown.
+  const windowRef = useRef<HTMLDivElement>(null);
 
   const prevDossierRef = useRef<StakeholderDossierEntry[]>(dossierData);
 
@@ -1319,24 +1323,51 @@ export default function StakeholderDossier({
     return () => clearTimeout(timer);
   }, [currentPageIndex, playingAppearSignature]);
 
+  /**
+   * Dragging used to call `setPosition` on every native mousemove, which re-rendered this whole
+   * (very heavy) component tree at mouse-poll rate - visibly janky and expensive on CPU/GPU alike.
+   * Instead, the drag moves the window's own DOM node directly via a `transform` (compositor-only,
+   * no React re-render, no layout reflow) and only commits the final spot to `position` state once,
+   * on mouse-up - so the rest of the dossier re-renders at most once per drag instead of hundreds
+   * of times.
+   */
   const handleMouseDown = (e: React.MouseEvent) => {
     isDraggingRef.current = true;
-    dragStartRef.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const baseX = position.x;
+    const baseY = position.y;
+    dragStartRef.current = { x: startX, y: startY };
+
+    const el = windowRef.current;
+    if (el) el.style.willChange = "transform";
+
+    let latestDx = 0;
+    let latestDy = 0;
+    let rafId: number | null = null;
+
+    const applyFrame = () => {
+      rafId = null;
+      if (el) el.style.transform = `translate3d(${latestDx}px, ${latestDy}px, 0)`;
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDraggingRef.current) {
-        setPosition({
-          x: e.clientX - dragStartRef.current.x,
-          y: e.clientY - dragStartRef.current.y,
-        });
-      }
+      if (!isDraggingRef.current) return;
+      latestDx = e.clientX - dragStartRef.current.x;
+      latestDy = e.clientY - dragStartRef.current.y;
+      if (rafId === null) rafId = requestAnimationFrame(applyFrame);
     };
 
     const handleMouseUp = () => {
       isDraggingRef.current = false;
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      if (el) {
+        el.style.willChange = "";
+        el.style.transform = "";
+      }
+      // Fold the drag's transform delta into the real position - a single re-render for the
+      // whole drag, instead of one per mousemove.
+      setPosition({ x: baseX + latestDx, y: baseY + latestDy });
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
@@ -2248,6 +2279,7 @@ export default function StakeholderDossier({
 
   const windowContent = (
     <div
+      ref={windowRef}
       className={styles.sketchbookWindow}
       style={
         isEmbedded
