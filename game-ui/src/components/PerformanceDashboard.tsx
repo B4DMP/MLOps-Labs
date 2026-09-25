@@ -1155,6 +1155,7 @@ export default function PerformanceDashboard({
                                         stakeholderId={ownerEntry.stakeholder_id}
                                         avatar={stakeholders[ownerEntry.stakeholder_id]?.avatar}
                                         stakeholderColor={stakeholders[ownerEntry.stakeholder_id]?.stakeholder_color}
+                                        isFramed={false}
                                         size={18}
                                         hoverToSuspicious={false}
                                         className={styles.ownerLinkAvatar}

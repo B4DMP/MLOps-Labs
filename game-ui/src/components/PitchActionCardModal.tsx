@@ -471,7 +471,6 @@ export default function PitchActionCardModal({
                               <div
                                 className={styles.avatarMini}
                                 style={{
-                                  backgroundColor: stColor,
                                   border: `1.5px solid ${stColor}`,
                                 }}
                               >
@@ -479,7 +478,7 @@ export default function PitchActionCardModal({
                                   avatar={st.avatar}
                                   stakeholderColor={stColor}
                                   stakeholderId={st.id}
-                                  isFramed={true}
+                                  isFramed={false}
                                   play_blink_animation={false}
                                   size="100%"
                                   title={st.name}

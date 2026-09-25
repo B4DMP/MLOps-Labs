@@ -202,21 +202,8 @@
                 "title": "Facial Hair Style",
                 "enum": [
                   "chin",
-                  "full",
-                  "full2",
-                  "full3",
-                  "full4",
                   "goatee1",
-                  "goatee2",
-                  "moustache1",
-                  "moustache2",
-                  "moustache3",
-                  "moustache4",
-                  "moustache5",
-                  "moustache6",
-                  "moustache7",
-                  "moustache8",
-                  "moustache9"
+                  "moustache7"
                 ]
               },
               "facialHairProbability": {

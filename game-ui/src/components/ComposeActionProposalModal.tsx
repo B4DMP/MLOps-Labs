@@ -1649,6 +1649,7 @@ export default function ComposeActionProposalModal({
                                 stakeholderId={selectedCompData.owner_id}
                                 avatar={stakeholders[selectedCompData.owner_id]?.avatar}
                                 stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                isFramed={false}
                                 size={16}
                                 hoverToSuspicious={false}
                                 className={styles.ownerLinkAvatar}
@@ -1662,6 +1663,7 @@ export default function ComposeActionProposalModal({
                                 stakeholderId={selectedCompData.owner_id}
                                 avatar={stakeholders[selectedCompData.owner_id]?.avatar}
                                 stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                isFramed={false}
                                 size={16}
                                 hoverToSuspicious={false}
                               />
