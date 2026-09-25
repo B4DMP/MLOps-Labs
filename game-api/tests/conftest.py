@@ -10,6 +10,12 @@ config is found or loaded only has to happen once.
 field coverage and defaults - now one shared, superset implementation.
 """
 
+import os
+
+# Keep tests off the real Opik/Comet quota (must run before any mlops_serious_game import).
+os.environ["OPIK_TRACK_DISABLE"] = "true"
+os.environ["COMET_API_KEY"] = ""
+
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Optional
