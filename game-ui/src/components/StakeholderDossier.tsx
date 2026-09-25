@@ -1339,7 +1339,7 @@ export default function StakeholderDossier({
           "Confirm this item by selecting it during the Intel Verification phase, or through dialogue in the Pitch & Debate phase."
         )}
       >
-        ? UNCONFIRMED
+        unconfirmed?
       </div>
     );
   };
