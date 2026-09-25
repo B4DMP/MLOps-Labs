@@ -998,12 +998,31 @@ def _describe_change(graph: TechnicalGraph, change: "AtomicChange") -> Optional[
     return f"changing {name}"
 
 
+def _final_changes(changes: list["AtomicChange"]) -> list["AtomicChange"]:
+    """Collapses a target chained through several raise_to steps on the same axis (one authored
+    option per rung, each its own slot) down to the one that actually lands: the last one. Without
+    this, "raising X to manual and raising X to automated" reads as two separate, contradictory
+    commitments instead of the one the card actually settles on."""
+    final_by_key: dict[tuple[str, Optional[str]], "AtomicChange"] = {}
+    order: list[tuple[str, Optional[str]]] = []
+    passthrough: list["AtomicChange"] = []
+    for c in changes:
+        if isinstance(c.value, int) and c.axis:
+            key = (c.target, c.axis)
+            if key not in final_by_key:
+                order.append(key)
+            final_by_key[key] = c
+        else:
+            passthrough.append(c)
+    return [final_by_key[key] for key in order] + passthrough
+
+
 def _changes_summary(graph: Optional[TechnicalGraph], changes: list["AtomicChange"]) -> str:
     """Every proposed change, joined for a sentence - falls back to "your proposal" when the
     graph is not available (defensive: every real caller has one) or nothing in it is nameable."""
     if not graph or not changes:
         return "your proposal"
-    parts = [d for d in (_describe_change(graph, c) for c in changes) if d]
+    parts = [d for d in (_describe_change(graph, c) for c in _final_changes(changes)) if d]
     if not parts:
         return "your proposal"
     if len(parts) == 1:

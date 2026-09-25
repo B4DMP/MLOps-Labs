@@ -254,6 +254,22 @@ def test_commit_pitch_locks_stage_and_events():
     assert events[0].cause == "outcome.pass"
 
 
+def test_changes_summary_collapses_a_chained_target_to_its_final_step(real):
+    """Two changes on the same (target, axis) are a chain, one authored option (one slot) per
+    rung - "raising X's automation to manual and raising X's automation to automated" would read
+    as two separate, contradictory commitments instead of the one thing the card actually settles
+    on. The summary should name only the rung the target actually lands at."""
+    from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
+
+    changes = [
+        AtomicChange(target="req.data_contracts", kind="raise_to", axis="automation", value=2),
+        AtomicChange(target="req.data_contracts", kind="raise_to", axis="automation", value=3),
+    ]
+    summary = session._changes_summary(real, changes)
+    assert "manual" not in summary
+    assert "automated" in summary
+
+
 def test_agreeing_stakeholder_receives_positive_emotions(real):
     state = GraphState.from_config(real)
     driver = _item(

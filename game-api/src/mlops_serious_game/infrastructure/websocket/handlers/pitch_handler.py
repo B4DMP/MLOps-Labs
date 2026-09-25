@@ -104,6 +104,47 @@ def _primary_veto_read(view: pitch.CardView) -> pitch.StakeholderRead:
     return (fallback or view.reads)[0]
 
 
+AUTOMATION_LEVEL_NAMES = ["Broken", "Absent", "Manual", "Automated"]
+GOVERNANCE_LEVEL_NAMES = ["No governance", "Partially governed", "Mostly governed", "Fully governed"]
+
+
+def _card_commitments(graph: TechnicalGraph, card_ops_list: list) -> list[str]:
+    """One line per (target, axis) actually settled by this card, for the pitch LLM's prompt.
+
+    A target chained through several steps on one axis (one authored option per rung - "Implement
+    It" then "Automate It", each its own slot) shows up as one `raise_to` op per rung here; only
+    the *last* one is what the card actually commits that target to; the earlier ones are just the
+    stepping stones the slot mechanic requires. Collapsing to the final rung before handing this
+    to the LLM keeps it from narrating a stakeholder's reaction around an intermediate step
+    ("stepping to manual") the card has already moved past.
+    """
+    final_by_key: dict[tuple[str, Optional[str]], Any] = {}
+    for op in card_ops_list:
+        if op.kind in ("raise_to", "set_to"):
+            final_by_key[(op.target, op.axis)] = op
+        else:
+            final_by_key[(op.target, op.kind, id(op))] = op
+
+    commitments = []
+    for op in final_by_key.values():
+        target_name = graph.component(op.target).name if graph.is_component(op.target) else op.target
+        if op.kind in ("raise_to", "set_to"):
+            try:
+                lvl_val = int(op.value) if op.value is not None else 1
+                names = GOVERNANCE_LEVEL_NAMES if op.axis == "governance" else AUTOMATION_LEVEL_NAMES
+                lvl_str = names[lvl_val] if 0 <= lvl_val < len(names) else str(lvl_val)
+                commitments.append(f"- Raise {target_name} {op.axis or ''} to {lvl_str} (level {lvl_val})")
+            except (ValueError, TypeError):
+                commitments.append(f"- Update {target_name}: {op.value}")
+        elif op.kind == "set_trigger":
+            commitments.append(f"- Set trigger for {target_name}: {op.value}")
+        elif op.kind == "set_attr":
+            commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
+        else:
+            commitments.append(f"- {op.kind} {target_name}: {op.value}")
+    return commitments
+
+
 def get_allowed_targets(
     graph: TechnicalGraph,
     phase_id: int,
@@ -387,25 +428,7 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
     )
 
     card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
-    automation_names = ["Broken", "Absent", "Manual", "Automated"]
-    governance_names = ["No governance", "Partially governed", "Mostly governed", "Fully governed"]
-    commitments = []
-    for op in card_ops_list:
-        target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
-        if op.kind in ("raise_to", "set_to"):
-            try:
-                lvl_val = int(op.value) if op.value is not None else 1
-                names = governance_names if op.axis == "governance" else automation_names
-                lvl_str = names[lvl_val] if 0 <= lvl_val < len(names) else str(lvl_val)
-                commitments.append(f"- Raise {target_name} {op.axis or ''} to {lvl_str} (level {lvl_val})")
-            except (ValueError, TypeError):
-                commitments.append(f"- Update {target_name}: {op.value}")
-        elif op.kind == "set_trigger":
-            commitments.append(f"- Set trigger for {target_name}: {op.value}")
-        elif op.kind == "set_attr":
-            commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
-        else:
-            commitments.append(f"- {op.kind} {target_name}: {op.value}")
+    commitments = _card_commitments(ctx.graph, card_ops_list)
     card_summary = "\n".join(commitments) if commitments else "No atomic changes configured in the proposed card."
 
     reads_by_st = {r.stakeholder_id: r for r in view.reads}
@@ -673,25 +696,7 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         # 4. Compute primary objection details
         card_ops_list = pitch.atomic_changes_to_ops(ctx.graph, ctx.state, state.atomic_changes)
         card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in card_ops_list}
-        automation_names = ["Broken", "Absent", "Manual", "Automated"]
-        governance_names = ["No governance", "Partially governed", "Mostly governed", "Fully governed"]
-        commitments = []
-        for op in card_ops_list:
-            target_name = ctx.graph.component(op.target).name if ctx.graph.is_component(op.target) else op.target
-            if op.kind in ("raise_to", "set_to"):
-                try:
-                    lvl_val = int(op.value) if op.value is not None else 1
-                    names = governance_names if op.axis == "governance" else automation_names
-                    lvl_str = names[lvl_val] if 0 <= lvl_val < len(names) else str(lvl_val)
-                    commitments.append(f"- Raise {target_name} {op.axis or ''} to {lvl_str} (level {lvl_val})")
-                except (ValueError, TypeError):
-                    commitments.append(f"- Update {target_name}: {op.value}")
-            elif op.kind == "set_trigger":
-                commitments.append(f"- Set trigger for {target_name}: {op.value}")
-            elif op.kind == "set_attr":
-                commitments.append(f"- Set {op.attr} of {target_name}: {op.value}")
-            else:
-                commitments.append(f"- {op.kind} {target_name}: {op.value}")
+        commitments = _card_commitments(ctx.graph, card_ops_list)
         card_summary = "\n".join(commitments) if commitments else "No atomic changes configured."
 
         st_intel = [i for i in ctx.all_intel if getattr(i, "stakeholder_id", None) == veto_st_id]
