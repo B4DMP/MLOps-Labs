@@ -10,7 +10,12 @@ import { describeAtomicChange } from "../utils/graphOptions";
 import { dedupeAtomicChanges } from "./ComposeActionProposalModal";
 import HoverTooltip from "./HoverToolTip";
 
-/** The prediction for one slotted change: backend predictions are per (target, axis). */
+/** The prediction for one slotted change: backend predictions are per (target, axis), so a
+ *  target chained through several steps on the same axis shares one prediction across every row
+ *  - `predicted` on it is always the chain's final settled level, never any one row's own step.
+ *  Fine for `capped_by`/`upstream_uncertain` (properties of the axis, the same regardless of
+ *  which step you ask from); never use `.predicted` as a row's own displayed level - that's
+ *  `ac.value`. */
 function predictionFor(card: ActionCard, ac: AtomicChange): ItemPrediction | undefined {
   // Attribute choices get no prediction; do not borrow a raise's on the same target.
   if (ac.kind === "set_attr" || !ac.axis) return undefined;
@@ -164,7 +169,13 @@ export default function ActionCardCardComponent({
                 ac.target.split(".").pop()?.replace(/_/g, " ") ||
                 ac.target;
               const pred = predictionFor(card, ac);
-              const level = pred?.predicted ?? ac.value;
+              // This row's own requested level, never the prediction's `predicted` - a target
+              // chained through several steps on one axis shares one prediction per (target,
+              // axis) across every row (predictions_for keys on that pair, not on which step
+              // asked), so `predicted` is always the chain's final settled level regardless of
+              // which row reads it. Using it here duplicated the last step's badge onto every
+              // earlier one instead of each row naming its own step.
+              const level = ac.value;
               const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
               return (
                 <div
