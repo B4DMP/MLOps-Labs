@@ -175,6 +175,7 @@ export default function IntelVerificationDialog({
                     avatar={stakeholder.avatar}
                     stakeholderColor={stakeholder.stakeholder_color}
                     stakeholderId={stakeholder.id}
+                    isFramed={false}
                     size={32}
                   />
                 )}

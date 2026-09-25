@@ -127,7 +127,6 @@ export default function ActionCardComponent({
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: st.color,
                         flexShrink: 0,
                       }}
                     >
@@ -135,7 +134,7 @@ export default function ActionCardComponent({
                         avatar={st.stakeholder?.avatar}
                         stakeholderColor={st.color}
                         stakeholderId={st.id}
-                        isFramed={true}
+                        isFramed={false}
                         play_blink_animation={false}
                         size="100%"
                         title={st.name}

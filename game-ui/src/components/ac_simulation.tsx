@@ -567,6 +567,7 @@ export default function AcSimulation({
                                       avatar={stCtx.avatar}
                                       stakeholderId={ownerId}
                                       stakeholderColor={stCtx.stakeholder_color}
+                                      isFramed={false}
                                       size={16}
                                       hoverToSuspicious={false}
                                     />
@@ -661,6 +662,7 @@ export default function AcSimulation({
                                     avatar={stCtx.avatar}
                                     stakeholderId={st.stakeholder_id}
                                     stakeholderColor={stCtx.stakeholder_color}
+                                    isFramed={false}
                                     size="100%"
                                   />
                                 </div>

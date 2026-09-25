@@ -364,7 +364,6 @@ export default function ActionCardCardComponent({
                       <div
                         className={styles.avatarMini}
                         style={{
-                          backgroundColor: st.color,
                           border: `1px solid ${st.color}`,
                         }}
                       >
@@ -372,7 +371,7 @@ export default function ActionCardCardComponent({
                           avatar={st.avatar}
                           stakeholderColor={st.color}
                           stakeholderId={st.id}
-                          isFramed={true}
+                          isFramed={false}
                           play_blink_animation={false}
                           size="100%"
                           title={st.name}

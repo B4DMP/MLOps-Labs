@@ -1,6 +1,8 @@
 /* Reusable sentence-highlight narration pattern: one span per sentence, synced to `onSentence`'s
-   index. Light-background dossier UI (see IntelArtifactViewer/PrePhaseDialog), not a dark theme -
-   colors below are tuned against a white/near-white surface. */
+   index. Text color is inherited rather than hardcoded - callers range from light dossier
+   panels (IntelArtifactViewer/PrePhaseDialog) to dark chat bubbles (StakeholderInteractionArea's
+   chat history, pitch_debate's speech bubbles), and each already sets the right color on its own
+   container. Only opacity (animated inline, not here) drives the spoken/upcoming distinction. */
 
 .container {
   display: inline;
@@ -8,17 +10,17 @@
 
 .spoken {
   display: inline;
-  color: var(--text-primary, #1e293b);
+  color: inherit;
 }
 
 .upcoming {
   display: inline;
-  color: var(--text-primary, #1e293b);
+  color: inherit;
 }
 
 .active {
   display: inline;
-  color: var(--text-primary, #1e293b);
+  color: inherit;
 }
 
 .caret {
