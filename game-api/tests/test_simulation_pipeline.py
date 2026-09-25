@@ -180,7 +180,7 @@ def test_a_design_pattern_gained_lifts_stage_health(real):
         reads=[_read("requirements_reuben"), _read("data_dave")],
         challenge=_challenge(),
     )
-    assert "dp_data_contracts" in result.report.patterns.gained
+    assert "Enforced Data Contracts" in result.report.patterns.gained
     data = result.report.stage_health["data"]
     assert data.after > data.before
     assert result.report.system_health.after > result.report.system_health.before

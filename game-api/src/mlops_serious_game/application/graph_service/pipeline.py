@@ -371,7 +371,12 @@ def _stakeholder_execution(
         results.append(
             StakeholderExecutionDelta(
                 stakeholder_id=st_id,
-                name=names.get(st_id, st_id),
+                # "" (not st_id) on a miss - `names` is empty on the production call path, and an
+                # empty name lets the frontend's own `st.name || stCtx.name` chain fall through to
+                # its `stakeholders` context, which always has the real display name. Falling back
+                # to the raw id here would be truthy and short-circuit that lookup, showing e.g.
+                # "requirements_reuben" instead of "Requirements Reuben".
+                name=names.get(st_id, ""),
                 power=power,
                 interest=interest,
                 status=status,
@@ -427,6 +432,16 @@ def _capped_by(graph: TechnicalGraph, evaluation: GraphEvaluation, target: str, 
     return {"id": why, "level": _effective(evaluation, why)}
 
 
+def _prettify_target_id(target: str) -> str:
+    """"e.risk_acceptance" -> "Risk Acceptance". Fallback display for a target with no curated
+    name (the `Edge` model has none - only components carry one) - same "last id segment,
+    underscores to spaces" idiom the frontend's own `formatComponentId` uses, title-cased to
+    match how curated component names are written in MlopsGraph.json (e.g. "Acceptance Criteria")
+    so a fallen-back edge name doesn't read as visibly lesser than a curated one."""
+    tail = target.rsplit(".", 1)[-1]
+    return tail.replace("_", " ").title()
+
+
 def _target_display(graph: TechnicalGraph, target: str) -> tuple[str, Optional[str]]:
     """Name and icon for any report target (component or edge) - same source the SVG canvas
     itself reads (`icon` on the component, from MlopsGraph.json), so a target mentioned in the
@@ -435,7 +450,7 @@ def _target_display(graph: TechnicalGraph, target: str) -> tuple[str, Optional[s
     if graph.is_component(target):
         component = graph.component(target)
         return component.name, component.icon
-    return getattr(graph.edge(target), "name", None) or target, None
+    return getattr(graph.edge(target), "name", None) or _prettify_target_id(target), None
 
 
 def _story(graph: TechnicalGraph, state: GraphState, target: str) -> str:
@@ -469,7 +484,12 @@ def _target_deltas(
         capped = _capped_by(graph, after, target, axis)
         degraded = degraded_by.get((target, axis))
         owner_id = graph.owner_of(target)
-        owner_name = names.get(owner_id, owner_id) if owner_id else None
+        # None (not owner_id) on a miss - `names` is empty in the production call path (nothing
+        # currently threads a stakeholder id -> display name map through), and the frontend's own
+        # `stakeholders` context always has the real name for every owner role; falling back to
+        # the raw id here would keep that lookup from ever running and show e.g.
+        # "automation_alex" instead of "Automation Alex".
+        owner_name = names.get(owner_id) if owner_id else None
 
         if degraded:
             status = "degraded"
@@ -486,7 +506,10 @@ def _target_deltas(
             id=target,
             axis=axis,
             name=target_name,
-            stage=graph.stage_of(target),
+            # Display name ("Requirements", "Modeling"), not `stage_of`'s raw stage id ("req",
+            # "model") - that id is only a lookup key elsewhere (`stage_health` is keyed by it),
+            # but here it renders straight into the row's stage tag.
+            stage=graph.stage(graph.stage_of(target)).name,
             nominal=LevelPair(before=before_state.value(target, axis), after=after_state.value(target, axis)),
             effective=LevelPair(
                 before=before.effective.value(target, axis), after=after.effective.value(target, axis)
@@ -525,14 +548,22 @@ def _propagated(
     return out
 
 
-def _pattern_diff(before: GraphEvaluation, after: GraphEvaluation) -> PatternDiff:
+def _pattern_diff(before: GraphEvaluation, after: GraphEvaluation, patterns: Sequence[Pattern]) -> PatternDiff:
+    """Reports each pattern by its curated display name (`Pattern.name`, e.g. "Silent Model
+    Failure"), the same field the Performance Dashboard's own pattern badges read - not the raw
+    `dp_.../ap_...` id, which is only a lookup key and was never meant to be shown to a player."""
+    names_by_id = {p.id: p.name for p in patterns}
+
+    def display(pattern_id: str) -> str:
+        return names_by_id.get(pattern_id, pattern_id)
+
     was, now = set(before.active_patterns), set(after.active_patterns)
     gained, lost = sorted(now - was), sorted(was - now)
     return PatternDiff(
-        gained=[p for p in gained if p.startswith("dp_")],
-        lost=[p for p in lost if p.startswith("dp_")],
-        anti_created=[p for p in gained if p.startswith("ap_")],
-        anti_resolved=[p for p in lost if p.startswith("ap_")],
+        gained=[display(p) for p in gained if p.startswith("dp_")],
+        lost=[display(p) for p in lost if p.startswith("dp_")],
+        anti_created=[display(p) for p in gained if p.startswith("ap_")],
+        anti_resolved=[display(p) for p in lost if p.startswith("ap_")],
     )
 
 
@@ -809,7 +840,7 @@ def simulate(
         propagated=_propagated(graph, touched, before, after),
         stage_health=stage_health,
         system_health=system_health,
-        patterns=_pattern_diff(before, after),
+        patterns=_pattern_diff(before, after, patterns),
         grudges=GrudgeReport(created=created, fired=fired),
         metric_deltas=metric_deltas(before, after, metrics),                   # 10
         stakeholders=stakeholders,

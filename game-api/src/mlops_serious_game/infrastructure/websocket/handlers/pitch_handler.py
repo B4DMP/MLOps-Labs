@@ -662,8 +662,11 @@ async def handle_pitch_commit(websocket: WebSocket, username: str, payload: dict
         # 1. Identify high-power vetoing stakeholders
         primary_veto_read = _primary_veto_read(view)
         veto_st_id = primary_veto_read.stakeholder_id
-        veto_st_name = ctx.names.get(veto_st_id, veto_st_id)
         veto_st = StakeholderFactory.get_stakeholder(veto_st_id)
+        # `ctx.names` only covers this phase's room roster - a vetoing stakeholder outside it
+        # (e.g. an escalation from someone not seated this phase) would fall back to the raw id
+        # there, so look the name up directly from the full roster instead.
+        veto_st_name = veto_st.name if veto_st else ctx.names.get(veto_st_id, veto_st_id)
 
         # 2. Apply emotion penalty for the stakeholder who vetoes
         malus_key = "boundary_veto" if primary_veto_read.boundary_violated else "low_buyin_stalemate"

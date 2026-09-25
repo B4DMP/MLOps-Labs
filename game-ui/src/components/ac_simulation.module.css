@@ -263,6 +263,23 @@
   flex-shrink: 0;
 }
 
+/* Icon + (header row / description) laid out side by side, so the hero can run taller than one
+   text line without the header row growing to match it - the title row and the description
+   below it both start flush at the same left edge, to the right of the icon's own margin. */
+.directiveBannerRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.directiveBannerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1;
+}
+
 .directiveBannerHeader {
   display: flex;
   align-items: center;
@@ -280,11 +297,134 @@
   color: var(--primary-bg, #0f1826);
 }
 
+/* One-shot Lordicon hero, mirroring the outcome's tone (see AcSimulation's OUTCOME_HERO_ICONS) -
+   sized as a real hero against the banner's own height (title + description), not just the
+   title row, since it now sits beside both rather than inline with just the headline. */
+.directiveHeroIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 3.2rem;
+  height: 3.2rem;
+}
+
+.directiveHeroIcon > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Blinking caret next to the headline while it's the sentence currently narrating - same idiom
+   as ChallengeDescriptionCard's .titleCaret, since headline text is too short for SpokenText's
+   own per-sentence dim/lift to read as anything but a flicker. */
+.directiveTitleCaret {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 2px;
+  vertical-align: -0.05em;
+  background-color: currentColor;
+  border-radius: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .directiveTitleCaret {
+    animation: spoken-text-caret-blink 1s steps(1, jump-none) infinite;
+  }
+}
+
+@keyframes spoken-text-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+}
+
 .directiveText {
   font-size: 0.78rem;
   color: #475569;
   margin: 0.1rem 0 0;
   line-height: 1.3;
+}
+
+/* Play/replay/stop narration controls for the directive banner - light-banner counterpart to
+   offline_intel_gathering's .narrationControlButton, which is styled for a dark header instead. */
+.directiveNarrationControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.directiveNarrationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--dialog-border, #e2e8f0);
+  background: #f1f5f9;
+  color: var(--primary-bg, #0f1826);
+  font-size: 0.85rem;
+  padding: 0;
+  cursor: pointer;
+  transition: background var(--transition, 0.2s ease), transform var(--transition, 0.2s ease);
+}
+
+.directiveNarrationButton:hover,
+.directiveNarrationButton:focus-visible {
+  background: #e2e8f0;
+  transform: scale(1.1);
+}
+
+.directiveNarrationButtonPulsing {
+  animation: directiveNarrationPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes directiveNarrationPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(15, 24, 38, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(15, 24, 38, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directiveNarrationButtonPulsing {
+    animation: none;
+  }
+}
+
+.directiveNarrationLoading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  color: #64748b;
+  font-size: 0.95rem;
+  animation: directiveNarrationLoadingSpin 0.9s linear infinite;
+}
+
+@keyframes directiveNarrationLoadingSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .directiveNarrationLoading {
+    animation: none;
+  }
 }
 
 /* Outcome Status Badges */

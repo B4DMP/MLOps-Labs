@@ -12,13 +12,18 @@
  * 5. Environmental Ripple Effects & Architectural Patterns.
  */
 
-import { useEffect, useState, useContext, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useContext, useRef, useLayoutEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ActionCardCardComponent from "./ActionCardCardComponent";
 import PhaseOverview from "./PhaseOverview";
 import GlossaryText from "./glossary/GlossaryText";
+import SpokenText from "./SpokenText";
+import OnceIcon from "./Results/OnceIcon";
+import { useSpeech } from "./useSpeech";
+import { useSettings } from "./SettingsProvider";
+import { splitSentences } from "../utils/speech";
 import { MetricsContext } from "./MetricProvider";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import type { ActionCard } from "../types/ActionCard";
@@ -27,6 +32,31 @@ import CheatSheetModal from "./CheatSheetModal";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import styles from "./ac_simulation.module.css";
 import { AXIS_TITLES, formatAxisLevel, type Axis } from "../utils/stageCanvas";
+import FIREWORK_ICON from "./Results/icons/firework.json";
+import SHOOTING_STARS_ICON from "./Results/icons/shooting-stars.json";
+import CONFETTI_ICON from "./Results/icons/confetti.json";
+import DISCO_BALL_ICON from "./Results/icons/disco-ball.json";
+import WRENCH_ICON from "./Results/icons/wrench.json";
+import WARNING_TRIANGLE_ICON from "./Results/icons/warning-triangle.json";
+import ALARM_ICON from "./Results/icons/alarm.json";
+import BALL_BOWLING_ICON from "./Results/icons/ball-bowling.json";
+import NO_ENTRY_ICON from "./Results/icons/no-entry.json";
+import STOP_ICON from "./Results/icons/stop.json";
+import TRASH_BIN_ICON from "./Results/icons/trash-bin.json";
+import ROAD_BARRIER_ICON from "./Results/icons/road-barrier.json";
+import TRUCK_ICON from "./Results/icons/truck.json";
+import PERSON_PROTESTING_ICON from "./Results/icons/person-protesting.json";
+
+/** One hero Lordicon per rollout outcome, chosen at random each time this debrief is shown (see
+ *  `heroIcon` below) - several icons per tone so a run of the same outcome doesn't always look
+ *  identical. Kept to the outcome's tone only (celebratory for PASS, caution for SOFT_PASS,
+ *  forceful/blocked for VETO_BROKEN and STALEMATE) - never mixed across tones. */
+const OUTCOME_HERO_ICONS: Record<string, object[]> = {
+  PASS: [FIREWORK_ICON, SHOOTING_STARS_ICON, CONFETTI_ICON, DISCO_BALL_ICON],
+  SOFT_PASS: [WRENCH_ICON, WARNING_TRIANGLE_ICON, ALARM_ICON],
+  VETO_BROKEN: [BALL_BOWLING_ICON, NO_ENTRY_ICON, STOP_ICON],
+  STALEMATE: [TRASH_BIN_ICON, ROAD_BARRIER_ICON, TRUCK_ICON, PERSON_PROTESTING_ICON],
+};
 
 /** Pip colour per rung, one set per axis (00-plan.md §2.1) - the two never share a scale. */
 const LEVEL_CLASS: Record<Axis, string[]> = {
@@ -233,6 +263,8 @@ export default function AcSimulation({
   const { emit, subscribe } = useGameWebSocket();
   const { metrics } = useContext(MetricsContext);
   const { stakeholders } = useContext(StakeholderContext);
+  const { speak: speakTts } = useSpeech();
+  const { settings } = useSettings();
 
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
@@ -305,6 +337,60 @@ export default function AcSimulation({
   const outcomeInfo = report
     ? OUTCOME_CONFIG[report.outcome] || OUTCOME_CONFIG.PASS
     : OUTCOME_CONFIG.PASS;
+
+  // Random pick from this outcome's icon pool, re-rolled each time a fresh delta report arrives
+  // (a new `payload` reference - i.e. each visit to this debrief) rather than on every render.
+  const heroIcon = useMemo(() => {
+    const pool = report ? OUTCOME_HERO_ICONS[report.outcome] || OUTCOME_HERO_ICONS.PASS : null;
+    if (!pool) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }, [payload]);
+
+  // Narrates the executive headline + description the moment the debrief report arrives - same
+  // "read it in one pass" idiom as PrePhaseDialog's briefing narration, with the headline and
+  // description joined into one pass and split back out below (see headlineSentenceCount) so the
+  // headline gets its own caret and the description gets full SpokenText treatment.
+  const [isNarratingDirective, setIsNarratingDirective] = useState(false);
+  const [directiveSentenceIndex, setDirectiveSentenceIndex] = useState<number | null>(null);
+  const directiveCancelRef = useRef<() => void>(() => {});
+  const headlineSentenceCount = splitSentences(outcomeInfo.headline)
+    .map((s) => s.trim())
+    .filter(Boolean).length;
+  const isHeadlineActive =
+    directiveSentenceIndex != null && directiveSentenceIndex >= 0 && directiveSentenceIndex < headlineSentenceCount;
+  const descriptionActiveSentenceIndex =
+    directiveSentenceIndex != null ? directiveSentenceIndex - headlineSentenceCount : null;
+
+  const playDirectiveNarration = () => {
+    directiveCancelRef.current();
+    setIsNarratingDirective(true);
+    setDirectiveSentenceIndex(null);
+    directiveCancelRef.current = speakTts(`${outcomeInfo.headline}. ${outcomeInfo.description}`, {
+      slot: "narrator",
+      onSentence: ({ index }) => setDirectiveSentenceIndex(index),
+      onEnd: () => {
+        setIsNarratingDirective(false);
+        setDirectiveSentenceIndex(null);
+      },
+    });
+  };
+
+  const stopDirectiveNarration = () => {
+    directiveCancelRef.current();
+    setIsNarratingDirective(false);
+    setDirectiveSentenceIndex(null);
+  };
+
+  useEffect(() => {
+    if (!report) return;
+    playDirectiveNarration();
+    return () => {
+      directiveCancelRef.current();
+      setIsNarratingDirective(false);
+      setDirectiveSentenceIndex(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [payload]);
 
   // Same 10-notch scale MetricTab uses in the Performance Dashboard header - these are that
   // exact metric, not a separate "project health" abstraction, so this card has to look like
@@ -407,18 +493,69 @@ export default function AcSimulation({
           <>
             {/* 1. Executive Directive Banner */}
             <div className={styles.directiveBanner}>
-              <div className={styles.directiveBannerHeader}>
-                <div className={styles.directiveTitleArea}>
-                  <span>{outcomeInfo.headline}</span>
+              <div className={styles.directiveBannerRow}>
+                {heroIcon && <OnceIcon icon={heroIcon} className={styles.directiveHeroIcon} />}
+                <div className={styles.directiveBannerContent}>
+                  <div className={styles.directiveBannerHeader}>
+                    <div className={styles.directiveTitleArea}>
+                      <span>
+                        {outcomeInfo.headline}
+                        {isHeadlineActive && <span className={styles.directiveTitleCaret} aria-hidden="true" />}
+                      </span>
+                    </div>
+                    <div className={styles.directiveNarrationControls}>
+                      {isNarratingDirective ? (
+                        directiveSentenceIndex === null ? (
+                          // Same slot the Stop button takes once audio actually starts - swapping
+                          // in place instead of adding a sibling element keeps the badge to its
+                          // right from jumping sideways when playback catches up.
+                          <Icon
+                            icon="ph:circle-notch-bold"
+                            className={styles.directiveNarrationLoading}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              stopDirectiveNarration();
+                              hideInfoTag();
+                            }}
+                            className={`${styles.directiveNarrationButton} ${styles.directiveNarrationButtonPulsing}`}
+                            {...infoTagProps("Stop", "Stop reading this debrief aloud")}
+                            aria-label="Stop reading this debrief aloud"
+                          >
+                            <Icon icon="ph:stop-circle-bold" />
+                          </button>
+                        )
+                      ) : (
+                        !settings.mute_tts && (
+                          <button
+                            type="button"
+                            onClick={playDirectiveNarration}
+                            className={styles.directiveNarrationButton}
+                            {...infoTagProps("Listen Again", "Read this debrief aloud")}
+                            aria-label="Listen to this debrief again"
+                          >
+                            <Icon icon="ph:arrow-clockwise-bold" />
+                          </button>
+                        )
+                      )}
+                    </div>
+                    <span className={`${styles.outcomeBadge} ${outcomeInfo.badgeClass}`}>
+                      <Icon icon={outcomeInfo.icon} />
+                      {outcomeInfo.label}
+                    </span>
+                  </div>
+                  <p className={styles.directiveText}>
+                    <SpokenText
+                      text={outcomeInfo.description}
+                      activeSentenceIndex={descriptionActiveSentenceIndex}
+                      renderSentence={(sentence) => <GlossaryText text={sentence} surface="intel_notes" />}
+                    />
+                  </p>
                 </div>
-                <span className={`${styles.outcomeBadge} ${outcomeInfo.badgeClass}`}>
-                  <Icon icon={outcomeInfo.icon} />
-                  {outcomeInfo.label}
-                </span>
               </div>
-              <p className={styles.directiveText}>
-                <GlossaryText text={outcomeInfo.description} surface="intel_notes" />
-              </p>
             </div>
 
             {/* Pitched Action Proposal - the cause everything below is a consequence of */}
@@ -471,7 +608,7 @@ export default function AcSimulation({
                         {report.targets.map((target) => {
                           const ownerId = target.owner_id || "";
                           const stCtx = stakeholders[ownerId] || {};
-                          const ownerName = target.owner_name || stCtx.name || ownerId || "System Lead";
+                          const ownerName = target.owner_name || (ownerId ? stakeholderName(ownerId, stakeholders) : "System Lead");
 
                           const isCapped = target.status === "capped" || (target.capped_by && target.nominal.after !== target.effective.after);
                           const isDegraded = target.status === "degraded" || Boolean(target.degraded_by);
@@ -488,13 +625,19 @@ export default function AcSimulation({
                           if (isDegraded) {
                             statusCalloutClass = styles.statusDegraded;
                             statusIcon = "ph:hand-palm-bold";
-                            statusTitle = `Degraded Rollout • Owner Pushback (${target.degraded_by || ownerName})`;
+                            const degradedByName = target.degraded_by
+                              ? stakeholderName(target.degraded_by, stakeholders)
+                              : ownerName;
+                            statusTitle = `Degraded Rollout • Owner Pushback (${degradedByName})`;
                             statusDescription =
                               "The responsible stakeholder resisted execution, taking shortcuts or reducing effective operational quality.";
                           } else if (isCapped) {
                             statusCalloutClass = styles.statusCapped;
                             statusIcon = "ph:lock-key-bold";
-                            statusTitle = `Upstream Bottleneck Constraint (Capped by ${target.capped_by?.id || "predecessor"})`;
+                            const cappedByName = target.capped_by
+                              ? formatComponentId(target.capped_by.id)
+                              : "predecessor";
+                            statusTitle = `Upstream Bottleneck Constraint (Capped by ${cappedByName})`;
                             statusDescription = `Component reached nominal ${formatLevel(
                               target.axis,
                               target.nominal.after
@@ -638,7 +781,7 @@ export default function AcSimulation({
                       <div className={styles.stakeholderGrid}>
                         {report.stakeholders.map((st) => {
                           const stCtx = stakeholders[st.stakeholder_id] || {};
-                          const stName = st.name || stCtx.name || st.stakeholder_id;
+                          const stName = st.name || stakeholderName(st.stakeholder_id, stakeholders);
 
                           const statusBadgeClass =
                             st.status === "committed"
@@ -751,7 +894,12 @@ export default function AcSimulation({
                         <div>
                           <strong>Prior Grudge Triggered:</strong>{" "}
                           {report.grudges.fired
-                            .map((g) => `${stakeholderName(g.stakeholder_id, stakeholders)} (${g.detail || g.effect})`)
+                            .map(
+                              (g) =>
+                                `${stakeholderName(g.stakeholder_id, stakeholders)} (${
+                                  g.detail || prettifyLabel(g.effect)
+                                })`
+                            )
                             .join(", ")}
                         </div>
                       </div>
