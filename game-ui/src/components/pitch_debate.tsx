@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ActionCard } from "../types/ActionCard";
-import { StakeholderContext } from "./StakeholderProvider";
+import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
@@ -299,6 +299,12 @@ export default function PitchDebate({
     emotionalState?: string;
     facialExpression?: string;
     emotionValues?: Record<string, number>;
+    /** Which dimensions are gating this message's emotional state, and the full bucketed set -
+     *  carried alongside emotionValues so the dossier's hover composition card updates in step
+     *  with the emoji/face when this message is revealed, instead of lagging behind on whatever
+     *  gating info happened to arrive last over the websocket. */
+    emotionDimensions?: EmotionGatingInfo;
+    emotionDimensionsFull?: EmotionGatingDimension[];
     buyIn?: number;
   }
   const speechQueueRef = useRef<SpeechQueueItem[]>([]);
@@ -422,10 +428,20 @@ export default function PitchDebate({
         setSelectedStakeholderId(nextItem.stakeholderId);
       }
 
-      // Update that stakeholder's emotional state, facial expression, avatar, and emotionValues now that their message is displayed!
+      // Update that stakeholder's emotional state, facial expression, avatar, emotionValues,
+      // and the dossier's hover-reveal dimensions now that their message is displayed! The last
+      // two (emotion_dimensions / emotion_dimensions_full) have to move in lockstep with
+      // emotional_state here rather than being left for some other websocket handler to catch up
+      // on later - they're what feeds the composition card under the emotion badge, and without
+      // this it kept showing whichever gating info happened to arrive last instead of the
+      // dimensions behind the message actually on screen.
       if (
         nextItem.stakeholderId &&
-        (nextItem.emotionalState || nextItem.facialExpression || nextItem.emotionValues) &&
+        (nextItem.emotionalState ||
+          nextItem.facialExpression ||
+          nextItem.emotionValues ||
+          nextItem.emotionDimensions ||
+          nextItem.emotionDimensionsFull) &&
         setStakeholders
       ) {
         setStakeholders((prev: Record<string, any>) => {
@@ -443,6 +459,8 @@ export default function PitchDebate({
               emotion: newFace,
               emotion_values: nextItem.emotionValues || current.emotion_values,
               emotionValues: nextItem.emotionValues || current.emotionValues,
+              emotion_dimensions: nextItem.emotionDimensions || current.emotion_dimensions,
+              emotion_dimensions_full: nextItem.emotionDimensionsFull || current.emotion_dimensions_full,
               avatar: {
                 ...(current.avatar || {}),
                 face: newFace,
@@ -519,6 +537,8 @@ export default function PitchDebate({
       emotionalState?: string;
       facialExpression?: string;
       emotionValues?: Record<string, number>;
+      emotionDimensions?: EmotionGatingInfo;
+      emotionDimensionsFull?: EmotionGatingDimension[];
       buyIn?: number;
     }
   ) => {
@@ -533,6 +553,8 @@ export default function PitchDebate({
       emotionalState: meta?.emotionalState,
       facialExpression: meta?.facialExpression,
       emotionValues: meta?.emotionValues,
+      emotionDimensions: meta?.emotionDimensions,
+      emotionDimensionsFull: meta?.emotionDimensionsFull,
       buyIn: meta?.buyIn,
     });
     processSpeechQueue();
@@ -729,6 +751,8 @@ export default function PitchDebate({
             emotionalState: p.emotional_state,
             facialExpression: p.facial_expression,
             emotionValues: p.emotion_values,
+            emotionDimensions: p.emotion_dimensions,
+            emotionDimensionsFull: p.emotion_dimensions_full,
             buyIn: p.buy_in,
           });
         } else if (p.type === "player_message" && p.message) {

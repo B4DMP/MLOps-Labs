@@ -558,6 +558,8 @@ async def handle_pitch_evaluate(websocket: WebSocket, username: str, payload: di
                 "emotional_state": emotional_state,
                 "facial_expression": facial_expression,
                 "emotion_values": emotion_values,
+                "emotion_dimensions": EmotionFactory.derive_gating_dimensions(emotion_values) if emotion_values else None,
+                "emotion_dimensions_full": EmotionFactory.derive_all_dimensions(emotion_values) if emotion_values else None,
                 "buy_in": buy_in_val,
             },
         )
