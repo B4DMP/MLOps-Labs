@@ -1180,6 +1180,17 @@ export default function ComposeActionProposalModal({
                   preserveAspectRatio="xMidYMid meet"
                   style={fitToBoxStyle(svgW, svgH)}
                   className={styles.stageSvg}
+                  // Clicking blank canvas - anywhere that isn't a node or edge, which each stop
+                  // this from seeing their own clicks by not being the event's target - clears
+                  // whatever's selected, same as clicking a node a second time does. Without
+                  // this, a player who dismisses the inspector the way they would on a map or
+                  // diagram elsewhere (click away from what they picked) finds the reticle and
+                  // inspector panel just sitting there with no visible way to close them.
+                  onClick={(e) => {
+                    if (e.target !== e.currentTarget) return;
+                    setSelectedCompId(null);
+                    setSelectedEdgeId(null);
+                  }}
                 >
                   <style>{NODE_STATE_ANIM}</style>
                   <NodeDefs prefix="compose" />
