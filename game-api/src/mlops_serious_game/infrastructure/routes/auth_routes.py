@@ -54,6 +54,7 @@ class RegisterRequest(BaseModel):
     password_confirm: str
     users_on_machine: int
     campaign_key: str
+    player_voice_gender: str | None = None
 
 
 class VerifyEmailRequest(BaseModel):
@@ -124,6 +125,7 @@ async def register(req: RegisterRequest, request: Request, response: Response):
         req.password_confirm,
         req.users_on_machine,
         req.campaign_key,
+        req.player_voice_gender,
     )
     if not result["success"]:
         raise HTTPException(status_code=400, detail=result["error"])

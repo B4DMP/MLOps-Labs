@@ -41,6 +41,8 @@ export type Stakeholder = {
   emotionValues?: Record<string, number>;
   /** Which 2-3 dimensions are gating (or nearest to gating) the current emotional_state. */
   emotion_dimensions?: EmotionGatingInfo;
+  /** All 7 configured emotion dimensions, bucketed - for the dossier's full emotion reveal. */
+  emotion_dimensions_full?: EmotionGatingDimension[];
 };
 
 type StakeholderContextType = {

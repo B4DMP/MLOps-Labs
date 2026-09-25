@@ -12,7 +12,8 @@
  * 5. Environmental Ripple Effects & Architectural Patterns.
  */
 
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useRef, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ActionCardCardComponent from "./ActionCardCardComponent";
@@ -22,6 +23,8 @@ import { MetricsContext } from "./MetricProvider";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import type { ActionCard } from "../types/ActionCard";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
+import CheatSheetModal from "./CheatSheetModal";
+import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import styles from "./ac_simulation.module.css";
 import { AXIS_TITLES, formatAxisLevel, type Axis } from "../utils/stageCanvas";
 
@@ -33,6 +36,10 @@ const LEVEL_CLASS: Record<Axis, string[]> = {
 /** Same notch count as `MetricTab`'s header gauges - the two have to agree, since this card
  *  shows the same six metrics as the header, just before/after instead of only "now". */
 const METRIC_SEGMENTS = 10;
+
+/** Breathing room between the shared hover tag and the viewport edge - same value and same
+ *  flip-down tag idiom as the dossier's HeaderIconButton/tab hover cards. */
+const HOVER_TAG_EDGE_MARGIN = 6;
 
 function filledSegments(value: number, max: number): number {
   if (!max) return 0;
@@ -74,6 +81,8 @@ interface TargetDelta {
   owner_name?: string | null;
   status?: "flawless" | "capped" | "delayed" | "degraded" | string;
   story?: string;
+  /** Same Iconify icon the component's own graph node uses, from MlopsGraph.json. */
+  icon?: string;
 }
 
 interface StakeholderExecutionDelta {
@@ -92,9 +101,9 @@ interface DeltaReport {
   targets: TargetDelta[];
   debt_created: Array<{ target_id?: string; owner_id?: string; intended?: number; applied?: number; axis?: Axis }>;
   debt_cleared: Array<{ target_id?: string; owner_id?: string; axis?: Axis }>;
-  world_events: Array<{ target: string; axis?: Axis; before: number; after: number; reason?: string }>;
+  world_events: Array<{ target: string; axis?: Axis; name?: string; before: number; after: number; reason?: string; icon?: string }>;
   /** Automation only: governance never caps, so it never propagates. */
-  propagated: Array<{ target: string; effective: LevelPair; via?: string | null }>;
+  propagated: Array<{ target: string; name?: string; effective: LevelPair; via?: string | null; icon?: string }>;
   stage_health: Record<string, LevelPair>;
   system_health: LevelPair;
   patterns: { gained: string[]; lost: string[]; anti_created: string[]; anti_resolved: string[] };
@@ -122,6 +131,9 @@ interface AcSimulationProps {
   isPerformanceOpen?: boolean;
   onSettingsToggle?: () => void;
   isSettingsOpen?: boolean;
+  /** Opens the Performance Dashboard already focused on this component - a link from a row
+   *  in the Component Implementation Log. Rows become clickable when this is given. */
+  onOpenComponent?: (componentId: string) => void;
 }
 
 const OUTCOME_CONFIG: Record<
@@ -176,6 +188,37 @@ function stakeholderName(id: string, stakeholders: Record<string, Stakeholder>):
   return stakeholders[id]?.name || prettifyLabel(id);
 }
 
+/** A graph target (component or edge) mentioned in prose - e.g. "X moved from broken to
+ *  manual" in the Ripple Effects list. Carries the same icon as its row in the Component
+ *  Implementation Log (rather than a raw id-derived label), and is the same jump-to-
+ *  Performance-Dashboard link; falls back to plain bold text when no handler is wired. */
+function TargetLink({
+  targetId,
+  name,
+  icon,
+  onOpenComponent,
+}: {
+  targetId: string;
+  name: string;
+  icon?: string;
+  onOpenComponent?: (componentId: string) => void;
+}) {
+  const content = (
+    <>
+      {icon && <Icon icon={icon} className={styles.targetLinkIcon} aria-hidden="true" />}
+      <span>{name}</span>
+    </>
+  );
+  if (!onOpenComponent) {
+    return <strong className={styles.targetLinkStatic}>{content}</strong>;
+  }
+  return (
+    <button type="button" className={styles.targetLink} onClick={() => onOpenComponent(targetId)}>
+      {content}
+    </button>
+  );
+}
+
 export default function AcSimulation({
   onContinue,
   currentPhase = 0,
@@ -185,15 +228,69 @@ export default function AcSimulation({
   isPerformanceOpen = false,
   onSettingsToggle,
   isSettingsOpen = false,
+  onOpenComponent,
 }: AcSimulationProps) {
-  const { emit } = useGameWebSocket();
+  const { emit, subscribe } = useGameWebSocket();
   const { metrics } = useContext(MetricsContext);
   const { stakeholders } = useContext(StakeholderContext);
 
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
   useWebSocketEvent<DeltaReportPayload>("graph:delta_report", (data) => setPayload(data));
+
+  // Badges the Performance button with the project graph's overall health, same as the
+  // dossier header's Performance button.
+  const [systemHealth, setSystemHealth] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!onPerformanceToggle) return;
+    emit("graph:state_request", { phase_id: currentPhase });
+    const unsub = subscribe("graph:state", (data: { system_health?: number }) => {
+      setSystemHealth(data?.system_health);
+    });
+    return unsub;
+  }, [onPerformanceToggle, currentPhase, emit, subscribe]);
+  const systemHealthBucket = healthBucket(systemHealth);
+
+  // Shared flip-down hover/focus tag, same mechanism as the dossier's header buttons and tabs:
+  // one portal instance rather than a native `title` (or one hook per anchor) on every button,
+  // pill and chip that wants a hover explanation.
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    top: number;
+    anchorX: number;
+    left: number;
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({ label, detail, top: rect.bottom + HOVER_TAG_EDGE_MARGIN, anchorX, left: anchorX });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  const infoTagProps = (label: string, detail?: string) => ({
+    onMouseEnter: (e: React.MouseEvent) => showInfoTag(e, label, detail),
+    onMouseLeave: hideInfoTag,
+    onFocus: (e: React.FocusEvent) => showInfoTag(e, label, detail),
+    onBlur: hideInfoTag,
+  });
+
+  // Keep the tag inside the viewport horizontally, recomputed from the fixed anchorX so a
+  // detail line changing the tag's width never drifts it off its anchor.
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(
+      Math.max(infoTag.anchorX, HOVER_TAG_EDGE_MARGIN + half),
+      window.innerWidth - HOVER_TAG_EDGE_MARGIN - half
+    );
+    setInfoTag((prev) => (prev && prev.left !== left ? { ...prev, left } : prev));
+  }, [infoTag?.anchorX, infoTag?.label, infoTag?.detail]);
 
   useEffect(() => {
     emit("simulation:run", { phase_id: currentPhase, challenge_id: currentChallenge });
@@ -241,37 +338,55 @@ export default function AcSimulation({
         <div className={styles.headerTitleBlock}>
           <h1 className={styles.headerTitle}>
             <Icon icon="ph:rocket-launch-bold" className={styles.headerIcon} />
-            <span>Deployment Execution & Rollout Debrief</span>
+            <span>Rollout Debrief</span>
           </h1>
-          <p className={styles.headerSubtitle}>
-            Engineering Rollout Log • Stakeholder Implementation & System Evolution
-          </p>
+          <p className={styles.headerSubtitle}>Engineering Execution Log</p>
         </div>
         <div className={styles.headerPhases}>
           <PhaseOverview />
         </div>
-        {onPerformanceToggle && (
+        <div className={styles.headerIconGroup}>
+          {onPerformanceToggle && (
+            <button
+              type="button"
+              className={`${styles.headerIconBtn} ${isPerformanceOpen ? styles.headerIconBtnActive : ""}`}
+              onClick={onPerformanceToggle}
+              aria-label={isPerformanceOpen ? "Performance: close" : "Performance: open"}
+              {...infoTagProps(
+                isPerformanceOpen ? "Close performance dashboard" : "Open performance dashboard",
+                systemHealth !== undefined ? `System health: ${HEALTH_BUCKET_WORD[systemHealthBucket]}` : undefined
+              )}
+            >
+              <Icon icon="ph:gauge-bold" />
+              {systemHealth !== undefined && (
+                <span
+                  className={styles.headerIconBadgeDot}
+                  style={{ background: healthBucketColor(systemHealthBucket) }}
+                />
+              )}
+            </button>
+          )}
+          {onSettingsToggle && (
+            <button
+              type="button"
+              className={`${styles.headerIconBtn} ${isSettingsOpen ? styles.headerIconBtnActive : ""}`}
+              onClick={onSettingsToggle}
+              aria-label={isSettingsOpen ? "Settings: close" : "Settings: open"}
+              {...infoTagProps(isSettingsOpen ? "Close settings" : "Open settings")}
+            >
+              <Icon icon="ph:gear-six-bold" />
+            </button>
+          )}
           <button
             type="button"
-            className={`${styles.dashboardLink} ${isPerformanceOpen ? styles.dashboardLinkActive : ""}`}
-            onClick={onPerformanceToggle}
-            title={isPerformanceOpen ? "Close performance dashboard" : "Open the full performance dashboard"}
+            className={`${styles.headerIconBtn} ${isCheatSheetOpen ? styles.headerIconBtnActive : ""}`}
+            onClick={() => setIsCheatSheetOpen(true)}
+            aria-label="Cheat Sheet"
+            {...infoTagProps("Cheat Sheet", "Quick reference for every phase")}
           >
-            <Icon icon="ph:gauge-bold" />
-            <span>Performance</span>
+            <Icon icon="ph:question-bold" />
           </button>
-        )}
-        {onSettingsToggle && (
-          <button
-            type="button"
-            className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
-            onClick={onSettingsToggle}
-            title={isSettingsOpen ? "Close settings" : "Open settings"}
-          >
-            <Icon icon="ph:gear-six-bold" />
-            <span>Settings</span>
-          </button>
-        )}
+        </div>
       </div>
 
       {/* ── Body Area ── */}
@@ -357,7 +472,6 @@ export default function AcSimulation({
                           const ownerId = target.owner_id || "";
                           const stCtx = stakeholders[ownerId] || {};
                           const ownerName = target.owner_name || stCtx.name || ownerId || "System Lead";
-                          const ownerRole = stCtx.role_description || "Component Owner";
 
                           const isCapped = target.status === "capped" || (target.capped_by && target.nominal.after !== target.effective.after);
                           const isDegraded = target.status === "degraded" || Boolean(target.degraded_by);
@@ -396,33 +510,68 @@ export default function AcSimulation({
                               "Component landed, but missing metadata, partial scripts, or handoff delays created technical debt.";
                           }
 
+                          // Same left-accent-by-status idiom as ActionCardCardComponent's change
+                          // rows - a colour read at a glance, without opening the detail below.
+                          const statusAccentColor = isDegraded
+                            ? "#ea580c"
+                            : isCapped
+                            ? "#ca8a04"
+                            : isDelayed
+                            ? "#dc2626"
+                            : "#16a34a";
+
+                          const openThisComponent = onOpenComponent
+                            ? () => onOpenComponent(target.id)
+                            : undefined;
+
                           return (
-                            <div key={`${target.id}-${target.axis}`} className={styles.rolloutItem}>
-                              {/* Header: component + owner on one line, level transition on the other side */}
+                            <div
+                              key={`${target.id}-${target.axis}`}
+                              className={`${styles.rolloutItem} ${openThisComponent ? styles.rolloutItemClickable : ""}`}
+                              style={{ ["--row-accent" as string]: statusAccentColor }}
+                              onClick={openThisComponent}
+                              role={openThisComponent ? "button" : undefined}
+                              tabIndex={openThisComponent ? 0 : undefined}
+                              onKeyDown={
+                                openThisComponent
+                                  ? (e) => {
+                                      if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        openThisComponent();
+                                      }
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {/* Header: component, phase and owner all on one line, level transition on the other side */}
                               <div className={styles.rolloutItemHeader}>
                                 <div className={styles.componentMeta}>
-                                  <div className={styles.componentName}>
-                                    <Icon icon="ph:cpu-bold" className="text-primary" />
-                                    <span>{target.name || formatComponentId(target.id)}</span>
-                                  </div>
-                                  <div className={styles.componentTags}>
-                                    <span className={styles.stageTag}>{target.stage}</span>
-                                    <span
-                                      className={`${styles.stageTag} ${target.axis === "governance" ? styles.axisTagGovernance : ""}`}
-                                    >
-                                      {AXIS_TITLES[target.axis] ?? target.axis}
+                                  {/* Same icon the component's own graph node uses, as in PerformanceDashboard */}
+                                  <Icon icon={target.icon || "ph:cube-bold"} className={styles.componentIcon} />
+                                  <span className={styles.componentNameWrap}>
+                                    <span className={styles.componentName}>
+                                      {target.name || formatComponentId(target.id)}
                                     </span>
-                                    <span className={styles.ownerChip} title={ownerRole}>
-                                      <StakeholderAvatarComponent
-                                        avatar={stCtx.avatar}
-                                        stakeholderId={ownerId}
-                                        stakeholderColor={stCtx.stakeholder_color}
-                                        size={16}
-                                      />
-                                      {ownerName}
-                                      <Icon icon="ph:info-bold" className={styles.ownerRoleHint} />
-                                    </span>
-                                  </div>
+                                    {openThisComponent && (
+                                      <Icon icon="ph:arrow-square-out-bold" className={styles.rolloutOpenIcon} aria-hidden="true" />
+                                    )}
+                                  </span>
+                                  <span className={styles.stageTag}>{target.stage}</span>
+                                  <span
+                                    className={`${styles.stageTag} ${target.axis === "governance" ? styles.axisTagGovernance : ""}`}
+                                  >
+                                    {AXIS_TITLES[target.axis] ?? target.axis}
+                                  </span>
+                                  <span className={styles.ownerName}>
+                                    <StakeholderAvatarComponent
+                                      avatar={stCtx.avatar}
+                                      stakeholderId={ownerId}
+                                      stakeholderColor={stCtx.stakeholder_color}
+                                      size={16}
+                                      hoverToSuspicious={false}
+                                    />
+                                    {ownerName}
+                                  </span>
                                 </div>
 
                                 <div className={styles.levelTransition}>
@@ -489,7 +638,6 @@ export default function AcSimulation({
                         {report.stakeholders.map((st) => {
                           const stCtx = stakeholders[st.stakeholder_id] || {};
                           const stName = st.name || stCtx.name || st.stakeholder_id;
-                          const stRole = stCtx.role_description || `${st.power || "low"} power`;
 
                           const statusBadgeClass =
                             st.status === "committed"
@@ -507,7 +655,7 @@ export default function AcSimulation({
 
                           return (
                             <div key={st.stakeholder_id} className={styles.stakeholderCard}>
-                              <div className="d-flex align-items-center gap-2" title={stRole}>
+                              <div className="d-flex align-items-center gap-2">
                                 <div style={{ width: 36, height: 36, flexShrink: 0 }}>
                                   <StakeholderAvatarComponent
                                     avatar={stCtx.avatar}
@@ -517,9 +665,8 @@ export default function AcSimulation({
                                   />
                                 </div>
                                 <div className="d-flex flex-column min-width-0 flex-grow-1">
-                                  <strong className="text-truncate d-flex align-items-center gap-1" style={{ fontSize: "0.82rem" }}>
+                                  <strong className="text-truncate" style={{ fontSize: "0.82rem" }}>
                                     {stName}
-                                    <Icon icon="ph:info-bold" className={styles.ownerRoleHint} />
                                   </strong>
                                 </div>
                               </div>
@@ -540,10 +687,14 @@ export default function AcSimulation({
                                       return (
                                         <span
                                           key={dim}
+                                          tabIndex={0}
                                           className={`${styles.emotionPill} ${
                                             good ? styles.emotionPositive : styles.emotionNegative
                                           }`}
-                                          title={`${prettifyLabel(dim)} ${risingRaw ? "went up" : "went down"} this rollout`}
+                                          {...infoTagProps(
+                                            prettifyLabel(dim),
+                                            `${risingRaw ? "Went up" : "Went down"} this rollout`
+                                          )}
                                         >
                                           <Icon icon={risingRaw ? "ph:arrow-up-bold" : "ph:arrow-down-bold"} />
                                           {prettifyLabel(dim)}
@@ -577,8 +728,12 @@ export default function AcSimulation({
                             return (
                               <span
                                 key={`${g.stakeholder_id}-${i}`}
+                                tabIndex={0}
                                 className={`${styles.grudgeChip} ${isHighPower ? styles.grudgeChipSevere : styles.grudgeChipMinor}`}
-                                title="Will remember this compromise and bring heightened skepticism into future debates."
+                                {...infoTagProps(
+                                  stakeholderName(g.stakeholder_id, stakeholders),
+                                  "Will remember this compromise and bring heightened skepticism into future debates."
+                                )}
                               >
                                 <Icon icon={isHighPower ? "ph:warning-bold" : "ph:bookmark-simple-bold"} />
                                 {stakeholderName(g.stakeholder_id, stakeholders)}
@@ -618,7 +773,12 @@ export default function AcSimulation({
                           <ul className="list-group list-group-flush small">
                             {report.world_events.map((e, i) => (
                               <li key={`${e.target}-${i}`} className="list-group-item px-0 py-1 bg-transparent">
-                                <strong>{formatComponentId(e.target)}</strong>
+                                <TargetLink
+                                  targetId={e.target}
+                                  name={e.name || formatComponentId(e.target)}
+                                  icon={e.icon}
+                                  onOpenComponent={onOpenComponent}
+                                />
                                 {e.axis === "governance" ? " governance" : ""} moved from{" "}
                                 {formatLevel(e.axis ?? "automation", e.before)} to {formatLevel(e.axis ?? "automation", e.after)}
                                 {e.reason && <span className="text-muted"> ({e.reason})</span>}
@@ -635,9 +795,25 @@ export default function AcSimulation({
                             {report.propagated.map((p) => (
                               <li key={p.target} className="list-group-item px-0 py-1 bg-transparent text-muted">
                                 <Icon icon="ph:flow-arrow-bold" className="me-1 text-primary" />
-                                <strong>{formatComponentId(p.target)}</strong> adapted from{" "}
-                                {formatLevel("automation", p.effective.before)} to {formatLevel("automation", p.effective.after)}
-                                {p.via && ` (via ${formatComponentId(p.via)})`}
+                                <TargetLink
+                                  targetId={p.target}
+                                  name={p.name || formatComponentId(p.target)}
+                                  icon={p.icon}
+                                  onOpenComponent={onOpenComponent}
+                                />{" "}
+                                adapted from {formatLevel("automation", p.effective.before)} to{" "}
+                                {formatLevel("automation", p.effective.after)}
+                                {p.via && (
+                                  <>
+                                    {" (via "}
+                                    <TargetLink
+                                      targetId={p.via}
+                                      name={formatComponentId(p.via)}
+                                      onOpenComponent={onOpenComponent}
+                                    />
+                                    {")"}
+                                  </>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -845,6 +1021,29 @@ export default function AcSimulation({
           </button>
         </div>
       </div>
+      <CheatSheetModal
+        isOpen={isCheatSheetOpen}
+        onClose={() => setIsCheatSheetOpen(false)}
+        activeSectionTitle="Simulate"
+      />
+
+      {/* Shared flip-down hover/focus tag for every button, pill and chip on this page that
+          used to carry a native `title` - see the note on the infoTag state above. */}
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.headerHoverTagFlip}>
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ const WIDTHS = [1400, 1100, 900, 700];
 export default function PhaseRailPreview() {
   const [currentPhase, setCurrentPhase] = useState(1);
   const [phaseCount, setPhaseCount] = useState(PHASES.length);
+  const [compact, setCompact] = useState(false);
 
   const phases = PHASES.slice(0, phaseCount);
   const value = {
@@ -76,6 +77,15 @@ export default function PhaseRailPreview() {
               />
               <span>{phaseCount}</span>
             </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={compact}
+                onChange={(e) => setCompact(e.target.checked)}
+              />
+              {" "}Compact (tiny) rail
+            </label>
           </div>
         </header>
 
@@ -91,7 +101,7 @@ export default function PhaseRailPreview() {
                   <span>Performance Dashboard</span>
                 </h4>
                 <div className={dash.headerPhases}>
-                  <PhaseOverview />
+                  <PhaseOverview compact={compact} />
                 </div>
                 <button type="button" className="btn-close btn-close-white" aria-label="Close" />
               </div>
@@ -108,7 +118,7 @@ export default function PhaseRailPreview() {
                   <p className={brief.headerSubtitle}>Project Milestone Overview</p>
                 </div>
                 <div className={brief.headerPhases}>
-                  <PhaseOverview />
+                  <PhaseOverview compact={compact} />
                 </div>
                 <div className="d-flex align-items-center gap-2">
                   <span className={brief.phaseBadge}>Phase 1 of 5</span>

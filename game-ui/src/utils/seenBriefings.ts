@@ -42,3 +42,20 @@ export function markBriefingSeen(username: string, challengeKey: string): void {
     // Best-effort only - worst case, the briefing just shows again next time.
   }
 }
+
+/**
+ * Drops this username's whole seen-briefings mirror. `reset_player` deals the same
+ * deterministic first challenge to a reset account (`select_first_challenge` is seeded by
+ * username, not by run), so without this a reset account looks "already briefed" for a
+ * phase/challenge pair the browser marked seen before the reset - the dialog silently never
+ * reopens and a skip/proceed reads as no screen change at all. Call this wherever a reset is
+ * confirmed for the current user (`settings:account_reset`), mirroring `clearMirror` in
+ * `SettingsProvider.tsx`.
+ */
+export function clearSeenBriefings(username: string): void {
+  try {
+    window.localStorage.removeItem(storageKey(username));
+  } catch {
+    // Best-effort only - worst case, a stale entry lingers and the briefing stays suppressed.
+  }
+}

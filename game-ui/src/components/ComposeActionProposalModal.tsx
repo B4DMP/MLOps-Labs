@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, type CSSProperties } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useCallback, useRef, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./ComposeActionProposalModal.module.css";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import type { Stakeholder } from "./StakeholderProvider";
-import type { StakeholderDossierEntry } from "./StakeholderDossier";
+import type { StakeholderDossierEntry, IntelEntry } from "./StakeholderDossier";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
@@ -72,6 +73,46 @@ import {
 export type { AtomicChange, ItemPrediction } from "../types/ActionCard";
 export type { GraphOption, AttributeOption } from "../utils/graphOptions";
 
+/**
+ * Collapses multiple slots that ended up targeting the same graph element down to one. A saved
+ * proposal can carry a stale duplicate - e.g. an older `raise_to 1` for `req.acceptance_criteria`
+ * left in place alongside a newer `raise_to 4` for the same target - which otherwise burns one of
+ * only `MAX_ATOMIC_CHANGES` slots on a second, misleading row for a target that already has one.
+ *
+ * `raise_to` is monotonic (the composer only ever lets a player raise a target, never lower it),
+ * so for numeric values the higher one is the one the player actually meant - array position
+ * alone doesn't say which came later. Non-numeric changes (trigger/attr) fall back to keeping
+ * whichever occurs last, since there's no ordering to compare them by.
+ */
+/** A change touching both axes of the same target is two legitimate slots, not a duplicate - so
+ *  the dedup key carries the axis (and the attribute, for a set_attr on a multi-attribute target). */
+function dedupeKey(c: AtomicChange): string {
+  return `${c.target}::${c.axis ?? ""}::${c.attr ?? ""}`;
+}
+
+export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
+  const winnerByKey = new Map<string, AtomicChange>();
+  changes.forEach((c) => {
+    const key = dedupeKey(c);
+    const current = winnerByKey.get(key);
+    if (!current) {
+      winnerByKey.set(key, c);
+      return;
+    }
+    const isHigherValue = typeof c.value === "number" && typeof current.value === "number" && c.value > current.value;
+    if (isHigherValue || typeof c.value !== "number") {
+      winnerByKey.set(key, c);
+    }
+  });
+  const seen = new Set<string>();
+  return changes.filter((c) => {
+    const key = dedupeKey(c);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map((c) => winnerByKey.get(dedupeKey(c))!);
+}
+
 export interface ComponentData {
   id: string;
   name: string;
@@ -136,6 +177,9 @@ export interface ComposeActionProposalModalProps {
   currentPhase: number;
   currentChallenge: number;
   initialAtomicChanges?: AtomicChange[];
+  /** Opens the composer with this target already selected in the inspector - e.g. the player
+   *  clicked a specific change row on the pitch deck's card rather than the card generally. */
+  initialSelectedTargetId?: string;
   onConfirmProposal: (atomicChanges: AtomicChange[]) => void;
   allowedTargets?: string[];
   upstreamMap?: Record<string, string[]>;
@@ -160,9 +204,37 @@ export interface ComposeActionProposalModalProps {
   dossierData?: StakeholderDossierEntry[];
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
+  /** Opens the stakeholder's dossier page. Owner chips become links when this is given. */
+  onOpenStakeholder?: (stakeholderId: string) => void;
+  /** Jumps the (already open, embedded) dossier to a specific intel item and pops it into
+   *  view there. Intel references become links when this is given. */
+  onSelectIntel?: (intelId: string, stakeholderId?: string) => void;
+  /** The same intel-readiness figures the pitch deck's own "Intel" stat chip reads
+   *  (pitchState.intel_total / intel_verified) - shown here identically so the two screens
+   *  never disagree about how ready the player is to pitch. */
+  intelTotal?: number;
+  intelVerified?: number;
 }
 
 const MAX_ATOMIC_CHANGES = 3;
+
+/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
+interface LinkedNote {
+  item: IntelEntry;
+  stakeholderName: string;
+  stakeholderId?: string;
+}
+
+const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
+  public_record: { icon: "ph:megaphone-bold", label: "Said openly in the team channel" },
+  interview: { icon: "ph:chats-circle-bold", label: "They told you this directly" },
+  debate: { icon: "ph:microphone-stage-bold", label: "Came out during the pitch" },
+  offline_artifact: { icon: "ph:file-text-bold", label: "You read this in a document" },
+};
+
+function noteSourceMeta(item: IntelEntry) {
+  return NOTE_SOURCE_META[(item.source || "offline_artifact").toLowerCase()] ?? NOTE_SOURCE_META.offline_artifact;
+}
 
 /**
  * Canvas legend, shown on hover rather than permanently occupying a toolbar row. It reads the
@@ -482,26 +554,154 @@ export default function ComposeActionProposalModal({
   currentPhase,
   currentChallenge: _currentChallenge,
   initialAtomicChanges = [],
+  initialSelectedTargetId,
   onConfirmProposal,
   allowedTargets = [],
   upstreamMap = {},
   predictions = [],
   boundaryWarnings: _boundaryWarnings = [],
+  // Superseded by dossierData's own intel_total for the header's found/total count, which
+  // reflects everything the player has actually found rather than just this challenge's set.
   intelItems: _intelItems = [],
   graphState: propGraphState = null,
   dossierData = [],
   stakeholders = {},
+  onOpenStakeholder,
+  onSelectIntel,
+  intelTotal = 0,
+  intelVerified = 0,
 }: ComposeActionProposalModalProps) {
   const { emit, subscribe } = useGameWebSocket();
   const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
-  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(() => dropUnscopedChanges(initialAtomicChanges));
+  // A saved proposal can carry a stale duplicate slot for the same (target, axis) (see
+  // dedupeAtomicChanges), or a change against a target outside the current scope - both cleaned
+  // up once here so neither burns a slot nor double-counts.
+  const initialAtomicChangesResolved = useMemo(
+    () => dropUnscopedChanges(dedupeAtomicChanges(initialAtomicChanges)),
+    [initialAtomicChanges]
+  );
+  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(initialAtomicChangesResolved);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [activeStageId, setActiveStageId] = useState<string>("req");
+
+  // Whether to leave the composer, or discard its slots, needs confirming first: null means
+  // no confirmation is pending, otherwise which action is waiting on one.
+  const [confirmingLeave, setConfirmingLeave] = useState<"close" | "discard" | null>(null);
+
+  // Slotted changes only ever reach the parent (and the stakeholders) via Confirm - closing
+  // the composer any other way, or discarding, throws away anything since the last confirm.
+  const isDirty = useMemo(
+    () => JSON.stringify(atomicChanges) !== JSON.stringify(initialAtomicChangesResolved),
+    [atomicChanges, initialAtomicChangesResolved]
+  );
+
+  const requestClose = useCallback(() => {
+    if (isDirty) setConfirmingLeave("close");
+    else onClose();
+  }, [isDirty, onClose]);
+
+  const requestDiscard = useCallback(() => {
+    if (isDirty) setConfirmingLeave("discard");
+    else setAtomicChanges([]);
+  }, [isDirty]);
+
+  const confirmLeave = () => {
+    if (confirmingLeave === "close") onClose();
+    else if (confirmingLeave === "discard") setAtomicChanges([]);
+    setConfirmingLeave(null);
+  };
+  const cancelLeave = () => setConfirmingLeave(null);
+
+  // Native "leave site?" prompt for a page refresh or tab close - the in-app confirmation
+  // above only covers ways of leaving that this component can intercept.
+  useEffect(() => {
+    if (!isOpen || !isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isOpen, isDirty]);
+
+  // Hover/focus info tag (ported from StakeholderDossier.tsx / pitch_debate.tsx's own
+  // showInfoTag) - a flip-in tag anchored to whatever's hovered/focused, replacing plain
+  // `title` tooltips throughout the composer's chrome and canvas. Flips above its anchor
+  // when there isn't room below (the footer buttons sit right at the window's bottom edge),
+  // the same pass StakeholderDossier's EmotionRevealBadge and HoverToolTip.tsx already do.
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    anchorTop: number;
+    anchorBottom: number;
+    anchorX: number;
+    top: number;
+    left: number;
+    placement: "above" | "below";
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as Element).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({
+      label,
+      detail,
+      anchorTop: rect.top,
+      anchorBottom: rect.bottom,
+      anchorX,
+      top: rect.bottom + 6,
+      left: anchorX,
+      placement: "below",
+    });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  /** Spread onto any element to give it the hover/focus tag in one line, same shape as the
+   *  dossier's own stampTagProps. */
+  const tagProps = (label: string, detail?: string) => ({
+    onMouseEnter: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
+    onMouseLeave: hideInfoTag,
+    onFocus: (e: React.SyntheticEvent) => showInfoTag(e, label, detail),
+    onBlur: hideInfoTag,
+  });
+
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(Math.max(infoTag.anchorX, 6 + half), window.innerWidth - 6 - half);
+
+    let top = infoTag.anchorBottom + 6;
+    let placement: "above" | "below" = "below";
+    if (top + box.height > window.innerHeight - 6) {
+      const above = infoTag.anchorTop - 6 - box.height;
+      if (above >= 6) {
+        top = above;
+        placement = "above";
+      } else {
+        top = Math.max(6, window.innerHeight - 6 - box.height);
+      }
+    }
+
+    setInfoTag((prev) =>
+      prev && prev.left === left && prev.top === top && prev.placement === placement
+        ? prev
+        : prev && { ...prev, left, top, placement }
+    );
+  }, [infoTag?.anchorX, infoTag?.anchorTop, infoTag?.anchorBottom, infoTag?.label, infoTag?.detail]);
+
+  useEffect(() => {
+    if (!infoTag) return;
+    const handleScroll = () => hideInfoTag();
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [infoTag]);
 
   useEffect(() => {
     if (propGraphState) {
@@ -511,33 +711,52 @@ export default function ComposeActionProposalModal({
 
   const graphState = localGraphState || propGraphState;
 
-  // Reset state on open
+  // Reset state on open - or, if the player clicked a specific change row rather than the
+  // pitch deck's card generally, jump straight to that target's inspector instead of clearing
+  // the selection. allEdgesMap/allComponentsMap are read here rather than listed as effect
+  // deps: they're derived from graph state that ticks fairly often while the modal is open, and
+  // re-running this on every tick would yank the player's own in-modal selection back to the
+  // opening target.
   useEffect(() => {
     if (isOpen) {
-      setAtomicChanges(dropUnscopedChanges(initialAtomicChanges));
-      setSelectedCompId(null);
-      setSelectedEdgeId(null);
+      setAtomicChanges(initialAtomicChangesResolved);
+      if (initialSelectedTargetId && allEdgesMap.has(initialSelectedTargetId)) {
+        setSelectedEdgeId(initialSelectedTargetId);
+        setSelectedCompId(null);
+      } else if (initialSelectedTargetId && allComponentsMap.has(initialSelectedTargetId)) {
+        setSelectedCompId(initialSelectedTargetId);
+        setSelectedEdgeId(null);
+      } else {
+        setSelectedCompId(null);
+        setSelectedEdgeId(null);
+      }
       setHoveredCompId(null);
       setHoveredEdgeId(null);
+      setInfoTag(null);
+      setConfirmingLeave(null);
     }
-  }, [isOpen, initialAtomicChanges]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialAtomicChangesResolved, initialSelectedTargetId]);
 
-  // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first the
-  // thing you have selected, then the composer itself.
+  // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first a
+  // pending leave-confirmation, then the thing you have selected, then the composer itself
+  // (routed through the same dirty check as the close button, not straight to onClose).
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (selectedCompId || selectedEdgeId) {
+      if (confirmingLeave) {
+        cancelLeave();
+      } else if (selectedCompId || selectedEdgeId) {
         setSelectedCompId(null);
         setSelectedEdgeId(null);
       } else {
-        onClose();
+        requestClose();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, selectedCompId, selectedEdgeId, onClose]);
+  }, [isOpen, selectedCompId, selectedEdgeId, confirmingLeave, requestClose]);
 
   // Request graph state on open and listen to live updates
   useEffect(() => {
@@ -691,14 +910,15 @@ export default function ComposeActionProposalModal({
    * former and not the latter, the composer should say so rather than refusing flatly.
    */
   const notesByTarget = useMemo(() => {
-    const byTarget: Record<string, Array<{ text: string; who: string }>> = {};
+    const byTarget: Record<string, LinkedNote[]> = {};
     dossierData.forEach((entry) => {
       (entry.intel_items ?? []).forEach((item) => {
         const target = item.target || item.debug?.target;
         if (!target) return;
         (byTarget[target] ||= []).push({
-          text: item.fact || item.description,
-          who: entry.is_environment ? "the environment" : entry.name,
+          item,
+          stakeholderName: entry.is_environment ? "the environment" : entry.name,
+          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
         });
       });
     });
@@ -706,6 +926,30 @@ export default function ComposeActionProposalModal({
   }, [dossierData]);
 
   const slotsFull = atomicChanges.length >= MAX_ATOMIC_CHANGES;
+
+  // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
+  // intel items exist for this target in total. `target_total` is the same on every note
+  // sharing a target, so the first one carries it.
+  const intelCountLabel = useCallback((notes: LinkedNote[]) => {
+    const total = notes[0]?.item.target_total;
+    return total && total > notes.length
+      ? `${notes.length} of ${total} found`
+      : `${notes.length} found`;
+  }, []);
+
+  // Selecting a component elsewhere in the canvas - via a "held back by" or "capped by"
+  // reference - should jump the view there too, switching stage tabs if it lives in another.
+  const jumpToComponent = useCallback(
+    (targetId: string) => {
+      const comp = allComponentsMap.get(targetId);
+      if (comp?.stage_id && comp.stage_id !== activeStageId) {
+        setActiveStageId(comp.stage_id);
+      }
+      setSelectedCompId(targetId);
+      setSelectedEdgeId(null);
+    },
+    [allComponentsMap, activeStageId]
+  );
 
   // Selected Edge state
   const selectedEdgeData = selectedEdgeId ? allEdgesMap.get(selectedEdgeId) : null;
@@ -765,10 +1009,33 @@ export default function ComposeActionProposalModal({
         </div>
 
         <div className="d-flex align-items-center gap-2">
+          {intelTotal > 0 && (
+            <div
+              className={styles.intelIndicator}
+              tabIndex={0}
+              {...tagProps(
+                "Intel Readiness",
+                "How much of the intel relevant to this challenge you've verified so far"
+              )}
+            >
+              <Icon icon="ph:notebook-bold" />
+              <span>
+                {intelVerified} / {intelTotal} Intel Verified
+              </span>
+            </div>
+          )}
+
           <div
             className={`${styles.slotsIndicator} ${
               atomicChanges.length === MAX_ATOMIC_CHANGES ? styles.slotsFull : ""
             }`}
+            tabIndex={0}
+            {...tagProps(
+              "Proposal Slots",
+              atomicChanges.length === MAX_ATOMIC_CHANGES
+                ? "All 3 slots are used - remove one to add another"
+                : "Up to 3 changes can go into one proposal"
+            )}
           >
             <Icon icon="ph:cpu-bold" />
             <span>
@@ -779,9 +1046,9 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={styles.closeBtn}
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Back to boardroom"
-            title="Back to boardroom"
+            {...tagProps("Back to Boardroom", "Leave the composer without proposing anything (Esc)")}
           >
             <Icon icon="ph:arrow-u-up-left-bold" />
             <span>Back to Boardroom</span>
@@ -808,11 +1075,10 @@ export default function ComposeActionProposalModal({
               className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""} ${
                 isOtherPhase ? styles.stageTabViewOnly : ""
               }`}
-              title={
-                isOtherPhase
-                  ? `${stage.name} - phase ${stage.phase_id}, view only in this challenge`
-                  : `${stage.name} - the phase you are in`
-              }
+              {...tagProps(
+                stage.name,
+                isOtherPhase ? `Phase ${stage.phase_id} - view only in this challenge` : "The phase you are in"
+              )}
             >
               <Icon
                 className={styles.stageTabIcon}
@@ -992,6 +1258,10 @@ export default function ComposeActionProposalModal({
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
                     const showHandle = !isSlotted && !isOtherPhase && e.knowledge !== "unknown";
+                    const edgeTagDetail =
+                      e.knowledge === "unknown"
+                        ? "Undiscovered - its maturity and trigger are unconfirmed"
+                        : `${edgeSummary}\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
 
                     return (
                       <g key={e.id}>
@@ -1044,7 +1314,6 @@ export default function ComposeActionProposalModal({
                             x={mx}
                             y={my}
                             glyph={hasTrigger ? TRIGGER_ICONS[e.trigger!] ?? "?" : undefined}
-                            title={`${from.name} to ${to.name}\n${edgeSummary}\nClick to edit this connection`}
                             color={color}
                             active={isSelected || isSlotted}
                             onClick={() => {
@@ -1069,13 +1338,15 @@ export default function ComposeActionProposalModal({
                             setSelectedEdgeId(isSelected ? null : e.id);
                             setSelectedCompId(null);
                           }}
-                          onMouseEnter={() => setHoveredEdgeId(e.id)}
-                          onMouseLeave={() => setHoveredEdgeId(null)}
-                        >
-                          <title>
-                            {`Edge: ${from.name} ➔ ${to.name} (${e.id})\n${edgeSummary}`}
-                          </title>
-                        </line>
+                          onMouseEnter={(e2) => {
+                            setHoveredEdgeId(e.id);
+                            showInfoTag(e2, `${from.name} → ${to.name}`, edgeTagDetail);
+                          }}
+                          onMouseLeave={() => {
+                            setHoveredEdgeId(null);
+                            hideInfoTag();
+                          }}
+                        />
                       </g>
                     );
                   })}
@@ -1129,6 +1400,41 @@ export default function ComposeActionProposalModal({
                     // what is built as translucent notches.
                     const previewAutomation = projectedOn(c, "automation", atomicChanges);
                     const previewGovernance = projectedOn(c, "governance", atomicChanges);
+                    const automationChange = atomicChanges.find((change) => change.target === c.id && change.axis === "automation");
+                    const governanceChange = atomicChanges.find((change) => change.target === c.id && change.axis === "governance");
+                    const nodeTagStatus = isUnknown
+                      ? "Not discovered yet"
+                      : isOtherPhase
+                      ? "View only - belongs to another phase"
+                      : isBroken
+                      ? "Current status: Broken"
+                      : upstreamCheck.uncertain
+                      ? `Current status: Uncertain - held up by ${upstreamCheck.unknownNodes
+                          .map((id) => allComponentsMap.get(id)?.name ?? id)
+                          .join(", ")}, still undiscovered`
+                      : isStarved
+                      ? "Current status: Starved - something upstream is broken, so nothing reaches it"
+                      : c.capped_by
+                      ? `Current status: Held back by ${allComponentsMap.get(c.capped_by)?.name ?? c.capped_by}`
+                      : `Current status: ${formatAxisLevel("automation", c.effective_automation ?? c.nominal_automation ?? 1)} · ${formatAxisLevel(
+                          "governance",
+                          c.nominal_governance ?? 0
+                        )}`;
+                    const nodeTagProposed = [
+                      typeof automationChange?.value === "number"
+                        ? `\nProposed automation: ${formatAxisLevel("automation", c.nominal_automation ?? 1)} → ${formatAxisLevel(
+                            "automation",
+                            automationChange.value
+                          )}`
+                        : "",
+                      typeof governanceChange?.value === "number"
+                        ? `\nProposed governance: ${formatAxisLevel("governance", c.nominal_governance ?? 0)} → ${formatAxisLevel(
+                            "governance",
+                            governanceChange.value
+                          )}`
+                        : "",
+                    ].join("");
+                    const nodeTagDetail = `${nodeTagStatus}${nodeTagProposed}\nClick to inspect`;
 
                     return (
                       <g
@@ -1139,8 +1445,14 @@ export default function ComposeActionProposalModal({
                           setSelectedCompId(isSelected ? null : c.id);
                           setSelectedEdgeId(null);
                         }}
-                        onMouseEnter={() => setHoveredCompId(c.id)}
-                        onMouseLeave={() => setHoveredCompId(null)}
+                        onMouseEnter={(e) => {
+                          setHoveredCompId(c.id);
+                          showInfoTag(e, c.name || c.id, nodeTagDetail);
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredCompId(null);
+                          hideInfoTag();
+                        }}
                       >
                         <g className={isBroken ? "node-broken" : undefined}>
                         {/* Card face */}
@@ -1269,7 +1581,6 @@ export default function ComposeActionProposalModal({
         {/* Right: Inspector & Slots Panel */}
         <div className={styles.sidebarArea}>
           <div className={styles.sidebarContent}>
-            {/* ── Selected EDGE Inspector ── */}
             {selectedEdgeData ? (
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
@@ -1277,10 +1588,25 @@ export default function ComposeActionProposalModal({
                     <Icon icon="ph:flow-arrow-bold" className={styles.inspectorIcon} />
                     <div className={styles.inspectorHeadingText}>
                       <span className={styles.inspectorTitle}>
-                        {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id} →{" "}
-                        {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
+                        <button
+                          type="button"
+                          className={styles.inlineJumpLink}
+                          onClick={() => jumpToComponent(selectedEdgeData.from_id)}
+                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id)}
+                        >
+                          {allComponentsMap.get(selectedEdgeData.from_id)?.name || selectedEdgeData.from_id}
+                        </button>{" "}
+                        →{" "}
+                        <button
+                          type="button"
+                          className={styles.inlineJumpLink}
+                          onClick={() => jumpToComponent(selectedEdgeData.to_id)}
+                          {...tagProps("Jump to it", allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id)}
+                        >
+                          {allComponentsMap.get(selectedEdgeData.to_id)?.name || selectedEdgeData.to_id}
+                        </button>
                       </span>
-                      <span className={styles.inspectorSubtitle} title={selectedEdgeData.id}>
+                      <span className={styles.inspectorSubtitle}>
                         workflow · {selectedEdgeData.kind} ·{" "}
                         {selectedEdgeData.slack === 1 ? "soft dependency" : "hard dependency"}
                       </span>
@@ -1290,7 +1616,7 @@ export default function ComposeActionProposalModal({
                     type="button"
                     className={styles.inspectorClose}
                     onClick={() => setSelectedEdgeId(null)}
-                    title="Close inspector"
+                    {...tagProps("Close inspector")}
                   >
                     <Icon icon="ph:x-bold" />
                   </button>
@@ -1334,6 +1660,38 @@ export default function ComposeActionProposalModal({
                         </span>
                       </div>
 
+                      {/* Intel notes filed against this connection - shown before the picker
+                          so the evidence informs the decision. */}
+                      {(notesByTarget[selectedEdgeData.id]?.length ?? 0) > 0 && (
+                        <div className={styles.notesSection}>
+                          <span className={styles.notesSectionLabel}>
+                            <Icon icon="ph:notebook-bold" /> Intel on this connection ({intelCountLabel(notesByTarget[selectedEdgeData.id])})
+                          </span>
+                          <div className={styles.noteLinkList}>
+                            {notesByTarget[selectedEdgeData.id].map((note) => {
+                              const meta = noteSourceMeta(note.item);
+                              return (
+                                <button
+                                  key={note.item.id}
+                                  type="button"
+                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                  disabled={!onSelectIntel}
+                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
+                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
+                                >
+                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
+                                  <span className={styles.noteLinkText}>
+                                    {note.item.fact || note.item.description}
+                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
+                                  </span>
+                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* One ladder per axis. The automation options already carry the
                           trigger they switch the hand-off to, so there is no trigger picker. */}
                       <div className={styles.formStack}>
@@ -1359,32 +1717,53 @@ export default function ComposeActionProposalModal({
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
                   <div className={styles.inspectorHeading}>
-                    <Icon icon="ph:cube-bold" className={styles.inspectorIcon} />
+                    <Icon icon={selectedCompData.icon || "ph:cube-bold"} className={styles.inspectorIcon} />
                     <div className={styles.inspectorHeadingText}>
-                      <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
-                      <span className={styles.inspectorSubtitle} title={selectedCompData.id}>
-                        {graphState?.stages?.find((st) => st.id === (selectedCompData.stage_id || activeStageId))
-                          ?.name ?? "component"}
-                      </span>
-                      {selectedCompData.owner_id && (
-                        <span className={styles.inspectorOwner}>
-                          <StakeholderAvatarComponent
-                            stakeholderId={selectedCompData.owner_id}
-                            avatar={stakeholders[selectedCompData.owner_id]?.avatar}
-                            stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                            size={16}
-                            hoverToSuspicious={false}
-                          />
-                          <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
-                        </span>
-                      )}
+                      <div className={styles.inspectorTitleRow}>
+                        <span className={styles.inspectorTitle}>{highlight(selectedCompData.name)}</span>
+                        {selectedCompData.owner_id && (
+                          onOpenStakeholder ? (
+                            <button
+                              type="button"
+                              className={styles.ownerLink}
+                              onClick={() => onOpenStakeholder(selectedCompData.owner_id!)}
+                              {...tagProps(
+                                "Owner",
+                                `Open ${stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id}'s dossier page`
+                              )}
+                            >
+                              <StakeholderAvatarComponent
+                                stakeholderId={selectedCompData.owner_id}
+                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
+                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                size={16}
+                                hoverToSuspicious={false}
+                                className={styles.ownerLinkAvatar}
+                              />
+                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
+                              <Icon icon="ph:arrow-square-out-bold" className={styles.ownerLinkGo} />
+                            </button>
+                          ) : (
+                            <span className={styles.inspectorOwner}>
+                              <StakeholderAvatarComponent
+                                stakeholderId={selectedCompData.owner_id}
+                                avatar={stakeholders[selectedCompData.owner_id]?.avatar}
+                                stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
+                                size={16}
+                                hoverToSuspicious={false}
+                              />
+                              <span>{stakeholders[selectedCompData.owner_id]?.name ?? selectedCompData.owner_id.replace(/_/g, " ")}</span>
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button
                     type="button"
                     className={styles.inspectorClose}
                     onClick={() => setSelectedCompId(null)}
-                    title="Close inspector"
+                    {...tagProps("Close inspector")}
                   >
                     <Icon icon="ph:x-bold" />
                   </button>
@@ -1404,17 +1783,33 @@ export default function ComposeActionProposalModal({
                         {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
                           <div className={styles.fogPointers}>
                             <span className={styles.fogPointersLabel}>Your notes point here:</span>
-                            {notesByTarget[selectedCompData.id].map((note, i) => (
-                              <span key={i} className={styles.fogPointer}>
-                                <Icon icon="ph:quotes-bold" />
-                                <span>
-                                  {note.text} <em>- {note.who}</em>
+                            {notesByTarget[selectedCompData.id].map((note, i) =>
+                              onSelectIntel ? (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  className={styles.fogPointerLink}
+                                  onClick={() => onSelectIntel(note.item.id, note.stakeholderId)}
+                                  {...tagProps(noteSourceMeta(note.item).label, "Click to jump to it in your dossier")}
+                                >
+                                  <Icon icon="ph:quotes-bold" />
+                                  <span>
+                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
+                                  </span>
+                                  <Icon icon="ph:arrow-bend-up-left-bold" className={styles.fogPointerGo} />
+                                </button>
+                              ) : (
+                                <span key={i} className={styles.fogPointer}>
+                                  <Icon icon="ph:quotes-bold" />
+                                  <span>
+                                    {note.item.fact || note.item.description} <em>- {note.stakeholderName}</em>
+                                  </span>
                                 </span>
-                              </span>
-                            ))}
+                              )
+                            )}
                             <span className={styles.fogHint}>
-                              An opinion about this component is not an observation of it. File the
-                              Fact that describes how it runs, or investigate the component itself.
+                              An opinion about this component is not an observation of it. Only
+                              investigating it directly, with an engagement card, confirms how it runs.
                             </span>
                           </div>
                         )}
@@ -1451,7 +1846,20 @@ export default function ComposeActionProposalModal({
                           <div>
                             <strong>Status uncertain:</strong>{" "}
                             {highlight("an upstream pipeline dependency is still undiscovered")} (
-                            <em>{selectedUpstreamStatus.unknownNodes.join(", ")}</em>).
+                            {selectedUpstreamStatus.unknownNodes.map((nodeId, i) => (
+                              <em key={nodeId}>
+                                {i > 0 && ", "}
+                                <button
+                                  type="button"
+                                  className={styles.inlineJumpLink}
+                                  onClick={() => jumpToComponent(nodeId)}
+                                  {...tagProps("Jump to it", "Still undiscovered - its status is why this one is uncertain")}
+                                >
+                                  {allComponentsMap.get(nodeId)?.name ?? nodeId}
+                                </button>
+                              </em>
+                            ))}
+                            ).
                           </div>
                         </div>
                       ) : selectedCompData.capped_by &&
@@ -1463,7 +1871,15 @@ export default function ComposeActionProposalModal({
                           <div>
                             <strong>Held back:</strong> {highlight("this component is capped at")}{" "}
                             <strong>{formatAxisLevel("automation", selectedCompData.effective_automation)}</strong> by{" "}
-                            <strong>{highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}</strong>.{" "}
+                            <button
+                              type="button"
+                              className={styles.inlineJumpLink}
+                              onClick={() => jumpToComponent(selectedCompData.capped_by!)}
+                              {...tagProps("Jump to it", "The bottleneck holding this component back")}
+                            >
+                              {highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}
+                            </button>
+                            .{" "}
                             {highlight(
                               "Automating it further changes nothing until that bottleneck is dealt with. Governance steps are not affected."
                             )}
@@ -1482,6 +1898,38 @@ export default function ComposeActionProposalModal({
                               )}
                             </strong>
                             .
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Intel notes filed against this component - what backs the banner above,
+                          shown before the picker so the evidence informs the decision. */}
+                      {(notesByTarget[selectedCompData.id]?.length ?? 0) > 0 && (
+                        <div className={styles.notesSection}>
+                          <span className={styles.notesSectionLabel}>
+                            <Icon icon="ph:notebook-bold" /> Intel on this component ({intelCountLabel(notesByTarget[selectedCompData.id])})
+                          </span>
+                          <div className={styles.noteLinkList}>
+                            {notesByTarget[selectedCompData.id].map((note) => {
+                              const meta = noteSourceMeta(note.item);
+                              return (
+                                <button
+                                  key={note.item.id}
+                                  type="button"
+                                  className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                  disabled={!onSelectIntel}
+                                  onClick={() => onSelectIntel?.(note.item.id, note.stakeholderId)}
+                                  {...tagProps(meta.label, onSelectIntel ? "Click to jump to it in your dossier" : undefined)}
+                                >
+                                  <Icon icon={meta.icon} className={styles.noteLinkIcon} />
+                                  <span className={styles.noteLinkText}>
+                                    {note.item.fact || note.item.description}
+                                    <em className={styles.noteLinkWho}> - {note.stakeholderName}</em>
+                                  </span>
+                                  {onSelectIntel && <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -1563,6 +2011,7 @@ export default function ComposeActionProposalModal({
                           setSelectedEdgeId(null);
                         }
                       }}
+                      {...tagProps(displayName, "Click to open it in the inspector")}
                     >
                       <div className={styles.slotHeader}>
                         <div className="d-flex align-items-center gap-2">
@@ -1576,7 +2025,7 @@ export default function ComposeActionProposalModal({
                             ev.stopPropagation();
                             handleRemoveSlot(idx);
                           }}
-                          title="Remove change"
+                          {...tagProps("Remove change", "Frees this slot for a different change")}
                         >
                           <Icon icon="ph:x-bold" />
                           <span>Remove</span>
@@ -1625,8 +2074,8 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={styles.secondaryBtn}
-            onClick={onClose}
-            title="Leave the composer without proposing anything (Esc)"
+            onClick={requestClose}
+            {...tagProps("Back to Boardroom", "Leave the composer without proposing anything (Esc)")}
           >
             <Icon icon="ph:arrow-u-up-left-bold" />
             <span>Back to Boardroom</span>
@@ -1635,9 +2084,9 @@ export default function ComposeActionProposalModal({
           <button
             type="button"
             className={styles.secondaryBtn}
-            onClick={() => setAtomicChanges([])}
+            onClick={requestDiscard}
             disabled={atomicChanges.length === 0}
-            title="Empty every slot and start the proposal again"
+            {...tagProps("Discard changes", "Empty every slot and start the proposal again")}
           >
             Discard changes
           </button>
@@ -1647,12 +2096,65 @@ export default function ComposeActionProposalModal({
             className={`${styles.actionButton} ${styles.footerConfirm}`}
             disabled={atomicChanges.length === 0}
             onClick={handleConfirm}
+            {...tagProps(
+              "Confirm Proposal",
+              "Sends this straight to the stakeholders for their reaction - a weak proposal can upset them. You can still revise it before the final decision."
+            )}
           >
             <Icon icon="ph:check-bold" />
             <span>Confirm proposal ({atomicChanges.length})</span>
           </button>
         </div>
       </div>
+
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div
+              className={`${styles.headerHoverTagFlip} ${
+                infoTag.placement === "above" ? styles.headerHoverTagAbove : ""
+              }`}
+            >
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {confirmingLeave && (
+        <div
+          className={styles.leaveConfirmOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) cancelLeave();
+          }}
+        >
+          <div className={styles.leaveConfirmCard} role="alertdialog" aria-modal="true">
+            <div className={styles.leaveConfirmTitle}>
+              <Icon icon="ph:warning-bold" style={{ fontSize: "1.3rem" }} />
+              <span>{confirmingLeave === "close" ? "Leave without proposing?" : "Discard these changes?"}</span>
+            </div>
+            <p className={styles.leaveConfirmBody}>
+              {confirmingLeave === "close"
+                ? "Your slot changes have not been sent to the stakeholders. Leaving now loses them."
+                : "This empties every slot you've configured. It can't be undone."}
+            </p>
+            <div className={styles.leaveConfirmActions}>
+              <button type="button" className={styles.secondaryBtn} onClick={cancelLeave} autoFocus>
+                Keep editing
+              </button>
+              <button type="button" className={`${styles.actionButton} ${styles.dangerButton}`} onClick={confirmLeave}>
+                {confirmingLeave === "close" ? "Leave anyway" : "Discard"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

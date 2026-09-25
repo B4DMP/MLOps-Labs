@@ -9,6 +9,7 @@ import styles from "./PitchActionCardModal.module.css";
 import type { Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import { intelTagMeta, type IntelTag } from "../types/IntelTag";
+import HoverTooltip from "./HoverToolTip";
 
 export interface TradeOffBranch {
   name?: string;
@@ -183,20 +184,6 @@ export default function PitchActionCardModal({
         icon: "ph:seal-check-fill",
       };
     }
-    if (conf === "inferred") {
-      return {
-        label: "Inferred",
-        className: styles.confirmationPillVerified,
-        icon: "ph:seal-check-fill",
-      };
-    }
-    if (conf === "refuted") {
-      return {
-        label: "Refuted",
-        className: styles.confirmationPillUnconfirmed,
-        icon: "ph:x-circle-bold",
-      };
-    }
     return {
       label: "Unconfirmed",
       className: styles.confirmationPillUnconfirmed,
@@ -227,35 +214,37 @@ export default function PitchActionCardModal({
       return (
         <span className={styles.inlineTradeOffSentence}>
           <span>{speaker} would compromise </span>
-          <button
-            type="button"
-            className={`${styles.inlineBranchChip} ${styles.inlineBranchChipA} ${
-              isSelected && currentBranch !== "Y" ? styles.inlineBranchActiveA : ""
-            }`}
-            onClick={(e) => onSelectBranch("X", e)}
-            title={isSelected && currentBranch !== "Y" ? "Active commitment" : "Select this commitment"}
-          >
-            <Icon
-              icon={isSelected && currentBranch !== "Y" ? "ph:radio-button-fill" : "ph:circle"}
-              className={styles.inlineRadioIcon}
-            />
-            <span>{item.branch_x.description}</span>
-          </button>
+          <HoverTooltip description={isSelected && currentBranch !== "Y" ? "Active commitment" : "Select this commitment"}>
+            <button
+              type="button"
+              className={`${styles.inlineBranchChip} ${styles.inlineBranchChipA} ${
+                isSelected && currentBranch !== "Y" ? styles.inlineBranchActiveA : ""
+              }`}
+              onClick={(e) => onSelectBranch("X", e)}
+            >
+              <Icon
+                icon={isSelected && currentBranch !== "Y" ? "ph:radio-button-fill" : "ph:circle"}
+                className={styles.inlineRadioIcon}
+              />
+              <span>{item.branch_x.description}</span>
+            </button>
+          </HoverTooltip>
           <span> for </span>
-          <button
-            type="button"
-            className={`${styles.inlineBranchChip} ${styles.inlineBranchChipB} ${
-              isSelected && currentBranch === "Y" ? styles.inlineBranchActiveB : ""
-            }`}
-            onClick={(e) => onSelectBranch("Y", e)}
-            title={isSelected && currentBranch === "Y" ? "Active commitment" : "Select this commitment"}
-          >
-            <Icon
-              icon={isSelected && currentBranch === "Y" ? "ph:radio-button-fill" : "ph:circle"}
-              className={styles.inlineRadioIcon}
-            />
-            <span>{item.branch_y.description}</span>
-          </button>
+          <HoverTooltip description={isSelected && currentBranch === "Y" ? "Active commitment" : "Select this commitment"}>
+            <button
+              type="button"
+              className={`${styles.inlineBranchChip} ${styles.inlineBranchChipB} ${
+                isSelected && currentBranch === "Y" ? styles.inlineBranchActiveB : ""
+              }`}
+              onClick={(e) => onSelectBranch("Y", e)}
+            >
+              <Icon
+                icon={isSelected && currentBranch === "Y" ? "ph:radio-button-fill" : "ph:circle"}
+                className={styles.inlineRadioIcon}
+              />
+              <span>{item.branch_y.description}</span>
+            </button>
+          </HoverTooltip>
           <span>.</span>
         </span>
       );
@@ -273,35 +262,37 @@ export default function PitchActionCardModal({
     return (
       <span className={styles.inlineTradeOffSentence}>
         {prefix}
-        <button
-          type="button"
-          className={`${styles.inlineBranchChip} ${styles.inlineBranchChipA} ${
-            isSelected && currentBranch !== "Y" ? styles.inlineBranchActiveA : ""
-          }`}
-          onClick={(e) => onSelectBranch("X", e)}
-          title={isSelected && currentBranch !== "Y" ? "Active commitment" : "Select this commitment"}
-        >
-          <Icon
-            icon={isSelected && currentBranch !== "Y" ? "ph:radio-button-fill" : "ph:circle"}
-            className={styles.inlineRadioIcon}
-          />
-          <span>{partA}</span>
-        </button>
+        <HoverTooltip description={isSelected && currentBranch !== "Y" ? "Active commitment" : "Select this commitment"}>
+          <button
+            type="button"
+            className={`${styles.inlineBranchChip} ${styles.inlineBranchChipA} ${
+              isSelected && currentBranch !== "Y" ? styles.inlineBranchActiveA : ""
+            }`}
+            onClick={(e) => onSelectBranch("X", e)}
+          >
+            <Icon
+              icon={isSelected && currentBranch !== "Y" ? "ph:radio-button-fill" : "ph:circle"}
+              className={styles.inlineRadioIcon}
+            />
+            <span>{partA}</span>
+          </button>
+        </HoverTooltip>
         {connector}
-        <button
-          type="button"
-          className={`${styles.inlineBranchChip} ${styles.inlineBranchChipB} ${
-            isSelected && currentBranch === "Y" ? styles.inlineBranchActiveB : ""
-          }`}
-          onClick={(e) => onSelectBranch("Y", e)}
-          title={isSelected && currentBranch === "Y" ? "Active commitment" : "Select this commitment"}
-        >
-          <Icon
-            icon={isSelected && currentBranch === "Y" ? "ph:radio-button-fill" : "ph:circle"}
-            className={styles.inlineRadioIcon}
-          />
-          <span>{partB}</span>
-        </button>
+        <HoverTooltip description={isSelected && currentBranch === "Y" ? "Active commitment" : "Select this commitment"}>
+          <button
+            type="button"
+            className={`${styles.inlineBranchChip} ${styles.inlineBranchChipB} ${
+              isSelected && currentBranch === "Y" ? styles.inlineBranchActiveB : ""
+            }`}
+            onClick={(e) => onSelectBranch("Y", e)}
+          >
+            <Icon
+              icon={isSelected && currentBranch === "Y" ? "ph:radio-button-fill" : "ph:circle"}
+              className={styles.inlineRadioIcon}
+            />
+            <span>{partB}</span>
+          </button>
+        </HoverTooltip>
         {suffix}
       </span>
     );

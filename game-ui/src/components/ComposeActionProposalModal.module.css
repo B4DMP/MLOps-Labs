@@ -42,6 +42,8 @@
   overflow: hidden;
   min-height: 0;
   font-size: var(--fs-md);
+  /* Anchors the leave-confirmation overlay, so it covers this modal rather than the page. */
+  position: relative;
 }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
@@ -488,6 +490,15 @@
   min-width: 0;
 }
 
+/* Title and owner chip share one row - the owner keeps its full width, the title ellipsizes
+   into whatever is left, rather than the two stacking into a taller header. */
+.inspectorTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .inspectorTitle {
   font-size: var(--fs-md);
   font-weight: 700;
@@ -496,10 +507,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex-shrink: 1;
 }
 
-/* Where the raw target id used to be a labelled row: the player reads a stage and an owner,
-   and the id stays available as the element's title for anyone who needs it. */
+/* The edge inspector's kind/dependency line. The component inspector dropped its own use of
+   this (a stage name) as redundant with the stage tabs already on screen above the canvas. */
 .inspectorSubtitle {
   font-size: var(--fs-xs);
   color: var(--ink-mute);
@@ -513,7 +526,7 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  margin-top: 0.2rem;
+  flex-shrink: 0;
   font-size: var(--fs-xs);
   color: var(--ink-soft);
   overflow: hidden;
@@ -1239,4 +1252,338 @@
   font-size: var(--fs-xs);
   color: var(--ink-mute);
   font-style: italic;
+}
+
+/* A fog pointer that has a document behind it: same look as a plain one, but pressable. */
+.fogPointerLink {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: var(--fs-xs);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+
+.fogPointerLink:hover {
+  background: rgba(38, 102, 130, 0.08);
+}
+
+.fogPointerGo {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--primary-bg);
+  opacity: 0.75;
+}
+
+/* ── Stakeholder / intel links ────────────────────────────────────────── */
+
+/* Who owns this component, as a link into their dossier page - same treatment across the
+   Performance Dashboard and this composer, so the affordance reads the same everywhere. */
+.ownerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(38, 102, 130, 0.35);
+  background: rgba(38, 102, 130, 0.07);
+  color: var(--primary-bg);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.ownerLink:hover {
+  background: rgba(38, 102, 130, 0.14);
+  border-color: var(--primary-bg);
+}
+
+.ownerLinkAvatar {
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.ownerLinkGo {
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+
+/* A plain-text name mentioned inline (a bottleneck, an uncertain dependency) that jumps the
+   canvas to that node when clicked - not a pill, just underlined so it reads as part of the
+   sentence rather than a separate control. */
+.inlineJumpLink {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.inlineJumpLink:hover {
+  color: var(--primary-bg);
+}
+
+/* Intel notes filed against the selected target, once it is discovered. */
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--line);
+}
+
+.notesSectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+}
+
+.noteLinkList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.noteLink {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  width: 100%;
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: #ffffff;
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.noteLink:hover:not(:disabled) {
+  border-color: var(--primary-bg);
+  background: rgba(38, 102, 130, 0.05);
+}
+
+/* A note with no document behind it (an interview, a line from the debate) is shown, but
+   there is nothing to open. */
+.noteLinkFlat {
+  cursor: default;
+  background: #f8fafc;
+  color: var(--ink-soft);
+}
+
+.noteLinkIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--primary-bg);
+}
+
+.noteLinkText {
+  flex: 1;
+  min-width: 0;
+}
+
+.noteLinkWho {
+  color: var(--ink-mute);
+}
+
+.noteLinkGo {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--primary-bg);
+  opacity: 0.75;
+}
+
+/* Header chip: how much of the relevant intel for this challenge has actually been found. */
+.intelIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 9999px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Hover Info Tag (ported from StakeholderDossier.tsx / pitch_debate.tsx's own
+   showInfoTag) - replaces plain `title` tooltips across the composer's chrome and canvas
+   with a small flip-down card. Re-skinned to this modal's own light, technical palette
+   rather than the dossier's parchment or the boardroom's dark theme.
+   ========================================================================== */
+.headerHoverTag {
+  position: fixed;
+  transform: translateX(-50%);
+  perspective: 240px;
+  pointer-events: none;
+  /* Above the composer's own stacking context and anything else on the page. */
+  z-index: 10000;
+}
+
+@keyframes composeHoverTagFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+.headerHoverTagFlip {
+  position: relative;
+  display: inline-block;
+  white-space: normal;
+  max-width: 190px;
+  text-align: center;
+  padding: 3px 8px 4px;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.03);
+  transform-origin: top center;
+  animation: composeHoverTagFlipIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.headerHoverTagLabel {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #0f172a;
+}
+
+.headerHoverTagDetail {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: #266682;
+  letter-spacing: 0.1px;
+  line-height: 1.3;
+  white-space: pre-line;
+}
+
+.headerHoverTagFlip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #ffffff;
+  filter: drop-shadow(0 -1px 0.5px rgba(15, 23, 42, 0.15));
+}
+
+/* Flipped above its anchor (a button near the bottom of the window, where there's no room
+   for the usual below placement): the hinge and the pointer both mirror to the opposite edge,
+   so the tag still reads as anchored to what's under it rather than floating above it. */
+.headerHoverTagAbove {
+  transform-origin: bottom center;
+}
+
+.headerHoverTagAbove::before {
+  bottom: auto;
+  top: 100%;
+  border-bottom-color: transparent;
+  border-top-color: #ffffff;
+  filter: drop-shadow(0 1px 0.5px rgba(15, 23, 42, 0.15));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headerHoverTagFlip {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Leave-confirmation overlay - covers this modal (not the page), for closing
+   the composer or discarding its slots while there are unsaved changes.
+   ========================================================================== */
+@keyframes leaveConfirmIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.leaveConfirmOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.leaveConfirmCard {
+  width: min(360px, calc(100% - 2 * var(--sp-4)));
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  animation: leaveConfirmIn 0.15s ease-out;
+}
+
+.leaveConfirmTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.leaveConfirmTitle > svg {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.leaveConfirmBody {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.leaveConfirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
 }

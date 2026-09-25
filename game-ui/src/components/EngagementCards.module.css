@@ -10,50 +10,27 @@
   margin-top: 0.25rem;
 }
 
-/* ── Playable Cards Deck Container ── */
-.cardsContainer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 0.45rem;
-  align-items: stretch;
-  justify-content: flex-start;
-  justify-content: safe center;
+/* ── Playable Cards Fan ──
+   A hand of cards spread from a shared pivot below the fan (EngagementCards.tsx computes each
+   card's x/rotate). No horizontal scroll: the fan's overlap and rotation scale down as more
+   cards join the hand so the whole hand stays inside the shelf. */
+.fan {
+  position: relative;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0.25rem 0.5rem 0.35rem 0.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--secondary-bg) transparent;
+  overflow: visible;
   box-sizing: border-box;
 }
 
-/* Center cards when they fit within the container; collapse to 0 on overflow so scroll starts cleanly at 0 */
-.cardsContainer > :first-child {
-  margin-left: auto;
-}
-
-.cardsContainer > :last-child {
-  margin-right: auto;
-}
-
-.cardsContainer::-webkit-scrollbar {
-  height: 4px;
-}
-
-.cardsContainer::-webkit-scrollbar-thumb {
-  background: var(--secondary-bg);
-  border-radius: 2px;
-}
-
-.cardsContainerLarge {
-  gap: 0.85rem;
-  padding: 0.35rem 0.75rem 0.75rem 0.75rem;
-}
-
-.cardsContainerSmall {
-  gap: 0.45rem;
-  padding: 0.25rem 0.5rem 0.35rem 0.5rem;
+.fanCard {
+  position: absolute;
+  bottom: 0;
+  cursor: pointer;
+  will-change: transform;
+  /* Forces the rotated card onto its own composited layer so Chromium rasterizes its rounded
+     border with proper anti-aliasing instead of the jagged edges plain 2D transforms get. */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 

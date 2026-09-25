@@ -95,7 +95,6 @@
         "emotion_room_listening": { "type": "number", "title": "Reframe: hit to other high-power seats with a poor fit", "default": -0.03 },
         "default_patience": { "type": "integer", "title": "Patience per stakeholder per challenge (D50)", "default": 3 },
         "sound_out_patience_cost": { "type": "integer", "title": "Patience spent sounding a stakeholder out in Build your case (D50)", "default": 1 },
-        "emotion_refuted": { "type": "number", "title": "Gather Test a hypothesis: trust hit on Refuted (D49)", "default": -0.05 },
         "patience_malus": { "type": "number", "title": "Patience malus to emotion values for repeated presentations", "default": 0.05 }
       }
     },

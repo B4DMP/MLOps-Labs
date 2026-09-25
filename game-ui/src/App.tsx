@@ -251,7 +251,8 @@ function App() {
     passwordConfirm: string,
     usersOnMachine: number,
     campaignKey: string,
-    registerStartMuted: boolean
+    registerStartMuted: boolean,
+    playerVoiceGender: "male" | "female"
   ) => {
     setIsAuthenticating(true);
     setRegisterError("");
@@ -264,6 +265,7 @@ function App() {
         passwordConfirm,
         usersOnMachine,
         campaignKey,
+        playerVoiceGender,
       });
       if (data.type === "admin_login_success") {
         await enterAdminUi();
@@ -437,7 +439,7 @@ function App() {
         height: "100vh",
         overflow: "hidden",
         position: "relative",
-        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3.png")`,
+        backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_3-clean-s.jpg")`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

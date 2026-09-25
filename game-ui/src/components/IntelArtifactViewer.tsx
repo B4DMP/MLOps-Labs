@@ -1,5 +1,6 @@
 import styles from "./IntelArtifactViewer.module.css";
-import { GlossaryMarkdown } from "./glossary/GlossaryText";
+import GlossaryText, { GlossaryMarkdown } from "./glossary/GlossaryText";
+import SpokenText from "./SpokenText";
 
 interface IntelArtifactViewerProps {
   content: string;
@@ -11,6 +12,10 @@ interface IntelArtifactViewerProps {
    * has to interpret must not look like it came from the same room.
    */
   isPublicRecord?: boolean;
+  /** Which sentence of `content` narration is currently reading, or null when this artifact
+   * isn't the one being narrated right now (see `offline_intel_gathering.tsx`'s `narrateArtifact`).
+   * Passed straight through to `SpokenText`. */
+  activeSentenceIndex?: number | null;
 }
 
 export default function IntelArtifactViewer({
@@ -18,11 +23,29 @@ export default function IntelArtifactViewer({
   artifactType,
   stakeholderName,
   isPublicRecord = false,
+  activeSentenceIndex = null,
 }: IntelArtifactViewerProps) {
   const type = (artifactType || "").toLowerCase();
   const name = stakeholderName || "Stakeholder";
-  const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@enterprise.internal`;
+  const emailAddr = `${name.toLowerCase().replace(/\s+/g, ".")}@linden.markt`;
   const initial = name.charAt(0).toUpperCase();
+  // While this artifact is actively narrating, swap the block-level markdown rendering for
+  // SpokenText's inline one: react-markdown wraps every sentence in its own <p>, which breaks
+  // the flowing sentence-by-sentence layout SpokenText needs. Glossary term highlighting still
+  // applies per sentence via GlossaryText (the inline-only highlighter, safe to nest inline)
+  // rather than being lost - only markdown's own bold/link syntax renders as literal characters
+  // during that window. Full markdown+glossary rendering is back the instant narration stops or
+  // moves to a different artifact.
+  const renderContent = () =>
+    activeSentenceIndex != null ? (
+      <SpokenText
+        text={content}
+        activeSentenceIndex={activeSentenceIndex}
+        renderSentence={(sentence) => <GlossaryText text={sentence} surface="intel_artifacts" />}
+      />
+    ) : (
+      <GlossaryMarkdown content={content} surface="intel_artifacts" />
+    );
 
   // ==========================================================================
   // 1. WORKMAIL PRO (Corporate Webmail Client)
@@ -46,7 +69,7 @@ export default function IntelArtifactViewer({
                 {name} <span className={styles.senderEmail}>&lt;{emailAddr}&gt;</span>
               </div>
               <div className={styles.recipientLine}>
-                <strong>To:</strong> MLOps Engineering Team &lt;mlops-team@enterprise.internal&gt;, <strong>Cc:</strong> Architecture Board
+                <strong>To:</strong> MLOps Engineering Team &lt;mlops-team@linden.markt&gt;, <strong>Cc:</strong> Architecture Board
               </div>
             </div>
             <div className={styles.mailDate}>Today, 09:14 AM</div>
@@ -55,7 +78,7 @@ export default function IntelArtifactViewer({
 
         {/* Email Body */}
         <div className={`${styles.mailBody} ${styles.markdownContent}`}>
-          <GlossaryMarkdown content={content} surface="intel_artifacts" />
+          {renderContent()}
         </div>
 
         {/* Corporate Email Signature */}
@@ -110,7 +133,7 @@ export default function IntelArtifactViewer({
           </div>
 
           <div className={`${styles.chatBubble} ${styles.markdownContent}`}>
-            <GlossaryMarkdown content={content} surface="intel_artifacts" />
+            {renderContent()}
           </div>
 
           {/* Emoji Reactions & Thread Bar */}
@@ -136,24 +159,18 @@ export default function IntelArtifactViewer({
           <div className={styles.breadcrumbs}>
             <span>📚 Enterprise Wiki</span> / <span>MLOps Governance</span> / <span>Meeting Minutes</span>
           </div>
-          <span className={styles.wikiStatusTag}>SUMMARY</span>
+          <div className={styles.wikiStatusGroup}>
+            <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
+            <span className={styles.wikiStatusTag}>SUMMARY</span>
+          </div>
         </div>
 
         {/* Body */}
         <div className={styles.wikiBody}>
-          <h3 className={styles.wikiTitle}>
-            📌 Executive Alignment & Stakeholder Minutes
-          </h3>
-
-          <div className={styles.metaRow}>
-            <span className={styles.metaChip}>👤 Key Contributor: {name}</span>
-            <span className={styles.metaChip}>📅 Date: Q3 Alignment Sync</span>
-          </div>
-
           <div className={styles.executiveCallout}>
             <strong>Executive Takeaway / Stance:</strong>
             <div className={styles.markdownContent}>
-              <GlossaryMarkdown content={content} surface="intel_artifacts" />
+              {renderContent()}
             </div>
           </div>
 
@@ -190,7 +207,7 @@ export default function IntelArtifactViewer({
         </div>
 
         <div className={`${styles.specContentBox} ${styles.markdownContent}`}>
-          <GlossaryMarkdown content={content} surface="intel_artifacts" />
+          {renderContent()}
         </div>
       </div>
     </div>

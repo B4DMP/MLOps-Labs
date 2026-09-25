@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_loyalty_consent_gap",
   "stage": "items",
-  "input_hash": "6d304d03e04834bb2393e1bf1283b0cc64936e2557319b0b758adb1ba218ccf5",
+  "input_hash": "ea3fe351c6a3a1bdacf3deb5f3175b8ee5ac5ca6743779a77eef9798f5b9088f",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "challenge": {
       "phase_id": 1,
@@ -215,46 +215,6 @@
             "manual_request",
             "on_approval"
           ]
-        },
-        {
-          "id": "e.risk_audit",
-          "from": "req.risk_assessment",
-          "to": "gov.audit",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.risk_cards",
-          "from": "req.risk_assessment",
-          "to": "gov.model_cards",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
         }
       ],
       "instances": []
@@ -352,7 +312,13 @@
         "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "the data contracts fully governed with automated consent checks",
+        "branch_x_target": "req.data_contracts",
+        "branch_x_level": 4,
+        "branch_y_description": "manual review of the data contracts",
+        "branch_y_target": "req.data_contracts",
+        "branch_y_level": 2
       },
       {
         "key": "reuben_kpi_baseline",
@@ -411,7 +377,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "consent checks fully automated in the data contracts",
+        "branch_x_target": "req.data_contracts",
+        "branch_x_level": 4,
+        "branch_y_description": "a faster, manual contract review",
+        "branch_y_target": "req.data_contracts",
+        "branch_y_level": 2
       },
       {
         "key": "alex_pipeline_stability",
@@ -435,7 +407,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "the data contracts fully governed and automated",
+        "branch_x_target": "req.data_contracts",
+        "branch_x_level": 4,
+        "branch_y_description": "a temporary manual step in contract review",
+        "branch_y_target": "req.data_contracts",
+        "branch_y_level": 2
       },
       {
         "key": "ruth_monitoring_gap",
@@ -465,7 +443,7 @@
         "key": "fact_contracts_missing",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The data contracts are currently missing from the system.",
+        "fact": "The data contracts are currently broken in the system.",
         "readings": {
           "driver": "The absence of data contracts is a problem that needs addressing for compliance.",
           "boundary": "The absence of data contracts is a line that no one will cross without agreement.",

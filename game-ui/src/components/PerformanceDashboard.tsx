@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useContext, useLayoutEffect, useMemo,
 import { Icon } from "@iconify/react";
 import PhaseOverview from "./PhaseOverview";
 import MetricTab from "./MetricTab";
-import IntelArtifactViewer from "./IntelArtifactViewer";
 import type { IntelEntry, StakeholderDossierEntry } from "./StakeholderDossier";
 import { StakeholderContext } from "./StakeholderProvider";
 import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
@@ -140,6 +139,12 @@ export interface PerformanceDashboardProps {
   dossierData?: StakeholderDossierEntry[];
   /** Opens the dossier on a stakeholder's page. Owners become links when this is given. */
   onOpenStakeholder?: (stakeholderId: string) => void;
+  /** Opens the dossier on a specific intel item and pops it into view there. Intel
+   *  references become links when this is given. */
+  onSelectIntel?: (intelId: string, stakeholderId?: string) => void;
+  /** Jump straight to this component's stage and selection - e.g. a link from the simulation
+   *  debrief's Component Implementation Log. Re-jumps whenever the id changes. */
+  focusComponentId?: string;
 }
 
 /** What sits on one side of the stage being inspected. */
@@ -151,10 +156,11 @@ interface StageNeighbour {
   color?: string;
 }
 
-/** One dossier note, carrying the page it was found on so the artifact can be attributed. */
+/** One dossier note, carrying who it belongs to so clicking it can jump the dossier there. */
 interface LinkedNote {
   item: IntelEntry;
   stakeholderName: string;
+  stakeholderId?: string;
 }
 
 const NOTE_SOURCE_META: Record<string, { icon: string; label: string }> = {
@@ -169,14 +175,16 @@ function noteSourceMeta(item: IntelEntry) {
     ?? NOTE_SOURCE_META.offline_artifact;
 }
 
-/** A note can be opened as an artifact only when there is a document behind it. */
-function artifactContentOf(item: IntelEntry): string | null {
-  return item.artifact?.content || item.debug?.artifact?.content || null;
-}
-
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const EMPTY_STAGES: StageData[] = [];
+
+/** Same icon the component's own graph node uses (authored per-component in MlopsGraph.json) -
+ *  falls back to a generic glyph only if a component was never given one. Used anywhere this
+ *  dashboard lists components outside the SVG canvas itself (which reads `c.icon` directly). */
+function componentGlyph(icon?: string): string {
+  return icon || "ph:cube-bold";
+}
 
 function statusColor(status?: string): string {
   if (status === "healthy") return "#16a34a";
@@ -664,6 +672,8 @@ export default function PerformanceDashboard({
   currentPhase = 0,
   dossierData,
   onOpenStakeholder,
+  onSelectIntel,
+  focusComponentId,
 }: PerformanceDashboardProps) {
   const isDashboardOpen = isOpen ?? isVisible ?? false;
   const handleClose = useCallback(() => {
@@ -678,7 +688,6 @@ export default function PerformanceDashboard({
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
-  const [openNote, setOpenNote] = useState<LinkedNote | null>(null);
 
   /** Dossier notes that are about a given graph target, flattened across stakeholder pages. */
   const notesByTarget = useMemo(() => {
@@ -687,13 +696,26 @@ export default function PerformanceDashboard({
       (entry.intel_items ?? []).forEach((item) => {
         const target = item.target || item.debug?.target;
         if (!target) return;
-        (byTarget[target] ||= []).push({ item, stakeholderName: entry.name });
+        (byTarget[target] ||= []).push({
+          item,
+          stakeholderName: entry.name,
+          stakeholderId: entry.is_environment ? undefined : entry.stakeholder_id,
+        });
       });
     });
     return byTarget;
   }, [dossierData]);
 
   const linkedNotes = selectedComp ? notesByTarget[selectedComp] ?? [] : [];
+
+  // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
+  // intel items exist for this component in total. `target_total` is the same on every note
+  // sharing a target, so the first one carries it.
+  const linkedNotesTotal = linkedNotes[0]?.item.target_total;
+  const linkedNotesLabel =
+    linkedNotesTotal && linkedNotesTotal > linkedNotes.length
+      ? `${linkedNotes.length} of ${linkedNotesTotal} found`
+      : `${linkedNotes.length} found`;
 
   const stageRefs = useRef<Record<string, HTMLElement | null>>({});
   const buttonsRowRef = useRef<HTMLDivElement | null>(null);
@@ -707,18 +729,12 @@ export default function PerformanceDashboard({
     if (!isDashboardOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (openNote) setOpenNote(null);
-      else if (selectedComp) setSelectedComp(null);
+      if (selectedComp) setSelectedComp(null);
       else handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isDashboardOpen, selectedComp, openNote, handleClose]);
-
-  // Changing what is selected drops an open artifact: it belonged to the old selection.
-  useEffect(() => {
-    setOpenNote(null);
-  }, [selectedComp, selectedStage]);
+  }, [isDashboardOpen, selectedComp, handleClose]);
 
   const requestState = useCallback(() => {
     emit("graph:state_request", { phase_id: currentPhase });
@@ -754,6 +770,24 @@ export default function PerformanceDashboard({
       }
     }
   }, [selectedStage, pipelineStages, currentPhase]);
+
+  // A link elsewhere (e.g. the simulation debrief's Component Implementation Log) jumps the
+  // dashboard straight to a component - re-jumps whenever the id changes, same "changed since
+  // last render" idiom as the dossier's focusIntelId. Waits on graphState since that's what
+  // actually knows which stage the component lives in.
+  const prevFocusComponentRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!focusComponentId || !graphState) return;
+    if (focusComponentId === prevFocusComponentRef.current) return;
+    prevFocusComponentRef.current = focusComponentId;
+    const stage = pipelineStages.find((s) =>
+      graphState.technical[s.id]?.components.some((c) => c.id === focusComponentId)
+    );
+    if (stage) {
+      setSelectedStage(stage.id);
+      setSelectedComp(focusComponentId);
+    }
+  }, [focusComponentId, graphState, pipelineStages]);
 
   useLayoutEffect(() => {
     if (!isDashboardOpen || !buttonsRowRef.current) return;
@@ -1129,40 +1163,7 @@ export default function PerformanceDashboard({
 
                 {/* Right column: the inspector spans the strip and the architecture */}
                 <div className={styles.detailsColumn}>
-                  {openNote ? (
-                    <div className={styles.detailsCard}>
-                      <div className={styles.detailsCardHeader}>
-                        <span className="d-flex align-items-center gap-2">
-                          <Icon icon={noteSourceMeta(openNote.item).icon} />
-                          <span>{selComponentData?.name ?? "Intel artifact"}</span>
-                        </span>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-link text-white text-decoration-none p-0"
-                          onClick={() => setOpenNote(null)}
-                          title="Back to the component"
-                          style={{ fontSize: "0.78rem" }}
-                        >
-                          ✕ Close
-                        </button>
-                      </div>
-                      <div className={styles.artifactBody}>
-                        <IntelArtifactViewer
-                          content={artifactContentOf(openNote.item) ?? ""}
-                          artifactType={openNote.item.artifact?.artifact_type || openNote.item.artifact_type || "document"}
-                          stakeholderName={openNote.item.artifact?.stakeholder_name || openNote.stakeholderName}
-                          isPublicRecord={(openNote.item.source || "").toLowerCase() === "public_record"}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary m-2"
-                        onClick={() => setOpenNote(null)}
-                      >
-                        ← Back to {selComponentData?.name ?? "component"}
-                      </button>
-                    </div>
-                  ) : activeStage && activeTechnical ? (
+                  {activeStage && activeTechnical ? (
                     <div className={styles.detailsCard}>
                         <div className={styles.detailsCardHeader}>
                           <span className="d-flex align-items-center gap-2">
@@ -1187,7 +1188,10 @@ export default function PerformanceDashboard({
                             /* Detailed view for selected component */
                             <>
                               <div className="d-flex align-items-center gap-2 flex-wrap">
-                                <span style={{ fontSize: "1.2rem" }}>{selComponentData.knowledge !== "unknown" ? "🧩" : "🌫"}</span>
+                                <Icon
+                                  icon={componentGlyph(selComponentData.icon)}
+                                  style={{ fontSize: "1.2rem", color: "var(--primary-bg, #266682)" }}
+                                />
                                 <span className="fw-bold fs-6" style={{ color: "var(--text-primary, #1e293b)" }}>
                                   {selComponentData.name}
                                 </span>
@@ -1299,27 +1303,26 @@ export default function PerformanceDashboard({
                               {linkedNotes.length > 0 && (
                                 <div>
                                   <span className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.68rem" }}>
-                                    Intel on this component:
+                                    Intel on this component ({linkedNotesLabel}):
                                   </span>
                                   <div className={styles.noteLinkList}>
-                                    {linkedNotes.map(({ item, stakeholderName }) => {
+                                    {linkedNotes.map(({ item, stakeholderId }) => {
                                       const meta = noteSourceMeta(item);
-                                      const openable = Boolean(artifactContentOf(item));
                                       return (
                                         <button
                                           key={item.id}
                                           type="button"
-                                          className={`${styles.noteLink} ${openable ? "" : styles.noteLinkFlat}`}
-                                          disabled={!openable}
-                                          onClick={() => openable && setOpenNote({ item, stakeholderName })}
-                                          title={openable ? `Open the ${meta.label.toLowerCase()}` : meta.label}
+                                          className={`${styles.noteLink} ${onSelectIntel ? "" : styles.noteLinkFlat}`}
+                                          disabled={!onSelectIntel}
+                                          onClick={() => onSelectIntel?.(item.id, stakeholderId)}
+                                          title={onSelectIntel ? "Jump to this note in your dossier" : meta.label}
                                         >
                                           <Icon icon={meta.icon} className={styles.noteLinkIcon} />
                                           <span className={styles.noteLinkText}>
                                             {item.fact || item.description}
                                           </span>
-                                          {openable && (
-                                            <Icon icon="ph:arrow-square-out-bold" className={styles.noteLinkGo} />
+                                          {onSelectIntel && (
+                                            <Icon icon="ph:arrow-bend-up-left-bold" className={styles.noteLinkGo} />
                                           )}
                                         </button>
                                       );
@@ -1348,7 +1351,7 @@ export default function PerformanceDashboard({
                                 </span>
                               </div>
 
-                              <div className="d-flex flex-column gap-2" style={{ overflowY: "auto" }}>
+                              <div className="d-flex flex-column gap-2" style={{ overflowY: "auto", overflowX: "hidden" }}>
                                 {activeTechnical.components.map((c) => {
                                   return (
                                     <div
@@ -1358,7 +1361,10 @@ export default function PerformanceDashboard({
                                       title="Click to view details"
                                     >
                                       <div className="d-flex align-items-center gap-2 min-width-0">
-                                        <span style={{ fontSize: "1rem" }}>{c.knowledge !== "unknown" ? "🧩" : "🌫"}</span>
+                                        <Icon
+                                          icon={componentGlyph(c.icon)}
+                                          style={{ fontSize: "1rem", color: "var(--primary-bg, #266682)", flexShrink: 0 }}
+                                        />
                                         <span className="fw-semibold text-truncate" style={{ fontSize: "0.82rem", color: "var(--text-primary, #1e293b)" }}>
                                           {c.name || c.id.split(".").pop()}
                                         </span>

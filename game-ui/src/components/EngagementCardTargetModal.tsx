@@ -403,7 +403,7 @@ export default function EngagementCardTargetModal({
 
   const isIntelConfirmed = (item: IntelItem) => {
     const conf = (item.intel_type || "").toLowerCase();
-    return conf === "verified" || conf === "confirmed" || conf === "on_record" || conf === "inferred";
+    return conf === "verified" || conf === "confirmed" || conf === "on_record";
   };
 
   const handleToggleIntel = (item: IntelItem) => {

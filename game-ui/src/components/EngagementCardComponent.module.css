@@ -17,6 +17,10 @@
   cursor: pointer;
   transition: transform var(--transition, 0.2s ease-in-out), border-color var(--transition, 0.2s ease-in-out), box-shadow var(--transition, 0.2s ease-in-out);
   flex-shrink: 0;
+  /* Belt-and-suspenders for the fan's rotated cards (EngagementCards.tsx): keeps this card's
+     own rounded border anti-aliased when its rotated ancestor forces a composited layer. */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .playingCard.playable {
@@ -26,6 +30,14 @@
 .playingCard:not(.disabled):not(.previewMode):hover {
   transform: translateY(-4px);
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.5);
+}
+
+/* Inside the fan (EngagementCards.tsx), the fan's own motion.div wrapper owns all movement
+   (rise, scale, rotation-to-flat) so this card must not also translate on hover - that would
+   fight the wrapper's spring animation and read as jitter. */
+.playingCard.fanned:not(.disabled):not(.previewMode):hover {
+  transform: none;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
 }
 
 .disabled {

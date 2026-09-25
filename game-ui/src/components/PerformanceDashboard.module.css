@@ -344,7 +344,6 @@
 .componentListItem:hover {
   border-color: var(--primary-bg);
   background: rgba(38, 102, 130, 0.04);
-  transform: translateX(1px);
 }
 
 .componentListItemActive {
@@ -422,15 +421,6 @@
   margin-top: 2px;
   color: var(--primary-bg);
   opacity: 0.75;
-}
-
-/* The artifact takes over the inspector, scrolling on its own. */
-.artifactBody {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: clamp(6.4px, 0.9vh, 11.2px);
-  background: #f8fafc;
 }
 
 /* Canvas plus the two rails that stand in for the neighbouring stages. */

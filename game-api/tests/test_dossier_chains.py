@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
 from mlops_serious_game.application.intel_handler import (
     ENVIRONMENT_ENTRY_ID,
     chain_index,
@@ -107,8 +108,12 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
     challenge.phase_id = 0
     challenge.conflict = None
     challenge.focus_stage_ids = ["model"]
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
-    ws.query_params = {"username": f"test_dossier_chains_{uuid.uuid4()}"}
+    username = f"test_dossier_chains_{uuid.uuid4()}"
+    ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     pool = [_requirement("tess_1"), _requirement("tess_2", refines_id="tess_1")]
     with patch.object(RequirementFactory, "requirements", pool), \
@@ -153,8 +158,12 @@ async def test_dossier_does_not_leak_trade_off_branches_for_boundary_item():
     challenge.phase_id = 0
     challenge.conflict = None
     challenge.focus_stage_ids = ["model"]
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
-    ws.query_params = {"username": f"test_boundary_branches_{uuid.uuid4()}"}
+    username = f"test_boundary_branches_{uuid.uuid4()}"
+    ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     with patch.object(RequirementFactory, "requirements", [boundary_req]), \
          patch("mlops_serious_game.application.intel_handler.retrieve_intel_items", new_callable=AsyncMock) as mock_retrieve, \

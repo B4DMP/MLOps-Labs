@@ -68,14 +68,17 @@ class TargetDelta(BaseModel):
     owner_name: Optional[str] = None
     status: str = "flawless"  # "flawless", "capped", "delayed", "degraded"
     story: str = ""
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class WorldEventDelta(BaseModel):
     target: str
     axis: Axis
+    name: str = ""
     before: int
     after: int
     reason: str = ""
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class Propagation(BaseModel):
@@ -83,8 +86,10 @@ class Propagation(BaseModel):
     Automation-only: governance never caps and so never propagates (00-plan.md decision 1)."""
 
     target: str
+    name: str = ""
     effective: LevelPair
     via: Optional[str] = None
+    icon: Optional[str] = Field(default=None, description="Iconify icon name, same as the graph node's own")
 
 
 class PatternDiff(BaseModel):
@@ -422,6 +427,17 @@ def _capped_by(graph: TechnicalGraph, evaluation: GraphEvaluation, target: str, 
     return {"id": why, "level": _effective(evaluation, why)}
 
 
+def _target_display(graph: TechnicalGraph, target: str) -> tuple[str, Optional[str]]:
+    """Name and icon for any report target (component or edge) - same source the SVG canvas
+    itself reads (`icon` on the component, from MlopsGraph.json), so a target mentioned in the
+    Component Implementation Log or the Ripple Effects list reads as the same thing either way.
+    Edges have no icon of their own."""
+    if graph.is_component(target):
+        component = graph.component(target)
+        return component.name, component.icon
+    return getattr(graph.edge(target), "name", None) or target, None
+
+
 def _story(graph: TechnicalGraph, state: GraphState, target: str) -> str:
     from mlops_serious_game.application.graph_service.story import story_for
 
@@ -464,11 +480,7 @@ def _target_deltas(
         else:
             status = "flawless"
 
-        target_name = (
-            graph.component(target).name
-            if graph.is_component(target)
-            else (getattr(graph.edge(target), "name", None) or target)
-        )
+        target_name, target_icon = _target_display(graph, target)
 
         deltas.append(TargetDelta(
             id=target,
@@ -485,6 +497,7 @@ def _target_deltas(
             owner_name=owner_name,
             status=status,
             story=_story(graph, after_state, target),
+            icon=target_icon,
         ))
     return deltas
 
@@ -501,10 +514,13 @@ def _propagated(
         was, now = _effective(before, target), _effective(after, target)
         if was == now:
             continue
+        name, icon = _target_display(graph, target)
         out.append(Propagation(
             target=target,
+            name=name,
             effective=LevelPair(before=was, after=now),
             via=after.effective.capped_by.get(target),
+            icon=icon,
         ))
     return out
 
@@ -565,6 +581,17 @@ def _stage_label(graph: TechnicalGraph, target_id: str) -> str:
     return stage.name if stage else "the pipeline"
 
 
+def _metric_label(metric_id: str) -> str:
+    """The metric's display name, same one `MetricTab` shows - a log line should never make the
+    player translate a config id (`model_intro`) back into the gauge they already know by name."""
+    from mlops_serious_game.domain.metric_factory import MetricFactory
+
+    try:
+        return MetricFactory.get_metric(metric_id).name
+    except Exception:
+        return metric_id
+
+
 def simulation_events(
     report: DeltaReport,
     graph: TechnicalGraph,
@@ -615,7 +642,7 @@ def simulation_events(
         events.append(GameEvent(
             step="simulation", kind="metric", subject_id=metric_id,
             direction="up" if delta > 0 else "down", magnitude=_metric_magnitude(delta),
-            cause="metric.moved", params={"metric": metric_id},
+            cause="metric.moved", params={"metric": _metric_label(metric_id)},
         ))
 
     for grudge in report.grudges.created:
@@ -728,19 +755,23 @@ def simulate(
 
     # Kept as two passes (not one merged dict) so a target hit by both a world op and a grudge
     # reports each event's own before-level, not the other batch's.
-    events = [
-        WorldEventDelta(
-            target=op.target, axis=op.axis, before=world_before[(op.target, op.axis)],
-            after=state.value(op.target, op.axis), reason=op.reason or "",
+    def _world_event(op: GraphOp, before_levels: dict[tuple[str, Axis], int]) -> WorldEventDelta:
+        name, icon = _target_display(graph, op.target)
+        return WorldEventDelta(
+            target=op.target,
+            axis=op.axis,
+            name=name,
+            before=before_levels[(op.target, op.axis)],
+            after=state.value(op.target, op.axis),
+            reason=op.reason or "",
+            icon=icon,
         )
-        for op in world
+
+    events = [
+        _world_event(op, world_before) for op in world
         if op.axis is not None and graph.is_target(op.target)
     ] + [
-        WorldEventDelta(
-            target=op.target, axis=op.axis, before=grudge_before[(op.target, op.axis)],
-            after=state.value(op.target, op.axis), reason=op.reason or "",
-        )
-        for op in grudge_ops
+        _world_event(op, grudge_before) for op in grudge_ops
         if op.axis is not None and graph.is_target(op.target)
     ]
     world_touches = list({**world_before, **grudge_before})

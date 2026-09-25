@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from mlops_serious_game.application.intel_handler import retrieve_dossier_data
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.requirement import IntelTag, StakeholderIntelItem, StakeholderRequirement
 from mlops_serious_game.domain.requirement_factory import RequirementFactory
@@ -41,8 +42,12 @@ async def _dossier(debug_enabled: bool):
     challenge = MagicMock()
     challenge.id = 9
     challenge.phase_id = 0
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
-    ws.query_params = {"username": f"test_dossier_debug_{uuid.uuid4()}"}
+    username = f"test_dossier_debug_{uuid.uuid4()}"
+    ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     with patch.object(settings, "ENABLE_DOSSIER_DEBUG", debug_enabled), \
          patch.object(RequirementFactory, "requirements", pool), \

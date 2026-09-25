@@ -1,4 +1,5 @@
-import { useState, useContext, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from "react";
+import { useState, useContext, useEffect, useLayoutEffect, useMemo, useRef, type Dispatch, type SetStateAction } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ActionCard } from "../types/ActionCard";
@@ -17,7 +18,10 @@ import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
 import ActionCardCardComponent from "./ActionCardCardComponent";
-import ComposeActionProposalModal, { type AtomicChange } from "./ComposeActionProposalModal";
+import ComposeActionProposalModal, {
+  type AtomicChange,
+  dedupeAtomicChanges,
+} from "./ComposeActionProposalModal";
 import { describeAtomicChange, findGraphTarget } from "../utils/graphOptions";
 import type { IntelItem } from "./PitchActionCardModal";
 import EngagementCards from "./EngagementCards";
@@ -33,7 +37,13 @@ import type { GameEventPayload } from "../types/GameEvent";
 import type { IntelTag } from "../types/IntelTag";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
 import { faceForEmotionState } from "../utils/emotionFace";
+import EmotionEmoji from "./EmotionEmoji";
 import { FADE_TRANSITION } from "../utils/transitions";
+
+// Intel readiness thresholds for the pitch deck's intel badge: how much of this phase's intel
+// has to be verified before pitching is worth it (ratio of verified / total for the phase).
+const READY_YELLOW = 0.35;
+const READY_GREEN = 0.6;
 
 export interface PitchDebateProps {
   currentPhase: number;
@@ -57,6 +67,9 @@ export interface PitchDebateProps {
   /** Asks the embedded dossier to show this stakeholder - set when the player follows a
    *  component owner link out of the Performance Dashboard. */
   focusStakeholderId?: string;
+  /** Asks the embedded dossier to jump to and pop this intel item - set when the player
+   *  follows an intel reference out of the Performance Dashboard. */
+  focusIntelId?: string;
   onOpenPhaseBriefing?: () => void;
   onPerformanceToggle?: () => void;
   isPerformanceOpen?: boolean;
@@ -121,6 +134,7 @@ export default function PitchDebate({
   onUpdateIntelItems,
   dossierData = [],
   focusStakeholderId,
+  focusIntelId,
   onOpenPhaseBriefing,
   onPerformanceToggle,
   isPerformanceOpen = false,
@@ -153,11 +167,48 @@ export default function PitchDebate({
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("requirements_reuben");
   const [showDashboard, setShowDashboard] = useState(false);
   const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
+  // Set when a specific change row on the pitch deck's card is clicked, rather than the card
+  // generally - tells the composer which target's inspector to open straight to.
+  const [composerFocusTargetId, setComposerFocusTargetId] = useState<string | undefined>(undefined);
   const [isChatMaximized, setIsChatMaximized] = useState(false);
   const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
   const [eventsOpen, setEventsOpen] = useState(false);
   const [events, setEvents] = useState<GameEventPayload[]>([]);
   const [singleArtifactForReview, setSingleArtifactForReview] = useState<IntelArtifact | null>(null);
+
+  // ── Boardroom Hover Info Tag (ported from offline_intel_gathering.tsx / StakeholderDossier.tsx's
+  // showInfoTag) - a flip-in tag anchored to whatever's hovered/focused, replacing plain `title`
+  // tooltips on the boardroom table's chips, plaque and action buttons. ──
+  const [infoTag, setInfoTag] = useState<{
+    label: string;
+    detail?: string;
+    top: number;
+    anchorX: number;
+    left: number;
+  } | null>(null);
+  const infoTagRef = useRef<HTMLDivElement>(null);
+
+  const showInfoTag = (e: React.SyntheticEvent, label: string, detail?: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const anchorX = rect.left + rect.width / 2;
+    setInfoTag({ label, detail, top: rect.bottom + 6, anchorX, left: anchorX });
+  };
+  const hideInfoTag = () => setInfoTag(null);
+
+  useLayoutEffect(() => {
+    if (!infoTag || !infoTagRef.current) return;
+    const box = infoTagRef.current.getBoundingClientRect();
+    const half = box.width / 2;
+    const left = Math.min(Math.max(infoTag.anchorX, 6 + half), window.innerWidth - 6 - half);
+    setInfoTag((prev) => (prev && prev.left !== left ? { ...prev, left } : prev));
+  }, [infoTag?.anchorX, infoTag?.label, infoTag?.detail]);
+
+  useEffect(() => {
+    if (!infoTag) return;
+    const handleScroll = () => hideInfoTag();
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [infoTag]);
 
   // Follow an owner link from the dashboard: only on a change, so the player's own choice
   // of page is never overridden.
@@ -168,6 +219,17 @@ export default function PitchDebate({
     }
     prevFocusStakeholderRef.current = focusStakeholderId;
   }, [focusStakeholderId]);
+
+  // Same, for an intel reference followed from the dashboard: jump the dossier to it and
+  // let it pop, same as clicking one of this screen's own references does.
+  const prevFocusIntelRef = useRef<string | undefined>(focusIntelId);
+  useEffect(() => {
+    if (focusIntelId && focusIntelId !== prevFocusIntelRef.current) {
+      setHighlightedIntelId(focusIntelId);
+      setTimeout(() => setHighlightedIntelId(null), 3000);
+    }
+    prevFocusIntelRef.current = focusIntelId;
+  }, [focusIntelId]);
 
   const handleOpenArtifact = (item: IntelEntry) => {
     if (!item.artifact && !item.artifact_type) return;
@@ -226,8 +288,6 @@ export default function PitchDebate({
     () => ({ phase_id: currentPhase, challenge_id: currentChallenge }),
     [currentPhase, currentChallenge]
   );
-
-  const bgIndex = (currentChallenge + currentPhase) % 4;
 
   // ── Speech Queue System ──
   interface SpeechQueueItem {
@@ -511,7 +571,9 @@ export default function PitchDebate({
       setEvaluatingPitchConvId(null);
     }
     if (payload.atomic_changes) {
-      setAtomicChanges(payload.atomic_changes);
+      // A proposal saved before a target's dedup could land here still carrying two slots for
+      // the same target (see dedupeAtomicChanges) - cleaned up as it enters the client.
+      setAtomicChanges(dedupeAtomicChanges(payload.atomic_changes));
     }
     if (payload.card_item_ids) {
       setSelectedIntelIds(payload.card_item_ids);
@@ -898,7 +960,7 @@ export default function PitchDebate({
         (st.intel_items || [])
           .filter((i) => {
             const conf = (i.intel_type || "").toLowerCase();
-            return conf !== "verified" && conf !== "confirmed" && conf !== "on_record" && conf !== "inferred";
+            return conf !== "verified" && conf !== "confirmed" && conf !== "on_record";
           })
           .map((i) => ({
             id: i.id,
@@ -1061,6 +1123,13 @@ export default function PitchDebate({
 
     const isFlipped = isRightSide || (isTop && topIndex !== undefined && topIndex >= 1);
 
+    // Stakeholder names are authored "<role/category> <given name>" (e.g. "Requirements
+    // Ryan"): split on the first space so the nameplate always breaks there, on its own two
+    // lines, the same pattern used by the dossier tabs (StakeholderDossier.tsx), instead of
+    // truncating with an ellipsis.
+    const [nameRoleWord, ...nameGivenWords] = String(st.name || "").split(" ");
+    const nameGivenName = nameGivenWords.join(" ");
+
     return (
       <div
         key={st.id}
@@ -1079,6 +1148,7 @@ export default function PitchDebate({
             }}
           >
             {activeSpeakingState.message}
+            <EmotionEmoji emotionState={st.emotional_state} className={styles.bubbleEmotionEmoji} />
           </div>
         )}
 
@@ -1097,15 +1167,25 @@ export default function PitchDebate({
           />
         </div>
 
-        {/* Conference Desk Nameplate (NO satisfaction/resistance gauge, as requested) */}
+        {/* Conference Desk Nameplate (NO satisfaction/resistance gauge, as requested). Selection
+            is shown as emphasis (glow + tinted fill) in the stakeholder's OWN color, not a
+            hardcoded gold override - that used to make a selected stakeholder's nameplate go
+            yellow regardless of their actual accent color (e.g. Requirements Ryan's purple). */}
         <div
           className={`${styles.deskNameplate} ${isSelected ? styles.activeDeskNameplate : ""}`}
           style={{
-            color: isSelected ? "#ffc107" : stakeholderColor,
-            borderColor: isSelected ? "#ffc107" : stakeholderColor,
+            color: stakeholderColor,
+            borderColor: stakeholderColor,
           }}
         >
-          {st.name}
+          {nameGivenName ? (
+            <>
+              <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+              <span className={styles.deskNameplateLine}>{nameGivenName}</span>
+            </>
+          ) : (
+            <span className={styles.deskNameplateLine}>{nameRoleWord}</span>
+          )}
         </div>
       </div>
     );
@@ -1115,18 +1195,43 @@ export default function PitchDebate({
   const isCardComposed = Boolean(pitchedActionCard && (atomicChanges.length > 0 || selectedIntelIds.length > 0));
   const stage = pitchState?.stage || "PREPARE";
 
+  // Intel readiness for this phase: verified intel against everything there is to find, so the
+  // pitch deck's intel badge can warn the player before they walk in under-prepared.
+  const intelTotalThisPhase = pitchState?.intel_total ?? 0;
+  const intelVerifiedThisPhase = pitchState?.intel_verified ?? 0;
+  const intelReadyRatio = intelTotalThisPhase > 0 ? intelVerifiedThisPhase / intelTotalThisPhase : 1;
+  const intelReadiness: "red" | "yellow" | "green" =
+    intelReadyRatio >= READY_GREEN ? "green" : intelReadyRatio >= READY_YELLOW ? "yellow" : "red";
+  const intelReadinessText =
+    intelReadiness === "green"
+      ? "Enough verified intel to make a case."
+      : intelReadiness === "yellow"
+      ? "Thin, but you can pitch."
+      : "Not enough verified intel to pitch yet.";
+  // Short version that's always visible on the badge itself, not just on hover - the color alone
+  // wasn't enough for players to notice something was off.
+  const intelReadinessShortLabel =
+    intelReadiness === "green" ? "Ready to pitch" : intelReadiness === "yellow" ? "Still thin" : "Not enough yet";
+
+  // The "PITCH DECK" plaque carries the same readiness color coding as the Intel stat chip once
+  // it's actually clickable - falls back to the old neutral blue "active" cue when there's no
+  // per-phase intel total to color it by yet.
+  const isPlaqueActive = (!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating;
+  const plaqueReadyClass = isPlaqueActive
+    ? intelTotalThisPhase > 0
+      ? styles[`tableCenterPlaqueReady${intelReadiness}`]
+      : styles.tableCenterPlaqueActive
+    : "";
+
   return (
     <div className={styles.container}>
-      {/* Main Content Canvas with Dynamic Background */}
+      {/* Main Content Canvas - background now rendered once by Game.tsx behind every
+          gameplay phase; this is just a transparent overlay over it. */}
       <div
         className={`container-fluid flex-grow-1 d-flex flex-column px-3 py-2 position-relative ${
           isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
         }`}
         style={{
-          backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${bgIndex}.png")`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
           minHeight: 0,
           height: "100%",
         }}
@@ -1149,10 +1254,12 @@ export default function PitchDebate({
                   isEmbedded={true}
                   dossierData={dossierData || []}
                   activeStakeholderId={selectedStakeholderId}
+                  onActiveStakeholderChange={(id) => setSelectedStakeholderId(id ?? "")}
                   highlightedIntelId={highlightedIntelId}
                   currentPhase={currentPhase}
                   currentChallenge={currentChallenge}
                   buyInInfoMap={buyInInfoMap}
+                  cheatSheetActiveSection="Pitch & Debate"
                   onClose={() => {}}
                   onPerformanceToggle={onPerformanceToggle ? onPerformanceToggle : () => setShowDashboard(!showDashboard)}
                   isPerformanceOpen={isPerformanceOpen || showDashboard}
@@ -1186,10 +1293,14 @@ export default function PitchDebate({
                   >
                     <ComposeActionProposalModal
                       isOpen={isPitchModalOpen}
-                      onClose={() => setIsPitchModalOpen(false)}
+                      onClose={() => {
+                        hideInfoTag();
+                        setIsPitchModalOpen(false);
+                      }}
                       currentPhase={currentPhase}
                       currentChallenge={currentChallenge}
                       initialAtomicChanges={atomicChanges}
+                      initialSelectedTargetId={composerFocusTargetId}
                       onConfirmProposal={handleConfirmMergeProposal}
                       allowedTargets={pitchState?.allowed_targets || []}
                       upstreamMap={pitchState?.upstream_map || {}}
@@ -1200,6 +1311,20 @@ export default function PitchDebate({
                       stakeholders={stakeholders as any}
                       getStakeholderColor={getStakeholderColor}
                       graphState={graphState}
+                      // Same figures the pitch deck's own Intel stat chip shows, so the two
+                      // screens never disagree about how ready the player is to pitch.
+                      intelTotal={pitchState?.intel_total ?? 0}
+                      intelVerified={pitchState?.intel_verified ?? 0}
+                      // The dossier is already open in the left column, so an owner link just
+                      // switches its page rather than opening a second modal on top.
+                      onOpenStakeholder={(stakeholderId) => setSelectedStakeholderId(stakeholderId)}
+                      // Same for an intel reference: jump the dossier to it and let it pop,
+                      // rather than opening a second reader inside the composer.
+                      onSelectIntel={(intelId, stakeholderId) => {
+                        if (stakeholderId) setSelectedStakeholderId(stakeholderId);
+                        setHighlightedIntelId(intelId);
+                        setTimeout(() => setHighlightedIntelId(null), 3000);
+                      }}
                     />
                   </motion.div>
                 ) : (
@@ -1215,7 +1340,7 @@ export default function PitchDebate({
                   >
                     {/* Upper Section: Challenge & Boardroom Scene (Left) + Chat History (Right) */}
                     <div
-                      className={`flex-grow-1 row g-2 align-items-stretch position-relative ${
+                      className={`flex-grow-1 row gx-2 align-items-stretch position-relative ${
                         isAnySpeechActive ? styles.overflowVisibleSpeech : "overflow-hidden"
                       } ${isDraggingCard ? styles.singleDropZoneActive : ""}`}
                       style={{ minHeight: 0, zIndex: isAnySpeechActive ? 3100 : 1 }}
@@ -1316,33 +1441,74 @@ export default function PitchDebate({
                                     isInteractive={(!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating}
                                     onClick={() => {
                                       if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                        setComposerFocusTargetId(undefined);
+                                        setIsPitchModalOpen(true);
+                                      }
+                                    }}
+                                    onSelectChange={(target) => {
+                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                        setComposerFocusTargetId(target);
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
                                   />
                                 ) : (
                                   <div
-                                    className={`${styles.tableCenterPlaque} ${
-                                      (!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating
-                                        ? styles.tableCenterPlaqueActive
-                                        : ""
-                                    }`}
+                                    className={`${styles.tableCenterPlaque} ${plaqueReadyClass}`}
+                                    tabIndex={0}
+                                    role="button"
                                     onClick={() => {
-                                      if ((!isCommittedLocked || pitchState?.outcome === "VETO") && !isPitchDebating) {
+                                      if (isPlaqueActive) {
+                                        hideInfoTag();
+                                        setComposerFocusTargetId(undefined);
                                         setIsPitchModalOpen(true);
                                       }
                                     }}
-                                    title={
-                                      isCommittedLocked && pitchState?.outcome !== "VETO"
-                                        ? "Action card committed"
-                                        : isPitchDebating
-                                        ? "Wait until all stakeholder messages have appeared in conversation history"
-                                        : "Pitch Deck Table - Configure up to 3 graph changes"
+                                    onMouseEnter={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Pitch Deck",
+                                        [
+                                          isCommittedLocked && pitchState?.outcome !== "VETO"
+                                            ? "Action card committed"
+                                            : isPitchDebating
+                                            ? "Wait until all stakeholder messages have appeared in conversation history"
+                                            : "Configure up to 3 graph changes",
+                                          isPlaqueActive && intelTotalThisPhase > 0
+                                            ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
+                                            : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join("\n")
+                                      )
                                     }
+                                    onMouseLeave={hideInfoTag}
+                                    onFocus={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Pitch Deck",
+                                        [
+                                          isCommittedLocked && pitchState?.outcome !== "VETO"
+                                            ? "Action card committed"
+                                            : isPitchDebating
+                                            ? "Wait until all stakeholder messages have appeared in conversation history"
+                                            : "Configure up to 3 graph changes",
+                                          isPlaqueActive && intelTotalThisPhase > 0
+                                            ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} intel verified. ${intelReadinessText}`
+                                            : null,
+                                        ]
+                                          .filter(Boolean)
+                                          .join("\n")
+                                      )
+                                    }
+                                    onBlur={hideInfoTag}
                                   >
                                     <Icon icon="ph:presentation-chart-bold" className={styles.tableCenterPlaqueIcon} />
                                     <span>PITCH DECK</span>
                                     <span className={styles.tableCenterPlaqueSub}>Click to compose action proposal</span>
+                                    {isPlaqueActive && intelTotalThisPhase > 0 && (
+                                      <span className={styles.tableCenterPlaqueReadyWord}>{intelReadinessShortLabel}</span>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1363,16 +1529,57 @@ export default function PitchDebate({
                             <div className={styles.tableLowerInteractionArea}>
                               {/* Status Chips */}
                               <div className={styles.statChipsRowCentered}>
-                                <div className={styles.statChipToken} title={`${tokens} Attention Tokens available`}>
+                                <div
+                                  className={styles.statChipToken}
+                                  tabIndex={0}
+                                  role="status"
+                                  onMouseEnter={(e) => showInfoTag(e, "Attention Tokens", `${tokens} available to spend this phase`)}
+                                  onMouseLeave={hideInfoTag}
+                                  onFocus={(e) => showInfoTag(e, "Attention Tokens", `${tokens} available to spend this phase`)}
+                                  onBlur={hideInfoTag}
+                                >
                                   <Icon icon="ph:coin-fill" className={styles.tokenStatIcon} />
                                   <span className={styles.statNumber}>{tokens}</span>
                                   <span className={styles.statLabel}>Tokens</span>
                                 </div>
 
-                                <div className={styles.statChipIntel} title={`${allIntelItems.length} Intel items collected`}>
+                                <div
+                                  className={`${styles.statChipIntel} ${styles[`intelReady${intelReadiness}`]}`}
+                                  tabIndex={0}
+                                  role="status"
+                                  onMouseEnter={(e) =>
+                                    showInfoTag(
+                                      e,
+                                      "Intel Readiness",
+                                      intelTotalThisPhase > 0
+                                        ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} verified this phase.\n${intelReadinessText}`
+                                        : `${allIntelItems.length} intel items collected`
+                                    )
+                                  }
+                                  onMouseLeave={hideInfoTag}
+                                  onFocus={(e) =>
+                                    showInfoTag(
+                                      e,
+                                      "Intel Readiness",
+                                      intelTotalThisPhase > 0
+                                        ? `${intelVerifiedThisPhase}/${intelTotalThisPhase} verified this phase.\n${intelReadinessText}`
+                                        : `${allIntelItems.length} intel items collected`
+                                    )
+                                  }
+                                  onBlur={hideInfoTag}
+                                >
                                   <Icon icon="ph:files-bold" className={styles.intelStatIcon} />
-                                  <span className={styles.statNumber}>{allIntelItems.length}</span>
-                                  <span className={styles.statLabel}>Intel</span>
+                                  <span className={styles.statNumber}>
+                                    {intelTotalThisPhase > 0
+                                      ? `${intelVerifiedThisPhase}/${intelTotalThisPhase}`
+                                      : allIntelItems.length}
+                                  </span>
+                                  <span className={styles.statLabelStack}>
+                                    <span className={styles.statLabel}>Intel</span>
+                                    {intelTotalThisPhase > 0 && (
+                                      <span className={styles.statReadinessWord}>{intelReadinessShortLabel}</span>
+                                    )}
+                                  </span>
                                 </div>
 
                               </div>
@@ -1416,9 +1623,15 @@ export default function PitchDebate({
                                       type="button"
                                       className={styles.actionButton}
                                       onClick={() => {
+                                        hideInfoTag();
                                         setIsVetoDialogOpen(false);
+                                        setComposerFocusTargetId(undefined);
                                         setIsPitchModalOpen(true);
                                       }}
+                                      onMouseEnter={(e) => showInfoTag(e, "Revise & Re-Pitch", "Open the proposal builder to answer the veto")}
+                                      onMouseLeave={hideInfoTag}
+                                      onFocus={(e) => showInfoTag(e, "Revise & Re-Pitch", "Open the proposal builder to answer the veto")}
+                                      onBlur={hideInfoTag}
                                     >
                                       <Icon icon="ph:arrow-counter-clockwise-bold" />
                                       <span>Revise Action Card & Re-Pitch</span>
@@ -1427,7 +1640,14 @@ export default function PitchDebate({
                                     <button
                                       type="button"
                                       className={styles.actionButton}
-                                      onClick={handleProceedToSimulation}
+                                      onClick={() => {
+                                        hideInfoTag();
+                                        handleProceedToSimulation();
+                                      }}
+                                      onMouseEnter={(e) => showInfoTag(e, "Continue", "Move on to the simulation phase")}
+                                      onMouseLeave={hideInfoTag}
+                                      onFocus={(e) => showInfoTag(e, "Continue", "Move on to the simulation phase")}
+                                      onBlur={hideInfoTag}
                                     >
                                       <span>Proceeding to Simulation...</span>
                                     </button>
@@ -1444,33 +1664,68 @@ export default function PitchDebate({
                                   <span>Presenting Action Proposal...</span>
                                 </button>
                               ) : stage === "PITCHED" ? (
-                                <div className="d-flex align-items-center gap-2 w-100">
+                                <div className="d-flex align-items-center gap-2">
                                   <button
                                     type="button"
-                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
-                                    style={{ flex: 1 }}
+                                    className={`${styles.actionButton} ${styles.actionButtonAuto} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     disabled={isPitchDebating}
-                                    onClick={() => setIsPitchModalOpen(true)}
-                                    title={
-                                      isPitchDebating
-                                        ? "Wait until all stakeholder messages have appeared in conversation history"
-                                        : "Modify card items or trade-off branches"
+                                    onClick={() => {
+                                      hideInfoTag();
+                                      setComposerFocusTargetId(undefined);
+                                      setIsPitchModalOpen(true);
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Revise Card",
+                                        isPitchDebating
+                                          ? "Wait until all stakeholder messages have appeared in conversation history"
+                                          : "Modify card items or trade-off branches"
+                                      )
                                     }
+                                    onMouseLeave={hideInfoTag}
+                                    onFocus={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Revise Card",
+                                        isPitchDebating
+                                          ? "Wait until all stakeholder messages have appeared in conversation history"
+                                          : "Modify card items or trade-off branches"
+                                      )
+                                    }
+                                    onBlur={hideInfoTag}
                                   >
                                     <Icon icon="ph:pencil-simple-bold" />
                                     <span>Revise Card</span>
                                   </button>
                                   <button
                                     type="button"
-                                    className={`${styles.actionButton} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
-                                    style={{ flex: 1.5 }}
+                                    className={`${styles.actionButton} ${styles.actionButtonAuto} ${isPitchDebating ? styles.actionButtonDisabled : ""}`}
                                     disabled={isPitchDebating}
-                                    onClick={handlePitchCommit}
-                                    title={
-                                      isPitchDebating
-                                        ? "Wait until all stakeholder messages have appeared in conversation history"
-                                        : "Commit action proposal to lock in final outcome"
+                                    onClick={() => {
+                                      hideInfoTag();
+                                      handlePitchCommit();
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Commit Proposal",
+                                        isPitchDebating
+                                          ? "Wait until all stakeholder messages have appeared in conversation history"
+                                          : "Lock in the final outcome"
+                                      )
                                     }
+                                    onMouseLeave={hideInfoTag}
+                                    onFocus={(e) =>
+                                      showInfoTag(
+                                        e,
+                                        "Commit Proposal",
+                                        isPitchDebating
+                                          ? "Wait until all stakeholder messages have appeared in conversation history"
+                                          : "Lock in the final outcome"
+                                      )
+                                    }
+                                    onBlur={hideInfoTag}
                                   >
                                     <Icon icon="ph:check-bold" />
                                     <span>Commit Proposal ➔</span>
@@ -1479,15 +1734,22 @@ export default function PitchDebate({
                               ) : (
                                 <button
                                   type="button"
-                                  className={`${styles.actionButton} ${
+                                  className={`${styles.actionButton} ${styles.actionButtonAuto} ${
                                     isSpeechBubbleCoveringButton ? styles.actionButtonBlocked : ""
                                   }`}
                                   disabled={isSpeechBubbleCoveringButton}
-                                  onClick={() => setIsPitchModalOpen(true)}
-                                  title="Configure up to 3 graph improvements for action proposal"
+                                  onClick={() => {
+                                    hideInfoTag();
+                                    setComposerFocusTargetId(undefined);
+                                    setIsPitchModalOpen(true);
+                                  }}
+                                  onMouseEnter={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
+                                  onMouseLeave={hideInfoTag}
+                                  onFocus={(e) => showInfoTag(e, "Assemble Proposal", "Configure up to 3 graph improvements for action proposal")}
+                                  onBlur={hideInfoTag}
                                 >
                                   <Icon icon="ph:git-merge-bold" />
-                                  <span>Assemble Action Proposal (Up to 3 Changes)</span>
+                                  <span>Assemble Action Proposal</span>
                                 </button>
                               )}
                             </div>
@@ -1520,7 +1782,7 @@ export default function PitchDebate({
                       <div
                         className={`${styles.chatCol} ${
                           isChatMaximized ? styles.chatColMaximized : ""
-                        } d-flex flex-column h-100 overflow-hidden position-relative`}
+                        } d-flex flex-column h-100 position-relative`}
                         style={{ minHeight: 0, zIndex: isChatMaximized ? 2000 : 1 }}
                       >
                         {/* Maximized Challenge Card Wrapper */}
@@ -1568,7 +1830,10 @@ export default function PitchDebate({
                               type="button"
                               className={styles.speechSkipBar}
                               onClick={skipCurrentSpeech}
-                              title="Skip the current message"
+                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onMouseLeave={hideInfoTag}
+                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onBlur={hideInfoTag}
                             >
                               <Icon icon="ph:skip-forward-fill" />
                               <span>Skip</span>
@@ -1580,7 +1845,14 @@ export default function PitchDebate({
                             type="button"
                             className={styles.chatMaximizeBtn}
                             onClick={() => setIsChatMaximized(!isChatMaximized)}
-                            title={isChatMaximized ? "Restore view" : "Maximize conversation history"}
+                            onMouseEnter={(e) =>
+                              showInfoTag(e, isChatMaximized ? "Restore View" : "Maximize", isChatMaximized ? "Restore view" : "Maximize conversation history")
+                            }
+                            onMouseLeave={hideInfoTag}
+                            onFocus={(e) =>
+                              showInfoTag(e, isChatMaximized ? "Restore View" : "Maximize", isChatMaximized ? "Restore view" : "Maximize conversation history")
+                            }
+                            onBlur={hideInfoTag}
                           >
                             <Icon
                               icon={isChatMaximized ? "ph:arrows-in-simple-bold" : "ph:arrows-out-simple-bold"}
@@ -1702,6 +1974,7 @@ export default function PitchDebate({
         onClose={() => setIsVetoDialogOpen(false)}
         onReviseProposal={() => {
           setIsVetoDialogOpen(false);
+          setComposerFocusTargetId(undefined);
           setIsPitchModalOpen(true);
         }}
         vetoInfo={vetoInfo}
@@ -1741,6 +2014,22 @@ export default function PitchDebate({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {infoTag &&
+        createPortal(
+          <div
+            ref={infoTagRef}
+            className={styles.headerHoverTag}
+            style={{ top: `${infoTag.top}px`, left: `${infoTag.left}px` }}
+            aria-hidden="true"
+          >
+            <div className={styles.headerHoverTagFlip}>
+              <div className={styles.headerHoverTagLabel}>{infoTag.label}</div>
+              {infoTag.detail && <div className={styles.headerHoverTagDetail}>{infoTag.detail}</div>}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

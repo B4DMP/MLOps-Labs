@@ -417,8 +417,6 @@ class PitchTuning(BaseModel):
     default_patience: int = Field(default=3, description="Patience per stakeholder per challenge (D50, was 2)")
     sound_out_patience_cost: int = Field(default=1, description="Patience spent when sounding a stakeholder out in Build your case (D50)")
 
-    # Gather (D49, plan 11): Test a hypothesis is a small trust move, not the room deciding anything.
-    emotion_refuted: float = Field(default=-0.05, description="Test a hypothesis: trust hit when the player's tag was wrong (Refuted)")
     patience_malus: float = Field(default=0.05, description="Patience malus magnitude applied to emotion values when an action card is presented more than once in a challenge")
 
 

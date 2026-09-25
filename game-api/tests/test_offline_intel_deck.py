@@ -16,6 +16,7 @@ from mlops_serious_game.application.intel_handler import (
     generate_offline_intel_artifacts,
     retrieve_dossier_data,
 )
+from mlops_serious_game.application.services.auth_service import PLAYER_COOKIE_NAME, _create_player_token
 from mlops_serious_game.config import settings
 from mlops_serious_game.domain.offline_intel_artifact import OfflineIntelArtifact
 from mlops_serious_game.domain.offline_intel_artifact_factory import OfflineIntelArtifactFactory
@@ -111,8 +112,12 @@ async def test_a_fact_filed_as_a_stance_sits_on_its_narrators_page_not_the_syste
     for item in (filed_as_driver, filed_as_fact):
         item.discovered_phase_id = 0
 
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
-    ws.query_params = {"username": f"test_offline_intel_deck_{uuid.uuid4()}"}
+    username = f"test_offline_intel_deck_{uuid.uuid4()}"
+    ensure_test_user(username)
+    ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
     artifacts = {r.id: _artifact(r, "tess_tester") for r in (mistaken, spotted)}
 
     with patch.object(RequirementFactory, "requirements", [mistaken, spotted]), \

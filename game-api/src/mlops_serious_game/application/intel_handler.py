@@ -235,16 +235,26 @@ def _phase_of_challenge(challenge_id: Optional[int]) -> Optional[int]:
         return None
 
 
-def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: str) -> List[StakeholderIntelItem]:
-    """Loads all is_known==True intel items for the current challenge into the DB as verified and returns them."""
+def load_known_intel_items_for_challenge(
+    curr_challenge: Challenge, username: str
+) -> tuple[List[StakeholderIntelItem], List[StakeholderIntelItem]]:
+    """Loads all is_known==True intel items for the current challenge into the DB as verified.
+
+    Returns `(all_known_items, newly_added_items)`: the first is every known item for this
+    challenge (freshly added or already on record), the same as this function always returned;
+    the second is only the ones actually written to the DB by this call, so a caller that wants to
+    log "this just went on the record" doesn't repeat itself on every re-entry into the same
+    challenge (e.g. `handle_get_offline_artifacts` firing again on a reconnect).
+    """
     known_artifacts = [
         art for art in OfflineIntelArtifactFactory.get_artifacts_for_challenge(curr_challenge.id)
         if art.is_known
     ]
     if not known_artifacts:
-        return []
+        return [], []
 
     loaded_items: List[StakeholderIntelItem] = []
+    newly_added: List[StakeholderIntelItem] = []
     with get_session() as session:
         user_id = get_user_id(session, username)
         records = intel_rows(session, user_id)
@@ -279,6 +289,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                 session.add(new_record)
                 existing_ids.add(req.id)
                 loaded_items.append(new_item)
+                newly_added.append(new_item)
             else:
                 for r in records:
                     if isinstance(r.intel_item_data, dict) and r.intel_item_data.get("id") == req.id:
@@ -302,7 +313,7 @@ def load_known_intel_items_for_challenge(curr_challenge: Challenge, username: st
                         loaded_items.append(StakeholderIntelItem(**data))
                         break
         session.commit()
-    return loaded_items
+    return loaded_items, newly_added
 
 
 # ── Plan 05: Persistent dossier ───────────────────────────────────────────────
@@ -1058,35 +1069,6 @@ def correct_and_verify_intel_item(
             return new_item
 
 
-def _set_intel_confidence(username: str, item_id: str, confidence: ConfidenceType) -> Optional[StakeholderIntelItem]:
-    """Flips a held item's confidence in place, keeping whatever tag the player already filed it
-    under - Gather's Test a hypothesis (D49) only ever settles a guess the player already made,
-    it never touches the tag itself (Refuted's "free re-tag" is a separate, explicit action)."""
-    with get_session() as session:
-        records = intel_rows(session, get_user_id(session, username))
-        for record in records:
-            if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == item_id:
-                data = dict(record.intel_item_data)
-                data["intel_type"] = confidence.value
-                record.intel_item_data = data
-                flag_modified(record, "intel_item_data")
-                session.commit()
-                return StakeholderIntelItem(**data)
-        return None
-
-
-def mark_intel_item_inferred(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
-    """Test a hypothesis, tag right (D49): tested, not just filed - counts toward pitch readiness
-    (Q36/D53) same as Verified."""
-    return _set_intel_confidence(username, item_id, ConfidenceType.INFERRED)
-
-
-def mark_intel_item_refuted(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
-    """Test a hypothesis, tag wrong (D49): the guess did not hold up. Never reveals the true tag -
-    the player has to re-tag and try again."""
-    return _set_intel_confidence(username, item_id, ConfidenceType.REFUTED)
-
-
 def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
     """Where the item came from, repaired for saves written before provenance was tracked.
 
@@ -1199,6 +1181,25 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     # Read once per call so tests can flip the flag on the settings object.
     debug_on = settings.ENABLE_DOSSIER_DEBUG
 
+    # Per-target totals (analogous to the per-stakeholder `intel_total` below), so the composer
+    # and performance dashboard can honestly show "N of M found" for a single component/edge
+    # instead of just a found count. Same `max(pool, held)` guard as `intel_total`: notes carried
+    # over from an earlier phase can only raise the count, never make it look incomplete.
+    target_pool_counts: Dict[str, int] = {}
+    for req in RequirementFactory.get_requirements_for_challenge(curr_challenge.id):
+        t = item_target(req)
+        if t:
+            target_pool_counts[t] = target_pool_counts.get(t, 0) + 1
+    target_held_counts: Dict[str, int] = {}
+    for held_item in all_items:
+        t = item_target(held_item)
+        if t:
+            target_held_counts[t] = target_held_counts.get(t, 0) + 1
+    target_intel_totals: Dict[str, int] = {
+        t: max(target_pool_counts.get(t, 0), target_held_counts.get(t, 0))
+        for t in set(target_pool_counts) | set(target_held_counts)
+    }
+
     def _entry(item: StakeholderIntelItem) -> Dict[str, Any]:
         intel_type_val = item.intel_type.value if hasattr(item.intel_type, "value") else str(item.intel_type)
         cat_type_val = item.categorized_type.value if hasattr(item.categorized_type, "value") else str(item.categorized_type)
@@ -1250,6 +1251,9 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 else _phase_of_challenge(item.challenge_id)
             ),
             "target": target,
+            # How many intel items exist about this graph target in total, found or not - the
+            # per-target counterpart to the per-stakeholder `intel_total` on the dossier entry.
+            "target_total": target_intel_totals.get(target) if target else None,
             "stage_id": stage_id,
             "stage_name": stage_name,
             "status": item_status(item, snapshot),

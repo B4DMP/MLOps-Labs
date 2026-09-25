@@ -75,8 +75,12 @@ def _calculate_simulation_emotion_deltas(
     card_items: list,
     room_st_ids: list[str],
     all_intel: Optional[list] = None,
-) -> dict[str, dict[str, float]]:
+) -> tuple[dict[str, dict[str, float]], dict[str, str]]:
+    """The emotion shift each room stakeholder gets from how their own targets came out, and
+    which `SIMULATION_OUTCOMES` bucket produced it - the bucket is what lets the caller log *why*
+    (delivered clean, came in capped, or left debt behind), not just move the numbers."""
     deltas: dict[str, dict[str, float]] = {}
+    buckets: dict[str, str] = {}
     capped_targets = {
         getattr(t, "id", None)
         for t in getattr(report, "targets", [])
@@ -118,16 +122,20 @@ def _calculate_simulation_emotion_deltas(
         if not st_targets:
             if has_debt:
                 deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
+                buckets[st_id] = "technical_debt"
             continue
 
         if st_targets and any(t in capped_targets for t in st_targets):
             deltas[st_id] = dict(SIMULATION_OUTCOMES["capped_delivery"])
+            buckets[st_id] = "capped_delivery"
         elif has_debt:
             deltas[st_id] = dict(SIMULATION_OUTCOMES["technical_debt"])
+            buckets[st_id] = "technical_debt"
         else:
             deltas[st_id] = dict(SIMULATION_OUTCOMES["clean_delivery"])
+            buckets[st_id] = "clean_delivery"
 
-    return deltas
+    return deltas, buckets
 
 
 async def handle_simulation_run(websocket: WebSocket, username: str, payload: dict) -> None:
@@ -153,19 +161,38 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
         names=ctx.names,
     )
 
+    # `run_simulation` only fills `events` on the first call for this challenge (it hands back
+    # the stored report verbatim on every later one - see its own docstring). The simulation
+    # screen fires `simulation:run` on every mount, not just the first, so every side effect
+    # tied to actually *having just simulated* - the gate's "next up" line, and shifting emotions
+    # by this run's deltas - has to be gated on that same signal, or reopening the report doubles
+    # them each time (a duplicate gate log line per visit, or emotions shifted again per visit).
+    is_first_run = bool(result.events)
+
     pitch_store.replace_grudges(username, [g.model_dump(mode="json") for g in result.grudges])
-    sim_deltas = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids, list(ctx.all_intel))
-    if sim_deltas:
-        pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
-    # What the graph actually did to the metrics, so "proceed to next milestone" applies it
-    # later instead of silently dropping it (see `set_metric_changes`).
-    pitch_store.set_metric_changes(username, ctx.phase_id, ctx.challenge_id, result.report.metric_deltas)
+    sim_deltas, sim_buckets = _calculate_simulation_emotion_deltas(result.report, c_items, ctx.room_ids, list(ctx.all_intel))
+    reaction_events: list = []
+    if is_first_run:
+        if sim_deltas:
+            pitch_store.apply_emotion_deltas(username, sim_deltas, ctx.room_ids)
+        # What the graph actually did to the metrics, so "proceed to next milestone" applies it
+        # later instead of silently dropping it (see `set_metric_changes`).
+        pitch_store.set_metric_changes(username, ctx.phase_id, ctx.challenge_id, result.report.metric_deltas)
+        # The missing link the log used to skip straight over: not just "the metrics shifted",
+        # but *why the room feels differently about it* - so the commit event ("the room came
+        # around on X"), these, and the metric/graph events right after read as one story instead
+        # of three disconnected steps.
+        reaction_events = [_simulation_reaction_event(st_id, bucket, ctx.names) for st_id, bucket in sim_buckets.items()]
 
     next_challenge = _next_challenge_name(username, ctx)
-    events = list(result.events) + [_gate_event(next_challenge)]
-    await send_events(
-        websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events]
-    )
+    # Reaction before the graph/metric events they're a sibling read on (not their cause - both
+    # come from the same report): "stakeholder liked us, and A/B/C shifted" is the order the
+    # commit's own event already promised, in `_changes_summary`'s wording.
+    events = reaction_events + list(result.events) + ([_gate_event(next_challenge)] if is_first_run else [])
+    if events:
+        await send_events(
+            websocket, username, [e.stamped(phase_id=ctx.phase_id, challenge_id=ctx.challenge_id) for e in events]
+        )
     await manager.send_event(
         websocket=websocket,
         event="graph:delta_report",
@@ -176,6 +203,25 @@ async def handle_simulation_run(websocket: WebSocket, username: str, payload: di
             "pending_objections": [p.model_dump(mode="json") for p in result.pending_objections],
             "next_challenge": next_challenge,
         },
+    )
+
+
+_REACTION_CAUSE = {
+    "clean_delivery": "emotion.simulation_clean",
+    "capped_delivery": "emotion.simulation_capped",
+    "technical_debt": "emotion.simulation_debt",
+}
+
+
+def _simulation_reaction_event(stakeholder_id: str, bucket: str, names: dict[str, str]):
+    """How one room stakeholder read the simulation's own outcome for their targets - the beat
+    between the commit's verdict and the metrics moving."""
+    from mlops_serious_game.domain.event import GameEvent
+
+    return GameEvent(
+        step="simulation", kind="emotion", subject_id=stakeholder_id,
+        direction="up" if bucket == "clean_delivery" else "down", magnitude="clear",
+        cause=_REACTION_CAUSE[bucket], params={"st": names.get(stakeholder_id, stakeholder_id)},
     )
 
 

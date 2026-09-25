@@ -5,7 +5,6 @@
   max-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--primary-bg, #1a1a2e);
   color: #ffffff;
   overflow: hidden;
 }
@@ -189,7 +188,7 @@
   background: radial-gradient(ellipse 90% 70% at 50% 50%, #2b3035 0%, var(--engagement-bg, #212529) 70%, #14171a 100%);
   border: 3px solid var(--primary-bg, #266682);
   border-radius: 50% / 34%;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
+  box-shadow: 5px 15px 10px rgba(0, 0, 0, 0.6), inset 0 2px 8px rgba(255, 255, 255, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -226,7 +225,7 @@
   gap: 2rem;
   width: 100%;
   margin-top: -24px;
-  margin-bottom: 2px;
+  margin-bottom: 16px;
   position: relative;
   z-index: 20;
 }
@@ -318,17 +317,73 @@
   letter-spacing: normal;
 }
 
-/* Lower Border Interaction Area */
+/* Carries the same intel-readiness color coding as the Intel stat chip onto the plaque itself
+   (once it's clickable), so the "should I pitch yet" signal shows up right where the player
+   clicks to start, not only in a separate badge they might not connect to it. */
+.tableCenterPlaqueReadygreen {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.tableCenterPlaqueReadygreen .tableCenterPlaqueIcon {
+  color: #4ade80;
+}
+
+.tableCenterPlaqueReadyyellow {
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.tableCenterPlaqueReadyyellow .tableCenterPlaqueIcon {
+  color: #fb923c;
+}
+
+.tableCenterPlaqueReadyred {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.tableCenterPlaqueReadyred .tableCenterPlaqueIcon {
+  color: #f87171;
+}
+
+.tableCenterPlaqueReadyWord {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.tableCenterPlaqueReadygreen .tableCenterPlaqueReadyWord {
+  color: #4ade80;
+}
+
+.tableCenterPlaqueReadyyellow .tableCenterPlaqueReadyWord {
+  color: #fb923c;
+}
+
+.tableCenterPlaqueReadyred .tableCenterPlaqueReadyWord {
+  color: #f87171;
+}
+
+/* Lower Border Interaction Area: styled as a control console plate mounted on the table's
+   front rim, rather than a floating full-width button that straddles the oval's curved edge. */
 .tableLowerInteractionArea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 440px;
-  gap: 0.3rem;
-  margin-top: 2px;
+  width: fit-content;
+  min-width: 260px;
+  max-width: 390px;
+  gap: 0.4rem;
+  margin-top: 6px;
+  padding: 0.45rem 0.9rem 0.55rem;
   position: relative;
   z-index: 30;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(8, 10, 14, 0.55) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.9rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -8px 16px rgba(0, 0, 0, 0.4), 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .statChipsRowCentered {
@@ -368,11 +423,34 @@
   background: rgba(56, 189, 248, 0.15);
   border: 1px solid #38bdf8;
   color: #7dd3fc;
+  transition: background var(--transition, 0.2s ease), border-color var(--transition, 0.2s ease), color var(--transition, 0.2s ease);
 }
 
 .intelStatIcon {
   font-size: 0.85rem;
-  color: #7dd3fc;
+  color: currentColor;
+}
+
+/* Colored by whether the player has gathered enough verified intel this phase to pitch with,
+   mirroring the readiness thresholds the old pitch phase used. */
+.intelReadygreen {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #4ade80;
+}
+
+/* Deliberately orange, not the tokens chip's gold/yellow (#facc15) - the two chips sit right
+   next to each other, and a shared color read as "same status" rather than "caution". */
+.intelReadyyellow {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: #f97316;
+  color: #fb923c;
+}
+
+.intelReadyred {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #f87171;
 }
 
 .statChipConsensus {
@@ -398,6 +476,22 @@
   opacity: 0.85;
 }
 
+/* Stacks the static "Intel" label over a short, always-visible readiness word (Ready to
+   pitch / Still thin / Not enough yet) so players don't have to hover to notice the color
+   coding means something is actually wrong. */
+.statLabelStack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.statReadinessWord {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .pitchExplainerText {
   font-size: 0.68rem;
   color: rgba(255, 255, 255, 0.75);
@@ -414,10 +508,10 @@
 
 /* Action Buttons */
 .actionButton {
-  padding: 0.5rem 1.2rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--secondary-bg, #334155);
-  background: var(--primary-bg, #1a1a2e);
+  padding: 0.5rem 1.1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, var(--secondary-bg, #334155) 0%, var(--primary-bg, #1a1a2e) 100%);
   color: white;
   font-weight: 600;
   font-size: 0.78rem;
@@ -429,16 +523,27 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .actionButton:hover:not(:disabled) {
-  background: var(--secondary-bg, #334155);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary-bg, #334155) 80%, white) 0%, var(--secondary-bg, #334155) 100%);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
 }
 
 .actionButton:disabled,
 .actionButtonDisabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Shrinks a button to its content instead of stretching the full console width - for a single
+   action with a short label, where full width just reads as an oversized target. */
+.actionButtonAuto {
+  width: auto;
+  padding-left: 1.4rem;
+  padding-right: 1.4rem;
 }
 
 .actionButtonBlocked {
@@ -467,9 +572,13 @@
   position: relative;
 }
 
+/* Selection reads as emphasis in the stakeholder's OWN color (glow + tinted fill), not a
+   hardcoded gold swap - a hardcoded color there would visually reassign the stakeholder a
+   different identity color the moment they're selected. */
 .seatedSelected .deskNameplate {
-  border-color: #ffc107 !important;
-  color: #ffc107 !important;
+  background: color-mix(in srgb, var(--st-color, #38bdf8) 22%, rgba(15, 23, 42, 0.9));
+  border-width: 2px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--st-color, #38bdf8) 45%, transparent), 0 0 10px color-mix(in srgb, var(--st-color, #38bdf8) 55%, transparent);
 }
 
 .seatedAvatarViewport {
@@ -482,7 +591,10 @@
 }
 
 .deskNameplate {
-  padding: 0.15rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.1rem 0.5rem 0.18rem;
   border-radius: 4px;
   background: rgba(15, 23, 42, 0.9);
   border: 1.5px solid var(--st-color, #38bdf8);
@@ -490,15 +602,19 @@
   font-size: 0.65rem;
   font-weight: 700;
   text-align: center;
+  max-width: 112px;
+  line-height: 1.15;
+}
+
+.deskNameplateLine {
   white-space: nowrap;
-  max-width: 110px;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .activeDeskNameplate {
-  border-color: #ffc107 !important;
-  color: #ffc107 !important;
+  font-weight: 800;
 }
 
 /* ── Speech Bubble Over Seated Stakeholder ── */
@@ -527,6 +643,12 @@
   word-break: break-word;
   animation: bubblePopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: auto;
+}
+
+.bubbleEmotionEmoji {
+  position: absolute;
+  top: 4px;
+  right: 6px;
 }
 
 .tableSpeechBubble::after {
@@ -738,5 +860,76 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ==========================================================================
+   Boardroom Hover Info Tag (ported from offline_intel_gathering.module.css's
+   .headerHoverTag* / StakeholderDossier's tab info-tag) - replaces plain `title` tooltips
+   on the pitch deck table's chips, plaque and action buttons.
+   ========================================================================== */
+.headerHoverTag {
+  position: fixed;
+  transform: translateX(-50%);
+  perspective: 240px;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+@keyframes navHoverTagFlipIn {
+  from {
+    opacity: 0;
+    transform: rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+}
+
+/* Light tag, deliberately not the dark theme the rest of the page uses - against the boardroom's
+   dark background a dark tooltip has low contrast and half-disappears; a light card pops instead. */
+.headerHoverTagFlip {
+  position: relative;
+  display: inline-block;
+  white-space: normal;
+  max-width: 230px;
+  text-align: center;
+  padding: 4px 10px 5px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: inherit;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  transform-origin: top center;
+  animation: navHoverTagFlipIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.headerHoverTagLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #0f172a;
+}
+
+.headerHoverTagDetail {
+  margin-top: 2px;
+  font-size: 0.63rem;
+  font-weight: 500;
+  color: #266682;
+  letter-spacing: 0.1px;
+  line-height: 1.25;
+  white-space: pre-line;
+}
+
+.headerHoverTagFlip::before {
+  content: "";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #f8fafc;
+  filter: drop-shadow(0 -1px 0.5px rgba(0, 0, 0, 0.15));
 }
 

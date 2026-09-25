@@ -1,0 +1,52 @@
+/* Reusable sentence-highlight narration pattern: one span per sentence, synced to `onSentence`'s
+   index. Light-background dossier UI (see IntelArtifactViewer/PrePhaseDialog), not a dark theme -
+   colors below are tuned against a white/near-white surface. */
+
+.container {
+  display: inline;
+}
+
+.spoken {
+  display: inline;
+  color: var(--text-primary, #1e293b);
+}
+
+.upcoming {
+  display: inline;
+  color: var(--text-primary, #1e293b);
+}
+
+.active {
+  display: inline;
+  color: var(--text-primary, #1e293b);
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 2px;
+  vertical-align: -0.05em;
+  background-color: var(--action-card-accent, #2e7a9e);
+  border-radius: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .caret {
+    animation: spoken-text-caret-blink 1s steps(1, jump-none) infinite;
+  }
+}
+
+@keyframes spoken-text-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

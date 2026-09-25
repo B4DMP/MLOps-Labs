@@ -23,10 +23,22 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "voice_female": None,
     "voice_narrator": None,
     "voice_player": None,
+    "tts_backend": "auto",
+    "player_voice_gender": "male",
+    "speech_rate": 1.0,
 }
 
 BOOL_FIELDS = ("auto_skip_conversations", "mute_tts")
 VOICE_FIELDS = ("voice_male", "voice_female", "voice_narrator", "voice_player")
+# "auto" prefers server-side edge-tts and falls back to window.speechSynthesis on failure;
+# "webspeech" skips the backend and forces the old client-only behaviour.
+TTS_BACKEND_VALUES = ("auto", "webspeech")
+# Which of the two PLAYER_VOICES (tts_service.py) narrates the player's own lines.
+PLAYER_VOICE_GENDER_VALUES = ("male", "female")
+# Matches the slider's range in SettingsPanel.tsx - wide enough to feel like a real speed change,
+# narrow enough that neither TTS path starts mangling words.
+MIN_SPEECH_RATE = 0.5
+MAX_SPEECH_RATE = 1.75
 
 # A voice is a `SpeechSynthesisVoice.name` from the player's browser, so its contents are
 # whatever their OS calls a voice. Only the length is ours to enforce, and it has to match the
@@ -44,6 +56,9 @@ def _as_dict(row: UserSettings | None) -> dict[str, Any]:
         "voice_female": row.voice_female,
         "voice_narrator": row.voice_narrator,
         "voice_player": row.voice_player,
+        "tts_backend": row.tts_backend,
+        "player_voice_gender": row.player_voice_gender,
+        "speech_rate": row.speech_rate,
     }
 
 
@@ -70,6 +85,21 @@ def sanitize_settings(payload: dict[str, Any]) -> dict[str, Any]:
             clean[field] = None
         elif isinstance(value, str) and 0 < len(value.strip()) <= MAX_VOICE_NAME_LENGTH:
             clean[field] = value.strip()
+
+    if "tts_backend" in payload and payload["tts_backend"] in TTS_BACKEND_VALUES:
+        clean["tts_backend"] = payload["tts_backend"]
+
+    if "player_voice_gender" in payload and payload["player_voice_gender"] in PLAYER_VOICE_GENDER_VALUES:
+        clean["player_voice_gender"] = payload["player_voice_gender"]
+
+    if "speech_rate" in payload:
+        value = payload["speech_rate"]
+        if (
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and MIN_SPEECH_RATE <= value <= MAX_SPEECH_RATE
+        ):
+            clean["speech_rate"] = float(value)
 
     return clean
 

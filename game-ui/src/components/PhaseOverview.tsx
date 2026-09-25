@@ -8,15 +8,35 @@ import styles from "./PhaseOverview.module.css";
  * lifecycle, so the shape itself says "these run in order"; the description is a hover card
  * rather than body copy, which keeps the whole rail one header row tall.
  */
+/** A representative icon for a lifecycle phase, keyed by (part of) its name rather than its
+ *  index - phase 0 is a skipped tutorial in some game states (see `isFirstPlayablePhase`), so
+ *  position in the array isn't a stable way to tell phases apart. Stands in for a plain number
+ *  on every upcoming phase, compact or not - unlike a number, it means the same thing wherever
+ *  it's read. */
+function iconForPhase(phaseName: string): string {
+  const name = phaseName.toLowerCase();
+  if (name.includes("introdu")) return "ph:flag-duotone";
+  if (name.includes("requirement")) return "ph:clipboard-text-duotone";
+  if (name.includes("data")) return "ph:database-duotone";
+  if (name.includes("deploy")) return "ph:rocket-launch-duotone";
+  if (name.includes("model")) return "ph:brain-duotone";
+  if (name.includes("monitor") || name.includes("usage")) return "ph:gauge-duotone";
+  return "ph:circle-duotone";
+}
+
 export interface PhaseOverviewProps {
   /**
    * Carries the intro1 tour anchor. The rail is rendered in more than one header, and the
    * tour must find exactly one of them, so only the Performance Dashboard sets this.
    */
   isTourAnchor?: boolean;
+  /** Tiny variant for headers too narrow for six full-width segments: every phase except the
+   *  current one collapses to just its marker icon (name still reachable via the hover tip),
+   *  so only the active phase claims a share of the leftover width. */
+  compact?: boolean;
 }
 
-export default function PhaseOverview({ isTourAnchor = false }: PhaseOverviewProps) {
+export default function PhaseOverview({ isTourAnchor = false, compact = false }: PhaseOverviewProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
 
   const tourProps = isTourAnchor
@@ -28,36 +48,57 @@ export default function PhaseOverview({ isTourAnchor = false }: PhaseOverviewPro
       }
     : {};
 
+  // Equal columns for every phase, one content-sized column for the tail. Set here rather
+  // than in CSS because only this component knows how many phases there are. In compact mode
+  // every phase is only as wide as its own content, EXCEPT the active one: it's the only track
+  // that should grow to fill the leftover width, so it's the only one given an `fr` share.
+  // Every other track (done/upcoming icons and the tail) is `max-content`, deliberately never
+  // the bare `auto` keyword - with an `fr` track absent, CSS Grid would otherwise distribute
+  // leftover free space equally across every `auto`-sized track too (the "stretch to fill" step
+  // of the track sizing algorithm), which is what turned the tail's own column into a second,
+  // competing patch of blank space instead of a small fixed one.
+  const phaseColumns = compact
+    ? phases
+        .map((_, index) => (index === currentPhase ? "minmax(0, 1fr)" : "minmax(0, max-content)"))
+        .join(" ")
+    : `repeat(${phases.length}, minmax(0, 1fr))`;
+  const tailColumn = compact ? "minmax(0, max-content)" : "auto";
+
   return (
     <ol
-      className={`${styles.rail} ${isTourAnchor ? "intro1" : ""}`}
-      // Equal columns for the phases, one content-sized column for the tail. Set here rather
-      // than in CSS because only this component knows how many phases there are.
-      style={{ gridTemplateColumns: `repeat(${phases.length}, minmax(0, 1fr)) auto` }}
+      className={`${styles.rail} ${compact ? styles.compact : ""} ${isTourAnchor ? "intro1" : ""}`}
+      style={{ gridTemplateColumns: `${phaseColumns} ${tailColumn}` }}
       {...tourProps}
       aria-label="MLOps lifecycle phases"
     >
       {phases.map((phase, index) => {
         const state =
           index > currentPhase ? "upcoming" : index === currentPhase ? "active" : "done";
+        const isIconOnly = compact && state !== "active";
+        // A tip anchored to its step's left edge opens rightward - fine for the first half of
+        // the rail, but past the midpoint it starts running off whatever the rail's own right
+        // edge is (the header, the card). Flipping it to the step's right edge for the second
+        // half keeps it opening back toward the rail instead.
+        const flipTip = index >= Math.ceil(phases.length / 2);
 
         return (
           <li
             key={phase.phase_name}
-            className={`${styles.step} ${styles[state]} ${index === 0 ? styles.first : ""}`}
+            className={`${styles.step} ${styles[state]} ${index === 0 ? styles.first : ""} ${
+              isIconOnly ? styles.iconOnly : ""
+            } ${flipTip ? styles.tipFlip : ""}`}
             tabIndex={0}
             aria-current={state === "active" ? "step" : undefined}
+            aria-label={isIconOnly ? phase.phase_name : undefined}
           >
             <span className={styles.marker} aria-hidden>
               {state === "done" ? (
                 <Icon icon="ph:check-bold" />
-              ) : state === "active" ? (
-                <Icon icon="ph:caret-right-bold" />
               ) : (
-                index + 1
+                <Icon icon={iconForPhase(phase.phase_name)} />
               )}
             </span>
-            <span className={styles.stepName}>{phase.phase_name}</span>
+            {!isIconOnly && <span className={styles.stepName}>{phase.phase_name}</span>}
 
             <span className={styles.tip} role="tooltip">
               <strong className={styles.tipTitle}>{phase.phase_name}</strong>

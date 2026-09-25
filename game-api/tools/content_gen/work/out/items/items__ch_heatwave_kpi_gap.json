@@ -1,9 +1,9 @@
 {
   "item_id": "items:ch_heatwave_kpi_gap",
   "stage": "items",
-  "input_hash": "893f918c3ce7e40a906e4fdf5fda8fb0c4d7bbfb2f156d7eafae35f1c836d6b5",
+  "input_hash": "974bb55f42f9c89e774acd2a0d2885df7f899ae3684f577976c3c95c9e459866",
   "model": "Qwen/Qwen3.8-27B",
-  "attempts": 2,
+  "attempts": 1,
   "inputs": {
     "challenge": {
       "phase_id": 0,
@@ -188,46 +188,6 @@
             "manual_request",
             "on_approval"
           ]
-        },
-        {
-          "id": "e.risk_audit",
-          "from": "req.risk_assessment",
-          "to": "gov.audit",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
-        },
-        {
-          "id": "e.risk_cards",
-          "from": "req.risk_assessment",
-          "to": "gov.model_cards",
-          "kind": "governs",
-          "start_level": 1,
-          "allowed_levels": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ],
-          "allowed_triggers": [
-            "none",
-            "manual_request",
-            "scheduled",
-            "on_approval"
-          ]
         }
       ],
       "instances": []
@@ -288,7 +248,7 @@
           "driver": "Automated KPI tracking would let the model team validate forecast shifts during heatwaves in real time.",
           "boundary": "The model team will not deploy seasonal features without automated KPI tracking.",
           "trade_off": "The model team would accept manual KPI tracking if it allowed more time for feature engineering.",
-          "fact": "The KPI definition is currently missing from the system."
+          "fact": "The KPI definition is currently broken in the system."
         },
         "metric_id": "model",
         "suggested_target": "req.kpi_definition",
@@ -312,7 +272,7 @@
           "driver": "{efficiency_emilia} wants more manual control to refine the business goals.",
           "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
           "trade_off": "{efficiency_emilia} would accept an automated KPI definition if it clearly supports the agreed business goals.",
-          "fact": "The KPI definition is currently missing from the system."
+          "fact": "The KPI definition is currently broken in the system."
         },
         "metric_id": "efficiency",
         "suggested_target": null,
@@ -408,7 +368,7 @@
           "driver": "{efficiency_emilia} wants more KPIs to track margin improvements.",
           "boundary": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
           "trade_off": "{efficiency_emilia} would drop the margin KPI if availability is prioritized.",
-          "fact": "The KPI definition is currently missing from the system."
+          "fact": "The KPI definition is currently broken in the system."
         },
         "metric_id": "efficiency",
         "suggested_target": null,
@@ -438,11 +398,11 @@
         "key": "fact_kpi_missing",
         "tag": "fact",
         "stakeholder_id": null,
-        "fact": "The KPI definition is missing from the system.",
+        "fact": "The KPI definition is broken in the system.",
         "readings": {
           "driver": "The team wants to add KPI definitions to track performance.",
           "boundary": "The team will not proceed without KPI definitions.",
-          "trade_off": "The team would accept missing KPIs if the models are accurate.",
+          "trade_off": "The team would accept broken KPIs if the models are accurate.",
           "fact": "That is simply how the KPI setup works today."
         },
         "metric_id": null,

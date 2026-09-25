@@ -17,6 +17,11 @@ LEVEL_NUMBERS = re.compile(r"\b[0-4]\b")  # readings may say "governed", never "
 BECAUSE = re.compile(r"\b(because|so that|in order to)\b", re.I)  # not "since": usually about time
 # A stance fact must read the same whatever the tag: how much they care belongs in the reading.
 STANCE_WORDS = re.compile(r"\b(refuses?|will not|won't|never|could accept|can accept|accepts?|can live|willing|insists?|demands?|must not|cannot)\b", re.I)
+# Level 0 (broken: it exists and stopped working, or work on it stalled) and level 1 (absent: it
+# never existed) read as the same thing ("currently missing") unless a fact's wording is checked
+# against its own asserted level, not just the number.
+BROKEN_WORDS = re.compile(r"\bbroken\b", re.I)
+ABSENT_WORDS = re.compile(r"\b(missing|absent)\b", re.I)
 EXAMPLE_READINGS = {
     "the more detail it shows, the better his forecasts get.",
     "he will not present to the board without it.",
@@ -92,6 +97,14 @@ class ItemOut(BaseModel):
     asserts_axis: Optional[AxisName] = Field(default=None, description="required with asserts_level")
     asserts_level: Optional[int] = None
     asserts_trigger: Optional[str] = None
+    # trade_off only, and hand-authored (D-branches): the two ways the player can resolve the
+    # trade-off, each pulled from something already established for the challenge, never invented.
+    branch_x_description: Optional[str] = None
+    branch_x_target: Optional[str] = None
+    branch_x_level: Optional[int] = None
+    branch_y_description: Optional[str] = None
+    branch_y_target: Optional[str] = None
+    branch_y_level: Optional[int] = None
 
 
 class ItemsOut(BaseModel):
@@ -110,6 +123,9 @@ Neutral fact verbs: asked for, proposed, brought up, suggested, mentioned, noted
 insists, refuses, will not, willing, accepts, can live with, demands, never, must not, cannot. Those
 belong in readings. A fact item's fact sentence names no person and uses no wish words.
 Never mention levels or numbers in any text: say broken, missing, done by hand, automated, governed.
+Broken (level 0) and missing or absent (level 1) are not interchangeable: broken means it exists
+and stopped working, or work on it stalled or was paused; missing or absent means it never existed
+at all. Match the word to the fact's asserted level, never default to "missing" for a broken state.
 
 The fact must say WHAT happened or what the system state is, never WHY. Wrong: "{data_dave} asked
 for cost savings in experiment tracking." Right: "{data_dave} proposed keeping experiment tracking
@@ -265,6 +281,13 @@ class ItemsStage:
             if it.get("asserts_target") is not None:
                 data["asserts"] = {"target": it["asserts_target"], "axis": it.get("asserts_axis"),
                                    "level": it.get("asserts_level"), "trigger": it.get("asserts_trigger")}
+            for branch in ("branch_x", "branch_y"):
+                if it.get(f"{branch}_description") is not None:
+                    data[branch] = {
+                        "description": it[f"{branch}_description"],
+                        "target": it.get(f"{branch}_target"),
+                        "level": it.get(f"{branch}_level"),
+                    }
             reqs.append(StakeholderRequirement.model_validate(data))
         return reqs
 
@@ -387,6 +410,12 @@ class ItemsStage:
                                       f"not {a.level}")
                     if a.trigger is not None and a.trigger != current[a.target].get("trigger"):
                         errors.append(f"{where}: {a.target} trigger is {current[a.target].get('trigger')}, not {a.trigger}")
+                    if a.level == 0 and (m := ABSENT_WORDS.search(r.fact or "")) and not BROKEN_WORDS.search(r.fact or ""):
+                        errors.append(f"{where}: '{m.group(0)}' reads as absent, as if it never existed; level 0 "
+                                      "is broken, it existed and stopped working or work on it stalled, say broken instead")
+                    if a.level == 1 and BROKEN_WORDS.search(r.fact or ""):
+                        errors.append(f"{where}: 'broken' reads as something that existed and failed; level 1 is "
+                                      "absent, it never existed, say missing or absent instead")
                 elif a:
                     errors.append(f"{where}: facts must be about the focus stage ({stage_id})")
                 continue

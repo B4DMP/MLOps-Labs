@@ -3,7 +3,7 @@ import styles from "./PrePhaseDialog.module.css";
 import { PhasesContext, isFirstPlayablePhase } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
 import { useSpeech } from "./useSpeech";
-import { cancelSpeech } from "../utils/speech";
+import { cancelSpeech, splitSentences } from "../utils/speech";
 import { useContext, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FADE_TRANSITION } from "../utils/transitions";
@@ -11,6 +11,8 @@ import PowerInterestMatrix from "./PowerInterestMatrix";
 import PhaseOverview from "./PhaseOverview";
 import HoverTooltip from "./HoverToolTip";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
+import CheatSheetModal from "./CheatSheetModal";
+import SpokenText from "./SpokenText";
 
 interface PrePhaseDialogProps {
   isOpen: boolean;
@@ -33,6 +35,11 @@ interface PrePhaseDialogProps {
    * The briefing then just closes again instead of starting the round.
    */
   isReview?: boolean;
+  /** Opens/closes the settings panel. Hidden while `isReview`: the dossier that reopened this
+   * briefing already has its own Settings button, and showing a second one here would be
+   * redundant. */
+  onSettingsToggle?: () => void;
+  isSettingsOpen?: boolean;
 }
 
 export default function PrePhaseDialog({
@@ -46,6 +53,8 @@ export default function PrePhaseDialog({
   challengeAmount,
   isNewChallenge = false,
   isReview = false,
+  onSettingsToggle,
+  isSettingsOpen = false,
 }: PrePhaseDialogProps) {
   const { currentPhase, phases } = useContext(PhasesContext);
   const { settings } = useSettings();
@@ -54,6 +63,7 @@ export default function PrePhaseDialog({
   // clips its own overflow and the matrix column keeps a transform from its
   // entrance animation, so neither can host a fixed-position bubble.
   const [bubbleLayer, setBubbleLayer] = useState<HTMLDivElement | null>(null);
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
   const wasReviewRef = useRef(false);
   if (isOpen) {
     wasReviewRef.current = isReview;
@@ -69,8 +79,29 @@ export default function PrePhaseDialog({
   const [isNarratingBriefing, setIsNarratingBriefing] = useState(false);
   const [introsUnlocked, setIntrosUnlocked] = useState(false);
   const briefingCancelRef = useRef<() => void>(() => {});
+  // Which sentence of the briefing narration is playing right now, for SpokenText below. Only
+  // `phase_introduction`'s own sentences are rendered here (the challenge title/intro read in the
+  // same pass live inside ChallengeDescriptionCard, not this component), so an index landing past
+  // phase_introduction's own sentence count is treated as "nothing to highlight here" rather than
+  // clamped to its last sentence - see phaseIntroSentenceCount below.
+  const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
+  // Same narration, counted from the start of the challenge title/intro instead: negative while
+  // phase_introduction is still being read (ChallengeDescriptionCard treats that as "nothing of
+  // mine yet", not literally nothing), then 0-based across "title. intro" once it's their turn.
+  // Passed straight through to ChallengeDescriptionCard, which splits out the title's own share.
+  const [challengeSentenceIndex, setChallengeSentenceIndex] = useState<number | null>(null);
+  // True once the first sentence has actually started playing. Distinct from `activeSentenceIndex`
+  // being non-null: phase_introduction can be empty while the challenge text still narrates, in
+  // which case activeSentenceIndex stays null for the whole reading (nothing here to highlight),
+  // but this still flips true - it is what drives the "waiting on audio" loading indicator, not
+  // the highlight.
+  const [hasBriefingAudioStarted, setHasBriefingAudioStarted] = useState(false);
 
   const currentPhaseData = phases[currentPhase];
+  const phaseIntroductionText = currentPhaseData?.phase_introduction || "";
+  const phaseIntroSentenceCount = splitSentences(phaseIntroductionText)
+    .map((s) => s.trim())
+    .filter(Boolean).length;
   const buildBriefingNarration = () =>
     [
       currentPhaseData?.phase_introduction,
@@ -88,16 +119,30 @@ export default function PrePhaseDialog({
     }
     setIntrosUnlocked(false);
     setIsNarratingBriefing(true);
+    setActiveSentenceIndex(null);
+    setChallengeSentenceIndex(null);
+    setHasBriefingAudioStarted(false);
     briefingCancelRef.current = speakTts(text, {
       slot: "narrator",
+      onSentence: ({ index }) => {
+        setHasBriefingAudioStarted(true);
+        setActiveSentenceIndex(index < phaseIntroSentenceCount ? index : null);
+        setChallengeSentenceIndex(index - phaseIntroSentenceCount);
+      },
       onEnd: () => {
         setIsNarratingBriefing(false);
         setIntrosUnlocked(true);
+        setActiveSentenceIndex(null);
+        setChallengeSentenceIndex(null);
+        setHasBriefingAudioStarted(false);
       },
     });
     return () => {
       briefingCancelRef.current();
       setIsNarratingBriefing(false);
+      setActiveSentenceIndex(null);
+      setChallengeSentenceIndex(null);
+      setHasBriefingAudioStarted(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -114,15 +159,31 @@ export default function PrePhaseDialog({
     if (!text) return;
     briefingCancelRef.current();
     setIsNarratingBriefing(true);
+    setActiveSentenceIndex(null);
+    setChallengeSentenceIndex(null);
+    setHasBriefingAudioStarted(false);
     briefingCancelRef.current = speakTts(text, {
       slot: "narrator",
-      onEnd: () => setIsNarratingBriefing(false),
+      onSentence: ({ index }) => {
+        setHasBriefingAudioStarted(true);
+        setActiveSentenceIndex(index < phaseIntroSentenceCount ? index : null);
+        setChallengeSentenceIndex(index - phaseIntroSentenceCount);
+      },
+      onEnd: () => {
+        setIsNarratingBriefing(false);
+        setActiveSentenceIndex(null);
+        setChallengeSentenceIndex(null);
+        setHasBriefingAudioStarted(false);
+      },
     });
   };
 
   const stopBriefingNarration = () => {
     briefingCancelRef.current();
     setIsNarratingBriefing(false);
+    setActiveSentenceIndex(null);
+    setChallengeSentenceIndex(null);
+    setHasBriefingAudioStarted(false);
   };
 
   const handleClose = () => {
@@ -130,6 +191,7 @@ export default function PrePhaseDialog({
     // have to wait for it), and the round behind this dialog starts immediately on close - so
     // without this, its own narration could start while the old introduction was still audible.
     cancelSpeech();
+    setActiveSentenceIndex(null);
     setIsOpen(false);
     // Reviewing mid-phase just returns the player to where they were; only the
     // briefing shown on entering a phase starts the round.
@@ -183,6 +245,32 @@ export default function PrePhaseDialog({
                 <span className={styles.phaseBadge}>
                   Phase {displayPhaseNumber} of {totalPlayablePhases}
                 </span>
+              )}
+              {/* Hidden on a review reopen: the dossier behind this already has its own
+                  Settings and Cheat Sheet buttons, so a second pair here would be redundant. */}
+              {!isReview && (
+                <>
+                  {onSettingsToggle && (
+                    <button
+                      type="button"
+                      className={`${styles.dashboardLink} ${isSettingsOpen ? styles.dashboardLinkActive : ""}`}
+                      onClick={onSettingsToggle}
+                      title={isSettingsOpen ? "Close settings" : "Open settings"}
+                    >
+                      <Icon icon="ph:gear-six-bold" />
+                      <span>Settings</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={styles.dashboardLink}
+                    onClick={() => setIsCheatSheetOpen(true)}
+                    title="Cheat Sheet"
+                  >
+                    <Icon icon="ph:question-bold" />
+                    <span>Cheat Sheet</span>
+                  </button>
+                </>
               )}
               {isReview && (
                 <button
@@ -240,15 +328,22 @@ export default function PrePhaseDialog({
                         per-utterance controls in offline intel gathering). */}
                     {!settings.mute_tts && buildBriefingNarration() && (
                       <span className={styles.briefingNarrationControls}>
+                        {isNarratingBriefing && !hasBriefingAudioStarted && (
+                          <Icon
+                            icon="ph:circle-notch-bold"
+                            className={styles.briefingNarrationLoading}
+                            aria-hidden="true"
+                          />
+                        )}
                         {isNarratingBriefing && (
                           <button
                             type="button"
                             onClick={stopBriefingNarration}
-                            className={styles.briefingNarrationButton}
-                            title="Stop playing"
-                            aria-label="Stop playing"
+                            className={`${styles.briefingNarrationButton} ${styles.briefingNarrationButtonPulsing}`}
+                            title="Stop"
+                            aria-label="Stop"
                           >
-                            <Icon icon="ph:speaker-slash-bold" />
+                            <Icon icon="ph:stop-circle-bold" />
                           </button>
                         )}
                         <button
@@ -266,7 +361,10 @@ export default function PrePhaseDialog({
                   <div className={styles.missionCardBody}>
                     {currentPhaseData?.phase_introduction && (
                       <p className={styles.missionIntro}>
-                        {currentPhaseData.phase_introduction}
+                        <SpokenText
+                          text={currentPhaseData.phase_introduction}
+                          activeSentenceIndex={isNarratingBriefing ? activeSentenceIndex : null}
+                        />
                       </p>
                     )}
                     <div className={styles.objectivesBox}>
@@ -292,6 +390,7 @@ export default function PrePhaseDialog({
                     challengeAmount={challengeAmount}
                     is_minimized={true}
                     isNew={isNewChallenge}
+                    activeSentenceIndex={isNarratingBriefing ? challengeSentenceIndex : null}
                   />
                 )}
               </div>
@@ -348,6 +447,11 @@ export default function PrePhaseDialog({
 
           {/* Fixed, click-through overlay the radar portals its bubbles into */}
           <div ref={setBubbleLayer} className={styles.bubbleLayer} />
+          <CheatSheetModal
+            isOpen={isCheatSheetOpen}
+            onClose={() => setIsCheatSheetOpen(false)}
+            activeSectionTitle="Briefing"
+          />
       </div>
   );
 

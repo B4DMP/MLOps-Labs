@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
+import { clearSeenBriefings } from "../utils/seenBriefings";
 
 export interface PlayerSettings {
   auto_skip_conversations: boolean;
@@ -8,6 +9,15 @@ export interface PlayerSettings {
   voice_female: string | null;
   voice_narrator: string | null;
   voice_player: string | null;
+  /** "auto" prefers server-side edge-tts narration and falls back to window.speechSynthesis on
+   * failure; "webspeech" forces the old client-only behaviour. */
+  tts_backend: "auto" | "webspeech";
+  /** Which of the server's two player voices narrates the player's own lines. Chosen at
+   * registration, editable later here in Settings. */
+  player_voice_gender: "male" | "female";
+  /** Multiplier on narration speed for both TTS paths - 1 is unchanged, below slower, above
+   * faster. Editable here in Settings. */
+  speech_rate: number;
 }
 
 export const DEFAULT_SETTINGS: PlayerSettings = {
@@ -17,6 +27,9 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   voice_female: null,
   voice_narrator: null,
   voice_player: null,
+  tts_backend: "auto",
+  player_voice_gender: "male",
+  speech_rate: 1,
 };
 
 interface SettingsContextValue {
@@ -88,6 +101,9 @@ function toPlayerSettings(data: Record<string, unknown> | undefined | null): Pla
     voice_female: asVoiceName(data?.voice_female),
     voice_narrator: asVoiceName(data?.voice_narrator),
     voice_player: asVoiceName(data?.voice_player),
+    tts_backend: data?.tts_backend === "webspeech" ? "webspeech" : "auto",
+    player_voice_gender: data?.player_voice_gender === "female" ? "female" : "male",
+    speech_rate: typeof data?.speech_rate === "number" ? data.speech_rate : 1,
   };
 }
 
@@ -108,8 +124,11 @@ interface SettingsProviderProps {
  *
  * Seeds from `game:init_data` (so the very first paint already knows whether to mute) and stays
  * current off `settings:data`, which both `settings:get`/`settings:update` answer with. On
- * `settings:account_reset` the local mirror is dropped and the page reloads into the fresh
- * account rather than trying to reconcile stale in-memory state.
+ * `settings:account_reset` the local mirror is dropped, along with the `seenBriefings` mirror
+ * (otherwise a reset account gets dealt the same deterministic first challenge and looks
+ * "already briefed" for it, silently suppressing the briefing dialog - see `seenBriefings.ts`),
+ * and the page reloads into the fresh account rather than trying to reconcile stale in-memory
+ * state.
  */
 export default function SettingsProvider({ children, username, startMuted = false }: SettingsProviderProps) {
   const { emit, subscribe } = useGameWebSocket();
@@ -145,6 +164,7 @@ export default function SettingsProvider({ children, username, startMuted = fals
     });
     const unsubReset = subscribe("settings:account_reset", () => {
       clearMirror(username);
+      clearSeenBriefings(username);
       window.location.reload();
     });
     return () => {

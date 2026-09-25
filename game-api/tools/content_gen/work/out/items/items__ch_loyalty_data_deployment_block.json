@@ -725,7 +725,13 @@
         "concedes_max_level": 3,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "pushing the deployment pipeline to full automation",
+        "branch_x_target": "deploy.cicd",
+        "branch_x_level": 4,
+        "branch_y_description": "the pipeline moving with a manual approval gate",
+        "branch_y_target": "deploy.cicd",
+        "branch_y_level": 3
       },
       {
         "key": "reuben_compliance_check",
@@ -749,7 +755,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "the deployment pipeline held at the audited, compliance-checked level",
+        "branch_x_target": "deploy.cicd",
+        "branch_x_level": 2,
+        "branch_y_description": "the deployment pipeline moving to full automation",
+        "branch_y_target": "deploy.cicd",
+        "branch_y_level": 4
       },
       {
         "key": "ruth_feedback_loop",
@@ -793,7 +805,7 @@
         "ops": [
           {
             "kind": "raise_to",
-            "target": "e.cost_serving",
+            "target": "deploy.orchestration",
             "value": 2,
             "attr": null
           }
@@ -804,7 +816,13 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "branch_x_description": "cost control relaxed for the new model version",
+        "branch_x_target": "deploy.orchestration",
+        "branch_x_level": 2,
+        "branch_y_description": "cost control held at its current, strict level",
+        "branch_y_target": "deploy.orchestration",
+        "branch_y_level": 1
       },
       {
         "key": "fact_pipeline_broken",

@@ -161,6 +161,15 @@ def payload_errors(requirements, graph, metric_ids: set[str], stakeholder_ids: s
                 errors.append(f"{where} concedes: unknown metric '{c.metric_id}'")
             if c.target is not None and not graph.is_target(graph.resolve(c.target)):
                 errors.append(f"{where} concedes: unknown target '{c.target}'")
+        if (r.branch_x is not None or r.branch_y is not None) and r.type != IntelTag.TRADE_OFF:
+            errors.append(f"{where}: only Trade-offs carry 'branch_x'/'branch_y'")
+        for branch_name, branch in (("branch_x", r.branch_x), ("branch_y", r.branch_y)):
+            if branch is not None and branch.target is not None:
+                target = graph.resolve(branch.target)
+                if not graph.is_target(target):
+                    errors.append(f"{where} {branch_name}: unknown target '{branch.target}'")
+                elif branch.level is not None and branch.level not in graph.allowed_for(target, branch.axis):
+                    errors.append(f"{where} {branch_name}: level {branch.level} not allowed on '{branch.target}'")
         for raw in r.ops:
             try:
                 op = GraphOp.model_validate(raw)

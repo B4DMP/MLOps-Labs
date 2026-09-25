@@ -46,6 +46,33 @@ def describe_tag(tag) -> str:
         return TAG_PROMPT_DESCRIPTION[IntelTag.DRIVER]
 
 
+# The short, player-facing name for a tag - what the event log shows for the player's own filed
+# guess (safe to say: it is what they just chose, not a reveal of whether it holds up).
+TAG_LABEL: dict[IntelTag, str] = {
+    IntelTag.DRIVER: "a Driver",
+    IntelTag.BOUNDARY: "a Boundary",
+    IntelTag.TRADE_OFF: "a Trade-off",
+    IntelTag.FACT: "a Fact",
+}
+
+
+def tag_label(tag) -> str:
+    try:
+        return TAG_LABEL[IntelTag(getattr(tag, "value", tag))]
+    except ValueError:
+        return TAG_LABEL[IntelTag.DRIVER]
+
+
+def truncate_detail(text: Optional[str], limit: int = 140) -> str:
+    """A log line's one chance to quote an item's own wording - trimmed so one long item can't
+    blow out a row. Never a new leak: every caller passes text the player has already been shown
+    (the reveal message, the tagging ack), just repeated here for the log's own story."""
+    text = (text or "").strip()
+    if not text:
+        return "something new"
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
 class TargetLevel(BaseModel):
     target: str
     axis: str  # "automation" | "governance" - required, see 00-plan.md §10.1
@@ -70,19 +97,10 @@ class FactAssertion(BaseModel):
 
 class ConfidenceType(str, Enum):
     UNCONFIRMED = "unconfirmed"
-    # Gather's "Test a hypothesis" turn (D49, plan 11): the player's own tag held up under
-    # questioning. Not a public confirmation like Verified, but tested - it counts toward pitch
-    # readiness (Q36/D53) and is shown with its own stamp in the dossier.
-    INFERRED = "inferred"
-    # The same turn, but the player's tag was wrong: a trust hit, a free re-tag, the conversation
-    # goes on. Never shows the true tag - Refuted only says the guess was wrong.
-    REFUTED = "refuted"
     VERIFIED = "verified"
 
 
-# Q36/D53: an Inferred note has been tested against the stakeholder, so it counts toward pitch
-# readiness the same as a Verified one - only Unconfirmed and Refuted do not.
-READINESS_CONFIDENCE = frozenset({ConfidenceType.VERIFIED, ConfidenceType.INFERRED})
+READINESS_CONFIDENCE = frozenset({ConfidenceType.VERIFIED})
 
 
 def counts_toward_readiness(intel_type) -> bool:

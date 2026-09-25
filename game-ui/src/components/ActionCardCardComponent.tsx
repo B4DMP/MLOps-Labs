@@ -1,12 +1,14 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./ActionCardCardComponent.module.css";
 import type { ActionCard, AtomicChange, ItemPrediction } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
-import { AXIS_TITLES, formatAxisLevel, formatAxisLevelCap } from "../utils/stageCanvas";
+import { AXIS_TITLES, axisMeta, formatAxisLevel, formatAxisLevelCap } from "../utils/stageCanvas";
 import { describeAtomicChange } from "../utils/graphOptions";
+import { dedupeAtomicChanges } from "./ComposeActionProposalModal";
+import HoverTooltip from "./HoverToolTip";
 
 /** The prediction for one slotted change: backend predictions are per (target, axis). */
 function predictionFor(card: ActionCard, ac: AtomicChange): ItemPrediction | undefined {
@@ -55,6 +57,10 @@ export interface ActionCardCardComponentProps {
   stakeholders?: Record<string, Stakeholder>;
   getStakeholderColor?: (st: any) => string;
   onClick?: () => void;
+  /** A single change row was clicked (its own graph target id) - lets the caller open the
+   *  composer already focused on that target's inspector, instead of just opening it. Row
+   *  clicks stop propagation, so this fires instead of `onClick`, not in addition to it. */
+  onSelectChange?: (target: string) => void;
   className?: string;
   isInteractive?: boolean;
   isMinimized?: boolean;
@@ -69,6 +75,7 @@ export default function ActionCardCardComponent({
   stakeholders: propStakeholders,
   getStakeholderColor: propGetColor,
   onClick,
+  onSelectChange,
   className = "",
   isInteractive = false,
   isMinimized = false,
@@ -122,33 +129,128 @@ export default function ActionCardCardComponent({
 
   const contributingStakeholders = Array.from(contributingStakeholdersMap.values());
 
+  // A saved proposal can carry two slots for the same target (see dedupeAtomicChanges) -
+  // deduped before it's ever rendered as two identical-looking rows.
+  const atomicChanges = useMemo(() => dedupeAtomicChanges(card.atomic_changes || []), [card.atomic_changes]);
+
+  if (isMinimized) {
+    const progressLabel =
+      atomicChanges.length > 0
+        ? `${atomicChanges.length}/3 Changes`
+        : addendums && addendums.length > 0
+        ? `${addendums.filter((a) => a.status === "attached").length}/2 Addendums`
+        : null;
+
+    return (
+      <div
+        onClick={isInteractive && onClick ? onClick : undefined}
+        className={`${styles.cardContainer} ${styles.minimizedCard} ${styles.minimizedPanel} ${
+          isInteractive ? styles.interactive : ""
+        } ${className}`}
+      >
+        <div className={styles.minimizedHeader}>
+          <span className={styles.minimizedEyebrow}>
+            <Icon icon="ph:git-merge-bold" className={styles.minimizedEyebrowIcon} />
+            <span>Action Proposal</span>
+          </span>
+          {progressLabel && <span className={styles.minimizedProgressPill}>{progressLabel}</span>}
+        </div>
+
+        <div className={styles.minimizedBody}>
+          {atomicChanges.length > 0 ? (
+            atomicChanges.map((ac, idx) => {
+              const name =
+                card.target_names?.[ac.target] ||
+                ac.target.split(".").pop()?.replace(/_/g, " ") ||
+                ac.target;
+              const pred = predictionFor(card, ac);
+              const level = pred?.predicted ?? ac.value;
+              const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
+              return (
+                <div
+                  key={idx}
+                  className={`${styles.changeRow} ${idx % 2 === 1 ? styles.changeRowAlt : ""} ${
+                    onSelectChange ? styles.changeRowClickable : ""
+                  }`}
+                  style={meta ? ({ "--change-color": meta.color, "--change-ink": meta.ink } as React.CSSProperties) : undefined}
+                  onClick={
+                    onSelectChange
+                      ? (e) => {
+                          e.stopPropagation();
+                          onSelectChange(ac.target);
+                        }
+                      : undefined
+                  }
+                >
+                  <span className={`${styles.changeName} text-truncate`}>
+                    <Icon icon="ph:lightning-fill" className={styles.changeNameIcon} />
+                    <span className="text-truncate">{name}</span>
+                  </span>
+                  {pred?.upstream_uncertain ? (
+                    <span className={`${styles.changeBadge} ${styles.changeBadgeWarning}`}>
+                      <Icon icon="ph:question-fill" /> Uncertain
+                    </span>
+                  ) : pred?.capped_by ? (
+                    <span className={`${styles.changeBadge} ${styles.changeBadgeCapped}`}>
+                      <Icon icon="ph:link-simple-bold" /> {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
+                    </span>
+                  ) : (
+                    <span className={styles.changeBadge}>
+                      {meta && <Icon icon={meta.icon} />} {formatAxisLevelCap(ac.axis ?? "automation", level)}
+                    </span>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <HoverTooltip description={card.description}>
+              <p className={styles.minimizedDescription}>{card.description}</p>
+            </HoverTooltip>
+          )}
+
+          {addendums && addendums.length > 0 && (
+            <div className={styles.stakeholdersRow}>
+              <Icon icon="ph:puzzle-piece-fill" style={{ color: "var(--primary-bg)" }} />
+              <span style={{ fontSize: "0.65rem", fontWeight: 700, color: "var(--primary-bg)" }}>
+                {addendums.filter((a) => a.status === "attached").length} / 2 Slots
+              </span>
+            </div>
+          )}
+
+          <div className={styles.minimizedFooter}>
+            <span>Click to expand</span>
+            <Icon icon="ph:arrow-right-bold" className={styles.minimizedFooterIcon} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={isInteractive && onClick ? onClick : undefined}
-      className={`card shadow-sm rounded-2 overflow-hidden ${styles.cardContainer} ${
-        isMinimized ? styles.minimizedCard : styles.maximizedCard
-      } ${isInteractive ? styles.interactive : ""} ${className}`}
+      className={`card shadow-sm rounded-2 overflow-hidden ${styles.cardContainer} ${styles.maximizedCard} ${
+        isInteractive ? styles.interactive : ""
+      } ${className}`}
       style={{
         background: "#ffffff",
         border: "1px solid #dee2e6",
       }}
-      title={`${card.title} - ${card.description}`}
     >
       {/* Card Header matching ChallengeDescriptionCard with card title in header */}
       <div
-        className={`card-header ${isMinimized ? "py-1 px-2" : "py-2 px-3"} d-flex align-items-center justify-content-between gap-2`}
+        className="card-header py-2 px-3 d-flex align-items-center justify-content-between gap-2"
         style={{ background: "var(--primary-bg)", color: "white" }}
       >
         <span
-          className={`fw-bold text-center flex-grow-1 ${isMinimized ? "text-truncate" : ""}`}
+          className="fw-bold text-center flex-grow-1"
           style={{
             color: "white",
-            fontSize: isMinimized ? "0.82rem" : "0.98rem",
+            fontSize: "0.98rem",
             lineHeight: 1.3,
-            whiteSpace: isMinimized ? undefined : "normal",
-            wordBreak: isMinimized ? undefined : "break-word",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
           }}
-          title={card.title}
         >
           {card.title}
         </span>
@@ -158,15 +260,11 @@ export default function ActionCardCardComponent({
             style={{
               color: "rgba(255, 255, 255, 0.9)",
               background: "rgba(255, 255, 255, 0.18)",
-              fontSize: isMinimized ? "0.62rem" : "0.72rem",
+              fontSize: "0.72rem",
               whiteSpace: "nowrap",
             }}
           >
-            {isMinimized && card.atomic_changes && card.atomic_changes.length > 0
-              ? `${card.atomic_changes.length}/3 Changes`
-              : isMinimized && addendums && addendums.length > 0
-              ? `${addendums.filter((a) => a.status === "attached").length}/2 Addendums`
-              : "Action Card"}
+            Action Card
           </span>
           {onClose && (
             <button
@@ -185,123 +283,19 @@ export default function ActionCardCardComponent({
 
       {/* Card Body */}
       <div
-        className={`card-body bg-white text-dark ${
-          isMinimized ? "py-2 px-2" : "py-3 px-3"
-        } d-flex flex-column gap-2`}
-        style={!isMinimized ? { overflowY: "auto" } : undefined}
+        className="card-body bg-white text-dark py-3 px-3 d-flex flex-column gap-2"
+        style={{ overflowY: "auto" }}
       >
-        {isMinimized ? (
-          <>
-            {card.atomic_changes && card.atomic_changes.length > 0 ? (
-              <div className="d-flex flex-column gap-1 mb-1">
-                {card.atomic_changes.map((ac, idx) => {
-                  const name =
-                    card.target_names?.[ac.target] ||
-                    ac.target.split(".").pop()?.replace(/_/g, " ") ||
-                    ac.target;
-                  const pred = predictionFor(card, ac);
-                  const label = changeLabel(card, ac, idx);
-                  return (
-                    <div
-                      key={idx}
-                      className="d-flex align-items-center justify-content-between px-2 py-1 rounded"
-                      style={{ background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: "0.68rem" }}
-                      title={`${name}: ${label}`}
-                    >
-                      <span className="fw-bold text-truncate" style={{ maxWidth: "55%" }}>
-                        ⚡ {name}
-                      </span>
-                      {pred?.upstream_uncertain ? (
-                        <span className="badge bg-warning text-dark" style={{ fontSize: "0.55rem" }}>
-                          ❓ Uncertain
-                        </span>
-                      ) : pred?.capped_by ? (
-                        <span className="badge bg-secondary" style={{ fontSize: "0.55rem" }}>
-                          ⛓ Capped: {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
-                        </span>
-                      ) : (
-                        <span
-                          className="badge"
-                          style={{ fontSize: "0.55rem", background: ac.axis === "governance" ? "#6d28d9" : "#198754" }}
-                        >
-                          {stepBadge(ac)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p
-                className="card-text text-secondary mb-1 text-center"
-                style={{
-                  fontSize: "0.72rem",
-                  lineHeight: 1.3,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-                title={card.description}
-              >
-                {card.description}
-              </p>
-            )}
+        <>
 
-            {addendums && addendums.length > 0 ? (
-              <div
-                className="d-flex align-items-center justify-content-between pt-1 mt-auto border-top"
-                style={{ borderColor: "#e2e8f0" }}
-              >
-                <div
-                  className="d-flex align-items-center gap-1"
-                  style={{
-                    fontSize: "0.62rem",
-                    color: "var(--primary-bg)",
-                    fontWeight: 700,
-                  }}
-                >
-                  <Icon icon="ph:puzzle-piece-fill" />
-                  <span>
-                    {addendums.filter((a) => a.status === "attached").length} / 2 Slots
-                  </span>
-                </div>
-                <span
-                  className="small"
-                  style={{
-                    fontSize: "0.6rem",
-                    color: "var(--primary-bg)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Click to expand ➔
-                </span>
-              </div>
-            ) : (
-              <div
-                className="text-center pt-1 mt-auto border-top"
-                style={{
-                  borderColor: "#e2e8f0",
-                  fontSize: "0.62rem",
-                  color: "var(--primary-bg)",
-                  fontWeight: 600,
-                }}
-              >
-                Click to expand ➔
-              </div>
-            )}
-          </>
-        ) : (
-          <>
             {/* Atomic Changes Section in Maximized Card */}
-            {card.atomic_changes && card.atomic_changes.length > 0 && (
+            {atomicChanges.length > 0 && (
               <div className="d-flex flex-column gap-2 p-2 rounded mb-2" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
                 <span className="fw-bold" style={{ fontSize: "0.78rem", color: "var(--primary-bg)" }}>
                   <Icon icon="ph:git-merge-bold" className="me-1" />
-                  Configured Atomic Changes ({card.atomic_changes.length}/3):
+                  Configured Atomic Changes ({atomicChanges.length}/3):
                 </span>
-                {card.atomic_changes.map((ac, idx) => {
+                {atomicChanges.map((ac, idx) => {
                   const name =
                     card.target_names?.[ac.target] ||
                     ac.target.split(".").pop()?.replace(/_/g, " ") ||
@@ -456,8 +450,7 @@ export default function ActionCardCardComponent({
                 </div>
               </div>
             )}
-          </>
-        )}
+        </>
       </div>
     </div>
   );

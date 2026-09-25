@@ -13,8 +13,6 @@ import styles from "./GatherConversationPanel.module.css";
 const RESULT_COPY: Record<string, string> = {
   revealed: "New note filed - check the dossier.",
   nothing_left: "Nothing left to ask about in this category.",
-  inferred: "Your read holds up. Filed as Inferred.",
-  refuted: "That wasn't it. Re-tag it in the dossier and try again.",
   gist: "You get the gist, but nothing specific enough to file.",
   rejected: "That didn't land.",
   closed: "Conversation closed.",

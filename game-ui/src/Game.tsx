@@ -122,6 +122,12 @@ function App({ username: _username, onLogout }: AppProps) {
   // dossier-derived state, so Game.tsx just keeps it updated for the websocket handlers.
   const [, setIntelItems] = useState<IntelItem[]>([]);
   const [activeStakeholderId, setActiveStakeholderId] = useState<string | undefined>(undefined);
+  // An intel reference clicked from the Performance Dashboard (which sits above both phase
+  // screens): the dossier it opens should jump straight to that item and pop it into view.
+  const [focusIntelId, setFocusIntelId] = useState<string | undefined>(undefined);
+  // A component clicked from the simulation debrief's Component Implementation Log: the
+  // dashboard it opens should jump straight to that component's stage and selection.
+  const [focusComponentId, setFocusComponentId] = useState<string | undefined>(undefined);
   const [playedCardIdsInPhase, setPlayedCardIdsInPhase] = useState<string[]>([]);
   const [cardTargetedStakeholdersMap, setCardTargetedStakeholdersMap] = useState<Record<string, string[]>>({});
   const [pitchedActionCard, setPitchedActionCard] = useState<ActionCard | null>(null);
@@ -355,6 +361,7 @@ function App({ username: _username, onLogout }: AppProps) {
           st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || colorForStakeholderId(stId));
           st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
           st.emotion_dimensions = (data.emotion_dimensions && data.emotion_dimensions[st.id]) || st.emotion_dimensions;
+          st.emotion_dimensions_full = (data.emotion_dimensions_full && data.emotion_dimensions_full[st.id]) || st.emotion_dimensions_full;
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
           }
@@ -481,6 +488,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
@@ -509,6 +517,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
@@ -626,6 +635,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
@@ -850,7 +860,28 @@ function App({ username: _username, onLogout }: AppProps) {
             />
           </motion.div>
         ) : progressionIndex === 2 ? (
-          <motion.div {...FADE_TRANSITION} key="gameplay" style={{ width: "100%", height: "100%" }}>
+          <motion.div
+            {...FADE_TRANSITION}
+            key="gameplay"
+            style={{ width: "100%", height: "100%", position: "relative" }}
+          >
+            {/* Single full-page background for every gameplay phase (offline intel, pitch
+                debate, AC simulation): each phase view used to paint this same image itself,
+                which is why removing it from one left an opaque fallback color showing through
+                instead of the phase behind it. Rendered once here so those phases can just be
+                transparent overlays over it. */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url("${import.meta.env.BASE_URL}graphics/bg_${(currentChallenge + currentPhase) % 4}-clean-s.jpg")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                zIndex: 0,
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1, width: "100%", height: "100%" }}>
             <PhasesContext.Provider
               value={{ currentPhase, setCurrentPhase, phases, setPhases }}
             >
@@ -875,6 +906,15 @@ function App({ username: _username, onLogout }: AppProps) {
                       setIsDossierOpen(true);
                       setIsPerformanceOpen(false);
                     }}
+                    // Same for an intel reference: step aside and let the dossier jump to it
+                    // and pop it into view, rather than reading it inside the dashboard itself.
+                    onSelectIntel={(intelId, stakeholderId) => {
+                      if (stakeholderId) setActiveStakeholderId(stakeholderId);
+                      setFocusIntelId(intelId);
+                      setIsDossierOpen(true);
+                      setIsPerformanceOpen(false);
+                    }}
+                    focusComponentId={focusComponentId}
                   />
                   <PrePhaseDialog
                     isOpen={isPhaseDialogueOpen}
@@ -893,6 +933,8 @@ function App({ username: _username, onLogout }: AppProps) {
                     challengeIntro={challengeIntro}
                     currentChallenge={currentChallenge}
                     challengeAmount={challengeAmount}
+                    onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
+                    isSettingsOpen={isSettingsOpen}
                   />
 
                   <AnimatePresence mode="wait">
@@ -908,6 +950,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           currentChallenge={currentChallenge}
                           onTagArtifact={(stId) => setActiveStakeholderId(stId)}
                           onOpenPhaseBriefing={openBriefingForReview}
+                          isPhaseBriefingOpen={isPhaseDialogueOpen}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
                           onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
@@ -916,6 +959,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           setIsDossierOpen={setIsDossierOpen}
                           dossierData={dossierData}
                           activeStakeholderId={activeStakeholderId}
+                          focusIntelId={focusIntelId}
                           challengeTitle={challengeTitle}
                           challengeDescription={challengeDescription}
                           challengeIntro={challengeIntro}
@@ -950,6 +994,7 @@ function App({ username: _username, onLogout }: AppProps) {
                           onCardTargetedStakeholdersMapChange={setCardTargetedStakeholdersMap}
                           dossierData={dossierData}
                           focusStakeholderId={activeStakeholderId}
+                          focusIntelId={focusIntelId}
                           onOpenPhaseBriefing={openBriefingForReview}
                           onPerformanceToggle={() => setIsPerformanceOpen((v) => !v)}
                           isPerformanceOpen={isPerformanceOpen}
@@ -1009,6 +1054,12 @@ function App({ username: _username, onLogout }: AppProps) {
                           isPerformanceOpen={isPerformanceOpen}
                           onSettingsToggle={() => setIsSettingsOpen((v) => !v)}
                           isSettingsOpen={isSettingsOpen}
+                          // A component name in the implementation log jumps the dashboard
+                          // straight to it, same as a dossier note linking to its component.
+                          onOpenComponent={(componentId) => {
+                            setFocusComponentId(componentId);
+                            setIsPerformanceOpen(true);
+                          }}
                         />
                       </motion.div>
                     )}
@@ -1016,6 +1067,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 </StakeholderContext.Provider>
               </MetricsContext.Provider>
             </PhasesContext.Provider>
+            </div>
           </motion.div>
         ) : progressionIndex === 3 ? (
           <motion.div {...FADE_TRANSITION} key="outro-questionnaire" style={{ width: "100%", height: "100%" }}>

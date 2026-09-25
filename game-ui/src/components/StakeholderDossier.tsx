@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from 
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./StakeholderDossier.module.css";
-import { StakeholderContext, type EmotionGatingInfo } from "./StakeholderProvider";
+import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
@@ -12,6 +12,8 @@ import GlossaryText from "./glossary/GlossaryText";
 import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
+import CheatSheetModal from "./CheatSheetModal";
+import HoverTooltip from "./HoverToolTip";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -59,7 +61,7 @@ export interface IntelEntry {
   id: string;
   debug?: IntelDebugInfo;
   requirement_id?: string;
-  intel_type: string; // "unconfirmed", "inferred", "refuted" or "verified" (D49/plan 11)
+  intel_type: string; // "unconfirmed" or "verified"
   categorized_type: string; // an IntelTag: "driver", "boundary", "trade_off" or "fact"
   description: string;
   /** Split wording: the part that holds still whatever the player tags it (bold). */
@@ -83,6 +85,9 @@ export interface IntelEntry {
   discovered_phase_id?: number | null;
   /** The graph target the note is about, and the stage that target sits in. */
   target?: string | null;
+  /** How many intel items exist about this target in total, found or not - the per-target
+   *  counterpart to `intel_total` on the stakeholder entry. Same for every note sharing a target. */
+  target_total?: number | null;
   stage_id?: string | null;
   stage_name?: string | null;
   /** Read off the graph every time: "open", "addressed" or "stale". */
@@ -129,6 +134,12 @@ export interface StakeholderDossierProps {
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
   activeStakeholderId?: string;
+  /** Fires when the player navigates the dossier itself (tab click, prev/next arrow, System
+   *  toggle) - not when `activeStakeholderId` drives the page from outside. Lets an embedding
+   *  scene (e.g. the pitch deck table) keep its own "selected stakeholder" in sync with
+   *  whichever page the dossier is showing, in both directions. Called with `null` when the
+   *  player switches to the System page, since no stakeholder is showing there. */
+  onActiveStakeholderChange?: (stakeholderId: string | null) => void;
   highlightedIntelId?: string | null;
   currentPhase?: number;
   currentChallenge?: number;
@@ -158,6 +169,10 @@ export interface StakeholderDossierProps {
   isSettingsOpen?: boolean;
   /** Opens the associated offline artifact for an intel item */
   onOpenArtifact?: (item: IntelEntry) => void;
+  /** Which cheat sheet card matches the screen the dossier is embedded in right now. The cheat
+   * sheet scrolls to it and gives it a one-time pop when opened. Omit where no screen maps
+   * cleanly (e.g. the briefing itself never embeds the dossier). */
+  cheatSheetActiveSection?: "Briefing" | "Digging for Intel" | "Pitch & Debate" | "Simulate";
 }
 
 /** One authored item's answer key: true tag, graph target and the artifact it is read off. */
@@ -260,31 +275,24 @@ const getSourceCaption = (item: IntelEntry): { icon: string; text: string; title
   }
 };
 
-type IntelPipStatus = "on_record" | "confirmed" | "inferred" | "unconfirmed" | "refuted" | "hidden";
+type IntelPipStatus = "on_record" | "confirmed" | "unconfirmed" | "hidden";
 
 /** Pips follow the stamps' colours, so they teach the player nothing new. */
 const INTEL_PIP_META: Record<IntelPipStatus, { label: string; styleClass: string }> = {
   on_record: { label: "On record", styleClass: styles.pipOnRecord },
   confirmed: { label: "Confirmed", styleClass: styles.pipConfirmed },
-  // Gather's Test a hypothesis (D49): tested, not spoken aloud - counts toward readiness (Q36)
-  // the same as Verified, but reads as a lighter stamp than a public confirmation.
-  inferred: { label: "Inferred", styleClass: styles.pipInferred },
   unconfirmed: { label: "Unconfirmed", styleClass: styles.pipUnconfirmed },
-  // A tested guess that did not hold up. Free re-tag, same as Unconfirmed.
-  refuted: { label: "Refuted", styleClass: styles.pipRefuted },
   hidden: { label: "Not found yet", styleClass: styles.pipHidden },
 };
 
 /** Settled first, so the row fills up from the left like a progress bar. */
-const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "inferred", "unconfirmed", "refuted", "hidden"];
+const INTEL_PIP_ORDER: IntelPipStatus[] = ["on_record", "confirmed", "unconfirmed", "hidden"];
 
 const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
   const confidence = (item.intel_type || "unconfirmed").toLowerCase();
   if (confidence === "verified") {
     return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "confirmed";
   }
-  if (confidence === "inferred") return "inferred";
-  if (confidence === "refuted") return "refuted";
   return "unconfirmed";
 };
 
@@ -304,7 +312,7 @@ const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
 /** Hover text for a pip row, e.g. "3 of 4 notes found: 1 on record, 2 unconfirmed". */
 const describeIntelPips = (pips: IntelPipStatus[]): string => {
   const countOf = (status: IntelPipStatus) => pips.filter((p) => p === status).length;
-  const breakdown = (["on_record", "confirmed", "inferred", "unconfirmed", "refuted"] as const)
+  const breakdown = (["on_record", "confirmed", "unconfirmed"] as const)
     .filter((status) => countOf(status) > 0)
     .map((status) => `${countOf(status)} ${INTEL_PIP_META[status].label.toLowerCase()}`);
   const summary = `${pips.length - countOf("hidden")} of ${pips.length} notes found`;
@@ -323,16 +331,59 @@ const EMOTION_DIMENSION_LABEL: Record<string, string> = {
   fairness: "Fairness",
 };
 
+/** One-line, player-facing "how to move this" hint per dimension - shown as a hover/focus
+ * tooltip on that dimension's row in the reveal card. Framed as an action, not a mechanic.
+ * Source: docs/plans/pitch-debate-and-intel-item-redesign/02-stakeholder-emotion-changes.md
+ * (section 2.4) and the malus/veto tables (sections 3-4) - keep in sync with whatever actually
+ * moves that dimension in domain/emotion.py. */
+const EMOTION_DIMENSION_HINT: Record<string, string> = {
+  trust: "Deliver what you promised them",
+  interest: "Keep addressing what they actually asked for",
+  stress: "Resolve their blockers, avoid boundary breaches",
+  confidence: "Ship clean, working simulation runs",
+  perceived_risk: "Close compliance and safety gaps",
+  sense_of_control: "Give their agenda a real seat at the table",
+  fairness: "Match their share of demands with a share of slots",
+};
+
 /** Level/tick styling for each bucket. The backend only ever hands over one of three buckets, so
  * the reveal shows exactly three discrete steps rather than a continuous-looking bar - `level` is
  * how many of the three segments light up, never a percentage. */
 const EMOTION_BUCKET_META: Record<
   "low" | "medium" | "high",
-  { label: string; level: 1 | 2 | 3; tickClass: string; fillClass: string; wordClass: string }
+  { label: string; level: 1 | 2 | 3; fillClass: string; wordClass: string }
 > = {
-  low: { label: "Low", level: 1, tickClass: styles.emotionTickLow, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
-  medium: { label: "Med", level: 2, tickClass: styles.emotionTickMedium, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
-  high: { label: "High", level: 3, tickClass: styles.emotionTickHigh, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+  low: { label: "Low", level: 1, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
+  medium: { label: "Med", level: 2, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
+  high: { label: "High", level: 3, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+};
+
+/** Dimensions where a *drop* is the good outcome for the stakeholder (less stress, less
+ *  perceived risk). Mirrors ac_simulation.tsx's INVERTED_EMOTION_DIMENSIONS - everything else
+ *  defaults to "higher is better". */
+const INVERTED_EMOTION_DIMENSIONS = new Set(["stress", "perceived_risk", "frustration", "fear", "anxiety"]);
+
+/** Good/bad colours, independent of the low/medium/high magnitude above - a dimension's reading
+ *  can be low-magnitude and still bad news (low trust) or high-magnitude and good news (high
+ *  trust), so the colour can't just follow the bucket directly. Green matches .pipConfirmed's
+ *  existing "good" green elsewhere in this stylesheet. */
+const EMOTION_VALENCE_COLOR = {
+  good: { fillClass: styles.emotionFillGood, wordClass: styles.emotionWordGood },
+  bad: { fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+};
+
+/**
+ * Bucket styling for one dimension's reading. `level`/`label` stay true to the actual magnitude
+ * bucket (a "High" stress reading is still labelled High), but the fill/word colour is chosen by
+ * whether that bucket is good or bad news for this specific dimension.
+ */
+const getEmotionBucketMeta = (metric: string, bucket: "low" | "medium" | "high") => {
+  const magnitude = EMOTION_BUCKET_META[bucket] || EMOTION_BUCKET_META.medium;
+  if (bucket === "medium") return magnitude;
+  const inverted = INVERTED_EMOTION_DIMENSIONS.has(metric.toLowerCase());
+  const isGood = inverted ? bucket === "low" : bucket === "high";
+  const valence = EMOTION_VALENCE_COLOR[isGood ? "good" : "bad"];
+  return { ...magnitude, fillClass: valence.fillClass, wordClass: valence.wordClass };
 };
 
 /** Screen-reader text for the emotion reveal, since the visual card is aria-hidden. */
@@ -363,7 +414,8 @@ const EmotionRevealBadge: React.FC<{
   emotionDisplay: string;
   emotionColor: string;
   gatingInfo?: EmotionGatingInfo;
-}> = ({ emotionDisplay, emotionColor, gatingInfo }) => {
+  fullDimensions?: EmotionGatingDimension[];
+}> = ({ emotionDisplay, emotionColor, gatingInfo, fullDimensions }) => {
   const gatingDims = gatingInfo?.dimensions || [];
   const hasReveal = gatingDims.length > 0;
   const isCurrent = gatingInfo?.is_current ?? true;
@@ -372,19 +424,58 @@ const EmotionRevealBadge: React.FC<{
   // actually triggered.
   const revealTitle = isCurrent ? `Why ${emotionDisplay.toLowerCase()}` : "Steady for now";
 
+  const gatingMetrics = new Set(gatingDims.map((d) => d.metric));
+  // All 7 dimensions, gating ones first (in their gating order), then the rest in the fixed,
+  // stable order EMOTION_DIMENSION_LABEL's keys already give - falls back to just the gating
+  // dims if the full set hasn't arrived yet.
+  const allDims: EmotionGatingDimension[] =
+    fullDimensions && fullDimensions.length > 0
+      ? [
+          ...gatingDims,
+          ...Object.keys(EMOTION_DIMENSION_LABEL)
+            .filter((metric) => !gatingMetrics.has(metric))
+            .map((metric) => fullDimensions.find((d) => d.metric === metric))
+            .filter((d): d is EmotionGatingDimension => Boolean(d)),
+        ]
+      : gatingDims;
+
   const [show, setShow] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
 
+  const hideTimeoutRef = useRef<number | null>(null);
+  const clearHideTimeout = () => {
+    if (hideTimeoutRef.current !== null) {
+      window.clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
+
   const handleShow = () => {
+    clearHideTimeout();
     if (anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       setCoords({ top: rect.bottom + EMOTION_REVEAL_EDGE_MARGIN, left: rect.left });
     }
     setShow(true);
   };
-  const handleHide = () => setShow(false);
+  // Hides on a short delay rather than instantly: moving the mouse from the badge down into the
+  // portaled card crosses a small gap that belongs to neither element, and closing the instant
+  // that gap is entered would make the card impossible to hover into (and its per-dimension
+  // `title` hints impossible to read). handleShow - fired by either the badge or the card itself
+  // - cancels the pending hide before it fires.
+  const handleHide = () => {
+    clearHideTimeout();
+    hideTimeoutRef.current = window.setTimeout(() => setShow(false), 200);
+  };
+  // Keyboard blur has no such gap to bridge, so it hides immediately.
+  const handleBlur = () => {
+    clearHideTimeout();
+    setShow(false);
+  };
+
+  useEffect(() => clearHideTimeout, []);
 
   // Flip above the badge when the card would run off the bottom of the window, and keep it
   // inside the viewport horizontally. Mirrors HoverToolTip's own layout pass.
@@ -423,7 +514,7 @@ const EmotionRevealBadge: React.FC<{
       onMouseEnter={hasReveal ? handleShow : undefined}
       onMouseLeave={hasReveal ? handleHide : undefined}
       onFocus={hasReveal ? handleShow : undefined}
-      onBlur={hasReveal ? handleHide : undefined}
+      onBlur={hasReveal ? handleBlur : undefined}
     >
       <Icon
         icon={iconForEmotionState(emotionDisplay)}
@@ -436,20 +527,34 @@ const EmotionRevealBadge: React.FC<{
           className={`${styles.emotionMicroTicks} ${!isCurrent ? styles.emotionMicroTicksPending : ""}`}
           aria-hidden="true"
         >
-          {gatingDims.slice(0, 3).map((dim, idx) => (
-            <span
-              key={idx}
-              className={`${styles.emotionMicroTick} ${
-                (EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium).tickClass
-              } ${!isCurrent ? styles.emotionMicroTickPending : ""}`}
-            />
-          ))}
+          {gatingDims.slice(0, 3).map((dim, idx) => {
+            const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
+            const levelClass =
+              meta.level === 1
+                ? styles.emotionMicroTickLevel1
+                : meta.level === 2
+                ? styles.emotionMicroTickLevel2
+                : styles.emotionMicroTickLevel3;
+            return (
+              <span
+                key={idx}
+                className={`${styles.emotionMicroTick} ${levelClass} ${
+                  !isCurrent ? styles.emotionMicroTickPending : meta.fillClass
+                }`}
+              />
+            );
+          })}
         </span>
       )}
       {hasReveal &&
         show &&
         createPortal(
-          <div className={styles.emotionRevealAnchor} style={{ top: `${coords.top}px`, left: `${coords.left}px` }}>
+          <div
+            className={styles.emotionRevealAnchor}
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            onMouseEnter={handleShow}
+            onMouseLeave={handleHide}
+          >
             <div
               ref={cardRef}
               className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
@@ -457,18 +562,33 @@ const EmotionRevealBadge: React.FC<{
             >
               <div className={styles.emotionRevealTitle}>{revealTitle}</div>
               <div className={styles.emotionRevealDims}>
-                {gatingDims.map((dim, idx) => {
-                  const meta = EMOTION_BUCKET_META[dim.bucket as "low" | "medium" | "high"] || EMOTION_BUCKET_META.medium;
+                {allDims.map((dim, idx) => {
+                  const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
+                  const isGating = gatingMetrics.has(dim.metric);
                   return (
                     <div className={styles.emotionDimRow} key={idx}>
-                      <span className={styles.emotionDimName}>
-                        {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
-                      </span>
+                      {/* Portals to document.body (HoverTooltip's default), same as the reveal
+                          card itself - NOT into the card's own subtree. That subtree sits under
+                          .emotionRevealAnchor, which sets `perspective` for the card's flip
+                          animation; `perspective` (like `transform`) creates a new containing
+                          block for `position: fixed` descendants, which silently breaks this
+                          tooltip's viewport-relative coordinates. Staying above HoverTooltip's own
+                          z-index (see HoverToolTip.module.css) is what keeps it visible instead. */}
+                      <HoverTooltip description={EMOTION_DIMENSION_HINT[dim.metric] || ""}>
+                        <span
+                          className={`${styles.emotionDimName} ${
+                            isGating ? styles.emotionDimNameGating : ""
+                          }`}
+                        >
+                          {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
+                          <Icon icon="ph:info-bold" className={styles.emotionDimHintIcon} />
+                        </span>
+                      </HoverTooltip>
                       <span className={styles.emotionDimSegments}>
                         {[1, 2, 3].map((seg) => (
                           <span
                             key={seg}
-                            className={`${styles.emotionDimSegment} ${seg <= meta.level ? meta.fillClass : ""}`}
+                            className={`${styles.emotionDimSegment} ${seg === meta.level ? meta.fillClass : ""}`}
                           />
                         ))}
                       </span>
@@ -657,6 +777,7 @@ export default function StakeholderDossier({
   onClose,
   dossierData,
   activeStakeholderId,
+  onActiveStakeholderChange,
   highlightedIntelId,
   currentPhase: propPhase,
   currentChallenge: propChallenge = 0,
@@ -675,6 +796,7 @@ export default function StakeholderDossier({
   onSettingsToggle,
   isSettingsOpen = false,
   onOpenArtifact,
+  cheatSheetActiveSection,
 }: StakeholderDossierProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { stakeholders, emotionColors: contextEmotionColors } = useContext(StakeholderContext) || {
@@ -748,13 +870,16 @@ export default function StakeholderDossier({
   const [search, setSearch] = useState("");
   const [collapseAddressed, setCollapseAddressed] = useState(false);
   const [confFilter, setConfFilter] = useState<
-    "all" | "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted"
+    "all" | "on_record" | "verified" | "unconfirmed"
   >("all");
   /** The page the player was on before opening the system, so the button toggles back. */
   const lastPersonPage = useRef(0);
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  /** The cheat sheet is static reference content, so it needs no state from outside. */
+  const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
 
   // Track fading out highlight state
   const [fadingOutIntelId, setFadingOutIntelId] = useState<string | null>(null);
@@ -972,22 +1097,20 @@ export default function StakeholderDossier({
 
   // A note with no phase is never filtered out by phase: it predates the stamp, and filtering it
   // away would lose it entirely.
-  /** The states a note can be in (D49/plan 11 added inferred and refuted). */
+  /** The states a note can be in. */
   const confidenceOf = (
     item: { intel_type?: string; source?: string },
-  ): "on_record" | "verified" | "inferred" | "unconfirmed" | "refuted" => {
+  ): "on_record" | "verified" | "unconfirmed" => {
     const confidence = (item.intel_type || "unconfirmed").toLowerCase();
     if (confidence === "verified") {
       return (item.source || "").toLowerCase() === "public_record" ? "on_record" : "verified";
     }
-    if (confidence === "inferred") return "inferred";
-    if (confidence === "refuted") return "refuted";
     return "unconfirmed";
   };
 
-  // Unconfirmed and Refuted sort first: those are the ones still worth doing something about.
+  // Unconfirmed sorts first: those are the ones still worth doing something about.
   const CONF_ORDER: Record<string, number> = {
-    unconfirmed: 0, refuted: 0, inferred: 1, verified: 1, on_record: 2,
+    unconfirmed: 0, verified: 1, on_record: 2,
   };
 
   const visibleChains = (st: StakeholderDossierEntry): IntelChain[] => {
@@ -1011,6 +1134,11 @@ export default function StakeholderDossier({
     if (targetIndex !== environmentIndex) lastPersonPage.current = targetIndex;
     setActiveRetagNoteId(null);
     setCurrentPageIndex(targetIndex);
+    if (onActiveStakeholderChange) {
+      onActiveStakeholderChange(
+        targetIndex === environmentIndex ? null : effectiveDossierData[targetIndex]?.stakeholder_id ?? null
+      );
+    }
   };
 
   // Helper to find a stakeholder page index by ID, name, or sub-matches
@@ -1253,32 +1381,6 @@ export default function StakeholderDossier({
         </div>
       );
     }
-    if (lower === "inferred") {
-      return (
-        <div
-          className={`${styles.rubberStamp} ${styles.stampInferred}`}
-          {...stampTagProps(
-            "Inferred",
-            "Your read on this held up when you tested it in conversation. Not spoken aloud, but it counts."
-          )}
-        >
-          ✓ INFERRED
-        </div>
-      );
-    }
-    if (lower === "refuted") {
-      return (
-        <div
-          className={`${styles.rubberStamp} ${styles.stampRefuted}`}
-          {...stampTagProps(
-            "Refuted",
-            "That guess did not hold up. Re-tag it and try again - this never shows the true tag."
-          )}
-        >
-          ✗ REFUTED
-        </div>
-      );
-    }
     return (
       <div
         className={`${styles.rubberStamp} ${styles.stampUnconfirmed}`}
@@ -1287,7 +1389,7 @@ export default function StakeholderDossier({
           "Confirm this item by selecting it during the Intel Verification phase, or through dialogue in the Pitch & Debate phase."
         )}
       >
-        ? UNCONFIRMED
+        unconfirmed?
       </div>
     );
   };
@@ -1427,8 +1529,6 @@ export default function StakeholderDossier({
             {([
               ["all", "ph:stack-bold", "All", "Everything you have written down"],
               ["unconfirmed", "ph:question-bold", "Unconfirmed", "You have not checked these yet. Wrong ones cost you in the room."],
-              ["inferred", "ph:check-bold", "Inferred", "Tested in conversation and it held up. Not spoken aloud, but it counts."],
-              ["refuted", "ph:x-bold", "Refuted", "A tested guess that missed. Free re-tag."],
               ["verified", "ph:check-circle-bold", "Verified", "You checked these yourself."],
               ["on_record", "ph:star-bold", "On record", "Said openly to the whole team. Nothing left to confirm."],
             ] as const).map(([key, icon, label, hint]) => (
@@ -1546,6 +1646,7 @@ export default function StakeholderDossier({
                 emotionDisplay={emotionDisplay}
                 emotionColor={emotionColor}
                 gatingInfo={stObj?.emotion_dimensions}
+                fullDimensions={stObj?.emotion_dimensions_full}
               />
               <div
                 className={styles.powerInterestBadge}
@@ -1783,10 +1884,7 @@ export default function StakeholderDossier({
               const noteId = item.id || `note-${idx}`;
               const noteConfidence = (item.intel_type || "unconfirmed").toLowerCase();
               const isUnconfirmed = noteConfidence === "unconfirmed";
-              const isInferred = noteConfidence === "inferred";
-              const isRefuted = noteConfidence === "refuted";
-              // Refuted (D49): a tested guess that missed. Free re-tag, same as an unconfirmed one.
-              const canRetag = isUnconfirmed || isRefuted;
+              const canRetag = isUnconfirmed;
               // Split items carry a fact that holds still and a reading that changes with the tag:
               // bold the fact, italicise the reading while it is unconfirmed. Legacy items only have
               // one sentence, and the only span that reliably survives a re-tag is the name.
@@ -1804,17 +1902,12 @@ export default function StakeholderDossier({
                 item.artifact || (item.artifact_type && (item.source === "offline_artifact" || item.source === "public_record"))
               );
               const sourceCaption = getSourceCaption(item);
-              // Paper colour matches the stamp: orange still open, red refuted, blue public,
-              // green earned, teal inferred.
-              const noteStatusClass = isRefuted
-                ? styles.noteRefuted
-                : isUnconfirmed
-                  ? ""
-                  : isPublicRecord
-                    ? styles.noteOnRecord
-                    : isInferred
-                      ? styles.noteInferred
-                      : styles.noteConfirmed;
+              // Paper colour matches the stamp: orange still open, blue public, green earned.
+              const noteStatusClass = isUnconfirmed
+                ? ""
+                : isPublicRecord
+                  ? styles.noteOnRecord
+                  : styles.noteConfirmed;
               const isRetagging = canRetag && activeRetagNoteId === noteId;
               const isHighlighted = Boolean(
                 highlightedIntelId &&
@@ -1882,14 +1975,10 @@ export default function StakeholderDossier({
                             e.stopPropagation();
                             setActiveRetagNoteId(isRetagging ? null : noteId);
                           }}
-                          aria-label={`${catMeta.label}: ${isRefuted ? "that guess was wrong, click to re-tag" : "click to re-tag this intel item's category"}`}
-                          onMouseEnter={(e) =>
-                            showInfoTag(e, catMeta.label, isRefuted ? "That guess was wrong — click to re-tag" : "Click to re-tag")
-                          }
+                          aria-label={`${catMeta.label}: click to re-tag this intel item's category`}
+                          onMouseEnter={(e) => showInfoTag(e, catMeta.label, "Click to re-tag")}
                           onMouseLeave={hideInfoTag}
-                          onFocus={(e) =>
-                            showInfoTag(e, catMeta.label, isRefuted ? "That guess was wrong — click to re-tag" : "Click to re-tag")
-                          }
+                          onFocus={(e) => showInfoTag(e, catMeta.label, "Click to re-tag")}
                           onBlur={hideInfoTag}
                         >
                           <span>{catMeta.icon} {catMeta.label}</span>
@@ -1992,11 +2081,11 @@ export default function StakeholderDossier({
                     <div className={styles.intelText}>
                       "
                       {typeKey === "trade_off" ? (
-                        renderHighlightedTradeOffText(item, isUnconfirmed || isRefuted, st.name)
+                        renderHighlightedTradeOffText(item, isUnconfirmed, st.name)
                       ) : (
                         <>
                           {noteSubject && <strong className={styles.intelSubject}>{noteSubject}</strong>}
-                          {isUnconfirmed || isRefuted ? (
+                          {isUnconfirmed ? (
                             <em className={styles.intelReading}>
                               <GlossaryText text={noteReading} surface="intel_notes" />
                             </em>
@@ -2252,6 +2341,14 @@ export default function StakeholderDossier({
                 onClick={onSettingsToggle}
               />
             )}
+            <HeaderIconButton
+              icon="ph:question-bold"
+              label="Cheat Sheet"
+              detail="Quick reference for every phase"
+              ariaLabel="Cheat Sheet: quick reference for every phase, in plain language"
+              active={isCheatSheetOpen}
+              onClick={() => setIsCheatSheetOpen(true)}
+            />
           </div>
           <div className={styles.headerArrowGroup}>
             <HeaderIconButton
@@ -2442,10 +2539,19 @@ export default function StakeholderDossier({
     </div>
   );
 
+  const cheatSheet = (
+    <CheatSheetModal
+      isOpen={isCheatSheetOpen}
+      onClose={() => setIsCheatSheetOpen(false)}
+      activeSectionTitle={cheatSheetActiveSection}
+    />
+  );
+
   if (isEmbedded) {
     return (
       <div style={{ width: "100%", height: "100%", minHeight: "450px", position: "relative", pointerEvents: "auto" }}>
         {windowContent}
+        {cheatSheet}
       </div>
     );
   }
@@ -2453,6 +2559,7 @@ export default function StakeholderDossier({
   return (
     <div className={styles.dossierOverlay}>
       {windowContent}
+      {cheatSheet}
     </div>
   );
 }

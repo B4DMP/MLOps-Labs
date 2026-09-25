@@ -39,6 +39,36 @@
   font-size: 0.9rem;
 }
 
+.titleCaret {
+  display: inline-block;
+  width: 2px;
+  height: 0.9em;
+  margin-left: 3px;
+  vertical-align: -0.05em;
+  background-color: currentColor;
+  border-radius: 1px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .titleCaret {
+    animation: spoken-text-caret-blink 1s steps(1, jump-none) infinite;
+  }
+}
+
+@keyframes spoken-text-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .counterBadge {
   color: rgba(255, 255, 255, 0.9);
   background: rgba(255, 255, 255, 0.18);

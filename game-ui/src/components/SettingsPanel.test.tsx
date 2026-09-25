@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import SettingsPanel from "./SettingsPanel";
@@ -19,10 +19,11 @@ vi.mock("../services/api/auth", () => ({
   changeUsername: vi.fn(),
 }));
 
-import { loadVoices } from "../utils/speech";
+import { loadVoices, speak } from "../utils/speech";
 import { changeUsername } from "../services/api/auth";
 
 const mockedLoadVoices = vi.mocked(loadVoices);
+const mockedSpeak = vi.mocked(speak);
 const mockedChangeUsername = vi.mocked(changeUsername);
 
 function fakeWebSocketContext(username = "alice", setUsername = vi.fn()): WebSocketContextValue {
@@ -89,7 +90,7 @@ describe("SettingsPanel accordion", () => {
 
   it("opens exactly one section at a time", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
-    renderPanel();
+    renderPanel({ settings: { tts_backend: "webspeech" } });
 
     const user = await openSection("Conversations");
     expect(screen.getByText("Auto-skip conversations")).toBeInTheDocument();
@@ -135,7 +136,7 @@ describe("SettingsPanel accordion", () => {
 
   it("renders the diagnostic line instead of four empty selects when no voices are installed", async () => {
     mockedLoadVoices.mockResolvedValue([]);
-    renderPanel();
+    renderPanel({ settings: { tts_backend: "webspeech" } });
 
     await openSection("Voice");
     expect(await screen.findByText(/no speech voices|speech-dispatcher/i)).toBeInTheDocument();
@@ -144,10 +145,163 @@ describe("SettingsPanel accordion", () => {
 
   it("renders one dropdown per voice slot when voices are available", async () => {
     mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop"), fakeVoice("Microsoft Zira Desktop")]);
-    renderPanel();
+    renderPanel({ settings: { tts_backend: "webspeech" } });
 
     await openSection("Voice");
     expect(await screen.findAllByRole("combobox")).toHaveLength(4);
+  });
+
+  it("hides the per-slot voice pickers entirely while Server voices is on", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    renderPanel({ settings: { tts_backend: "auto" } });
+
+    await openSection("Voice");
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Preview the/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/no speech voices|speech-dispatcher/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the server-voices toggle checked when tts_backend is auto", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    renderPanel({ settings: { tts_backend: "auto" } });
+
+    await openSection("Voice");
+    expect(screen.getByRole("checkbox", { name: "Server voices (recommended)" })).toBeChecked();
+  });
+
+  it("unchecking the server-voices toggle updates tts_backend to webspeech", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    const updateSettings = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <WebSocketContext.Provider value={fakeWebSocketContext()}>
+        <SettingsContext.Provider
+          value={{
+            settings: { ...DEFAULT_SETTINGS, tts_backend: "auto" },
+            updateSettings,
+            canResetAccount: false,
+            resetAccount: vi.fn(),
+            canPlaytest: false,
+          }}
+        >
+          <SettingsPanel isVisible onClose={() => {}} onLogout={vi.fn()} />
+        </SettingsContext.Provider>
+      </WebSocketContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Voice" }));
+    await user.click(screen.getByRole("checkbox", { name: "Server voices (recommended)" }));
+
+    expect(updateSettings).toHaveBeenCalledWith({ tts_backend: "webspeech" });
+  });
+
+  it("shows the your-voice toggle set to Male for a male setting", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    renderPanel({ settings: { player_voice_gender: "male" } });
+
+    await openSection("Voice");
+    const group = screen.getByRole("group", { name: "Your voice" });
+    expect(within(group).getByRole("button", { name: "Male" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(group).getByRole("button", { name: "Female" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("clicking Female on the your-voice toggle updates player_voice_gender to female", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    const updateSettings = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <WebSocketContext.Provider value={fakeWebSocketContext()}>
+        <SettingsContext.Provider
+          value={{
+            settings: { ...DEFAULT_SETTINGS, player_voice_gender: "male" },
+            updateSettings,
+            canResetAccount: false,
+            resetAccount: vi.fn(),
+            canPlaytest: false,
+          }}
+        >
+          <SettingsPanel isVisible onClose={() => {}} onLogout={vi.fn()} />
+        </SettingsContext.Provider>
+      </WebSocketContext.Provider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Voice" }));
+    const group = screen.getByRole("group", { name: "Your voice" });
+    await user.click(within(group).getByRole("button", { name: "Female" }));
+
+    expect(updateSettings).toHaveBeenCalledWith({ player_voice_gender: "female" });
+  });
+
+  it("shows the narration-speed slider at the stored value", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    renderPanel({ settings: { speech_rate: 1.25 } });
+
+    await openSection("Voice");
+    expect(screen.getByRole("slider", { name: "Narration speed" })).toHaveValue("1.25");
+    expect(screen.getByText("1.25x")).toBeInTheDocument();
+  });
+
+  it("moving the narration-speed slider updates speech_rate", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    const updateSettings = vi.fn();
+    render(
+      <WebSocketContext.Provider value={fakeWebSocketContext()}>
+        <SettingsContext.Provider
+          value={{
+            settings: DEFAULT_SETTINGS,
+            updateSettings,
+            canResetAccount: false,
+            resetAccount: vi.fn(),
+            canPlaytest: false,
+          }}
+        >
+          <SettingsPanel isVisible onClose={() => {}} onLogout={vi.fn()} />
+        </SettingsContext.Provider>
+      </WebSocketContext.Provider>,
+    );
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Voice" }));
+    const slider = screen.getByRole("slider", { name: "Narration speed" });
+    fireEvent.change(slider, { target: { value: "1.4" } });
+
+    expect(updateSettings).toHaveBeenCalledWith({ speech_rate: 1.4 });
+  });
+
+  it("previewing 'You' passes the currently selected gender through", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    mockedSpeak.mockClear();
+    // The per-slot voice pickers (and their preview buttons) are hidden while Server voices is
+    // on, since they'd have no effect - switch to webspeech so the button under test exists.
+    renderPanel({ settings: { player_voice_gender: "female", tts_backend: "webspeech" } });
+
+    await openSection("Voice");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Preview the You voice" }));
+
+    expect(mockedSpeak).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ slot: "player", playerGender: "female" }),
+    );
+  });
+
+  it("previewing a stakeholder voice does not pass a playerGender", async () => {
+    mockedLoadVoices.mockResolvedValue([fakeVoice("Microsoft David Desktop")]);
+    mockedSpeak.mockClear();
+    renderPanel({ settings: { player_voice_gender: "female", tts_backend: "webspeech" } });
+
+    await openSection("Voice");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Preview the Male stakeholders voice" }));
+
+    expect(mockedSpeak).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ slot: "male", playerGender: undefined }),
+    );
   });
 });
 

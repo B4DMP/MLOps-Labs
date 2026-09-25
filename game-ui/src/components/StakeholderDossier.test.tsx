@@ -1,6 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { forwardRef, useImperativeHandle } from "react";
+import { describe, expect, it, vi } from "vitest";
 import { phaseLabel, phaseShortLabel } from "./StakeholderDossier";
 import type { PhaseData } from "./PhaseProvider";
+
+// jsdom can't render the real Lottie player that CheatSheetModal's OnceIcon pulls in - mock it
+// so importing StakeholderDossier (even just for its pure helpers below) doesn't crash.
+vi.mock("@lordicon/react", () => ({
+  Player: forwardRef((_props: unknown, ref: React.Ref<{ playFromBeginning: () => void }>) => {
+    useImperativeHandle(ref, () => ({ playFromBeginning: () => {} }));
+    return <div data-testid="lordicon-mock" />;
+  }),
+}));
 
 describe("phaseLabel", () => {
   const phases: PhaseData[] = [

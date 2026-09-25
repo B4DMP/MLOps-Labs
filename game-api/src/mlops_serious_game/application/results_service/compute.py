@@ -518,7 +518,7 @@ def intel_breakdown(
     """
     per_stakeholder: dict[str, dict[str, int]] = {}
     confusion: dict[str, dict[str, int]] = {}
-    confidence = {"verified": 0, "inferred": 0, "refuted": 0, "unconfirmed": 0}
+    confidence = {"verified": 0, "unconfirmed": 0}
 
     for item in items:
         owner = item.get("stakeholder_id") or ENVIRONMENT

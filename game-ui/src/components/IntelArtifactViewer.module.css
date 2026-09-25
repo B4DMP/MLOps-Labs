@@ -349,38 +349,25 @@
   letter-spacing: 0.5px;
 }
 
-.wikiBody {
-  padding: 14px 20px;
-}
-
-.wikiTitle {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #451a03;
-  margin: 0 0 6px 0;
+.wikiStatusGroup {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.metaRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.82rem;
-  color: #78350f;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #fde68a;
-  flex-wrap: wrap;
+.wikiBody {
+  padding: 14px 20px;
 }
 
 .metaChip {
   background: #fffbeb;
   border: 1px solid #fef08a;
+  color: #78350f;
   padding: 2px 8px;
   border-radius: 6px;
   font-weight: 600;
+  font-size: 0.72rem;
+  white-space: nowrap;
 }
 
 .executiveCallout {

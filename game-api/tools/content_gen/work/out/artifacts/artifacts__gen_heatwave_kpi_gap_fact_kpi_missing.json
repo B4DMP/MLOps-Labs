@@ -1,7 +1,7 @@
 {
   "item_id": "artifacts:gen_heatwave_kpi_gap_fact_kpi_missing",
   "stage": "artifacts",
-  "input_hash": "9afe5ce899ceb2a0d1b57e3176f8401e6caf825ca86b91daa3022c24504a510a",
+  "input_hash": "cf43f28c71e54d85269833da85aa7212ca0378af23e49c529924cb97603de496",
   "model": "Qwen/Qwen3.8-27B",
   "attempts": 1,
   "inputs": {
@@ -10,8 +10,8 @@
       "challenge_id": -1,
       "stakeholder_id": null,
       "type": "fact",
-      "description": "The KPI definition is missing from the system. That is simply how the KPI setup works today.",
-      "fact": "The KPI definition is missing from the system.",
+      "description": "The KPI definition is broken in the system. That is simply how the KPI setup works today.",
+      "fact": "The KPI definition is broken in the system.",
       "reading": "That is simply how the KPI setup works today.",
       "metric_id": null,
       "suggested": null,
@@ -41,11 +41,11 @@
       "name": "The Summer Forecast Gap",
       "description": ""
     },
-    "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
+    "hint": "The fact is that something exists but is broken: it used to work, or someone started it, and it stopped or stalled. Describe the workaround people use today because it does not work, never that it does not exist. No consequences, risks, costs or benefits."
   },
   "output": {
-    "content": "During the weekly model review, I checked the configuration files for the nightly forecast job. The parameter block that defines how the accuracy metric is calculated is empty. The system currently runs the retraining cycle without a defined target for the error calculation. I observed the job log for the last seven nights. The process completes successfully, but it does not output a single numeric value for the primary performance indicator. The dashboard displays a blank field where the score should appear. No threshold is set to trigger an alert if the model degrades. The pipeline executes the same steps every night, processing the till data and stock levels, but it does not measure the result against any standard. The code simply finishes and hands the suggestions to the ordering system without recording a quality check.",
+    "content": "During the review of the evaluation pipeline, {model_monica} noted that the availability metric calculation in the monitoring dashboard has stopped updating correctly. The underlying job that computes the KPI from the point of sale scan lines fails silently after the nightly batch completes. Because the system output is unreliable, the team currently exports the raw scan data and calculates the availability figures manually in a spreadsheet before each weekly review. This manual step takes about an hour and is performed by whoever is on call for the model team. The dashboard widget still displays the last successful value from three weeks ago, which no longer reflects current store performance.",
     "reclassified_as": "fact",
-    "reclassify_reason": "The text describes the observed state of the system (empty configuration, lack of metrics, successful execution without quality checks) without expressing any wishes, refusals, or stated needs that imply a preference for additional work or a specific limit."
+    "reclassify_reason": "The text describes the current operational state of the pipeline failure, the resulting manual workaround, and the stale dashboard data without expressing a wish, refusal, or explicit trade-off."
   }
 }

@@ -27,6 +27,22 @@
 }
 
 
+.titleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.requiredLegend {
+    flex-shrink: 0;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+}
+
 .cardTitle {
     font-size: 2.2rem;
     font-weight: 800;
@@ -147,6 +163,99 @@
 .formInput:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.compactRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+
+.compactCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+    padding: 0.5rem;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    transition: border-color var(--transition), background var(--transition);
+}
+
+.compactCard:focus-within,
+.compactCard:hover {
+    border-color: rgba(255, 255, 255, 0.24);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.compactCardControl {
+    width: 100%;
+    margin-top: auto;
+}
+
+.usersInput {
+    max-width: 90px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.compactHint {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin: 0;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+@media (min-width: 480px) {
+    .compactRow {
+        grid-template-columns: repeat(3, 1fr);
+        align-items: stretch;
+    }
+
+    .compactCard {
+        height: 100%;
+    }
+}
+
+.segmentedToggle {
+    display: inline-flex;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+.segmentedOption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    flex: 1;
+    min-width: 76px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.segmentedOption:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.segmentedOptionActive {
+    background: var(--primary-bg);
+    color: #ffffff;
 }
 
 .buttonRow {

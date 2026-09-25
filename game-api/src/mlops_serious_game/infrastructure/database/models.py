@@ -1,6 +1,6 @@
 import datetime
 from typing import Any
-from sqlalchemy import DateTime, ForeignKey, Integer, String, JSON, Boolean
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, JSON, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from mlops_serious_game.config import settings
@@ -249,6 +249,16 @@ class UserSettings(Base):
     voice_female: Mapped[str | None] = mapped_column(String(255), nullable=True)
     voice_narrator: Mapped[str | None] = mapped_column(String(255), nullable=True)
     voice_player: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # "auto" (default) prefers the server-side edge-tts narration and falls back to
+    # window.speechSynthesis on a failed backend call; "webspeech" skips the backend entirely and
+    # forces the old client-only behaviour.
+    tts_backend: Mapped[str] = mapped_column(String(32), default="auto", nullable=False)
+    # Which of the two server-side player voices (tts_service.PLAYER_VOICES) narrates the
+    # player's own lines. Chosen at registration, editable later in settings.
+    player_voice_gender: Mapped[str] = mapped_column(String(16), default="male", nullable=False)
+    # Multiplier on narration speed, applied on both TTS paths (tts_service.py's edge-tts `rate`
+    # and window.speechSynthesis's `utterance.rate`). 1.0 is unchanged, below slower, above faster.
+    speech_rate: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime,
         default=datetime.datetime.utcnow,

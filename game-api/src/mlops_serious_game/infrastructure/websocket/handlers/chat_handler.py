@@ -144,6 +144,7 @@ async def handle_chat_message(
                     "facial_expressions": {st_index_str: st_face} if (st_index_str and st_face) else {},
                     "emotional_states": {st_index_str: EmotionFactory.derive_emotional_state(st_ev)} if (st_index_str and st_ev) else {},
                     "emotion_dimensions": {st_index_str: EmotionFactory.derive_gating_dimensions(st_ev)} if (st_index_str and st_ev) else {},
+                    "emotion_dimensions_full": {st_index_str: EmotionFactory.derive_all_dimensions(st_ev)} if (st_index_str and st_ev) else {},
                     "streaming": False,
                 },
             )
@@ -340,6 +341,7 @@ async def handle_chat_message(
         facial_expressions = EmotionFactory.get_facial_expressions_dict(updated_emotion_values)
         emotional_states = EmotionFactory.get_emotion_states_dict(updated_emotion_values)
         emotion_dimensions = EmotionFactory.get_emotion_dimensions_dict(updated_emotion_values)
+        emotion_dimensions_full = EmotionFactory.get_all_dimensions_dict(updated_emotion_values)
 
         graph_completed_payload = {
             "progressionIndex": 2,
@@ -348,6 +350,7 @@ async def handle_chat_message(
             "facial_expressions": facial_expressions,
             "emotional_states": emotional_states,
             "emotion_dimensions": emotion_dimensions,
+            "emotion_dimensions_full": emotion_dimensions_full,
             "emotion_values": serialized_emotion_values,
             "emotion_deltas": serialized_deltas,
             "error": False,
