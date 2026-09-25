@@ -595,17 +595,23 @@ export default function OfflineIntelGathering({
           <div className={`col-12 d-flex flex-column h-100 ${styles.rightColumnIntel}`}>
             {/* Transparent Div Wrapper */}
             <div
-              className={`transparent-div shadow-lg w-100 ${styles.transparentDivWrapper}`}
+              className={`transparent-div shadow-lg w-100 ${styles.transparentDivWrapper} ${
+                singleArtifact ? styles.transparentDivWrapperSingle : ""
+              }`}
             >
               {/* Where-am-I-in-the-project rail, shared with the Performance Dashboard and
                   Phase Briefing headers, sitting above the title row so it doesn't compete
                   with the title and nav pills for the same horizontal space. This header is
                   much narrower than either of those, so it renders in the tiny variant: only
                   the current phase keeps its label, the rest collapse to a representative
-                  icon for that phase (name still reachable on hover). */}
-              <div className={styles.headerPhaseRail}>
-                <PhaseOverview compact />
-              </div>
+                  icon for that phase (name still reachable on hover). Skipped entirely in
+                  singleArtifact mode: that's the Pitch & Debate "review this artifact" popup,
+                  not the offline intel gathering phase, so "where am I in the project" doesn't apply. */}
+              {!singleArtifact && (
+                <div className={styles.headerPhaseRail}>
+                  <PhaseOverview compact />
+                </div>
+              )}
 
               {/* Header Title inside transparent-div - Merged Artifact Info */}
               <div className={styles.headerRow}>

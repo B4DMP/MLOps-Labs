@@ -1060,6 +1060,11 @@ function App({ username: _username, onLogout }: AppProps) {
                             setFocusComponentId(componentId);
                             setIsPerformanceOpen(true);
                           }}
+                          dossierData={dossierData}
+                          activeStakeholderId={activeStakeholderId}
+                          focusIntelId={focusIntelId}
+                          isDossierOpen={isDossierOpen}
+                          onDossierToggle={() => setIsDossierOpen((v) => !v)}
                         />
                       </motion.div>
                     )}

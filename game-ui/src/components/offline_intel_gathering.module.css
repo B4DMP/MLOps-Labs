@@ -115,6 +115,19 @@
     row-gap: 0.3rem;
 }
 
+/* singleArtifact mode (the Pitch & Debate "review this artifact" popup) skips the phase
+   rail row entirely, so the grid only has the header row and the journal card left - and a
+   lighter background, since this is a focused popup rather than the full intel-gathering board. */
+.transparentDivWrapperSingle {
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+/* Same specificity as global .transparent-div's own background rule, so cascade order alone
+   would decide the winner - :global() here pins it explicitly instead of hoping load order holds. */
+:global(.transparent-div).transparentDivWrapperSingle {
+    background: rgba(61, 61, 61, 0.9);
+}
+
 .journalCard {
     border-radius: 12px;
     overflow: hidden;

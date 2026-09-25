@@ -29,6 +29,7 @@ import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import type { ActionCard } from "../types/ActionCard";
 import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGameWebSocket";
 import CheatSheetModal from "./CheatSheetModal";
+import StakeholderDossier, { type StakeholderDossierEntry } from "./StakeholderDossier";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import styles from "./ac_simulation.module.css";
 import { AXIS_TITLES, formatAxisLevel, type Axis } from "../utils/stageCanvas";
@@ -164,6 +165,16 @@ interface AcSimulationProps {
   /** Opens the Performance Dashboard already focused on this component - a link from a row
    *  in the Component Implementation Log. Rows become clickable when this is given. */
   onOpenComponent?: (componentId: string) => void;
+  /** The player's dossier, rendered as a floating window from this screen's own header button -
+   *  same data PerformanceDashboard reads to link a component to notes about it. */
+  dossierData?: StakeholderDossierEntry[];
+  /** A stakeholder page followed from outside (e.g. an owner link in the Performance Dashboard).
+   *  Re-jumps the dossier whenever this changes, same idiom as PitchDebate's focusStakeholderId. */
+  activeStakeholderId?: string;
+  /** Same, for an intel reference followed from the Performance Dashboard. */
+  focusIntelId?: string;
+  onDossierToggle?: () => void;
+  isDossierOpen?: boolean;
 }
 
 const OUTCOME_CONFIG: Record<
@@ -259,6 +270,11 @@ export default function AcSimulation({
   onSettingsToggle,
   isSettingsOpen = false,
   onOpenComponent,
+  dossierData,
+  activeStakeholderId,
+  focusIntelId,
+  onDossierToggle,
+  isDossierOpen = false,
 }: AcSimulationProps) {
   const { emit, subscribe } = useGameWebSocket();
   const { metrics } = useContext(MetricsContext);
@@ -269,6 +285,29 @@ export default function AcSimulation({
   const [payload, setPayload] = useState<DeltaReportPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [isCheatSheetOpen, setIsCheatSheetOpen] = useState(false);
+
+  // The dossier's own selected page/highlighted note - seeded from outside (a link followed from
+  // the Performance Dashboard) but otherwise navigated freely within the dossier itself, same
+  // "jump only on change" idiom as PitchDebate's selectedStakeholderId/highlightedIntelId.
+  const [dossierStakeholderId, setDossierStakeholderId] = useState<string>("");
+  const [highlightedIntelId, setHighlightedIntelId] = useState<string | null>(null);
+
+  const prevActiveStakeholderRef = useRef<string | undefined>(activeStakeholderId);
+  useEffect(() => {
+    if (activeStakeholderId && activeStakeholderId !== prevActiveStakeholderRef.current) {
+      setDossierStakeholderId(activeStakeholderId);
+    }
+    prevActiveStakeholderRef.current = activeStakeholderId;
+  }, [activeStakeholderId]);
+
+  const prevFocusIntelRef = useRef<string | undefined>(focusIntelId);
+  useEffect(() => {
+    if (focusIntelId && focusIntelId !== prevFocusIntelRef.current) {
+      setHighlightedIntelId(focusIntelId);
+      setTimeout(() => setHighlightedIntelId(null), 3000);
+    }
+    prevFocusIntelRef.current = focusIntelId;
+  }, [focusIntelId]);
 
   useWebSocketEvent<DeltaReportPayload>("graph:delta_report", (data) => setPayload(data));
 
@@ -432,6 +471,17 @@ export default function AcSimulation({
           <PhaseOverview />
         </div>
         <div className={styles.headerIconGroup}>
+          {onDossierToggle && (
+            <button
+              type="button"
+              className={`${styles.headerIconBtn} ${isDossierOpen ? styles.headerIconBtnActive : ""}`}
+              onClick={onDossierToggle}
+              aria-label={isDossierOpen ? "Stakeholder dossier: close" : "Stakeholder dossier: open"}
+              {...infoTagProps(isDossierOpen ? "Close stakeholder dossier" : "Open stakeholder dossier")}
+            >
+              <Icon icon="ph:address-book-tabs-bold" />
+            </button>
+          )}
           {onPerformanceToggle && (
             <button
               type="button"
@@ -1176,6 +1226,24 @@ export default function AcSimulation({
         onClose={() => setIsCheatSheetOpen(false)}
         activeSectionTitle="Simulate"
       />
+
+      {onDossierToggle && (
+        <StakeholderDossier
+          isOpen={isDossierOpen}
+          onClose={onDossierToggle}
+          dossierData={dossierData ?? []}
+          activeStakeholderId={dossierStakeholderId}
+          onActiveStakeholderChange={(id) => setDossierStakeholderId(id ?? "")}
+          highlightedIntelId={highlightedIntelId}
+          currentPhase={currentPhase}
+          currentChallenge={currentChallenge}
+          onPerformanceToggle={onPerformanceToggle}
+          isPerformanceOpen={isPerformanceOpen}
+          onSettingsToggle={onSettingsToggle}
+          isSettingsOpen={isSettingsOpen}
+          cheatSheetActiveSection="Simulate"
+        />
+      )}
 
       {/* Shared flip-down hover/focus tag for every button, pill and chip on this page that
           used to carry a native `title` - see the note on the infoTag state above. */}
