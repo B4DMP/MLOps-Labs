@@ -571,6 +571,7 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                         style={{
                           width: "90px",
                           height: "90px",
+                          backgroundColor: av.backgroundColor ? `#${av.backgroundColor.replace('#', '')}` : "#d1d4f9",
                           border: "2px solid rgba(255, 255, 255, 0.15)",
                         }}
                       >
@@ -578,7 +579,6 @@ export function ConfigEditor({ adminToken, onDashboardUpdate }: ConfigEditorProp
                           avatar={av}
                           stakeholderId={st.id}
                           play_blink_animation={true}
-                          isFramed={false}
                           size={82}
                           title={stName}
                         />

@@ -26,15 +26,13 @@ import { useGameWebSocket, useWebSocketEvent } from "../services/websocket/useGa
 import CheatSheetModal from "./CheatSheetModal";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import styles from "./ac_simulation.module.css";
+import { AXIS_TITLES, formatAxisLevel, type Axis } from "../utils/stageCanvas";
 
-const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
-const LEVEL_CLASS = [
-  styles.levelBroken,
-  styles.levelAbsent,
-  styles.levelManual,
-  styles.levelAutomated,
-  styles.levelGoverned,
-];
+/** Pip colour per rung, one set per axis (00-plan.md §2.1) - the two never share a scale. */
+const LEVEL_CLASS: Record<Axis, string[]> = {
+  automation: [styles.levelBroken, styles.levelAbsent, styles.levelManual, styles.levelAutomated],
+  governance: [styles.levelAbsent, styles.levelGovPartial, styles.levelGovPartial, styles.levelGovFull],
+};
 /** Same notch count as `MetricTab`'s header gauges - the two have to agree, since this card
  *  shows the same six metrics as the header, just before/after instead of only "now". */
 const METRIC_SEGMENTS = 10;
@@ -69,8 +67,10 @@ interface LevelPair {
   after: number;
 }
 
+/** One axis of one target: a card touching both axes of a component reports it twice. */
 interface TargetDelta {
   id: string;
+  axis: Axis;
   name?: string;
   stage: string;
   nominal: LevelPair;
@@ -99,9 +99,10 @@ interface StakeholderExecutionDelta {
 interface DeltaReport {
   outcome: string;
   targets: TargetDelta[];
-  debt_created: Array<{ target_id?: string; owner_id?: string; intended?: number; applied?: number }>;
-  debt_cleared: Array<{ target_id?: string; owner_id?: string }>;
-  world_events: Array<{ target: string; name?: string; before: number; after: number; reason?: string; icon?: string }>;
+  debt_created: Array<{ target_id?: string; owner_id?: string; intended?: number; applied?: number; axis?: Axis }>;
+  debt_cleared: Array<{ target_id?: string; owner_id?: string; axis?: Axis }>;
+  world_events: Array<{ target: string; axis?: Axis; name?: string; before: number; after: number; reason?: string; icon?: string }>;
+  /** Automation only: governance never caps, so it never propagates. */
   propagated: Array<{ target: string; name?: string; effective: LevelPair; via?: string | null; icon?: string }>;
   stage_health: Record<string, LevelPair>;
   system_health: LevelPair;
@@ -173,8 +174,8 @@ const OUTCOME_CONFIG: Record<
   },
 };
 
-function formatLevel(level: number): string {
-  return LEVEL_LABELS[level] ?? String(level);
+function formatLevel(axis: Axis, level: number): string {
+  return formatAxisLevel(axis, level);
 }
 
 /** "req.acceptance_criteria" -> "acceptance criteria". Same idiom used for component ids elsewhere. */
@@ -452,7 +453,8 @@ export default function AcSimulation({
                       <span>Component Implementation Log</span>
                     </h3>
                     <span className="text-muted small">
-                      {report.targets.length} Component{report.targets.length === 1 ? "" : "s"} Targeted
+                      {new Set(report.targets.map((t) => t.id)).size} Target
+                      {new Set(report.targets.map((t) => t.id)).size === 1 ? "" : "s"} Changed
                     </span>
                   </div>
                   <div className={styles.cardBody}>
@@ -494,8 +496,10 @@ export default function AcSimulation({
                             statusIcon = "ph:lock-key-bold";
                             statusTitle = `Upstream Bottleneck Constraint (Capped by ${target.capped_by?.id || "predecessor"})`;
                             statusDescription = `Component reached nominal ${formatLevel(
+                              target.axis,
                               target.nominal.after
                             )}, but operates throttled at ${formatLevel(
+                              target.axis,
                               target.effective.after
                             )} because upstream dependencies lag behind.`;
                           } else if (isDelayed) {
@@ -522,7 +526,7 @@ export default function AcSimulation({
 
                           return (
                             <div
-                              key={target.id}
+                              key={`${target.id}-${target.axis}`}
                               className={`${styles.rolloutItem} ${openThisComponent ? styles.rolloutItemClickable : ""}`}
                               style={{ ["--row-accent" as string]: statusAccentColor }}
                               onClick={openThisComponent}
@@ -553,12 +557,16 @@ export default function AcSimulation({
                                     )}
                                   </span>
                                   <span className={styles.stageTag}>{target.stage}</span>
+                                  <span
+                                    className={`${styles.stageTag} ${target.axis === "governance" ? styles.axisTagGovernance : ""}`}
+                                  >
+                                    {AXIS_TITLES[target.axis] ?? target.axis}
+                                  </span>
                                   <span className={styles.ownerName}>
                                     <StakeholderAvatarComponent
                                       avatar={stCtx.avatar}
                                       stakeholderId={ownerId}
                                       stakeholderColor={stCtx.stakeholder_color}
-                                      isFramed={false}
                                       size={16}
                                       hoverToSuspicious={false}
                                     />
@@ -567,12 +575,12 @@ export default function AcSimulation({
                                 </div>
 
                                 <div className={styles.levelTransition}>
-                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.nominal.before] || ""}`}>
-                                    {formatLevel(target.nominal.before)}
+                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.axis]?.[target.nominal.before] || ""}`}>
+                                    {formatLevel(target.axis, target.nominal.before)}
                                   </span>
                                   <Icon icon="ph:arrow-right-bold" className="text-muted" />
-                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.nominal.after] || ""}`}>
-                                    {formatLevel(target.nominal.after)}
+                                  <span className={`${styles.levelPip} ${LEVEL_CLASS[target.axis]?.[target.nominal.after] || ""}`}>
+                                    {formatLevel(target.axis, target.nominal.after)}
                                   </span>
                                 </div>
                               </div>
@@ -653,7 +661,6 @@ export default function AcSimulation({
                                     avatar={stCtx.avatar}
                                     stakeholderId={st.stakeholder_id}
                                     stakeholderColor={stCtx.stakeholder_color}
-                                    isFramed={false}
                                     size="100%"
                                   />
                                 </div>
@@ -771,8 +778,9 @@ export default function AcSimulation({
                                   name={e.name || formatComponentId(e.target)}
                                   icon={e.icon}
                                   onOpenComponent={onOpenComponent}
-                                />{" "}
-                                moved from {formatLevel(e.before)} to {formatLevel(e.after)}
+                                />
+                                {e.axis === "governance" ? " governance" : ""} moved from{" "}
+                                {formatLevel(e.axis ?? "automation", e.before)} to {formatLevel(e.axis ?? "automation", e.after)}
                                 {e.reason && <span className="text-muted"> ({e.reason})</span>}
                               </li>
                             ))}
@@ -793,7 +801,8 @@ export default function AcSimulation({
                                   icon={p.icon}
                                   onOpenComponent={onOpenComponent}
                                 />{" "}
-                                adapted from {formatLevel(p.effective.before)} to {formatLevel(p.effective.after)}
+                                adapted from {formatLevel("automation", p.effective.before)} to{" "}
+                                {formatLevel("automation", p.effective.after)}
                                 {p.via && (
                                   <>
                                     {" (via "}

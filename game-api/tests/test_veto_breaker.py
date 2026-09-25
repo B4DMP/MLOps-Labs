@@ -102,8 +102,8 @@ def _a_veto_worthy_card():
     all - `handle_pitch_set_card` would reject the whole card for naming it.
     """
     return [
-        {"target": "deploy.shadow", "kind": "raise_to", "value": 1},
-        {"target": "deploy.serving", "kind": "raise_to", "value": 2},
+        {"target": "deploy.shadow", "kind": "raise_to", "axis": "automation", "value": 1},
+        {"target": "deploy.serving", "kind": "raise_to", "axis": "automation", "value": 2},
     ]
 
 
@@ -323,7 +323,7 @@ async def test_the_pushed_through_card_actually_lands_on_the_graph(migrated_db):
         await simulation_handler.handle_simulation_run(_mock_ws(), "alice", ids)
 
     replay_state = graph_store.load_state("alice").state
-    assert replay_state.level("deploy.serving") == 1
+    assert replay_state.value("deploy.serving", "automation") == 1
 
 
 @pytest.mark.anyio
@@ -361,4 +361,4 @@ async def test_a_broken_veto_can_cost_the_overridden_stakeholder_exactly_what_it
     target_ids = [t["id"] for t in report_payload["report"]["targets"]]
     assert "deploy.shadow" in target_ids
     replay_state = graph_store.load_state("alice").state
-    assert replay_state.level("deploy.shadow") == 0
+    assert replay_state.value("deploy.shadow", "automation") == 0

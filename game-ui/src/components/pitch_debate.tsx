@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ActionCard } from "../types/ActionCard";
-import { StakeholderContext } from "./StakeholderProvider";
+import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext } from "./PhaseProvider";
 import { useSettings } from "./SettingsProvider";
@@ -14,7 +14,6 @@ import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyIn
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg, type RevealedIntel } from "./StakeholderInteractionArea";
-import SpokenText from "./SpokenText";
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
@@ -22,8 +21,8 @@ import ActionCardCardComponent from "./ActionCardCardComponent";
 import ComposeActionProposalModal, {
   type AtomicChange,
   dedupeAtomicChanges,
-  formatLevelCap,
 } from "./ComposeActionProposalModal";
+import { describeAtomicChange, findGraphTarget } from "../utils/graphOptions";
 import type { IntelItem } from "./PitchActionCardModal";
 import EngagementCards from "./EngagementCards";
 import type { EngagementCard } from "../types/EngagementCard";
@@ -300,6 +299,12 @@ export default function PitchDebate({
     emotionalState?: string;
     facialExpression?: string;
     emotionValues?: Record<string, number>;
+    /** Which dimensions are gating this message's emotional state, and the full bucketed set -
+     *  carried alongside emotionValues so the dossier's hover composition card updates in step
+     *  with the emoji/face when this message is revealed, instead of lagging behind on whatever
+     *  gating info happened to arrive last over the websocket. */
+    emotionDimensions?: EmotionGatingInfo;
+    emotionDimensionsFull?: EmotionGatingDimension[];
     buyIn?: number;
   }
   const speechQueueRef = useRef<SpeechQueueItem[]>([]);
@@ -324,10 +329,6 @@ export default function PitchDebate({
     isClosing?: boolean;
   } | null>(null);
   const [isSpeechInProgress, setIsSpeechInProgress] = useState<boolean>(false);
-  // Sentence-highlight position for whichever stakeholder line is currently being narrated (see
-  // SpokenText), and a reference to that exact chat-history entry so only it renders live.
-  const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
-  const [liveChatMsg, setLiveChatMsg] = useState<ChatMsg | null>(null);
 
   const isAnySpeechActive = Boolean(activeSpeakingState || activePlayerSpeakingState);
   const isSpeechBubbleCoveringButton = Boolean(activePlayerSpeakingState);
@@ -347,34 +348,10 @@ export default function PitchDebate({
     cancelTts();
   };
 
-  // Shared tail for "a line is done" - used both by the normal queue advance below and by
-  // playChatMessage, which re-narrates any chat-history line (player or stakeholder) without
-  // re-entering the queue.
-  const finishActiveSpeech = (kind: "stakeholder" | "player" = "stakeholder") => {
-    if (kind === "player") {
-      setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-    } else {
-      setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-    }
-    activeSpeechTimerRef.current = setTimeout(() => {
-      if (kind === "player") {
-        setActivePlayerSpeakingState(null);
-      } else {
-        setActiveSpeakingState(null);
-      }
-      setActiveSentenceIndex(null);
-      setLiveChatMsg(null);
-      isProcessingQueueRef.current = false;
-      activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-    }, 400);
-  };
-
   const processSpeechQueue = () => {
     if (isProcessingQueueRef.current) return;
     if (speechQueueRef.current.length === 0) {
       setActiveSpeakingState(null);
-      setActiveSentenceIndex(null);
-      setLiveChatMsg(null);
       setActivePlayerSpeakingState(null);
       isProcessingQueueRef.current = false;
       setIsSpeechInProgress(false);
@@ -401,21 +378,17 @@ export default function PitchDebate({
 
     if (nextItem.type === "player") {
       setActiveSpeakingState(null);
-      setActiveSentenceIndex(null);
-      setLiveChatMsg(null);
       // Auto-skip: the chat message and any state updates above already landed, so the line
       // isn't lost - only the timed bubble and its hold are skipped. A minimal timeout (rather
       // than recursing synchronously) keeps this on the same "next tick" rhythm as a real turn,
       // so isSpeechActive()'s brief true window stays intact for callers that gate on it.
       if (settings.auto_skip_conversations) {
         setActivePlayerSpeakingState(null);
-        setActiveSentenceIndex(null);
         isProcessingQueueRef.current = false;
         activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
         return;
       }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
-      setActiveSentenceIndex(null);
       // The bubble stays open at least this long (its old, pre-narration duration - what it
       // still gets when muted, since speak() then calls onEnd synchronously), and does not
       // start closing until narration actually finishes speaking, however long that takes -
@@ -430,14 +403,12 @@ export default function PitchDebate({
         setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
         activeSpeechTimerRef.current = setTimeout(() => {
           setActivePlayerSpeakingState(null);
-          setActiveSentenceIndex(null);
           isProcessingQueueRef.current = false;
           activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
         }, 400);
       };
       speakTts(nextItem.message, {
         slot: "player",
-        onSentence: ({ index }) => setActiveSentenceIndex(index),
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -457,10 +428,20 @@ export default function PitchDebate({
         setSelectedStakeholderId(nextItem.stakeholderId);
       }
 
-      // Update that stakeholder's emotional state, facial expression, avatar, and emotionValues now that their message is displayed!
+      // Update that stakeholder's emotional state, facial expression, avatar, emotionValues,
+      // and the dossier's hover-reveal dimensions now that their message is displayed! The last
+      // two (emotion_dimensions / emotion_dimensions_full) have to move in lockstep with
+      // emotional_state here rather than being left for some other websocket handler to catch up
+      // on later - they're what feeds the composition card under the emotion badge, and without
+      // this it kept showing whichever gating info happened to arrive last instead of the
+      // dimensions behind the message actually on screen.
       if (
         nextItem.stakeholderId &&
-        (nextItem.emotionalState || nextItem.facialExpression || nextItem.emotionValues) &&
+        (nextItem.emotionalState ||
+          nextItem.facialExpression ||
+          nextItem.emotionValues ||
+          nextItem.emotionDimensions ||
+          nextItem.emotionDimensionsFull) &&
         setStakeholders
       ) {
         setStakeholders((prev: Record<string, any>) => {
@@ -478,6 +459,8 @@ export default function PitchDebate({
               emotion: newFace,
               emotion_values: nextItem.emotionValues || current.emotion_values,
               emotionValues: nextItem.emotionValues || current.emotionValues,
+              emotion_dimensions: nextItem.emotionDimensions || current.emotion_dimensions,
+              emotion_dimensions_full: nextItem.emotionDimensionsFull || current.emotion_dimensions_full,
               avatar: {
                 ...(current.avatar || {}),
                 face: newFace,
@@ -490,8 +473,6 @@ export default function PitchDebate({
 
       if (settings.auto_skip_conversations) {
         setActiveSpeakingState(null);
-        setActiveSentenceIndex(null);
-        setLiveChatMsg(null);
         isProcessingQueueRef.current = false;
         activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
         return;
@@ -502,8 +483,6 @@ export default function PitchDebate({
         message: nextItem.message,
         isClosing: false,
       });
-      setActiveSentenceIndex(null);
-      setLiveChatMsg(nextItem.chatMsg || null);
       // Same floor-plus-actual-completion gating as the player branch above: the bubble stays
       // open at least this long, and only starts closing once narration truly finishes.
       const floorMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
@@ -513,12 +492,16 @@ export default function PitchDebate({
       const proceedWhenReady = () => {
         if (settled || !speechDone || !floorDone) return;
         settled = true;
-        finishActiveSpeech();
+        setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+        activeSpeechTimerRef.current = setTimeout(() => {
+          setActiveSpeakingState(null);
+          isProcessingQueueRef.current = false;
+          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+        }, 400);
       };
       speakTts(nextItem.message, {
         slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
         seed: nextItem.stakeholderId,
-        onSentence: ({ index }) => setActiveSentenceIndex(index),
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -538,66 +521,12 @@ export default function PitchDebate({
   const skipCurrentSpeech = () => {
     clearSpeechTimers();
     setActiveSpeakingState(null);
-    setActiveSentenceIndex(null);
-    setLiveChatMsg(null);
     setActivePlayerSpeakingState(null);
     isProcessingQueueRef.current = false;
     if (speechQueueRef.current.length === 0) {
       setIsSpeechInProgress(false);
     }
     processSpeechQueue();
-  };
-
-  // Narrates any stakeholder chat-history line on demand - the currently playing one (from its
-  // own "replay" button) or any other past line (from its hover-revealed "play" button) - without
-  // touching the queue. Interrupts whatever else is currently speaking, if anything.
-  const playChatMessage = (msg: ChatMsg) => {
-    const isPlayerMsg = !msg.id || msg.id === "user";
-    const stakeholderId = isPlayerMsg
-      ? undefined
-      : msg.id && msg.id !== "system" && msg.id !== "__environment__"
-        ? msg.id
-        : msg.stakeholder_id;
-    if (!isPlayerMsg && !stakeholderId) return;
-
-    clearSpeechTimers();
-    isProcessingQueueRef.current = true;
-    setActiveSentenceIndex(null);
-    setLiveChatMsg(msg);
-    if (isPlayerMsg) {
-      setActiveSpeakingState(null);
-      setActivePlayerSpeakingState({ message: msg.message, isClosing: false });
-    } else {
-      setActivePlayerSpeakingState(null);
-      setActiveSpeakingState({ stakeholderId: stakeholderId!, message: msg.message, isClosing: false });
-    }
-
-    const floorMs = Math.min(12000, Math.max(4500, Math.round(msg.message.length * 60)));
-    let speechDone = false;
-    let floorDone = false;
-    let settled = false;
-    const proceedWhenReady = () => {
-      if (settled || !speechDone || !floorDone) return;
-      settled = true;
-      finishActiveSpeech(isPlayerMsg ? "player" : "stakeholder");
-    };
-    speakTts(msg.message, {
-      slot: isPlayerMsg ? "player" : slotForStakeholderVoice(stakeholders[stakeholderId!]?.voice),
-      seed: isPlayerMsg ? undefined : stakeholderId,
-      onSentence: ({ index }) => setActiveSentenceIndex(index),
-      onEnd: () => {
-        speechDone = true;
-        proceedWhenReady();
-      },
-    });
-    activeFloorTimerRef.current = setTimeout(() => {
-      floorDone = true;
-      proceedWhenReady();
-    }, floorMs);
-    activeHardCapTimerRef.current = setTimeout(() => {
-      speechDone = true;
-      proceedWhenReady();
-    }, 20000);
   };
 
   const triggerStakeholderSpeech = (
@@ -608,6 +537,8 @@ export default function PitchDebate({
       emotionalState?: string;
       facialExpression?: string;
       emotionValues?: Record<string, number>;
+      emotionDimensions?: EmotionGatingInfo;
+      emotionDimensionsFull?: EmotionGatingDimension[];
       buyIn?: number;
     }
   ) => {
@@ -622,6 +553,8 @@ export default function PitchDebate({
       emotionalState: meta?.emotionalState,
       facialExpression: meta?.facialExpression,
       emotionValues: meta?.emotionValues,
+      emotionDimensions: meta?.emotionDimensions,
+      emotionDimensionsFull: meta?.emotionDimensionsFull,
       buyIn: meta?.buyIn,
     });
     processSpeechQueue();
@@ -818,6 +751,8 @@ export default function PitchDebate({
             emotionalState: p.emotional_state,
             facialExpression: p.facial_expression,
             emotionValues: p.emotion_values,
+            emotionDimensions: p.emotion_dimensions,
+            emotionDimensionsFull: p.emotion_dimensions_full,
             buyIn: p.buy_in,
           });
         } else if (p.type === "player_message" && p.message) {
@@ -991,16 +926,16 @@ export default function PitchDebate({
     if (!pitchState) return null;
     if (atomicChanges.length > 0) {
       const title = `Action Proposal (${atomicChanges.length} Change${atomicChanges.length > 1 ? "s" : ""})`;
+      // Each change is one authored option: name it by the option, with the axis step after it.
+      const described = atomicChanges.map((ac) => describeAtomicChange(ac, findGraphTarget(graphState?.technical, ac.target)));
       const description = atomicChanges
-        .map((ac) => {
-          const pred = pitchState.predictions?.find((p: any) => p.target === ac.target);
-          const next = pred?.predicted ?? ac.value;
+        .map((ac, idx) => {
           const isEdge = ac.target.startsWith("e.");
           const targetName = isEdge
             ? `Edge ${ac.target.replace(/^e\./, "").replace(/_/g, " ")}`
             : ac.target.split(".").pop()?.replace(/_/g, " ") || ac.target;
-
-          return `• Advance ${targetName} to ${formatLevelCap(next)}`;
+          const { title, detail } = described[idx];
+          return title === detail ? `• ${targetName}: ${detail}` : `• ${targetName}: ${title} (${detail})`;
         })
         .join(" ");
       return {
@@ -1008,6 +943,7 @@ export default function PitchDebate({
         title,
         description,
         atomic_changes: atomicChanges,
+        atomic_change_labels: described.map((d) => d.title),
         predictions: pitchState.predictions || [],
         current_phase: currentPhase,
         challenge_id: currentChallenge,
@@ -1028,7 +964,7 @@ export default function PitchDebate({
       } as ActionCard;
     }
     return null;
-  }, [pitchState, atomicChanges, selectedIntelIds, allIntelItems, currentPhase, currentChallenge]);
+  }, [pitchState, atomicChanges, selectedIntelIds, allIntelItems, currentPhase, currentChallenge, graphState]);
 
   // Inspect Intel handler
   const handleInspectIntel = (intel: RevealedIntel, stakeholderId?: string) => {
@@ -1235,10 +1171,7 @@ export default function PitchDebate({
               skipCurrentSpeech();
             }}
           >
-            <SpokenText
-              text={activeSpeakingState.message}
-              activeSentenceIndex={activeSentenceIndex}
-            />
+            {activeSpeakingState.message}
             <EmotionEmoji emotionState={st.emotional_state} className={styles.bubbleEmotionEmoji} />
           </div>
         )}
@@ -1862,42 +1795,11 @@ export default function PitchDebate({
                                     <span>Player</span>
                                   </div>
                                 </div>
-                                <div className={styles.playerSpeechContent}>
-                                  <SpokenText
-                                    text={activePlayerSpeakingState.message}
-                                    activeSentenceIndex={activeSentenceIndex}
-                                  />
-                                </div>
+                                <div className={styles.playerSpeechContent}>{activePlayerSpeakingState.message}</div>
                               </div>
                             )}
                           </div>
                         </div>
-
-                        {/* One skip control for every bubble: the bubbles themselves move around
-                            the table, so the button that dismisses them stays put here instead,
-                            below the table. */}
-                        {isAnySpeechActive && (
-                          <div className={styles.speechSkipBarRow}>
-                            <button
-                              type="button"
-                              className={styles.speechSkipBar}
-                              onClick={() => {
-                                // This button unmounts the instant the queue empties (isAnySpeechActive
-                                // goes false), so no mouseleave/blur ever fires to clear the hover
-                                // tag - clear it explicitly here instead of leaving it stuck onscreen.
-                                hideInfoTag();
-                                skipCurrentSpeech();
-                              }}
-                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onMouseLeave={hideInfoTag}
-                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onBlur={hideInfoTag}
-                            >
-                              <Icon icon="ph:skip-forward-fill" />
-                              <span>Skip</span>
-                            </button>
-                          </div>
-                        )}
                       </div>
 
                       {/* Right Sub-Column: Conversation History (Spans Full Height) */}
@@ -1942,11 +1844,25 @@ export default function PitchDebate({
                             showStakeholderList={false}
                             showDialogueOptions={false}
                             onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
-                            activeSentenceIndex={activeSentenceIndex}
-                            liveChatMsg={liveChatMsg}
-                            onStopSpeech={skipCurrentSpeech}
-                            onPlayMessage={playChatMessage}
                           />
+
+
+                          {/* One skip control for every bubble: the bubbles themselves move around
+                              the table, so the button that dismisses them stays put here instead. */}
+                          {isAnySpeechActive && (
+                            <button
+                              type="button"
+                              className={styles.speechSkipBar}
+                              onClick={skipCurrentSpeech}
+                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onMouseLeave={hideInfoTag}
+                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onBlur={hideInfoTag}
+                            >
+                              <Icon icon="ph:skip-forward-fill" />
+                              <span>Skip</span>
+                            </button>
+                          )}
 
                           {/* Maximize / Minimize button */}
                           <button

@@ -26,6 +26,7 @@ import {
   addAdminCampaign,
   updateAdminCampaign,
   removeAdminCampaign,
+  removeAllAdminCampaigns,
   removeAdminPlayer,
   removeAllAdminPlayers,
 } from "./services/api/admin";
@@ -412,6 +413,16 @@ function App() {
     }
   };
 
+  const handleRemoveAllCampaigns = async () => {
+    try {
+      const updated = await removeAllAdminCampaigns();
+      updateAdminState(updated);
+    } catch (err: any) {
+      setLastError(err.message || "Failed to delete all campaigns.");
+      setIsInErrorUi(true);
+    }
+  };
+
   const handleRemovePlayer = async (playerName: string) => {
     try {
       const updated = await removeAdminPlayer(playerName);
@@ -610,6 +621,7 @@ function App() {
                   addCampaign={handleAddCampaign}
                   updateCampaign={handleUpdateCampaign}
                   removeCampaign={handleRemoveCampaign}
+                  removeAllCampaigns={handleRemoveAllCampaigns}
                   removePlayer={handleRemovePlayer}
                   removeAllPlayers={handleRemoveAllPlayers}
                   finished_players_amount={finishedPlayersAmount}

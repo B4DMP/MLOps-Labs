@@ -42,8 +42,11 @@ async def _dossier(debug_enabled: bool):
     challenge = MagicMock()
     challenge.id = 9
     challenge.phase_id = 0
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
     username = f"test_dossier_debug_{uuid.uuid4()}"
+    ensure_test_user(username)
     ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     with patch.object(settings, "ENABLE_DOSSIER_DEBUG", debug_enabled), \

@@ -663,90 +663,232 @@
   gap: 0.3rem;
 }
 
-/* A one-line player-facing hint under a section label - plain sentence case, unlike the
-   shouted label above it, so the two never get mistaken for the same kind of text. */
-.formHint {
-  margin: -0.05rem 0 0;
-  font-size: var(--fs-xs);
-  color: var(--ink-mute);
-  line-height: 1.3;
-}
-
-/* Level as a segmented control: all five rungs visible at once, the one it runs at today
-   marked in place, so the choice reads as a ladder rather than a dropdown. */
-.levelPicker {
-  display: flex;
-  gap: 2px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-md);
-  padding: 2px;
-  background: #f8fafc;
-}
-
-.levelOption {
-  flex: 1 1 0;
-  min-width: 0;
-  position: relative;
+/* ── Option ladders ────────────────────────────────────────────────────────
+   One section per axis (and one for technology choices). Each authored option is a row that
+   reads as a step: the rung it lands on, its in-world name, and one action. Only the next
+   step on an axis is clickable; the ones already in place and the ones that need a step below
+   them first stay visible so the player can see the whole path. */
+.axisSection {
   display: flex;
   flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* Governance gets its own violet accent so the two ladders never read as one. */
+.axisSectionGovernance .formLabel {
+  color: #6d28d9;
+}
+
+.axisHeader {
+  display: flex;
   align-items: center;
-  gap: 1px;
-  border: none;
-  background: color-mix(in srgb, var(--rung) 12%, transparent);
-  border-radius: var(--radius-sm);
-  padding: var(--sp-2) 0.2rem;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.axisHint {
   font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: all var(--transition);
+  color: var(--ink-mute);
+  line-height: 1.35;
+  margin-top: -0.25rem;
 }
 
-/* The rung's glyph, at the size it needs to stay recognisable rather than at the size of
-   the label under it. */
-.levelOptionIcon {
-  font-size: 1.45em;
-  line-height: 1;
+/* Where the axis sits today: the rung's glyph and word, on a tint of its own colour. */
+.axisNow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--rung) 16%, transparent);
   color: var(--rung-ink);
-  flex-shrink: 0;
-}
-
-.levelOption:hover {
-  background: color-mix(in srgb, var(--rung) 26%, transparent);
-  color: var(--ink);
-}
-
-.levelOptionCurrent {
-  color: var(--ink);
-}
-
-/* Selected: the segment fills with its rung's colour, and the label switches to whichever
-   ink survives on it - white over the dark rungs, near-black over the pale ones. */
-.levelOptionTarget,
-.levelOptionTarget:hover {
-  background: var(--rung);
-  color: var(--rung-on-fill);
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--rung) 45%, transparent);
-}
-
-.levelOptionTarget .levelOptionIcon {
-  color: var(--rung-on-fill);
-}
-
-.levelOptionName {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: capitalize;
   white-space: nowrap;
 }
 
-.levelNowTag {
-  display: block;
-  font-size: 0.55rem;
+.axisPips {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 0.15rem;
+}
+
+.axisPip {
+  width: 9px;
+  height: 5px;
+  border-radius: 2px;
+  background: #e3e9f0;
+  border: 1px solid transparent;
+}
+
+/* A step already in the proposal but not built yet. */
+.axisPipPlanned {
+  background: color-mix(in srgb, var(--primary-bg) 40%, transparent);
+}
+
+/* Above the target's ceiling: no option reaches it. */
+.axisPipAbove {
+  background: transparent;
+  border: 1px dashed #cbd5e1;
+}
+
+.axisEmpty {
+  font-size: var(--fs-xs);
+  color: var(--ink-mute);
+  font-style: italic;
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attrName {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: capitalize;
+}
+
+.optionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  transition: all var(--transition);
+}
+
+/* The step the player can take now. */
+.optionRowNext {
+  border-color: color-mix(in srgb, var(--rung) 55%, var(--line));
+  background: color-mix(in srgb, var(--rung) 7%, #ffffff);
+}
+
+.optionRowSlotted {
+  border-color: var(--primary-bg);
+  background: #e6f2f7;
+}
+
+.optionRowDone,
+.optionRowLater {
+  background: #f8fafc;
+}
+
+.optionRowDone .optionText,
+.optionRowLater .optionText {
+  opacity: 0.6;
+}
+
+.optionIcon {
+  font-size: 1.25rem;
+  color: var(--rung-ink);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.optionText {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.optionName {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.optionDesc {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+
+.optionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 1px;
+}
+
+.optionTag {
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  background: #f1f5f9;
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.optionAction {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.optionAddBtn,
+.optionRemoveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.optionAddBtn {
+  border: 1px solid var(--secondary-bg);
+  background: var(--primary-bg);
+  color: #ffffff;
+}
+
+.optionAddBtn:hover:not(:disabled) {
+  background: var(--secondary-bg);
+}
+
+.optionAddBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: var(--line-strong);
+  background: #94a3b8;
+}
+
+.optionRemoveBtn {
+  border: 1px solid #fca5a5;
+  background: #ffffff;
+  color: #b91c1c;
+}
+
+.optionRemoveBtn:hover {
+  background: #fee2e2;
+}
+
+.optionState {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.75;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+  white-space: nowrap;
 }
 
 .selectInput {

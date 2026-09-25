@@ -8,14 +8,18 @@ The server filters every component and edge by the player's Knowledge before sen
 Stage health is sent as ground truth (server knows it) plus a player-viewable band that
 reflects what the player can infer from their observations. The band shrinks to a point
 once all targets in a stage are observed.
+
+Every component/edge also ships its curated automation/governance/attribute options
+(docs/plans/graph-governance-automation-rework/00-plan.md §2.4/§2.5) - the compose UI offers
+these instead of raw values.
 """
 
 from typing import Optional
 
 from mlops_serious_game.domain.graph import (
+    AutomationState,
     GraphState,
     Knowledge,
-    Level,
     Stage,
     TechnicalGraph,
 )
@@ -54,12 +58,11 @@ def _stage_band(
         ks = knowledge.state_of(tid, state)
         if ks == "current":
             # Only a target broken in itself costs health (D35); starved ones are free.
-            nominal = state.component_levels.get(tid, state.edge_levels.get(tid, Level.ABSENT))
-            if nominal == Level.BROKEN:
+            if state.automation(tid) == AutomationState.BROKEN:
                 known_broken += 1
         elif ks == "stale":
             entry = knowledge.seen[tid]
-            if entry.nominal == Level.BROKEN:
+            if entry.nominal_automation == AutomationState.BROKEN:
                 known_broken += 1
             else:
                 unknown_count += 1  # last seen fine, may have changed
@@ -93,6 +96,17 @@ def _patterns_by_stage(
         for stage_id in p.stage_effects:
             result.setdefault(stage_id, []).append({"id": p.id, "kind": p.kind, "name": p.name})
     return result
+
+
+def _options_payload(options) -> list[dict]:
+    return [{"to_level": o.to_level, "trigger": o.trigger, "name": o.name, "description": o.description} for o in options]
+
+
+def _attribute_options_payload(attribute_options: dict) -> dict[str, list[dict]]:
+    return {
+        attr: [{"to_value": o.to_value, "name": o.name, "description": o.description} for o in opts]
+        for attr, opts in attribute_options.items()
+    }
 
 
 def build_graph_state(
@@ -171,7 +185,8 @@ def build_graph_state(
                     "name": c.name,
                     "stage_id": c.stage_id,
                     "knowledge": "unknown",
-                    "allowed_levels": c.allowed_levels,
+                    "allowed_automation": c.allowed_automation,
+                    "allowed_governance": c.allowed_governance,
                 }
                 if reached:
                     base["owner_id"] = owner
@@ -184,11 +199,12 @@ def build_graph_state(
 
             if ks == "stale":
                 entry = knowledge.seen[c.id]
-                nominal, eff_val = entry.nominal, entry.effective
+                nom_auto, nom_gov = entry.nominal_automation, entry.nominal_governance
+                eff_auto, eff_gov = entry.effective_automation, entry.effective_governance
                 extra = {"seen_at": entry.seq}
             else:
-                nominal = state.component_levels[c.id]
-                eff_val = effective.components[c.id]
+                nom_auto, nom_gov = state.component_automation[c.id], state.component_governance[c.id]
+                eff_auto, eff_gov = effective.automation[c.id], effective.governance[c.id]
                 extra = {}
 
             comp: dict = {
@@ -197,10 +213,16 @@ def build_graph_state(
                 "stage_id": c.stage_id,
                 "owner_id": owner,
                 "knowledge": ks,
-                "nominal": nominal,
-                "effective": eff_val,
-                "allowed_levels": c.allowed_levels,
-                "story": story_for(graph, state, c.id, nominal),
+                "nominal_automation": nom_auto,
+                "nominal_governance": nom_gov,
+                "effective_automation": eff_auto,
+                "effective_governance": eff_gov,
+                "allowed_automation": c.allowed_automation,
+                "allowed_governance": c.allowed_governance,
+                "automation_options": _options_payload(c.automation_options),
+                "governance_options": _options_payload(c.governance_options),
+                "attribute_options": _attribute_options_payload(c.attribute_options),
+                "story": story_for(graph, state, c.id, (nom_auto, nom_gov)),
                 **extra,
             }
             if c.layout:
@@ -211,7 +233,7 @@ def build_graph_state(
                 comp["capped_by"] = effective.capped_by[c.id]
             if state.debt:
                 debt_entries = [
-                    {"intended": d.intended_level, "applied": d.applied_level, "owner_id": d.owner_id}
+                    {"intended": d.intended_level, "applied": d.applied_level, "axis": d.axis, "owner_id": d.owner_id}
                     for d in state.debt if d.target_id == c.id
                 ]
                 if debt_entries:
@@ -229,7 +251,7 @@ def build_graph_state(
         for e in graph.edges:
             if graph.component(e.from_id).stage_id != s.id:
                 continue
-            
+
             from_known = reached and knowledge.state_of(e.from_id, state) != "unknown"
             to_known = reached and knowledge.state_of(e.to_id, state) != "unknown"
             edge_directly_known = reached and knowledge.state_of(e.id, state) != "unknown"
@@ -245,18 +267,25 @@ def build_graph_state(
                     "kind": e.kind,
                     "slack": e.slack,
                     "knowledge": "unknown",
-                    "allowed_levels": e.allowed_levels,
+                    "allowed_automation": e.allowed_automation,
+                    "allowed_governance": e.allowed_governance,
                     "allowed_triggers": e.allowed_triggers,
                 })
                 continue
 
             if ks == "stale":
                 entry = knowledge.seen.get(e.id)
-                lv = entry.nominal if entry else state.edge_levels[e.id]
+                automation = entry.nominal_automation if entry else state.edge_automation[e.id]
+                governance = entry.nominal_governance if entry else state.edge_governance[e.id]
+                eff_automation = entry.effective_automation if entry else effective.automation[e.id]
+                eff_governance = entry.effective_governance if entry else effective.governance[e.id]
                 trigger = (entry.trigger or "none") if entry else state.edge_triggers.get(e.id, "none")
                 extra = {"seen_at": entry.seq} if entry else {}
             else:
-                lv = state.edge_levels[e.id]
+                automation = state.edge_automation[e.id]
+                governance = state.edge_governance[e.id]
+                eff_automation = effective.automation[e.id]
+                eff_governance = effective.governance[e.id]
                 trigger = state.edge_triggers.get(e.id, "none")
                 extra = {}
 
@@ -267,11 +296,17 @@ def build_graph_state(
                 "kind": e.kind,
                 "slack": e.slack,
                 "knowledge": ks,
-                "level": lv,
+                "automation": automation,
+                "governance": governance,
+                "effective_automation": eff_automation,
+                "effective_governance": eff_governance,
                 "trigger": trigger,
-                "allowed_levels": e.allowed_levels,
+                "allowed_automation": e.allowed_automation,
+                "allowed_governance": e.allowed_governance,
                 "allowed_triggers": e.allowed_triggers,
-                "story": story_for(graph, state, e.id, lv),
+                "automation_options": _options_payload(e.automation_options),
+                "governance_options": _options_payload(e.governance_options),
+                "story": story_for(graph, state, e.id, (automation, governance)),
                 **extra,
             }
             if e.id in effective.capped_by:

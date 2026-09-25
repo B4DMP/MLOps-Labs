@@ -548,9 +548,6 @@ export default function OfflineIntelGathering({
                 isEmbedded={true}
                 dossierData={dossierData || []}
                 activeStakeholderId={activeStakeholderId || currentStakeholderId}
-                speakingStakeholderId={
-                  isNarrating && narratingArtifactKey === currentArtifactKey ? currentArtifact?.stakeholder_id ?? null : null
-                }
                 showPhaseChangeBadges={!singleArtifact}
                 cheatSheetActiveSection="Digging for Intel"
                 onOpenPhaseBriefing={onOpenPhaseBriefing}

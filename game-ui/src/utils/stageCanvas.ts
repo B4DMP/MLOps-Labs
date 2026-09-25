@@ -5,26 +5,58 @@
  * waiting to happen, not a style choice.
  */
 
-export const LEVEL_LABELS = ["broken", "absent", "manual", "automated", "governed"];
+/**
+ * Every component and edge sits on two independent axes rather than one maturity ladder
+ * (docs/plans/graph-governance-automation-rework/00-plan.md §2.1): automation says whether a
+ * person or tooling does the work (on an edge: whether the hand-off fires by itself), and
+ * governance says how strictly the result (on an edge: the hand-off itself) is reviewed. A
+ * target can be manual but strictly reviewed, or automated and unsupervised, so neither axis
+ * is ever folded into the other - and neither label set is ever used for the other axis.
+ */
+export type Axis = "automation" | "governance";
 
-export function formatLevel(level: number | undefined | null): string {
+/** 0 broken, 1 absent, 2 manual, 3 automated. Pipeline flow is capped on this axis only. */
+export const AUTOMATION_LABELS = ["broken", "absent", "manual", "automated"];
+/** 0 none, 1 partial_1, 2 partial_2, 3 full - in words a player can read. */
+export const GOVERNANCE_LABELS = ["not reviewed", "partially reviewed", "mostly reviewed", "fully governed"];
+
+export const AXIS_LABELS: Record<Axis, readonly string[]> = {
+  automation: AUTOMATION_LABELS,
+  governance: GOVERNANCE_LABELS,
+};
+
+/** The axis's own name, for headings and summaries. */
+export const AXIS_TITLES: Record<Axis, string> = {
+  automation: "Automation",
+  governance: "Governance",
+};
+
+export function formatAxisLevel(axis: Axis, level: number | undefined | null): string {
   if (level === undefined || level === null) return "unknown";
-  return LEVEL_LABELS[level] || `level ${level}`;
+  return AXIS_LABELS[axis][level] || `level ${level}`;
 }
 
-export function formatLevelCap(level: number | undefined | null): string {
-  const lbl = formatLevel(level);
+export function formatAxisLevelCap(axis: Axis, level: number | undefined | null): string {
+  const lbl = formatAxisLevel(axis, level);
   return lbl.charAt(0).toUpperCase() + lbl.slice(1);
 }
 
 export function formatTrigger(trigger: string | undefined | null): string {
   if (!trigger) return "none";
-  return trigger.replace(/_/g, " ");
+  return trigger.replace(/^on_/, "on ").replace(/_/g, " ");
 }
 
+/** Keyed by the trigger ids `MlopsGraph.json` actually uses; the short legacy keys stay so an
+ *  older payload still draws a glyph rather than "?". */
 export const TRIGGER_ICONS: Record<string, string> = {
   none: "—",
   manual_request: "✋",
+  scheduled: "⏰",
+  on_commit: "📦",
+  on_data_arrival: "📊",
+  on_new_version: "🆕",
+  on_metric_threshold: "📉",
+  on_alert: "🚨",
   schedule: "⏰",
   commit: "📦",
   data_arrival: "📊",
@@ -240,19 +272,46 @@ export const NODE_ICON_OFFSET = NODE_ICON_DISC * 2 + 2;
  * notch, a swatch, a selected segment), `ink` writes on a light ground (the node caption,
  * where `absent`'s pale slate would otherwise be invisible on a white card), and `onFill`
  * writes on top of `color` itself (white over the dark rungs, dark over the pale ones).
+ *
+ * Two ladders, one per axis. Automation keeps the cool blue ramp; governance gets its own
+ * violet ramp (the colour the old combined "governed" rung used), so the two tracks sitting
+ * side by side on a node can never be read as one longer ladder.
  */
-export const LEVEL_META = [
+export interface RungMeta {
+  label: string;
+  color: string;
+  ink: string;
+  onFill: string;
+  icon: string;
+}
+
+export const AUTOMATION_META: readonly RungMeta[] = [
   { label: "broken", color: "#dc3545", ink: "#b91c1c", onFill: "#ffffff", icon: "ph:warning-octagon-fill" },
   { label: "absent", color: "#cbd5e1", ink: "#64748b", onFill: "#334155", icon: "ph:circle-dashed" },
   { label: "manual", color: "#38bdf8", ink: "#0284c7", onFill: "#0c4a6e", icon: "ph:hand-fill" },
   { label: "automated", color: "#0284c7", ink: "#075985", onFill: "#ffffff", icon: "ph:lightning-fill" },
-  { label: "governed", color: "#6d28d9", ink: "#5b21b6", onFill: "#ffffff", icon: "ph:shield-check-fill" },
-] as const;
+];
 
-/** The rung a level sits on, clamped so an out-of-range level cannot blank the node. */
-export function levelMeta(level: number | undefined | null) {
-  const i = level === undefined || level === null ? 1 : Math.max(0, Math.min(LEVEL_META.length - 1, level));
-  return LEVEL_META[i];
+/** Icons come from the offline set in `assets/nodeIcons.json` - no new icon names. */
+export const GOVERNANCE_META: readonly RungMeta[] = [
+  { label: GOVERNANCE_LABELS[0], color: "#e4dcfb", ink: "#7c6f99", onFill: "#4c1d95", icon: "ph:circle-dashed" },
+  { label: GOVERNANCE_LABELS[1], color: "#a78bfa", ink: "#7c3aed", onFill: "#2e1065", icon: "ph:eye-bold" },
+  { label: GOVERNANCE_LABELS[2], color: "#8b5cf6", ink: "#6d28d9", onFill: "#ffffff", icon: "ph:shield-check-bold" },
+  { label: GOVERNANCE_LABELS[3], color: "#6d28d9", ink: "#5b21b6", onFill: "#ffffff", icon: "ph:shield-check-fill" },
+];
+
+const AXIS_META: Record<Axis, readonly RungMeta[]> = {
+  automation: AUTOMATION_META,
+  governance: GOVERNANCE_META,
+};
+
+/** The rung a level sits on, clamped so an out-of-range level cannot blank the node. Unknown
+ *  defaults to automation's `absent` / governance's `none`. */
+export function axisMeta(axis: Axis, level: number | undefined | null): RungMeta {
+  const meta = AXIS_META[axis];
+  const fallback = axis === "automation" ? 1 : 0;
+  const i = level === undefined || level === null ? fallback : Math.max(0, Math.min(meta.length - 1, level));
+  return meta[i];
 }
 
 /**

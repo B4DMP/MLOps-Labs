@@ -184,9 +184,14 @@ async def whoami(request: Request, response: Response):
     expiration keepalive target: any near-expiry cookie present gets silently reissued here."""
     secure = _is_secure(request)
     existing_csrf = request.cookies.get(CSRF_COOKIE_NAME)
+    player_token = request.cookies.get(PLAYER_COOKIE_NAME)
     player_username = sliding_refresh_player(
-        request.cookies.get(PLAYER_COOKIE_NAME), response, secure=secure, existing_csrf=existing_csrf
+        player_token, response, secure=secure, existing_csrf=existing_csrf
     )
+    if player_token and player_username is None:
+        # A signature-valid cookie naming a user that no longer exists (e.g. a database reset) -
+        # stop sending it back rather than reporting "logged out" on every request forever.
+        clear_player_cookie(response)
     admin_valid = sliding_refresh_admin(
         request.cookies.get(ADMIN_COOKIE_NAME), response, secure=secure, existing_csrf=existing_csrf
     )

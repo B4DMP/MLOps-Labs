@@ -25,14 +25,14 @@ from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, Seen
 
 def test_prediction_reports_the_cap_instead_of_the_asked_level(real):
     state = apply_ops(real, GraphState.from_config(real), [
-        GraphOp(kind="set_to", target="data.validation", value=0)
+        GraphOp(kind="set_to", target="data.validation", axis="automation", value=0)
     ]).state
-    item = _item("i1", "data_dave", "driver", suggested=_target("data.versioning", 4))
+    item = _item("i1", "data_dave", "driver", suggested=_target("data.versioning", 3, axis="automation"))
 
     pred = session.predictions_for(real, state, [item])[0]
 
-    assert pred.asked == 4
-    assert pred.predicted < 4
+    assert pred.asked == 3
+    assert pred.predicted < 3
     assert pred.capped_by
     assert session.capped_item_ids(real, state, [item]) == {"i1"}
 
@@ -43,7 +43,9 @@ def test_an_unobserved_target_predicts_nothing(real):
 
     blind = session.predictions_for(real, state, [item], knowledge=Knowledge())[0]
     seen = session.predictions_for(real, state, [item], knowledge=Knowledge(
-        seen={"model.registry": SeenEntry(seq=99, nominal=1, effective=1)}
+        seen={"model.registry": SeenEntry(
+            seq=99, nominal_automation=1, nominal_governance=0, effective_automation=1, effective_governance=0
+        )}
     ))[0]
 
     assert (blind.known, blind.predicted, blind.capped_by) == (False, None, None)
@@ -107,9 +109,10 @@ def test_boundary_is_checked_slotted_or_not(real):
     state = GraphState.from_config(real)
     boundary = _item(
         "b1", "reliability_ruth", "boundary",
-        holds={"component": "data.validation", "op": "gte", "level": 3, "on": "nominal"},
+        holds={"component": "data.validation", "axis": "automation", "op": "gte", "level": 2, "on": "nominal"},
     )
-    raiser = _item("d1", "data_dave", "driver", suggested=_target("data.validation", 3))
+    # data.validation starts absent(1): one legal single-step raise reaches manual(2).
+    raiser = _item("d1", "data_dave", "driver", suggested=_target("data.validation", 2))
 
     # Nothing slotted: the boundary already fails on the starting graph.
     assert [w.violated for w in session.boundary_checks(real, state, [boundary], [], ["reliability_ruth"])] == [True]
@@ -133,8 +136,8 @@ def test_trade_off_branch_ops_derivation():
     # Item with branch_x and branch_y
     trade_off = _item(
         "t1", "data_dave", "trade_off",
-        branch_x={"target": "data.ingestion", "level": 3},
-        branch_y={"target": "data.validation", "level": 3},
+        branch_x={"target": "data.ingestion", "axis": "automation", "level": 3},
+        branch_y={"target": "data.validation", "axis": "automation", "level": 3},
     )
     ops_x = session.card_ops([trade_off], trade_off_branches={"t1": "X"})
     assert len(ops_x) == 1
@@ -145,6 +148,33 @@ def test_trade_off_branch_ops_derivation():
     assert ops_y[0].target == "data.validation"
 
 
+def test_card_ops_puts_automation_before_governance_regardless_of_item_order():
+    """A governance raise is rejected outright on a target that isn't implemented yet
+    (apply.py's `_apply_one`), and `replay` re-derives ground truth from these same logged ops
+    with no lookahead - so whichever order the room's items happen to list a target's automation
+    and governance asks in (here, deliberately governance first), the ops built from them must
+    still put automation first."""
+    ask_governance = _item("g1", "requirements_reuben", "driver", suggested=_target("data.validation", 3, axis="governance"))
+    ask_automation = _item("a1", "reliability_ruth", "driver", suggested=_target("data.validation", 2, axis="automation"))
+    ops = session.card_ops([ask_governance, ask_automation])
+    assert [(op.axis, op.value) for op in ops] == [("automation", 2), ("governance", 3)]
+
+
+def test_atomic_changes_to_ops_puts_automation_before_governance_regardless_of_change_order(real):
+    """Same guarantee, from the composer's own AtomicChange list rather than accepted items -
+    the player can still queue a target's governance step before its automation step in the
+    array (the ladder disallows it live, but a stale/replayed proposal shouldn't rely on that)."""
+    from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
+
+    state = GraphState.from_config(real)
+    changes = [
+        AtomicChange(target="data.validation", kind="raise_to", axis="governance", value=3),
+        AtomicChange(target="data.validation", kind="raise_to", axis="automation", value=2),
+    ]
+    ops = session.atomic_changes_to_ops(real, state, changes)
+    assert [(op.axis, op.value) for op in ops] == [("automation", 2), ("governance", 3)]
+
+
 # ---------- evaluate_pitch & commit_pitch ----------
 
 def test_evaluate_pitch_detects_misclassification_and_returns_refutation(real):
@@ -153,8 +183,8 @@ def test_evaluate_pitch_detects_misclassification_and_returns_refutation(real):
     item = _item(
         "t1", "data_dave", "trade_off",
         categorized_type="driver",
-        branch_x={"target": "data.ingestion", "level": 3},
-        branch_y={"target": "data.validation", "level": 3},
+        branch_x={"target": "data.ingestion", "axis": "automation", "level": 3},
+        branch_y={"target": "data.validation", "axis": "automation", "level": 3},
     )
     room = [("data_dave", "high")]
     emotions = {"data_dave": {"fairness": 0.5, "trust": 0.5, "stress": 0.5, "confidence": 0.5, "perceived_risk": 0.5, "interest": 0.5, "sense_of_control": 0.5}}
@@ -181,7 +211,7 @@ def test_evaluate_pitch_detects_misclassification_and_returns_refutation(real):
         room=room,
         current_emotions=emotions,
         trade_off_branches={"t1": "X"},
-        held_items=[_item("t1", "data_dave", "trade_off", categorized_type="trade_off", branch_x={"target": "data.ingestion", "level": 3})],
+        held_items=[_item("t1", "data_dave", "trade_off", categorized_type="trade_off", branch_x={"target": "data.ingestion", "axis": "automation", "level": 3})],
         names={"data_dave": "Dave"},
     )
     deltas = pitch_state.emotion_deltas.get("data_dave", {})
@@ -193,7 +223,7 @@ def test_evaluate_pitch_detects_boundary_violation(real):
     state = GraphState.from_config(real)
     boundary = _item(
         "b1", "reliability_ruth", "boundary",
-        holds={"component": "data.validation", "op": "gte", "level": 3, "on": "nominal"},
+        holds={"component": "data.validation", "axis": "automation", "op": "gte", "level": 3, "on": "nominal"},
     )
     room = [("reliability_ruth", "high")]
     emotions = {"reliability_ruth": {"fairness": 0.5, "trust": 0.5, "stress": 0.5, "confidence": 0.5, "perceived_risk": 0.5, "interest": 0.5, "sense_of_control": 0.5}}
@@ -222,6 +252,22 @@ def test_commit_pitch_locks_stage_and_events():
     assert committed.outcome == "PASS"
     assert len(events) == 1
     assert events[0].cause == "outcome.pass"
+
+
+def test_changes_summary_collapses_a_chained_target_to_its_final_step(real):
+    """Two changes on the same (target, axis) are a chain, one authored option (one slot) per
+    rung - "raising X's automation to manual and raising X's automation to automated" would read
+    as two separate, contradictory commitments instead of the one thing the card actually settles
+    on. The summary should name only the rung the target actually lands at."""
+    from mlops_serious_game.application.pitch_debate_service.session import AtomicChange
+
+    changes = [
+        AtomicChange(target="req.data_contracts", kind="raise_to", axis="automation", value=2),
+        AtomicChange(target="req.data_contracts", kind="raise_to", axis="automation", value=3),
+    ]
+    summary = session._changes_summary(real, changes)
+    assert "manual" not in summary
+    assert "automated" in summary
 
 
 def test_agreeing_stakeholder_receives_positive_emotions(real):
@@ -265,6 +311,7 @@ def test_edge_editing_and_trigger_in_atomic_changes(real):
     edge_change = session.AtomicChange(
         target="e.ingest_validate",
         kind="raise_to",
+        axis="automation",
         value=3,
         trigger="on_data_arrival",
     )
@@ -274,6 +321,6 @@ def test_edge_editing_and_trigger_in_atomic_changes(real):
     assert ops[1].kind == "set_trigger" and ops[1].target == "e.ingest_validate" and ops[1].value == "on_data_arrival"
 
     after = session.predicted_state(real, state, [edge_change])
-    assert after.level("e.ingest_validate") == 3
+    assert after.value("e.ingest_validate", "automation") == 3
     assert after.edge_triggers.get("e.ingest_validate") == "on_data_arrival"
 

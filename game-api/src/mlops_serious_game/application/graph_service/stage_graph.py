@@ -16,7 +16,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from mlops_serious_game.application.graph_service.effective import EffectiveView
-from mlops_serious_game.domain.graph import MAX_LEVEL, GraphState, Level, TechnicalGraph
+from mlops_serious_game.domain.graph import MAX_AUTOMATION, MAX_GOVERNANCE, AutomationState, GraphState, TechnicalGraph
 
 
 class StageView(BaseModel):
@@ -65,21 +65,27 @@ def stage_graph(
     stages: list[StageView] = []
 
     for s in graph.stages:
-        # (target id, level it was set to, level it actually runs at)
+        # (target id, nominal automation, effective automation, nominal governance)
         targets = [
-            (c.id, state.component_levels.get(c.id, c.initial_level), effective.components[c.id])
+            (c.id, state.component_automation[c.id], effective.automation[c.id], state.component_governance[c.id])
             for c in graph.components
             if c.stage_id == s.id
         ]
         targets += [
-            (e.id, state.edge_levels.get(e.id, e.initial_level), effective.edges[e.id])
+            (e.id, state.edge_automation[e.id], effective.automation[e.id], state.edge_governance[e.id])
             for e in graph.edges
             if graph.component(e.from_id).stage_id == s.id and graph.component(e.to_id).stage_id == s.id
         ]
-        levels = [eff for _, _, eff in targets]
-        maturity = sum(levels) / (len(levels) * MAX_LEVEL) if levels else 0.0
-        broken = sum(1 for _, nominal, _ in targets if nominal == Level.BROKEN)
-        starved_ids = [tid for tid, nominal, eff in targets if eff == Level.BROKEN and nominal != Level.BROKEN]
+        # Maturity blends both axes equally: how far built out (effective automation) and how
+        # strictly reviewed (nominal governance - never capped, 00-plan.md decision 1).
+        fractions = [
+            (eff_auto / MAX_AUTOMATION + gov / MAX_GOVERNANCE) / 2 for _, _, eff_auto, gov in targets
+        ]
+        maturity = sum(fractions) / len(fractions) if fractions else 0.0
+        broken = sum(1 for _, nominal, _, _ in targets if nominal == AutomationState.BROKEN)
+        starved_ids = [
+            tid for tid, nominal, eff, _ in targets if eff == AutomationState.BROKEN and nominal != AutomationState.BROKEN
+        ]
         debt = sum(1 for d in state.debt if graph.stage_of(d.target_id) == s.id)
         effect = pattern_effects.get(s.id, 0.0)
         health = 100 + effect - t.broken_penalty_per_target * broken - t.debt_penalty_per_entry * debt
@@ -107,7 +113,7 @@ def stage_graph(
         a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
         if a == b or not e.stage_flow:
             continue
-        level = effective.edges[e.id]
+        level = effective.automation[e.id]
         if (a, b) not in weakest or level < weakest[(a, b)][0]:
             weakest[(a, b)] = (level, e.id)
     flows = [FlowView(from_stage=a, to_stage=b, level=lv, weakest_edge_id=eid) for (a, b), (lv, eid) in weakest.items()]
@@ -121,7 +127,7 @@ def stage_graph(
         a, b = graph.component(e.from_id).stage_id, graph.component(e.to_id).stage_id
         if a == b:
             continue
-        level = effective.edges[e.id]
+        level = effective.automation[e.id]
         if (a, b) not in weakest_feedback or level < weakest_feedback[(a, b)][0]:
             weakest_feedback[(a, b)] = (level, e.id)
     feedback_flows = [

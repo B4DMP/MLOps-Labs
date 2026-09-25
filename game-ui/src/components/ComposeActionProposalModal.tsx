@@ -38,26 +38,42 @@ import {
   compactLayout,
   edgeEnds,
   fitToBoxStyle,
-  formatLevel,
-  formatLevelCap,
+  formatAxisLevel,
   formatTrigger,
+  AUTOMATION_META,
+  AXIS_TITLES,
+  GOVERNANCE_META,
   LEVEL_EMPTY,
-  LEVEL_META,
-  levelMeta,
+  axisMeta,
   TRIGGER_ICONS,
   wrapLabel,
+  type Axis,
 } from "../utils/stageCanvas";
+import type { AtomicChange, ItemPrediction } from "../types/ActionCard";
+import {
+  AXES,
+  addOption,
+  ceilingOn,
+  describeAtomicChange,
+  dropUnscopedChanges,
+  isImplemented,
+  nominalOn,
+  optionDisplayName,
+  optionStatus,
+  optionsOn,
+  projectedOn,
+  removeChangeAt,
+  toggleAttributeOption,
+  type AttributeOption,
+  type GraphOption,
+  type OptionStatus,
+  type OptionTarget,
+} from "../utils/graphOptions";
 
-// Re-exported: these used to live here and other screens import them from this module.
-export { LEVEL_LABELS, formatLevel, formatLevelCap, formatTrigger } from "../utils/stageCanvas";
-
-export interface AtomicChange {
-  target: string;
-  kind?: "raise_to" | "set_trigger" | "set_attr" | string;
-  value?: any;
-  trigger?: string;
-  attr?: string;
-}
+// Level labels and formatters live in utils/stageCanvas and utils/graphOptions; import them
+// from there. Only types are re-exported here, for the screens that already import them.
+export type { AtomicChange, ItemPrediction } from "../types/ActionCard";
+export type { GraphOption, AttributeOption } from "../utils/graphOptions";
 
 /**
  * Collapses multiple slots that ended up targeting the same graph element down to one. A saved
@@ -70,25 +86,24 @@ export interface AtomicChange {
  * alone doesn't say which came later. Non-numeric changes (trigger/attr) fall back to keeping
  * whichever occurs last, since there's no ordering to compare them by.
  */
+/** A change touching both axes of the same target is two legitimate slots, not a duplicate - so
+ *  the dedup key carries the axis (and the attribute, for a set_attr on a multi-attribute target). */
+/** Everything that makes two changes the same slot - deliberately including `value`: a target
+ *  can carry several genuinely different steps chained on the same axis ("Implement It" then
+ *  "Automate It", one slot each), and those must never collapse into each other. Only a change
+ *  indistinguishable in every field from another is the stale duplicate this guards against. */
+function dedupeKey(c: AtomicChange): string {
+  return `${c.target}::${c.kind ?? "raise_to"}::${c.axis ?? ""}::${c.attr ?? ""}::${c.value}::${c.trigger ?? ""}`;
+}
+
 export function dedupeAtomicChanges(changes: AtomicChange[]): AtomicChange[] {
-  const winnerByTarget = new Map<string, AtomicChange>();
-  changes.forEach((c) => {
-    const current = winnerByTarget.get(c.target);
-    if (!current) {
-      winnerByTarget.set(c.target, c);
-      return;
-    }
-    const isHigherValue = typeof c.value === "number" && typeof current.value === "number" && c.value > current.value;
-    if (isHigherValue || typeof c.value !== "number") {
-      winnerByTarget.set(c.target, c);
-    }
-  });
   const seen = new Set<string>();
   return changes.filter((c) => {
-    if (seen.has(c.target)) return false;
-    seen.add(c.target);
+    const key = dedupeKey(c);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
-  }).map((c) => winnerByTarget.get(c.target)!);
+  });
 }
 
 export interface ComponentData {
@@ -97,11 +112,17 @@ export interface ComponentData {
   stage_id?: string;
   owner_id?: string;
   knowledge: "unknown" | "current" | "stale";
-  nominal?: number;
-  effective?: number;
+  nominal_automation?: number;
+  nominal_governance?: number;
+  effective_automation?: number;
+  effective_governance?: number;
+  allowed_automation?: number[];
+  allowed_governance?: number[];
+  automation_options?: GraphOption[];
+  governance_options?: GraphOption[];
+  attribute_options?: Record<string, AttributeOption[]>;
   capped_by?: string;
-  allowed_levels?: number[];
-  attributes?: Record<string, { values: string[]; initial: string }>;
+  story?: string;
   icon?: string;
   layout?: { x: number; y: number };
 }
@@ -112,10 +133,14 @@ export interface EdgeData {
   to_id: string;
   kind: string;
   knowledge: "unknown" | "current" | "stale";
-  level?: number;
+  automation?: number;
+  governance?: number;
   trigger?: string;
-  allowed_levels?: number[];
+  allowed_automation?: number[];
+  allowed_governance?: number[];
   allowed_triggers?: string[];
+  automation_options?: GraphOption[];
+  governance_options?: GraphOption[];
   slack?: number;
   capped_by?: string;
   story?: string;
@@ -151,16 +176,8 @@ export interface ComposeActionProposalModalProps {
   onConfirmProposal: (atomicChanges: AtomicChange[]) => void;
   allowedTargets?: string[];
   upstreamMap?: Record<string, string[]>;
-  predictions?: Array<{
-    target: string;
-    current: number;
-    predicted: number;
-    effective_current?: number;
-    effective_predicted?: number;
-    capped_by?: string;
-    upstream_uncertain?: boolean;
-    upstream_uncertain_nodes?: string[];
-  }>;
+  /** One entry per (target, axis) slotted. */
+  predictions?: ItemPrediction[];
   boundaryWarnings?: Array<{
     item_id: string;
     checkable: boolean;
@@ -232,14 +249,24 @@ const LEGEND_GROUPS: Array<{
     ],
   },
   {
-    heading: "Maturity meter",
+    heading: "Automation track (meter, left)",
     items: [
-      ...LEVEL_META.map((rung, i) => ({
+      ...AUTOMATION_META.map((rung, i) => ({
         label: `${i}. ${rung.label}`,
         swatch: { background: rung.color },
       })),
-      { label: "Built but not running", swatch: { background: LEVEL_META[3].color, opacity: 0.33 } },
+      { label: "Built but not running", swatch: { background: AUTOMATION_META[3].color, opacity: 0.33 } },
       { label: "Not built", swatch: { background: LEVEL_EMPTY } },
+    ],
+  },
+  {
+    heading: "Governance track (meter, right)",
+    items: [
+      ...GOVERNANCE_META.slice(1).map((rung, i) => ({
+        label: `${i + 1}. ${rung.label}`,
+        swatch: { background: rung.color },
+      })),
+      { label: "Above this target's ceiling", swatch: { border: `1px dashed ${LEVEL_EMPTY}`, background: "transparent" } },
     ],
   },
   {
@@ -257,56 +284,268 @@ const LEGEND_GROUPS: Array<{
   },
 ];
 
-function getNextAllowedLevel(curLevel: number, allowedLevels?: number[]): number | null {
-  const allowed = allowedLevels && allowedLevels.length > 0 ? [...allowedLevels].sort((a, b) => a - b) : [0, 1, 2, 3, 4];
-  const higher = allowed.filter((l) => l > curLevel);
-  return higher.length > 0 ? higher[0] : null;
+/**
+ * What each axis means depends on whether the target is a component or a hand-off between
+ * two (00-plan.md §2.2), so the two sections of an inspector are introduced accordingly.
+ */
+const AXIS_HINTS: Record<"component" | "edge", Record<Axis, string>> = {
+  component: {
+    automation: "Who does the work: a person, or tooling.",
+    governance: "How closely this component's own output is reviewed.",
+  },
+  edge: {
+    automation: "Whether the hand-off fires by itself, or only when someone asks.",
+    governance: "Whether this hand-off needs sign-off before it may happen.",
+  },
+};
+
+const AXIS_ICONS: Record<Axis, string> = {
+  automation: "ph:lightning-bold",
+  governance: "ph:shield-check-bold",
+};
+
+/** A small row of pips for one axis, in that axis's own colours, for the inspector header. */
+function AxisPipRow({ axis, level, projected, ceiling }: { axis: Axis; level: number; projected: number; ceiling: number }) {
+  return (
+    <span className={styles.axisPips} aria-hidden>
+      {[1, 2, 3].map((r) => {
+        const above = r > ceiling;
+        const built = axis === "automation" && level === 0 ? r === 1 : r <= level;
+        const planned = !built && r <= projected;
+        return (
+          <span
+            key={r}
+            className={`${styles.axisPip} ${above ? styles.axisPipAbove : ""} ${planned ? styles.axisPipPlanned : ""}`}
+            style={built ? { background: axisMeta(axis, level === 0 ? 0 : r).color, borderColor: "transparent" } : undefined}
+          />
+        );
+      })}
+    </span>
+  );
 }
 
-function LevelPicker({
-  levels,
-  value,
-  current,
-  onChange,
-  onShowTag,
-  onHideTag,
+/**
+ * One axis of one target, as the ladder of authored options that climbs it. Every option is a
+ * single ready-made step: the player adds the next one by name, and sees the ones already in
+ * place, the ones already in the proposal, and the ones that need a step below them first.
+ * There is no level to type and no trigger to choose - an edge's automation option already
+ * says what starts the hand-off.
+ */
+function OptionLadder({
+  axis,
+  target,
+  kind,
+  changes,
+  slotsFull,
+  onAdd,
+  onRemove,
 }: {
-  levels: number[];
-  value: number;
-  current: number;
-  onChange: (level: number) => void;
-  onShowTag?: (e: React.SyntheticEvent, label: string, detail?: string) => void;
-  onHideTag?: () => void;
+  axis: Axis;
+  target: OptionTarget;
+  kind: "component" | "edge";
+  changes: AtomicChange[];
+  slotsFull: boolean;
+  onAdd: (option: GraphOption) => void;
+  onRemove: (option: GraphOption) => void;
 }) {
+  const nominal = nominalOn(target, axis);
+  const projected = projectedOn(target, axis, changes);
+  const ceiling = ceilingOn(target, axis);
+  const options = optionsOn(target, axis);
+  const now = axisMeta(axis, nominal);
+  // Nothing to review on a target nobody has implemented yet - there's no governance ladder to
+  // climb until an automation step has landed it at manual or above.
+  const governanceLocked = axis === "governance" && !isImplemented(target, changes);
+
+  const statusLabel: Record<OptionStatus, string> = {
+    done: "In place",
+    slotted: "In proposal",
+    next: "",
+    later: "Needs the step above",
+  };
+
   return (
-    <div className={styles.levelPicker} role="group" aria-label="Target maturity level">
-      {levels.map((lvl) => {
-        const isTarget = value === lvl;
-        const isCurrent = current === lvl;
-        const label = formatLevelCap(lvl);
-        const detail = isCurrent ? "Where it runs today" : `Propose raising to ${formatLevel(lvl)}`;
+    <div className={`${styles.axisSection} ${axis === "governance" ? styles.axisSectionGovernance : ""}`}>
+      <div className={styles.axisHeader}>
+        <span className={styles.formLabel}>
+          <Icon icon={AXIS_ICONS[axis]} />
+          <span>{AXIS_TITLES[axis]}</span>
+        </span>
+        <span
+          className={styles.axisNow}
+          style={{ ["--rung" as string]: now.color, ["--rung-ink" as string]: now.ink }}
+          title={`${AXIS_TITLES[axis]} today: ${now.label}`}
+        >
+          <Icon icon={now.icon} aria-hidden />
+          <span>{now.label}</span>
+          <AxisPipRow axis={axis} level={nominal} projected={projected} ceiling={ceiling} />
+        </span>
+      </div>
+      <span className={styles.axisHint}>
+        {AXIS_HINTS[kind][axis]}
+        {governanceLocked && " Nothing to review until it's implemented."}
+      </span>
+
+      {governanceLocked ? (
+        <span className={styles.axisEmpty}>
+          <Icon icon="ph:lock-simple-bold" /> Implement it on automation first - you can't govern something that
+          doesn't exist yet.
+        </span>
+      ) : options.length === 0 ? (
+        <span className={styles.axisEmpty}>
+          {nominal >= ceiling
+            ? `${formatAxisLevel(axis, ceiling)} is as far as this goes on ${AXIS_TITLES[axis].toLowerCase()}.`
+            : `No ${AXIS_TITLES[axis].toLowerCase()} step is on offer here.`}
+        </span>
+      ) : (
+        <div className={styles.optionList} role="list">
+          {options.map((option) => {
+            const status = optionStatus(target, axis, option, changes);
+            const rung = axisMeta(axis, option.to_level);
+            const showDescription = option.description && option.description.trim() !== option.name.trim();
+            return (
+              <div
+                key={`${axis}-${option.to_level}`}
+                role="listitem"
+                className={`${styles.optionRow} ${
+                  status === "next"
+                    ? styles.optionRowNext
+                    : status === "slotted"
+                    ? styles.optionRowSlotted
+                    : status === "done"
+                    ? styles.optionRowDone
+                    : styles.optionRowLater
+                }`}
+                style={{ ["--rung" as string]: rung.color, ["--rung-ink" as string]: rung.ink }}
+              >
+                <Icon icon={status === "done" ? "ph:check-circle-bold" : rung.icon} className={styles.optionIcon} aria-hidden />
+                <div className={styles.optionText}>
+                  <span className={styles.optionName}>{optionDisplayName(target, axis, option)}</span>
+                  {showDescription && <span className={styles.optionDesc}>{option.description}</span>}
+                  <span className={styles.optionMeta}>
+                    <span className={styles.optionTag} title={`${AXIS_TITLES[axis]} rung this step lands on`}>
+                      → {rung.label}
+                    </span>
+                    {option.trigger && (
+                      <span className={styles.optionTag} title="What starts the hand-off once this is in place">
+                        {TRIGGER_ICONS[option.trigger] ?? "?"} {formatTrigger(option.trigger)}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className={styles.optionAction}>
+                  {status === "next" ? (
+                    <button
+                      type="button"
+                      className={styles.optionAddBtn}
+                      disabled={slotsFull}
+                      onClick={() => onAdd(option)}
+                      title={slotsFull ? `All ${MAX_ATOMIC_CHANGES} slots are used` : "Add this step to the proposal - one slot"}
+                    >
+                      <Icon icon="ph:plus-bold" />
+                      <span>{slotsFull ? "Slots full" : "Add"}</span>
+                    </button>
+                  ) : status === "slotted" ? (
+                    <button
+                      type="button"
+                      className={styles.optionRemoveBtn}
+                      onClick={() => onRemove(option)}
+                      title="Take this step (and any step after it on this axis) back out"
+                    >
+                      <Icon icon="ph:x-bold" />
+                      <span>{statusLabel.slotted}</span>
+                    </button>
+                  ) : (
+                    <span className={styles.optionState}>
+                      {status === "later" && <Icon icon="ph:lock-simple-bold" />}
+                      {statusLabel[status]}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * A component's technology choices. The current value is not part of the `graph:state`
+ * payload, so every authored choice is offered; picking one takes a slot, picking another for
+ * the same attribute swaps it in place, and picking it again takes it back out.
+ */
+function AttributeOptions({
+  target,
+  changes,
+  slotsFull,
+  onToggle,
+}: {
+  target: ComponentData;
+  changes: AtomicChange[];
+  slotsFull: boolean;
+  onToggle: (attr: string, option: AttributeOption) => void;
+}) {
+  const entries = Object.entries(target.attribute_options ?? {}).filter(([, opts]) => opts.length > 0);
+  if (entries.length === 0) return null;
+  return (
+    <div className={styles.axisSection}>
+      <div className={styles.axisHeader}>
+        <span className={styles.formLabel}>
+          <Icon icon="ph:wrench-bold" />
+          <span>Technology</span>
+        </span>
+      </div>
+      <span className={styles.axisHint}>Which tooling this component is built on. One slot per choice.</span>
+      {entries.map(([attr, opts]) => {
+        const picked = changes.find((c) => c.target === target.id && c.kind === "set_attr" && c.attr === attr);
         return (
-          <button
-            key={lvl}
-            type="button"
-            className={`${styles.levelOption} ${isTarget ? styles.levelOptionTarget : ""} ${
-              isCurrent ? styles.levelOptionCurrent : ""
-            }`}
-            style={{
-              ["--rung" as string]: levelMeta(lvl).color,
-              ["--rung-ink" as string]: levelMeta(lvl).ink,
-              ["--rung-on-fill" as string]: levelMeta(lvl).onFill,
-            }}
-            onClick={() => onChange(lvl)}
-            onMouseEnter={(e) => onShowTag?.(e, label, detail)}
-            onMouseLeave={onHideTag}
-            onFocus={(e) => onShowTag?.(e, label, detail)}
-            onBlur={onHideTag}
-          >
-            <Icon icon={levelMeta(lvl).icon} className={styles.levelOptionIcon} aria-hidden />
-            <span className={styles.levelOptionName}>{formatLevelCap(lvl)}</span>
-            {isCurrent && <span className={styles.levelNowTag}>now</span>}
-          </button>
+          <div key={attr} className={styles.optionList} role="list" aria-label={attr.replace(/_/g, " ")}>
+            <span className={styles.attrName}>{attr.replace(/_/g, " ")}</span>
+            {opts.map((option) => {
+              const isPicked = picked?.value === option.to_value;
+              // Swapping one pick for another on the same attribute costs no extra slot.
+              const blocked = !isPicked && !picked && slotsFull;
+              const showDescription = option.description && option.description.trim() !== option.name.trim();
+              return (
+                <div
+                  key={option.to_value}
+                  role="listitem"
+                  className={`${styles.optionRow} ${isPicked ? styles.optionRowSlotted : styles.optionRowNext}`}
+                  style={{ ["--rung" as string]: "#64748b", ["--rung-ink" as string]: "#475569" }}
+                >
+                  <Icon icon="ph:wrench-bold" className={styles.optionIcon} aria-hidden />
+                  <div className={styles.optionText}>
+                    <span className={styles.optionName}>{option.name}</span>
+                    {showDescription && <span className={styles.optionDesc}>{option.description}</span>}
+                    <span className={styles.optionMeta}>
+                      <span className={styles.optionTag}>→ {option.to_value}</span>
+                    </span>
+                  </div>
+                  <div className={styles.optionAction}>
+                    {isPicked ? (
+                      <button type="button" className={styles.optionRemoveBtn} onClick={() => onToggle(attr, option)}>
+                        <Icon icon="ph:x-bold" />
+                        <span>In proposal</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.optionAddBtn}
+                        disabled={blocked}
+                        onClick={() => onToggle(attr, option)}
+                        title={picked ? "Swap the choice already in the proposal for this one" : "Add this choice - one slot"}
+                      >
+                        <Icon icon={picked ? "ph:arrows-left-right-bold" : "ph:plus-bold"} />
+                        <span>{blocked ? "Slots full" : picked ? "Swap" : "Add"}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         );
       })}
     </div>
@@ -340,13 +579,14 @@ export default function ComposeActionProposalModal({
   const highlight = useGlossaryHighlighter("action_proposal");
 
   const [localGraphState, setLocalGraphState] = useState<GraphStatePayload | null>(propGraphState);
-  // A saved proposal can carry a stale duplicate slot for the same target (see
-  // dedupeAtomicChanges) - deduped once here so it never burns a slot or double-counts.
-  const dedupedInitialAtomicChanges = useMemo(
-    () => dedupeAtomicChanges(initialAtomicChanges),
+  // A saved proposal can carry a stale duplicate slot for the same (target, axis) (see
+  // dedupeAtomicChanges), or a change against a target outside the current scope - both cleaned
+  // up once here so neither burns a slot nor double-counts.
+  const initialAtomicChangesResolved = useMemo(
+    () => dropUnscopedChanges(dedupeAtomicChanges(initialAtomicChanges)),
     [initialAtomicChanges]
   );
-  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(dedupedInitialAtomicChanges);
+  const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(initialAtomicChangesResolved);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
@@ -360,8 +600,8 @@ export default function ComposeActionProposalModal({
   // Slotted changes only ever reach the parent (and the stakeholders) via Confirm - closing
   // the composer any other way, or discarding, throws away anything since the last confirm.
   const isDirty = useMemo(
-    () => JSON.stringify(atomicChanges) !== JSON.stringify(dedupedInitialAtomicChanges),
-    [atomicChanges, dedupedInitialAtomicChanges]
+    () => JSON.stringify(atomicChanges) !== JSON.stringify(initialAtomicChangesResolved),
+    [atomicChanges, initialAtomicChangesResolved]
   );
 
   const requestClose = useCallback(() => {
@@ -467,13 +707,6 @@ export default function ComposeActionProposalModal({
     return () => window.removeEventListener("scroll", handleScroll, true);
   }, [infoTag]);
 
-  // Selected edge form state
-  const [selectedEdgeTargetLevel, setSelectedEdgeTargetLevel] = useState<number | null>(null);
-  const [selectedEdgeTargetTrigger, setSelectedEdgeTargetTrigger] = useState<string | null>(null);
-
-  // Selected component form state
-  const [selectedCompTargetLevel, setSelectedCompTargetLevel] = useState<number | null>(null);
-
   useEffect(() => {
     if (propGraphState) {
       setLocalGraphState(propGraphState);
@@ -490,7 +723,7 @@ export default function ComposeActionProposalModal({
   // opening target.
   useEffect(() => {
     if (isOpen) {
-      setAtomicChanges(dedupedInitialAtomicChanges);
+      setAtomicChanges(initialAtomicChangesResolved);
       if (initialSelectedTargetId && allEdgesMap.has(initialSelectedTargetId)) {
         setSelectedEdgeId(initialSelectedTargetId);
         setSelectedCompId(null);
@@ -507,7 +740,7 @@ export default function ComposeActionProposalModal({
       setConfirmingLeave(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, dedupedInitialAtomicChanges, initialSelectedTargetId]);
+  }, [isOpen, initialAtomicChangesResolved, initialSelectedTargetId]);
 
   // Escape unwinds one layer at a time, as it does in the Performance Dashboard: first a
   // pending leave-confirmation, then the thing you have selected, then the composer itself
@@ -696,6 +929,8 @@ export default function ComposeActionProposalModal({
     return byTarget;
   }, [dossierData]);
 
+  const slotsFull = atomicChanges.length >= MAX_ATOMIC_CHANGES;
+
   // "3 found" when the total isn't known, "3 of 5 found" once the backend can say how many
   // intel items exist for this target in total. `target_total` is the same on every note
   // sharing a target, so the first one carries it.
@@ -722,93 +957,38 @@ export default function ComposeActionProposalModal({
 
   // Selected Edge state
   const selectedEdgeData = selectedEdgeId ? allEdgesMap.get(selectedEdgeId) : null;
-  const isSelectedEdgeSlotted = selectedEdgeId ? atomicChanges.some((c) => c.target === selectedEdgeId) : false;
-  const selectedEdgeChange = selectedEdgeId ? atomicChanges.find((c) => c.target === selectedEdgeId) : undefined;
   const selectedEdgeEditable = selectedEdgeId
     ? isTargetEditable(selectedEdgeId, "edge", activeStageId)
     : { editable: false };
 
-  // Sync edge form state on selection change
-  useEffect(() => {
-    if (!selectedEdgeData) return;
-    if (selectedEdgeChange) {
-      setSelectedEdgeTargetLevel(
-        typeof selectedEdgeChange.value === "number" ? selectedEdgeChange.value : selectedEdgeData.level ?? 1
-      );
-      setSelectedEdgeTargetTrigger(selectedEdgeChange.trigger || selectedEdgeData.trigger || "none");
-    } else {
-      const cur = selectedEdgeData.level ?? 1;
-      const next = getNextAllowedLevel(cur, selectedEdgeData.allowed_levels) ?? cur;
-      setSelectedEdgeTargetLevel(next);
-
-      if (next >= 3) {
-        const autoTrigger =
-          selectedEdgeData.trigger && selectedEdgeData.trigger !== "none" && selectedEdgeData.trigger !== "manual_request"
-            ? selectedEdgeData.trigger
-            : selectedEdgeData.allowed_triggers?.find((t) => t !== "none" && t !== "manual_request") || "scheduled";
-        setSelectedEdgeTargetTrigger(autoTrigger);
-      } else if (next === 2) {
-        setSelectedEdgeTargetTrigger("manual_request");
-      } else {
-        setSelectedEdgeTargetTrigger("none");
-      }
-    }
-  }, [selectedEdgeId, selectedEdgeData, selectedEdgeChange]);
-
   // Selected Component state
   const selectedCompData = selectedCompId ? allComponentsMap.get(selectedCompId) : null;
-  const isSelectedCompSlotted = selectedCompId ? atomicChanges.some((c) => c.target === selectedCompId) : false;
-  const selectedCompChange = selectedCompId ? atomicChanges.find((c) => c.target === selectedCompId) : undefined;
   const selectedCompEditable = selectedCompId
     ? isTargetEditable(selectedCompId, "component", selectedCompData?.stage_id || activeStageId)
     : { editable: false };
   const selectedUpstreamStatus = selectedCompId ? isUpstreamUncertain(selectedCompId) : { uncertain: false, unknownNodes: [] };
 
-  // Sync component form state on selection change
-  useEffect(() => {
-    if (!selectedCompData) return;
-    if (selectedCompChange) {
-      setSelectedCompTargetLevel(
-        typeof selectedCompChange.value === "number" ? selectedCompChange.value : selectedCompData.nominal ?? 1
+  // Slot handlers: one authored option = one step on one axis = one slot.
+  const handleAddOption = (target: OptionTarget, axis: Axis, option: GraphOption) => {
+    setAtomicChanges((prev) => addOption(prev, target, axis, option, MAX_ATOMIC_CHANGES));
+  };
+
+  const handleRemoveOption = (target: OptionTarget, axis: Axis, option: GraphOption) => {
+    setAtomicChanges((prev) => {
+      const idx = prev.findIndex(
+        (c) => c.target === target.id && (c.kind ?? "raise_to") === "raise_to" && c.axis === axis && c.value === option.to_level
       );
-    } else {
-      const cur = selectedCompData.nominal ?? 1;
-      const next = getNextAllowedLevel(cur, selectedCompData.allowed_levels) ?? cur;
-      setSelectedCompTargetLevel(next);
-    }
-  }, [selectedCompId, selectedCompData, selectedCompChange]);
-
-  // Slot handlers
-  const handleSaveComponentSlot = (targetId: string, level: number) => {
-    setAtomicChanges((prev) => {
-      const filtered = prev.filter((c) => c.target !== targetId);
-      if (filtered.length >= MAX_ATOMIC_CHANGES) return prev;
-      return [...filtered, { target: targetId, kind: "raise_to", value: level }];
+      return idx >= 0 ? removeChangeAt(prev, idx) : prev;
     });
   };
 
-  const handleSaveEdgeSlot = (edgeId: string, level: number, trigger: string | null) => {
-    setAtomicChanges((prev) => {
-      const filtered = prev.filter((c) => c.target !== edgeId);
-      if (filtered.length >= MAX_ATOMIC_CHANGES) return prev;
-      return [
-        ...filtered,
-        {
-          target: edgeId,
-          kind: "raise_to",
-          value: level,
-          trigger: trigger || undefined,
-        },
-      ];
-    });
+  const handleToggleAttribute = (targetId: string, attr: string, option: AttributeOption) => {
+    setAtomicChanges((prev) => toggleAttributeOption(prev, targetId, attr, option, MAX_ATOMIC_CHANGES));
   };
 
-  const handleRemoveTargetSlot = (targetId: string) => {
-    setAtomicChanges((prev) => prev.filter((c) => c.target !== targetId));
-  };
-
+  // Removing a step also removes the steps after it on the same axis - they relied on it.
   const handleRemoveSlot = (index: number) => {
-    setAtomicChanges((prev) => prev.filter((_, idx) => idx !== index));
+    setAtomicChanges((prev) => removeChangeAt(prev, index));
   };
 
   const handleConfirm = () => {
@@ -827,7 +1007,7 @@ export default function ComposeActionProposalModal({
           <div>
             <h3 className={styles.headerTitle}>Compose Action Proposal</h3>
             <p className={styles.headerSubtitle}>
-              Raise components and workflow edges, then take the proposal to the stakeholders
+              Pick automation, governance and technology steps, then take the proposal to the stakeholders
             </p>
           </div>
         </div>
@@ -1000,6 +1180,17 @@ export default function ComposeActionProposalModal({
                   preserveAspectRatio="xMidYMid meet"
                   style={fitToBoxStyle(svgW, svgH)}
                   className={styles.stageSvg}
+                  // Clicking blank canvas - anywhere that isn't a node or edge, which each stop
+                  // this from seeing their own clicks by not being the event's target - clears
+                  // whatever's selected, same as clicking a node a second time does. Without
+                  // this, a player who dismisses the inspector the way they would on a map or
+                  // diagram elsewhere (click away from what they picked) finds the reticle and
+                  // inspector panel just sitting there with no visible way to close them.
+                  onClick={(e) => {
+                    if (e.target !== e.currentTarget) return;
+                    setSelectedCompId(null);
+                    setSelectedEdgeId(null);
+                  }}
                 >
                   <style>{NODE_STATE_ANIM}</style>
                   <NodeDefs prefix="compose" />
@@ -1057,10 +1248,11 @@ export default function ComposeActionProposalModal({
                       color = "#cbd5e1";
                       markerId = "arr-default";
                     } else if (e.knowledge !== "unknown") {
-                      if (e.level === 0) {
+                      // Colour follows automation only: governance never changes what flows.
+                      if (e.automation === 0) {
                         color = "#dc3545";
                         markerId = "arr-danger";
-                      } else if (e.level && e.level >= 3) {
+                      } else if (e.automation && e.automation >= 3) {
                         color = "#16a34a";
                         markerId = "arr-success";
                       } else {
@@ -1071,8 +1263,12 @@ export default function ComposeActionProposalModal({
 
                     const mx = (ax + bx) / 2;
                     const my = (ay + by) / 2;
-                    const baseWidth = edgeStrokeWidth(e.knowledge !== "unknown" ? e.level : undefined);
-                    const isAutomated = e.knowledge !== "unknown" && e.level !== undefined && e.level !== null && e.level >= 3;
+                    const baseWidth = edgeStrokeWidth(e.knowledge !== "unknown" ? e.automation : undefined);
+                    const isAutomated =
+                      e.knowledge !== "unknown" && e.automation !== undefined && e.automation !== null && e.automation >= 3;
+                    const edgeSummary = `Automation: ${formatAxisLevel("automation", e.automation)}${
+                      e.trigger && e.trigger !== "none" ? `, started by ${formatTrigger(e.trigger)}` : ""
+                    }\nGovernance: ${formatAxisLevel("governance", e.governance ?? 0)}`;
                     const hasTrigger = Boolean(e.trigger && e.trigger !== "none");
                     // Every edge the player may act on gets a handle, triggered or not; the
                     // slotted and view-only badges already own the midpoint when they show.
@@ -1080,9 +1276,7 @@ export default function ComposeActionProposalModal({
                     const edgeTagDetail =
                       e.knowledge === "unknown"
                         ? "Undiscovered - its maturity and trigger are unconfirmed"
-                        : `Runs ${formatLevel(e.level)}${
-                            hasTrigger ? `, started by ${formatTrigger(e.trigger)}` : ""
-                          }\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
+                        : `${edgeSummary}\n${isOtherPhase ? "View only in this challenge" : "Click to edit this connection"}`;
 
                     return (
                       <g key={e.id}>
@@ -1185,9 +1379,9 @@ export default function ComposeActionProposalModal({
                     const isOtherPhase = !compEdit.editable && !isUnknown;
                     const upstreamCheck = isUpstreamUncertain(c.id);
 
-                    const isBroken = !isUnknown && (c.nominal ?? 1) === 0;
+                    const isBroken = !isUnknown && (c.nominal_automation ?? 1) === 0;
                     // Runs at nothing, but is not itself broken: something upstream is down.
-                    const isStarved = !isUnknown && !isBroken && (c.effective ?? 1) === 0;
+                    const isStarved = !isUnknown && !isBroken && (c.effective_automation ?? 1) === 0;
                     const rail = isSlotted
                       ? NODE_COLORS.selected
                       : isUnknown
@@ -1217,8 +1411,16 @@ export default function ComposeActionProposalModal({
 
                     const lines = wrapLabel(c.name || c.id, 17);
                     const safeId = c.id.replace(/\./g, "_");
-                    const compChange = atomicChanges.find((change) => change.target === c.id);
-                    const previewLevel = typeof compChange?.value === "number" ? compChange.value : undefined;
+                    // Where each axis would sit once every slotted step lands, drawn ahead of
+                    // what is built as translucent notches.
+                    const previewAutomation = projectedOn(c, "automation", atomicChanges);
+                    const previewGovernance = projectedOn(c, "governance", atomicChanges);
+                    // A target can carry several chained steps on the same axis (one slot each,
+                    // "Implement It" then "Automate It") - the settled rung each would land on is
+                    // `previewAutomation`/`previewGovernance` above, never any single change's own
+                    // value, which might just be one link in that chain.
+                    const automationQueued = previewAutomation !== nominalOn(c, "automation");
+                    const governanceQueued = previewGovernance !== nominalOn(c, "governance");
                     const nodeTagStatus = isUnknown
                       ? "Not discovered yet"
                       : isOtherPhase
@@ -1233,11 +1435,24 @@ export default function ComposeActionProposalModal({
                       ? "Current status: Starved - something upstream is broken, so nothing reaches it"
                       : c.capped_by
                       ? `Current status: Held back by ${allComponentsMap.get(c.capped_by)?.name ?? c.capped_by}`
-                      : `Current status: ${formatLevel(c.effective ?? c.nominal ?? 1)}`;
-                    const nodeTagProposed =
-                      isSlotted && typeof compChange?.value === "number"
-                        ? `\nProposed: ${formatLevel(c.nominal ?? 1)} → ${formatLevel(compChange.value)}`
-                        : "";
+                      : `Current status: ${formatAxisLevel("automation", c.effective_automation ?? c.nominal_automation ?? 1)} · ${formatAxisLevel(
+                          "governance",
+                          c.nominal_governance ?? 0
+                        )}`;
+                    const nodeTagProposed = [
+                      automationQueued
+                        ? `\nProposed automation: ${formatAxisLevel("automation", c.nominal_automation ?? 1)} → ${formatAxisLevel(
+                            "automation",
+                            previewAutomation
+                          )}`
+                        : "",
+                      governanceQueued
+                        ? `\nProposed governance: ${formatAxisLevel("governance", c.nominal_governance ?? 0)} → ${formatAxisLevel(
+                            "governance",
+                            previewGovernance
+                          )}`
+                        : "",
+                    ].join("");
                     const nodeTagDetail = `${nodeTagStatus}${nodeTagProposed}\nClick to inspect`;
 
                     return (
@@ -1339,7 +1554,8 @@ export default function ComposeActionProposalModal({
                         ) : (
                           <>
                             <LevelCaption
-                              level={c.effective ?? c.nominal ?? 1}
+                              level={c.effective_automation ?? c.nominal_automation ?? 1}
+                              governance={c.nominal_governance}
                               y={NODE_CAPTION_Y}
                               // Three cases are not about a rung at all, and keep the rail's
                               // colour along with their own word.
@@ -1357,9 +1573,13 @@ export default function ComposeActionProposalModal({
                               }
                             />
                             <LevelMeter
-                              nominal={c.nominal ?? 1}
-                              effective={c.effective}
-                              previewLevel={previewLevel}
+                              automation={c.nominal_automation ?? 1}
+                              effectiveAutomation={c.effective_automation}
+                              governance={c.nominal_governance}
+                              maxAutomation={ceilingOn(c, "automation")}
+                              maxGovernance={ceilingOn(c, "governance")}
+                              previewAutomation={previewAutomation}
+                              previewGovernance={previewGovernance}
                               y={NODE_METER_Y}
                             />
                           </>
@@ -1446,12 +1666,16 @@ export default function ComposeActionProposalModal({
                     /* Editable Edge Controls */
                     <>
                       <div className={styles.statusStrip}>
-                        <span className={styles.statusLabel}>Runs</span>
-                        <span className={styles.statusValue}>{formatLevel(selectedEdgeData.level ?? 1)}</span>
-                        <span className={styles.statusSep}>·</span>
-                        <span className={styles.statusLabel}>triggered by</span>
+                        <span className={styles.statusLabel}>Hand-off</span>
                         <span className={styles.statusValue}>
-                          {formatTrigger(selectedEdgeData.trigger || "none")}
+                          {formatAxisLevel("automation", nominalOn(selectedEdgeData, "automation"))}
+                        </span>
+                        <span className={styles.statusSep}>·</span>
+                        <span className={styles.statusLabel}>started by</span>
+                        <span className={styles.statusValue}>{formatTrigger(selectedEdgeData.trigger || "none")}</span>
+                        <span className={styles.statusSep}>·</span>
+                        <span className={styles.statusValue}>
+                          {formatAxisLevel("governance", nominalOn(selectedEdgeData, "governance"))}
                         </span>
                       </div>
 
@@ -1487,140 +1711,22 @@ export default function ComposeActionProposalModal({
                         </div>
                       )}
 
-                      {/* Edge Edit Form */}
+                      {/* One ladder per axis. The automation options already carry the
+                          trigger they switch the hand-off to, so there is no trigger picker. */}
                       <div className={styles.formStack}>
-                        <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>
-                            <Icon icon="ph:arrow-fat-line-up-bold" />
-                            <span>Raise to</span>
-                          </label>
-                          <p className={styles.formHint}>Choose the level to propose for this connection.</p>
-                          <LevelPicker
-                            levels={
-                              selectedEdgeData.allowed_levels && selectedEdgeData.allowed_levels.length > 0
-                                ? selectedEdgeData.allowed_levels
-                                : [0, 1, 2, 3, 4]
-                            }
-                            value={selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)}
-                            current={selectedEdgeData.level ?? 1}
-                            onChange={(newLvl) => {
-                              setSelectedEdgeTargetLevel(newLvl);
-                              if (newLvl >= 3) {
-                                const defaultAuto =
-                                  selectedEdgeData.allowed_triggers?.find(
-                                    (t) => t !== "none" && t !== "manual_request"
-                                  ) || "scheduled";
-                                setSelectedEdgeTargetTrigger(defaultAuto);
-                              } else if (newLvl === 2) {
-                                setSelectedEdgeTargetTrigger("manual_request");
-                              } else {
-                                setSelectedEdgeTargetTrigger("none");
-                              }
-                            }}
-                            onShowTag={showInfoTag}
-                            onHideTag={hideInfoTag}
+                        {AXES.map((axis) => (
+                          <OptionLadder
+                            key={axis}
+                            axis={axis}
+                            target={selectedEdgeData}
+                            kind="edge"
+                            changes={atomicChanges}
+                            slotsFull={slotsFull}
+                            onAdd={(option) => handleAddOption(selectedEdgeData, axis, option)}
+                            onRemove={(option) => handleRemoveOption(selectedEdgeData, axis, option)}
                           />
-                        </div>
-
-                        {/* Edge Trigger Selector (Automatic triggers available at Level >= 3) */}
-                        <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>
-                            <Icon icon="ph:lightning-bold" />
-                            <span>Started by</span>
-                          </label>
-                          {(selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)) >= 3 ? (
-                            <select
-                              className={styles.selectInput}
-                              value={selectedEdgeTargetTrigger || "scheduled"}
-                              onChange={(e) => setSelectedEdgeTargetTrigger(e.target.value)}
-                            >
-                              {(selectedEdgeData.allowed_triggers || ["scheduled", "on_commit", "on_data_arrival"])
-                                .filter((t) => t !== "none" && t !== "manual_request")
-                                .map((t) => (
-                                  <option key={t} value={t}>
-                                    {formatTrigger(t)} ({t})
-                                  </option>
-                                ))}
-                            </select>
-                          ) : (
-                            <input
-                              type="text"
-                              disabled
-                              className={styles.selectInput}
-                              value={
-                                (selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1)) === 2
-                                  ? "a person, on request"
-                                  : "nothing - the step does not run"
-                              }
-                            />
-                          )}
-                        </div>
+                        ))}
                       </div>
-
-                      {/* Slotted Edge Control */}
-                      {isSelectedEdgeSlotted ? (
-                        <div className={styles.slotActions}>
-                          <div className={styles.slottedNote}>
-                            <span className={styles.slottedNoteTitle}>
-                              <Icon icon="ph:lightning-fill" /> In the proposal
-                            </span>
-                            <span>
-                              Raise to <strong>{formatLevel(selectedEdgeChange?.value)}</strong>
-                              {selectedEdgeChange?.trigger && (
-                                <>, started by <strong>{formatTrigger(selectedEdgeChange.trigger)}</strong></>
-                              )}
-                            </span>
-                          </div>
-
-                          <div className={styles.buttonRow}>
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              onClick={() =>
-                                handleSaveEdgeSlot(
-                                  selectedEdgeData.id,
-                                  selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1),
-                                  selectedEdgeTargetTrigger
-                                )
-                              }
-                            >
-                              <Icon icon="ph:arrows-clockwise-bold" />
-                              <span>Update</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={`${styles.actionButton} ${styles.dangerButton}`}
-                              onClick={() => handleRemoveTargetSlot(selectedEdgeData.id)}
-                            >
-                              <Icon icon="ph:trash-bold" />
-                              <span>Remove</span>
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={styles.slotActions}>
-                          {atomicChanges.length >= MAX_ATOMIC_CHANGES ? (
-                            <button type="button" disabled className={styles.actionButton}>
-                              <span>All {MAX_ATOMIC_CHANGES} slots used</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              onClick={() =>
-                                handleSaveEdgeSlot(
-                                  selectedEdgeData.id,
-                                  selectedEdgeTargetLevel ?? (selectedEdgeData.level ?? 1),
-                                  selectedEdgeTargetTrigger
-                                )
-                              }
-                            >
-                              <Icon icon="ph:plus-circle-bold" />
-                              <span>Add to proposal</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -1649,7 +1755,6 @@ export default function ComposeActionProposalModal({
                                 stakeholderId={selectedCompData.owner_id}
                                 avatar={stakeholders[selectedCompData.owner_id]?.avatar}
                                 stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                                isFramed={false}
                                 size={16}
                                 hoverToSuspicious={false}
                                 className={styles.ownerLinkAvatar}
@@ -1663,7 +1768,6 @@ export default function ComposeActionProposalModal({
                                 stakeholderId={selectedCompData.owner_id}
                                 avatar={stakeholders[selectedCompData.owner_id]?.avatar}
                                 stakeholderColor={stakeholders[selectedCompData.owner_id]?.stakeholder_color}
-                                isFramed={false}
                                 size={16}
                                 hoverToSuspicious={false}
                               />
@@ -1742,11 +1846,19 @@ export default function ComposeActionProposalModal({
                     /* Editable Component Controls */
                     <>
                       <div className={styles.statusStrip}>
-                        <span className={styles.statusLabel}>Current status</span>
-                        <span className={styles.statusValue}>{formatLevel(selectedCompData.nominal ?? 1)}</span>
+                        <span className={styles.statusLabel}>Runs</span>
+                        <span className={styles.statusValue}>
+                          {formatAxisLevel("automation", nominalOn(selectedCompData, "automation"))}
+                        </span>
+                        <span className={styles.statusSep}>·</span>
+                        <span className={styles.statusLabel}>output</span>
+                        <span className={styles.statusValue}>
+                          {formatAxisLevel("governance", nominalOn(selectedCompData, "governance"))}
+                        </span>
                       </div>
 
-                      {/* Pipeline Dependency / Functional Level Analysis */}
+                      {/* Pipeline Dependency / Functional Level Analysis - automation only:
+                          governance never caps (00-plan.md decision 1). */}
                       {selectedUpstreamStatus.uncertain ? (
                         <div className={styles.uncertainBanner}>
                           <Icon icon="ph:question-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
@@ -1770,14 +1882,14 @@ export default function ComposeActionProposalModal({
                           </div>
                         </div>
                       ) : selectedCompData.capped_by &&
-                        selectedCompData.effective !== undefined &&
-                        selectedCompData.nominal !== undefined &&
-                        selectedCompData.effective < selectedCompData.nominal ? (
+                        selectedCompData.effective_automation !== undefined &&
+                        selectedCompData.nominal_automation !== undefined &&
+                        selectedCompData.effective_automation < selectedCompData.nominal_automation ? (
                         <div className={styles.bottleneckBanner}>
                           <Icon icon="ph:link-break-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                           <div>
                             <strong>Held back:</strong> {highlight("this component is capped at")}{" "}
-                            <strong>{formatLevel(selectedCompData.effective)}</strong> by{" "}
+                            <strong>{formatAxisLevel("automation", selectedCompData.effective_automation)}</strong> by{" "}
                             <button
                               type="button"
                               className={styles.inlineJumpLink}
@@ -1787,7 +1899,9 @@ export default function ComposeActionProposalModal({
                               {highlight(allComponentsMap.get(selectedCompData.capped_by)?.name ?? selectedCompData.capped_by)}
                             </button>
                             .{" "}
-                            {highlight("Raising it alone changes nothing until that bottleneck is dealt with.")}
+                            {highlight(
+                              "Automating it further changes nothing until that bottleneck is dealt with. Governance steps are not affected."
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -1795,8 +1909,14 @@ export default function ComposeActionProposalModal({
                           <Icon icon="ph:check-circle-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
                           <div>
                             <strong>Dependencies satisfied:</strong>{" "}
-                            {highlight("nothing upstream is holding this back")} - it runs at{" "}
-                            <strong>{formatLevel(selectedCompData.effective ?? selectedCompData.nominal ?? 1)}</strong>.
+                            {highlight("nothing upstream is holding this back")} - it runs{" "}
+                            <strong>
+                              {formatAxisLevel(
+                                "automation",
+                                selectedCompData.effective_automation ?? nominalOn(selectedCompData, "automation")
+                              )}
+                            </strong>
+                            .
                           </div>
                         </div>
                       )}
@@ -1833,88 +1953,26 @@ export default function ComposeActionProposalModal({
                         </div>
                       )}
 
-                      {/* Component Level Selector */}
                       <div className={styles.formStack}>
-                        <div className={styles.formGroup}>
-                          <label className={styles.formLabel}>
-                            <Icon icon="ph:arrow-fat-line-up-bold" />
-                            <span>Raise to</span>
-                          </label>
-                          <p className={styles.formHint}>Choose the level to propose for this component.</p>
-                          <LevelPicker
-                            levels={
-                              selectedCompData.allowed_levels && selectedCompData.allowed_levels.length > 0
-                                ? selectedCompData.allowed_levels
-                                : [0, 1, 2, 3, 4]
-                            }
-                            value={selectedCompTargetLevel ?? (selectedCompData.nominal ?? 1)}
-                            current={selectedCompData.nominal ?? 1}
-                            onChange={setSelectedCompTargetLevel}
-                            onShowTag={showInfoTag}
-                            onHideTag={hideInfoTag}
+                        {AXES.map((axis) => (
+                          <OptionLadder
+                            key={axis}
+                            axis={axis}
+                            target={selectedCompData}
+                            kind="component"
+                            changes={atomicChanges}
+                            slotsFull={slotsFull}
+                            onAdd={(option) => handleAddOption(selectedCompData, axis, option)}
+                            onRemove={(option) => handleRemoveOption(selectedCompData, axis, option)}
                           />
-                        </div>
+                        ))}
+                        <AttributeOptions
+                          target={selectedCompData}
+                          changes={atomicChanges}
+                          slotsFull={slotsFull}
+                          onToggle={(attr, option) => handleToggleAttribute(selectedCompData.id, attr, option)}
+                        />
                       </div>
-
-                      {/* Slotted Action Control */}
-                      {isSelectedCompSlotted ? (
-                        <div className={styles.slotActions}>
-                          <div className={styles.slottedNote}>
-                            <span className={styles.slottedNoteTitle}>
-                              <Icon icon="ph:lightning-fill" /> In the proposal
-                            </span>
-                            <span>
-                              <strong>{formatLevel(selectedCompData.nominal ?? 1)}</strong> →{" "}
-                              <strong>{formatLevel(selectedCompChange?.value)}</strong>
-                            </span>
-                          </div>
-                          <div className={styles.buttonRow}>
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              onClick={() =>
-                                handleSaveComponentSlot(
-                                  selectedCompData.id,
-                                  selectedCompTargetLevel ?? (selectedCompData.nominal ?? 1)
-                                )
-                              }
-                            >
-                              <Icon icon="ph:arrows-clockwise-bold" />
-                              <span>Update</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={`${styles.actionButton} ${styles.dangerButton}`}
-                              onClick={() => handleRemoveTargetSlot(selectedCompData.id)}
-                            >
-                              <Icon icon="ph:trash-bold" />
-                              <span>Remove</span>
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={styles.slotActions}>
-                          {atomicChanges.length >= MAX_ATOMIC_CHANGES ? (
-                            <button type="button" disabled className={styles.actionButton}>
-                              <span>All {MAX_ATOMIC_CHANGES} slots used</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className={styles.actionButton}
-                              onClick={() =>
-                                handleSaveComponentSlot(
-                                  selectedCompData.id,
-                                  selectedCompTargetLevel ?? (selectedCompData.nominal ?? 1)
-                                )
-                              }
-                            >
-                              <Icon icon="ph:plus-circle-bold" />
-                              <span>Add to proposal</span>
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
@@ -1925,8 +1983,8 @@ export default function ComposeActionProposalModal({
                 <Icon icon="ph:cursor-click-bold" className={styles.emptyIcon} />
                 <span className={styles.emptyTitle}>Select a component or a connection</span>
                 <p className={styles.emptyBody}>
-                  Click a component, or the handle on the line between two of them. Both can be
-                  raised, and both count as one of your three slots.
+                  Click a component, or the handle on the line between two of them. Each step
+                  you add - automation, governance or technology - takes one of your three slots.
                 </p>
               </div>
             )}
@@ -1956,8 +2014,7 @@ export default function ComposeActionProposalModal({
                       }`
                     : comp?.name || change.target;
 
-                  const curLevel = isEdge ? edge?.level ?? 1 : comp?.nominal ?? 1;
-                  const nextLevel = typeof change.value === "number" ? change.value : curLevel + 1;
+                  const described = describeAtomicChange(change, isEdge ? edge : comp);
 
                   return (
                     <div
@@ -1995,13 +2052,13 @@ export default function ComposeActionProposalModal({
                       </div>
                       <div className={styles.slotChangeInfo}>
                         <Icon
-                          icon={isEdge ? "ph:flow-arrow-bold" : "ph:arrow-fat-line-up-bold"}
-                          style={{ color: "var(--primary-bg)" }}
+                          icon={change.axis ? AXIS_ICONS[change.axis] : change.kind === "set_attr" ? "ph:wrench-bold" : "ph:flow-arrow-bold"}
+                          style={{ color: change.axis === "governance" ? GOVERNANCE_META[3].ink : "var(--primary-bg)", flexShrink: 0 }}
                         />
                         <span>
-                          <strong>{formatLevel(curLevel)}</strong> → <strong>{formatLevel(nextLevel)}</strong>
-                          {change.trigger && (
-                            <span className={styles.slotTrigger}>· {formatTrigger(change.trigger)}</span>
+                          <strong>{described.title}</strong>
+                          {described.title !== described.detail && (
+                            <span className={styles.slotTrigger}>· {described.detail}</span>
                           )}
                         </span>
                       </div>

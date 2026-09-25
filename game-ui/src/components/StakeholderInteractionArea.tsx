@@ -13,7 +13,7 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import { StakeholderContext } from "./StakeholderProvider";
 import { MetricsContext } from "./MetricProvider";
-import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
+import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
 import type { AvatarEmotion } from "../types/StakeholderAvatar";
 import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import type { DialogueOption } from "../types/DialogueOption";
@@ -22,7 +22,6 @@ import introJs from "intro.js";
 
 import styles from "./StakeholderInteractionArea.module.css";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
-import SpokenText from "./SpokenText";
 import { useGlossary } from "./glossary/GlossaryProvider";
 
 import type { EngagementCard } from "../types/EngagementCard";
@@ -135,16 +134,6 @@ interface StakeholderInteractionAreaProps {
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
   onInspectIntel?: (intel: RevealedIntel, stakeholderId?: string) => void;
-  /** The sentence-highlight position for whichever message is currently being narrated by TTS
-   * (see SpokenText) - null/undefined when nothing is being narrated. */
-  activeSentenceIndex?: number | null;
-  /** Identifies, by reference, which entry in `chatMsgs` is the one currently being narrated -
-   * that single entry renders through SpokenText instead of its normal static content. */
-  liveChatMsg?: ChatMsg | null;
-  /** Stop appears only on the line currently being narrated; play/replay appears on that line
-   * plus (on hover) any other stakeholder message, so a past line can be read aloud on demand. */
-  onStopSpeech?: () => void;
-  onPlayMessage?: (msg: ChatMsg) => void;
 }
 
 export default function StakeholderInteractionArea({
@@ -169,10 +158,6 @@ export default function StakeholderInteractionArea({
   isMaximized = false,
   onToggleMaximize,
   onInspectIntel,
-  activeSentenceIndex = null,
-  liveChatMsg = null,
-  onStopSpeech,
-  onPlayMessage,
 }: StakeholderInteractionAreaProps) {
   const { stakeholders } = useContext(StakeholderContext) || { stakeholders: {} };
   const { metrics } = useContext(MetricsContext) || { metrics: {} };
@@ -181,42 +166,6 @@ export default function StakeholderInteractionArea({
   const [hoveredMsgAvatarIndex, setHoveredMsgAvatarIndex] = useState<number | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [tabOrder, setTabOrder] = useState<string[]>([]);
-  // Where each message's speech controls should anchor (chatscope lays the avatar/bubble out
-  // internally, so this is measured from the DOM rather than assumed): badges sit right on the
-  // avatar's own edge for stakeholder messages, forming one visual unit with it instead of a
-  // separate floating pill. Player messages have no avatar (chatscope reserves no avatar slot for
-  // outgoing bubbles), so those anchor to the bubble's own corner instead.
-  type ControlAnchor = { kind: "avatar" | "content"; top: number; left: number; right: number; bottom: number };
-  const [controlAnchors, setControlAnchors] = useState<Record<number, ControlAnchor>>({});
-  const measureControlAnchor = (index: number, rowEl: HTMLDivElement | null) => {
-    if (!rowEl) return;
-    const rowRect = rowEl.getBoundingClientRect();
-    const target = rowEl.querySelector<HTMLElement>(".cs-avatar") || rowEl.querySelector<HTMLElement>(".cs-message__content");
-    if (!target) return;
-    const kind: ControlAnchor["kind"] = target.classList.contains("cs-avatar") ? "avatar" : "content";
-    const r = target.getBoundingClientRect();
-    const next: ControlAnchor = {
-      kind,
-      top: r.top - rowRect.top,
-      left: r.left - rowRect.left,
-      right: r.right - rowRect.left,
-      bottom: r.bottom - rowRect.top,
-    };
-    setControlAnchors((prev) => {
-      const cur = prev[index];
-      if (
-        cur &&
-        cur.kind === next.kind &&
-        cur.top === next.top &&
-        cur.left === next.left &&
-        cur.right === next.right &&
-        cur.bottom === next.bottom
-      ) {
-        return prev;
-      }
-      return { ...prev, [index]: next };
-    });
-  };
 
   const conversationIds = useMemo(() => {
     const ids: string[] = [];
@@ -427,97 +376,32 @@ export default function StakeholderInteractionArea({
                   const senderName = isUser ? "Me" : isSystem ? "System Telemetry" : st ? st.name : (item.stakeholder_name || "Stakeholder");
                   const stColor = isSystem ? "#38bdf8" : getStakeholderColor(st, isUser ? undefined : item.id);
 
-                  const isLive = Boolean(liveChatMsg) && item === liveChatMsg;
                   let avatarSrc = "";
-                  let messageAv: any = null;
-                  let messageFace: AvatarEmotion | undefined;
                   if (!isUser) {
                     if (isSystem) {
                       avatarSrc = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="%2338bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>`;
                     } else {
-                      messageAv = st?.avatar;
+                      const av = st?.avatar;
                       const isHovered = hoveredMsgAvatarIndex === index;
-                      messageFace = (isHovered ? "suspicious" : (item.facial_expression || messageAv?.face || messageAv?.emotion || "smile")) as AvatarEmotion;
+                      const messageFace = (isHovered ? "suspicious" : (item.facial_expression || av?.face || av?.emotion || "smile")) as AvatarEmotion;
+                      avatarSrc = generateOpenPeepsDataUri({
+                        head: av?.head || "short1",
+                        face: messageFace,
+                        facialHair: av?.facialHair,
+                        facialHairProbability: av?.facialHairProbability,
+                        accessories: av?.accessories,
+                        accessoriesProbability: av?.accessoriesProbability,
+                        skinColor: av?.skinColor || "ffdbb4",
+                        clothingColor: stColor,
+                        headContrastColor: av?.headContrastColor || "2c1b18",
+                        backgroundColor: stColor,
+                        flip: av?.flip,
+                      });
                     }
                   }
-                  // Stop only makes sense while this exact line is playing; (re)play is offered on
-                  // every message - stakeholder or player, not just the one currently narrating -
-                  // so a past line can be read aloud on demand too. System telemetry has no voice.
-                  const showSpeechControls = !isSystem && Boolean(onPlayMessage);
-                  const anchor = controlAnchors[index];
-                  const playBtn = (
-                    <button
-                      type="button"
-                      className={styles.liveSpeechControlBtn}
-                      onClick={() => onPlayMessage?.(item)}
-                      title={isLive ? "Replay" : "Play"}
-                      aria-label={isLive ? "Replay from the start" : "Read this message aloud"}
-                    >
-                      <Icon icon={isLive ? "ph:arrow-clockwise-bold" : "ph:play-circle-bold"} />
-                    </button>
-                  );
-                  const stopBtn = isLive && onStopSpeech && (
-                    <button
-                      type="button"
-                      className={styles.liveSpeechControlBtn}
-                      onClick={onStopSpeech}
-                      title="Stop"
-                      aria-label="Stop speaking"
-                    >
-                      <Icon icon="ph:stop-circle-bold" />
-                    </button>
-                  );
 
                   return (
                     <React.Fragment key={index}>
-                      <div className={styles.chatMessageRow} ref={(el) => measureControlAnchor(index, el)}>
-                      {showSpeechControls && anchor && anchor.kind === "avatar" && (
-                        <>
-                          {/* One coherent unit with the avatar: badges sit right on its bottom
-                              corners rather than floating separately above it. */}
-                          <div
-                            className={styles.avatarSpeechBadge}
-                            style={{ top: anchor.bottom, left: anchor.right }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {playBtn}
-                          </div>
-                          {stopBtn && (
-                            <div
-                              className={styles.avatarSpeechBadge}
-                              style={{ top: anchor.bottom, left: anchor.left }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {stopBtn}
-                            </div>
-                          )}
-                        </>
-                      )}
-                      {showSpeechControls && anchor && anchor.kind === "content" && (
-                        <>
-                          {/* No avatar to badge onto for a player message (chatscope reserves no
-                              avatar slot for outgoing bubbles) - anchor to the bubble's own
-                              bottom-right corner instead. Bottom, not top: the chat list scrolls,
-                              and a control poking up past the row's top edge got clipped by the
-                              scroll viewport and was unclickable. */}
-                          <div
-                            className={styles.avatarSpeechBadge}
-                            style={{ top: anchor.bottom, left: anchor.right }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {playBtn}
-                          </div>
-                          {stopBtn && (
-                            <div
-                              className={styles.avatarSpeechBadge}
-                              style={{ top: anchor.bottom, left: anchor.right - 22 }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {stopBtn}
-                            </div>
-                          )}
-                        </>
-                      )}
                       <Message
                         className={`${styles.ChatMessage}`}
                         key={index}
@@ -530,50 +414,24 @@ export default function StakeholderInteractionArea({
                         }}
                         avatarSpacer={isUser ? false : true}
                       >
-                        {/* Custom content when the glossary is on for this surface, or while this
-                            exact message is the one currently being read aloud (sentence
-                            highlight) - otherwise the bubble renders exactly as it always did. */}
-                        {(highlightMessages || isLive) && (
+                        {/* Custom content only when the glossary is on for this surface, so
+                            with highlighting off the bubble renders exactly as it always did. */}
+                        {highlightMessages && (
                           <Message.CustomContent>
-                            {isLive ? (
-                              <SpokenText
-                                text={item.message}
-                                activeSentenceIndex={activeSentenceIndex}
-                                renderSentence={highlightMessages ? highlightMessage : undefined}
-                              />
-                            ) : (
-                              highlightMessage(item.message)
-                            )}
+                            {highlightMessage(item.message)}
                           </Message.CustomContent>
                         )}
                         {!isUser && (
                           <Avatar
                             name={senderName}
-                            src={isSystem ? avatarSrc : undefined}
+                            src={avatarSrc}
                             onMouseEnter={() => setHoveredMsgAvatarIndex(index)}
                             onMouseLeave={() => setHoveredMsgAvatarIndex(null)}
                             style={{ cursor: "pointer" }}
                             title={senderName}
-                          >
-                            {/* A real animated avatar (mouth-flap + head-sway while isLive) rather
-                                than a static image - Avatar renders this in place of its own
-                                <img src> whenever children are given. */}
-                            {!isSystem && (
-                              <StakeholderAvatarComponent
-                                avatar={messageAv}
-                                emotion={messageFace}
-                                play_blink_animation={true}
-                                isFramed={false}
-                                size="100%"
-                                stakeholderColor={stColor}
-                                stakeholderId={item.id || item.stakeholder_id}
-                                title={senderName}
-                              />
-                            )}
-                          </Avatar>
+                          />
                         )}
                       </Message>
-                      </div>
                       {item.revealed_intel && item.revealed_intel.length > 0 && (
                         <div
                           className={`d-flex flex-column justify-content-center align-items-center ${styles.revealedIntelContainer} gap-2`}

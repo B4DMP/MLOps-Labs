@@ -1,11 +1,4 @@
 {
-  "levels": [
-    "broken",
-    "absent",
-    "manual",
-    "automated",
-    "governed"
-  ],
   "triggers": [
     "none",
     "manual_request",
@@ -14,8 +7,7 @@
     "on_data_arrival",
     "on_new_version",
     "on_metric_threshold",
-    "on_alert",
-    "on_approval"
+    "on_alert"
   ],
   "instance_kinds": {
     "dataset": {
@@ -207,19 +199,38 @@
       "name": "KPI Definition",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 100,
         "y": 100
       },
-      "icon": "ph:target-bold"
+      "icon": "ph:target-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "KPI Definition runs as a manual step someone executes by hand"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Owner Sign-off",
+          "description": "Have an owner sign off on KPI Definition"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "req.acceptance_criteria",
@@ -227,19 +238,38 @@
       "name": "Acceptance Criteria",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 300,
         "y": 100
       },
-      "icon": "ph:check-square-offset-bold"
+      "icon": "ph:check-square-offset-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Acceptance Criteria runs as a manual step someone executes by hand"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Owner Sign-off",
+          "description": "Have an owner sign off on Acceptance Criteria"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "req.data_contracts",
@@ -247,20 +277,44 @@
       "name": "Data Contracts",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 300,
         "y": 220
       },
-      "icon": "ph:file-text-bold"
+      "icon": "ph:file-text-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Data Contracts runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Data Contracts runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Owner Sign-off",
+          "description": "Have an owner sign off on Data Contracts"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "req.risk_assessment",
@@ -268,19 +322,38 @@
       "name": "Risk Assessment",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 100,
         "y": 220
       },
-      "icon": "ph:warning-bold"
+      "icon": "ph:warning-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Risk Assessment runs as a manual step someone executes by hand"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Owner Sign-off",
+          "description": "Have an owner sign off on Risk Assessment"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "data.ingestion",
@@ -288,14 +361,6 @@
       "name": "Data Ingestion Pipeline",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -320,7 +385,74 @@
         "x": 80,
         "y": 100
       },
-      "icon": "ph:download-bold"
+      "icon": "ph:download-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Data Ingestion Pipeline runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Data Ingestion Pipeline runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Data Ingestion Pipeline"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ],
+        "tool": [
+          {
+            "to_value": "custom_scripts",
+            "name": "Switch to custom scripts",
+            "description": "Switch to custom scripts"
+          },
+          {
+            "to_value": "airbyte",
+            "name": "Switch to airbyte",
+            "description": "Switch to airbyte"
+          },
+          {
+            "to_value": "kafka",
+            "name": "Switch to kafka",
+            "description": "Switch to kafka"
+          }
+        ]
+      }
     },
     {
       "id": "data.validation",
@@ -328,14 +460,6 @@
       "name": "Data Validation",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -360,7 +484,74 @@
         "x": 240,
         "y": 100
       },
-      "icon": "ph:check-circle-bold"
+      "icon": "ph:check-circle-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Data Validation runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Data Validation runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Data Validation"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ],
+        "tool": [
+          {
+            "to_value": "great_expectations",
+            "name": "Switch to great expectations",
+            "description": "Switch to great expectations"
+          },
+          {
+            "to_value": "deequ",
+            "name": "Switch to deequ",
+            "description": "Switch to deequ"
+          },
+          {
+            "to_value": "inhouse",
+            "name": "Switch to inhouse",
+            "description": "Switch to inhouse"
+          }
+        ]
+      }
     },
     {
       "id": "data.feature_store",
@@ -368,14 +559,6 @@
       "name": "Feature Store",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -400,7 +583,74 @@
         "x": 400,
         "y": 100
       },
-      "icon": "ph:stack-bold"
+      "icon": "ph:stack-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Feature Store runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Feature Store runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Feature Store"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ],
+        "tool": [
+          {
+            "to_value": "feast",
+            "name": "Switch to feast",
+            "description": "Switch to feast"
+          },
+          {
+            "to_value": "tecton",
+            "name": "Switch to tecton",
+            "description": "Switch to tecton"
+          },
+          {
+            "to_value": "inhouse",
+            "name": "Switch to inhouse",
+            "description": "Switch to inhouse"
+          }
+        ]
+      }
     },
     {
       "id": "data.versioning",
@@ -408,14 +658,6 @@
       "name": "Data Versioning",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -431,7 +673,57 @@
         "x": 240,
         "y": 220
       },
-      "icon": "ph:git-branch-bold"
+      "icon": "ph:git-branch-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Data Versioning runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Data Versioning runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Data Versioning"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "dvc",
+            "name": "Switch to dvc",
+            "description": "Switch to dvc"
+          },
+          {
+            "to_value": "lakefs",
+            "name": "Switch to lakefs",
+            "description": "Switch to lakefs"
+          },
+          {
+            "to_value": "delta_lake",
+            "name": "Switch to delta lake",
+            "description": "Switch to delta lake"
+          }
+        ]
+      }
     },
     {
       "id": "data.labeling",
@@ -439,14 +731,6 @@
       "name": "Data Labeling Pipeline",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -462,7 +746,57 @@
         "x": 80,
         "y": 220
       },
-      "icon": "ph:tag-bold"
+      "icon": "ph:tag-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Data Labeling Pipeline runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Data Labeling Pipeline runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Data Labeling Pipeline"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ]
+      }
     },
     {
       "id": "data.training_drift_check",
@@ -470,20 +804,44 @@
       "name": "Training Data Drift Check",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 400,
         "y": 220
       },
-      "icon": "ph:chart-line-bold"
+      "icon": "ph:chart-line-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Training Data Drift Check runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Training Data Drift Check runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check Training Data Drift Check"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "model.experiment_tracking",
@@ -491,14 +849,6 @@
       "name": "Experiment Tracking",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -514,7 +864,57 @@
         "x": 240,
         "y": 220
       },
-      "icon": "ph:flask-bold"
+      "icon": "ph:flask-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Experiment Tracking runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Experiment Tracking runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review Experiment Tracking's results"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "spreadsheet",
+            "name": "Switch to spreadsheet",
+            "description": "Switch to spreadsheet"
+          },
+          {
+            "to_value": "mlflow",
+            "name": "Switch to mlflow",
+            "description": "Switch to mlflow"
+          },
+          {
+            "to_value": "wandb",
+            "name": "Switch to wandb",
+            "description": "Switch to wandb"
+          }
+        ]
+      }
     },
     {
       "id": "model.registry",
@@ -522,14 +922,6 @@
       "name": "Model Registry",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -554,7 +946,74 @@
         "x": 400,
         "y": 220
       },
-      "icon": "ph:archive-bold"
+      "icon": "ph:archive-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Model Registry runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Model Registry runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review Model Registry's results"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ],
+        "tool": [
+          {
+            "to_value": "mlflow",
+            "name": "Switch to mlflow",
+            "description": "Switch to mlflow"
+          },
+          {
+            "to_value": "sagemaker",
+            "name": "Switch to sagemaker",
+            "description": "Switch to sagemaker"
+          },
+          {
+            "to_value": "inhouse",
+            "name": "Switch to inhouse",
+            "description": "Switch to inhouse"
+          }
+        ]
+      }
     },
     {
       "id": "model.training_pipeline",
@@ -562,14 +1021,6 @@
       "name": "Training Pipeline",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -585,7 +1036,57 @@
         "x": 240,
         "y": 100
       },
-      "icon": "ph:cpu-bold"
+      "icon": "ph:cpu-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Training Pipeline runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Training Pipeline runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review Training Pipeline's results"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "notebooks",
+            "name": "Switch to notebooks",
+            "description": "Switch to notebooks"
+          },
+          {
+            "to_value": "airflow",
+            "name": "Switch to airflow",
+            "description": "Switch to airflow"
+          },
+          {
+            "to_value": "kubeflow",
+            "name": "Switch to kubeflow",
+            "description": "Switch to kubeflow"
+          }
+        ]
+      }
     },
     {
       "id": "model.hpo",
@@ -593,14 +1094,6 @@
       "name": "Hyperparameter Tuning",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -616,7 +1109,57 @@
         "x": 80,
         "y": 100
       },
-      "icon": "ph:sliders-horizontal-bold"
+      "icon": "ph:sliders-horizontal-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Hyperparameter Tuning runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Hyperparameter Tuning runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review Hyperparameter Tuning's results"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "grid_search",
+            "name": "Switch to grid search",
+            "description": "Switch to grid search"
+          },
+          {
+            "to_value": "optuna",
+            "name": "Switch to optuna",
+            "description": "Switch to optuna"
+          },
+          {
+            "to_value": "ray_tune",
+            "name": "Switch to ray tune",
+            "description": "Switch to ray tune"
+          }
+        ]
+      }
     },
     {
       "id": "model.evaluation",
@@ -624,20 +1167,44 @@
       "name": "Model Evaluation Harness",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 400,
         "y": 100
       },
-      "icon": "ph:ruler-bold"
+      "icon": "ph:ruler-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Model Evaluation Harness runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Model Evaluation Harness runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review Model Evaluation Harness's results"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "deploy.cicd",
@@ -645,14 +1212,6 @@
       "name": "CI/CD Pipeline",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -668,7 +1227,57 @@
         "x": 80,
         "y": 100
       },
-      "icon": "ph:git-merge-bold"
+      "icon": "ph:git-merge-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "CI/CD Pipeline runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "CI/CD Pipeline runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for CI/CD Pipeline"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "jenkins",
+            "name": "Switch to jenkins",
+            "description": "Switch to jenkins"
+          },
+          {
+            "to_value": "gitlab_ci",
+            "name": "Switch to gitlab ci",
+            "description": "Switch to gitlab ci"
+          },
+          {
+            "to_value": "github_actions",
+            "name": "Switch to github actions",
+            "description": "Switch to github actions"
+          }
+        ]
+      }
     },
     {
       "id": "deploy.serving",
@@ -676,14 +1285,6 @@
       "name": "Model Serving Endpoint",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "hosting": {
           "values": [
@@ -709,7 +1310,79 @@
         "x": 400,
         "y": 220
       },
-      "icon": "ph:cloud-bold"
+      "icon": "ph:cloud-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Model Serving Endpoint runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Model Serving Endpoint runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for Model Serving Endpoint"
+        }
+      ],
+      "attribute_options": {
+        "hosting": [
+          {
+            "to_value": "none",
+            "name": "Switch to none",
+            "description": "Switch to none"
+          },
+          {
+            "to_value": "private_cloud",
+            "name": "Switch to private cloud",
+            "description": "Switch to private cloud"
+          },
+          {
+            "to_value": "public_cloud",
+            "name": "Switch to public cloud",
+            "description": "Switch to public cloud"
+          }
+        ],
+        "tool": [
+          {
+            "to_value": "fastapi",
+            "name": "Switch to fastapi",
+            "description": "Switch to fastapi"
+          },
+          {
+            "to_value": "seldon",
+            "name": "Switch to seldon",
+            "description": "Switch to seldon"
+          },
+          {
+            "to_value": "kserve",
+            "name": "Switch to kserve",
+            "description": "Switch to kserve"
+          },
+          {
+            "to_value": "sagemaker",
+            "name": "Switch to sagemaker",
+            "description": "Switch to sagemaker"
+          }
+        ]
+      }
     },
     {
       "id": "deploy.canary_ab",
@@ -717,20 +1390,44 @@
       "name": "Canary and A/B Testing",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 240,
         "y": 220
       },
-      "icon": "ph:test-tube-bold"
+      "icon": "ph:test-tube-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Canary and A/B Testing runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Canary and A/B Testing runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for Canary and A/B Testing"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "deploy.shadow",
@@ -738,20 +1435,44 @@
       "name": "Shadow Deployment",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 80,
         "y": 220
       },
-      "icon": "ph:copy-bold"
+      "icon": "ph:copy-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Shadow Deployment runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Shadow Deployment runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for Shadow Deployment"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "deploy.containerization",
@@ -759,14 +1480,6 @@
       "name": "Containerization",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -781,7 +1494,52 @@
         "x": 240,
         "y": 100
       },
-      "icon": "mdi:docker"
+      "icon": "mdi:docker",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Containerization runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Containerization runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for Containerization"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "docker",
+            "name": "Switch to docker",
+            "description": "Switch to docker"
+          },
+          {
+            "to_value": "podman",
+            "name": "Switch to podman",
+            "description": "Switch to podman"
+          }
+        ]
+      }
     },
     {
       "id": "deploy.orchestration",
@@ -789,14 +1547,6 @@
       "name": "Orchestration",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -812,7 +1562,57 @@
         "x": 400,
         "y": 100
       },
-      "icon": "ph:flow-arrow-bold"
+      "icon": "ph:flow-arrow-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Orchestration runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Orchestration runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for Orchestration"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "docker_compose",
+            "name": "Switch to docker compose",
+            "description": "Switch to docker compose"
+          },
+          {
+            "to_value": "nomad",
+            "name": "Switch to nomad",
+            "description": "Switch to nomad"
+          },
+          {
+            "to_value": "kubernetes",
+            "name": "Switch to kubernetes",
+            "description": "Switch to kubernetes"
+          }
+        ]
+      }
     },
     {
       "id": "deploy.api_gateway",
@@ -820,14 +1620,6 @@
       "name": "API Gateway",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "sourcing": {
           "values": [
@@ -843,7 +1635,57 @@
         "x": 400,
         "y": 340
       },
-      "icon": "ph:door-bold"
+      "icon": "ph:door-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "API Gateway runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "API Gateway runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for API Gateway"
+        }
+      ],
+      "attribute_options": {
+        "sourcing": [
+          {
+            "to_value": "custom",
+            "name": "Switch to custom",
+            "description": "Switch to custom"
+          },
+          {
+            "to_value": "open_source",
+            "name": "Switch to open source",
+            "description": "Switch to open source"
+          },
+          {
+            "to_value": "bought",
+            "name": "Switch to bought",
+            "description": "Switch to bought"
+          }
+        ]
+      }
     },
     {
       "id": "ops.performance_monitoring",
@@ -851,20 +1693,44 @@
       "name": "Model Performance Monitoring",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 260,
         "y": 100
       },
-      "icon": "ph:gauge-bold"
+      "icon": "ph:gauge-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Model Performance Monitoring runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Model Performance Monitoring runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Model Performance Monitoring's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "ops.production_drift_monitoring",
@@ -872,14 +1738,6 @@
       "name": "Production Drift Monitoring",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -895,7 +1753,57 @@
         "x": 80,
         "y": 220
       },
-      "icon": "ph:waves-bold"
+      "icon": "ph:waves-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Production Drift Monitoring runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Production Drift Monitoring runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Production Drift Monitoring's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "evidently",
+            "name": "Switch to evidently",
+            "description": "Switch to evidently"
+          },
+          {
+            "to_value": "whylabs",
+            "name": "Switch to whylabs",
+            "description": "Switch to whylabs"
+          },
+          {
+            "to_value": "inhouse",
+            "name": "Switch to inhouse",
+            "description": "Switch to inhouse"
+          }
+        ]
+      }
     },
     {
       "id": "ops.alerting",
@@ -903,14 +1811,6 @@
       "name": "Alerting System",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -926,7 +1826,57 @@
         "x": 260,
         "y": 220
       },
-      "icon": "ph:bell-bold"
+      "icon": "ph:bell-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Alerting System runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Alerting System runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Alerting System's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "email",
+            "name": "Switch to email",
+            "description": "Switch to email"
+          },
+          {
+            "to_value": "pagerduty",
+            "name": "Switch to pagerduty",
+            "description": "Switch to pagerduty"
+          },
+          {
+            "to_value": "opsgenie",
+            "name": "Switch to opsgenie",
+            "description": "Switch to opsgenie"
+          }
+        ]
+      }
     },
     {
       "id": "ops.observability",
@@ -934,14 +1884,6 @@
       "name": "Logging and Observability",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 2,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {
         "tool": {
           "values": [
@@ -957,7 +1899,57 @@
         "x": 80,
         "y": 100
       },
-      "icon": "ph:eye-bold"
+      "icon": "ph:eye-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Logging and Observability runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Logging and Observability runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Logging and Observability's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {
+        "tool": [
+          {
+            "to_value": "elk",
+            "name": "Switch to elk",
+            "description": "Switch to elk"
+          },
+          {
+            "to_value": "prometheus_grafana",
+            "name": "Switch to prometheus grafana",
+            "description": "Switch to prometheus grafana"
+          },
+          {
+            "to_value": "datadog",
+            "name": "Switch to datadog",
+            "description": "Switch to datadog"
+          }
+        ]
+      }
     },
     {
       "id": "ops.retraining_trigger",
@@ -965,20 +1957,44 @@
       "name": "Retraining Trigger",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 440,
         "y": 100
       },
-      "icon": "ph:arrows-clockwise-bold"
+      "icon": "ph:arrows-clockwise-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Retraining Trigger runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Retraining Trigger runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Retraining Trigger's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {}
     },
     {
       "id": "ops.rollback",
@@ -986,20 +2002,44 @@
       "name": "Rollback Mechanism",
       "owner_role": null,
       "weight": 1.0,
-      "initial_level": 1,
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "attributes": {},
       "layout": {
         "x": 440,
         "y": 220
       },
-      "icon": "ph:arrow-u-down-left-bold"
+      "icon": "ph:arrow-u-down-left-bold",
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "name": "Implement It",
+          "description": "Rollback Mechanism runs as a manual step someone executes by hand"
+        },
+        {
+          "to_level": 3,
+          "name": "Automate It",
+          "description": "Rollback Mechanism runs on a managed automation platform, no manual step needed"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document Rollback Mechanism's rules and agree them with on-call"
+        }
+      ],
+      "attribute_options": {}
     }
   ],
   "edges": [
@@ -1009,19 +2049,36 @@
       "to": "data.ingestion",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
-        "manual_request",
-        "on_approval"
+        "manual_request"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Contracts to Data Ingestion Pipeline manually"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Contracts -> Data Ingestion Pipeline hand-off"
+        }
       ]
     },
     {
@@ -1030,19 +2087,36 @@
       "to": "req.acceptance_criteria",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
-        "manual_request",
-        "on_approval"
+        "manual_request"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Risk Assessment to Acceptance Criteria manually"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Owner Sign-off",
+          "description": "Have an owner sign off on the Risk Assessment -> Acceptance Criteria hand-off"
+        }
       ]
     },
     {
@@ -1052,19 +2126,36 @@
       "kind": "pipeline",
       "slack": 1,
       "stage_flow": false,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
-        "manual_request",
-        "on_approval"
+        "manual_request"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Acceptance Criteria to Model Evaluation Harness manually"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Acceptance Criteria -> Model Evaluation Harness hand-off's results"
+        }
       ]
     },
     {
@@ -1073,20 +2164,45 @@
       "to": "data.validation",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_data_arrival"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Ingestion Pipeline to Data Validation manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Ingestion Pipeline to Data Validation fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Ingestion Pipeline -> Data Validation hand-off"
+        }
       ]
     },
     {
@@ -1095,20 +2211,45 @@
       "to": "data.versioning",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_data_arrival"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Validation to Data Versioning manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Validation to Data Versioning fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Validation -> Data Versioning hand-off"
+        }
       ]
     },
     {
@@ -1117,20 +2258,45 @@
       "to": "data.feature_store",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_data_arrival"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Versioning to Feature Store manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Versioning to Feature Store fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Versioning -> Feature Store hand-off"
+        }
       ]
     },
     {
@@ -1139,15 +2305,7 @@
       "to": "model.training_pipeline",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1155,6 +2313,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Feature Store to Training Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Feature Store to Training Pipeline fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Feature Store -> Training Pipeline hand-off's results"
+        }
       ]
     },
     {
@@ -1163,20 +2354,45 @@
       "to": "data.versioning",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_data_arrival"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Labeling Pipeline to Data Versioning manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Labeling Pipeline to Data Versioning fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Labeling Pipeline -> Data Versioning hand-off"
+        }
       ]
     },
     {
@@ -1185,20 +2401,45 @@
       "to": "data.training_drift_check",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_data_arrival"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Data Versioning to Training Data Drift Check manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Data Versioning to Training Data Drift Check fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Spot Checks",
+          "description": "Spot-check the Data Versioning -> Training Data Drift Check hand-off"
+        }
       ]
     },
     {
@@ -1207,15 +2448,7 @@
       "to": "model.training_pipeline",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1223,6 +2456,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Training Data Drift Check to Training Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Training Data Drift Check to Training Pipeline fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Training Data Drift Check -> Training Pipeline hand-off's results"
+        }
       ]
     },
     {
@@ -1231,15 +2497,7 @@
       "to": "model.training_pipeline",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1247,6 +2505,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Hyperparameter Tuning to Training Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Hyperparameter Tuning to Training Pipeline fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Hyperparameter Tuning -> Training Pipeline hand-off's results"
+        }
       ]
     },
     {
@@ -1255,15 +2546,7 @@
       "to": "model.experiment_tracking",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1271,6 +2554,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Training Pipeline to Experiment Tracking manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Training Pipeline to Experiment Tracking fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Training Pipeline -> Experiment Tracking hand-off's results"
+        }
       ]
     },
     {
@@ -1279,15 +2595,7 @@
       "to": "model.evaluation",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1295,6 +2603,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Training Pipeline to Model Evaluation Harness manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Training Pipeline to Model Evaluation Harness fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Training Pipeline -> Model Evaluation Harness hand-off's results"
+        }
       ]
     },
     {
@@ -1303,15 +2644,7 @@
       "to": "model.registry",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
@@ -1319,6 +2652,39 @@
         "on_data_arrival",
         "on_commit",
         "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Model Evaluation Harness to Model Registry manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_data_arrival",
+          "name": "Auto-Trigger on New Data",
+          "description": "The hand-off from Model Evaluation Harness to Model Registry fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Model Evaluation Harness -> Model Registry hand-off's results"
+        }
       ]
     },
     {
@@ -1327,21 +2693,45 @@
       "to": "deploy.cicd",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Model Registry to CI/CD Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from Model Registry to CI/CD Pipeline fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Model Registry -> CI/CD Pipeline hand-off"
+        }
       ]
     },
     {
@@ -1350,21 +2740,45 @@
       "to": "deploy.containerization",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from CI/CD Pipeline to Containerization manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from CI/CD Pipeline to Containerization fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the CI/CD Pipeline -> Containerization hand-off"
+        }
       ]
     },
     {
@@ -1373,21 +2787,45 @@
       "to": "deploy.orchestration",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Containerization to Orchestration manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from Containerization to Orchestration fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Containerization -> Orchestration hand-off"
+        }
       ]
     },
     {
@@ -1396,21 +2834,45 @@
       "to": "deploy.serving",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Orchestration to Model Serving Endpoint manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from Orchestration to Model Serving Endpoint fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Orchestration -> Model Serving Endpoint hand-off"
+        }
       ]
     },
     {
@@ -1419,21 +2881,45 @@
       "to": "deploy.api_gateway",
       "kind": "pipeline",
       "slack": 0,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Model Serving Endpoint to API Gateway manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from Model Serving Endpoint to API Gateway fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Model Serving Endpoint -> API Gateway hand-off"
+        }
       ]
     },
     {
@@ -1442,21 +2928,45 @@
       "to": "deploy.canary_ab",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from CI/CD Pipeline to Canary and A/B Testing manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from CI/CD Pipeline to Canary and A/B Testing fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the CI/CD Pipeline -> Canary and A/B Testing hand-off"
+        }
       ]
     },
     {
@@ -1465,21 +2975,45 @@
       "to": "deploy.serving",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Canary and A/B Testing to Model Serving Endpoint manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from Canary and A/B Testing to Model Serving Endpoint fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Canary and A/B Testing -> Model Serving Endpoint hand-off"
+        }
       ]
     },
     {
@@ -1488,21 +3022,45 @@
       "to": "deploy.shadow",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "on_commit",
-        "on_new_version",
-        "on_approval"
+        "on_new_version"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from CI/CD Pipeline to Shadow Deployment manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_commit",
+          "name": "Auto-Trigger on Commit",
+          "description": "The hand-off from CI/CD Pipeline to Shadow Deployment fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the CI/CD Pipeline -> Shadow Deployment hand-off"
+        }
       ]
     },
     {
@@ -1511,21 +3069,46 @@
       "to": "ops.observability",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 2,
       "initial_trigger": "manual_request",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 2,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Model Serving Endpoint to Logging and Observability manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Model Serving Endpoint to Logging and Observability fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Model Serving Endpoint -> Logging and Observability hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1534,21 +3117,46 @@
       "to": "ops.performance_monitoring",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Logging and Observability to Model Performance Monitoring manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Logging and Observability to Model Performance Monitoring fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Logging and Observability -> Model Performance Monitoring hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1557,21 +3165,46 @@
       "to": "ops.production_drift_monitoring",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Logging and Observability to Production Drift Monitoring manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Logging and Observability to Production Drift Monitoring fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Logging and Observability -> Production Drift Monitoring hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1580,21 +3213,46 @@
       "to": "ops.alerting",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Model Performance Monitoring to Alerting System manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Model Performance Monitoring to Alerting System fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Model Performance Monitoring -> Alerting System hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1603,21 +3261,46 @@
       "to": "ops.alerting",
       "kind": "pipeline",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Production Drift Monitoring to Alerting System manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Production Drift Monitoring to Alerting System fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Production Drift Monitoring -> Alerting System hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1626,21 +3309,46 @@
       "to": "ops.retraining_trigger",
       "kind": "feedback",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Alerting System to Retraining Trigger manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Alerting System to Retraining Trigger fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Alerting System -> Retraining Trigger hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1649,21 +3357,46 @@
       "to": "model.training_pipeline",
       "kind": "feedback",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Retraining Trigger to Training Pipeline manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Retraining Trigger to Training Pipeline fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Second Review",
+          "description": "Have a second person review the Retraining Trigger -> Training Pipeline hand-off's results"
+        }
       ]
     },
     {
@@ -1672,21 +3405,46 @@
       "to": "ops.rollback",
       "kind": "feedback",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Alerting System to Rollback Mechanism manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Alerting System to Rollback Mechanism fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Documented & Agreed",
+          "description": "Document the Alerting System -> Rollback Mechanism hand-off's rules and agree them with on-call"
+        }
       ]
     },
     {
@@ -1695,21 +3453,46 @@
       "to": "deploy.serving",
       "kind": "feedback",
       "slack": 1,
-      "initial_level": 1,
       "initial_trigger": "none",
-      "allowed_levels": [
-        0,
-        1,
-        2,
-        3,
-        4
-      ],
       "allowed_triggers": [
         "none",
         "manual_request",
         "scheduled",
         "on_metric_threshold",
         "on_alert"
+      ],
+      "allowed_automation": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "allowed_governance": [
+        0,
+        3
+      ],
+      "initial_automation": 1,
+      "initial_governance": 0,
+      "automation_options": [
+        {
+          "to_level": 2,
+          "trigger": "manual_request",
+          "name": "Trigger Manually",
+          "description": "Trigger the hand-off from Rollback Mechanism to Model Serving Endpoint manually"
+        },
+        {
+          "to_level": 3,
+          "trigger": "on_metric_threshold",
+          "name": "Auto-Trigger on Alert",
+          "description": "The hand-off from Rollback Mechanism to Model Serving Endpoint fires automatically"
+        }
+      ],
+      "governance_options": [
+        {
+          "to_level": 3,
+          "name": "Tech-Lead Approval",
+          "description": "Require tech-lead approval for the Rollback Mechanism -> Model Serving Endpoint hand-off"
+        }
       ]
     }
   ],
@@ -1782,5 +3565,17 @@
         "model:demand_forecast_v1"
       ]
     }
+  ],
+  "automation_states": [
+    "broken",
+    "absent",
+    "manual",
+    "automated"
+  ],
+  "governance_levels": [
+    "none",
+    "partial_1",
+    "partial_2",
+    "full"
   ]
 }

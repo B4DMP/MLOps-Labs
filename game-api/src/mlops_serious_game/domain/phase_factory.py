@@ -101,7 +101,7 @@ class PhaseFactory:
                 seen.add(c.template_id)
                 for name in ("preconditions", "excluded_if"):
                     errors += [f"{where} {name}: {e}" for e in validate_predicate(getattr(c, name), graph, pattern_ids)]
-                for name in ("on_enter_ops", "on_exit_ops", "stalemate_ops"):
+                for name in ("on_enter_ops", "on_exit_ops", "stalemate_ops", "baseline_sweep_ops"):
                     for raw in getattr(c, name):
                         try:
                             op = GraphOp.model_validate(raw)
@@ -116,7 +116,7 @@ class PhaseFactory:
                     for pos in c.conflict.positions:
                         if pos.stakeholder_id not in stakeholder_ids:
                             errors.append(f"{where} conflict: unknown stakeholder '{pos.stakeholder_id}'")
-                        elif graph.is_target(c.conflict.target) and pos.wants not in graph.allowed_levels(c.conflict.target):
+                        elif graph.is_target(c.conflict.target) and pos.wants not in graph.allowed_for(c.conflict.target, pos.axis):
                             errors.append(f"{where} conflict: level {pos.wants} not allowed on '{c.conflict.target}'")
                 for sid in c.focus_stage_ids:
                     if sid not in stage_ids:

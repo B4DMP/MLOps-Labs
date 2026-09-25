@@ -31,7 +31,7 @@ from mlops_serious_game.domain.emotion import (
 )
 from mlops_serious_game.domain.emotion_factory import EmotionFactory
 from mlops_serious_game.domain.event import GameEvent
-from mlops_serious_game.domain.graph import GraphOp, GraphState, Knowledge, TechnicalGraph
+from mlops_serious_game.domain.graph import Axis, GraphOp, GraphState, Knowledge, TechnicalGraph
 from mlops_serious_game.domain.graph_predicates import PredicateError, evaluate
 from mlops_serious_game.domain.requirement import IntelTag, item_target_and_level
 from mlops_serious_game.domain.stakeholder_factory import StakeholderFactory
@@ -43,11 +43,15 @@ RISK_AMBER = 0.4
 
 class AtomicChange(BaseModel):
     """An atomic mutation in the MLOps graph.
-    
-    Can raise maturity levels or set edge triggers/attributes.
+
+    Can raise maturity levels or set edge triggers/attributes. `axis` is required for
+    kind="raise_to" - which of the two independent maturity axes it moves
+    (docs/plans/graph-governance-automation-rework/00-plan.md); there is no combined level to
+    infer it from.
     """
     target: str
     kind: str = "raise_to"
+    axis: Optional[Axis] = None
     value: Optional[Any] = None
     trigger: Optional[str] = None
     attr: Optional[str] = None
@@ -58,6 +62,7 @@ class ItemPrediction(BaseModel):
 
     item_id: str
     target: Optional[str] = None
+    axis: Optional[Axis] = None
     asked: Optional[int] = None
     predicted: Optional[int] = Field(default=None, description="None when the player cannot know yet")
     capped_by: Optional[str] = None
@@ -171,43 +176,53 @@ def find_pipeline_predecessors(graph: TechnicalGraph, target: str) -> list[str]:
     return preds
 
 
-def _extract_target_and_level(item: Any, graph: TechnicalGraph, state: GraphState) -> tuple[Optional[str], Optional[int]]:
+def _extract_target_and_level(
+    item: Any, graph: TechnicalGraph, state: GraphState
+) -> tuple[Optional[str], Optional[int], Optional[Axis]]:
     target = None
     asked = None
+    axis = None
     if isinstance(item, AtomicChange):
         target = item.target
         asked = item.value
+        axis = item.axis
     elif isinstance(item, dict):
         target = item.get("target")
         asked = item.get("value")
+        axis = item.get("axis")
         if not target:
             sugg = item.get("suggested")
             if isinstance(sugg, dict):
                 target = sugg.get("target")
                 asked = sugg.get("level")
+                axis = sugg.get("axis")
         if not target:
             bx = item.get("branch_x")
             if isinstance(bx, dict):
                 target = bx.get("target")
                 asked = bx.get("level")
+                axis = bx.get("axis")
     else:
         target = getattr(item, "target", None)
         asked = getattr(item, "value", None)
+        axis = getattr(item, "axis", None)
         if not target:
             sugg = getattr(item, "suggested", None)
             if sugg:
                 target = getattr(sugg, "target", None) or (sugg.get("target") if isinstance(sugg, dict) else None)
                 asked = getattr(sugg, "level", None) or (sugg.get("level") if isinstance(sugg, dict) else None)
+                axis = getattr(sugg, "axis", None) or (sugg.get("axis") if isinstance(sugg, dict) else None)
         if not target:
             bx = getattr(item, "branch_x", None) or (item.get("branch_x") if isinstance(item, dict) else None)
             if bx:
                 target = getattr(bx, "target", None) or (bx.get("target") if isinstance(bx, dict) else None)
                 asked = getattr(bx, "level", None) or (bx.get("level") if isinstance(bx, dict) else None)
+                axis = getattr(bx, "axis", None) or (bx.get("axis") if isinstance(bx, dict) else None)
 
-    if target and graph.is_target(target):
+    if target and graph.is_target(target) and axis in ("automation", "governance"):
         if asked is None:
-            allowed = graph.allowed_levels(target)
-            current = state.level(target)
+            allowed = graph.allowed_for(target, axis)
+            current = state.value(target, axis)
             next_levels = [a for a in allowed if a > current]
             asked = min(next_levels) if next_levels else current
         else:
@@ -215,8 +230,18 @@ def _extract_target_and_level(item: Any, graph: TechnicalGraph, state: GraphStat
                 asked = int(asked)
             except (ValueError, TypeError):
                 pass
-        return target, asked
-    return None, None
+        return target, asked, axis
+    return None, None, None
+
+
+def _automation_before_governance(ops: list[GraphOp]) -> list[GraphOp]:
+    """A batch that raises both axes on the same target must apply automation first - governance
+    is rejected outright on a target that isn't implemented yet (apply.py's `_apply_one`), and
+    `replay` re-derives ground truth from these same logged ops with no lookahead of its own, so
+    the order they're logged in is the only thing that can make this work regardless of which
+    order the player's own choices (or a pitch's accepted stances) happened to name them in.
+    Stable, so a chain of several steps on the same axis keeps its own relative order."""
+    return sorted(ops, key=lambda op: op.axis == "governance")
 
 
 def atomic_changes_to_ops(
@@ -229,17 +254,20 @@ def atomic_changes_to_ops(
     for c in changes[:MAX_ATOMIC_CHANGES]:
         target = getattr(c, "target", None) or (c.get("target") if isinstance(c, dict) else None)
         kind = getattr(c, "kind", None) or (c.get("kind") if isinstance(c, dict) else "raise_to")
+        axis = getattr(c, "axis", None) if hasattr(c, "axis") else (c.get("axis") if isinstance(c, dict) else None)
         val = getattr(c, "value", None) if hasattr(c, "value") else (c.get("value") if isinstance(c, dict) else None)
         trigger = getattr(c, "trigger", None) if hasattr(c, "trigger") else (c.get("trigger") if isinstance(c, dict) else None)
         attr = getattr(c, "attr", None) if hasattr(c, "attr") else (c.get("attr") if isinstance(c, dict) else None)
 
         if not target:
-            target, val = _extract_target_and_level(c, graph, state)
+            target, val, axis = _extract_target_and_level(c, graph, state)
 
         if not target or not graph.is_target(target):
             continue
 
         if kind == "raise_to":
+            if axis not in ("automation", "governance"):
+                continue  # no axis named or inferable - nothing to raise (00-plan.md §10.1)
             target_level = None
             if val is not None:
                 try:
@@ -247,8 +275,8 @@ def atomic_changes_to_ops(
                 except (ValueError, TypeError):
                     target_level = None
             if target_level is None:
-                allowed = graph.allowed_levels(target)
-                current = state.level(target)
+                allowed = graph.allowed_for(target, axis)
+                current = state.value(target, axis)
                 next_levels = [a for a in allowed if a > current]
                 target_level = min(next_levels) if next_levels else current
 
@@ -256,6 +284,7 @@ def atomic_changes_to_ops(
                 GraphOp(
                     kind="raise_to",
                     target=target,
+                    axis=axis,
                     value=target_level,
                     source_kind="action_card",
                 )
@@ -292,17 +321,18 @@ def atomic_changes_to_ops(
                     )
                 )
         else:
-            tgt, lvl = _extract_target_and_level(c, graph, state)
-            if tgt and lvl is not None:
+            tgt, lvl, ax = _extract_target_and_level(c, graph, state)
+            if tgt and lvl is not None and ax is not None:
                 ops.append(
                     GraphOp(
                         kind="raise_to",
                         target=tgt,
+                        axis=ax,
                         value=lvl,
                         source_kind="action_card",
                     )
                 )
-    return ops
+    return _automation_before_governance(ops)
 
 
 def card_items(all_intel: list, card_item_ids: set[str]) -> list:
@@ -343,16 +373,18 @@ def card_ops(
         if branch_key == "X" and (getattr(item, "branch_x", None) or (isinstance(item, dict) and "branch_x" in item)):
             branch = getattr(item, "branch_x", None) or item.get("branch_x")
             target = getattr(branch, "target", None) or (branch.get("target") if isinstance(branch, dict) else None)
-            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else 3)
-            if target:
-                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else None)
+            axis = getattr(branch, "axis", None) or (branch.get("axis") if isinstance(branch, dict) else None)
+            if target and axis:
+                ops.append(GraphOp(kind="raise_to", target=target, axis=axis, value=level, source_kind="action_card"))
             continue
         elif branch_key == "Y" and (getattr(item, "branch_y", None) or (isinstance(item, dict) and "branch_y" in item)):
             branch = getattr(item, "branch_y", None) or item.get("branch_y")
             target = getattr(branch, "target", None) or (branch.get("target") if isinstance(branch, dict) else None)
-            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else 3)
-            if target:
-                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            level = getattr(branch, "level", None) or (branch.get("level") if isinstance(branch, dict) else None)
+            axis = getattr(branch, "axis", None) or (branch.get("axis") if isinstance(branch, dict) else None)
+            if target and axis:
+                ops.append(GraphOp(kind="raise_to", target=target, axis=axis, value=level, source_kind="action_card"))
             continue
 
         raw_ops = getattr(item, "ops", None) or (item.get("ops") if isinstance(item, dict) else None)
@@ -365,14 +397,18 @@ def card_ops(
         if suggested:
             target = getattr(suggested, "target", None) or (suggested.get("target") if isinstance(suggested, dict) else None)
             level = getattr(suggested, "level", None) or (suggested.get("level") if isinstance(suggested, dict) else None)
-            if target:
-                ops.append(GraphOp(kind="raise_to", target=target, value=level, source_kind="action_card"))
+            axis = getattr(suggested, "axis", None) or (suggested.get("axis") if isinstance(suggested, dict) else None)
+            if target and axis:
+                ops.append(GraphOp(kind="raise_to", target=target, axis=axis, value=level, source_kind="action_card"))
             continue
 
         if isinstance(item, dict) and "target" in item:
-            ops.append(GraphOp(kind=item.get("kind", "raise_to"), target=item["target"], value=item.get("value"), source_kind="action_card"))
+            ops.append(GraphOp(
+                kind=item.get("kind", "raise_to"), target=item["target"], axis=item.get("axis"),
+                value=item.get("value"), source_kind="action_card",
+            ))
 
-    return ops
+    return _automation_before_governance(ops)
 
 
 
@@ -386,14 +422,13 @@ def predicted_state(
     return apply_ops(graph, state, ops).state if ops else state
 
 
-def _effective_of(effective, target: str) -> Optional[int]:
-    if target in effective.components:
-        return effective.components[target]
-    return effective.edges.get(target)
+def _effective_of(effective, target: str, axis: Axis) -> Optional[int]:
+    source = effective.automation if axis == "automation" else effective.governance
+    return source.get(target)
 
 
 def _boundary_target(item) -> Optional[str]:
-    target, _ = item_target_and_level(item)
+    target, _, _ = item_target_and_level(item)
     if target:
         return target
     holds = getattr(item, "holds", None)
@@ -412,8 +447,8 @@ def predictions_for(
     out: list[ItemPrediction] = []
 
     for c in changes[:MAX_ATOMIC_CHANGES]:
-        target, target_lvl = _extract_target_and_level(c, graph, state)
-        if not target:
+        target, target_lvl, axis = _extract_target_and_level(c, graph, state)
+        if not target or axis is None:
             continue
         item_id = getattr(c, "id", None) or (c.get("id") if isinstance(c, dict) else None) or target
         target_known = knowledge is None or knowledge.state_of(target, state) != "unknown"
@@ -423,11 +458,12 @@ def predictions_for(
             if knowledge is not None and knowledge.state_of(p, state) == "unknown"
         ]
         is_upstream_uncertain = len(uncertain_nodes) > 0
-        eff = _effective_of(effective, target)
+        eff = _effective_of(effective, target, axis)
 
         out.append(ItemPrediction(
             item_id=item_id,
             target=target,
+            axis=axis,
             asked=target_lvl,
             predicted=None if not target_known else eff,
             capped_by=None if not target_known else effective.capped_by.get(target),
@@ -511,14 +547,15 @@ def player_boundary_warnings(graph: TechnicalGraph, warnings: list[BoundaryWarni
 def is_driver_satisfied(
     req: Any,
     card_atoms: set[str],
-    target_levels: dict[str, int],
+    target_levels: dict[tuple[str, str], int],
 ) -> bool:
     atoms = set(getattr(req, "atoms", None) or (req.get("atoms", []) if isinstance(req, dict) else []))
     if atoms and (atoms & card_atoms):
         return True
-    target, asked = item_target_and_level(req)
-    if target and target in target_levels:
-        if asked is None or target_levels[target] >= asked:
+    target, asked, axis = item_target_and_level(req)
+    key = (target, axis)
+    if target and axis and key in target_levels:
+        if asked is None or target_levels[key] >= asked:
             return True
     return False
 
@@ -526,7 +563,7 @@ def is_driver_satisfied(
 def is_trade_off_satisfied(
     req: Any,
     card_atoms: set[str],
-    target_levels: dict[str, int],
+    target_levels: dict[tuple[str, str], int],
 ) -> bool:
     bx_atoms = set(getattr(req, "branch_x_atoms", None) or (req.get("branch_x_atoms", []) if isinstance(req, dict) else []))
     by_atoms = set(getattr(req, "branch_y_atoms", None) or (req.get("branch_y_atoms", []) if isinstance(req, dict) else []))
@@ -534,18 +571,22 @@ def is_trade_off_satisfied(
     by_data = getattr(req, "branch_y", None)
     bx_target = getattr(bx_data, "target", None) or (bx_data.get("target") if isinstance(bx_data, dict) else None)
     bx_level = getattr(bx_data, "level", None) or (bx_data.get("level") if isinstance(bx_data, dict) else 3)
+    bx_axis = getattr(bx_data, "axis", None) or (bx_data.get("axis") if isinstance(bx_data, dict) else None)
     by_target = getattr(by_data, "target", None) or (by_data.get("target") if isinstance(by_data, dict) else None)
     by_level = getattr(by_data, "level", None) or (by_data.get("level") if isinstance(by_data, dict) else 3)
+    by_axis = getattr(by_data, "axis", None) or (by_data.get("axis") if isinstance(by_data, dict) else None)
 
-    sat_x = bool((bx_atoms and (bx_atoms & card_atoms)) or (bx_target and bx_target in target_levels and target_levels[bx_target] >= (bx_level or 3)))
-    sat_y = bool((by_atoms and (by_atoms & card_atoms)) or (by_target and by_target in target_levels and target_levels[by_target] >= (by_level or 3)))
+    bx_key = (bx_target, bx_axis)
+    by_key = (by_target, by_axis)
+    sat_x = bool((bx_atoms and (bx_atoms & card_atoms)) or (bx_target and bx_axis and bx_key in target_levels and target_levels[bx_key] >= (bx_level or 3)))
+    sat_y = bool((by_atoms and (by_atoms & card_atoms)) or (by_target and by_axis and by_key in target_levels and target_levels[by_key] >= (by_level or 3)))
     return sat_x or sat_y
 
 
 def calculate_demand_alignment_for_changes(
     stakeholder_reqs: list,
     card_atoms: set[str],
-    target_levels: dict[str, int],
+    target_levels: dict[tuple[str, str], int],
     violated_map: Optional[dict[str, bool]] = None,
 ) -> float:
     stance_reqs = []
@@ -602,7 +643,7 @@ def stakeholder_reads(
                 violated_by_st[w.stakeholder_id] = True
 
     card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
-    target_levels = {op.target: int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
+    target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
 
     reads: list[StakeholderRead] = []
     for room_entry in room:
@@ -712,7 +753,7 @@ def evaluate_pitch(
 
     ops = atomic_changes_to_ops(graph, state, changes)
     card_atoms = {f"{op.kind}({op.target}, {op.value})" for op in ops}
-    target_levels = {op.target: int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
+    target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
 
     # Detect boundary violations
     warnings = boundary_checks(graph, state, all_intel, changes, room_ids, knowledge=knowledge)
@@ -899,19 +940,20 @@ def evaluate_pitch(
         if isinstance(c, AtomicChange):
             valid_atomic_changes.append(c)
         elif isinstance(c, GraphOp):
-            valid_atomic_changes.append(AtomicChange(target=c.target, kind=c.kind, value=c.value, attr=c.attr))
+            valid_atomic_changes.append(AtomicChange(target=c.target, kind=c.kind, axis=c.axis, value=c.value, attr=c.attr))
         elif isinstance(c, dict) and "target" in c:
             valid_atomic_changes.append(AtomicChange(
                 target=c["target"],
                 kind=c.get("kind", "raise_to"),
+                axis=c.get("axis"),
                 value=c.get("value"),
                 trigger=c.get("trigger"),
                 attr=c.get("attr"),
             ))
         else:
-            tgt, lvl = _extract_target_and_level(c, graph, state)
+            tgt, lvl, ax = _extract_target_and_level(c, graph, state)
             if tgt:
-                valid_atomic_changes.append(AtomicChange(target=tgt, kind="raise_to", value=lvl))
+                valid_atomic_changes.append(AtomicChange(target=tgt, kind="raise_to", axis=ax, value=lvl))
 
     new_pitch_state = PitchState(
         stage="PITCHED",
@@ -923,6 +965,17 @@ def evaluate_pitch(
         presentation_count=presentation_count,
     )
     return new_pitch_state, view, items_to_correct
+
+
+_AXIS_LEVEL_WORDS: dict[Axis, tuple[str, ...]] = {
+    "automation": ("broken", "absent", "manual", "automated"),
+    "governance": ("not reviewed", "partially reviewed", "mostly reviewed", "fully governed"),
+}
+
+
+def _axis_level_word(axis: Axis, value: int) -> str:
+    words = _AXIS_LEVEL_WORDS[axis]
+    return words[value] if 0 <= value < len(words) else str(value)
 
 
 def _describe_change(graph: TechnicalGraph, change: "AtomicChange") -> Optional[str]:
@@ -937,12 +990,31 @@ def _describe_change(graph: TechnicalGraph, change: "AtomicChange") -> Optional[
         name = getattr(graph.edge(target), "name", None) or target
     if not name:
         return None
-    if change.kind == "raise_to" and isinstance(change.value, int):
-        level_name = graph.levels[change.value] if 0 <= change.value < len(graph.levels) else str(change.value)
-        return f"raising {name} to {level_name}"
+    if change.kind == "raise_to" and isinstance(change.value, int) and change.axis:
+        level_name = _axis_level_word(change.axis, change.value)
+        return f"raising {name}'s {change.axis} to {level_name}"
     if change.trigger:
         return f"changing {name}'s trigger to {change.trigger}"
     return f"changing {name}"
+
+
+def _final_changes(changes: list["AtomicChange"]) -> list["AtomicChange"]:
+    """Collapses a target chained through several raise_to steps on the same axis (one authored
+    option per rung, each its own slot) down to the one that actually lands: the last one. Without
+    this, "raising X to manual and raising X to automated" reads as two separate, contradictory
+    commitments instead of the one the card actually settles on."""
+    final_by_key: dict[tuple[str, Optional[str]], "AtomicChange"] = {}
+    order: list[tuple[str, Optional[str]]] = []
+    passthrough: list["AtomicChange"] = []
+    for c in changes:
+        if isinstance(c.value, int) and c.axis:
+            key = (c.target, c.axis)
+            if key not in final_by_key:
+                order.append(key)
+            final_by_key[key] = c
+        else:
+            passthrough.append(c)
+    return [final_by_key[key] for key in order] + passthrough
 
 
 def _changes_summary(graph: Optional[TechnicalGraph], changes: list["AtomicChange"]) -> str:
@@ -950,7 +1022,7 @@ def _changes_summary(graph: Optional[TechnicalGraph], changes: list["AtomicChang
     graph is not available (defensive: every real caller has one) or nothing in it is nameable."""
     if not graph or not changes:
         return "your proposal"
-    parts = [d for d in (_describe_change(graph, c) for c in changes) if d]
+    parts = [d for d in (_describe_change(graph, c) for c in _final_changes(changes)) if d]
     if not parts:
         return "your proposal"
     if len(parts) == 1:
@@ -1052,7 +1124,7 @@ def compute_stakeholder_primary_objection(
     target_levels = {}
     if graph and state:
         ops = atomic_changes_to_ops(graph, state, changes)
-        target_levels = {op.target: int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
+        target_levels = {(op.target, op.axis): int(op.value) for op in ops if op.kind in ("raise_to", "set_to")}
 
     # 1. Check for violated boundaries
     if violated_boundaries:

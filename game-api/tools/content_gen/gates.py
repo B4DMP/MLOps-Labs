@@ -137,7 +137,7 @@ def run_gates(config_dir, work_dir, scope: str, scope_data: dict | None = None) 
         samples.append(apply_ops(g, start, [GraphOp.model_validate(o) for o in c["on_enter_ops"]]).state)
     for t in sorted(in_scope):
         if g.is_component(t):
-            samples.append(apply_ops(g, start, [GraphOp(kind="set_to", target=t, value=0)]).state)
+            samples.append(apply_ops(g, start, [GraphOp(kind="set_to", target=t, axis="automation", value=0)]).state)
     contexts = [ctx.evaluate(s).context(g, s) for s in samples]
     for phase_id in ctx.scope["phases"]:
         phase = ctx.phase(phase_id)

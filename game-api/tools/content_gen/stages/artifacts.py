@@ -169,11 +169,15 @@ BROKEN_HINT = ("The fact is that something exists but is broken: it used to work
 
 
 def _asserts_absent(req) -> bool:
-    return req.type == "fact" and req.asserts is not None and req.asserts.level == 1
+    # Only automation says whether the thing exists at all; governance 0 or 1 is a thing nobody
+    # reviews, not a thing that is missing.
+    a = req.asserts
+    return req.type == "fact" and a is not None and a.axis == "automation" and a.level == 1
 
 
 def _asserts_broken(req) -> bool:
-    return req.type == "fact" and req.asserts is not None and req.asserts.level == 0
+    a = req.asserts
+    return req.type == "fact" and a is not None and a.axis == "automation" and a.level == 0
 
 
 def _stable_index(key: str, n: int) -> int:

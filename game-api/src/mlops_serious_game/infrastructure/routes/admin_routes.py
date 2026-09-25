@@ -8,6 +8,7 @@ from mlops_serious_game.application.services.admin_service import (
     add_campaign,
     update_campaign,
     remove_campaign,
+    remove_all_campaigns,
     remove_player,
     remove_all_players,
     list_config_files,
@@ -123,6 +124,16 @@ async def delete_campaign(campaign_key: str, _: str = Depends(check_admin_token)
     remove_campaign(campaign_key)
     data = get_admin_dashboard_data()
     return {"type": "admin_data_update", **data}
+
+
+@router.delete("/campaigns")
+async def delete_all_campaigns(_: str = Depends(check_admin_token)):
+    try:
+        remove_all_campaigns()
+        data = get_admin_dashboard_data()
+        return {"type": "admin_data_update", **data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete all campaigns: {str(e)}")
 
 
 @router.delete("/players")

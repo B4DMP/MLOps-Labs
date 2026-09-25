@@ -34,6 +34,7 @@ from mlops_serious_game.application.pitch_debate_service import (
     get_checkpoint_dialogue_options,
     save_checkpoint_dialogue_options,
 )
+from mlops_serious_game.application.results_service.service import results_for as get_gate7_results
 from mlops_serious_game.infrastructure.database.run_scope import current_run_index, run_chain
 from mlops_serious_game.infrastructure.database import (
     Campaign,
@@ -326,6 +327,17 @@ async def handle_new_run(websocket: WebSocket, username: str, payload: dict) -> 
         if not finished:
             await manager.send_error(websocket, "Finish this game before starting another.", code="RUN_NOT_FINISHED")
             return
+
+        if mode == "spiral":
+            gate7 = get_gate7_results(username, run, refresh=True)["gate7"]
+            if "spiral" not in gate7["allowed_modes"]:
+                await manager.send_error(
+                    websocket,
+                    f"Gate 7 called {gate7['name']} ({gate7['code']}) on this run - only a fresh "
+                    "start is available.",
+                    code="GATE7_BLOCKED",
+                )
+                return
 
         previous = session.scalars(
             select(GameSession)

@@ -27,8 +27,8 @@ def _item(item_id: str, *ops):
     return SimpleNamespace(id=item_id, ops=[dict(op) for op in ops], suggested=None)
 
 
-def _raise(target: str, value: int) -> dict:
-    return {"kind": "raise_to", "target": target, "value": value}
+def _raise(target: str, value: int, axis: str = "automation") -> dict:
+    return {"kind": "raise_to", "target": target, "axis": axis, "value": value}
 
 
 def _read(stakeholder_id: str, power: str = "high", buy_in: float = 0.9, boundary_violated: bool = False):
@@ -61,17 +61,19 @@ def _target(report, target_id):
 # ---------- capping ----------
 
 def test_capped_raise_names_what_capped_it(real):
-    """The feature store hand-off is manual, so a governed training pipeline still delivers less."""
+    """The feature store hand-off is manual, so a fully automated training pipeline still
+    delivers less (model.training_pipeline starts at manual, one step reaches its automated
+    ceiling - a legal single-step ask)."""
     result = simulate(
         real,
         _start(real),
         outcome=PASS,
-        card_items=[_item("i1", _raise("model.training_pipeline", 4))],
+        card_items=[_item("i1", _raise("model.training_pipeline", 3))],
         reads=[_read("model_monica")],
         challenge=_challenge(),
     )
     delta = _target(result.report, "model.training_pipeline")
-    assert delta.nominal.after == 4
+    assert delta.nominal.after == 3
     assert delta.effective.after < delta.nominal.after
     assert delta.capped_by is not None and delta.capped_by["id"]
     assert delta.capped_by["level"] <= delta.effective.after
@@ -95,7 +97,7 @@ def test_a_break_propagates_to_what_it_feeds(real):
         card_items=[_item("i1", _raise("data.versioning", 3))],
         reads=[_read("data_dave")],
         challenge=_challenge(on_exit_ops=[
-            {"kind": "set_to", "target": "data.ingestion", "value": 0, "reason": "nightly job died"}
+            {"kind": "set_to", "target": "data.ingestion", "axis": "automation", "value": 0, "reason": "nightly job died"}
         ]),
     )
     assert [e for e in result.report.world_events if e.target == "data.ingestion" and e.after == 0]
@@ -107,17 +109,20 @@ def test_a_break_propagates_to_what_it_feeds(real):
 # ---------- owner degradation and debt ----------
 
 def test_an_unhappy_owner_makes_the_raise_land_lower(real):
+    """Governance's ladder is binary (none/full) for real content today, so a single step already
+    asks for `full` - the natural "big ask" for a degradation test under the new axes. Implemented
+    first (governance is not player-facing on a target nobody has built yet)."""
     result = simulate(
         real,
-        _start(real),
+        _with(real, _start(real), _raise("data.validation", 2)),
         outcome=SOFT_PASS,
-        card_items=[_item("i1", _raise("data.validation", 4))],
+        card_items=[_item("i1", _raise("data.validation", 3, axis="governance"))],
         reads=[_read("data_dave", power="low", buy_in=0.1)],
         challenge=_challenge(),
     )
     assert result.report.debt_created
     entry = result.report.debt_created[0]
-    assert entry.target_id == "data.validation" and entry.intended_level == 4 and entry.applied_level < 4
+    assert entry.target_id == "data.validation" and entry.intended_level == 3 and entry.applied_level < 3
     assert _target(result.report, "data.validation").degraded_by == "data_dave"
     assert result.report.grudges.created, "a neglected low power stakeholder writes a grudge"
 
@@ -125,9 +130,9 @@ def test_an_unhappy_owner_makes_the_raise_land_lower(real):
 def test_debt_is_repaid_by_a_later_card_with_a_happy_owner(real):
     unhappy = simulate(
         real,
-        _start(real),
+        _with(real, _start(real), _raise("data.validation", 2)),
         outcome=SOFT_PASS,
-        card_items=[_item("i1", _raise("data.validation", 4))],
+        card_items=[_item("i1", _raise("data.validation", 3, axis="governance"))],
         reads=[_read("data_dave", power="low", buy_in=0.1)],
         challenge=_challenge(),
     )
@@ -137,7 +142,7 @@ def test_debt_is_repaid_by_a_later_card_with_a_happy_owner(real):
         real,
         unhappy.state,
         outcome=PASS,
-        card_items=[_item("i1", _raise("data.validation", 4))],
+        card_items=[_item("i1", _raise("data.validation", 3, axis="governance"))],
         reads=[_read("data_dave", buy_in=0.9)],
         challenge=_challenge("ch_test_2"),
     )
@@ -148,14 +153,26 @@ def test_debt_is_repaid_by_a_later_card_with_a_happy_owner(real):
 # ---------- patterns and health ----------
 
 def test_a_design_pattern_gained_lifts_stage_health(real):
+    # e.contracts_ingest is a requirements-family gate edge: it caps at `manual` automation
+    # (00-plan.md sec 3.2) and expresses its discipline through governance instead - `dp_data_contracts`
+    # was updated accordingly. Pre-build everything else to `manual` (uncapped admin ops) so the
+    # actual card only needs the final, legal single step each.
+    built = _with(
+        real, _start(real),
+        _raise("req.data_contracts", 2),
+        _raise("e.contracts_ingest", 2),
+        _raise("data.ingestion", 2),
+        _raise("e.ingest_validate", 2),
+        _raise("data.validation", 2),
+    )
     result = simulate(
         real,
-        _start(real),
+        built,
         outcome=PASS,
         card_items=[_item(
             "i1",
             _raise("req.data_contracts", 3),
-            _raise("e.contracts_ingest", 3),
+            _raise("e.contracts_ingest", 3, axis="governance"),
             _raise("data.ingestion", 3),
             _raise("e.ingest_validate", 3),
             _raise("data.validation", 3),
@@ -233,14 +250,14 @@ def test_stalemate_skips_the_card_and_fires_the_authored_hit(real):
         real,
         _start(real),
         outcome=STALEMATE,
-        card_items=[_item("i1", _raise("data.validation", 4))],
+        card_items=[_item("i1", _raise("data.validation", 3))],
         reads=[_read("data_dave"), _read("reliability_ruth", power="low")],
         challenge=_challenge(stalemate_ops=[
-            {"kind": "set_to", "target": "data.validation", "value": 0, "reason": "nobody owned it"}
+            {"kind": "set_to", "target": "data.validation", "axis": "automation", "value": 0, "reason": "nobody owned it"}
         ]),
     )
     assert result.report.targets == []
-    assert result.state.component_levels["data.validation"] == 0
+    assert result.state.value("data.validation", "automation") == 0
     assert {g.stakeholder_id for g in result.report.grudges.created} == {"data_dave", "reliability_ruth"}
 
 
@@ -260,12 +277,13 @@ def test_veto_broken_degrades_only_what_this_card_touched_that_they_own(real):
         overridden_stakeholder_id="model_monica",
         challenge=_challenge(),
     )
-    # data.versioning: owned by data_dave, not model_monica - the card still applies in full.
-    assert result.state.component_levels["data.versioning"] == 3, "the card still applies"
+    # data.versioning: owned by data_dave, not model_monica - the card still applies in full
+    # (starts absent, one legal step lands at manual - the ceiling a single slot can reach).
+    assert result.state.value("data.versioning", "automation") == 2, "the card still applies"
     # model.evaluation: this card touched it and model_monica owns it - degraded.
-    assert result.state.component_levels["model.evaluation"] < 3
+    assert result.state.value("model.evaluation", "automation") < 3
     # model.registry: model_monica owns it too, but this card never touched it - untouched.
-    assert result.state.component_levels["model.registry"] == 3
+    assert result.state.value("model.registry", "automation") == 3
     grudge = result.report.grudges.created[0]
     assert grudge.stakeholder_id == "model_monica" and grudge.weight == 2
 
@@ -279,14 +297,16 @@ def test_owner_resolution_falls_back_to_the_stage_owner(real):
 
 def test_owner_resolution_prefers_the_components_own_owner():
     graph = TechnicalGraph.model_validate({
-        "levels": ["broken", "absent", "manual", "automated", "governed"],
+        "automation_states": ["broken", "absent", "manual", "automated"],
+        "governance_levels": ["none", "partial_1", "partial_2", "full"],
         "triggers": ["none"],
         "instance_kinds": {},
         "instance_states": ["active"],
         "stages": [{"id": "a", "name": "Stage A", "owner_role": "stage_owner"}],
         "components": [
             {"id": "a.owned", "stage_id": "a", "name": "Owned", "owner_role": "component_owner",
-             "initial_level": 1, "allowed_levels": [0, 1]},
+             "initial_automation": 1, "initial_governance": 0,
+             "allowed_automation": [0, 1], "allowed_governance": [0]},
         ],
         "edges": [],
     })
@@ -386,10 +406,12 @@ def _report(**kw) -> DeltaReport:
 
 def test_simulation_events_names_a_known_target_and_hides_an_unknown_one(real):
     state = _start(real)
-    known = Knowledge(seen={"data.validation": SeenEntry(seq=99, nominal=3, effective=3)})
+    known = Knowledge(seen={"data.validation": SeenEntry(
+        seq=99, nominal_automation=3, nominal_governance=0, effective_automation=3, effective_governance=0
+    )})
     report = _report(world_events=[
-        WorldEventDelta(target="data.validation", before=1, after=3, reason="a world event"),
-        WorldEventDelta(target="model.registry", before=3, after=1, reason="a world event"),
+        WorldEventDelta(target="data.validation", axis="automation", before=1, after=3, reason="a world event"),
+        WorldEventDelta(target="model.registry", axis="automation", before=3, after=1, reason="a world event"),
     ])
     events = simulation_events(report, real, state, known)
     by_target = {e.subject_id: e for e in events}
@@ -405,7 +427,7 @@ def test_simulation_events_names_a_known_target_and_hides_an_unknown_one(real):
 
 
 def test_simulation_events_skips_unchanged_targets(real):
-    report = _report(world_events=[WorldEventDelta(target="data.validation", before=2, after=2, reason="")])
+    report = _report(world_events=[WorldEventDelta(target="data.validation", axis="automation", before=2, after=2, reason="")])
     assert simulation_events(report, real, _start(real), None) == []
 
 

@@ -82,8 +82,8 @@ def test_candidates_are_only_legal_known_targets_raised_to_a_higher_level():
     for change in candidates:
         assert change.target in allowed
         assert change.kind == "raise_to"
-        assert change.value > world["state"].level(change.target)
-        assert change.value in world["graph"].allowed_levels(change.target)
+        assert change.value > world["state"].value(change.target, change.axis)
+        assert change.value in world["graph"].allowed_for(change.target, change.axis)
 
 
 def test_a_target_the_player_has_not_looked_at_is_never_proposed():
@@ -100,17 +100,19 @@ def test_the_intel_driven_candidates_include_what_the_intel_actually_asks_for():
 
     world = _world()
     candidates = {
-        (c.target, c.value)
+        (c.target, c.axis, c.value)
         for c in auto_card.candidate_changes(
             world["graph"], world["state"], _AllKnown(), world["allowed"], world["all_intel"]
         )
     }
     asked = {
-        item_target_and_level(item)
+        (t, a, lvl)
         for item in world["all_intel"]
-        if item_target_and_level(item)[0] in set(world["allowed"])
-        and item_target_and_level(item)[1] is not None
-        and item_target_and_level(item)[1] > world["state"].level(item_target_and_level(item)[0])
+        for t, lvl, a in [item_target_and_level(item)]
+        if t in set(world["allowed"])
+        and lvl is not None
+        and a is not None
+        and lvl > world["state"].value(t, a)
     }
     assert asked, "the fixture challenge should ask for at least one raise"
     assert asked <= candidates
@@ -122,9 +124,11 @@ def test_nothing_to_slot_returns_none_rather_than_an_empty_card():
 
 def test_the_search_finds_a_card_the_room_will_not_veto_on_real_challenges():
     """The reason for the intel-driven candidates: from a neutral room, single steps alone found
-    nothing on five of six challenges."""
+    nothing on five of six challenges. The full budget, not QUICK: governance now needs its
+    target implemented first, so satisfying it costs a 2-change combo rather than a single step,
+    and QUICK's 60 evaluations can be spent entirely on singles before combos are ever tried."""
     for challenge_id in (110, 114, 116):
-        result = _search(_world(challenge_id))
+        result = _search(_world(challenge_id), budget=auto_card.DEFAULT_BUDGET)
         assert result is not None and result.found_non_veto, challenge_id
         assert 1 <= len(result.changes) <= 3
 
@@ -137,10 +141,13 @@ def test_the_search_is_reproducible_for_a_seed():
 
 
 def test_different_seeds_explore_different_cards():
-    """Repeated playtests must not always land on the first passing card."""
+    """Repeated playtests must not always land on the first passing card. Full budget for the
+    same reason as the real-challenges search above: challenge 110's only route past its
+    high-power stakeholder is now a 2-change combo, which QUICK doesn't reach."""
     world = _world()
     cards = {
-        tuple((c.target, c.value) for c in _search(world, seed=f"seed-{i}").changes) for i in range(6)
+        tuple((c.target, c.value) for c in _search(world, seed=f"seed-{i}", budget=auto_card.DEFAULT_BUDGET).changes)
+        for i in range(6)
     }
     assert len(cards) > 1
 

@@ -179,6 +179,25 @@ def _knowledge_correct(additional_data: Any, questions) -> Optional[int]:
     return correct
 
 
+def _gate7_target_rows(graph_view: dict[str, Any]) -> list[dict[str, Any]]:
+    """One row per component/edge the player has actually observed, for the change-scope and
+    drift-magnitude readings (compute.py). A target still in the fog (`knowledge == "unknown"`)
+    was never theirs to build, so it is left out rather than counted as unrealized."""
+    rows: list[dict[str, Any]] = []
+    for stage in graph_view.get("technical", {}).values():
+        for target in [*stage.get("components", []), *stage.get("edges", [])]:
+            if target.get("knowledge") == "unknown":
+                continue
+            automation = target.get("nominal_automation", target.get("automation"))
+            if automation is None:
+                continue
+            rows.append({
+                "nominal_automation": automation,
+                "has_debt": bool(target.get("debt")),
+            })
+    return rows
+
+
 def _knowledge(username: str) -> dict[str, Any]:
     """The before/after read, across every run the player has finished (D3).
 
@@ -306,6 +325,15 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
         own_from=own_from,
     )
 
+    gate7_target_rows = _gate7_target_rows(graph_view)
+    stakeholder_relations_score = next(p.score for p in pillars if p.id == "stakeholder_relations")
+    gate7 = compute.gate7_outcome(
+        stakeholder_satisfaction=stakeholder_relations_score,
+        metric_compliance_score=compute.metric_compliance(metrics["metrics"]).score,
+        change_scope_score=compute.change_scope(gate7_target_rows).score,
+        drift_magnitude_score=compute.drift_magnitude(gate7_target_rows).score,
+    )
+
     challenge_names = {}
     for cid in challenge_ids:
         try:
@@ -328,6 +356,7 @@ def build_results(username: str, run_index: Optional[int] = None) -> dict[str, A
         "is_spiral": baseline_run is not None,
         "replay_allowed": replay_allowed,
         "grade": grade.model_dump(),
+        "gate7": gate7.model_dump(),
         "epilogue": epilogue,
         "pillars": [p.model_dump() for p in pillars],
         "metrics": metrics,

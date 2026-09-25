@@ -1,13 +1,38 @@
 import { useContext, useMemo } from "react";
 import { Icon } from "@iconify/react";
 import styles from "./ActionCardCardComponent.module.css";
-import type { ActionCard } from "../types/ActionCard";
+import type { ActionCard, AtomicChange, ItemPrediction } from "../types/ActionCard";
 import { StakeholderContext, type Stakeholder } from "./StakeholderProvider";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import type { StakeholderAvatar } from "../types/StakeholderAvatar";
-import { formatLevel, formatLevelCap, dedupeAtomicChanges } from "./ComposeActionProposalModal";
-import { LEVEL_META } from "../utils/stageCanvas";
+import { AXIS_TITLES, axisMeta, formatAxisLevel, formatAxisLevelCap } from "../utils/stageCanvas";
+import { describeAtomicChange } from "../utils/graphOptions";
+import { dedupeAtomicChanges } from "./ComposeActionProposalModal";
 import HoverTooltip from "./HoverToolTip";
+
+/** The prediction for one slotted change: backend predictions are per (target, axis), so a
+ *  target chained through several steps on the same axis shares one prediction across every row
+ *  - `predicted` on it is always the chain's final settled level, never any one row's own step.
+ *  Fine for `capped_by`/`upstream_uncertain` (properties of the axis, the same regardless of
+ *  which step you ask from); never use `.predicted` as a row's own displayed level - that's
+ *  `ac.value`. */
+function predictionFor(card: ActionCard, ac: AtomicChange): ItemPrediction | undefined {
+  // Attribute choices get no prediction; do not borrow a raise's on the same target.
+  if (ac.kind === "set_attr" || !ac.axis) return undefined;
+  return card.predictions?.find((p) => p.target === ac.target && (!p.axis || p.axis === ac.axis));
+}
+
+/** The step a change asks for, in one short phrase: "Governance → fully governed". */
+function stepBadge(ac: AtomicChange): string {
+  if (ac.kind === "set_attr") return `${(ac.attr ?? "attribute").replace(/_/g, " ")} → ${String(ac.value)}`;
+  if (!ac.axis) return "No axis - ignored";
+  return `${AXIS_TITLES[ac.axis]} → ${formatAxisLevel(ac.axis, ac.value)}`;
+}
+
+/** What the player picked, by the option's own name when the card carries it. */
+function changeLabel(card: ActionCard, ac: AtomicChange, idx: number): string {
+  return card.atomic_change_labels?.[idx] || describeAtomicChange(ac).title;
+}
 
 export interface IntelItem {
   id: string;
@@ -143,9 +168,15 @@ export default function ActionCardCardComponent({
                 card.target_names?.[ac.target] ||
                 ac.target.split(".").pop()?.replace(/_/g, " ") ||
                 ac.target;
-              const pred = card.predictions?.find((p) => p.target === ac.target);
-              const level = pred?.predicted ?? ac.value;
-              const meta = typeof level === "number" ? LEVEL_META[Math.max(0, Math.min(4, level))] : undefined;
+              const pred = predictionFor(card, ac);
+              // This row's own requested level, never the prediction's `predicted` - a target
+              // chained through several steps on one axis shares one prediction per (target,
+              // axis) across every row (predictions_for keys on that pair, not on which step
+              // asked), so `predicted` is always the chain's final settled level regardless of
+              // which row reads it. Using it here duplicated the last step's badge onto every
+              // earlier one instead of each row naming its own step.
+              const level = ac.value;
+              const meta = ac.axis && typeof level === "number" ? axisMeta(ac.axis, level) : undefined;
               return (
                 <div
                   key={idx}
@@ -172,11 +203,11 @@ export default function ActionCardCardComponent({
                     </span>
                   ) : pred?.capped_by ? (
                     <span className={`${styles.changeBadge} ${styles.changeBadgeCapped}`}>
-                      <Icon icon="ph:link-simple-bold" /> {formatLevelCap(pred.effective_predicted)}
+                      <Icon icon="ph:link-simple-bold" /> {formatAxisLevelCap(pred.axis ?? ac.axis ?? "automation", pred.predicted)}
                     </span>
                   ) : (
                     <span className={styles.changeBadge}>
-                      {meta && <Icon icon={meta.icon} />} {formatLevelCap(level)}
+                      {meta && <Icon icon={meta.icon} />} {formatAxisLevelCap(ac.axis ?? "automation", level)}
                     </span>
                   )}
                 </div>
@@ -267,6 +298,7 @@ export default function ActionCardCardComponent({
         style={{ overflowY: "auto" }}
       >
         <>
+
             {/* Atomic Changes Section in Maximized Card */}
             {atomicChanges.length > 0 && (
               <div className="d-flex flex-column gap-2 p-2 rounded mb-2" style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}>
@@ -279,21 +311,26 @@ export default function ActionCardCardComponent({
                     card.target_names?.[ac.target] ||
                     ac.target.split(".").pop()?.replace(/_/g, " ") ||
                     ac.target;
-                  const pred = card.predictions?.find((p) => p.target === ac.target);
+                  const pred = predictionFor(card, ac);
+                  const label = changeLabel(card, ac, idx);
                   return (
                     <div
                       key={idx}
                       className="d-flex flex-column gap-1 p-2 rounded bg-white border"
                       style={{ fontSize: "0.75rem" }}
                     >
-                      <div className="d-flex align-items-center justify-content-between">
+                      <div className="d-flex align-items-center justify-content-between gap-2">
                         <span className="fw-bold text-dark">
                           ⚡ {name}
                         </span>
-                        <span className="badge bg-primary">
-                          Advance to {formatLevelCap(pred?.predicted ?? ac.value)}
+                        <span
+                          className="badge"
+                          style={{ background: ac.axis === "governance" ? "#6d28d9" : "var(--primary-bg)" }}
+                        >
+                          {stepBadge(ac)}
                         </span>
                       </div>
+                      {label !== stepBadge(ac) && <div className="text-secondary">{label}</div>}
                       {pred?.upstream_uncertain && (
                         <div className="text-warning fw-semibold" style={{ fontSize: "0.7rem" }}>
                           ❓ Functional Status Uncertain: Upstream predecessor is undiscovered.
@@ -301,7 +338,7 @@ export default function ActionCardCardComponent({
                       )}
                       {pred?.capped_by && (
                         <div className="text-danger fw-semibold" style={{ fontSize: "0.7rem" }}>
-                          ⛓ Bottlenecked: Functional throughput capped at "{formatLevel(pred.effective_predicted)}" by {pred.capped_by}.
+                          ⛓ Bottlenecked: Functional throughput capped at "{formatAxisLevel(pred.axis ?? ac.axis ?? "automation", pred.predicted)}" by {pred.capped_by}.
                         </div>
                       )}
                     </div>
@@ -327,6 +364,7 @@ export default function ActionCardCardComponent({
                       <div
                         className={styles.avatarMini}
                         style={{
+                          backgroundColor: st.color,
                           border: `1px solid ${st.color}`,
                         }}
                       >
@@ -334,7 +372,7 @@ export default function ActionCardCardComponent({
                           avatar={st.avatar}
                           stakeholderColor={st.color}
                           stakeholderId={st.id}
-                          isFramed={false}
+                          isFramed={true}
                           play_blink_animation={false}
                           size="100%"
                           title={st.name}

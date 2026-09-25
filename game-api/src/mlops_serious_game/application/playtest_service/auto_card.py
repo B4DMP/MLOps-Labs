@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
 from mlops_serious_game.application.pitch_debate_service import session as pitch
+from mlops_serious_game.domain.graph import AutomationState
 from mlops_serious_game.domain.requirement import item_target_and_level
 
 # How many candidate cards to evaluate at most, and how many passing ones to collect before stopping.
@@ -69,44 +70,91 @@ def candidate_changes(
     """
     allowed_set = set(allowed)
     candidates: list[pitch.AtomicChange] = []
-    seen: set[tuple[str, int]] = set()
+    seen: set[tuple[str, str, int]] = set()
 
-    def consider(target: Optional[str], level: Optional[int]) -> None:
-        if not target or level is None or target not in allowed_set or not graph.is_target(target):
+    def consider(target: Optional[str], level: Optional[int], axis: Optional[str]) -> None:
+        if not target or level is None or axis is None or target not in allowed_set or not graph.is_target(target):
             return
         if knowledge is not None and knowledge.state_of(target, state) == "unknown":
             return
-        if level <= state.level(target) or level not in graph.allowed_levels(target):
+        if level <= state.value(target, axis) or level not in graph.allowed_for(target, axis):
             return
-        if (target, level) in seen:
+        if (target, axis, level) in seen:
             return
-        seen.add((target, level))
-        candidates.append(pitch.AtomicChange(target=target, kind="raise_to", value=level))
+        seen.add((target, axis, level))
+        candidates.append(pitch.AtomicChange(target=target, kind="raise_to", axis=axis, value=level))
 
     for item in all_intel:
-        target, level = item_target_and_level(item)
-        consider(target, level)
+        target, level, axis = item_target_and_level(item)
+        consider(target, level, axis)
 
     for target in sorted(allowed_set):
         if not graph.is_target(target):
             continue
-        higher = [level for level in graph.allowed_levels(target) if level > state.level(target)]
-        if higher:
-            consider(target, min(higher))
+        for axis in ("automation", "governance"):
+            higher = [level for level in graph.allowed_for(target, axis) if level > state.value(target, axis)]
+            if higher:
+                consider(target, min(higher), axis)
     return candidates
 
 
+def _implementation_pairs(candidates: list[pitch.AtomicChange], state: Any) -> list[list[pitch.AtomicChange]]:
+    """A governance ask on a target that isn't implemented yet needs its automation step in the
+    same card - apply.py's `_apply_one` rejects a governance raise outright otherwise (00-plan.md's
+    governance-requires-implemented follow-up). Paired here and tried right after singles, rather
+    than left to random combination luck once the space is too big to enumerate outright: a
+    governance-only single never passes on its own now, so without this the search could burn its
+    whole budget on singles and never try the one combination that actually works."""
+    automation_for_target: dict[str, pitch.AtomicChange] = {}
+    for c in candidates:
+        if c.axis == "automation" and isinstance(c.value, int) and c.value >= AutomationState.MANUAL:
+            existing = automation_for_target.get(c.target)
+            if existing is None or c.value < existing.value:
+                automation_for_target[c.target] = c
+
+    pairs = []
+    for c in candidates:
+        if c.axis != "governance" or state.value(c.target, "automation") >= AutomationState.MANUAL:
+            continue
+        automation = automation_for_target.get(c.target)
+        if automation is not None:
+            pairs.append([automation, c])
+    return pairs
+
+
 def _candidate_cards(
-    candidates: list[pitch.AtomicChange], rng: random.Random, budget: int
+    candidates: list[pitch.AtomicChange], rng: random.Random, budget: int, state: Any = None
 ) -> Iterable[list[pitch.AtomicChange]]:
-    """Cards to try: every single change first (cheap, and often enough), then random pairs and
-    triples until the budget runs out."""
+    """Cards to try: every single change first (cheap, and often enough), then every
+    automation-implements-its-own-governance pair, then random pairs and triples until the budget
+    runs out."""
     yielded = 0
     for change in candidates:
         if yielded >= budget:
             return
         yield [change]
         yielded += 1
+
+    if state is not None:
+        pairs = _implementation_pairs(candidates, state)
+        for pair in pairs:
+            if yielded >= budget:
+                return
+            yield pair
+            yielded += 1
+        # A room with more than one high-power stakeholder can easily need more than just the
+        # pair: try each alongside one more candidate before falling back to blind combination
+        # search, rather than leaving "the pair plus whatever else the room needs" to chance.
+        if pitch.MAX_ATOMIC_CHANGES > 2:
+            for pair in pairs:
+                used = {(c.target, c.axis) for c in pair}
+                for extra in candidates:
+                    if (extra.target, extra.axis) in used:
+                        continue
+                    if yielded >= budget:
+                        return
+                    yield pair + [extra]
+                    yielded += 1
 
     seen: set[frozenset[int]] = set()
     indices = range(len(candidates))
@@ -159,7 +207,7 @@ def search_card(
 
     pools: dict[str, list[tuple[list[pitch.AtomicChange], float]]] = {"PASS": [], "SOFT_PASS": [], "VETO": []}
     evaluated = 0
-    for card in _candidate_cards(candidates, rng, budget):
+    for card in _candidate_cards(candidates, rng, budget, state):
         view = pitch.card_view(
             graph=graph,
             state=state,

@@ -637,6 +637,8 @@
   width: max-content;
   min-width: 220px;
   max-width: min(520px, 85vw);
+  max-height: 220px;
+  overflow-y: auto;
   white-space: normal;
   word-break: break-word;
   animation: bubblePopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -676,30 +678,14 @@
   animation: bubblePopOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Skip control for whoever is speaking. It sits below the boardroom table rather than in the
-   bubble: a seated stakeholder's bubble opens wherever that seat is, and hunting for a 16px
-   button around the table is worse than one target that never moves. Absolutely positioned
-   (over .boardCol, which is already position:relative) so appearing/disappearing never takes
-   space away from the table above it and shifts its layout. */
-.speechSkipBarRow {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 4px;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-  /* Higher than the boardroom scene's own z-index while speaking (it climbs to 3300, and the
-     speech bubbles to 3600) - otherwise that stacking sits on top of this row and swallows the
-     click even though nothing is visibly drawn there. */
-  z-index: 3700;
-}
-
-.speechSkipBarRow .speechSkipBar {
-  pointer-events: auto;
-}
-
+/* Skip control for whoever is speaking. It sits at the top of the conversation history rather
+   than in the bubble: a seated stakeholder's bubble opens wherever that seat is, and hunting for
+   a 16px button around the table is worse than one target that never moves. Absolute, so the
+   chat below it does not reflow every time a message starts and ends. */
 .speechSkipBar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -716,28 +702,17 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  animation: skipBarPopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: bubblePopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transition: filter 0.2s ease, transform 0.2s ease;
 }
 
 .speechSkipBar:hover {
   filter: brightness(1.18);
-  transform: scale(1.05);
+  transform: translate(-50%, 0) scale(1.05);
 }
 
 .speechSkipBar:active {
-  transform: scale(0.95);
-}
-
-@keyframes skipBarPopIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  transform: translate(-50%, 0) scale(0.95);
 }
 
 /* Player Speech Bubble */

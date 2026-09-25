@@ -68,14 +68,15 @@ def make_intel_item(id, stakeholder_id, tag, **kw):
     return ns
 
 
-def make_target(target: str, level: Optional[int] = None) -> SimpleNamespace:
-    """A `suggested`/`asserts`-shaped payload: `target` (+ `level` where the payload carries one)."""
-    return SimpleNamespace(target=target, level=level)
+def make_target(target: str, level: Optional[int] = None, axis: str = "automation") -> SimpleNamespace:
+    """A `suggested`/`asserts`-shaped payload: `target` (+ `level`/`axis` where the payload carries
+    one - docs/plans/graph-governance-automation-rework/00-plan.md)."""
+    return SimpleNamespace(target=target, level=level, axis=axis)
 
 
-def make_concession(loss: Optional[int] = None, target: Optional[str] = None) -> SimpleNamespace:
+def make_concession(loss: Optional[int] = None, target: Optional[str] = None, axis: str = "automation") -> SimpleNamespace:
     """A `concedes`-shaped payload (Trade-off)."""
-    return SimpleNamespace(loss=loss, target=target)
+    return SimpleNamespace(loss=loss, target=target, axis=axis)
 
 
 

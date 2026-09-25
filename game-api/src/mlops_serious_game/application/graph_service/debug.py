@@ -56,15 +56,19 @@ def build_graph_debug(
     components = []
     for c in graph.components:
         ks = knowledge.state_of(c.id, state)
-        nominal = state.component_levels.get(c.id, c.initial_level)
-        eff_val = effective.components.get(c.id, nominal)
+        nominal_automation = state.component_automation[c.id]
+        nominal_governance = state.component_governance[c.id]
+        eff_automation = effective.automation.get(c.id, nominal_automation)
+        eff_governance = effective.governance.get(c.id, nominal_governance)
         row: dict = {
             "id": c.id,
             "stage_id": c.stage_id,
             "name": c.name,
             "owner": graph.owner_of(c.id),
-            "nominal": nominal,
-            "effective": eff_val,
+            "nominal_automation": nominal_automation,
+            "nominal_governance": nominal_governance,
+            "effective_automation": eff_automation,
+            "effective_governance": eff_governance,
             "knowledge": ks,
         }
         if c.id in effective.capped_by:
@@ -73,7 +77,8 @@ def build_graph_debug(
             row["attrs"] = dict(state.attrs[c.id])
         seen = knowledge.seen.get(c.id)
         if seen and ks == "stale":
-            row["seen_level"] = seen.nominal
+            row["seen_automation"] = seen.nominal_automation
+            row["seen_governance"] = seen.nominal_governance
             row["seen_at"] = seen.seq
         components.append(row)
 
@@ -81,16 +86,20 @@ def build_graph_debug(
     edges = []
     for e in graph.edges:
         ks = knowledge.state_of(e.id, state)
-        lv = state.edge_levels.get(e.id, e.initial_level)
-        eff_edge = effective.edges.get(e.id, lv)
+        nominal_automation = state.edge_automation[e.id]
+        nominal_governance = state.edge_governance[e.id]
+        eff_automation = effective.automation.get(e.id, nominal_automation)
+        eff_governance = effective.governance.get(e.id, nominal_governance)
         trigger = state.edge_triggers.get(e.id, "none")
         row = {
             "id": e.id,
             "from": e.from_id,
             "to": e.to_id,
             "kind": e.kind,
-            "level": lv,
-            "effective": eff_edge,
+            "automation": nominal_automation,
+            "governance": nominal_governance,
+            "effective_automation": eff_automation,
+            "effective_governance": eff_governance,
             "trigger": trigger,
             "knowledge": ks,
         }
@@ -98,7 +107,8 @@ def build_graph_debug(
             row["capped_by"] = effective.capped_by[e.id]
         seen = knowledge.seen.get(e.id)
         if seen and ks == "stale":
-            row["seen_level"] = seen.nominal
+            row["seen_automation"] = seen.nominal_automation
+            row["seen_governance"] = seen.nominal_governance
             row["seen_at"] = seen.seq
         edges.append(row)
 

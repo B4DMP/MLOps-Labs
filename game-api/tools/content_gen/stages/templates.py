@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 from content_gen.ledger import WorkItem
 from content_gen.stages.common import (
-    GAME_RULES, LEVEL_TALK, domain_errors, op_dict, ops_errors, parse_json_field, render, system_for,
+    AXES, GAME_RULES, LEVEL_TALK, domain_errors, op_dict, ops_errors, parse_json_field, render, system_for,
     text_errors, tokenize_names,
 )
 
@@ -34,14 +34,17 @@ ANGLES = [
 class WorldOp(BaseModel):
     kind: Literal["set_to", "set_instance_prop"]
     target: str = Field(description="component id, edge id, or instance id for set_instance_prop")
-    value: Union[int, str] = Field(description="new level (0 to 4) for set_to, or the new property value")
+    axis: Optional[Literal["automation", "governance"]] = Field(
+        default=None, description="set_to only (required there): which axis the new level is on")
+    value: Union[int, str] = Field(description="new level (0 to 3, on axis) for set_to, or the new property value")
     attr: Optional[str] = Field(default=None, description="property name for set_instance_prop")
     reason: str = Field(description="one short in-world reason, e.g. 'the nightly job died'")
 
 
 class Position(BaseModel):
     stakeholder_id: str
-    wants: int = Field(description="the level this stakeholder wants the conflict target at")
+    axis: Literal["automation", "governance"] = Field(description="which axis this stakeholder's want is on")
+    wants: int = Field(description="the level (0 to 3) this stakeholder wants the conflict target at, on axis")
 
 
 class Conflict(BaseModel):
@@ -65,25 +68,28 @@ SYSTEM = GAME_RULES + """
 
 Write one challenge template. A challenge is a problem that appears in the project's MLOps graph.
 It starts with a world event that damages the focus stage, and two stakeholders disagree about the
-fix: they want different levels for one component or edge (the conflict target).
+fix: they want different things for one component or edge (the conflict target). Each position
+names its axis: the two can argue about how far to automate it, how strictly to govern it, or one
+can push automation while the other wants it kept by hand but strictly governed.
 
-Predicate language for preconditions (a JSON object):
-  {"component": id, "op": "gte"|"lte"|"eq"|"ne"|"lt"|"gt", "level": 0..4}
-  {"edge": id, "op": ..., "level": 0..4}
+Predicate language for preconditions (a JSON object). Every component or edge clause names its axis:
+  {"component": id, "axis": "automation"|"governance", "op": "gte"|"lte"|"eq"|"ne"|"lt"|"gt", "level": 0..3}
+  {"edge": id, "axis": "automation"|"governance", "op": ..., "level": 0..3}
   {"pattern": pattern_id}
   {"instance": {"kind": k, "op": "exists", "where": {prop: {"op": "lte", "value": v}}}}
   {"all": [...]}, {"any": [...]}, {"not": {...}}
 The precondition must be true in the starting graph or after small degradations of the focus stage,
 and must refer to the graph (never just true).
 
-World events (on_enter_ops, stalemate_ops) use kind "set_to" to lower a component or edge level
-(0 breaks it), or "set_instance_prop" to worsen an instance property. They must only touch the
-focus stage. on_enter_ops must visibly damage the focus stage."""
+World events (on_enter_ops, stalemate_ops) use kind "set_to" with an axis to lower a component or
+edge on that axis ("axis": "automation", value 0 breaks it; "axis": "governance" drops its review),
+or "set_instance_prop" to worsen an instance property. They must only touch the focus stage.
+on_enter_ops must visibly damage the focus stage."""
 
 
 class TemplatesStage:
     name = "templates"
-    prompt_version = "t6"
+    prompt_version = "t7"  # t7: automation/governance axes
     upstream = None
 
     def plan(self, ctx) -> list[WorkItem]:
@@ -147,15 +153,20 @@ class TemplatesStage:
             "World events you can use, with how much each one lowers the focus stage's health. Build "
             "on_enter_ops from these so the total drop is at least 15, and use a different one for stalemate_ops:",
             render(i["world_events"]),
-            "The two conflict positions must want levels at least 2 apart, for example 1 and 3, or 2 and 4. "
-            "wants means: 1 they do not want it at all, 2 done by hand, 3 automated, 4 automated and governed. "
-            "What the description says each of them wants must match these numbers.",
+            "Each conflict position names an axis and a wanted level on it, allowed by the target's "
+            "allowed_automation or allowed_governance list. On automation, wants means: 1 they do not want it "
+            "at all, 2 done by hand, 3 automated. On governance: 0 nobody reviews it, 1 and 2 some review, "
+            "3 full formal sign off. Two positions on the same axis must be at least 2 apart, for example "
+            "automation 1 and 3. Positions on different axes are the other classic split: one side wants it "
+            "automated, the other wants it kept by hand but strictly governed. "
+            "What the description says each of them wants must match these axes and numbers.",
             f"The conflict target must be one of: {i['conflict_candidates']}.",
             "Name the problem, not the argument (e.g. 'The Poisoned Dataset', not 'Data Validation Conflict').",
             "In name, description and round_introduction never mention levels or numbers; say manual, automated, "
             "missing, broken in plain words. The description names exactly the two conflict stakeholders, "
             "always as #stakeholder_id# markers, never by their plain names.",
-            "The precondition must be true in the starting graph shown above (use the start_level values).",
+            "The precondition must be true in the starting graph shown above (use the start_automation and "
+            "start_governance values for the axis each clause names).",
             *feedback,
         ])
         out, usage = await llm.structured(TemplateOut, system_for(ctx, SYSTEM), user, tags={"item_id": item.item_id})
@@ -236,13 +247,22 @@ class TemplatesStage:
         elif i.get("conflict_candidates") and conflict["target"] not in i["conflict_candidates"]:
             errors.append(f"conflict target must be one of {i['conflict_candidates']}")
         else:
-            allowed = g.allowed_levels(conflict["target"])
-            wants = [p["wants"] for p in conflict["positions"]]
-            for w in wants:
-                if w not in allowed:
-                    errors.append(f"wanted level {w} is not allowed on '{conflict['target']}', allowed {allowed}")
-            if len(wants) == 2 and abs(wants[0] - wants[1]) < 2:
-                errors.append("the two wanted levels must differ by at least 2, otherwise there is no real conflict")
+            positions = conflict["positions"]
+            for p in positions:
+                axis = p.get("axis")
+                if axis not in AXES:
+                    errors.append(f"position of '{p['stakeholder_id']}' needs an axis, 'automation' or 'governance'")
+                    continue
+                allowed = g.allowed_for(conflict["target"], axis)
+                if p["wants"] not in allowed:
+                    errors.append(f"wanted {axis} level {p['wants']} is not allowed on '{conflict['target']}', "
+                                  f"allowed {allowed}")
+            # On one axis the gap is the conflict. Across axes the two already want different
+            # things (automate it vs. govern it by hand), which is the point of the axis split.
+            if (len(positions) == 2 and positions[0].get("axis") == positions[1].get("axis")
+                    and abs(positions[0]["wants"] - positions[1]["wants"]) < 2):
+                errors.append("two positions on the same axis must want levels at least 2 apart, otherwise "
+                              "there is no real conflict; or put them on different axes")
 
         preconditions, perr = parse_json_field("preconditions", output["preconditions"])
         errors += perr
@@ -266,12 +286,12 @@ class TemplatesStage:
         # Behaviour checks on the real game logic.
         start = ctx.start_state()
         samples = [start] + [
-            apply_ops(g, start, [GraphOp(kind="set_to", target=t, value=v)]).state
-            for t in sorted(stage_targets) for v in (0, 2)
+            apply_ops(g, start, [GraphOp(kind="set_to", target=t, axis=axis, value=v)]).state
+            for t in sorted(stage_targets) for axis, v in sample_moves(g, t)
         ]
         if not evaluate(preconditions, ctx.evaluate(start).context(g, start)).value:
             errors.append("preconditions are false in the starting graph, so the challenge is never dealt; "
-                          "check them against the start_level values")
+                          "check them against the start_automation and start_governance values")
         elif all(evaluate(preconditions, ctx.evaluate(s).context(g, s)).value for s in samples):
             errors.append("preconditions are true in every graph state; make them depend on the focus stage")
 
@@ -281,7 +301,7 @@ class TemplatesStage:
         if before - after < 15:
             errors.append(
                 f"on_enter_ops only moves {stage_id} health from {before} to {after}; break something that "
-                "matters (set level 0 on a component other things depend on, or worsen an instance property)"
+                "matters (set automation to 0 on a component other things depend on, or worsen an instance property)"
             )
         stalled = apply_ops(g, entered, [GraphOp.model_validate(o) for o in stalemate]).state
         if ctx.stage_health(stalled, stage_id) >= after:
@@ -291,8 +311,15 @@ class TemplatesStage:
     def summary(self, output: dict) -> str:
         c = output["conflict"]
         return f"{output['name']} | conflict on {c['target']}: " + " vs ".join(
-            f"{p['stakeholder_id']}={p['wants']}" for p in c["positions"]
+            f"{p['stakeholder_id']}={p.get('axis')}:{p['wants']}" for p in c["positions"]
         )
+
+
+def sample_moves(graph, target: str) -> list[tuple[str, int]]:
+    """Single-axis degradations/improvements used to probe whether a precondition depends on the
+    focus stage: broken and manual on automation, the lowest and highest allowed governance."""
+    gov = graph.allowed_governance(target)
+    return [("automation", 0), ("automation", 2), ("governance", min(gov)), ("governance", max(gov))]
 
 
 def damage_menu(ctx, stage_id: str, limit: int = 10) -> list[dict]:
@@ -308,11 +335,14 @@ def damage_menu(ctx, stage_id: str, limit: int = 10) -> list[dict]:
     targets = [c.id for c in g.components if c.stage_id == stage_id]
     targets += [e.id for e in g.edges if g.stage_of(e.id) == stage_id]
     for t in targets:
-        if 0 not in g.allowed_levels(t):
-            continue
-        op = {"kind": "set_to", "target": t, "value": "0"}
-        after = apply_ops(g, start, [GraphOp.model_validate(op)]).state
-        options.append({**op, "health_drop": base - ctx.stage_health(after, stage_id)})
+        # Break it on automation, or strip its review on governance; whichever actually hurts.
+        for axis in AXES:
+            floor = 0 if axis == "automation" else min(g.allowed_governance(t))
+            if floor not in g.allowed_for(t, axis):
+                continue
+            op = {"kind": "set_to", "target": t, "axis": axis, "value": str(floor)}
+            after = apply_ops(g, start, [GraphOp.model_validate(op)]).state
+            options.append({**op, "health_drop": base - ctx.stage_health(after, stage_id)})
     for inst in g.initial_instances:
         if g.is_component(inst.component_id) and g.component(inst.component_id).stage_id == stage_id:
             for prop, spec in g.instance_kinds[inst.kind].properties.items():

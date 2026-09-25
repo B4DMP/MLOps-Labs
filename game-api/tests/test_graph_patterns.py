@@ -19,9 +19,14 @@ from mlops_serious_game.domain.pattern import Pattern, PatternFactory, uncovered
 
 
 def _maxed(graph) -> GraphState:
-    """Everything at its highest level, every instance property at its best value."""
-    ops = [GraphOp(kind="set_to", target=c.id, value=max(c.allowed_levels)) for c in graph.components]
-    ops += [GraphOp(kind="set_to", target=e.id, value=max(e.allowed_levels)) for e in graph.edges]
+    """Everything at its highest level on both axes, every instance property at its best value."""
+    ops = []
+    for c in graph.components:
+        ops.append(GraphOp(kind="set_to", target=c.id, axis="automation", value=max(c.allowed_automation)))
+        ops.append(GraphOp(kind="set_to", target=c.id, axis="governance", value=max(c.allowed_governance)))
+    for e in graph.edges:
+        ops.append(GraphOp(kind="set_to", target=e.id, axis="automation", value=max(e.allowed_automation)))
+        ops.append(GraphOp(kind="set_to", target=e.id, axis="governance", value=max(e.allowed_governance)))
     for inst in graph.initial_instances:
         for prop, spec in graph.instance_kinds[inst.kind].properties.items():
             ops.append(GraphOp(kind="set_instance_prop", target=inst.id, attr=prop, value=spec.values[-1]))
@@ -49,8 +54,8 @@ def test_fully_built_graph_has_every_design_pattern_and_no_antipattern(real):
 
 def test_silent_failure_fires_and_drags_ops_health(real):
     state = apply_ops(real, _maxed(real), [
-        GraphOp(kind="set_to", target="ops.production_drift_monitoring", value=1),
-        GraphOp(kind="set_to", target="ops.performance_monitoring", value=2),
+        GraphOp(kind="set_to", target="ops.production_drift_monitoring", axis="automation", value=1),
+        GraphOp(kind="set_to", target="ops.performance_monitoring", axis="automation", value=2),
     ]).state
     ev = evaluate_graph(real, state)
     assert "ap_silent_failure" in ev.active_patterns
@@ -94,7 +99,7 @@ def test_pattern_gates(real):
     with pytest.raises(GraphConfigError, match="unknown stage"):
         validate_patterns([_pattern(stage_effects={"moon": 5})], real)
     with pytest.raises(GraphConfigError, match="unknown component"):
-        validate_patterns([_pattern(when={"component": "data.nope", "level": 2})], real)
+        validate_patterns([_pattern(when={"component": "data.nope", "axis": "automation", "level": 2})], real)
 
 
 def test_patterns_may_depend_on_patterns_but_not_in_a_cycle(real):
@@ -119,7 +124,7 @@ def _phases() -> list[Phase]:
     data = [
         _challenge(1, 1, "ch_fallback_1", fallback=True),
         _challenge(2, 1, "ch_needs_versioning", priority=50,
-                   preconditions={"component": "data.versioning", "op": "lte", "level": 1}),
+                   preconditions={"component": "data.versioning", "axis": "automation", "op": "lte", "level": 1}),
         _challenge(3, 1, "ch_always", priority=10),
         _challenge(4, 1, "ch_excluded", priority=99, excluded_if=True),
     ]
@@ -142,7 +147,7 @@ def test_highest_priority_eligible_template_wins(real):
 
 def test_graph_state_changes_the_pick(real):
     [p1, _] = _phases()
-    state = apply_ops(real, GraphState.from_config(real), [GraphOp(kind="set_to", target="data.versioning", value=4)]).state
+    state = apply_ops(real, GraphState.from_config(real), [GraphOp(kind="set_to", target="data.versioning", axis="automation", value=3)]).state
     assert select_in_phase(p1, _ctx(real, state), set(), "seed").template_id == "ch_always"
 
 
@@ -183,7 +188,7 @@ def test_ties_break_deterministically_by_seed(real):
 def test_reachable_templates_samples_graph_states(real):
     [p1, _] = _phases()
     fresh = GraphState.from_config(real)
-    versioned = apply_ops(real, fresh, [GraphOp(kind="set_to", target="data.versioning", value=4)]).state
+    versioned = apply_ops(real, fresh, [GraphOp(kind="set_to", target="data.versioning", axis="automation", value=3)]).state
     contexts = [_ctx(real, fresh), _ctx(real, versioned)]
     assert reachable_templates(p1, contexts, ["a", "b"]) == {"ch_needs_versioning", "ch_always"}
 
@@ -243,9 +248,9 @@ def test_payload_gate_rejects_mismatched_payloads(real):
         RequirementFactory.requirements = [
             StakeholderRequirement(id="f1", challenge_id=0, type="fact", description="."),  # no asserts
             StakeholderRequirement(id="d1", challenge_id=0, stakeholder_id="data_dave", type="driver",
-                                   description=".", holds={"component": "data.validation", "level": 3}),
+                                   description=".", holds={"component": "data.validation", "axis": "automation", "level": 3}),
             StakeholderRequirement(id="b1", challenge_id=0, stakeholder_id="data_dave", type="boundary",
-                                   description=".", suggested={"target": "data.nope", "level": 3}),
+                                   description=".", suggested={"target": "data.nope", "axis": "automation", "level": 3}),
         ]
         with pytest.raises(GraphConfigError) as e:
             RequirementFactory.validate_payloads(real, {"data"}, {"data_dave"})
@@ -275,26 +280,26 @@ def test_chain_gate_enforces_d42_parent_stakeholder_phase_and_tag_narrowing(real
         ]
         RequirementFactory.requirements = [
             StakeholderRequirement(id="p1", challenge_id=1, stakeholder_id="data_dave", type="driver",
-                                   description=".", suggested={"target": "data.validation", "level": 3}),
+                                   description=".", suggested={"target": "data.validation", "axis": "automation", "level": 3}),
             StakeholderRequirement(id="p2", challenge_id=1, stakeholder_id="data_dave", type="boundary",
-                                   description=".", suggested={"target": "data.validation", "level": 3},
-                                   holds={"component": "data.validation", "op": "gte", "level": 3}),
+                                   description=".", suggested={"target": "data.validation", "axis": "automation", "level": 3},
+                                   holds={"component": "data.validation", "axis": "automation", "op": "gte", "level": 3}),
             # unknown parent
             StakeholderRequirement(id="c_unknown", challenge_id=3, stakeholder_id="data_dave", type="driver",
                                    description=".", refines_id="nope",
-                                   suggested={"target": "data.validation", "level": 3}),
+                                   suggested={"target": "data.validation", "axis": "automation", "level": 3}),
             # different stakeholder than its parent
             StakeholderRequirement(id="c_wrong_st", challenge_id=3, stakeholder_id="model_monica", type="driver",
                                    description=".", refines_id="p1",
-                                   suggested={"target": "data.validation", "level": 3}),
+                                   suggested={"target": "data.validation", "axis": "automation", "level": 3}),
             # not strictly later: same phase as its parent
             StakeholderRequirement(id="c_same_phase", challenge_id=2, stakeholder_id="data_dave", type="driver",
                                    description=".", refines_id="p1",
-                                   suggested={"target": "data.validation", "level": 3}),
+                                   suggested={"target": "data.validation", "axis": "automation", "level": 3}),
             # widening instead of narrowing: Boundary into Driver is not a valid transition
             StakeholderRequirement(id="c_bad_tag", challenge_id=3, stakeholder_id="data_dave", type="driver",
                                    description=".", refines_id="p2",
-                                   suggested={"target": "data.validation", "level": 3}),
+                                   suggested={"target": "data.validation", "axis": "automation", "level": 3}),
         ]
         with pytest.raises(GraphConfigError) as e:
             RequirementFactory.validate_payloads(real, {"data"}, {"data_dave", "model_monica"})
@@ -313,7 +318,7 @@ def test_only_facts_filed_as_facts_lift_the_fog():
 
     def fact(fid, tagged):
         return StakeholderIntelItem(id=fid, challenge_id=0, type="fact", description=".",
-                                    asserts={"target": "e.fs_train", "level": 2}, categorized_type=tagged)
+                                    asserts={"target": "e.fs_train", "axis": "automation", "level": 2}, categorized_type=tagged)
 
     assert fact_targets_to_observe([fact("a", "fact")]) == ["e.fs_train"]
     assert fact_targets_to_observe([fact("b", "driver")]) == []

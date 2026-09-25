@@ -81,12 +81,29 @@ def verify_admin_token(token: str) -> bool:
     return payload is not None and payload.get("sub") == settings.ADMIN_USER
 
 
+def player_exists(username: str) -> bool:
+    """Whether a `User` row still backs this username."""
+    with get_session() as session:
+        return session.scalar(select(User.id).where(User.user_name == username)) is not None
+
+
 def verify_player_token(token: str) -> str | None:
-    """Returns the token's username if it's a valid, unexpired player token, else None."""
+    """Returns the token's username if it's a valid, unexpired player token naming a user that
+    still exists, else None.
+
+    The token itself is a self-contained, signed JWT: it verifies against nothing but its own
+    signature and expiry, so it would otherwise stay "valid" after the row it names is gone (a
+    database reset, an account deletion) - every call site trusts this for DB writes keyed by
+    username, so a stale-but-unexpired cookie must fail here, not reach a NOT NULL constraint deep
+    in a handler.
+    """
     payload = decode_token(token)
     if payload is None or payload.get("role") != "player":
         return None
-    return payload.get("sub")
+    username = payload.get("sub")
+    if username is None or not player_exists(username):
+        return None
+    return username
 
 
 def _create_player_token(username: str) -> str:
@@ -169,11 +186,15 @@ def sliding_refresh_player(
     token: str | None, response: Response, *, secure: bool, existing_csrf: str | None = None
 ) -> str | None:
     """If the player token is valid and close to expiring, reissue its cookie on `response`.
-    Returns the current username, or None if the token isn't a valid player token."""
+    Returns the current username, or None if the token isn't a valid player token for a user that
+    still exists - this is what `/auth/whoami` reports back as "logged in", so a stale cookie left
+    over from before a database reset must read as logged-out here, not be reissued forever."""
     payload = decode_token(token)
     if payload is None or payload.get("role") != "player":
         return None
     username = payload.get("sub")
+    if username is None or not player_exists(username):
+        return None
     if _remaining_lifetime(payload) < _SLIDING_REFRESH_THRESHOLD:
         set_player_cookie(response, username, secure=secure, existing_csrf=existing_csrf)
     return username

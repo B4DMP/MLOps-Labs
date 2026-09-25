@@ -723,6 +723,17 @@ def remove_campaign(campaign_key: str) -> None:
         raise
 
 
+def remove_all_campaigns() -> None:
+    """Removes every campaign and all associated players and player data across all tables."""
+    try:
+        remove_all_players()
+        with get_session() as session:
+            session.execute(delete(Campaign))
+    except Exception as e:
+        print(f"Error removing all campaigns: {e}")
+        raise
+
+
 def remove_player(player_name: str) -> None:
     """Removes all player-related data of the selected player across all tables.
 

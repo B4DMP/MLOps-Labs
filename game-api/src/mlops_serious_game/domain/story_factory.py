@@ -7,7 +7,7 @@ for edges the only key is "trigger". Generic per-level templates are the last re
 import json
 from pathlib import Path
 
-from mlops_serious_game.domain.graph import TechnicalGraph
+from mlops_serious_game.domain.graph import NARRATIVE_TIERS, TechnicalGraph
 
 
 def _parse_key(key: str) -> tuple[int, dict[str, str]]:
@@ -33,7 +33,7 @@ class StoryFactory:
     @classmethod
     def load_dict(cls, data: dict, graph: TechnicalGraph) -> None:
         generic = {kind: {int(k): v for k, v in templates.items()} for kind, templates in data.get("generic", {}).items()}
-        levels = range(len(graph.levels))
+        levels = range(NARRATIVE_TIERS)
         for kind in ("component", "edge"):
             missing = [lv for lv in levels if lv not in generic.get(kind, {})]
             if missing:

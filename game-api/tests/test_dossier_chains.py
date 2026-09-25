@@ -108,8 +108,11 @@ async def test_dossier_chains_stances_and_pages_facts_separately():
     challenge.phase_id = 0
     challenge.conflict = None
     challenge.focus_stage_ids = ["model"]
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
     username = f"test_dossier_chains_{uuid.uuid4()}"
+    ensure_test_user(username)
     ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     pool = [_requirement("tess_1"), _requirement("tess_2", refines_id="tess_1")]
@@ -155,8 +158,11 @@ async def test_dossier_does_not_leak_trade_off_branches_for_boundary_item():
     challenge.phase_id = 0
     challenge.conflict = None
     challenge.focus_stage_ids = ["model"]
+    from conftest import ensure_test_user
+
     ws = AsyncMock()
     username = f"test_boundary_branches_{uuid.uuid4()}"
+    ensure_test_user(username)
     ws.cookies = {PLAYER_COOKIE_NAME: _create_player_token(username)}
 
     with patch.object(RequirementFactory, "requirements", [boundary_req]), \

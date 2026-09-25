@@ -11,17 +11,20 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "component": "ops.production_drift_monitoring",
             "op": "lte",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           },
           {
             "component": "ops.performance_monitoring",
             "op": "lte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -46,12 +49,14 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "component": "data.feature_store",
             "op": "lte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           }
         ]
       },
@@ -76,34 +81,40 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 2,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "any": [
               {
                 "component": "deploy.cicd",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.registry_cicd",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.cicd_container",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.container_orch",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.orch_serving",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               }
             ]
           }
@@ -129,19 +140,22 @@
             "component": "model.training_pipeline",
             "op": "gte",
             "level": 2,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "any": [
               {
                 "component": "data.versioning",
                 "op": "lte",
-                "level": 1
+                "level": 1,
+                "axis": "automation"
               },
               {
                 "edge": "e.validate_version",
                 "op": "lte",
-                "level": 1
+                "level": 1,
+                "axis": "automation"
               }
             ]
           }
@@ -168,35 +182,41 @@
             "component": "data.ingestion",
             "op": "gte",
             "level": 2,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "component": "model.training_pipeline",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "any": [
               {
                 "edge": "e.ingest_validate",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.version_fs",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.fs_train",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.label_version",
                 "op": "lte",
-                "level": 1
+                "level": 1,
+                "axis": "automation"
               }
             ]
           }
@@ -256,12 +276,14 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 2,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "component": "model.registry",
             "op": "lte",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           }
         ]
       },
@@ -285,12 +307,14 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "component": "ops.rollback",
             "op": "lte",
-            "level": 1
+            "level": 1,
+            "axis": "automation"
           }
         ]
       },
@@ -314,24 +338,28 @@
             "component": "ops.alerting",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "any": [
               {
                 "component": "ops.observability",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.perf_alert",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               },
               {
                 "edge": "e.drift_alert",
                 "op": "lte",
-                "level": 2
+                "level": 2,
+                "axis": "automation"
               }
             ]
           }
@@ -355,27 +383,32 @@
           {
             "component": "ops.retraining_trigger",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.alert_retrain",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.retrain_train",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.training_pipeline",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.evaluation",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -398,22 +431,26 @@
           {
             "component": "data.versioning",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.experiment_tracking",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.train_tracking",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.registry",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -436,27 +473,32 @@
           {
             "component": "req.acceptance_criteria",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           },
           {
             "edge": "e.acceptance_eval",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "governance"
           },
           {
             "edge": "e.train_eval",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.evaluation",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.eval_registry",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -480,22 +522,26 @@
           {
             "component": "deploy.canary_ab",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.cicd_canary",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.canary_serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "ops.performance_monitoring",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -518,12 +564,14 @@
           {
             "component": "deploy.shadow",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.cicd_shadow",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -546,17 +594,20 @@
           {
             "component": "data.feature_store",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.version_fs",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.fs_train",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -580,22 +631,26 @@
           {
             "component": "req.data_contracts",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.contracts_ingest",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "governance"
           },
           {
             "component": "data.validation",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.ingest_validate",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -619,27 +674,32 @@
           {
             "component": "ops.observability",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.serving_observe",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.observe_perf",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "ops.performance_monitoring",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.perf_alert",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -662,32 +722,38 @@
           {
             "component": "data.training_drift_check",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.version_driftcheck",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.driftcheck_train",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "ops.production_drift_monitoring",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.observe_drift",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.drift_alert",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -711,27 +777,32 @@
           {
             "component": "deploy.containerization",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "deploy.orchestration",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.cicd_container",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.container_orch",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.orch_serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -754,12 +825,14 @@
           {
             "component": "deploy.api_gateway",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.serving_gateway",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -781,22 +854,26 @@
           {
             "component": "req.risk_assessment",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           },
           {
             "edge": "e.risk_acceptance",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "governance"
           },
           {
             "component": "model.registry",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.registry_cicd",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -819,12 +896,14 @@
           {
             "component": "model.hpo",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.hpo_train",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -846,12 +925,14 @@
           {
             "component": "req.kpi_definition",
             "op": "gte",
-            "level": 2
+            "level": 2,
+            "axis": "automation"
           },
           {
             "component": "ops.performance_monitoring",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -875,22 +956,26 @@
           {
             "component": "ops.rollback",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.alert_rollback",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.rollback_serving",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "ops.alerting",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -913,22 +998,26 @@
           {
             "component": "data.labeling",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "edge": "e.label_version",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "data.versioning",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "component": "model.registry",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           }
         ]
       },
@@ -952,7 +1041,8 @@
             "component": "deploy.serving",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "instance": {
@@ -990,7 +1080,8 @@
             "component": "model.training_pipeline",
             "op": "gte",
             "level": 3,
-            "on": "nominal"
+            "on": "nominal",
+            "axis": "automation"
           },
           {
             "instance": {
@@ -1025,7 +1116,8 @@
           {
             "component": "data.validation",
             "op": "gte",
-            "level": 3
+            "level": 3,
+            "axis": "automation"
           },
           {
             "not": {

@@ -80,10 +80,20 @@ def _finished_player(*, allowed: bool = True) -> int:
     return user_id
 
 
-async def _new_run(mode, username: str = "alice"):
+def _gate7(allowed_modes=("fresh", "spiral"), code="7d"):
+    return {"gate7": {"code": code, "name": "test", "result": "win", "allowed_modes": list(allowed_modes)}}
+
+
+async def _new_run(mode, username: str = "alice", gate7_allows_spiral: bool = True):
+    """`gate7_allows_spiral` stubs Gate 7 (tested on its own in test_results_compute.py and
+    test_gate7_gating below) so these tests exercise the spiral *mechanism* - what it inherits and
+    what a fresh start does not - without also depending on the real Gate 7 thresholds happening
+    to clear on whatever minimal graph state `_finished_player()` leaves behind."""
     from mlops_serious_game.infrastructure.websocket.handlers import game_handler
 
-    with patch.object(game_handler, "manager") as manager:
+    with patch.object(game_handler, "manager") as manager, patch.object(
+        game_handler, "get_gate7_results", return_value=_gate7(("fresh", "spiral") if gate7_allows_spiral else ("fresh",))
+    ):
         manager.send_event = AsyncMock()
         manager.send_error = AsyncMock()
         await game_handler.handle_new_run(MagicMock(), username, {"mode": mode})
@@ -127,6 +137,45 @@ async def test_a_game_still_in_progress_cannot_be_restarted(migrated_db):
 
     manager = await _new_run("fresh")
     assert manager.send_error.await_args.kwargs["code"] == "RUN_NOT_FINISHED"
+
+
+# ── Gate 7 gating (GDD.txt "CAPTURE Gate 7") ────────────────────────────────
+
+
+@pytest.mark.anyio
+async def test_a_run_gate7_disallows_spiral_for_is_refused(migrated_db):
+    """7a/7e: the finished system is not sound to build further on, so only a fresh start is
+    offered - the real threshold math is pinned in test_results_compute.py, not here."""
+    _finished_player()
+    manager = await _new_run("spiral", gate7_allows_spiral=False)
+    assert manager.send_error.await_args.kwargs["code"] == "GATE7_BLOCKED"
+    manager.send_event.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_a_run_gate7_disallows_spiral_still_allows_fresh(migrated_db):
+    """A forced-fresh outcome (7a/7e) is not a ban on playing again, only on continuing this one."""
+    _finished_player()
+    manager = await _new_run("fresh", gate7_allows_spiral=False)
+    manager.send_error.assert_not_awaited()
+    assert manager.send_event.await_args.kwargs["payload"]["mode"] == "fresh"
+
+
+@pytest.mark.anyio
+async def test_gate7_is_not_consulted_for_a_fresh_start(migrated_db):
+    """Fresh abandons the old system rather than building on it, so it never needs to ask Gate 7
+    whether that system was sound."""
+    from mlops_serious_game.infrastructure.websocket.handlers import game_handler
+
+    _finished_player()
+    with patch.object(game_handler, "manager") as manager, patch.object(
+        game_handler, "get_gate7_results"
+    ) as gate7:
+        manager.send_event = AsyncMock()
+        manager.send_error = AsyncMock()
+        await game_handler.handle_new_run(MagicMock(), "alice", {"mode": "fresh"})
+    gate7.assert_not_called()
+    manager.send_error.assert_not_awaited()
 
 
 # ── The two modes ────────────────────────────────────────────────────────────

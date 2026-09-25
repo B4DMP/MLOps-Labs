@@ -538,12 +538,11 @@ def _graph_snapshot(username: str):
         return None
 
 
-def _effective_level(snapshot, target: str) -> Optional[int]:
+def _effective_level(snapshot, target: str, axis: str) -> Optional[int]:
     graph, _state, evaluation = snapshot
     resolved = graph.resolve(target)
-    if graph.is_edge(resolved):
-        return evaluation.effective.edges.get(resolved)
-    return evaluation.effective.components.get(resolved)
+    source = evaluation.effective.automation if axis == "automation" else evaluation.effective.governance
+    return source.get(resolved)
 
 
 def stage_of_target(snapshot, target: Optional[str]) -> tuple[Optional[str], Optional[str]]:
@@ -564,10 +563,10 @@ def item_status(item, snapshot) -> str:
         return "open"
     try:
         if item.type == IntelTag.FACT and item.asserts is not None and item.asserts.level is not None:
-            level = _effective_level(snapshot, item.asserts.target)
+            level = _effective_level(snapshot, item.asserts.target, item.asserts.axis)
             return "stale" if level is not None and level != item.asserts.level else "open"
         if item.type == IntelTag.DRIVER and item.suggested is not None:
-            level = _effective_level(snapshot, item.suggested.target)
+            level = _effective_level(snapshot, item.suggested.target, item.suggested.axis)
             return "addressed" if level is not None and level >= item.suggested.level else "open"
     except Exception:
         return "open"
@@ -690,27 +689,32 @@ def invent_trade_off_branches(
     stakeholder = StakeholderFactory.get_stakeholder(intel_item.stakeholder_id) if intel_item.stakeholder_id else None
     st_name = stakeholder.name if stakeholder else "The team"
 
-    primary_target, primary_level = item_target_and_level(req or intel_item)
+    primary_target, primary_level, primary_axis = item_target_and_level(req or intel_item)
     if not primary_target:
         primary_target = "data.validation"
         primary_level = 3
+        primary_axis = "automation"
     else:
         primary_level = primary_level if primary_level is not None else 3
+        primary_axis = primary_axis or "automation"
 
     # Find an alternative component target in the challenge
     all_challenge_reqs = RequirementFactory.get_requirements_for_challenge(curr_challenge.id) if curr_challenge else []
     alt_target = None
     alt_level = 2
+    alt_axis = "automation"
     for r in all_challenge_reqs:
-        t, l = item_target_and_level(r)
+        t, l, a = item_target_and_level(r)
         if t and t != primary_target:
             alt_target = t
             alt_level = l if l is not None else 2
+            alt_axis = a or "automation"
             break
 
     if not alt_target:
         alt_target = "ops.alerting" if primary_target != "ops.alerting" else "req.acceptance_criteria"
         alt_level = 2
+        alt_axis = "automation"
 
     def _pretty_name(target_str: str) -> str:
         parts = target_str.split(".")
@@ -727,7 +731,7 @@ def invent_trade_off_branches(
         description=branch_x_desc,
         target=primary_target,
         level=primary_level,
-        ops=[{"kind": "raise_to", "target": primary_target, "value": primary_level}],
+        ops=[{"kind": "raise_to", "target": primary_target, "axis": primary_axis, "value": primary_level}],
         atoms=[f"raise_to({primary_target}, {primary_level})"],
     )
 
@@ -736,7 +740,7 @@ def invent_trade_off_branches(
         description=branch_y_desc,
         target=alt_target,
         level=alt_level,
-        ops=[{"kind": "raise_to", "target": alt_target, "value": alt_level}],
+        ops=[{"kind": "raise_to", "target": alt_target, "axis": alt_axis, "value": alt_level}],
         atoms=[f"raise_to({alt_target}, {alt_level})"],
     )
 
@@ -1105,6 +1109,21 @@ def speaker_of(item) -> Optional[str]:
     return artifact.narrator_id if artifact else None
 
 
+def _stakeholder_pool(challenge_id: int, stakeholder_id: str) -> List[StakeholderRequirement]:
+    """Everything that can legitimately end up on this stakeholder's dossier page for this
+    challenge: their own stances, plus any unconfirmed Fact they narrate. A Fact a player has not
+    yet tagged (or has mistagged as a stance) sits on its narrator's page until it is - see
+    `speaker_of` - so the pool has to count it there too, or `intel_total` would swing depending
+    on however the player currently has that one item tagged, undercounting it whenever it is not
+    (yet, or ever) correctly tagged as a Fact."""
+    own = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, stakeholder_id)
+    narrated = [
+        r for r in RequirementFactory.get_requirements_for_challenge(challenge_id)
+        if r.type == IntelTag.FACT and speaker_of(r) == stakeholder_id
+    ]
+    return own + narrated
+
+
 def _stakeholder_or_none(stakeholder_id: Optional[str]):
     if not stakeholder_id:
         return None
@@ -1134,13 +1153,14 @@ def _debug_artifact(requirement_id: str) -> Optional[Dict[str, Any]]:
 
 def _debug_requirement(req: StakeholderRequirement) -> Dict[str, Any]:
     """What an authored item really is. Only ever sent when ENABLE_DOSSIER_DEBUG is on."""
-    target, level = item_target_and_level(req)
+    target, level, axis = item_target_and_level(req)
     return {
         "id": req.id,
         "correct_tag": _enum_value(req.type),
         "description": req.description,
         "target": target,
         "level": level,
+        "axis": axis,
         "stakeholder_id": req.stakeholder_id,
         "refines_id": req.refines_id,
         "artifact": _debug_artifact(req.id),
@@ -1289,7 +1309,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             continue
         ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
-        st_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+        st_pool = _stakeholder_pool(curr_challenge.id, st.id)
 
         debug_fields = {}
         if debug_on:

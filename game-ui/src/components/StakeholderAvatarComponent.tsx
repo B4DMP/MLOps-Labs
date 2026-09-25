@@ -2,21 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import type { StakeholderAvatar, AvatarEmotion } from "../types/StakeholderAvatar";
 import { colorForStakeholderId } from "../types/StakeholderAvatar";
 import { generateOpenPeepsDataUri } from "../assets/openPeepsAvatar";
-import styles from "./StakeholderAvatarComponent.module.css";
-
-// Talking mouth-flap: alternates an "open mouth" face with a "closed mouth" one, picking a
-// random face from each pool every beat so the same stakeholder doesn't repeat one fixed loop.
-const OPEN_MOUTH_FACES: AvatarEmotion[] = ["smileTeethGap", "smileLOL", "smileBig", "explaining"];
-const CLOSED_MOUTH_FACES: AvatarEmotion[] = ["contempt", "calm", "cute", "driven", "old", "tired"];
-
-function pickMouthFace(pool: AvatarEmotion[], avoid?: AvatarEmotion): AvatarEmotion {
-  if (pool.length === 1) return pool[0];
-  let choice = pool[Math.floor(Math.random() * pool.length)];
-  while (choice === avoid) {
-    choice = pool[Math.floor(Math.random() * pool.length)];
-  }
-  return choice;
-}
 
 export interface StakeholderAvatarProps {
   avatar?: StakeholderAvatar;
@@ -65,23 +50,20 @@ export function StakeholderAvatarComponent({
   onMouseLeave,
 }: StakeholderAvatarProps) {
   const [isBlinking, setIsBlinking] = useState(false);
-  const [speakMouth, setSpeakMouth] = useState<AvatarEmotion>("explaining");
+  const [speakFrame, setSpeakFrame] = useState(0);
   const [internalHovered, setInternalHovered] = useState(false);
 
   const isHovered = propIsHovered !== undefined ? propIsHovered : internalHovered;
 
-  // Mouth-flap toggle (cycles every 190ms when isSpeaking is true) - independent of the CSS head-
-  // sway animation's own speed (see StakeholderAvatarComponent.module.css). Only the mouth layer
-  // swaps - the eyes stay on whatever face is already selected below, so talking never changes
-  // the eyes.
+  // Animated speaking mouth toggle (cycles every 200ms when isSpeaking is true)
   useEffect(() => {
-    if (!isSpeaking) return;
-    let mouthOpen = true;
-    setSpeakMouth(pickMouthFace(OPEN_MOUTH_FACES));
+    if (!isSpeaking) {
+      setSpeakFrame(0);
+      return;
+    }
     const interval = setInterval(() => {
-      mouthOpen = !mouthOpen;
-      setSpeakMouth((prev) => pickMouthFace(mouthOpen ? OPEN_MOUTH_FACES : CLOSED_MOUTH_FACES, prev));
-    }, 190);
+      setSpeakFrame((prev) => (prev + 1) % 2);
+    }, 200);
     return () => clearInterval(interval);
   }, [isSpeaking]);
 
@@ -118,11 +100,12 @@ export function StakeholderAvatarComponent({
   }, [play_blink_animation]);
 
   const svgDataUri = useMemo(() => {
-    // Determine the face / emotion to render - never touched by isSpeaking, so the eyes hold
-    // still while only the mouth (below) flaps during talking.
+    // Determine the face / emotion to render
     let selectedFace: AvatarEmotion = "smile";
     if (hoverToSuspicious && isHovered) {
       selectedFace = "suspicious";
+    } else if (isSpeaking) {
+      selectedFace = speakFrame === 0 ? "explaining" : "smileBig";
     } else if (emotion) {
       selectedFace = emotion;
     } else if (avatar?.emotion) {
@@ -139,7 +122,6 @@ export function StakeholderAvatarComponent({
     return generateOpenPeepsDataUri({
       head: avatar?.head,
       face: selectedFace,
-      mouthFace: isSpeaking ? speakMouth : undefined,
       facialHair: avatar?.facialHair,
       facialHairProbability: avatar?.facialHairProbability,
       accessories: avatar?.accessories,
@@ -151,7 +133,7 @@ export function StakeholderAvatarComponent({
       flip: finalFlip,
       blink: isBlinking,
     });
-  }, [avatar, emotion, isBlinking, isSpeaking, speakMouth, isFramed, clothingColor, stakeholderColor, stakeholderId, backgroundColor, flip, hoverToSuspicious, isHovered]);
+  }, [avatar, emotion, isBlinking, isSpeaking, speakFrame, isFramed, clothingColor, stakeholderColor, stakeholderId, backgroundColor, flip, hoverToSuspicious, isHovered]);
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLImageElement>) => {
     if (hoverToSuspicious) {
@@ -172,7 +154,7 @@ export function StakeholderAvatarComponent({
       src={svgDataUri}
       alt={title || "Stakeholder Avatar"}
       title={title}
-      className={`stakeholder-avatar ${isSpeaking ? styles.speaking : ""} ${className}`}
+      className={`stakeholder-avatar ${className}`}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

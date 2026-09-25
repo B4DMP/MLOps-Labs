@@ -251,6 +251,135 @@ def outcomes_from_events(events: Iterable[Any]) -> list[str]:
     return [by_challenge[key] for key in sorted(by_challenge)]
 
 
+# ── Gate 7 (CAPTURE EVOLVE, GDD.txt sec "CAPTURE Gate 7") ────────────────────
+#
+# Four readings, each normalised to 0..1, map to one of five outcome paths (7a-7e). The GDD
+# describes the paths qualitatively but gives no numbers, so the thresholds below are explicit,
+# tunable defaults - the same posture as DEFAULT_GRADE_BANDS above - to retune after a playtest,
+# not a claim of a single correct cut.
+#
+# A target still counts as "planned" rather than "realized" while its automation sits at absent
+# or below (00-plan.md's AutomationState: broken=0, absent=1) - nothing has actually been built
+# yet, whether or not it was ever attempted.
+
+GATE7_PLANNED_MAX_AUTOMATION = 1  # AutomationState.ABSENT
+
+# A row tied to a Soft Failure or an overridden Veto (it carries debt) counts double toward
+# "change scope": an unrealized target nobody ever contested is a smaller signal than one that was
+# fought over and still didn't land.
+GATE7_DEBT_WEIGHT = 2.0
+
+# Below this on stakeholder satisfaction OR metric compliance, the system is not viable to build
+# further on regardless of how little of it is unrealized (7e).
+GATE7_VIABILITY_THRESHOLD = 0.35
+
+# Above this proportion of the (weighted) graph still unrealized, the run misjudged something
+# fundamental rather than merely leaving loose ends (7a).
+GATE7_MAJOR_CHANGE_SCOPE = 0.6
+
+# At or below both of these, the run is clean enough to call it a flawless close (7d).
+GATE7_LOW_DRIFT = 0.15
+GATE7_LOW_GAP = 0.25
+
+# Above this on drift (accumulated technical debt), the win still needs a technical rework framing
+# rather than a light next-iteration framing (7c vs 7b).
+GATE7_HIGH_DRIFT = 0.45
+
+# code -> (name, result, allowed `mode`s for game_handler.handle_new_run)
+GATE7_PATHS: dict[str, tuple[str, str, tuple[str, ...]]] = {
+    "7d": ("Continuous Monitoring", "win", ("fresh", "spiral")),
+    "7b": ("Minor Iteration", "win_with_debt", ("fresh", "spiral")),
+    "7c": ("Model Update", "win_with_debt", ("fresh", "spiral")),
+    "7a": ("Major Iteration", "loss", ("fresh",)),
+    "7e": ("Retirement", "loss", ("fresh",)),
+}
+
+
+def metric_compliance(metrics: list[dict[str, Any]], ratio_threshold: float = 0.5) -> Pillar:
+    """`r_KPI`: the proportion of the headline project metrics that ended at or above
+    `ratio_threshold` of their max - the closest proxy available to "within target range" without
+    an authored band per metric."""
+    if not metrics:
+        return Pillar(id="metric_compliance", score=0.0, detail={"reason": "no metrics"})
+    compliant = [m["id"] for m in metrics if m.get("ratio", 0.0) >= ratio_threshold]
+    score = len(compliant) / len(metrics)
+    return Pillar(
+        id="metric_compliance",
+        score=score,
+        detail={"compliant": compliant, "total": len(metrics), "threshold": ratio_threshold},
+    )
+
+
+def _weighted_gate7_ratio(target_rows: list[dict[str, Any]], predicate) -> float:
+    weights = [GATE7_DEBT_WEIGHT if row.get("has_debt") else 1.0 for row in target_rows]
+    total = sum(weights)
+    if not total:
+        return 0.0
+    hit = sum(w for row, w in zip(target_rows, weights) if predicate(row))
+    return hit / total
+
+
+def change_scope(target_rows: list[dict[str, Any]]) -> Pillar:
+    """`Δr`: the (debt-weighted) proportion of known components/edges still `planned` rather than
+    `realized`. `target_rows` is `[{"nominal_automation": int, "has_debt": bool}, ...]` for every
+    target the player has actually observed - a target still in the fog was never theirs to build."""
+    if not target_rows:
+        return Pillar(id="change_scope", score=0.0, detail={"reason": "no targets observed"})
+    score = _weighted_gate7_ratio(
+        target_rows, lambda row: row.get("nominal_automation", 0) <= GATE7_PLANNED_MAX_AUTOMATION
+    )
+    return Pillar(id="change_scope", score=score, detail={"targets": len(target_rows)})
+
+
+def drift_magnitude(target_rows: list[dict[str, Any]]) -> Pillar:
+    """`d_drift`: the (debt-weighted) proportion of known targets carrying Delayed Technical Debt -
+    a realized target built on a compromised proposal, not one that simply never got built."""
+    if not target_rows:
+        return Pillar(id="drift_magnitude", score=0.0, detail={"reason": "no targets observed"})
+    score = _weighted_gate7_ratio(target_rows, lambda row: bool(row.get("has_debt")))
+    with_debt = sum(1 for row in target_rows if row.get("has_debt"))
+    return Pillar(id="drift_magnitude", score=score, detail={"targets_with_debt": with_debt, "targets": len(target_rows)})
+
+
+class Gate7Result(BaseModel):
+    code: str
+    name: str
+    result: str  # "win", "win_with_debt", "loss"
+    allowed_modes: list[str]
+    readings: dict[str, float] = Field(default_factory=dict)
+
+
+def gate7_outcome(
+    stakeholder_satisfaction: float,
+    metric_compliance_score: float,
+    change_scope_score: float,
+    drift_magnitude_score: float,
+) -> Gate7Result:
+    """Maps the four Gate 7 readings to one of 7a-7e, most severe check first: a run cannot buy its
+    way out of being unviable (7e) by having little unrealized scope, and cannot buy its way out of
+    misjudged scope (7a) by having satisfied stakeholders on what it did build."""
+    readings = {
+        "stakeholder_satisfaction": round(stakeholder_satisfaction, 3),
+        "metric_compliance": round(metric_compliance_score, 3),
+        "change_scope": round(change_scope_score, 3),
+        "drift_magnitude": round(drift_magnitude_score, 3),
+    }
+
+    if stakeholder_satisfaction < GATE7_VIABILITY_THRESHOLD or metric_compliance_score < GATE7_VIABILITY_THRESHOLD:
+        code = "7e"
+    elif change_scope_score > GATE7_MAJOR_CHANGE_SCOPE:
+        code = "7a"
+    elif drift_magnitude_score <= GATE7_LOW_DRIFT and change_scope_score <= GATE7_LOW_GAP:
+        code = "7d"
+    elif drift_magnitude_score > GATE7_HIGH_DRIFT:
+        code = "7c"
+    else:
+        code = "7b"
+
+    name, result, allowed_modes = GATE7_PATHS[code]
+    return Gate7Result(code=code, name=name, result=result, allowed_modes=list(allowed_modes), readings=readings)
+
+
 # ── Grade ────────────────────────────────────────────────────────────────────
 
 

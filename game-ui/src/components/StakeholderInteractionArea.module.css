@@ -211,10 +211,6 @@
 
 .ChatContainer :global(.cs-message.cs-message--incoming .cs-message__content) {
     background-color: var(--card-bg-dark) !important;
-    /* A visible edge regardless of what's behind it - the wrapper's own hover state darkens to a
-       very similar near-black, and without this the bubble had nothing to read against it. */
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
     color: white !important;
     animation: fade-in 1s ease-out;
 }
@@ -436,44 +432,6 @@
     font-size: 0.95rem;
     font-weight: 600;
     color: #ffffff;
-}
-
-.chatMessageRow {
-    position: relative;
-}
-
-/* One small badge sitting right on a corner (the avatar's, for a stakeholder message, or the
-   bubble's own bottom-right, for a player message which has no avatar), so the control reads as
-   part of that element rather than a separate floating pill above it. */
-.avatarSpeechBadge {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 20;
-}
-
-.liveSpeechControlBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: #1e293b;
-    border: 1.5px solid rgba(255, 255, 255, 0.4);
-    color: #f8fafc;
-    font-size: 13px;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-
-.liveSpeechControlBtn:hover {
-    background: #38bdf8;
-    color: #0f172a;
-    transform: scale(1.12);
 }
 
 .evaluatingSubtitle {

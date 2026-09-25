@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from mlops_serious_game.domain.graph import Level, TechnicalGraph, trigger_for_level
+from mlops_serious_game.domain.graph import AutomationState, TechnicalGraph, trigger_for_automation
 
 
 class GraphConfigError(ValueError):
@@ -31,26 +31,56 @@ def _toposort(nodes: list[str], edges: list[tuple[str, str]]) -> list[str]:
 
 
 def _trigger_errors(e) -> list[str]:
-    """Level and trigger must agree: who starts the work is part of what `automated` means."""
+    """Automation state and trigger must agree: who starts the work is part of what `automated`
+    means."""
     errors = []
-    expected = trigger_for_level(e, e.initial_level, e.initial_trigger)
+    expected = trigger_for_automation(e, e.initial_automation, e.initial_trigger)
     if e.initial_trigger != expected:
         errors.append(
-            f"edge '{e.id}' starts at level {e.initial_level} with trigger '{e.initial_trigger}', expected '{expected}'"
+            f"edge '{e.id}' starts at automation {e.initial_automation} with trigger "
+            f"'{e.initial_trigger}', expected '{expected}'"
         )
-    if any(lv >= Level.AUTOMATED for lv in e.allowed_levels) and e.default_automatic_trigger is None:
+    if any(lv >= AutomationState.AUTOMATED for lv in e.allowed_automation) and e.default_automatic_trigger is None:
         errors.append(f"edge '{e.id}' can be automated but allows no automatic trigger")
-    if Level.MANUAL in e.allowed_levels and "manual_request" not in e.allowed_triggers:
+    if AutomationState.MANUAL in e.allowed_automation and "manual_request" not in e.allowed_triggers:
         errors.append(f"edge '{e.id}' can be manual but does not allow 'manual_request'")
-    if any(lv <= Level.ABSENT for lv in e.allowed_levels) and "none" not in e.allowed_triggers:
+    if any(lv <= AutomationState.ABSENT for lv in e.allowed_automation) and "none" not in e.allowed_triggers:
         errors.append(f"edge '{e.id}' can be absent but does not allow trigger 'none'")
+    return errors
+
+
+def _option_errors(kind: str, target_id: str, axis: str, allowed: list[int], options) -> list[str]:
+    errors = []
+    covered = set()
+    for opt in options:
+        if opt.to_level == AutomationState.BROKEN and axis == "automation":
+            errors.append(f"{kind} '{target_id}' has an automation option targeting broken - players can never do that")
+        if opt.to_level == AutomationState.ABSENT and axis == "automation":
+            errors.append(
+                f"{kind} '{target_id}' has an automation option targeting absent - broken and absent are both "
+                "resting states a player recovers past in one step, straight to manual"
+            )
+        if opt.to_level not in allowed:
+            errors.append(f"{kind} '{target_id}' has a {axis} option targeting disallowed level {opt.to_level}")
+        covered.add(opt.to_level)
+    if not options:
+        return errors  # not authored yet - a gap to fill in later, not a config error
+    # Every rung above the resting state needs an option once any are authored at all. Automation's
+    # resting states are BROKEN and ABSENT (nothing built yet, or backend-only failure, 00-plan.md
+    # decision 5) - options start at MANUAL. Governance's only resting state is NONE.
+    floor = AutomationState.ABSENT if axis == "automation" else 0
+    reachable = {lv for lv in allowed if lv > floor}
+    missing = reachable - covered
+    if missing:
+        errors.append(f"{kind} '{target_id}' has no {axis} option reaching {sorted(missing)}")
     return errors
 
 
 def validate_graph(graph: TechnicalGraph) -> list[str]:
     """Returns the topological order of components over pipeline edges. Raises on any config error."""
     errors: list[str] = []
-    level_range = set(range(len(graph.levels)))
+    automation_range = set(range(len(graph.automation_states)))
+    governance_range = set(range(len(graph.governance_levels)))
 
     def check_unique(kind: str, ids: list[str]):
         seen: set[str] = set()
@@ -71,21 +101,42 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
         if c.stage_id not in stage_ids:
             errors.append(f"component '{c.id}' references unknown stage '{c.stage_id}'")
             continue
-        if not set(c.allowed_levels) <= level_range or not c.allowed_levels:
-            errors.append(f"component '{c.id}' has invalid allowed_levels {c.allowed_levels}")
-        if c.initial_level not in c.allowed_levels:
-            errors.append(f"component '{c.id}' initial_level {c.initial_level} not allowed")
+        if not set(c.allowed_automation) <= automation_range or not c.allowed_automation:
+            errors.append(f"component '{c.id}' has invalid allowed_automation {c.allowed_automation}")
+        if not set(c.allowed_governance) <= governance_range or not c.allowed_governance:
+            errors.append(f"component '{c.id}' has invalid allowed_governance {c.allowed_governance}")
+        if c.initial_automation not in c.allowed_automation:
+            errors.append(f"component '{c.id}' initial_automation {c.initial_automation} not allowed")
+        if c.initial_governance not in c.allowed_governance:
+            errors.append(f"component '{c.id}' initial_governance {c.initial_governance} not allowed")
         if not (c.owner_role or graph.stage(c.stage_id).owner_role):
             errors.append(f"component '{c.id}' has no owner and its stage has none either")
+        errors += _option_errors("component", c.id, "automation", c.allowed_automation, c.automation_options)
+        errors += _option_errors("component", c.id, "governance", c.allowed_governance, c.governance_options)
+        for attr, attr_def in c.attributes.items():
+            options = c.attribute_options.get(attr, [])
+            covered = {o.to_value for o in options}
+            unknown = covered - set(attr_def.values)
+            if unknown:
+                errors.append(f"component '{c.id}' attribute '{attr}' has options for unknown values {sorted(unknown)}")
+            if not options:
+                continue  # not authored yet - a gap to fill in later, not a config error
+            missing = set(attr_def.values) - {attr_def.initial} - covered
+            if missing:
+                errors.append(f"component '{c.id}' attribute '{attr}' has no option reaching {sorted(missing)}")
 
     for e in graph.edges:
         for end in (e.from_id, e.to_id):
             if not graph.is_component(end):
                 errors.append(f"edge '{e.id}' references unknown component '{end}'")
-        if not set(e.allowed_levels) <= level_range or not e.allowed_levels:
-            errors.append(f"edge '{e.id}' has invalid allowed_levels {e.allowed_levels}")
-        if e.initial_level not in e.allowed_levels:
-            errors.append(f"edge '{e.id}' initial_level {e.initial_level} not allowed")
+        if not set(e.allowed_automation) <= automation_range or not e.allowed_automation:
+            errors.append(f"edge '{e.id}' has invalid allowed_automation {e.allowed_automation}")
+        if not set(e.allowed_governance) <= governance_range or not e.allowed_governance:
+            errors.append(f"edge '{e.id}' has invalid allowed_governance {e.allowed_governance}")
+        if e.initial_automation not in e.allowed_automation:
+            errors.append(f"edge '{e.id}' initial_automation {e.initial_automation} not allowed")
+        if e.initial_governance not in e.allowed_governance:
+            errors.append(f"edge '{e.id}' initial_governance {e.initial_governance} not allowed")
         unknown_triggers = set(e.allowed_triggers) - set(graph.triggers)
         if unknown_triggers:
             errors.append(f"edge '{e.id}' allows unknown triggers {sorted(unknown_triggers)}")
@@ -93,6 +144,11 @@ def validate_graph(graph: TechnicalGraph) -> list[str]:
             errors.append(f"edge '{e.id}' initial_trigger '{e.initial_trigger}' not allowed")
 
         errors += _trigger_errors(e)
+        errors += _option_errors("edge", e.id, "automation", e.allowed_automation, e.automation_options)
+        errors += _option_errors("edge", e.id, "governance", e.allowed_governance, e.governance_options)
+        for opt in e.automation_options:
+            if opt.trigger is not None and opt.trigger not in e.allowed_triggers:
+                errors.append(f"edge '{e.id}' automation option '{opt.name}' names disallowed trigger '{opt.trigger}'")
 
     ids = [i.id for i in graph.initial_instances]
     if len(ids) != len(set(ids)):

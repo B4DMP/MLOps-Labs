@@ -134,9 +134,6 @@ export interface StakeholderDossierProps {
   onClose: () => void;
   dossierData: StakeholderDossierEntry[];
   activeStakeholderId?: string;
-  /** The stakeholder currently being narrated by TTS, if any - animates their polaroid avatar
-   * (mouth-flap + head-sway) the same way a seated/chat avatar does while they're talking. */
-  speakingStakeholderId?: string | null;
   /** Fires when the player navigates the dossier itself (tab click, prev/next arrow, System
    *  toggle) - not when `activeStakeholderId` drives the page from outside. Lets an embedding
    *  scene (e.g. the pitch deck table) keep its own "selected stakeholder" in sync with
@@ -780,7 +777,6 @@ export default function StakeholderDossier({
   onClose,
   dossierData,
   activeStakeholderId,
-  speakingStakeholderId = null,
   onActiveStakeholderChange,
   highlightedIntelId,
   currentPhase: propPhase,
@@ -1619,7 +1615,6 @@ export default function StakeholderDossier({
                 stakeholderColor={stakeholderColor}
                 stakeholderId={st.stakeholder_id}
                 isFramed={false}
-                isSpeaking={speakingStakeholderId === st.stakeholder_id}
                 play_blink_animation={false}
                 size="100%"
                 title={st.name}

@@ -1,27 +1,28 @@
 """Applying ops to the graph, and replaying the op log into ground truth plus player knowledge.
 
-Everything here is pure. Owner degradation is resolved once, when an action card is applied,
-and the resolved op (with its `intended` level) is what gets logged. Replay therefore never
-needs buy-in values and always reproduces the same state.
+Everything here is pure. Owner degradation and the one-step-per-slot cap are resolved once, when
+an action card is applied, and the resolved op (with its `intended` level) is what gets logged.
+Replay therefore never needs buy-in values and always reproduces the same state.
 """
 
-from typing import Iterable, Optional
+from typing import Any, Iterable, Optional, Sequence
 
 from pydantic import BaseModel, Field
 
 from mlops_serious_game.application.graph_service.effective import EffectiveView, compute_effective
 from mlops_serious_game.domain.graph import (
+    AutomationState,
+    Axis,
     DebtEntry,
     GraphOp,
     GraphState,
     Instance,
     Knowledge,
-    Level,
     LoggedOp,
     NON_AUTOMATIC_TRIGGERS,
     SeenEntry,
     TechnicalGraph,
-    trigger_for_level,
+    trigger_for_automation,
 )
 
 
@@ -49,12 +50,36 @@ def _level_below(level: int, allowed: list[int]) -> Optional[int]:
     return max(below) if below else None
 
 
+def resolve_step_cap(graph: TechnicalGraph, state: GraphState, op: GraphOp) -> GraphOp:
+    """Caps a player raise to one step on one axis, per
+    docs/plans/graph-governance-automation-rework/00-plan.md §2.3 - one slot moves one step,
+    never more, regardless of what the underlying content asks for.
+
+    Automation's "one step" from broken or absent is manual, not absent - both are resting
+    states nobody can raise to on purpose (00-plan.md's governance-requires-implemented
+    follow-up), so the rung after either of them is whatever is above ABSENT, mirroring
+    graphOptions.ts's `floorOn`. Governance's floor is already its own bottom rung (0), so this
+    changes nothing there."""
+    if op.kind != "raise_to" or op.source_kind != "action_card":
+        return op
+    axis: Axis = op.axis
+    allowed = graph.allowed_for(op.target, axis)
+    current = state.value(op.target, axis)
+    requested = snap_down(int(op.value), allowed)
+    if requested <= current:
+        return op
+    floor = AutomationState.ABSENT if axis == "automation" else 0
+    next_rung = min(a for a in allowed if a > max(current, floor))
+    if next_rung >= requested:
+        return op
+    return op.model_copy(update={"value": next_rung})
+
+
 def resolve_degradation(
     graph: TechnicalGraph, state: GraphState, op: GraphOp, owner_buyin: Optional[dict[str, float]]
 ) -> GraphOp:
-    """An unhappy owner makes an action card raise land one allowed level lower.
-
-    Returns the op to apply and log, carrying `intended` when degraded.
+    """An unhappy owner makes an action card raise land one allowed step lower, on whichever axis
+    it targets. Returns the op to apply and log, carrying `intended` when degraded.
     """
     if owner_buyin is None or op.kind != "raise_to" or op.source_kind != "action_card":
         return op
@@ -64,16 +89,70 @@ def resolve_degradation(
     if owner_buyin.get(owner, 1.0) >= graph.thresholds.debt_buyin_threshold:
         return op
 
-    allowed = graph.allowed_levels(op.target)
+    axis: Axis = op.axis
+    allowed = graph.allowed_for(op.target, axis)
     intended = snap_down(int(op.value), allowed)
-    current = state.level(op.target)
-    if current == Level.BROKEN:
-        applied = Level.BROKEN  # a degraded repair of something broken stays broken
+    current = state.value(op.target, axis)
+    if axis == "automation" and current == AutomationState.BROKEN:
+        applied = AutomationState.BROKEN  # a degraded repair of something broken stays broken
     else:
         applied = _level_below(intended, allowed)
         if applied is None:
             return op
     return op.model_copy(update={"value": int(applied), "intended": intended})
+
+
+NEGLECT_ALIGNMENT_THRESHOLD = -0.999  # "completely ignored": every one of their own items unmet
+
+
+def pick_neglect_target(
+    graph: TechnicalGraph, card_touches: Sequence[tuple[str, Axis]], reads: Sequence[Any]
+) -> Optional[tuple[str, Axis, str]]:
+    """A low-power/high-interest stakeholder who was completely ignored by this card quietly
+    holds up one governance step - the "keep informed" quadrant's classic risk
+    (docs/plans/graph-governance-automation-rework/02-neglected-stakeholder-sabotage.md). At most
+    one stakeholder acts, on at most one governance-axis op; never one the owner already owns.
+    Returns (target, axis, saboteur_stakeholder_id), or None if nothing qualifies.
+    """
+    eligible: list[tuple[float, str]] = []
+    for r in reads:
+        st_id = getattr(r, "stakeholder_id", None)
+        if not st_id:
+            continue
+        if getattr(r, "power", "low") != "low" or getattr(r, "interest", "low") != "high":
+            continue
+        if getattr(r, "alignment", 1.0) > NEGLECT_ALIGNMENT_THRESHOLD:
+            continue
+        if any(graph.is_target(t) and graph.owner_of(t) == st_id for t, _ in card_touches):
+            continue
+        eligible.append((getattr(r, "alignment", 1.0), st_id))
+    if not eligible:
+        return None
+    eligible.sort(key=lambda pair: (pair[0], pair[1]))  # most-neglected, then deterministic
+    saboteur = eligible[0][1]
+
+    governance_touches = [t for t in card_touches if t[1] == "governance"]
+    if not governance_touches:
+        return None
+    target, axis = sorted(governance_touches)[0]
+    return target, axis, saboteur
+
+
+def resolve_neglect(graph: TechnicalGraph, op: GraphOp, neglect: Optional[tuple[str, Axis, str]]) -> GraphOp:
+    """Applies the one sabotage `pick_neglect_target` chose, if this op is it and the owner
+    mechanic hasn't already degraded it (never stack two degradations on one op)."""
+    if neglect is None or op.kind != "raise_to" or op.source_kind != "action_card" or op.intended is not None:
+        return op
+    target, axis, saboteur = neglect
+    if op.target != target or op.axis != axis:
+        return op
+
+    allowed = graph.allowed_for(op.target, axis)
+    intended = snap_down(int(op.value), allowed)
+    applied = _level_below(intended, allowed)
+    if applied is None:
+        return op
+    return op.model_copy(update={"value": int(applied), "intended": intended, "degraded_by": saboteur})
 
 
 def _mark(state: GraphState, target: str, seq: Optional[int]) -> None:
@@ -84,7 +163,7 @@ def _mark(state: GraphState, target: str, seq: Optional[int]) -> None:
 def _sync_trigger(graph: TechnicalGraph, state: GraphState, edge_id: str, seq: Optional[int]) -> None:
     edge = graph.edge(edge_id)
     current = state.edge_triggers.get(edge_id)
-    expected = trigger_for_level(edge, state.edge_levels[edge_id], current)
+    expected = trigger_for_automation(edge, state.edge_automation[edge_id], current)
     if expected is not None and expected != current:
         state.edge_triggers[edge_id] = expected
         _mark(state, edge_id, seq)
@@ -113,15 +192,38 @@ def _apply_one(
         if not graph.is_target(op.target):
             result.rejected.append(RejectedOp(op=op, reason="unknown target"))
             return
-        allowed = graph.allowed_levels(op.target)
-        levels = state.component_levels if graph.is_component(op.target) else state.edge_levels
-        current = levels[op.target]
-        requested = snap_down(int(op.value), allowed)
+        axis: Axis = op.axis
+        level = int(op.value)
+        if kind == "set_to" and op.source_kind == "action_card" and axis == "automation" and level == AutomationState.BROKEN:
+            # Players can never set a target to broken (00-plan.md decision 5) - only world
+            # events/challenges/admin may. raise_to can't reach this case: it only ever raises,
+            # and broken is the floor, so this guard only matters for a (today unused) action-card
+            # set_to - defense in depth against a mis-authored future option.
+            result.rejected.append(RejectedOp(op=op, reason="players cannot set a target to broken"))
+            return
+        if (
+            op.source_kind == "action_card"
+            and axis == "governance"
+            and state.value(op.target, "automation") < AutomationState.MANUAL
+        ):
+            # There is nothing to review on a target nobody has implemented yet - governance
+            # options are only ever offered once automation has reached manual or above
+            # (graphOptions.ts's isImplemented). Whoever builds a batch that raises both axes on
+            # the same target (the composer, or a pitch's accepted stances) must put the
+            # automation op first - atomic_changes_to_ops/card_ops both sort for this, so this
+            # sequential per-op check is defense in depth, not the ordering authority: this is
+            # also what `replay` re-derives from the same logged ops, so it can never look ahead.
+            result.rejected.append(RejectedOp(op=op, reason="players cannot govern a target that is not implemented"))
+            return
+        allowed = graph.allowed_for(op.target, axis)
+        state_dict = state.axis_dict(op.target, axis)
+        current = state_dict[op.target]
+        requested = snap_down(level, allowed)
         new = max(current, requested) if kind == "raise_to" else requested
         if new != current:
-            levels[op.target] = new
+            state_dict[op.target] = new
             _mark(state, op.target, seq)
-        if graph.is_edge(op.target):
+        if axis == "automation" and graph.is_edge(op.target):
             _sync_trigger(graph, state, op.target, seq)
 
         intended = op.intended
@@ -130,16 +232,17 @@ def _apply_one(
                 target_id=op.target,
                 intended_level=intended,
                 applied_level=new,
-                owner_id=graph.owner_of(op.target),
+                axis=axis,
+                owner_id=op.degraded_by or graph.owner_of(op.target),
                 source_id=op.source_id,
             )
             state.debt.append(entry)
             result.debt_created.append(entry)
         elif kind == "raise_to" and op.source_kind == "action_card" and intended is None:
-            # A clean raise with a happy owner pays down debt it reaches.
+            # A clean raise with a happy owner pays down debt it reaches, on the same axis.
             keep = []
             for d in state.debt:
-                if d.target_id == op.target and new >= d.intended_level:
+                if d.target_id == op.target and d.axis == axis and new >= d.intended_level:
                     result.debt_cleared.append(d)
                 else:
                     keep.append(d)
@@ -154,22 +257,26 @@ def _apply_one(
         if op.value not in edge.allowed_triggers:
             result.rejected.append(RejectedOp(op=op, reason=f"trigger '{op.value}' not allowed"))
             return
-        level = state.edge_levels[op.target]
+        automation = state.edge_automation[op.target]
         if op.value in NON_AUTOMATIC_TRIGGERS:
-            # Level and trigger must agree; demoting an edge is a level change, not a trigger change.
-            if trigger_for_level(edge, level, None) != op.value:
+            # Automation and trigger must agree; demoting an edge is an automation change, not a
+            # trigger change.
+            if trigger_for_automation(edge, automation, None) != op.value:
                 result.rejected.append(
-                    RejectedOp(op=op, reason=f"trigger '{op.value}' does not fit level {level}, change the level")
+                    RejectedOp(
+                        op=op,
+                        reason=f"trigger '{op.value}' does not fit automation state {automation}, change that instead",
+                    )
                 )
             return
-        if level < Level.AUTOMATED:
+        if automation < AutomationState.AUTOMATED:
             # Naming an automatic trigger automates the edge.
-            automated = [lv for lv in edge.allowed_levels if lv >= Level.AUTOMATED]
+            automated = [lv for lv in graph.allowed_automation(op.target) if lv >= AutomationState.AUTOMATED]
             if not automated:
                 result.rejected.append(RejectedOp(op=op, reason="edge cannot be automated"))
                 return
-            state.edge_levels[op.target] = min(automated)
-        if state.edge_triggers.get(op.target) != op.value or level < Level.AUTOMATED:
+            state.edge_automation[op.target] = min(automated)
+        if state.edge_triggers.get(op.target) != op.value or automation < AutomationState.AUTOMATED:
             state.edge_triggers[op.target] = op.value
             _mark(state, op.target, seq)
         return
@@ -227,8 +334,10 @@ def apply_ops(
     state: GraphState,
     ops: Iterable[GraphOp | LoggedOp],
     owner_buyin: Optional[dict[str, float]] = None,
+    neglect: Optional[tuple[str, Axis, str]] = None,
 ) -> ApplyResult:
-    """Applies ops to a copy of `state`. Pass `owner_buyin` only when resolving a fresh action card."""
+    """Applies ops to a copy of `state`. Pass `owner_buyin` (and, for a fresh action card,
+    `neglect` from `pick_neglect_target`) only when resolving a fresh action card."""
     result = ApplyResult(state=state.model_copy(deep=True))
     for item in ops:
         seq, op = (item.seq, item.op) if isinstance(item, LoggedOp) else (None, item)
@@ -236,7 +345,9 @@ def apply_ops(
             op = _resolve_target(graph, op)
             if op is None:
                 continue
+        op = resolve_step_cap(graph, result.state, op)
         op = resolve_degradation(graph, result.state, op, owner_buyin)
+        op = resolve_neglect(graph, op, neglect)
         result.resolved_ops.append(op)
         _apply_one(graph, result.state, op, seq, result)
     return result
@@ -252,14 +363,18 @@ def _observe(state: GraphState, effective: EffectiveView, graph: TechnicalGraph,
     if graph.is_component(target):
         return SeenEntry(
             seq=seq,
-            nominal=state.component_levels[target],
-            effective=effective.components[target],
+            nominal_automation=state.component_automation[target],
+            nominal_governance=state.component_governance[target],
+            effective_automation=effective.automation[target],
+            effective_governance=effective.governance[target],
             attrs=dict(state.attrs.get(target, {})),
         )
     return SeenEntry(
         seq=seq,
-        nominal=state.edge_levels[target],
-        effective=effective.edges[target],
+        nominal_automation=state.edge_automation[target],
+        nominal_governance=state.edge_governance[target],
+        effective_automation=effective.automation[target],
+        effective_governance=effective.governance[target],
         trigger=state.edge_triggers.get(target),
     )
 
@@ -297,11 +412,13 @@ def seed_ops(graph: TechnicalGraph) -> list[GraphOp]:
     followed by the handful of facts the briefing reveals."""
     ops: list[GraphOp] = []
     for c in graph.components:
-        ops.append(GraphOp(kind="set_to", target=c.id, value=c.initial_level, source_kind="challenge_seed"))
+        ops.append(GraphOp(kind="set_to", target=c.id, axis="automation", value=c.initial_automation, source_kind="challenge_seed"))
+        ops.append(GraphOp(kind="set_to", target=c.id, axis="governance", value=c.initial_governance, source_kind="challenge_seed"))
         for name, attr in c.attributes.items():
             ops.append(GraphOp(kind="set_attr", target=c.id, attr=name, value=attr.initial, source_kind="challenge_seed"))
     for e in graph.edges:
-        ops.append(GraphOp(kind="set_to", target=e.id, value=e.initial_level, source_kind="challenge_seed"))
+        ops.append(GraphOp(kind="set_to", target=e.id, axis="automation", value=e.initial_automation, source_kind="challenge_seed"))
+        ops.append(GraphOp(kind="set_to", target=e.id, axis="governance", value=e.initial_governance, source_kind="challenge_seed"))
         ops.append(GraphOp(kind="set_trigger", target=e.id, value=e.initial_trigger, source_kind="challenge_seed"))
     for inst in graph.initial_instances:
         ops.append(
