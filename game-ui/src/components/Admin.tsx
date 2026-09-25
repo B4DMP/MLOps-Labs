@@ -86,6 +86,7 @@ interface AdminProps {
     }
   ) => void;
   removeCampaign: (campaignKey: string) => void;
+  removeAllCampaigns?: () => void;
   removePlayer?: (playerName: string) => void;
   removeAllPlayers?: () => void;
   finished_players_amount: number;
@@ -108,6 +109,7 @@ export function Admin({
   addCampaign,
   updateCampaign,
   removeCampaign,
+  removeAllCampaigns,
   removePlayer,
   removeAllPlayers,
   finished_players_amount,
@@ -176,6 +178,7 @@ export function Admin({
   const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
   const [confirmDeletePlayer, setConfirmDeletePlayer] = useState<string | null>(null);
   const [showDeleteAllWarning, setShowDeleteAllWarning] = useState(false);
+  const [showDeleteAllCampaignsWarning, setShowDeleteAllCampaignsWarning] = useState(false);
 
   // Player filtering and sorting state
   const [selectedCampaignFilter, setSelectedCampaignFilter] = useState<string>("all");
@@ -648,9 +651,24 @@ export function Admin({
                       Create and distribute campaign access keys for workshops, courses, or experiment cohorts.
                     </p>
                   </div>
-                  <span className={`${styles.pillBadge} ${styles.badgePrimary}`}>
-                    {campaigns.length} Active {campaigns.length === 1 ? "Campaign" : "Campaigns"}
-                  </span>
+                  <div className="d-flex align-items-center gap-2">
+                    <span className={`${styles.pillBadge} ${styles.badgePrimary}`}>
+                      {campaigns.length} Active {campaigns.length === 1 ? "Campaign" : "Campaigns"}
+                    </span>
+                    {removeAllCampaigns && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+                        style={{ padding: "0.35rem 0.85rem", fontSize: "0.82rem", fontWeight: 600, borderRadius: "0.5rem" }}
+                        onClick={() => setShowDeleteAllCampaignsWarning(true)}
+                        disabled={campaigns.length === 0}
+                        title="Delete all campaigns and their players"
+                      >
+                        <Icon icon="ph:trash-bold" />
+                        <span>Delete All Campaigns</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Campaigns Table */}
@@ -1946,6 +1964,77 @@ export function Admin({
                       ? `Yes, Delete Campaign & ${campaignToDelete.users.length} ${campaignToDelete.users.length === 1 ? "Player" : "Players"}`
                       : "Yes, Delete Campaign"}
                   </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete All Campaigns Confirmation Modal */}
+      {showDeleteAllCampaignsWarning && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center p-3"
+          style={{
+            backgroundColor: "rgba(10, 25, 34, 0.75)",
+            backdropFilter: "blur(4px)",
+            zIndex: 9999,
+          }}
+          onClick={() => setShowDeleteAllCampaignsWarning(false)}
+        >
+          <div
+            className="card border-0 rounded-4 shadow-lg overflow-hidden"
+            style={{ maxWidth: "480px", width: "100%", background: "#ffffff" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="p-3 d-flex align-items-center gap-2 text-white"
+              style={{ backgroundColor: "#dc2626" }}
+            >
+              <Icon icon="ph:warning-octagon-bold" style={{ fontSize: "1.75rem" }} />
+              <h5 className="mb-0 fw-bold">Delete All Campaigns?</h5>
+            </div>
+            <div className="p-4">
+              <div className="alert alert-danger d-flex align-items-start gap-2 mb-3">
+                <Icon icon="ph:warning-bold" style={{ fontSize: "1.4rem", flexShrink: 0, marginTop: "2px" }} />
+                <div className="small">
+                  <strong>Warning: This action is permanent and cannot be undone.</strong>
+                </div>
+              </div>
+              <p className="text-secondary small mb-2">
+                You are about to delete all <strong>{campaigns.length}</strong> campaigns and every enrolled player in them ({players.length} {players.length === 1 ? "player" : "players"}).
+              </p>
+              <p className="text-muted small mb-3">
+                This will permanently erase all associated data across the entire database, including:
+              </p>
+              <ul className="small text-secondary mb-4 ps-3">
+                <li>Campaign records and access keys</li>
+                <li>Player accounts and credentials</li>
+                <li>Game progression and challenge records</li>
+                <li>Session states and dialogue history</li>
+                <li>Revealed intel items and action card pitches</li>
+                <li>Intro and outro questionnaire evaluation responses</li>
+              </ul>
+              <div className="d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm px-3"
+                  onClick={() => setShowDeleteAllCampaignsWarning(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm px-3 fw-bold d-inline-flex align-items-center gap-1"
+                  onClick={() => {
+                    if (removeAllCampaigns) {
+                      removeAllCampaigns();
+                    }
+                    setShowDeleteAllCampaignsWarning(false);
+                  }}
+                >
+                  <Icon icon="ph:trash-bold" />
+                  <span>Yes, Delete All {campaigns.length} Campaigns</span>
                 </button>
               </div>
             </div>
