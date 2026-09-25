@@ -1337,17 +1337,6 @@
   --note-bg-alt: #86efac;
 }
 
-.noteInferred {
-  --note-bg: #ccfbf1;
-  /* Pastel Teal: tested, not spoken aloud (D49) */
-  --note-bg-alt: #99f6e4;
-}
-
-.noteRefuted {
-  --note-bg: #fecaca;
-  /* Pastel Red: a tested guess that missed (D49) */
-  --note-bg-alt: #fca5a5;
-}
 
 
 .stickyNote:hover {
@@ -1616,26 +1605,6 @@
   opacity: 0.85;
 }
 
-/* Gather's Test a hypothesis, tag right (D49): tested in conversation, not spoken aloud in
-   public - counts the same as Confirmed (Q36), reads a shade lighter so the two stay tellable
-   apart. */
-.stampInferred {
-  color: #0d9488;
-  border: 1.5px dashed #0d9488;
-  background: rgba(204, 251, 241, 0.65);
-  transform: rotate(2deg);
-  clip-path: polygon(2% 0%, 98% 2%, 100% 90%, 95% 100%, 5% 98%, 0% 88%, 1% 30%);
-}
-
-/* Test a hypothesis, tag wrong (D49): crossed out, an open invitation to re-tag. */
-.stampRefuted {
-  color: #b91c1c;
-  border: 1.5px solid #b91c1c;
-  background: rgba(254, 202, 202, 0.65);
-  transform: rotate(-2deg);
-  text-decoration: line-through;
-  clip-path: polygon(0% 6%, 4% 0%, 97% 3%, 100% 12%, 96% 94%, 100% 100%, 2% 96%, 0% 85%);
-}
 
 /* Empty State Note */
 .emptyStateContainer {
@@ -1922,17 +1891,6 @@
   --pip-edge: #ea580c;
 }
 
-/* Gather's Test a hypothesis (D49): tested, not spoken aloud - a lighter green than Confirmed. */
-.pipInferred {
-  --pip-paper: #a7f3d0;
-  --pip-edge: #0d9488;
-}
-
-/* A tested guess that missed. Free re-tag, same as Unconfirmed, but its own colour. */
-.pipRefuted {
-  --pip-paper: #fecaca;
-  --pip-edge: #b91c1c;
-}
 
 .pipHidden {
   --pip-paper: transparent;

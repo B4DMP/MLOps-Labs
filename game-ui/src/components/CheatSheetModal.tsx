@@ -8,8 +8,6 @@ const STAMP_STYLE_CLASS: Record<string, string> = {
   verified: styles.miniStampVerified,
   onRecord: styles.miniStampOnRecord,
   unconfirmed: styles.miniStampUnconfirmed,
-  inferred: styles.miniStampInferred,
-  refuted: styles.miniStampRefuted,
 };
 
 interface CheatSheetModalProps {
@@ -50,14 +48,12 @@ const CHANGE_BADGES: { label: string; styleKey: "new" | "shifted"; detail: strin
  * seen the real confidence stamp on an intel note recognizes it here. */
 const STAMP_LEGEND: {
   label: string;
-  styleKey: "verified" | "onRecord" | "unconfirmed" | "inferred" | "refuted";
+  styleKey: "verified" | "onRecord" | "unconfirmed";
   detail: string;
 }[] = [
   { label: "? UNCONFIRMED", styleKey: "unconfirmed", detail: "Your first read. Not checked yet." },
   { label: "✓ CONFIRMED", styleKey: "verified", detail: "You verified it yourself, talking to them." },
   { label: "★ ON RECORD", styleKey: "onRecord", detail: "They said it in the open. Nothing to confirm." },
-  { label: "✓ INFERRED", styleKey: "inferred", detail: "Held up in conversation, never said outright." },
-  { label: "✗ REFUTED", styleKey: "refuted", detail: "That guess was wrong. Re-tag it." },
 ];
 
 /** Mirrors gameConfig/GameEngagementCards.json's six cards, in that file's order. */

@@ -414,11 +414,10 @@ def test_intel_breakdown_never_carries_item_wording():
 
 def test_confidence_states_are_counted_and_unknowns_fold_to_unconfirmed():
     result = c.intel_breakdown(
-        [_item("a", "driver", "driver", "verified"), _item("a", "driver", "driver", "inferred"),
-         _item("a", "driver", "driver", "refuted"), _item("a", "driver", "driver", "weird")],
+        [_item("a", "driver", "driver", "verified"), _item("a", "driver", "driver", "weird")],
         {},
     )
-    assert result["confidence"] == {"verified": 1, "inferred": 1, "refuted": 1, "unconfirmed": 1}
+    assert result["confidence"] == {"verified": 1, "unconfirmed": 1}
 
 
 def test_decision_rows_follow_play_order_and_leave_unfinished_challenges_unscored():

@@ -959,7 +959,7 @@ export default function PitchDebate({
         (st.intel_items || [])
           .filter((i) => {
             const conf = (i.intel_type || "").toLowerCase();
-            return conf !== "verified" && conf !== "confirmed" && conf !== "on_record" && conf !== "inferred";
+            return conf !== "verified" && conf !== "confirmed" && conf !== "on_record";
           })
           .map((i) => ({
             id: i.id,

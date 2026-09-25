@@ -263,7 +263,6 @@
       "emotion_room_listening": -0.03,
       "default_patience": 3,
       "sound_out_patience_cost": 1,
-      "emotion_refuted": -0.05,
       "patience_malus": 0.05
    }
 }

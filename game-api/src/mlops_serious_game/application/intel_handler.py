@@ -1065,35 +1065,6 @@ def correct_and_verify_intel_item(
             return new_item
 
 
-def _set_intel_confidence(username: str, item_id: str, confidence: ConfidenceType) -> Optional[StakeholderIntelItem]:
-    """Flips a held item's confidence in place, keeping whatever tag the player already filed it
-    under - Gather's Test a hypothesis (D49) only ever settles a guess the player already made,
-    it never touches the tag itself (Refuted's "free re-tag" is a separate, explicit action)."""
-    with get_session() as session:
-        records = intel_rows(session, get_user_id(session, username))
-        for record in records:
-            if isinstance(record.intel_item_data, dict) and record.intel_item_data.get("id") == item_id:
-                data = dict(record.intel_item_data)
-                data["intel_type"] = confidence.value
-                record.intel_item_data = data
-                flag_modified(record, "intel_item_data")
-                session.commit()
-                return StakeholderIntelItem(**data)
-        return None
-
-
-def mark_intel_item_inferred(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
-    """Test a hypothesis, tag right (D49): tested, not just filed - counts toward pitch readiness
-    (Q36/D53) same as Verified."""
-    return _set_intel_confidence(username, item_id, ConfidenceType.INFERRED)
-
-
-def mark_intel_item_refuted(username: str, item_id: str) -> Optional[StakeholderIntelItem]:
-    """Test a hypothesis, tag wrong (D49): the guess did not hold up. Never reveals the true tag -
-    the player has to re-tag and try again."""
-    return _set_intel_confidence(username, item_id, ConfidenceType.REFUTED)
-
-
 def _resolve_source(item: StakeholderIntelItem) -> IntelSource:
     """Where the item came from, repaired for saves written before provenance was tracked.
 

@@ -184,20 +184,6 @@ export default function PitchActionCardModal({
         icon: "ph:seal-check-fill",
       };
     }
-    if (conf === "inferred") {
-      return {
-        label: "Inferred",
-        className: styles.confirmationPillVerified,
-        icon: "ph:seal-check-fill",
-      };
-    }
-    if (conf === "refuted") {
-      return {
-        label: "Refuted",
-        className: styles.confirmationPillUnconfirmed,
-        icon: "ph:x-circle-bold",
-      };
-    }
     return {
       label: "Unconfirmed",
       className: styles.confirmationPillUnconfirmed,

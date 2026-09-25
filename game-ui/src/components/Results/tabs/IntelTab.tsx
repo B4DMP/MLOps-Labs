@@ -49,8 +49,6 @@ export default function IntelTab({ results }: { results: ResultsPayload }) {
           hint="Notes where your tag matched what the stakeholder meant"
         />
         <StatTile label="Confirmed" value={confidence.verified} hint="Verified in the room" />
-        <StatTile label="Tested" value={confidence.inferred} hint="Your read held up when you tested it" />
-        <StatTile label="Refuted" value={confidence.refuted} hint="Your read did not hold up" />
       </TileRow>
 
       <Section

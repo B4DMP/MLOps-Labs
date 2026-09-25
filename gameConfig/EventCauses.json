@@ -24,11 +24,8 @@
   "card.turn_lost": { "text": "{n} turn(s) with {st} went unused when the conversation closed", "group": "card" },
 
   "intel.revealed": { "text": "{st} let something slip about {component}: {detail}", "group": "intel" },
-  "intel.inferred": { "text": "inferred: the read on {st} holds up under questioning", "group": "intel" },
-  "intel.refuted": { "text": "refuted: that wasn't it with {st} - retag and try again", "group": "intel" },
   "intel.gist_heard": { "text": "the gist of it: {gist}", "group": "intel" },
   "intel.one_on_one_hit": { "text": "{st} confirms: you understood both sides of it", "group": "intel" },
-  "emotion.refuted": { "text": "colder: {st} noticed the guess was wrong", "group": "emotion" },
   "emotion.one_on_one_miss": { "text": "colder: {st} says that's not quite it", "group": "emotion" },
 
   "outcome.pass": { "text": "the room came around on {change}", "group": "outcome" },

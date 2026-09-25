@@ -66,7 +66,7 @@ export interface IntelBreakdown {
   per_stakeholder: IntelRow[];
   /** confusion[trueTag][taggedTag] = how many. Counts only, never wording (D7). */
   confusion: Record<string, Record<string, number>>;
-  confidence: { verified: number; inferred: number; refuted: number; unconfirmed: number };
+  confidence: { verified: number; unconfirmed: number };
 }
 
 export type Outcome = "PASS" | "SOFT_PASS" | "VETO";

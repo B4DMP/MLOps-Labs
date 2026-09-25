@@ -247,8 +247,6 @@
    },
    "confidence": {
     "verified": 9,
-    "inferred": 6,
-    "refuted": 2,
     "unconfirmed": 3
    }
   },
@@ -721,8 +719,6 @@
    },
    "confidence": {
     "verified": 9,
-    "inferred": 6,
-    "refuted": 2,
     "unconfirmed": 3
    }
   },
@@ -1203,8 +1199,6 @@
    },
    "confidence": {
     "verified": 9,
-    "inferred": 6,
-    "refuted": 2,
     "unconfirmed": 3
    }
   },
