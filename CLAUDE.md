@@ -23,3 +23,9 @@ this project's environment — it belongs to the user's other, unrelated work.
 - If Docker itself is unavailable and there is no other way to verify, say so explicitly rather
   than reaching for the host environment - don't silently substitute it.
 - This applies to every language/toolchain in this repo (Python, Node), not just the backend.
+
+## Keep comments short
+
+Default to 1-2 lines. Only go to 3-4 when the reasoning genuinely isn't obvious from the code
+(a non-obvious constraint, a workaround for a specific bug, a subtle invariant). Never write a
+comment block longer than the diff it explains.
