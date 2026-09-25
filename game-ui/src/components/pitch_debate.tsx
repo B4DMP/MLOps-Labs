@@ -14,6 +14,7 @@ import StakeholderDossier, { type StakeholderDossierEntry, type StakeholderBuyIn
 import OfflineIntelGathering, { type IntelArtifact } from "./offline_intel_gathering";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import StakeholderInteractionArea, { type ChatMsg, type RevealedIntel } from "./StakeholderInteractionArea";
+import SpokenText from "./SpokenText";
 import PerformanceDashboard from "./PerformanceDashboard";
 import StakeholderAvatarComponent from "./StakeholderAvatarComponent";
 import ChallengeDescriptionCard from "./ChallengeDescriptionCard";
@@ -323,6 +324,10 @@ export default function PitchDebate({
     isClosing?: boolean;
   } | null>(null);
   const [isSpeechInProgress, setIsSpeechInProgress] = useState<boolean>(false);
+  // Sentence-highlight position for whichever stakeholder line is currently being narrated (see
+  // SpokenText), and a reference to that exact chat-history entry so only it renders live.
+  const [activeSentenceIndex, setActiveSentenceIndex] = useState<number | null>(null);
+  const [liveChatMsg, setLiveChatMsg] = useState<ChatMsg | null>(null);
 
   const isAnySpeechActive = Boolean(activeSpeakingState || activePlayerSpeakingState);
   const isSpeechBubbleCoveringButton = Boolean(activePlayerSpeakingState);
@@ -342,10 +347,34 @@ export default function PitchDebate({
     cancelTts();
   };
 
+  // Shared tail for "a line is done" - used both by the normal queue advance below and by
+  // playChatMessage, which re-narrates any chat-history line (player or stakeholder) without
+  // re-entering the queue.
+  const finishActiveSpeech = (kind: "stakeholder" | "player" = "stakeholder") => {
+    if (kind === "player") {
+      setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+    } else {
+      setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
+    }
+    activeSpeechTimerRef.current = setTimeout(() => {
+      if (kind === "player") {
+        setActivePlayerSpeakingState(null);
+      } else {
+        setActiveSpeakingState(null);
+      }
+      setActiveSentenceIndex(null);
+      setLiveChatMsg(null);
+      isProcessingQueueRef.current = false;
+      activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
+    }, 400);
+  };
+
   const processSpeechQueue = () => {
     if (isProcessingQueueRef.current) return;
     if (speechQueueRef.current.length === 0) {
       setActiveSpeakingState(null);
+      setActiveSentenceIndex(null);
+      setLiveChatMsg(null);
       setActivePlayerSpeakingState(null);
       isProcessingQueueRef.current = false;
       setIsSpeechInProgress(false);
@@ -372,17 +401,21 @@ export default function PitchDebate({
 
     if (nextItem.type === "player") {
       setActiveSpeakingState(null);
+      setActiveSentenceIndex(null);
+      setLiveChatMsg(null);
       // Auto-skip: the chat message and any state updates above already landed, so the line
       // isn't lost - only the timed bubble and its hold are skipped. A minimal timeout (rather
       // than recursing synchronously) keeps this on the same "next tick" rhythm as a real turn,
       // so isSpeechActive()'s brief true window stays intact for callers that gate on it.
       if (settings.auto_skip_conversations) {
         setActivePlayerSpeakingState(null);
+        setActiveSentenceIndex(null);
         isProcessingQueueRef.current = false;
         activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
         return;
       }
       setActivePlayerSpeakingState({ message: nextItem.message, isClosing: false });
+      setActiveSentenceIndex(null);
       // The bubble stays open at least this long (its old, pre-narration duration - what it
       // still gets when muted, since speak() then calls onEnd synchronously), and does not
       // start closing until narration actually finishes speaking, however long that takes -
@@ -397,12 +430,14 @@ export default function PitchDebate({
         setActivePlayerSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
         activeSpeechTimerRef.current = setTimeout(() => {
           setActivePlayerSpeakingState(null);
+          setActiveSentenceIndex(null);
           isProcessingQueueRef.current = false;
           activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
         }, 400);
       };
       speakTts(nextItem.message, {
         slot: "player",
+        onSentence: ({ index }) => setActiveSentenceIndex(index),
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -455,6 +490,8 @@ export default function PitchDebate({
 
       if (settings.auto_skip_conversations) {
         setActiveSpeakingState(null);
+        setActiveSentenceIndex(null);
+        setLiveChatMsg(null);
         isProcessingQueueRef.current = false;
         activeNextTimerRef.current = setTimeout(processSpeechQueue, 50);
         return;
@@ -465,6 +502,8 @@ export default function PitchDebate({
         message: nextItem.message,
         isClosing: false,
       });
+      setActiveSentenceIndex(null);
+      setLiveChatMsg(nextItem.chatMsg || null);
       // Same floor-plus-actual-completion gating as the player branch above: the bubble stays
       // open at least this long, and only starts closing once narration truly finishes.
       const floorMs = Math.min(12000, Math.max(4500, Math.round(nextItem.message.length * 60)));
@@ -474,16 +513,12 @@ export default function PitchDebate({
       const proceedWhenReady = () => {
         if (settled || !speechDone || !floorDone) return;
         settled = true;
-        setActiveSpeakingState((prev) => (prev ? { ...prev, isClosing: true } : null));
-        activeSpeechTimerRef.current = setTimeout(() => {
-          setActiveSpeakingState(null);
-          isProcessingQueueRef.current = false;
-          activeNextTimerRef.current = setTimeout(processSpeechQueue, 150);
-        }, 400);
+        finishActiveSpeech();
       };
       speakTts(nextItem.message, {
         slot: slotForStakeholderVoice(stakeholders[nextItem.stakeholderId || ""]?.voice),
         seed: nextItem.stakeholderId,
+        onSentence: ({ index }) => setActiveSentenceIndex(index),
         onEnd: () => {
           speechDone = true;
           proceedWhenReady();
@@ -503,12 +538,66 @@ export default function PitchDebate({
   const skipCurrentSpeech = () => {
     clearSpeechTimers();
     setActiveSpeakingState(null);
+    setActiveSentenceIndex(null);
+    setLiveChatMsg(null);
     setActivePlayerSpeakingState(null);
     isProcessingQueueRef.current = false;
     if (speechQueueRef.current.length === 0) {
       setIsSpeechInProgress(false);
     }
     processSpeechQueue();
+  };
+
+  // Narrates any stakeholder chat-history line on demand - the currently playing one (from its
+  // own "replay" button) or any other past line (from its hover-revealed "play" button) - without
+  // touching the queue. Interrupts whatever else is currently speaking, if anything.
+  const playChatMessage = (msg: ChatMsg) => {
+    const isPlayerMsg = !msg.id || msg.id === "user";
+    const stakeholderId = isPlayerMsg
+      ? undefined
+      : msg.id && msg.id !== "system" && msg.id !== "__environment__"
+        ? msg.id
+        : msg.stakeholder_id;
+    if (!isPlayerMsg && !stakeholderId) return;
+
+    clearSpeechTimers();
+    isProcessingQueueRef.current = true;
+    setActiveSentenceIndex(null);
+    setLiveChatMsg(msg);
+    if (isPlayerMsg) {
+      setActiveSpeakingState(null);
+      setActivePlayerSpeakingState({ message: msg.message, isClosing: false });
+    } else {
+      setActivePlayerSpeakingState(null);
+      setActiveSpeakingState({ stakeholderId: stakeholderId!, message: msg.message, isClosing: false });
+    }
+
+    const floorMs = Math.min(12000, Math.max(4500, Math.round(msg.message.length * 60)));
+    let speechDone = false;
+    let floorDone = false;
+    let settled = false;
+    const proceedWhenReady = () => {
+      if (settled || !speechDone || !floorDone) return;
+      settled = true;
+      finishActiveSpeech(isPlayerMsg ? "player" : "stakeholder");
+    };
+    speakTts(msg.message, {
+      slot: isPlayerMsg ? "player" : slotForStakeholderVoice(stakeholders[stakeholderId!]?.voice),
+      seed: isPlayerMsg ? undefined : stakeholderId,
+      onSentence: ({ index }) => setActiveSentenceIndex(index),
+      onEnd: () => {
+        speechDone = true;
+        proceedWhenReady();
+      },
+    });
+    activeFloorTimerRef.current = setTimeout(() => {
+      floorDone = true;
+      proceedWhenReady();
+    }, floorMs);
+    activeHardCapTimerRef.current = setTimeout(() => {
+      speechDone = true;
+      proceedWhenReady();
+    }, 20000);
   };
 
   const triggerStakeholderSpeech = (
@@ -1146,7 +1235,10 @@ export default function PitchDebate({
               skipCurrentSpeech();
             }}
           >
-            {activeSpeakingState.message}
+            <SpokenText
+              text={activeSpeakingState.message}
+              activeSentenceIndex={activeSentenceIndex}
+            />
             <EmotionEmoji emotionState={st.emotional_state} className={styles.bubbleEmotionEmoji} />
           </div>
         )}
@@ -1770,11 +1862,42 @@ export default function PitchDebate({
                                     <span>Player</span>
                                   </div>
                                 </div>
-                                <div className={styles.playerSpeechContent}>{activePlayerSpeakingState.message}</div>
+                                <div className={styles.playerSpeechContent}>
+                                  <SpokenText
+                                    text={activePlayerSpeakingState.message}
+                                    activeSentenceIndex={activeSentenceIndex}
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
                         </div>
+
+                        {/* One skip control for every bubble: the bubbles themselves move around
+                            the table, so the button that dismisses them stays put here instead,
+                            below the table. */}
+                        {isAnySpeechActive && (
+                          <div className={styles.speechSkipBarRow}>
+                            <button
+                              type="button"
+                              className={styles.speechSkipBar}
+                              onClick={() => {
+                                // This button unmounts the instant the queue empties (isAnySpeechActive
+                                // goes false), so no mouseleave/blur ever fires to clear the hover
+                                // tag - clear it explicitly here instead of leaving it stuck onscreen.
+                                hideInfoTag();
+                                skipCurrentSpeech();
+                              }}
+                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onMouseLeave={hideInfoTag}
+                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
+                              onBlur={hideInfoTag}
+                            >
+                              <Icon icon="ph:skip-forward-fill" />
+                              <span>Skip</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       {/* Right Sub-Column: Conversation History (Spans Full Height) */}
@@ -1819,25 +1942,11 @@ export default function PitchDebate({
                             showStakeholderList={false}
                             showDialogueOptions={false}
                             onInspectIntel={(intel, stId) => handleInspectIntel(intel, stId)}
+                            activeSentenceIndex={activeSentenceIndex}
+                            liveChatMsg={liveChatMsg}
+                            onStopSpeech={skipCurrentSpeech}
+                            onPlayMessage={playChatMessage}
                           />
-
-
-                          {/* One skip control for every bubble: the bubbles themselves move around
-                              the table, so the button that dismisses them stays put here instead. */}
-                          {isAnySpeechActive && (
-                            <button
-                              type="button"
-                              className={styles.speechSkipBar}
-                              onClick={skipCurrentSpeech}
-                              onMouseEnter={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onMouseLeave={hideInfoTag}
-                              onFocus={(e) => showInfoTag(e, "Skip", "Skip the current message")}
-                              onBlur={hideInfoTag}
-                            >
-                              <Icon icon="ph:skip-forward-fill" />
-                              <span>Skip</span>
-                            </button>
-                          )}
 
                           {/* Maximize / Minimize button */}
                           <button
