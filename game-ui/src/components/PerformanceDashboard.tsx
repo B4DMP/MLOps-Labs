@@ -533,14 +533,14 @@ function StageSvg({
             {isBroken && (
               <NodeTitleAberration
                 lines={lines}
-                x={(i) => NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
+                x={() => NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0)}
                 fontWeight={isSelected ? 700 : 600}
               />
             )}
             {lines.map((line, i) => (
               <text
                 key={i}
-                x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
+                x={NODE_PAD_X + (c.icon ? NODE_ICON_OFFSET : 0)}
                 y={NODE_TITLE_Y + i * NODE_TITLE_LH}
                 fill={isUnknown ? "#7c8ba1" : isSelected ? "var(--primary-bg, #266682)" : "#15243b"}
                 fontSize={11}
@@ -1003,7 +1003,7 @@ export default function PerformanceDashboard({
                   </div>
 
                   <div className={styles.stageStrip}>
-                    <div style={{ width: "max-content", minWidth: "100%", padding: "2px 2px" }}>
+                    <div style={{ width: "100%", minWidth: "100%", padding: "2px 2px" }}>
                       <CrossStageArcs
                         pipelineStages={pipelineStages}
                         flows={graphState.feedback_flows ?? []}
@@ -1012,7 +1012,7 @@ export default function PerformanceDashboard({
                       />
                       <div
                         ref={buttonsRowRef}
-                        className="d-flex align-items-center gap-2"
+                        className="d-flex align-items-center gap-2 w-100"
                         style={{ position: "relative", zIndex: 5, marginTop: 4 }}
                       >
                         {pipelineStages.map((stage, i) => {
@@ -1023,6 +1023,7 @@ export default function PerformanceDashboard({
                             <div
                               key={stage.id}
                               className="d-flex align-items-center gap-2"
+                              style={{ flex: "1 1 0", minWidth: 0 }}
                               ref={(el) => { stageRefs.current[stage.id] = el; }}
                             >
                               {i > 0 && (

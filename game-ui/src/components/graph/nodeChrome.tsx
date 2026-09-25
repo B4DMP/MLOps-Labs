@@ -263,7 +263,7 @@ export function NodeTitleAberration({
   offset = 1.2,
 }: {
   lines: string[];
-  /** One x per line: the title indents its first line when the node carries an icon. */
+  /** One x per line: the title indents every line clear of the icon when the node carries one. */
   x: (lineIndex: number) => number;
   fontWeight: number | string;
   offset?: number;
