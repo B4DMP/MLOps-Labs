@@ -55,6 +55,11 @@ def _option_errors(kind: str, target_id: str, axis: str, allowed: list[int], opt
     for opt in options:
         if opt.to_level == AutomationState.BROKEN and axis == "automation":
             errors.append(f"{kind} '{target_id}' has an automation option targeting broken - players can never do that")
+        if opt.to_level == AutomationState.ABSENT and axis == "automation":
+            errors.append(
+                f"{kind} '{target_id}' has an automation option targeting absent - broken and absent are both "
+                "resting states a player recovers past in one step, straight to manual"
+            )
         if opt.to_level not in allowed:
             errors.append(f"{kind} '{target_id}' has a {axis} option targeting disallowed level {opt.to_level}")
         covered.add(opt.to_level)

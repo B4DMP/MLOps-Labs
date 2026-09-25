@@ -68,6 +68,13 @@ only real lever today is `raise_to` / `set_trigger`.
   `source_kind="action_card"` op that would set automation to `broken`). This continues what
   already holds today by accident (`raise_to` only ever raises, `AtomicChange` has no `set_to`),
   now made an explicit, checked invariant instead of a side effect of `max()`.
+- **`absent` is not a player-facing option either, once a target has regressed to `broken`**
+  (decided, follow-up). `broken` (it existed and stopped working) recovering to `absent` (it never
+  existed) reads backwards - a player fixing something does not un-build it first. Both are
+  automation's resting states: no authored option (component or edge) may target `absent`, exactly
+  like `broken`; a target sitting at either one has its next option reach `manual` directly. Enforced
+  at config load (`validate_graph`/`_option_errors`) and in the composer's option ladder
+  (`graphOptions.ts`'s `optionStatus`, via a `floorOn(axis)` of `absent` on automation).
 
 ### 2.2 Node vs. edge: the same two axes mean different things
 

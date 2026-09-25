@@ -75,6 +75,14 @@ export function ceilingOn(t: OptionTarget, axis: Axis): number {
   return allowed[allowed.length - 1];
 }
 
+/** Automation's resting states are BROKEN and ABSENT - nothing built yet, or backend-only
+ *  failure, neither a step a player takes (00-plan.md decision 5) - so authored options start
+ *  at MANUAL and a target sitting at either floor rung is one step from MANUAL, not from
+ *  ABSENT. Governance's only resting state is NONE, which is already its floor. */
+function floorOn(axis: Axis): number {
+  return axis === "automation" ? 1 : 0;
+}
+
 /** The target's authored options for an axis, lowest step first. */
 export function optionsOn(t: OptionTarget, axis: Axis): GraphOption[] {
   const opts = (axis === "automation" ? t.automation_options : t.governance_options) ?? [];
@@ -117,7 +125,7 @@ export function optionStatus(
   if (changes.some((c) => isStepOn(c, t.id, axis) && c.value === option.to_level)) return "slotted";
   if (option.to_level <= nominalOn(t, axis)) return "done";
   const projected = projectedOn(t, axis, changes);
-  const nextRung = allowedOn(t, axis).find((l) => l > projected);
+  const nextRung = allowedOn(t, axis).find((l) => l > Math.max(projected, floorOn(axis)));
   return option.to_level === nextRung ? "next" : "later";
 }
 

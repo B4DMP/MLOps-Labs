@@ -87,6 +87,14 @@ describe("option status", () => {
     // allowed_governance [0, 3]: one step goes straight to full.
     expect(optionStatus(handoff, "governance", handoff.governance_options![0], [])).toBe("next");
   });
+
+  it("recovers a broken target straight to manual, skipping absent", () => {
+    // Broken and absent are both resting states on automation - there is no player-facing
+    // option back to absent, so a broken target's next step is whatever reaches manual.
+    const broken: OptionTarget = { ...ingestion, nominal_automation: 0 };
+    expect(optionStatus(broken, "automation", scriptStep, [])).toBe("next");
+    expect(optionStatus(broken, "automation", platformStep, [])).toBe("later");
+  });
 });
 
 describe("adding and removing steps", () => {

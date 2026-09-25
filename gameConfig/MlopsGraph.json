@@ -218,11 +218,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "KPI Definition is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "KPI Definition runs as a manual step someone executes by hand"
@@ -261,11 +256,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Acceptance Criteria is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -306,11 +296,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Data Contracts is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -355,11 +340,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Risk Assessment is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -419,11 +399,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Data Ingestion Pipeline is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -524,11 +499,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Data Validation is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Data Validation runs as a manual step someone executes by hand"
@@ -628,11 +598,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Feature Store is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Feature Store runs as a manual step someone executes by hand"
@@ -723,11 +688,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Data Versioning is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Data Versioning runs as a manual step someone executes by hand"
@@ -801,11 +761,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Data Labeling Pipeline is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Data Labeling Pipeline runs as a manual step someone executes by hand"
@@ -869,11 +824,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Training Data Drift Check is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Training Data Drift Check runs as a manual step someone executes by hand"
@@ -928,11 +878,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Experiment Tracking is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1015,11 +960,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Model Registry is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1111,11 +1051,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Training Pipeline is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Training Pipeline runs as a manual step someone executes by hand"
@@ -1189,11 +1124,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Hyperparameter Tuning is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Hyperparameter Tuning runs as a manual step someone executes by hand"
@@ -1257,11 +1187,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Model Evaluation Harness is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Model Evaluation Harness runs as a manual step someone executes by hand"
@@ -1316,11 +1241,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "CI/CD Pipeline is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1404,11 +1324,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Model Serving Endpoint is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1495,11 +1410,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Canary and A/B Testing is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Canary and A/B Testing runs as a manual step someone executes by hand"
@@ -1544,11 +1454,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Shadow Deployment is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1603,11 +1508,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Containerization is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1676,11 +1576,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Orchestration is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1755,11 +1650,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "API Gateway is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "API Gateway runs as a manual step someone executes by hand"
@@ -1823,11 +1713,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Model Performance Monitoring is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Model Performance Monitoring runs as a manual step someone executes by hand"
@@ -1882,11 +1767,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Production Drift Monitoring is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -1961,11 +1841,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Alerting System is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Alerting System runs as a manual step someone executes by hand"
@@ -2039,11 +1914,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Logging and Observability is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Logging and Observability runs as a manual step someone executes by hand"
@@ -2107,11 +1977,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Retraining Trigger is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "name": "Go Manual",
           "description": "Retraining Trigger runs as a manual step someone executes by hand"
@@ -2156,11 +2021,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize It",
-          "description": "Rollback Mechanism is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "name": "Go Manual",
@@ -2207,11 +2067,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Contracts -> Data Ingestion Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2249,11 +2104,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Risk Assessment -> Acceptance Criteria hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2293,11 +2143,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Acceptance Criteria -> Model Evaluation Harness hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2339,11 +2184,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Ingestion Pipeline -> Data Validation hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2392,11 +2232,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Validation -> Data Versioning hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2443,11 +2278,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Versioning -> Feature Store hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2498,11 +2328,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Feature Store -> Training Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2550,11 +2375,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Labeling Pipeline -> Data Versioning hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2601,11 +2421,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Data Versioning -> Training Data Drift Check hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2656,11 +2471,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Training Data Drift Check -> Training Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2709,11 +2519,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Hyperparameter Tuning -> Training Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2764,11 +2569,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Training Pipeline -> Experiment Tracking hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2817,11 +2617,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Training Pipeline -> Model Evaluation Harness hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2872,11 +2667,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Model Evaluation Harness -> Model Registry hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -2923,11 +2713,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Model Registry -> CI/CD Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -2976,11 +2761,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The CI/CD Pipeline -> Containerization hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3027,11 +2807,6 @@
       "initial_automation": 2,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Containerization -> Orchestration hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3080,11 +2855,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Orchestration -> Model Serving Endpoint hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3131,11 +2901,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Model Serving Endpoint -> API Gateway hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3184,11 +2949,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The CI/CD Pipeline -> Canary and A/B Testing hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3236,11 +2996,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Canary and A/B Testing -> Model Serving Endpoint hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3287,11 +3042,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The CI/CD Pipeline -> Shadow Deployment hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3341,11 +3091,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Model Serving Endpoint -> Logging and Observability hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3393,11 +3138,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Logging and Observability -> Model Performance Monitoring hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3447,11 +3187,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Logging and Observability -> Production Drift Monitoring hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3499,11 +3234,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Model Performance Monitoring -> Alerting System hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3553,11 +3283,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Production Drift Monitoring -> Alerting System hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3605,11 +3330,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Alerting System -> Retraining Trigger hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
@@ -3659,11 +3379,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Retraining Trigger -> Training Pipeline hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3712,11 +3427,6 @@
       "initial_governance": 0,
       "automation_options": [
         {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Alerting System -> Rollback Mechanism hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
-        {
           "to_level": 2,
           "trigger": "manual_request",
           "name": "Trigger Manually",
@@ -3764,11 +3474,6 @@
       "initial_automation": 1,
       "initial_governance": 0,
       "automation_options": [
-        {
-          "to_level": 1,
-          "name": "Stabilize the Hand-off",
-          "description": "The Rollback Mechanism -> Model Serving Endpoint hand-off is pulled back from a broken state to a stable, unautomated baseline"
-        },
         {
           "to_level": 2,
           "trigger": "manual_request",
