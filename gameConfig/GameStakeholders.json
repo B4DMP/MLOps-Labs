@@ -37,7 +37,7 @@
             "head": "shaved2",
             "accessories": "glasses3",
             "accessoriesProbability": 100,
-            "facialHair": "moustache2",
+            "facialHair": "chin",
             "facialHairProbability": 100,
             "skinColor": "d08b5b",
             "headContrastColor": "2c1b18"
@@ -50,7 +50,7 @@
             "head": "flatTop",
             "accessories": "glasses",
             "accessoriesProbability": 100,
-            "facialHair": "full2",
+            "facialHair": "moustache7",
             "facialHairProbability": 100,
             "skinColor": "edb98a",
             "headContrastColor": "a55728"
@@ -179,7 +179,7 @@
             "head": "flatTop",
             "accessories": "glasses3",
             "accessoriesProbability": 100,
-            "facialHair": "full",
+            "facialHair": "goatee1",
             "facialHairProbability": 100,
             "skinColor": "694d3d",
             "headContrastColor": "2c1b18"
@@ -192,7 +192,7 @@
             "head": "short5",
             "accessories": "glasses3",
             "accessoriesProbability": 100,
-            "facialHair": "full3",
+            "facialHair": "chin",
             "facialHairProbability": 100,
             "skinColor": "ae5d29",
             "headContrastColor": "2c1b18"
@@ -218,7 +218,7 @@
             "head": "short3",
             "accessories": "glasses2",
             "accessoriesProbability": 100,
-            "facialHair": "goatee2",
+            "facialHair": "goatee1",
             "facialHairProbability": 100,
             "skinColor": "d08b5b",
             "headContrastColor": "2c1b18"
@@ -335,9 +335,9 @@
             "head": "pomp",
             "accessories": "sunglasses",
             "accessoriesProbability": 0,
-            "facialHair": "moustache3",
+            "facialHair": "chin",
             "facialHairProbability": 100,
-            "skinColor": "ae5d29",
+            "skinColor": "edb98a",
             "headContrastColor": "724133"
           }
         },
@@ -348,9 +348,9 @@
             "head": "short4",
             "accessories": "glasses2",
             "accessoriesProbability": 100,
-            "facialHair": "full4",
+            "facialHair": "moustache7",
             "facialHairProbability": 100,
-            "skinColor": "ae5d29",
+            "skinColor": "694d3d",
             "headContrastColor": "2c1b18"
           }
         },
@@ -374,7 +374,7 @@
             "head": "noHair2",
             "accessories": "glasses4",
             "accessoriesProbability": 100,
-            "facialHair": "moustache5",
+            "facialHair": "chin",
             "facialHairProbability": 100,
             "skinColor": "ffdbb4",
             "headContrastColor": "b58143"
@@ -440,7 +440,7 @@
             "accessories": "glasses4",
             "accessoriesProbability": 100,
             "facialHairProbability": 0,
-            "skinColor": "694d3d",
+            "skinColor": "ffdbb4",
             "headContrastColor": "2c1b18"
           }
         },
@@ -452,7 +452,7 @@
             "accessories": "glasses3",
             "accessoriesProbability": 100,
             "facialHairProbability": 0,
-            "skinColor": "ae5d29",
+            "skinColor": "d08b5b",
             "headContrastColor": "2c1b18"
           }
         }

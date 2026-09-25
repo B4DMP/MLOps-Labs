@@ -361,11 +361,12 @@ export function speak(text: string, opts: SpeakOptions): () => void {
   return cancel;
 }
 
-/** Stops whatever `speak()` queued, wherever it was called from. */
+/** Stops whatever is currently narrating, wherever it was started from - routes through the
+ * module-level arbiter (`currentStop`) rather than reaching for `window.speechSynthesis` directly,
+ * since the active narration may instead be backend audio (an `HTMLAudioElement`), which a bare
+ * `speechSynthesis.cancel()` does nothing to stop. */
 export function cancelSpeech(): void {
-  if (hasSpeechSynthesis()) {
-    window.speechSynthesis.cancel();
-  }
+  currentStop?.();
 }
 
 export interface SpeakAutoOptions extends SpeakOptions {

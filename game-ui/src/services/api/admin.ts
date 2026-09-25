@@ -160,6 +160,21 @@ export async function removeAdminCampaign(campaignKey: string): Promise<AdminDas
   return response.json();
 }
 
+export async function removeAllAdminCampaigns(): Promise<AdminDashboardData> {
+  const response = await fetch(`${BASE_URL}/api/admin/campaigns`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", ...csrfHeaders() },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Failed to delete all campaigns.");
+  }
+
+  return response.json();
+}
+
 export async function removeAdminPlayer(playerName: string): Promise<AdminDashboardData> {
   const response = await fetch(`${BASE_URL}/api/admin/players/${encodeURIComponent(playerName)}`, {
     method: "DELETE",
