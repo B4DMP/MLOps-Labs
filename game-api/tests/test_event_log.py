@@ -1,6 +1,7 @@
 """The event log (plan 11, D51): the domain model, the cause config, and the load-time check
 that every cause code used in code actually exists in `gameConfig/EventCauses.json`."""
 
+import uuid
 from pathlib import Path
 
 import pytest
@@ -100,9 +101,9 @@ def event_log_db():
     from mlops_serious_game.infrastructure.database.connection import get_session
     from mlops_serious_game.infrastructure.database.models import GameEventRow
 
-    username = "test_event_log_user"
-    with get_session() as session:
-        session.query(GameEventRow).filter(GameEventRow.user_name == username).delete()
+    # Unique per test run - a hardcoded username here raced with itself under xdist/parallel runs
+    # (or leaked rows from an interrupted prior run) and threw off the exact seq assertions below.
+    username = f"test_event_log_user_{uuid.uuid4().hex[:8]}"
     ensure_test_user(username)
     yield username
     with get_session() as session:

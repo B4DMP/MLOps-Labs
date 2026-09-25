@@ -25,6 +25,23 @@ from mlops_serious_game.config import settings
 from mlops_serious_game.infrastructure.api import app
 from mlops_serious_game.infrastructure.database import Campaign, User, get_session
 
+# Every fixture/test below shares this one campaign instead of minting a fresh
+# `tts-*-campaign-<uuid>` per test - `register_user` needs `is_test_campaign` set to accept an
+# empty email/password-policy-free registration, so this get-or-create also forces that flag on
+# in case the row was created by an older test run before this campaign carried it.
+TEST_CAMPAIGN_KEY = "tts-test-campaign"
+
+
+def _get_or_create_tts_test_campaign(session) -> Campaign:
+    campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == TEST_CAMPAIGN_KEY))
+    if campaign is None:
+        campaign = Campaign(campaign_name=TEST_CAMPAIGN_KEY, campaign_key=TEST_CAMPAIGN_KEY, is_test_campaign=True)
+        session.add(campaign)
+        session.flush()
+    elif not campaign.is_test_campaign:
+        campaign.is_test_campaign = True
+    return campaign
+
 
 # ---------- voice/prosody selection (pure, no mocking) ----------
 
@@ -118,17 +135,12 @@ def _clear_cookie_jar(client):
 def logged_in_player(client):
     username = f"tts_test_{uuid.uuid4().hex[:8]}"
     password = "correct-horse-battery-staple"
-    campaign_key = "tts-test-campaign"
 
     with get_session() as session:
-        campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
-        if campaign is None:
-            campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
-            session.add(campaign)
-            session.flush()
+        campaign = _get_or_create_tts_test_campaign(session)
         session.add(User(
             user_name=username,
-            campaign_key=campaign_key,
+            campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
             password_hash=_hash_password(password),
@@ -218,17 +230,12 @@ def logged_in_player_with_voice_gender(client):
     def _make(gender: str) -> dict:
         username = f"tts_gender_test_{uuid.uuid4().hex[:8]}"
         password = "correct-horse-battery-staple"
-        campaign_key = "tts-test-campaign"
 
         with get_session() as session:
-            campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
-            if campaign is None:
-                campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
-                session.add(campaign)
-                session.flush()
+            campaign = _get_or_create_tts_test_campaign(session)
             session.add(User(
                 user_name=username,
-                campaign_key=campaign_key,
+                campaign_key=TEST_CAMPAIGN_KEY,
                 campaign_id=campaign.id,
                 email=f"{username}@example.test",
                 password_hash=_hash_password(password),
@@ -327,17 +334,12 @@ def test_tts_endpoint_reads_speed_from_the_players_own_settings(client, logged_i
 def test_tts_endpoint_speed_setting_shifts_the_rate(client):
     username = f"tts_speed_test_{uuid.uuid4().hex[:8]}"
     password = "correct-horse-battery-staple"
-    campaign_key = "tts-test-campaign"
 
     with get_session() as session:
-        campaign = session.scalar(select(Campaign).where(Campaign.campaign_key == campaign_key))
-        if campaign is None:
-            campaign = Campaign(campaign_name=campaign_key, campaign_key=campaign_key)
-            session.add(campaign)
-            session.flush()
+        campaign = _get_or_create_tts_test_campaign(session)
         session.add(User(
             user_name=username,
-            campaign_key=campaign_key,
+            campaign_key=TEST_CAMPAIGN_KEY,
             campaign_id=campaign.id,
             email=f"{username}@example.test",
             password_hash=_hash_password(password),
@@ -371,14 +373,13 @@ def test_tts_endpoint_speed_setting_shifts_the_rate(client):
 
 @pytest.mark.anyio
 async def test_registering_with_a_voice_gender_round_trips_through_settings():
-    campaign_key = f"tts-register-campaign-{uuid.uuid4().hex[:8]}"
     with get_session() as session:
-        session.add(Campaign(campaign_name=campaign_key, campaign_key=campaign_key, is_test_campaign=True))
+        _get_or_create_tts_test_campaign(session)
 
     username = f"tts_register_{uuid.uuid4().hex[:8]}"
     result = await register_user(
         username, "", "", "correct-horse-battery-staple", "correct-horse-battery-staple",
-        1, campaign_key, "female",
+        1, TEST_CAMPAIGN_KEY, "female",
     )
 
     assert result["success"] is True
@@ -387,15 +388,14 @@ async def test_registering_with_a_voice_gender_round_trips_through_settings():
 
 @pytest.mark.anyio
 async def test_registering_with_an_unset_or_garbage_voice_gender_defaults_to_male():
-    campaign_key = f"tts-register-campaign-{uuid.uuid4().hex[:8]}"
     with get_session() as session:
-        session.add(Campaign(campaign_name=campaign_key, campaign_key=campaign_key, is_test_campaign=True))
+        _get_or_create_tts_test_campaign(session)
 
     for gender, label in [(None, "unset"), ("nonbinary", "garbage")]:
         username = f"tts_register_default_{label}_{uuid.uuid4().hex[:8]}"
         result = await register_user(
             username, "", "", "correct-horse-battery-staple", "correct-horse-battery-staple",
-            1, campaign_key, gender,
+            1, TEST_CAMPAIGN_KEY, gender,
         )
 
         assert result["success"] is True
