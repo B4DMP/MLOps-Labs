@@ -245,6 +245,34 @@ class EmotionFactory:
         return ret
 
     @classmethod
+    def derive_all_dimensions(cls, ev: EmotionValues) -> list[dict[str, str]]:
+        """All configured emotion dimensions, bucketed Low/Medium/High - unlike
+        derive_gating_dimensions, not limited to the dimensions gating the current state.
+        For the dossier's full emotion reveal.
+        """
+        dims: list[dict[str, str]] = []
+        for dim in cls.get_emotion_values():
+            val = ev.get(dim.id, 0.5) if isinstance(ev, dict) else getattr(ev, dim.id, 0.5)
+            dims.append({"metric": dim.id, "bucket": cls._bucket_dimension_value(val)})
+        return dims
+
+    @classmethod
+    def get_all_dimensions_dict(cls, emotion_values_dict: dict[str, Any]) -> dict[str, list[dict[str, str]]]:
+        """Returns a mapping of stakeholder_id -> all 7 bucketed dimensions, mirroring
+        get_emotion_dimensions_dict."""
+        ret = {}
+        for key, ev in (emotion_values_dict or {}).items():
+            if isinstance(ev, dict):
+                ret[key] = cls.derive_all_dimensions(ev)
+            elif hasattr(ev, "model_dump"):
+                ret[key] = cls.derive_all_dimensions(ev.model_dump())
+            elif hasattr(ev, "dict"):
+                ret[key] = cls.derive_all_dimensions(ev.dict())
+            else:
+                ret[key] = []
+        return ret
+
+    @classmethod
     def derive_facial_expression_for_state(cls, state_name: str) -> str:
         """Retrieves the character avatar facial expression corresponding to the given emotion state."""
         cls.ensure_loaded()

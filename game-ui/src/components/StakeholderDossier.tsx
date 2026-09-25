@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from 
 import { createPortal } from "react-dom";
 import { Icon } from "@iconify/react";
 import styles from "./StakeholderDossier.module.css";
-import { StakeholderContext, type EmotionGatingInfo } from "./StakeholderProvider";
+import { StakeholderContext, type EmotionGatingInfo, type EmotionGatingDimension } from "./StakeholderProvider";
 
 import { MetricsContext } from "./MetricProvider";
 import { PhasesContext, isFirstPlayablePhase, type PhaseData } from "./PhaseProvider";
@@ -13,6 +13,7 @@ import { INTEL_TAGS, intelTagMeta } from "../types/IntelTag";
 import { faceForEmotionState, iconForEmotionState } from "../utils/emotionFace";
 import { healthBucket, healthBucketColor, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import CheatSheetModal from "./CheatSheetModal";
+import HoverTooltip from "./HoverToolTip";
 
 /** Answer key for one authored item. Only sent when the API runs with ENABLE_DOSSIER_DEBUG. */
 export interface IntelDebugInfo {
@@ -337,16 +338,31 @@ const EMOTION_DIMENSION_LABEL: Record<string, string> = {
   fairness: "Fairness",
 };
 
+/** One-line, player-facing "how to move this" hint per dimension - shown as a hover/focus
+ * tooltip on that dimension's row in the reveal card. Framed as an action, not a mechanic.
+ * Source: docs/plans/pitch-debate-and-intel-item-redesign/02-stakeholder-emotion-changes.md
+ * (section 2.4) and the malus/veto tables (sections 3-4) - keep in sync with whatever actually
+ * moves that dimension in domain/emotion.py. */
+const EMOTION_DIMENSION_HINT: Record<string, string> = {
+  trust: "Deliver what you promised them",
+  interest: "Keep addressing what they actually asked for",
+  stress: "Resolve their blockers, avoid boundary breaches",
+  confidence: "Ship clean, working simulation runs",
+  perceived_risk: "Close compliance and safety gaps",
+  sense_of_control: "Give their agenda a real seat at the table",
+  fairness: "Match their share of demands with a share of slots",
+};
+
 /** Level/tick styling for each bucket. The backend only ever hands over one of three buckets, so
  * the reveal shows exactly three discrete steps rather than a continuous-looking bar - `level` is
  * how many of the three segments light up, never a percentage. */
 const EMOTION_BUCKET_META: Record<
   "low" | "medium" | "high",
-  { label: string; level: 1 | 2 | 3; tickClass: string; fillClass: string; wordClass: string }
+  { label: string; level: 1 | 2 | 3; fillClass: string; wordClass: string }
 > = {
-  low: { label: "Low", level: 1, tickClass: styles.emotionTickLow, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
-  medium: { label: "Med", level: 2, tickClass: styles.emotionTickMedium, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
-  high: { label: "High", level: 3, tickClass: styles.emotionTickHigh, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
+  low: { label: "Low", level: 1, fillClass: styles.emotionFillLow, wordClass: styles.emotionWordLow },
+  medium: { label: "Med", level: 2, fillClass: styles.emotionFillMedium, wordClass: styles.emotionWordMedium },
+  high: { label: "High", level: 3, fillClass: styles.emotionFillHigh, wordClass: styles.emotionWordHigh },
 };
 
 /** Dimensions where a *drop* is the good outcome for the stakeholder (less stress, less
@@ -405,7 +421,8 @@ const EmotionRevealBadge: React.FC<{
   emotionDisplay: string;
   emotionColor: string;
   gatingInfo?: EmotionGatingInfo;
-}> = ({ emotionDisplay, emotionColor, gatingInfo }) => {
+  fullDimensions?: EmotionGatingDimension[];
+}> = ({ emotionDisplay, emotionColor, gatingInfo, fullDimensions }) => {
   const gatingDims = gatingInfo?.dimensions || [];
   const hasReveal = gatingDims.length > 0;
   const isCurrent = gatingInfo?.is_current ?? true;
@@ -414,19 +431,58 @@ const EmotionRevealBadge: React.FC<{
   // actually triggered.
   const revealTitle = isCurrent ? `Why ${emotionDisplay.toLowerCase()}` : "Steady for now";
 
+  const gatingMetrics = new Set(gatingDims.map((d) => d.metric));
+  // All 7 dimensions, gating ones first (in their gating order), then the rest in the fixed,
+  // stable order EMOTION_DIMENSION_LABEL's keys already give - falls back to just the gating
+  // dims if the full set hasn't arrived yet.
+  const allDims: EmotionGatingDimension[] =
+    fullDimensions && fullDimensions.length > 0
+      ? [
+          ...gatingDims,
+          ...Object.keys(EMOTION_DIMENSION_LABEL)
+            .filter((metric) => !gatingMetrics.has(metric))
+            .map((metric) => fullDimensions.find((d) => d.metric === metric))
+            .filter((d): d is EmotionGatingDimension => Boolean(d)),
+        ]
+      : gatingDims;
+
   const [show, setShow] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
 
+  const hideTimeoutRef = useRef<number | null>(null);
+  const clearHideTimeout = () => {
+    if (hideTimeoutRef.current !== null) {
+      window.clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  };
+
   const handleShow = () => {
+    clearHideTimeout();
     if (anchorRef.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       setCoords({ top: rect.bottom + EMOTION_REVEAL_EDGE_MARGIN, left: rect.left });
     }
     setShow(true);
   };
-  const handleHide = () => setShow(false);
+  // Hides on a short delay rather than instantly: moving the mouse from the badge down into the
+  // portaled card crosses a small gap that belongs to neither element, and closing the instant
+  // that gap is entered would make the card impossible to hover into (and its per-dimension
+  // `title` hints impossible to read). handleShow - fired by either the badge or the card itself
+  // - cancels the pending hide before it fires.
+  const handleHide = () => {
+    clearHideTimeout();
+    hideTimeoutRef.current = window.setTimeout(() => setShow(false), 200);
+  };
+  // Keyboard blur has no such gap to bridge, so it hides immediately.
+  const handleBlur = () => {
+    clearHideTimeout();
+    setShow(false);
+  };
+
+  useEffect(() => clearHideTimeout, []);
 
   // Flip above the badge when the card would run off the bottom of the window, and keep it
   // inside the viewport horizontally. Mirrors HoverToolTip's own layout pass.
@@ -465,7 +521,7 @@ const EmotionRevealBadge: React.FC<{
       onMouseEnter={hasReveal ? handleShow : undefined}
       onMouseLeave={hasReveal ? handleHide : undefined}
       onFocus={hasReveal ? handleShow : undefined}
-      onBlur={hasReveal ? handleHide : undefined}
+      onBlur={hasReveal ? handleBlur : undefined}
     >
       <Icon
         icon={iconForEmotionState(emotionDisplay)}
@@ -478,20 +534,34 @@ const EmotionRevealBadge: React.FC<{
           className={`${styles.emotionMicroTicks} ${!isCurrent ? styles.emotionMicroTicksPending : ""}`}
           aria-hidden="true"
         >
-          {gatingDims.slice(0, 3).map((dim, idx) => (
-            <span
-              key={idx}
-              className={`${styles.emotionMicroTick} ${
-                getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high").tickClass
-              } ${!isCurrent ? styles.emotionMicroTickPending : ""}`}
-            />
-          ))}
+          {gatingDims.slice(0, 3).map((dim, idx) => {
+            const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
+            const levelClass =
+              meta.level === 1
+                ? styles.emotionMicroTickLevel1
+                : meta.level === 2
+                ? styles.emotionMicroTickLevel2
+                : styles.emotionMicroTickLevel3;
+            return (
+              <span
+                key={idx}
+                className={`${styles.emotionMicroTick} ${levelClass} ${
+                  !isCurrent ? styles.emotionMicroTickPending : meta.fillClass
+                }`}
+              />
+            );
+          })}
         </span>
       )}
       {hasReveal &&
         show &&
         createPortal(
-          <div className={styles.emotionRevealAnchor} style={{ top: `${coords.top}px`, left: `${coords.left}px` }}>
+          <div
+            className={styles.emotionRevealAnchor}
+            style={{ top: `${coords.top}px`, left: `${coords.left}px` }}
+            onMouseEnter={handleShow}
+            onMouseLeave={handleHide}
+          >
             <div
               ref={cardRef}
               className={`${styles.emotionRevealCard} ${!isCurrent ? styles.emotionRevealCardPending : ""}`}
@@ -499,13 +569,28 @@ const EmotionRevealBadge: React.FC<{
             >
               <div className={styles.emotionRevealTitle}>{revealTitle}</div>
               <div className={styles.emotionRevealDims}>
-                {gatingDims.map((dim, idx) => {
+                {allDims.map((dim, idx) => {
                   const meta = getEmotionBucketMeta(dim.metric, dim.bucket as "low" | "medium" | "high");
+                  const isGating = gatingMetrics.has(dim.metric);
                   return (
                     <div className={styles.emotionDimRow} key={idx}>
-                      <span className={styles.emotionDimName}>
-                        {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
-                      </span>
+                      {/* Portals to document.body (HoverTooltip's default), same as the reveal
+                          card itself - NOT into the card's own subtree. That subtree sits under
+                          .emotionRevealAnchor, which sets `perspective` for the card's flip
+                          animation; `perspective` (like `transform`) creates a new containing
+                          block for `position: fixed` descendants, which silently breaks this
+                          tooltip's viewport-relative coordinates. Staying above HoverTooltip's own
+                          z-index (see HoverToolTip.module.css) is what keeps it visible instead. */}
+                      <HoverTooltip description={EMOTION_DIMENSION_HINT[dim.metric] || ""}>
+                        <span
+                          className={`${styles.emotionDimName} ${
+                            isGating ? styles.emotionDimNameGating : ""
+                          }`}
+                        >
+                          {EMOTION_DIMENSION_LABEL[dim.metric] || dim.metric}
+                          <Icon icon="ph:info-bold" className={styles.emotionDimHintIcon} />
+                        </span>
+                      </HoverTooltip>
                       <span className={styles.emotionDimSegments}>
                         {[1, 2, 3].map((seg) => (
                           <span
@@ -1598,6 +1683,7 @@ export default function StakeholderDossier({
                 emotionDisplay={emotionDisplay}
                 emotionColor={emotionColor}
                 gatingInfo={stObj?.emotion_dimensions}
+                fullDimensions={stObj?.emotion_dimensions_full}
               />
               <div
                 className={styles.powerInterestBadge}

@@ -14,7 +14,11 @@
     max-width: 260px;
     width: max-content;
     position: fixed;
-    z-index: 9999;
+    /* Above every known fixed-position overlay in the app, including the stakeholder dossier's
+       own emotion reveal card (z-index 10000, StakeholderDossier.module.css) which can host a
+       nested HoverTooltip on hover of one of its rows. Tooltips are meant to always be the
+       topmost thing on screen, so this only ever needs to go up, never down. */
+    z-index: 10010;
 
     background: #f8fafc;
     color: #0f172a;

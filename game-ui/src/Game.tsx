@@ -361,6 +361,7 @@ function App({ username: _username, onLogout }: AppProps) {
           st.stakeholder_color = associatedMetric ? associatedMetric.metric_color : (st.stakeholder_color || colorForStakeholderId(stId));
           st.emotional_state = (data.emotional_states && data.emotional_states[st.id]) || st.emotional_state || "neutral";
           st.emotion_dimensions = (data.emotion_dimensions && data.emotion_dimensions[st.id]) || st.emotion_dimensions;
+          st.emotion_dimensions_full = (data.emotion_dimensions_full && data.emotion_dimensions_full[st.id]) || st.emotion_dimensions_full;
           if (st.avatar) {
             st.avatar.clothingColor = st.stakeholder_color;
           }
@@ -487,6 +488,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
@@ -515,6 +517,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
@@ -632,6 +635,7 @@ function App({ username: _username, onLogout }: AppProps) {
                 ...updated[stId],
                 emotional_state: data.emotional_states[stId],
                 emotion_dimensions: data.emotion_dimensions?.[stId] ?? updated[stId].emotion_dimensions,
+                emotion_dimensions_full: data.emotion_dimensions_full?.[stId] ?? updated[stId].emotion_dimensions_full,
               };
             }
           });
