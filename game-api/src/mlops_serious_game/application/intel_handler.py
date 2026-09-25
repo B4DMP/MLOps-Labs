@@ -1109,6 +1109,21 @@ def speaker_of(item) -> Optional[str]:
     return artifact.narrator_id if artifact else None
 
 
+def _stakeholder_pool(challenge_id: int, stakeholder_id: str) -> List[StakeholderRequirement]:
+    """Everything that can legitimately end up on this stakeholder's dossier page for this
+    challenge: their own stances, plus any unconfirmed Fact they narrate. A Fact a player has not
+    yet tagged (or has mistagged as a stance) sits on its narrator's page until it is - see
+    `speaker_of` - so the pool has to count it there too, or `intel_total` would swing depending
+    on however the player currently has that one item tagged, undercounting it whenever it is not
+    (yet, or ever) correctly tagged as a Fact."""
+    own = RequirementFactory.get_requirements_for_stakeholder_in_challenge(challenge_id, stakeholder_id)
+    narrated = [
+        r for r in RequirementFactory.get_requirements_for_challenge(challenge_id)
+        if r.type == IntelTag.FACT and speaker_of(r) == stakeholder_id
+    ]
+    return own + narrated
+
+
 def _stakeholder_or_none(stakeholder_id: Optional[str]):
     if not stakeholder_id:
         return None
@@ -1294,7 +1309,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             continue
         ch_st = ph_st_map.get(st.id)
         intel_entries = stakeholder_intel_map.get(st_id, [])
-        st_pool = RequirementFactory.get_requirements_for_stakeholder_in_challenge(curr_challenge.id, st.id)
+        st_pool = _stakeholder_pool(curr_challenge.id, st.id)
 
         debug_fields = {}
         if debug_on:
