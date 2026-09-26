@@ -41,9 +41,13 @@ TEMPLATE = {
         {"kind": "set_to", "target": "data.labeling", "axis": "automation", "value": "0", "reason": "the labelling tool lost its input"},
     ],
     "stalemate_ops": [{"kind": "set_to", "target": "e.validate_version", "axis": "automation", "value": "0", "reason": "nobody owned the hand over"}],
+    # emilia's position is on governance, not automation: dave's automation=3 driver (below) targets
+    # the same component but a different axis, so it never sits above a compromise ceiling this
+    # conflict authors - unlike an automation position below 3 would (data.validation only allows
+    # governance 0 or 3, so this also has to be 3, not a lower "compromise" value).
     "conflict": {"target": "data.validation",
                  "positions": [{"stakeholder_id": "data_dave", "axis": "automation", "wants": 3},
-                               {"stakeholder_id": "efficiency_emilia", "axis": "automation", "wants": 1}]},
+                               {"stakeholder_id": "efficiency_emilia", "axis": "governance", "wants": 3}]},
 }
 
 ITEMS = {"items": [

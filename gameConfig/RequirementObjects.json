@@ -682,19 +682,54 @@
       "id": "gen_silent_ingestion_failure_ruth_driver_ingest",
       "challenge_id": 120,
       "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} proposed automating the data ingestion pipeline to guarantee timely arrival of store scan lines. The more reliable the ingestion, the fewer times the forecast job runs on incomplete data.",
-      "fact": "{reliability_ruth} proposed automating the data ingestion pipeline to guarantee timely arrival of store scan lines.",
-      "reading": "The more reliable the ingestion, the fewer times the forecast job runs on incomplete data.",
+      "type": "trade_off",
+      "description": "{reliability_ruth} proposed automating the data pipeline end to end to guarantee timely arrival of store scan lines. She would settle for basic ingestion with a manual verification step if that is what keeps the forecast job moving.",
+      "fact": "{reliability_ruth} proposed automating the data pipeline end to end to guarantee timely arrival of store scan lines.",
+      "reading": "She would settle for basic ingestion with a manual verification step if that is what keeps the forecast job moving.",
       "metric_id": "reliability",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "data.ingestion",
-        "level": 3,
+        "accepts_max_level": 2,
         "axis": "automation"
       },
-      "ops": [],
-      "branch_x_atoms": [],
-      "branch_y_atoms": [],
+      "branch_x": {
+        "description": "the whole pipeline automated end to end - ingestion, validation and versioning all raised together",
+        "target": "data.ingestion",
+        "level": 3,
+        "axis": "automation",
+        "ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.validation",
+            "value": 3,
+            "axis": "automation"
+          },
+          {
+            "kind": "raise_to",
+            "target": "data.versioning",
+            "value": 3,
+            "axis": "automation"
+          }
+        ],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "basic ingestion with a manual verification step, same pace Dave is willing to accept",
+        "target": "data.ingestion",
+        "level": 2,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_x_atoms": [
+        "raise_to(data.ingestion, 3)",
+        "raise_to(data.validation, 3)",
+        "raise_to(data.versioning, 3)"
+      ],
+      "branch_y_atoms": [
+        "raise_to(data.ingestion, 2)"
+      ],
       "atoms": [],
       "gist": "Timely arrival of store scan lines in the nightly ingestion pipeline keeps coming up in reliability discussions."
     },
@@ -889,24 +924,33 @@
       "id": "gen_nightly_window_miss_ruth_validation_driver",
       "challenge_id": 116,
       "stakeholder_id": "reliability_ruth",
-      "type": "driver",
-      "description": "{reliability_ruth} proposed automating the data validation step. Automated validation catches bad data instantly, preventing the morning order window from being missed again.",
+      "type": "trade_off",
+      "description": "{reliability_ruth} proposed automating the data validation step. She would settle for a smaller step up if it still catches bad data before the morning order window closes.",
       "fact": "{reliability_ruth} proposed automating the data validation step.",
-      "reading": "Automated validation catches bad data instantly, preventing the morning order window from being missed again.",
+      "reading": "She would settle for a smaller step up if it still catches bad data before the morning order window closes.",
       "metric_id": "reliability",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "data.validation",
-        "level": 3,
+        "accepts_max_level": 2,
         "axis": "automation"
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "data.validation",
-          "value": 3,
-          "axis": "automation"
-        }
-      ],
+      "branch_x": {
+        "description": "data validation fully automated",
+        "target": "data.validation",
+        "level": 3,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "data validation raised just enough to clear the backlog, short of full automation",
+        "target": "data.validation",
+        "level": 2,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1118,24 +1162,33 @@
       "id": "gen_heatwave_forecast_gap_monica_driver_eval",
       "challenge_id": 112,
       "stakeholder_id": "model_monica",
-      "type": "driver",
-      "description": "{model_monica} asked for automated testing of new weather features in the evaluation harness. Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "type": "trade_off",
+      "description": "{model_monica} asked for automated testing of new weather features in the evaluation harness. She would accept keeping the harness manual for now if that is what it takes to get a decision before the next heatwave.",
       "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
-      "reading": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
+      "reading": "She would accept keeping the harness manual for now if that is what it takes to get a decision before the next heatwave.",
       "metric_id": "model",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "model.evaluation",
-        "level": 3,
+        "accepts_max_level": 1,
         "axis": "automation"
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.evaluation",
-          "value": 3,
-          "axis": "automation"
-        }
-      ],
+      "branch_x": {
+        "description": "the evaluation harness fully automated for rapid feature iteration",
+        "target": "model.evaluation",
+        "level": 3,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "the evaluation harness brought back up manually, one documented case at a time",
+        "target": "model.evaluation",
+        "level": 1,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1204,24 +1257,33 @@
       "id": "gen_heatwave_forecast_gap_emilia_driver_eff",
       "challenge_id": 112,
       "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue. Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue. She would accept the harness staying manual if a quick decision matters more than the turnaround time right now.",
       "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
-      "reading": "Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
+      "reading": "She would accept the harness staying manual if a quick decision matters more than the turnaround time right now.",
       "metric_id": "efficiency",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "model.evaluation",
-        "level": 3,
+        "accepts_max_level": 1,
         "axis": "automation"
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "model.evaluation",
-          "value": 3,
-          "axis": "automation"
-        }
-      ],
+      "branch_x": {
+        "description": "the evaluation harness fully automated for a fast turnaround",
+        "target": "model.evaluation",
+        "level": 3,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "the evaluation harness brought back up manually, slower but immediate",
+        "target": "model.evaluation",
+        "level": 1,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -1611,17 +1673,33 @@
       "id": "gen_loyalty_data_deployment_block_alex_promotion_deadline",
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
-      "type": "driver",
-      "description": "{automation_alex} proposed accelerating the deployment of the loyalty data model to meet the promotion deadline. The promotion deadline is fixed, and a faster deployment path ensures the new model is live before the leaflet prints.",
+      "type": "trade_off",
+      "description": "{automation_alex} proposed accelerating the deployment of the loyalty data model to meet the promotion deadline. He would accept the audited, compliance-checked pace if that is what keeps the deadline from slipping further.",
       "fact": "{automation_alex} proposed accelerating the deployment of the loyalty data model to meet the promotion deadline.",
-      "reading": "The promotion deadline is fixed, and a faster deployment path ensures the new model is live before the leaflet prints.",
+      "reading": "He would accept the audited, compliance-checked pace if that is what keeps the deadline from slipping further.",
       "metric_id": "automation",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "deploy.cicd",
-        "level": 3,
+        "accepts_max_level": 2,
         "axis": "automation"
       },
-      "ops": [],
+      "branch_x": {
+        "description": "pushing the deployment pipeline to full automation to beat the deadline",
+        "target": "deploy.cicd",
+        "level": 3,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "the deployment pipeline held at the audited, compliance-checked level",
+        "target": "deploy.cicd",
+        "level": 2,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],
@@ -2558,24 +2636,33 @@
       "id": "gen_cost_crisis_drift_gap_emilia_efficiency_kpi",
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
-      "type": "driver",
-      "description": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI. She wants to ensure that every dollar spent on monitoring contributes directly to operational efficiency.",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI. She would leave logging at its current granularity if the budget stays flat, but wants full observability if the spend is approved.",
       "fact": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI.",
-      "reading": "She wants to ensure that every dollar spent on monitoring contributes directly to operational efficiency.",
+      "reading": "She would leave logging at its current granularity if the budget stays flat, but wants full observability if the spend is approved.",
       "metric_id": "efficiency",
-      "suggested": {
+      "ops": [],
+      "concedes": {
         "target": "ops.observability",
-        "level": 3,
+        "accepts_max_level": 2,
         "axis": "automation"
       },
-      "ops": [
-        {
-          "kind": "raise_to",
-          "target": "ops.observability",
-          "value": 3,
-          "axis": "automation"
-        }
-      ],
+      "branch_x": {
+        "description": "full observability automation, budget permitting",
+        "target": "ops.observability",
+        "level": 3,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
+      "branch_y": {
+        "description": "observability left at its current, cheaper granularity",
+        "target": "ops.observability",
+        "level": 2,
+        "axis": "automation",
+        "ops": [],
+        "atoms": []
+      },
       "branch_x_atoms": [],
       "branch_y_atoms": [],
       "atoms": [],

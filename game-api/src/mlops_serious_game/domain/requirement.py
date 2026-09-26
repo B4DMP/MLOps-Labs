@@ -231,6 +231,59 @@ def item_target_and_level(item: "StakeholderRequirement") -> tuple[Optional[str]
     return None, None, None
 
 
+def foreclosed_compromises(reqs: list["StakeholderRequirement"], conflict: Optional[Any] = None) -> list[str]:
+    """Every Driver in `reqs` that forces a (target, axis) level past a compromise ceiling
+    authored elsewhere in the same challenge - a Trade-off's `concedes`/`branch_x`/`branch_y`, or a
+    *soft* `ChallengeConflict`'s position (duck-typed: any object with `.type`, `.target` and
+    `.positions`, each position carrying `.axis`/`.wants`) - silently ruling out the resolution
+    that ceiling represents, no matter which stakeholder authored either item. A *hard* conflict's
+    losing position is a Boundary, not a negotiable compromise (Challenge.py's own docstring: "hard:
+    it holds a Boundary"), so it is excluded here - crossing it is already the boundary-violation
+    mechanic's job, not this one's.
+
+    The ceiling for a (target, axis) is the lowest level anything in the challenge treats as an
+    acceptable resolution there; a Driver asking for more than that removes the option of settling
+    for the cheaper resolution, even if the Driver's own stakeholder would still be technically
+    "satisfied" by overshooting it. Returns one message per violation, empty when nothing forecloses
+    anything.
+    """
+    ceilings: dict[tuple[str, str], int] = {}
+
+    def _note(target: Optional[str], axis: Optional[str], level: Optional[int]) -> None:
+        if target is None or axis is None or level is None:
+            return
+        key = (target, axis)
+        if key not in ceilings or level < ceilings[key]:
+            ceilings[key] = level
+
+    for r in reqs:
+        if r.type != IntelTag.TRADE_OFF:
+            continue
+        if r.concedes is not None and r.concedes.accepts_max_level is not None:
+            _note(r.concedes.target, r.concedes.axis, r.concedes.accepts_max_level)
+        for branch in (r.branch_x, r.branch_y):
+            if branch is not None:
+                _note(branch.target, branch.axis, branch.level)
+
+    conflict_type = getattr(conflict, "type", None)
+    if conflict is not None and getattr(conflict_type, "value", conflict_type) == "soft":
+        for pos in getattr(conflict, "positions", None) or []:
+            _note(getattr(conflict, "target", None), getattr(pos, "axis", None), getattr(pos, "wants", None))
+
+    violations: list[str] = []
+    for r in reqs:
+        if r.type != IntelTag.DRIVER or r.suggested is None:
+            continue
+        ceiling = ceilings.get((r.suggested.target, r.suggested.axis))
+        if ceiling is not None and r.suggested.level is not None and r.suggested.level > ceiling:
+            violations.append(
+                f"driver '{r.id}' asks for {r.suggested.target} {r.suggested.axis} level "
+                f"{r.suggested.level}, above the compromise ceiling {ceiling} authored on the same "
+                "target/axis elsewhere in the challenge - it forecloses that compromise"
+            )
+    return violations
+
+
 def gist_or_fallback(item: "StakeholderRequirement", stakeholder_name: str, metric_label: Optional[str]) -> str:
     """What a Generic Question turn tells the player (D52): the authored gist when there is one,
     a template from the metric name otherwise - the game runs before the content does."""

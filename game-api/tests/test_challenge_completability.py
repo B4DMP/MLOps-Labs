@@ -24,21 +24,39 @@ MAX_SLOTS = 3
 
 
 def _candidate_changes(item) -> list[pitch.AtomicChange]:
-    """The distinct single-slot changes this item could contribute: a Driver's own suggestion, or
-    a Trade-off's two branches as mutually exclusive alternatives."""
+    """The distinct single-slot changes this item could contribute: a Driver's own suggestion (plus
+    one candidate per extra composite op it carries), or a Trade-off's two branches (plus each
+    branch's own extra composite ops) as mutually exclusive alternatives.
+
+    A composite item's ops are tried one at a time here, never combined into one slot - this
+    under-counts what a real card could cover in one go (several ops from the same item, still
+    within the card's own MAX_ATOMIC_CHANGES budget), so it can only make this search too
+    conservative, never wrongly claim a challenge is safe when it isn't."""
     out: list[pitch.AtomicChange] = []
+
+    def _raise_to_ops(ops: list[dict]) -> list[pitch.AtomicChange]:
+        return [
+            pitch.AtomicChange(target=op.get("target"), axis=op.get("axis"), value=op.get("value"), kind="raise_to")
+            for op in (ops or [])
+            if op.get("kind") == "raise_to" and op.get("target") and op.get("axis") is not None
+        ]
+
     r_type = getattr(item, "type", None)
     r_type = getattr(r_type, "value", r_type)
-    if r_type == "driver" and item.suggested is not None and item.suggested.axis is not None:
-        out.append(pitch.AtomicChange(
-            target=item.suggested.target, axis=item.suggested.axis, value=item.suggested.level, kind="raise_to",
-        ))
+    if r_type == "driver":
+        if item.suggested is not None and item.suggested.axis is not None:
+            out.append(pitch.AtomicChange(
+                target=item.suggested.target, axis=item.suggested.axis, value=item.suggested.level, kind="raise_to",
+            ))
+        out.extend(_raise_to_ops(item.ops))
     elif r_type == "trade_off":
         for branch in (item.branch_x, item.branch_y):
             if branch is not None and branch.target and branch.axis is not None and branch.level is not None:
                 out.append(pitch.AtomicChange(
                     target=branch.target, axis=branch.axis, value=branch.level, kind="raise_to",
                 ))
+            if branch is not None:
+                out.extend(_raise_to_ops(branch.ops))
     return out
 
 
@@ -118,3 +136,21 @@ def test_every_challenge_has_a_safe_branch_for_its_high_power_stakeholders(loade
         "these challenges have no <=3-slot combination of their own intel that avoids a veto "
         f"from a high-power stakeholder, starting from the fresh-seeded graph: {missing}"
     )
+
+
+def test_no_driver_forecloses_its_own_trade_off(loaded_config):
+    """No Driver may ask for a (target, axis) level above a compromise ceiling authored elsewhere
+    in its own challenge - another item's Trade-off concession/branch, or a conflict position -
+    or the compromise that ceiling represents is silently ruled out for the player (see
+    `foreclosed_compromises`)."""
+    from mlops_serious_game.domain.requirement import foreclosed_compromises
+
+    violations: list[str] = []
+    for phase in PhaseFactory.get_phases():
+        for challenge in phase.challenges:
+            if challenge.retired:
+                continue
+            intel = RequirementFactory.get_requirements_for_challenge(challenge.id)
+            for msg in foreclosed_compromises(intel, challenge.conflict):
+                violations.append(f"{challenge.template_id} (challenge {challenge.id}): {msg}")
+    assert violations == [], "\n".join(violations)

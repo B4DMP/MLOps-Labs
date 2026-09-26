@@ -87,7 +87,12 @@ class ItemOut(BaseModel):
     suggested_axis: Optional[AxisName] = Field(default=None, description="driver: axis of suggested_level")
     suggested_level: Optional[int] = None
     holds: Any = Field(default=None, description="boundary only: predicate object that must hold")
-    ops: list[StanceOp] = Field(default_factory=list)
+    ops: list[StanceOp] = Field(
+        default_factory=list,
+        description="boundary: the ops that satisfy holds. driver: optional extra raise_to ops "
+                    "beyond suggested_target, for a composite ask spanning several targets (e.g. a "
+                    "fully automated pipeline); each contributes to partial buy-in on its own",
+    )
     concedes_metric: Optional[str] = None
     concedes_loss: Optional[int] = None
     concedes_target: Optional[str] = None
@@ -102,9 +107,17 @@ class ItemOut(BaseModel):
     branch_x_description: Optional[str] = None
     branch_x_target: Optional[str] = None
     branch_x_level: Optional[int] = None
+    branch_x_ops: list[StanceOp] = Field(
+        default_factory=list, description="optional extra raise_to ops for a composite branch_x, "
+        "beyond branch_x_target/branch_x_level"
+    )
     branch_y_description: Optional[str] = None
     branch_y_target: Optional[str] = None
     branch_y_level: Optional[int] = None
+    branch_y_ops: list[StanceOp] = Field(
+        default_factory=list, description="optional extra raise_to ops for a composite branch_y, "
+        "beyond branch_y_target/branch_y_level"
+    )
 
 
 class ItemsOut(BaseModel):
@@ -156,7 +169,10 @@ Tags and payloads:
 - driver: something a stakeholder wants improved, more is better. Needs metric_id (one of the
   metrics given), suggested_target (a component or edge in the focus stage), suggested_axis and
   suggested_level (higher than its current level on that axis). The reading is a direction: more
-  is better.
+  is better. If the ask is really about several targets together (e.g. "a fully automated
+  pipeline" spanning ingestion, validation and versioning), put the main one in suggested_target
+  and the rest as extra raise_to entries in ops - the player then earns buy-in in proportion to
+  how many of them the proposal actually covers, not all-or-nothing.
 - boundary: a line a stakeholder will not cross. Needs holds, a JSON predicate that must be
   true after the player's proposal (e.g. {"component": "data.validation", "axis": "automation",
   "op": "gte", "level": 3}), and ops that make it true (e.g. {"kind": "raise_to", "target":
@@ -256,6 +272,7 @@ class ItemsStage:
         reqs = []
         for it in output["items"]:
             holds, _ = parse_json_field("holds", it.get("holds"))
+            item_ops = [op_dict(o) for o in it.get("ops") or []]
             data = {
                 "id": f"gen_{slug}_{it['key']}",
                 "challenge_id": challenge_id,
@@ -265,11 +282,20 @@ class ItemsStage:
                 "reading": it["readings"][it["tag"]],
                 "metric_id": it.get("metric_id"),
                 "holds": holds,
-                "ops": [op_dict(o) for o in it.get("ops") or []],
+                "ops": item_ops,
             }
             if it.get("suggested_target") is not None and it.get("suggested_level") is not None:
                 data["suggested"] = {"target": it["suggested_target"], "axis": it.get("suggested_axis"),
                                      "level": it["suggested_level"]}
+                # A driver's extra `ops` (beyond `suggested`) make it composite: several atomic
+                # graph operations it stands for, each earning its own share of partial buy-in
+                # (session.py's `driver_fulfillment`). `atoms` are keyed on kind/target/value only,
+                # matching the card-atom format the pitch engine builds from a proposal.
+                if it["tag"] == "driver" and item_ops:
+                    suggested_atom = f"raise_to({it['suggested_target']}, {it['suggested_level']})"
+                    data["atoms"] = [suggested_atom] + [
+                        f"{o['kind']}({o['target']}, {o['value']})" for o in item_ops if o.get("kind") == "raise_to"
+                    ]
             if any(it.get(k) is not None for k in ("concedes_metric", "concedes_target")):
                 data["concedes"] = {
                     "metric_id": it.get("concedes_metric"),
@@ -283,11 +309,19 @@ class ItemsStage:
                                    "level": it.get("asserts_level"), "trigger": it.get("asserts_trigger")}
             for branch in ("branch_x", "branch_y"):
                 if it.get(f"{branch}_description") is not None:
+                    branch_ops = [op_dict(o) for o in it.get(f"{branch}_ops") or []]
                     data[branch] = {
                         "description": it[f"{branch}_description"],
                         "target": it.get(f"{branch}_target"),
                         "level": it.get(f"{branch}_level"),
+                        "ops": branch_ops,
                     }
+                    # Same composite treatment as a driver's extra ops, one branch at a time.
+                    if branch_ops and it.get(f"{branch}_target") is not None and it.get(f"{branch}_level") is not None:
+                        branch_atom = f"raise_to({it[f'{branch}_target']}, {it[f'{branch}_level']})"
+                        data[f"{branch}_atoms"] = [branch_atom] + [
+                            f"{o['kind']}({o['target']}, {o['value']})" for o in branch_ops if o.get("kind") == "raise_to"
+                        ]
             reqs.append(StakeholderRequirement.model_validate(data))
         return reqs
 
@@ -362,19 +396,19 @@ class ItemsStage:
         for tag in ("driver", "boundary", "trade_off"):
             if not any(r.type == tag for r in stances):
                 errors.append(f"at least one {tag} is missing")
+        # Floors on trade_off/driver share are deliberately not enforced here (only the ceilings
+        # below are): a floor compels inventing an item once a stakeholder has nothing coherent
+        # left to say, which is exactly what produces a Driver that silently contradicts that same
+        # stakeholder's own Trade-off (see `foreclosed_compromises` below). The prompt still asks
+        # for a mix; this stage only fails generation for a mix that's gone too far, not one that's
+        # short, so a stakeholder can end up with fewer, sensible items instead of a manufactured
+        # contradiction.
         bounds = mix_bounds(i.get("stance_mix") or DEFAULT_STANCE_MIX, len(stances))
         counted = {tag: sum(1 for r in stances if r.type == tag) for tag in ("driver", "boundary", "trade_off")}
-        if counted["trade_off"] < bounds["trade_off_min"]:
-            errors.append(f"with {len(stances)} stances at least {bounds['trade_off_min']} must be trade_off, "
-                          f"not {counted['trade_off']}; turn a driver or a boundary into something that "
-                          "stakeholder would give up for the right price")
         if counted["trade_off"] > bounds["trade_off_max"]:
             errors.append(f"with {len(stances)} stances at most {bounds['trade_off_max']} may be trade_off, "
                           f"not {counted['trade_off']}; the room also needs people pushing for something, "
                           "so turn one back into a driver")
-        if counted["driver"] < bounds["driver_min"]:
-            errors.append(f"with {len(stances)} stances at least {bounds['driver_min']} must be driver, "
-                          f"not {counted['driver']}; a driver is what the player builds a proposal out of")
         if counted["boundary"] > bounds["boundary_max"]:
             errors.append(f"with {len(stances)} stances at most {bounds['boundary_max']} may be boundary, "
                           f"not {counted['boundary']}; a red line the player cannot bargain with is rare, "
@@ -382,6 +416,18 @@ class ItemsStage:
         for sid in roster:
             if not any(r.stakeholder_id == sid for r in stances):
                 errors.append(f"{sid} is in the room but has no stance")
+
+        from mlops_serious_game.domain.Challenge import ChallengeConflict
+        from mlops_serious_game.domain.requirement import foreclosed_compromises
+
+        conflict_obj = ChallengeConflict.model_validate(c["conflict"])
+        for msg in foreclosed_compromises(reqs, conflict_obj):
+            errors.append(
+                f"{msg}; a driver may never force a (target, axis) past a compromise level "
+                "authored as a trade_off concession/branch or a conflict position elsewhere in the "
+                "challenge - lower the driver's suggested_level, or make it a trade_off branch "
+                "instead of an unconditional demand"
+            )
 
         stage_targets = {t for t in current}
         for r in reqs:
@@ -507,10 +553,11 @@ def axis_errors(it: dict, graph) -> list[str]:
         elif target and graph.is_target(target) and level not in graph.allowed_for(target, axis):
             errors.append(f"{key}: {label} {axis} level {level} is not allowed on '{target}', "
                           f"allowed {graph.allowed_for(target, axis)}")
-    for n, op in enumerate(it.get("ops") or []):
-        get = op.get if isinstance(op, dict) else lambda k, o=op: getattr(o, k, None)
-        if get("kind") == "raise_to" and get("axis") not in AXES:
-            errors.append(f"{key}: ops[{n}] raise_to needs an axis, 'automation' or 'governance'")
+    for ops_f in ("ops", "branch_x_ops", "branch_y_ops"):
+        for n, op in enumerate(it.get(ops_f) or []):
+            get = op.get if isinstance(op, dict) else lambda k, o=op: getattr(o, k, None)
+            if get("kind") == "raise_to" and get("axis") not in AXES:
+                errors.append(f"{key}: {ops_f}[{n}] raise_to needs an axis, 'automation' or 'governance'")
     return errors
 
 

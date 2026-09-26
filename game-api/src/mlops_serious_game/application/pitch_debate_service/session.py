@@ -544,27 +544,48 @@ def player_boundary_warnings(graph: TechnicalGraph, warnings: list[BoundaryWarni
     return out
 
 
+def driver_fulfillment(
+    req: Any,
+    card_atoms: set[str],
+    target_levels: dict[tuple[str, str], int],
+) -> float:
+    """Fraction of this Driver satisfied by the card, in [0.0, 1.0].
+
+    A Driver with several `atoms` (one per atomic graph operation it names) gets partial credit
+    for however many of them the card covers - the same overlap formula `emotion.py`'s
+    `calculate_demand_alignment` already uses for the non-interactive path. A Driver with no
+    authored atoms falls back to the single target/axis/level check.
+    """
+    atoms = set(getattr(req, "atoms", None) or (req.get("atoms", []) if isinstance(req, dict) else []))
+    if atoms:
+        return len(atoms & card_atoms) / len(atoms)
+    target, asked, axis = item_target_and_level(req)
+    key = (target, axis)
+    if target and axis and key in target_levels:
+        if asked is None or target_levels[key] >= asked:
+            return 1.0
+    return 0.0
+
+
 def is_driver_satisfied(
     req: Any,
     card_atoms: set[str],
     target_levels: dict[tuple[str, str], int],
 ) -> bool:
-    atoms = set(getattr(req, "atoms", None) or (req.get("atoms", []) if isinstance(req, dict) else []))
-    if atoms and (atoms & card_atoms):
-        return True
-    target, asked, axis = item_target_and_level(req)
-    key = (target, axis)
-    if target and axis and key in target_levels:
-        if asked is None or target_levels[key] >= asked:
-            return True
-    return False
+    return driver_fulfillment(req, card_atoms, target_levels) > 0.0
 
 
-def is_trade_off_satisfied(
+def trade_off_fulfillment(
     req: Any,
     card_atoms: set[str],
     target_levels: dict[tuple[str, str], int],
-) -> bool:
+    state: Optional[GraphState] = None,
+) -> float:
+    """Fraction of this Trade-off satisfied by the card, in [0.0, 1.0]: the better-covered of its
+    two branches, or - for a `concedes`-only Trade-off with no branches - whether the conceded
+    target/axis stays at or under the level the stakeholder said she'd settle for. `state` is the
+    pre-card graph state, needed because a `concedes` target the card never touches has no entry in
+    `target_levels` but is still, correctly, satisfied by being left alone."""
     bx_atoms = set(getattr(req, "branch_x_atoms", None) or (req.get("branch_x_atoms", []) if isinstance(req, dict) else []))
     by_atoms = set(getattr(req, "branch_y_atoms", None) or (req.get("branch_y_atoms", []) if isinstance(req, dict) else []))
     bx_data = getattr(req, "branch_x", None)
@@ -576,11 +597,40 @@ def is_trade_off_satisfied(
     by_level = getattr(by_data, "level", None) or (by_data.get("level") if isinstance(by_data, dict) else 3)
     by_axis = getattr(by_data, "axis", None) or (by_data.get("axis") if isinstance(by_data, dict) else None)
 
-    bx_key = (bx_target, bx_axis)
-    by_key = (by_target, by_axis)
-    sat_x = bool((bx_atoms and (bx_atoms & card_atoms)) or (bx_target and bx_axis and bx_key in target_levels and target_levels[bx_key] >= (bx_level or 3)))
-    sat_y = bool((by_atoms and (by_atoms & card_atoms)) or (by_target and by_axis and by_key in target_levels and target_levels[by_key] >= (by_level or 3)))
-    return sat_x or sat_y
+    def _branch_fulfillment(atoms: set[str], target: Optional[str], axis: Optional[str], level: Optional[int]) -> float:
+        if atoms:
+            return len(atoms & card_atoms) / len(atoms)
+        key = (target, axis)
+        if target and axis and key in target_levels and target_levels[key] >= (level or 3):
+            return 1.0
+        return 0.0
+
+    if bx_data is not None or by_data is not None:
+        fx = _branch_fulfillment(bx_atoms, bx_target, bx_axis, bx_level)
+        fy = _branch_fulfillment(by_atoms, by_target, by_axis, by_level)
+        return max(fx, fy)
+
+    concedes = getattr(req, "concedes", None)
+    if concedes is not None and getattr(concedes, "target", None) and getattr(concedes, "axis", None):
+        key = (concedes.target, concedes.axis)
+        ceiling = concedes.accepts_max_level
+        if ceiling is None:
+            return 1.0
+        level = target_levels.get(key)
+        if level is None and state is not None:
+            level = state.value(concedes.target, concedes.axis)
+        return 1.0 if level is None or level <= ceiling else 0.0
+
+    return 0.0
+
+
+def is_trade_off_satisfied(
+    req: Any,
+    card_atoms: set[str],
+    target_levels: dict[tuple[str, str], int],
+    state: Optional[GraphState] = None,
+) -> bool:
+    return trade_off_fulfillment(req, card_atoms, target_levels, state) > 0.0
 
 
 def calculate_demand_alignment_for_changes(
@@ -588,6 +638,7 @@ def calculate_demand_alignment_for_changes(
     card_atoms: set[str],
     target_levels: dict[tuple[str, str], int],
     violated_map: Optional[dict[str, bool]] = None,
+    state: Optional[GraphState] = None,
 ) -> float:
     stance_reqs = []
     for r in stakeholder_reqs:
@@ -611,10 +662,10 @@ def calculate_demand_alignment_for_changes(
         if hasattr(r_type, "value"):
             r_type = r_type.value
         if r_type == "driver":
-            f = 1.0 if is_driver_satisfied(req, card_atoms, target_levels) else 0.0
+            f = driver_fulfillment(req, card_atoms, target_levels)
             score += (2.0 * f - 1.0)
         elif r_type == "trade_off":
-            f = 1.0 if is_trade_off_satisfied(req, card_atoms, target_levels) else 0.0
+            f = trade_off_fulfillment(req, card_atoms, target_levels, state)
             score += (2.0 * f - 1.0)
 
     return max(-1.0, min(1.0, score / len(stance_reqs)))
@@ -656,6 +707,7 @@ def stakeholder_reads(
             card_atoms=card_atoms,
             target_levels=target_levels,
             violated_map=violated_by_item,
+            state=state,
         )
         ev = emotion_values.get(st_id, EmotionFactory.create_default_emotion_values(0.5))
         em_norm = emotions_norm(ev)
@@ -827,7 +879,7 @@ def evaluate_pitch(
 
         # 3. Check unaddressed Trade-offs (neither branch addressed)
         trade_offs = [i for i in st_intel if getattr(i, "type", None) in (IntelTag.TRADE_OFF, "trade_off")]
-        unaddressed_trade_offs = [t for t in trade_offs if not is_trade_off_satisfied(t, card_atoms, target_levels)]
+        unaddressed_trade_offs = [t for t in trade_offs if not is_trade_off_satisfied(t, card_atoms, target_levels, state)]
         for t in unaddressed_trade_offs:
             obj = Objection(
                 kind="trade_off",
@@ -893,6 +945,7 @@ def evaluate_pitch(
             stakeholder_reqs=st_intel,
             card_atoms=card_atoms,
             target_levels=target_levels,
+            state=state,
         )
         if is_agreeing:
             align = 1.0
@@ -1165,7 +1218,7 @@ def compute_stakeholder_primary_objection(
                 candidates.append((dist, r_id, "driver", detail, target))
 
         elif r_type in (IntelTag.TRADE_OFF, "trade_off"):
-            is_sat = is_trade_off_satisfied(req, card_atoms, target_levels)
+            is_sat = is_trade_off_satisfied(req, card_atoms, target_levels, state)
             dist = 0.0 if is_sat else 1.0
             detail = "Neither my primary demand nor my compromise was addressed in the proposal."
             if dist > 0.0:
