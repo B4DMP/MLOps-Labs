@@ -85,10 +85,6 @@ export interface IntelEntry {
   discovered_phase_id?: number | null;
   /** The graph target the note is about, and the stage that target sits in. */
   target?: string | null;
-  /** False for a note carried over from an earlier phase (plan 05 keeps it in `intel_items` for
-   *  its chain history, D44 says it must not count toward this challenge's own total). Missing
-   *  on older payloads, so callers should treat that as current rather than carried-over. */
-  is_current_challenge?: boolean;
   /** How many intel items exist about this target in total, found or not - the per-target
    *  counterpart to `intel_total` on the stakeholder entry. Same for every note sharing a target. */
   target_total?: number | null;
@@ -309,11 +305,7 @@ const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
  * pips go by stamp, never by `is_correct`, so they cannot give away a wrong tag either.
  */
 const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
-  // `intel_total` is scoped to this challenge's own pool (D44), so the found pips must be too -
-  // otherwise notes carried over from earlier phases keep inflating the count past that total.
-  const found = (st.intel_items || [])
-    .filter((item) => item.is_current_challenge !== false)
-    .map(getIntelPipStatus);
+  const found = (st.intel_items || []).map(getIntelPipStatus);
   const hiddenCount = Math.max(0, (st.intel_total ?? 0) - found.length);
   return [...found, ...Array<IntelPipStatus>(hiddenCount).fill("hidden")].sort(
     (a, b) => INTEL_PIP_ORDER.indexOf(a) - INTEL_PIP_ORDER.indexOf(b)
