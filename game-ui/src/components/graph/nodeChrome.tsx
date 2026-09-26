@@ -6,6 +6,7 @@ import {
   LEVEL_ICON_SIZE,
   axisMeta,
   formatAxisLevel,
+  levelRungs,
   NODE_TITLE_LH,
   NODE_TITLE_Y,
   NODE_ICON_DISC,
@@ -119,13 +120,6 @@ export function NodeDefs({ prefix }: { prefix: string }) {
         <feDropShadow in="lit" dx="0" dy="1.5" stdDeviation="1.8" floodColor="#0f172a" floodOpacity="0.14" />
       </filter>
 
-      {/* Another phase: flat, pale, and plainly not the hatch. Known, just not yours to
-          change from here. */}
-      <linearGradient id={`${prefix}-face-viewonly`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#f8fafc" />
-        <stop offset="100%" stopColor="#eef2f7" />
-      </linearGradient>
-
       {/* Undiscovered nodes: a diagonal hatch instead of flat grey - fog you can see beats
           absence. 8px tile so it stays crisp at MAX_ZOOM (a 2px hatch turns to mush). */}
       <pattern id={`${prefix}-face-unknown`} width={8} height={8} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -136,22 +130,20 @@ export function NodeDefs({ prefix }: { prefix: string }) {
   );
 }
 
-/** Rungs 1..3 of an axis: the notches a meter track draws. Rung 0 (broken / none) is the
- *  empty track, never a notch of its own. */
-const TRACK_RUNGS = [1, 2, 3];
-
 /**
  * The two maturity axes, drawn as two short tracks on one row: automation (blue) on the left,
- * governance (violet) on the right, with a wider gap between them than between notches.
- * Two tracks rather than one longer ladder because the axes are independent - a manual but
- * fully governed component must not read as "halfway up" anything.
+ * governance (violet) on the right, with a wider gap between them than between notches. Each
+ * track draws one notch per non-zero rung the target's own `allowed_automation`/
+ * `allowed_governance` actually offers (`levelRungs`) - not a fixed three, since most targets'
+ * governance ladder skips straight from none to full (one notch) while automation ladders run
+ * two or three rungs deep. Two tracks rather than one longer ladder because the axes are
+ * independent - a manual but fully governed component must not read as "halfway up" anything.
  *
  * Each notch carries its own rung's colour permanently, so a track reports *position* and not
  * merely length: a glance at which colour the filled run ends on says which rung the target
  * sits on. An automation rung that was built but does not run (something upstream caps it) is
  * drawn in its own colour at a third opacity, a ghost of what was paid for. Governance never
- * caps (00-plan.md decision 1), so its track has no ghost state. A rung above the target's
- * ceiling is drawn as an outline only: there is no option that reaches it.
+ * caps (00-plan.md decision 1), so its track has no ghost state.
  *
  * A broken target lights its first automation notch in broken red instead of leaving the
  * track empty, so broken never reads as merely "absent".
@@ -160,8 +152,8 @@ export function LevelMeter({
   automation,
   effectiveAutomation,
   governance,
-  maxAutomation = 3,
-  maxGovernance = 3,
+  automationRungs = [1, 2, 3],
+  governanceRungs = [1, 2, 3],
   previewAutomation,
   previewGovernance,
   y,
@@ -170,9 +162,10 @@ export function LevelMeter({
   automation: number;
   effectiveAutomation?: number;
   governance?: number;
-  /** The highest rung this target allows on each axis (max of `allowed_*`). */
-  maxAutomation?: number;
-  maxGovernance?: number;
+  /** The non-zero rungs this target can actually reach on each axis, ascending
+   *  (`levelRungs(target.allowed_automation)` / `levelRungs(target.allowed_governance)`). */
+  automationRungs?: number[];
+  governanceRungs?: number[];
   /** A slotted proposal's target rung per axis, in the compose canvas only: drawn as
    *  translucent notches ahead of what is actually built, so the proposed state reads on the
    *  diagram itself rather than only in the sidebar. */
@@ -183,24 +176,15 @@ export function LevelMeter({
 }) {
   const gap = 2.5;
   const groupGap = 9;
-  const cells = TRACK_RUNGS.length * 2;
-  const cell = (width - groupGap - gap * (cells - 2)) / cells;
-  const trackW = TRACK_RUNGS.length * cell + (TRACK_RUNGS.length - 1) * gap;
+  const totalCells = automationRungs.length + governanceRungs.length;
+  const cell = (width - groupGap - gap * (totalCells - 2)) / totalCells;
+  const trackW = automationRungs.length * cell + (automationRungs.length - 1) * gap;
   const runsAt = effectiveAutomation ?? automation;
   const gov = governance ?? 0;
 
-  const notch = (
-    key: string,
-    x: number,
-    fill: string,
-    opacity: number,
-    outlineOnly: boolean,
-  ) =>
-    outlineOnly ? (
-      <rect key={key} x={x + 0.5} y={0.5} width={cell - 1} height={3} rx={1.5} fill="none" stroke={LEVEL_EMPTY} strokeWidth={1} strokeDasharray="2 1.5" />
-    ) : (
-      <rect key={key} x={x} y={0} width={cell} height={4} rx={2} fill={fill} opacity={opacity} />
-    );
+  const notch = (key: string, x: number, fill: string, opacity: number) => (
+    <rect key={key} x={x} y={0} width={cell} height={4} rx={2} fill={fill} opacity={opacity} />
+  );
 
   return (
     <g transform={`translate(${NODE_PAD_X}, ${y})`}>
@@ -209,25 +193,23 @@ export function LevelMeter({
           ? ` (runs as ${formatAxisLevel("automation", effectiveAutomation)})`
           : ""
       } · Governance: ${formatAxisLevel("governance", gov)}`}</title>
-      {TRACK_RUNGS.map((r, i) => {
+      {automationRungs.map((r, i) => {
         const x = i * (cell + gap);
-        if (r > maxAutomation) return notch(`a${r}`, x, LEVEL_EMPTY, 1, true);
         const isPreview = previewAutomation !== undefined && r > automation && r <= previewAutomation;
-        if (isPreview) return notch(`a${r}`, x, NODE_COLORS.selected, 0.4, false);
-        if (automation === 0 && r === 1) return notch(`a${r}`, x, axisMeta("automation", 0).color, 1, false);
+        if (isPreview) return notch(`a${r}`, x, NODE_COLORS.selected, 0.4);
+        if (automation === 0 && r === automationRungs[0]) return notch(`a${r}`, x, axisMeta("automation", 0).color, 1);
         if (r <= automation) {
           // Paid for but not delivering: its own rung colour, ghosted.
-          return notch(`a${r}`, x, axisMeta("automation", r).color, r <= runsAt ? 1 : 0.33, false);
+          return notch(`a${r}`, x, axisMeta("automation", r).color, r <= runsAt ? 1 : 0.33);
         }
-        return notch(`a${r}`, x, LEVEL_EMPTY, 1, false);
+        return notch(`a${r}`, x, LEVEL_EMPTY, 1);
       })}
-      {TRACK_RUNGS.map((r, i) => {
+      {governanceRungs.map((r, i) => {
         const x = trackW + groupGap + i * (cell + gap);
-        if (r > maxGovernance) return notch(`g${r}`, x, LEVEL_EMPTY, 1, true);
         const isPreview = previewGovernance !== undefined && r > gov && r <= previewGovernance;
-        if (isPreview) return notch(`g${r}`, x, NODE_COLORS.selected, 0.4, false);
-        if (r <= gov) return notch(`g${r}`, x, axisMeta("governance", r).color, 1, false);
-        return notch(`g${r}`, x, LEVEL_EMPTY, 1, false);
+        if (isPreview) return notch(`g${r}`, x, NODE_COLORS.selected, 0.4);
+        if (r <= gov) return notch(`g${r}`, x, axisMeta("governance", r).color, 1);
+        return notch(`g${r}`, x, LEVEL_EMPTY, 1);
       })}
     </g>
   );
@@ -444,6 +426,23 @@ export const NODE_STATE_ANIM = `
 .node-scanline { animation: node-scanline 2.6s linear infinite; }
 @media (prefers-reduced-motion: reduce) {
   .node-broken, .node-scanline, .node-aberration, .edge-handle-reveal { animation: none; }
+}
+`;
+
+/**
+ * The flowing look of an automated edge: a travelling dash pattern, speed and liveliness set by
+ * the automation rung it runs at. Shared by both canvases so an edge reads the same whichever
+ * one draws it - the Compose editor's own copy of this only had `FlowParticle`'s single dot,
+ * which read as far less alive than the Dashboard's flowing line.
+ */
+export const EDGE_FLOW_ANIM = `
+@keyframes pipeFlow { to { stroke-dashoffset: -24; } }
+@keyframes pipePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+.pipe-flow { stroke-dasharray: 6 6; animation: pipeFlow 1.1s linear infinite; }
+.pipe-flow-slow { stroke-dasharray: 4 8; animation: pipeFlow 2.6s linear infinite; }
+.pipe-dead { stroke-dasharray: 3 5; animation: pipePulse 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .pipe-flow, .pipe-flow-slow, .pipe-dead { animation: none; }
 }
 `;
 

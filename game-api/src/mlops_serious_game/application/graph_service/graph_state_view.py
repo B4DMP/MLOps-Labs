@@ -252,12 +252,12 @@ def build_graph_state(
             if graph.component(e.from_id).stage_id != s.id:
                 continue
 
-            from_known = reached and knowledge.state_of(e.from_id, state) != "unknown"
-            to_known = reached and knowledge.state_of(e.to_id, state) != "unknown"
-            edge_directly_known = reached and knowledge.state_of(e.id, state) != "unknown"
-
-            is_known = edge_directly_known or from_known or to_known
-            ks = knowledge.state_of(e.id, state) if edge_directly_known else ("current" if is_known else "unknown")
+            # Investigating a component already observes every edge touching it
+            # (component_investigation_service.conduct_component_investigation_turn), so an
+            # edge's own knowledge entry is the only thing that should reveal its levels -
+            # inferring it from an endpoint's knowledge leaked automation/governance/trigger
+            # for edges the player never actually investigated.
+            ks = knowledge.state_of(e.id, state) if reached else "unknown"
 
             if ks == "unknown":
                 edges.append({

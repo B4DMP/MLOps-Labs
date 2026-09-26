@@ -9,6 +9,7 @@ import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import {
   CappedChainGlyph,
+  EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
   LevelMeter,
@@ -37,6 +38,7 @@ import {
   BOX_H,
   AUTOMATION_LABELS,
   formatAxisLevel,
+  levelRungs,
   TRIGGER_ICONS,
   compactLayout,
   edgeEnds,
@@ -200,11 +202,6 @@ function healthText(stage: StageData): string {
     return HEALTH_BUCKET_WORD[healthBucket((lo + hi) / 2)];
   }
   return HEALTH_BUCKET_WORD[healthBucket(stage.health)];
-}
-
-/** Highest rung a target allows on an axis, or the axis maximum when the payload omits it. */
-function axisCeiling(allowed?: number[]): number {
-  return allowed && allowed.length > 0 ? Math.max(...allowed) : 3;
 }
 
 /** Governance pips: one per rung above `none`, violet, no capped state (governance never caps). */
@@ -429,6 +426,7 @@ function StageSvg({
       style={fitToBoxStyle(svgW, svgH)}
     >
       <style>{NODE_STATE_ANIM}</style>
+      <style>{EDGE_FLOW_ANIM}</style>
       <NodeDefs prefix="dash" />
       <ScanlineDefs />
 
@@ -562,8 +560,8 @@ function StageSvg({
                     automation={c.nominal_automation}
                     effectiveAutomation={c.effective_automation}
                     governance={c.nominal_governance}
-                    maxAutomation={axisCeiling(c.allowed_automation)}
-                    maxGovernance={axisCeiling(c.allowed_governance)}
+                    automationRungs={levelRungs(c.allowed_automation)}
+                    governanceRungs={levelRungs(c.allowed_governance)}
                     y={NODE_METER_Y}
                   />
                 )}
@@ -619,15 +617,10 @@ function StageSvg({
 // ── Animations ───────────────────────────────────────────────────────────────
 
 const PIPELINE_ANIM = `
-@keyframes pipeFlow { to { stroke-dashoffset: -24; } }
-@keyframes pipePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
 @keyframes pipeFailing {
   0%, 100% { border-color: #dc3545; }
   50% { border-color: rgba(220, 53, 69, 0.3); }
 }
-.pipe-flow { stroke-dasharray: 6 6; animation: pipeFlow 1.1s linear infinite; }
-.pipe-flow-slow { stroke-dasharray: 4 8; animation: pipeFlow 2.6s linear infinite; }
-.pipe-dead { stroke-dasharray: 3 5; animation: pipePulse 1.4s ease-in-out infinite; }
 .pipe-stage-failing { animation: pipeFailing 1.8s ease-in-out infinite; }
 .stage-node { cursor: pointer; }
 .stage-node rect, .stage-node circle, .stage-node text { transition: opacity .12s ease, fill .12s ease; }

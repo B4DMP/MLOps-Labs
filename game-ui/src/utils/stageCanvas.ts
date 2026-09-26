@@ -46,6 +46,17 @@ export function formatTrigger(trigger: string | undefined | null): string {
   return trigger.replace(/^on_/, "on ").replace(/_/g, " ");
 }
 
+/** The non-zero rungs a target's `allowed_automation`/`allowed_governance` actually offers,
+ *  ascending - the meter's notch count. Authored ladders are not always the full 1-2-3 climb:
+ *  governance on most targets skips straight from none to full ([0, 3]), one notch, not three,
+ *  and some automation ladders stop at manual ([0, 1, 2]). Falls back to the full ladder when a
+ *  target ships no restriction (e.g. an edge's `allowed_governance` before it is authored). */
+export function levelRungs(allowed?: number[]): number[] {
+  if (!allowed || allowed.length === 0) return [1, 2, 3];
+  const rungs = [...allowed].filter((r) => r > 0).sort((a, b) => a - b);
+  return rungs.length > 0 ? rungs : [1, 2, 3];
+}
+
 /** Keyed by the trigger ids `MlopsGraph.json` actually uses; the short legacy keys stay so an
  *  older payload still draws a glyph rather than "?". */
 export const TRIGGER_ICONS: Record<string, string> = {
@@ -347,20 +358,12 @@ export const NODE_COLORS = {
   selected: "var(--primary-bg, #266682)",
 } as const;
 
-/**
- * Which face a node draws with, by state. Ids come from `NodeDefs`.
- *
- * `unknown` and `viewOnly` are deliberately different faces. The hatch says "you have not
- * looked at this yet"; a component in another phase has been looked at and simply cannot be
- * edited from here, so it gets a flat pale face instead. Giving both the hatch made a
- * finished phase look unexplored.
- */
+/** Which face a node draws with, by state. Ids come from `NodeDefs`. */
 export function nodeFace(
   prefix: string,
-  opts: { selected?: boolean; unknown?: boolean; viewOnly?: boolean; broken?: boolean },
+  opts: { selected?: boolean; unknown?: boolean; broken?: boolean },
 ): string {
   if (opts.unknown) return `url(#${prefix}-face-unknown)`;
-  if (opts.viewOnly) return `url(#${prefix}-face-viewonly)`;
   if (opts.selected) return `url(#${prefix}-face-selected)`;
   if (opts.broken) return `url(#${prefix}-face-broken)`;
   return `url(#${prefix}-face)`;

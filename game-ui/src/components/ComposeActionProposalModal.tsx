@@ -9,6 +9,7 @@ import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
   CappedChainGlyph,
+  EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
   LevelMeter,
@@ -45,6 +46,7 @@ import {
   GOVERNANCE_META,
   LEVEL_EMPTY,
   axisMeta,
+  levelRungs,
   TRIGGER_ICONS,
   wrapLabel,
   type Axis,
@@ -1193,6 +1195,7 @@ export default function ComposeActionProposalModal({
                   }}
                 >
                   <style>{NODE_STATE_ANIM}</style>
+                  <style>{EDGE_FLOW_ANIM}</style>
                   <NodeDefs prefix="compose" />
                   <ScanlineDefs />
                   <defs>
@@ -1237,6 +1240,10 @@ export default function ComposeActionProposalModal({
 
                     let color = "#94a3b8";
                     let markerId = "arr-default";
+                    // The travelling-dash look this drives (matches the Performance Dashboard's
+                    // edges): only in the plain, unhighlighted state, so it never fights the
+                    // selection/predecessor/view-only overrides above.
+                    let pipeClass: string | undefined;
 
                     if (isSelected || isSlotted) {
                       color = "var(--primary-bg)";
@@ -1252,12 +1259,15 @@ export default function ComposeActionProposalModal({
                       if (e.automation === 0) {
                         color = "#dc3545";
                         markerId = "arr-danger";
+                        pipeClass = "pipe-dead";
                       } else if (e.automation && e.automation >= 3) {
                         color = "#16a34a";
                         markerId = "arr-success";
+                        pipeClass = "pipe-flow";
                       } else {
                         color = "#ea580c";
                         markerId = "arr-warning";
+                        pipeClass = "pipe-flow-slow";
                       }
                     }
 
@@ -1282,6 +1292,7 @@ export default function ComposeActionProposalModal({
                       <g key={e.id}>
                         {/* Visible edge line */}
                         <line
+                          className={pipeClass}
                           x1={ax}
                           y1={ay}
                           x2={bx}
@@ -1386,8 +1397,6 @@ export default function ComposeActionProposalModal({
                       ? NODE_COLORS.selected
                       : isUnknown
                       ? NODE_COLORS.unknown
-                      : isOtherPhase
-                      ? "#94a3b8"
                       : isBroken
                       ? NODE_COLORS.broken
                       : upstreamCheck.uncertain
@@ -1398,14 +1407,13 @@ export default function ComposeActionProposalModal({
                     const face = nodeFace("compose", {
                       selected: isSelected || isSlotted || isPredecessor,
                       unknown: isUnknown,
-                      viewOnly: isOtherPhase,
                       broken: isBroken,
                     });
                     const stroke = isSlotted || isSelected
                       ? NODE_COLORS.selected
                       : isPredecessor
                       ? (isUnknown ? "#f59e0b" : NODE_COLORS.selected)
-                      : isUnknown || isOtherPhase
+                      : isUnknown
                       ? "#cbd5e1"
                       : "#dde5ee";
 
@@ -1494,11 +1502,11 @@ export default function ComposeActionProposalModal({
                           width={RAIL_W}
                           height={BOX_H}
                           fill={rail}
-                          opacity={isUnknown || isOtherPhase ? 0.5 : 1}
+                          opacity={isUnknown ? 0.5 : 1}
                           clipPath={`url(#compose-clip-${safeId})`}
                         />
                         {c.knowledge === "stale" && <StaleScanline clipPathId={`compose-clip-${safeId}`} />}
-                        {!isUnknown && !isOtherPhase && !isBroken && c.capped_by && (
+                        {!isUnknown && !isBroken && c.capped_by && (
                           <CappedChainGlyph color={rail} />
                         )}
 
@@ -1523,7 +1531,7 @@ export default function ComposeActionProposalModal({
                         )}
 
                         {/* Icon, sharing the title's row */}
-                        {c.icon && <NodeIcon icon={c.icon} color={isUnknown || isOtherPhase ? "#7c8ba1" : rail} />}
+                        {c.icon && <NodeIcon icon={c.icon} color={isUnknown ? "#7c8ba1" : rail} />}
 
                         {/* Node Title, with its colour-split ghosts underneath when broken */}
                         {isBroken && (
@@ -1538,7 +1546,7 @@ export default function ComposeActionProposalModal({
                             key={i}
                             x={NODE_PAD_X + (c.icon && i === 0 ? NODE_ICON_OFFSET : 0)}
                             y={NODE_TITLE_Y + i * NODE_TITLE_LH}
-                            fill={isUnknown || isOtherPhase ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
+                            fill={isUnknown ? "#7c8ba1" : isSelected || isSlotted ? "var(--primary-bg)" : "#15243b"}
                             fontSize="11"
                             fontWeight={isSelected || isSlotted ? "700" : "600"}
                           >
@@ -1576,8 +1584,8 @@ export default function ComposeActionProposalModal({
                               automation={c.nominal_automation ?? 1}
                               effectiveAutomation={c.effective_automation}
                               governance={c.nominal_governance}
-                              maxAutomation={ceilingOn(c, "automation")}
-                              maxGovernance={ceilingOn(c, "governance")}
+                              automationRungs={levelRungs(c.allowed_automation)}
+                              governanceRungs={levelRungs(c.allowed_governance)}
                               previewAutomation={previewAutomation}
                               previewGovernance={previewGovernance}
                               y={NODE_METER_Y}
