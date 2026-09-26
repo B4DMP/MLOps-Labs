@@ -624,3 +624,57 @@ export function edgeStrokeWidth(level: number | undefined | null): number {
   if (level === undefined || level === null) return 1.5;
   return 1.25 + level * 0.4;
 }
+
+/**
+ * A dependency that crosses the phase boundary: components are grouped one diagram per phase,
+ * but an edge can still run between two of them (e.g. the feature store feeding the CI/CD
+ * pipeline two phases later). The other component is never on this canvas, so the edge cannot
+ * be drawn as a line to anywhere - instead it leaves the node as a short dashed line that fades
+ * to nothing, `forward` toward later phases (right) or back toward earlier ones (left, a
+ * feedback loop). Purely informational: no automation, no governance, no options - clicking it
+ * only explains that the dependency exists, never anything to build or sign off on.
+ */
+export function CrossPhaseStub({
+  x,
+  y,
+  forward,
+  lane = 0,
+  prefix,
+  id,
+  active,
+  onClick,
+  length = 30,
+}: {
+  x: number;
+  y: number;
+  forward: boolean;
+  /** Vertical offset (in stacked slots) when a node carries more than one stub on the same
+   *  side, so they fan out instead of drawing on top of each other. */
+  lane?: number;
+  prefix: string;
+  id: string;
+  active?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  length?: number;
+}) {
+  const dir = forward ? 1 : -1;
+  const ly = y + lane * 10;
+  const x1 = x + dir * (BOX_W / 2);
+  const x2 = x1 + dir * length;
+  const gradId = `${prefix}-stub-${id.replace(/\./g, "_")}`;
+  const color = active ? NODE_COLORS.selected : "#94a3b8";
+  return (
+    <g style={{ cursor: onClick ? "pointer" : undefined }} onClick={onClick}>
+      <defs>
+        <linearGradient id={gradId} x1={x1} y1={ly} x2={x2} y2={ly} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <line x1={x1} y1={ly} x2={x2} y2={ly} stroke={`url(#${gradId})`} strokeWidth={active ? 2.5 : 2} strokeDasharray="4 3" />
+      <circle cx={x1} cy={ly} r={2.5} fill={color} />
+      {/* Wide transparent hit area, same trick every other clickable line in this file uses. */}
+      <line x1={x1} y1={ly} x2={x2} y2={ly} stroke="transparent" strokeWidth={16} />
+    </g>
+  );
+}

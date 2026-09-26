@@ -9,6 +9,7 @@ import { StakeholderAvatarComponent } from "./StakeholderAvatarComponent";
 import { useGlossaryHighlighter } from "./glossary/GlossaryText";
 import {
   CappedChainGlyph,
+  CrossPhaseStub,
   EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
@@ -37,6 +38,7 @@ import {
   RAIL_W,
   nodeFace,
   compactLayout,
+  crossPhaseExplanation,
   edgeEnds,
   fitToBoxStyle,
   formatAxisLevel,
@@ -151,6 +153,19 @@ export interface EdgeData {
 export interface TechnicalStage {
   components: ComponentData[];
   edges: EdgeData[];
+}
+
+/** A dependency edge that runs between two different phases: components are grouped one
+ *  diagram per phase, so the far side is never on this canvas - the stub only records enough
+ *  about it to draw the dangling line and explain it on click. */
+interface CrossPhaseStubInfo {
+  edgeId: string;
+  localCompId: string;
+  direction: "out" | "in";
+  /** Point right (toward later phases) or left (toward earlier ones, e.g. a feedback loop). */
+  forward: boolean;
+  otherName: string;
+  otherStageName: string;
 }
 
 export interface StageData {
@@ -591,9 +606,18 @@ export default function ComposeActionProposalModal({
   const [atomicChanges, setAtomicChanges] = useState<AtomicChange[]>(initialAtomicChangesResolved);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [selectedCrossStub, setSelectedCrossStub] = useState<CrossPhaseStubInfo | null>(null);
   const [hoveredCompId, setHoveredCompId] = useState<string | null>(null);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [activeStageId, setActiveStageId] = useState<string>("req");
+
+  // A cross-phase stub isn't a real target - selecting a real one always drops it, without
+  // touching every place that already sets selectedCompId/selectedEdgeId. Deselecting a real
+  // target (both go back to null) does not fire this, so a stub click - which also clears
+  // the other two - is not immediately undone by this effect.
+  useEffect(() => {
+    if (selectedCompId || selectedEdgeId) setSelectedCrossStub(null);
+  }, [selectedCompId, selectedEdgeId]);
 
   // Whether to leave the composer, or discard its slots, needs confirming first: null means
   // no confirmation is pending, otherwise which action is waiting on one.
@@ -753,16 +777,17 @@ export default function ComposeActionProposalModal({
       if (e.key !== "Escape") return;
       if (confirmingLeave) {
         cancelLeave();
-      } else if (selectedCompId || selectedEdgeId) {
+      } else if (selectedCompId || selectedEdgeId || selectedCrossStub) {
         setSelectedCompId(null);
         setSelectedEdgeId(null);
+        setSelectedCrossStub(null);
       } else {
         requestClose();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isOpen, selectedCompId, selectedEdgeId, confirmingLeave, requestClose]);
+  }, [isOpen, selectedCompId, selectedEdgeId, selectedCrossStub, confirmingLeave, requestClose]);
 
   // Request graph state on open and listen to live updates
   useEffect(() => {
@@ -833,6 +858,46 @@ export default function ComposeActionProposalModal({
     const edges = (tech.edges || []).filter((e) => compIds.has(e.from_id) && compIds.has(e.to_id));
     return { components, edges };
   }, [graphState, activeStageId]);
+
+  // Dependencies that cross a phase boundary (e.g. the feature store feeding CI/CD two phases
+  // later) - the far endpoint is never part of this stage's own components, so
+  // `currentStageTechnical` drops them entirely. `allEdgesMap`/`allComponentsMap` already carry
+  // every stage's topology though (an edge is reported once, in its `from` component's stage),
+  // which is enough to draw a stub on whichever end sits in the currently active stage.
+  const crossPhaseStubs = useMemo(() => {
+    const stubs: CrossPhaseStubInfo[] = [];
+    if (!graphState?.stages) return stubs;
+    const stagesById = new Map(graphState.stages.map((s) => [s.id, s]));
+    const activePhase = stagesById.get(activeStageId)?.phase_id ?? 0;
+    allEdgesMap.forEach((e) => {
+      const fromComp = allComponentsMap.get(e.from_id);
+      const toComp = allComponentsMap.get(e.to_id);
+      if (!fromComp || !toComp || fromComp.stage_id === toComp.stage_id) return;
+      if (fromComp.stage_id === activeStageId) {
+        const otherPhase = stagesById.get(toComp.stage_id ?? "")?.phase_id ?? 0;
+        stubs.push({
+          edgeId: e.id,
+          localCompId: e.from_id,
+          direction: "out",
+          forward: otherPhase > activePhase,
+          otherName: toComp.name || e.to_id,
+          otherStageName: stagesById.get(toComp.stage_id ?? "")?.name || toComp.stage_id || "",
+        });
+      }
+      if (toComp.stage_id === activeStageId) {
+        const otherPhase = stagesById.get(fromComp.stage_id ?? "")?.phase_id ?? 0;
+        stubs.push({
+          edgeId: e.id,
+          localCompId: e.to_id,
+          direction: "in",
+          forward: otherPhase > activePhase,
+          otherName: fromComp.name || e.from_id,
+          otherStageName: stagesById.get(fromComp.stage_id ?? "")?.name || fromComp.stage_id || "",
+        });
+      }
+    });
+    return stubs;
+  }, [graphState, allComponentsMap, allEdgesMap, activeStageId]);
 
   // Helper to determine if a node or edge can be edited in current phase/challenge
   const isTargetEditable = useCallback(
@@ -1077,6 +1142,7 @@ export default function ComposeActionProposalModal({
                 setActiveStageId(stage.id);
                 setSelectedCompId(null);
                 setSelectedEdgeId(null);
+                setSelectedCrossStub(null);
               }}
               className={`${styles.stageTab} ${isSelected ? styles.stageTabActive : ""} ${
                 isOtherPhase ? styles.stageTabViewOnly : ""
@@ -1176,11 +1242,16 @@ export default function ComposeActionProposalModal({
               const { positions, width: svgW, height: svgH } = compactLayout(comps);
               const posOf = (id: string) => positions[id];
 
+              // Cross-phase stubs point off the canvas's own edge into the margin - widen the
+              // viewBox to give them room, but only for stages that actually have one.
+              const stubMargin = crossPhaseStubs.length > 0 ? 40 : 0;
+              const viewW = svgW + stubMargin * 2;
+
               return (
                 <svg
-                  viewBox={`0 0 ${svgW} ${svgH}`}
+                  viewBox={`${-stubMargin} 0 ${viewW} ${svgH}`}
                   preserveAspectRatio="xMidYMid meet"
-                  style={fitToBoxStyle(svgW, svgH)}
+                  style={fitToBoxStyle(viewW, svgH)}
                   className={styles.stageSvg}
                   // Clicking blank canvas - anywhere that isn't a node or edge, which each stop
                   // this from seeing their own clicks by not being the event's target - clears
@@ -1192,6 +1263,7 @@ export default function ComposeActionProposalModal({
                     if (e.target !== e.currentTarget) return;
                     setSelectedCompId(null);
                     setSelectedEdgeId(null);
+                    setSelectedCrossStub(null);
                   }}
                 >
                   <style>{NODE_STATE_ANIM}</style>
@@ -1599,6 +1671,34 @@ export default function ComposeActionProposalModal({
                       </g>
                     );
                   })}
+
+                  {/* Cross-phase dependency stubs: the far end is never on this canvas */}
+                  {crossPhaseStubs.map((stub) => {
+                    const pos = posOf(stub.localCompId);
+                    if (!pos) return null;
+                    const laneSiblings = crossPhaseStubs.filter(
+                      (s) => s.localCompId === stub.localCompId && s.forward === stub.forward
+                    );
+                    const lane = laneSiblings.indexOf(stub) - (laneSiblings.length - 1) / 2;
+                    return (
+                      <CrossPhaseStub
+                        key={stub.edgeId}
+                        x={pos.x}
+                        y={pos.y}
+                        forward={stub.forward}
+                        lane={lane}
+                        prefix="compose"
+                        id={stub.edgeId}
+                        active={selectedCrossStub?.edgeId === stub.edgeId}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedCrossStub((prev) => (prev?.edgeId === stub.edgeId ? null : stub));
+                          setSelectedCompId(null);
+                          setSelectedEdgeId(null);
+                        }}
+                      />
+                    );
+                  })}
                 </svg>
               );
             })()}
@@ -1608,7 +1708,42 @@ export default function ComposeActionProposalModal({
         {/* Right: Inspector & Slots Panel */}
         <div className={styles.sidebarArea}>
           <div className={styles.sidebarContent}>
-            {selectedEdgeData ? (
+            {selectedCrossStub ? (
+              /* ── Cross-Phase Dependency: purely informational, nothing to build here ── */
+              <div className={styles.inspectorCard}>
+                <div className={styles.inspectorHeader}>
+                  <div className={styles.inspectorHeading}>
+                    <Icon icon="ph:link-break-bold" className={styles.inspectorIcon} />
+                    <div className={styles.inspectorHeadingText}>
+                      <span className={styles.inspectorTitle}>Cross-Phase Dependency</span>
+                      <span className={styles.inspectorSubtitle}>{selectedCrossStub.otherStageName}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.inspectorClose}
+                    onClick={() => setSelectedCrossStub(null)}
+                    {...tagProps("Close inspector")}
+                  >
+                    <Icon icon="ph:x-bold" />
+                  </button>
+                </div>
+                <div className={styles.inspectorBody}>
+                  <div className={styles.lockedPhaseBanner}>
+                    <Icon icon="ph:eye-bold" style={{ fontSize: "1.2rem", flexShrink: 0 }} />
+                    <div>
+                      {highlight(
+                        crossPhaseExplanation(
+                          selectedCrossStub.direction,
+                          selectedCrossStub.otherName,
+                          selectedCrossStub.otherStageName
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : selectedEdgeData ? (
               <div className={styles.inspectorCard}>
                 <div className={styles.inspectorHeader}>
                   <div className={styles.inspectorHeading}>

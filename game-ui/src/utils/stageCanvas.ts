@@ -57,6 +57,15 @@ export function levelRungs(allowed?: number[]): number[] {
   return rungs.length > 0 ? rungs : [1, 2, 3];
 }
 
+/** The explanation a cross-phase dependency stub shows on click: components are grouped one
+ *  diagram per phase, but an edge can still run between two of them, and the far side is never
+ *  on this canvas - so the stub explains what it stands for instead of connecting to anywhere. */
+export function crossPhaseExplanation(direction: "out" | "in", otherName: string, otherStageName: string): string {
+  return direction === "out"
+    ? `Depends on ${otherName} in ${otherStageName}, a different phase. Shown as a dangling line here because that component isn't part of this phase's diagram.`
+    : `${otherName} in ${otherStageName}, a different phase, depends on this. Shown as a dangling line here because that component isn't part of this phase's diagram.`;
+}
+
 /** Keyed by the trigger ids `MlopsGraph.json` actually uses; the short legacy keys stay so an
  *  older payload still draws a glyph rather than "?". */
 export const TRIGGER_ICONS: Record<string, string> = {

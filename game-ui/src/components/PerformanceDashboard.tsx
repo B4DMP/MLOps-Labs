@@ -9,6 +9,7 @@ import { useGameWebSocket } from "../services/websocket/useGameWebSocket";
 import { healthBucket, HEALTH_BUCKET_WORD } from "../utils/systemHealth";
 import {
   CappedChainGlyph,
+  CrossPhaseStub,
   EDGE_FLOW_ANIM,
   edgeStrokeWidth,
   FlowParticle,
@@ -37,6 +38,7 @@ import {
   BOX_W,
   BOX_H,
   AUTOMATION_LABELS,
+  crossPhaseExplanation,
   formatAxisLevel,
   levelRungs,
   TRIGGER_ICONS,
@@ -80,6 +82,7 @@ interface FlowData {
 interface ComponentData {
   id: string;
   name: string;
+  stage_id: string;
   owner_id?: string;
   knowledge: "unknown" | "current" | "stale";
   nominal_automation?: number;
@@ -114,6 +117,19 @@ interface EdgeData {
 interface TechnicalStage {
   components: ComponentData[];
   edges: EdgeData[];
+}
+
+/** A dependency edge that runs between two different phases: components are grouped one
+ *  diagram per phase, so the far side is never on this canvas - the stub only records enough
+ *  about it to draw the dangling line and explain it on click. */
+interface CrossPhaseStubInfo {
+  edgeId: string;
+  localCompId: string;
+  direction: "out" | "in";
+  /** Point right (toward later phases) or left (toward earlier ones, e.g. a feedback loop). */
+  forward: boolean;
+  otherName: string;
+  otherStageName: string;
 }
 
 interface GraphStatePayload {
@@ -407,10 +423,16 @@ function StageSvg({
   technical,
   selectedComponentId,
   onSelectComponent,
+  crossPhaseStubs = [],
+  selectedCrossStubId,
+  onSelectCrossStub,
 }: {
   technical: TechnicalStage;
   selectedComponentId: string | null;
   onSelectComponent: (id: string | null) => void;
+  crossPhaseStubs?: CrossPhaseStubInfo[];
+  selectedCrossStubId?: string | null;
+  onSelectCrossStub?: (stub: CrossPhaseStubInfo) => void;
 }) {
   const hasLayout = technical.components.some((c) => c.layout);
 
@@ -419,11 +441,17 @@ function StageSvg({
   const { positions, width: svgW, height: svgH } = compactLayout(technical.components);
   const posOf = (id: string) => positions[id];
 
+  // Cross-phase stubs point off the canvas's own edge into the margin - widen the viewBox to
+  // give them room, but only for stages that actually have one, so every other stage keeps
+  // drawing at its normal size.
+  const stubMargin = crossPhaseStubs.length > 0 ? 40 : 0;
+  const viewW = svgW + stubMargin * 2;
+
   return (
     <svg
-      viewBox={`0 0 ${svgW} ${svgH}`}
+      viewBox={`${-stubMargin} 0 ${viewW} ${svgH}`}
       preserveAspectRatio="xMidYMid meet"
-      style={fitToBoxStyle(svgW, svgH)}
+      style={fitToBoxStyle(viewW, svgH)}
     >
       <style>{NODE_STATE_ANIM}</style>
       <style>{EDGE_FLOW_ANIM}</style>
@@ -610,6 +638,29 @@ function StageSvg({
           </g>
         );
       })}
+
+      {/* Cross-phase dependency stubs: the far end is never on this canvas, so they dangle */}
+      {crossPhaseStubs.map((stub) => {
+        const pos = posOf(stub.localCompId);
+        if (!pos) return null;
+        const laneSiblings = crossPhaseStubs.filter(
+          (s) => s.localCompId === stub.localCompId && s.forward === stub.forward
+        );
+        const lane = laneSiblings.indexOf(stub) - (laneSiblings.length - 1) / 2;
+        return (
+          <CrossPhaseStub
+            key={stub.edgeId}
+            x={pos.x}
+            y={pos.y}
+            forward={stub.forward}
+            lane={lane}
+            prefix="dash"
+            id={stub.edgeId}
+            active={selectedCrossStubId === stub.edgeId}
+            onClick={() => onSelectCrossStub?.(stub)}
+          />
+        );
+      })}
     </svg>
   );
 }
@@ -681,6 +732,65 @@ export default function PerformanceDashboard({
   const [graphState, setGraphState] = useState<GraphStatePayload | null>(null);
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [selectedComp, setSelectedComp] = useState<string | null>(null);
+  const [selectedCrossStub, setSelectedCrossStub] = useState<CrossPhaseStubInfo | null>(null);
+
+  const selectComponent = useCallback((id: string | null) => {
+    setSelectedComp(id);
+    setSelectedCrossStub(null);
+  }, []);
+
+  const selectCrossStub = useCallback((stub: CrossPhaseStubInfo) => {
+    setSelectedCrossStub((prev) => (prev?.edgeId === stub.edgeId ? null : stub));
+    setSelectedComp(null);
+  }, []);
+
+  // Every component, across every stage the payload ships, keyed by id - cross-phase edges
+  // need to know the far endpoint's name and stage even though it never appears on this canvas.
+  const allComponentsById = useMemo(() => {
+    const map = new Map<string, ComponentData>();
+    if (!graphState?.technical) return map;
+    Object.values(graphState.technical).forEach((tech) => {
+      tech.components.forEach((c) => map.set(c.id, c));
+    });
+    return map;
+  }, [graphState]);
+
+  // Cross-phase edges, grouped by which stage each end belongs to. An edge is only ever
+  // reported once (in its `from` component's stage list), so both ends are derived here.
+  const crossPhaseStubsByStage = useMemo(() => {
+    const byStage: Record<string, CrossPhaseStubInfo[]> = {};
+    if (!graphState?.technical) return byStage;
+    const stagesById = new Map((graphState.stages ?? []).map((s) => [s.id, s]));
+    const seen = new Set<string>();
+    Object.values(graphState.technical).forEach((tech) => {
+      tech.edges.forEach((e) => {
+        if (seen.has(e.id)) return;
+        const fromComp = allComponentsById.get(e.from_id);
+        const toComp = allComponentsById.get(e.to_id);
+        if (!fromComp || !toComp || fromComp.stage_id === toComp.stage_id) return;
+        seen.add(e.id);
+        const fromPhase = stagesById.get(fromComp.stage_id)?.phase_id ?? 0;
+        const toPhase = stagesById.get(toComp.stage_id)?.phase_id ?? 0;
+        (byStage[fromComp.stage_id] ||= []).push({
+          edgeId: e.id,
+          localCompId: e.from_id,
+          direction: "out",
+          forward: toPhase > fromPhase,
+          otherName: toComp.name || e.to_id,
+          otherStageName: stagesById.get(toComp.stage_id)?.name || toComp.stage_id,
+        });
+        (byStage[toComp.stage_id] ||= []).push({
+          edgeId: e.id,
+          localCompId: e.to_id,
+          direction: "in",
+          forward: fromPhase > toPhase,
+          otherName: fromComp.name || e.from_id,
+          otherStageName: stagesById.get(fromComp.stage_id)?.name || fromComp.stage_id,
+        });
+      });
+    });
+    return byStage;
+  }, [graphState, allComponentsById]);
 
   /** Dossier notes that are about a given graph target, flattened across stakeholder pages. */
   const notesByTarget = useMemo(() => {
@@ -722,12 +832,14 @@ export default function PerformanceDashboard({
     if (!isDashboardOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      if (selectedComp) setSelectedComp(null);
-      else handleClose();
+      if (selectedComp || selectedCrossStub) {
+        setSelectedComp(null);
+        setSelectedCrossStub(null);
+      } else handleClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isDashboardOpen, selectedComp, handleClose]);
+  }, [isDashboardOpen, selectedComp, selectedCrossStub, handleClose]);
 
   const requestState = useCallback(() => {
     emit("graph:state_request", { phase_id: currentPhase });
@@ -778,9 +890,9 @@ export default function PerformanceDashboard({
     );
     if (stage) {
       setSelectedStage(stage.id);
-      setSelectedComp(focusComponentId);
+      selectComponent(focusComponentId);
     }
-  }, [focusComponentId, graphState, pipelineStages]);
+  }, [focusComponentId, graphState, pipelineStages, selectComponent]);
 
   useLayoutEffect(() => {
     if (!isDashboardOpen || !buttonsRowRef.current) return;
@@ -927,8 +1039,8 @@ export default function PerformanceDashboard({
 
   const selectStage = useCallback((stageId: string) => {
     setSelectedStage(stageId);
-    setSelectedComp(null);
-  }, []);
+    selectComponent(null);
+  }, [selectComponent]);
 
   return (
     <div
@@ -1130,7 +1242,10 @@ export default function PerformanceDashboard({
                           <StageSvg
                             technical={activeTechnical}
                             selectedComponentId={selectedComp}
-                            onSelectComponent={setSelectedComp}
+                            onSelectComponent={selectComponent}
+                            crossPhaseStubs={activeStage ? crossPhaseStubsByStage[activeStage.id] ?? [] : []}
+                            selectedCrossStubId={selectedCrossStub?.edgeId ?? null}
+                            onSelectCrossStub={selectCrossStub}
                           />
                         </div>
                         {neighbours.outbound && (
@@ -1161,14 +1276,23 @@ export default function PerformanceDashboard({
                     <div className={styles.detailsCard}>
                         <div className={styles.detailsCardHeader}>
                           <span className="d-flex align-items-center gap-2">
-                            <Icon icon={selComponentData ? "ph:cube-bold" : "ph:cards-bold"} />
-                            <span>{selComponentData ? selComponentData.name : `${activeStage.name} Components`}</span>
+                            <Icon icon={selectedCrossStub ? "ph:link-break-bold" : selComponentData ? "ph:cube-bold" : "ph:cards-bold"} />
+                            <span>
+                              {selectedCrossStub
+                                ? "Cross-Phase Dependency"
+                                : selComponentData
+                                ? selComponentData.name
+                                : `${activeStage.name} Components`}
+                            </span>
                           </span>
-                          {selComponentData && (
+                          {(selComponentData || selectedCrossStub) && (
                             <button
                               type="button"
                               className="btn btn-sm btn-link text-white text-decoration-none p-0"
-                              onClick={() => setSelectedComp(null)}
+                              onClick={() => {
+                                setSelectedComp(null);
+                                setSelectedCrossStub(null);
+                              }}
                               title="Back to component list"
                               style={{ fontSize: "0.78rem" }}
                             >
@@ -1178,7 +1302,31 @@ export default function PerformanceDashboard({
                         </div>
 
                         <div className={styles.detailsCardBody}>
-                          {selComponentData ? (
+                          {selectedCrossStub ? (
+                            /* Cross-phase dependency: purely informational, nothing to build or sign off on here */
+                            <>
+                              <div className="d-flex align-items-center gap-2 flex-wrap">
+                                <Icon icon="ph:link-break-bold" style={{ fontSize: "1.2rem", color: "var(--primary-bg, #266682)" }} />
+                                <span className="fw-bold fs-6" style={{ color: "var(--text-primary, #1e293b)" }}>
+                                  Cross-Phase Dependency
+                                </span>
+                              </div>
+                              <p className="small mb-0" style={{ color: "var(--text-secondary, #475569)" }}>
+                                {crossPhaseExplanation(
+                                  selectedCrossStub.direction,
+                                  selectedCrossStub.otherName,
+                                  selectedCrossStub.otherStageName
+                                )}
+                              </p>
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-outline-secondary mt-auto"
+                                onClick={() => setSelectedCrossStub(null)}
+                              >
+                                ← Back to Component List
+                              </button>
+                            </>
+                          ) : selComponentData ? (
                             /* Detailed view for selected component */
                             <>
                               <div className="d-flex align-items-center gap-2 flex-wrap">
