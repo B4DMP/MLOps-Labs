@@ -573,6 +573,43 @@ def item_status(item, snapshot) -> str:
     return "open"
 
 
+def _holds_op(item) -> Optional[str]:
+    """The comparator a Boundary's `holds` was authored with, if any."""
+    holds = getattr(item, "holds", None)
+    if isinstance(holds, dict):
+        return holds.get("op")
+    return getattr(holds, "op", None) if holds is not None else None
+
+
+def carried_over_status(item, snapshot) -> str:
+    """addressed or stale for a note left over from an earlier challenge (Dossier phase scoping).
+
+    A note whose challenge has already passed is never still "open" for the current one: either
+    the graph shows its condition was met (DONE) or it wasn't and the moment for it has gone
+    (OUT OF DATE). Reuses the existing addressed/stale vocabulary and badges rather than inventing
+    a parallel status the frontend would need new handling for.
+    """
+    target, level, axis = item_target_and_level(item)
+    if snapshot is None or target is None or level is None or axis is None:
+        return "stale"
+    try:
+        effective = _effective_level(snapshot, target, axis)
+        if effective is None:
+            return "stale"
+        if item.type == IntelTag.FACT:
+            return "addressed" if effective == level else "stale"
+        op = _holds_op(item) if item.type == IntelTag.BOUNDARY else None
+        if op == "eq":
+            met = effective == level
+        elif op == "lte":
+            met = effective <= level
+        else:
+            met = effective >= level
+        return "addressed" if met else "stale"
+    except Exception:
+        return "stale"
+
+
 def _archived_items(username: str, up_to_phase: Optional[int]) -> List[StakeholderIntelItem]:
     """Everything the player found in earlier phases (plan 05).
 
@@ -1271,7 +1308,13 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "target_total": target_intel_totals.get(target) if target else None,
             "stage_id": stage_id,
             "stage_name": stage_name,
-            "status": item_status(item, snapshot),
+            # A note whose challenge has already passed is never still "open" for this one - it's
+            # DONE or OUT OF DATE, not an active stance to weigh here (see carried_over_status).
+            "status": (
+                carried_over_status(item, snapshot)
+                if item.challenge_id != curr_challenge.id
+                else item_status(item, snapshot)
+            ),
             "branch_x": (
                 getattr(item, "branch_x", None).model_dump(mode="json")
                 if hasattr(getattr(item, "branch_x", None), "model_dump")
