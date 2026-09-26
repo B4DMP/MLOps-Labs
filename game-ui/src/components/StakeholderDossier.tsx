@@ -724,6 +724,9 @@ const STATUS_META: Record<string, { label: string; title: string; styleClass: st
   },
 };
 
+/** Addressed or stale: the note has nothing left to act on, so it drops into its own category. */
+const isResolvedStatus = (status?: string): boolean => status === "addressed" || status === "stale";
+
 export interface IntelChain {
   id: string;
   /** The newest link: the headline, and the payload the card builder uses. */
@@ -1594,10 +1597,16 @@ export default function StakeholderDossier({
     if (!st) return null;
 
     const allChains = toChains(st.intel_items || []);
-    // The environment page reads stage by stage, so its cards arrive already in stage order.
-    const pageChains = visibleChains(st).sort((a, b) =>
-      st.is_environment ? (a.newest.stage_id || "~").localeCompare(b.newest.stage_id || "~") : 0
-    );
+    // Out of date / done chains sink to the bottom of the page, in their own category, so a
+    // resolved note never sits ahead of one still open (D-dossier-resolved-section). Within each
+    // bucket the environment page still reads stage by stage; a stakeholder page keeps whatever
+    // order it already had (a stable sort, so this tie-break is a no-op there).
+    const pageChains = visibleChains(st).sort((a, b) => {
+      const aResolved = isResolvedStatus(a.newest.status) ? 1 : 0;
+      const bResolved = isResolvedStatus(b.newest.status) ? 1 : 0;
+      if (aResolved !== bResolved) return aResolved - bResolved;
+      return st.is_environment ? (a.newest.stage_id || "~").localeCompare(b.newest.stage_id || "~") : 0;
+    });
     const hiddenByFilter = allChains.length - pageChains.length;
     const hasIntelEntries = st && st.intel_items && st.intel_items.length > 0;
     const intelPips = getIntelPips(st);
@@ -1901,18 +1910,31 @@ export default function StakeholderDossier({
           <div className={styles.stickyNoteGrid}>
             {pageChains.map((chain, idx) => {
               const item = chain.newest;
-              if (collapseAddressed && item.status === "addressed") {
+              // The first resolved chain in the (now sorted) list opens its own category, below
+              // whatever is still open for this challenge.
+              const opensResolvedGroup =
+                isResolvedStatus(item.status) &&
+                (idx === 0 || !isResolvedStatus(pageChains[idx - 1].newest.status));
+              const resolvedGroupTitle = opensResolvedGroup ? (
+                <div key={`${st.stakeholder_id}-resolved-title`} className={styles.stageGroupTitle}>
+                  Out of Date &amp; Done
+                </div>
+              ) : null;
+              if (collapseAddressed && isResolvedStatus(item.status)) {
+                const collapsedMeta = STATUS_META[item.status];
                 return (
-                  <button
-                    key={`${st.stakeholder_id}-collapsed-${item.id}`}
-                    className={styles.collapsedNote}
-                    onClick={() => setCollapseAddressed(false)}
-                    title="Already taken as far as they asked for. Click to unfold every note again."
-                  >
-                    <span>{(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}</span>
-                    <span className={styles.collapsedText}>{item.description}</span>
-                    <span className={`${styles.statusBadge} ${styles.statusAddressed}`}>DONE</span>
-                  </button>
+                  <React.Fragment key={`${st.stakeholder_id}-collapsed-wrap-${item.id}`}>
+                    {resolvedGroupTitle}
+                    <button
+                      className={styles.collapsedNote}
+                      onClick={() => setCollapseAddressed(false)}
+                      title={`${collapsedMeta.title} Click to unfold every note again.`}
+                    >
+                      <span>{(CATEGORY_META[item.categorized_type || "driver"] || CATEGORY_META.driver).icon}</span>
+                      <span className={styles.collapsedText}>{item.description}</span>
+                      <span className={`${styles.statusBadge} ${styles[collapsedMeta.styleClass]}`}>{collapsedMeta.label}</span>
+                    </button>
+                  </React.Fragment>
                 );
               }
               const typeKey = item.categorized_type || "driver";
@@ -1962,6 +1984,7 @@ export default function StakeholderDossier({
 
               return (
                 <React.Fragment key={`${st.stakeholder_id}-${noteId}`}>
+                {resolvedGroupTitle}
                 {/* On the environment page the cards arrive in stage order, so a divider is
                     enough to group them without a second grid. */}
                 {st.is_environment &&

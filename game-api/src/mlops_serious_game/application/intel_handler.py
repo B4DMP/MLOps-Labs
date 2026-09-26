@@ -1329,10 +1329,11 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "power": ch_st.power if ch_st else "low",
             "interest": ch_st.interest if ch_st else "low",
             "intel_items": intel_entries,
-            # The whole pool for this challenge, found or not, so the dossier can show how much
-            # is still out there. A count only: nothing about what the missing items say. Notes
-            # carried over from earlier phases are already found, so they can only raise it.
-            "intel_total": max(len(st_pool), len(intel_entries)),
+            # This challenge's own pool only, found or not - the pitch deck's `intel_total` is
+            # scoped the same way (`ctx.all_intel` from `get_requirements_for_challenge`), so the
+            # two numbers agree. Carryover from earlier phases can still show up in `intel_items`
+            # (plan 05), it just no longer inflates the denominator past what this challenge holds.
+            "intel_total": len(st_pool),
             "focus_stage_ids": focus_stage_ids,
         })
 
@@ -1353,7 +1354,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
             "constraints": "",
             "metric_id": "",
             "intel_items": environment_entries,
-            "intel_total": max(len(fact_pool), len(environment_entries)),
+            "intel_total": len(fact_pool),
             "focus_stage_ids": focus_stage_ids,
         })
 
