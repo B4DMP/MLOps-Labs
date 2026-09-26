@@ -1200,8 +1200,15 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
     # and performance dashboard can honestly show "N of M found" for a single component/edge
     # instead of just a found count. Same `max(pool, held)` guard as `intel_total`: notes carried
     # over from an earlier phase can only raise the count, never make it look incomplete.
+    # D44: carried-over archive notes must not inflate a count that is meant to describe this
+    # challenge's own pool - `is_current_challenge` below is how each entry says whether it is
+    # one of this challenge's own requirements or a note the player is still holding from an
+    # earlier phase.
+    current_challenge_requirements = RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
+    current_challenge_req_ids = {req.id for req in current_challenge_requirements}
+
     target_pool_counts: Dict[str, int] = {}
-    for req in RequirementFactory.get_requirements_for_challenge(curr_challenge.id):
+    for req in current_challenge_requirements:
         t = item_target(req)
         if t:
             target_pool_counts[t] = target_pool_counts.get(t, 0) + 1
@@ -1266,6 +1273,10 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
                 else _phase_of_challenge(item.challenge_id)
             ),
             "target": target,
+            # This challenge's own requirement, not a note carried over from an earlier phase
+            # (plan 05 keeps those in `intel_items` so the chain still shows its history, but
+            # D44 says they must not count toward a total scoped to this challenge).
+            "is_current_challenge": item.id in current_challenge_req_ids,
             # How many intel items exist about this graph target in total, found or not - the
             # per-target counterpart to the per-stakeholder `intel_total` on the dossier entry.
             "target_total": target_intel_totals.get(target) if target else None,
@@ -1338,10 +1349,7 @@ async def retrieve_dossier_data(curr_challenge: Challenge, ws: WebSocket) -> Lis
         })
 
     if environment_entries:
-        fact_pool = [
-            r for r in RequirementFactory.get_requirements_for_challenge(curr_challenge.id)
-            if r.type == IntelTag.FACT
-        ]
+        fact_pool = [r for r in current_challenge_requirements if r.type == IntelTag.FACT]
         debug_fields = {"debug": {"missing_intel": _debug_missing(fact_pool, held_ids)}} if debug_on else {}
         dossier_list.append({
             **debug_fields,
