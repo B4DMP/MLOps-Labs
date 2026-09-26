@@ -219,9 +219,9 @@ Conversation History Context:
 {{conversation_history}}
 
 Instructions:
-1. Write a natural, professional, spoken workplace message from the Project Manager's perspective to initiate the discussion.
+1. Write a quick, informal chat message from the Project Manager to the stakeholder(s), like a direct message you'd send to check in, not an announcement.
 2. Specifically address the targeted stakeholder(s) by their complete full name. Always use their complete full name and never use only part of their name (or address the entire team if the discussion targets the whole team).
-3. The message must fit the purpose and focus of the discussion.
+3. The message must ask about or reference the substance of the discussion (its focus and description), but never name the "{{card_title}}" initiative itself as a title, meeting name, or event to "welcome" someone to. Ask the actual question a PM would ask, don't announce a session.
 4. Fit the context of the team challenge and recent conversation history.
 5. NO OUT-OF-UNIVERSE GAME TERMINOLOGY: Strictly NEVER mention game elements like "engagement cards", "action cards", "cards", "tokens", or game mechanics. Refer naturally to meetings, sync-ups, discussions, or reviews.
 6. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity by number or index (e.g. "level 1"). Always use descriptive terms (e.g. "absent", "manual", "automated", "governed") or operational status.
@@ -267,7 +267,7 @@ Instructions:
 6. COMPONENT MATURITY BY DESCRIPTION ONLY: Strictly NEVER refer to component maturity by numerical index or level numbers (e.g. "level 0", "level 1"). Always use descriptive terms (e.g. "absent", "broken", "manual", "automated", "governed") or operational capabilities.
 7. NO DASHES: Do NOT use any dashes (strictly NO em-dashes '—', no en-dashes '–', no '--'). Use commas or periods instead.
 8. BREVITY: Keep your answer concise (at most {{max_sentences}} sentence{% if max_sentences > 1 %}s{% endif %}).
-9. Output ONLY your direct spoken response. Do NOT include your name, role prefix, or quotation marks.
+9. Output ONLY your direct spoken response. Do NOT include your own name, a role prefix, a salutation, or quotation marks; do not address yourself by name at the start of your reply the way the Project Manager addressed you.
 """
 
 ONLINE_INTEL_STAKEHOLDER_PROMPT = Prompt(
