@@ -305,7 +305,11 @@ const getIntelPipStatus = (item: IntelEntry): IntelPipStatus => {
  * pips go by stamp, never by `is_correct`, so they cannot give away a wrong tag either.
  */
 const getIntelPips = (st: StakeholderDossierEntry): IntelPipStatus[] => {
-  const found = (st.intel_items || []).map(getIntelPipStatus);
+  // Addressed/stale notes stay in the dossier for their chain history, but they're done or out
+  // of date - not part of what's still active this challenge, so they don't count as "found".
+  const found = (st.intel_items || [])
+    .filter((item) => !isResolvedStatus(item.status))
+    .map(getIntelPipStatus);
   const hiddenCount = Math.max(0, (st.intel_total ?? 0) - found.length);
   return [...found, ...Array<IntelPipStatus>(hiddenCount).fill("hidden")].sort(
     (a, b) => INTEL_PIP_ORDER.indexOf(a) - INTEL_PIP_ORDER.indexOf(b)
