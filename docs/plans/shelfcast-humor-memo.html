@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shelfcast Humor Memo</title>
+<link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/litera/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-5" style="max-width:900px;">
+
+  <header class="pb-4 mb-4 border-bottom">
+    <div class="text-uppercase small text-secondary fw-semibold mb-2">Design Brainstorm &mdash; Tone &amp; Voice</div>
+    <h1 class="fw-bold">Where Shelfcast could be funnier</h1>
+    <p class="lead">A short audit, a voice model, five techniques, and tested rewrites &mdash; kept minimal.</p>
+    <div class="d-flex flex-wrap gap-3 small text-secondary font-monospace">
+      <span><strong class="text-body">Scope:</strong> content &amp; voice only, no mechanics</span>
+      <span><strong class="text-body">Sources:</strong> game prose + external research</span>
+      <span>2026-09-26</span>
+    </div>
+  </header>
+
+  <nav class="d-flex flex-wrap gap-2 mb-5">
+    <a class="btn btn-outline-secondary btn-sm" href="#audit">01 &middot; Audit</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#research">02 &middot; Research</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#voice">03 &middot; Voice model</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#techniques">04 &middot; Techniques</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#worked">05 &middot; Worked examples</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#process">06 &middot; Production process</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#scale">07 &middot; Scaling pipeline</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#slop">08 &middot; Words to avoid</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#guardrails">09 &middot; Guardrails</a>
+    <a class="btn btn-outline-secondary btn-sm" href="#pilot">10 &middot; Pilot</a>
+  </nav>
+
+  <section id="audit" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">01</span>Two registers already exist</h2>
+    <p class="text-secondary">Character intros and the epilogue are already dry and funny. Challenge briefs and intel artifacts go flat.</p>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-success mb-2">Already working</span>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          <div class="col">
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">
+              <p class="mb-2">Hey, I'm model_monica. I train and tune models until the numbers stop embarrassing me, then I deploy them and keep watching the numbers anyway.</p>
+              <footer class="blockquote-footer text-white-50 small mb-0">GameStakeholders.json:87</footer>
+            </blockquote>
+          </div>
+          <div class="col">
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">
+              <p class="mb-2">A year on, nobody at Lindenmarkt calls it "the Shelfcast project" any more. They just call it the forecast, and they plan around it.</p>
+              <footer class="blockquote-footer text-white-50 small mb-0">EndgameEpilogue.json:4</footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-warning mb-2">Goes flat</span>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          <div class="col">
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">
+              <p class="mb-2">I will accept losing the manual review step where I currently adjust each metric to fit the broader product strategy. In return, I need the automated output to align perfectly with our organizational roadmap.</p>
+              <footer class="blockquote-footer text-white-50 small mb-0">OfflineIntelArtifacts.json:23 &mdash; efficiency_emilia</footer>
+            </blockquote>
+          </div>
+          <div class="col">
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">
+              <p class="mb-2">A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. requirements_reuben insists the acceptance criteria must be fully governed...</p>
+              <footer class="blockquote-footer text-white-50 small mb-0">GameProgression.json:174</footer>
+            </blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mb-0">Playtesters want the MLOps substance sharper, not softer &mdash; humor should add specificity, never replace it.</p>
+  </section>
+
+  <section id="research" class="mb-5">
+    <div class="accordion" id="researchAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#researchBody">
+            <span class="badge text-bg-secondary me-2">02</span> What the research says
+          </button>
+        </h2>
+        <div id="researchBody" class="accordion-collapse collapse" data-bs-parent="#researchAccordion">
+          <div class="accordion-body">
+            <div class="list-group list-group-flush">
+              <div class="list-group-item px-0">
+                <div class="small text-secondary font-monospace mb-1">Springer RPTEL, 2021</div>
+                <p class="mb-0">Humor works when it's content-relevant &mdash; comic relief alone doesn't teach anything.</p>
+              </div>
+              <div class="list-group-item px-0">
+                <div class="small text-secondary font-monospace mb-1">arXiv 1903.03019</div>
+                <p class="mb-0">Players explicitly want humor in serious games, not just tolerate it.</p>
+              </div>
+              <div class="list-group-item px-0">
+                <div class="small text-secondary font-monospace mb-1">Edutopia / eLI</div>
+                <p class="mb-0">Humor boosts engagement but can distract from the task &mdash; worth watching in playtests.</p>
+              </div>
+              <div class="list-group-item px-0">
+                <div class="small text-secondary font-monospace mb-1">UX Design Institute / LogRocket</div>
+                <p class="mb-0">Tone must stay consistent per surface, not sprinkled at random.</p>
+              </div>
+              <div class="list-group-item px-0">
+                <div class="small text-secondary font-monospace mb-1">EMS1 / Lexipol</div>
+                <p class="mb-0">Gallows humor works aimed at the situation &mdash; never at people.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="voice" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">03</span>A voice model, anchored on Good Omens</h2>
+    <p class="text-secondary">Real stakes sit beside petty focus, unremarked. Two relatives sharpen it.</p>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      <div class="col">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-1">Monty Python <span class="fw-normal text-secondary small">&mdash; Dead Parrot, Ministry of Silly Walks</span></h3>
+            <p class="fw-semibold small mb-2">Deny the problem through escalating euphemism instead of stating it.</p>
+            <div class="small text-uppercase text-secondary font-monospace mb-1">Applied to Shelfcast</div>
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">The widget isn't stale. It's historically stable. It's had the same value for three weeks because that value hasn't finished being current yet.</blockquote>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="h6 fw-bold mb-1">Douglas Adams <span class="fw-normal text-secondary small">&mdash; the Vogons</span></h3>
+            <p class="fw-semibold small mb-2">Let the process continue on schedule, annoyed at the inconvenience, not the damage it caused.</p>
+            <div class="small text-uppercase text-secondary font-monospace mb-1">Applied to Shelfcast</div>
+            <blockquote class="text-bg-dark p-3 rounded small mb-0">The nightly batch job dropped the northern stores' scan lines without incident, in the sense that nothing crashed and nobody was told.</blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="mt-3 mb-0">Test: who or what is the joke about? A stake, a process, a euphemism &mdash; never a stakeholder's competence.</p>
+  </section>
+
+  <section id="techniques" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">04</span>Five techniques</h2>
+    <p class="text-secondary">Mapped to content types. None touch functional UI copy.</p>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">1. Extend the deadpan narrator past the epilogue</span>
+        <span class="badge text-bg-light border text-secondary">narration &amp; flavor text only</span>
+      </div>
+      <div class="card-body">
+        <p>Deadpan narration needs no joke construction &mdash; just restraint and specificity.</p>
+
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Scenario transition</div><div class="p-2 bg-body-secondary rounded small">Loading next scenario...</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Deadpan</div><div class="p-2 text-bg-dark rounded small">Assembling the next scenario. It will contain a supplier, a deadline, and someone's strong opinion about both.</div></div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Turn-end summary</div><div class="p-2 bg-body-secondary rounded small">You reached agreement with 2 of 3 stakeholders this round.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Deadpan</div><div class="p-2 text-bg-dark rounded small">Two stakeholders agreed. The third is still drafting a strongly worded email.</div></div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Narrated fact</div><div class="p-2 bg-body-secondary rounded small">The dashboard widget still displays the last successful value from three weeks ago, which no longer reflects current store performance.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Deadpan</div><div class="p-2 text-bg-dark rounded small">The dashboard widget has shown the same number for three weeks straight. Nobody has corrected it, and it hasn't corrected itself.</div></div>
+        </div>
+
+        <p class="mb-0 small text-secondary">Caveat: confirm the loading screen is actually seen in production before writing more for it.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">2. Let real stakes and petty focus share a scene</span>
+        <span class="badge text-bg-light border text-secondary">briefings, scenario intros</span>
+      </div>
+      <div class="card-body">
+        <p>State the real stakes plainly, then let characters keep caring about something smaller &mdash; no comment on the gap.</p>
+        <div class="row row-cols-1 row-cols-md-2 g-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Current</div><div class="p-2 bg-body-secondary rounded small">A batch of till scan lines from the northern stores was silently dropped during last night's ingestion, causing the model to forecast zero demand for fresh produce.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Stakes + petty focus</div><div class="p-2 text-bg-dark rounded small">The forecast now expects nobody, anywhere, to buy a single vegetable tomorrow. The scan-line issue is third on today's agenda, after room booking.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">3. Gallows humor for bad-ending debriefs &mdash; carefully</span>
+        <span class="badge text-bg-light border text-secondary">endgame epilogue, incident text</span>
+      </div>
+      <div class="card-body">
+        <p class="mb-0">The worst ending already does this. Aim it at the situation, never a stakeholder's competence or a real-feeling human cost.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">4. Anchor callbacks to persistent state, not to one object</span>
+        <span class="badge text-bg-light border text-secondary">cross-cutting callback</span>
+      </div>
+      <div class="card-body">
+        <p>A gag scripted to one object breaks under semi-random challenge scheduling. Build on persistent state instead: <code>fired_grudges</code>, <code>final_emotions</code>, pillar scores, and each component's own automation/governance tier.</p>
+
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">"The Ledger" &mdash; fired_grudges</div><div class="p-2 bg-body-secondary rounded small">Grudge count crosses a threshold, anywhere, any run.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Narrator aside</div><div class="p-2 text-bg-dark rounded small">Someone has started keeping a list. It has three entries so far.</div></div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">"Coldest relationship" &mdash; final_emotions</div><div class="p-2 bg-body-secondary rounded small">Whichever stakeholder's mood is currently lowest, filled in like the epilogue already fills {st}.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Narrator aside</div><div class="p-2 text-bg-dark rounded small">{st} has stopped replying with exclamation points. Someone is treating this as a leading indicator.</div></div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Governance drift &mdash; one component's tier</div><div class="p-2 bg-body-secondary rounded small">Any component reaching "automated" while its governance stays at NONE &mdash; e.g. <code>data.validation</code>.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Narrator aside</div><div class="p-2 text-bg-dark rounded small">Data validation runs on its own now. Nobody has signed off on what it's allowed to reject.</div></div>
+        </div>
+
+        <p class="small text-secondary">The governance-drift version needs no new code &mdash; <code>MlopsStoryFragments.json</code> already authors text per component/tier. Rewrite the five generic fallback templates first; those render most often.</p>
+        <p class="mb-0 small text-secondary">A one-off stale-widget line is fine locally; don't promise it an epilogue payoff without a dedicated fact.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="fw-semibold">5. Give it a real turn</span>
+        <span class="badge text-bg-light border text-secondary">challenge briefs, stakeholder documents</span>
+      </div>
+      <div class="card-body">
+        <p>A joke needs a reversal, a loop, or a reveal &mdash; not just dry tone.</p>
+        <ul class="mb-2">
+          <li><strong>Recursive bureaucracy</strong> &mdash; a process needs its own meta-process (a form to approve the form).</li>
+          <li><strong>Unresolved resolution</strong> &mdash; a full agreement is signed, and nobody checked if the real problem got fixed.</li>
+          <li><strong>Retroactively-satisfiable criterion</strong> &mdash; a vague trade-off condition that can always be declared met after the fact.</li>
+          <li><strong>Institutional euphemism</strong> &mdash; a refusal dressed in escalating official language.</li>
+        </ul>
+        <p class="mb-0">Check if one is already latent in the brief before reaching for something else.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="worked" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">05</span>Seven worked examples</h2>
+    <p class="text-secondary">Five briefs, each assigned a different technique; two intel artifacts.</p>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-primary-subtle text-primary-emphasis mb-2">Challenge brief &middot; recursive bureaucracy</span>
+        <p class="fw-semibold mb-2">The Committed Pallets <span class="fw-normal text-secondary">&mdash; <code>GameProgression.json:174</code></span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. requirements_reuben insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. reliability_ruth argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">The order is locked, the trucks are booked for next week, and the model gets exactly zero do-overs. Reuben has requested that the acceptance criteria be fully governed and independently auditable &mdash; a request currently held up in the queue behind a separate form asking whether the audit trail may itself be audited. Ruth maintains this is unnecessary: the pallets are already committed, the orders are live, and manual checks got everyone through last Tuesday just fine. Nobody present today has been asked how they feel about the trucks leaving on time. Several people have strong feelings about the form.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact. Funny because the audit-the-audit form outranks the actual deadline in the room.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-primary-subtle text-primary-emphasis mb-2">Challenge brief &middot; unresolved resolution</span>
+        <p class="fw-semibold mb-2">The Midnight Deadline <span class="fw-normal text-secondary">&mdash; <code>GameProgression.json:845</code></span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">The nightly data job is failing to finish before the store managers open the ordering app. reliability_ruth demands an automated validation layer to catch bad data instantly so the morning window is never missed again. data_dave insists on keeping the process manual for now, arguing that the infrastructure costs are too high and the current manual checks are sufficient to manage the risk.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">Store managers have submitted, via the appropriate channel, a Request for the Ordering App to Contain Data When Opened. Ruth supports the request and has attached a proposal for automated validation to catch bad data before the window closes again. Dave has attached a counter-memo noting that the infrastructure required to grant the request would itself require a separate request, and that in the meantime the manual checks are, per his last three memos, sufficient to manage the risk. All parties have signed. Nobody has opened the app since Tuesday to check.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact. Funny because a signed agreement resolves nothing &mdash; nobody checks if the job actually got fixed.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-primary-subtle text-primary-emphasis mb-2">Challenge brief &middot; literal scale collision</span>
+        <p class="fw-semibold mb-2">The Consent Gap <span class="fw-normal text-secondary">&mdash; <code>GameProgression.json:688</code></span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">A new model version requires loyalty basket data, but the deployment pipeline lacks the governance controls to verify consent. automation_alex wants to push the automated deployment forward immediately to meet the promotion deadline, while requirements_reuben insists on a manual review process to ensure legal compliance. automation_alex is open to adding a manual approval step if it keeps the pipeline moving, but requirements_reuben will not accept any automated path without full audit trails.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">The deployment pipeline has no way to check whether loyalty programme customers ever consented to their basket data being used in Model v4, which is why the question is currently item 4 on the steering committee's agenda (between "office plant rotation" and "car park resurfacing"), and has been for three meetings running. Alex wants the automated deployment moved forward today regardless, since the promotion deadline doesn't wait for agenda items. Reuben will not let anything ship until item 4 is resolved, calling it a matter of legal compliance. Alex is open to adding a manual approval step if the meeting can end on time. Reuben will not accept any automated path without full audit trails, agenda or no agenda.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact, consent correctly tied to customers. Funny because a real compliance risk sits between two trivial agenda items &mdash; no metaphor needed.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-primary-subtle text-primary-emphasis mb-2">Challenge brief &middot; retroactively-satisfiable criterion</span>
+        <p class="fw-semibold mb-2">The Summer Forecast Gap <span class="fw-normal text-secondary">&mdash; <code>GameProgression.json:533</code></span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. model_monica wants to automate the KPI tracking to capture these shifts in real time, while efficiency_emilia prefers to keep the process manual to ensure every metric aligns with the broader business strategy. efficiency_emilia might accept an automated solution if it clearly supports the agreed business goals.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">Seasonal demand just had a heatwave rewrite it overnight, and the KPI definitions, which do not currently believe in weather, were the last to find out. Monica's proposed fix is to automate the tracking so the numbers move in real time instead of next quarter. Emilia would rather it stayed manual, so every metric keeps pace with the broader business strategy by hand. She has floated one exception: an automated system that clearly supports the agreed business goals would be fine &mdash; a determination to be made later, by comparing the results to whichever goals turn out, in hindsight, to have been the agreed ones.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact. Funny because the criterion is retroactively satisfiable &mdash; goals get declared "agreed" after the results are in.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-primary-subtle text-primary-emphasis mb-2">Challenge brief &middot; institutional euphemism</span>
+        <p class="fw-semibold mb-2">The Cost Cliff <span class="fw-normal text-secondary">&mdash; <code>GameProgression.json:263</code></span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">The infrastructure bill for the monitoring stack has doubled, and efficiency_emilia has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. reliability_ruth argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">The monitoring stack's bill has doubled, which is the easy part of this meeting. The hard part is Emilia's official position on automated drift monitoring: "holding the line on discretionary reliability spend," a phrase that took three rounds of revision to sound less like no, attached to her original point that it is a luxury the business cannot afford. Ruth is not buying the rebrand. Without automated, governed checks she says the team is flying blind through every promotion week, and a manual process someone does when they remember is not, in her words, a signal. Nobody has blinked, and nobody has offered anything in trade.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact, deadlock preserved. Funny because it targets the labor of dressing up a refusal, not Emilia.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-success-subtle text-success-emphasis mb-2">Intel artifact &middot; institutional euphemism, in his own voice</span>
+        <p class="fw-semibold mb-2">Reuben's governance memo <span class="fw-normal text-secondary">&mdash; <code>OfflineIntelArtifacts.json:267</code>, Committed Pallets</span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">The supplier has confirmed the bulk order for the middle aisle promotion, and the trucks leave next week. Because the physical stock is already committed, there is no room for model error in the allocation logic. I am not willing to approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are not sufficient for this scale of financial and operational risk. I will not sign off on the deployment until the governance framework is in place and the audit trail is verifiable. This is a hard requirement for my team. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">Quick note before the trucks roll. The order's confirmed, the stock is committed, and there is officially no room in this plan for the model to be wrong, which is a strange thing to type calmly into an email but here we are. I want to be direct about where I stand: I won't approve the release with manual acceptance criteria. In this building we have taken to calling unreviewed automated decisions "agile," and I'd like to retire that usage specifically for anything touching a fully loaded truck. The logic needs to be governed and auditable before goods ship. Manual checks are not sufficient for risk at this scale, financially or operationally, whatever term the deck uses for it. I will not sign off until the governance framework is in place and the audit trail is verifiable end to end. This is a hard requirement for my team. Once the trucks leave, the inventory is locked in with the supplier, and I am not the one who explains to anyone above me why an unauditable decision made the call. That liability is not mine to carry.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact. Funny because Reuben names his own building's euphemism and refuses to use it &mdash; his voice, not a quirk.</p>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <span class="badge text-bg-success-subtle text-success-emphasis mb-2">Intel artifact &middot; personification with a callback</span>
+        <p class="fw-semibold mb-2">Ruth's trade-off notes <span class="fw-normal text-secondary">&mdash; <code>OfflineIntelArtifacts.json:281</code>, Committed Pallets</span></p>
+        <div class="row row-cols-1 row-cols-md-2 g-2 mb-2">
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Original</div><div class="p-2 bg-body-secondary rounded small">I am willing to accept that the acceptance criteria remain manual checks for this specific release. We can skip the full governance audit trail for the allocation logic right now. In exchange for that reduced oversight, I need to ship the feature immediately so we can handle the live orders before the trucks leave. The physical stock is already committed to the supplier, and the window is closing. If we wait for the governed pipeline to be fully in place, we risk missing the delivery date and leaving the stores without the promised middle aisle stock. I am trading the long term auditability of this specific run for the immediate operational certainty of getting the pallets to the distribution centres on time.</div></div>
+          <div class="col"><div class="small text-uppercase text-secondary mb-1">Rewrite</div><div class="p-2 text-bg-dark rounded small">The trucks do not know what an audit trail is, and I am not going to be the one to explain it to them before they leave. So: acceptance criteria manual for this release, full governance audit trail for the allocation logic skipped for now, feature shipped immediately so we can get the live orders handled before the trucks go. The stock is already committed to the supplier and the window is closing, which is a sentence that is true whether or not our pipeline is governed. Wait for the governed version and we miss the delivery date, and the stores are left without the middle aisle stock we told them was coming. What I am offering is simple: I will give up the long-term auditability of this one run, and take, in return, the pallets actually arriving at the distribution centres on time. The trucks get their certainty. The paperwork can wait its turn.</div></div>
+        </div>
+        <p class="small text-secondary mb-0">Facts intact. Funny because of a real setup/payoff built entirely from her actual trade-off.</p>
+      </div>
+    </div>
+
+    <p class="mb-0">Testimony can be rewritten too &mdash; same rule as everywhere: facts survive, the joke targets the situation. Artifacts render more than briefs, so they're higher priority, not off-limits.</p>
+  </section>
+
+  <section id="process" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">06</span>How these seven got made</h2>
+    <div class="card">
+      <div class="card-body">
+        <ul class="mb-3">
+          <li>Write 5 candidates per brief, not 1 &mdash; real swings, not safe restatement.</li>
+          <li>Review adversarially: assume every candidate fails. Check facts, target, vocabulary, clarity &mdash; then check if it's actually funny.</li>
+          <li>First two briefs: 2 of 10 survived. Normal ratio, not failure.</li>
+          <li><strong>Exclude, don't assign:</strong> give the writer the list of used devices, not a chosen target &mdash; the best line in this set came from an unassigned slot.</li>
+          <li>Tag every shipped line with its technique; cap one technique per phase.</li>
+          <li>First-person testimony: same target rule, harder to apply &mdash; watch for the banned "not X, it's Y" reframe crutch, which took out 4 of 5 candidates in one round.</li>
+        </ul>
+
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#promptTemplates">
+          Show reusable writer + reviewer prompts
+        </button>
+        <div class="collapse mt-3" id="promptTemplates">
+          <p class="small text-secondary">Paste into a fresh session with the brief's title, original text, and fact list filled in. The exclusion list should carry forward every technique already shipped.</p>
+
+          <div class="small text-uppercase text-secondary font-monospace mb-1">Writer pass</div>
+          <pre class="text-bg-dark p-3 rounded small mb-3">I'm writing comedic rewrites of dry scenario briefs for a "serious game" about MLOps. I need genuinely funny candidates, not just tightened prose &mdash; the failure mode to avoid is competent wry understatement with no real joke in it.
+
+VOICE MODEL (don't deviate):
+- Good Omens (Gaiman/Pratchett): real large stakes sit completely unremarked next to characters' small, petty, in-the-room focus. Never narrated or explained &mdash; just placed there.
+- Monty Python (Dead Parrot / Ministry of Silly Walks): institutional denial via escalating euphemism; absurd bureaucratic functions treated with total unblinking sincerity.
+- Douglas Adams (the Vogons): a bureaucratic process outweighs, in the characters' own minds, the catastrophe the process just caused &mdash; irritation about the paperwork inconvenience, not alarm about the disaster.
+
+DEVICES ALREADY IN USE &mdash; don't repeat these exact shapes, but anything else, including something new, is fair game:
+- Recursive bureaucracy: a process needs its own meta-process (a form to approve the form, an audit of the audit trail).
+- Unresolved resolution: a full signed agreement is reached, and nobody checked whether the real problem got fixed.
+- Retroactively-satisfiable criterion: a vague trade-off condition that can always be declared met after the fact.
+- Institutional euphemism: a flat refusal dressed in escalating official-sounding language.
+[ADD ANY NEWLY SHIPPED DEVICE HERE]
+
+HARD CONSTRAINTS (a strict adversarial reviewer will reject anything that breaks these, no partial credit):
+1. Every candidate MUST preserve every negotiation fact from the original. State what you preserved for each.
+2. The joke's target must be a process, a form, a deadline, a mismatch of scale &mdash; NEVER a specific stakeholder's competence or personality. No caricature, no verbal tics, no mockery of an individual.
+3. No AI-writing-tell vocabulary: delve, boasts, testament, tapestry, leverage, crucial, robust, seamless, underscore, "not X but Y" constructions, spaced em dashes, "load-bearing," "table stakes," "north star."
+4. Must still function as a clear scenario setup for a player about to negotiate.
+5. If a joke touches a technical, legal, or compliance term (consent, audit, governance, ownership, liability), it must preserve who or what that term actually refers to &mdash; don't personify or redirect it onto the wrong subject (data cannot consent; only the people it belongs to can).
+6. Any metaphor or image used must be understandable on a single read. If it needs to be explained, cut it.
+
+ORIGINAL BRIEF &mdash; "[TITLE]" (preserve: [LIST EVERY FACT FROM THE ORIGINAL]):
+"[PASTE ORIGINAL BRIEF TEXT]"
+
+TASK: Write 5 genuinely funny candidate rewrites. Take real swings &mdash; some can be too broad, a reviewer will cut the weak ones. After each candidate, note in one line which facts it preserved, which mechanism it used, and confirm it passes rules 5 and 6.</pre>
+
+          <div class="small text-uppercase text-secondary font-monospace mb-1">Reviewer pass</div>
+          <pre class="text-bg-dark p-3 rounded small mb-0">You are an adversarial reviewer for comedy writing in a serious game about MLOps. Be genuinely harsh &mdash; assume every candidate probably fails, and make it prove otherwise. Do not be diplomatic.
+
+HARD RULES (reject immediately, no partial credit, if violated):
+1. Preserves every negotiation fact from the original (list them and check).
+2. The joke's target is a process, a form, a deadline, a mismatch of scale &mdash; NEVER a specific stakeholder's competence, personality, or a verbal tic assigned to them. Watch closely for small "behavioral tics" given to a stakeholder (a quirky habit, an odd phrase repeated, a prop) &mdash; these are a rule-2 violation even when framed as "about the process," because they still individuate and lightly caricature a named person rather than the system.
+3. No AI-writing-tell vocabulary/constructions: delve, boasts, testament, tapestry, leverage, crucial, robust, seamless, underscore, "not X but Y", spaced em dashes, "load-bearing," "table stakes," "north star."
+4. Still functions as a comprehensible scenario setup for a player about to negotiate.
+5. Preserves who or what any technical/legal/compliance term actually refers to &mdash; flag it if a joke personifies data, a system, or an object as the holder of something (consent, ownership, liability) that only a person can actually hold.
+6. Any metaphor or image must be understandable on a single read with no decoding required &mdash; if you have to explain it yourself to justify it, fail it.
+
+ADDITIONAL RULE 7: this project already has these jokes elsewhere: [PASTE THE SAME DEVICES-ALREADY-IN-USE LIST FROM THE WRITER PROMPT]. Mark down (don't auto-reject, but flag clearly) any candidate that repeats one of those exact shapes &mdash; a genuinely new device, even an unnamed one, is preferred over a strong instance of something already used twice.
+
+ORIGINAL BRIEF &mdash; "[TITLE]": "[PASTE ORIGINAL BRIEF TEXT]"
+
+Facts that must survive: [LIST EVERY FACT FROM THE ORIGINAL]
+
+CANDIDATES:
+[PASTE ALL 5 CANDIDATES FROM THE WRITER PASS]
+
+TASK: Verdict (REJECT/WEAK/STRONG) per candidate with a one-to-two sentence reason focused on whether it's actually funny, plus the hard-rule check. Pick your single best candidate and explain the actual comedic mechanism and why it beats the others. Don't hedge; say if none are good enough.</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="scale" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">07</span>Scaling: a human-on-the-loop pipeline</h2>
+    <p class="text-secondary">One required human checkpoint.</p>
+    <div class="card">
+      <div class="card-body">
+        <ol class="mb-0">
+          <li class="mb-2"><strong>Inventory</strong> &mdash; briefs plus their intel artifacts together; artifacts are higher priority.</li>
+          <li class="mb-2"><strong>Exclusion ledger</strong> &mdash; tracks technique used per challenge; enforces the anti-repetition rule.</li>
+          <li class="mb-2"><strong>Batch by phase</strong> &mdash; 2&ndash;4 briefs at a time.</li>
+          <li class="mb-2"><strong>Writer pass</strong> per brief &mdash; 5 candidates.</li>
+          <li class="mb-2"><strong>Reviewer pass</strong> per brief &mdash; verdict + winner, or "none good enough."</li>
+          <li class="mb-2"><strong>Human checkpoint</strong> &mdash; one gate, review only winners. Catches domain errors (like the Consent Gap's customer/data mix-up) the reviewer agent can't.</li>
+          <li class="mb-2"><strong>Ship + log</strong> the technique used.</li>
+          <li class="mb-0"><strong>Playtest spot-check</strong> &mdash; the one thing that can't be automated.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="slop" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">08</span>Words to avoid</h2>
+    <p class="text-secondary">Tells that make writing read as machine-generated. See <a href="https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing">Wikipedia:Signs of AI writing</a>.</p>
+
+    <div class="card">
+      <div class="card-body">
+        <p class="font-monospace small text-secondary mb-3" style="line-height:2;">
+          delve &middot; boasts &middot; testament &middot; tapestry &middot; vibrant &middot; underscore(s) &middot; crucial &middot; robust &middot; seamless &middot; leverage &middot; fostering &middot; intricate &middot; nuanced &middot; realm &middot; garnered &middot; notably &middot; multifaceted &middot; streamline &middot; showcase &middot; highlight &middot; pivotal &middot; landscape &middot; navigate &middot; journey &middot; unlock &middot; elevate &middot; resonate &middot; ecosystem
+        </p>
+        <p class="mb-2 small">Also: grandiose "stands as a testament to"; unearned "not X, but Y"; spaced em dashes; "Certainly!" / "in conclusion"; padded rule-of-three lists; opening on a participial phrase ("Nestled among...").</p>
+        <p class="mb-0 small">Bonus, not on Wikipedia's list: "load-bearing," "table stakes," "north star," "circle back." Read new lines aloud; cut anything that could sit in a LinkedIn post.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="guardrails" class="mb-5">
+    <h2 class="h4 fw-bold mb-3"><span class="badge text-bg-secondary me-2">09</span>Guardrails</h2>
+    <ol class="list-group list-group-numbered">
+      <li class="list-group-item">Content-relevant first &mdash; a joke that drops a driver/boundary/trade-off fact fails.</li>
+      <li class="list-group-item">Never obscure a functional hint with a joke.</li>
+      <li class="list-group-item">One register per surface; don't mix mid-line.</li>
+      <li class="list-group-item">Target is always a form or process &mdash; never a stakeholder's competence or real human cost.</li>
+      <li class="list-group-item">Protect the technical signal &mdash; check "does this still teach the concept."</li>
+      <li class="list-group-item">Screen every line against the words-to-avoid list.</li>
+      <li class="list-group-item">Rewrite what actually renders before writing for rare edge cases.</li>
+      <li class="list-group-item">Exclude, don't assign &mdash; cap one technique per phase.</li>
+      <li class="list-group-item">Preserve who a technical/legal term refers to; every metaphor must land in one read.</li>
+    </ol>
+  </section>
+
+  <section id="pilot" class="mb-5">
+    <h2 class="h4 fw-bold mb-2"><span class="badge text-bg-secondary me-2">10</span>Suggested pilot</h2>
+    <div class="card">
+      <div class="card-body">
+        <ol class="mb-0">
+          <li class="mb-2">Rewrite the five generic templates in <code>MlopsStoryFragments.json</code> &mdash; they render most.</li>
+          <li class="mb-2">Add one narrator aside for "The Ledger" (<code>fired_grudges</code>) &mdash; the counter already exists.</li>
+          <li class="mb-2">Ship the Committed Pallets and Midnight Deadline rewrites next to their unchanged artifacts.</li>
+          <li class="mb-2">Confirm the loading screen is actually seen in production.</li>
+          <li class="mb-0">Playtest: does the negotiation logic still read clearly?</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pt-4 border-top small text-secondary">
+    Sources referenced
+    <ol class="mt-2">
+      <li><a href="https://link.springer.com/article/10.1186/s41039-021-00158-8">The educational power of humor on student engagement &mdash; RPTEL, Springer</a></li>
+      <li><a href="https://arxiv.org/pdf/1903.03019">Engaging Users with Educational Games: The Case of Phishing &mdash; arXiv</a></li>
+      <li><a href="https://elearningindustry.com/does-humor-keep-students-engaged">Humor In Learning: Does It Keep Students Engaged? &mdash; eLearning Industry</a></li>
+      <li><a href="https://www.edutopia.org/blog/laughter-learning-humor-boosts-retention-sarah-henderson">Laughter and Learning: Humor Boosts Retention &mdash; Edutopia</a></li>
+      <li><a href="https://www.uxdesigninstitute.com/blog/tone-of-voice-for-ux-writing/">How to define your tone of voice in UX writing</a></li>
+      <li><a href="https://blog.logrocket.com/ux-design/tones-of-voice-ux-writing/">Understanding tones of voice for better UX writing &mdash; LogRocket</a></li>
+      <li><a href="https://www.ems1.com/ems-humor/inside-gallows-humor-the-psychological-safety-net-behind-the-jokes-we-tell">Inside gallows humor: the psychological safety net behind the jokes we tell &mdash; EMS1</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/The_Ministry_of_Silly_Walks">The Ministry of Silly Walks &mdash; Wikipedia</a></li>
+      <li><a href="https://www.thegadflymagazine.org/home-1/wnppz71es2np0u0o6yv8y5l9c8t2u9">Death by Complaint: bureaucracy through the Dead Parrot sketch &mdash; Gadfly</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Good_Omens_(TV_series)">Good Omens &mdash; Wikipedia</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Vogon">Vogon &mdash; Wikipedia</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/The_Hitchhiker%27s_Guide_to_the_Galaxy_(novel)">The Hitchhiker's Guide to the Galaxy &mdash; Wikipedia</a></li>
+      <li><a href="https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing">Wikipedia:Signs of AI writing</a></li>
+    </ol>
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
