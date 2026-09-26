@@ -257,7 +257,7 @@ def _item_payload(item, chains: Optional[dict] = None) -> dict:
 
 
 def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView, **extra) -> dict:
-    from mlops_serious_game.application.intel_handler import chain_index
+    from mlops_serious_game.application.intel_handler import chain_index, speaker_of
 
     held = ctx.held_items()
     chains = chain_index(held)
@@ -281,11 +281,14 @@ def _payload(ctx: PitchContext, state: "pitch.PitchState", view: pitch.CardView,
         "predicted_outcome": view.outcome,
         "objections": [o.model_dump() for o in state.open_objections()],
         "feedback_messages": [m.model_dump() for m in state.feedback_messages],
-        "intel_total": len([r for r in ctx.all_intel if r.stakeholder_id]),
+        # Same attribution the dossier uses (`speaker_of`): a Fact has no `stakeholder_id` of its
+        # own but still counts against its narrator, or the dossier's per-stakeholder totals run
+        # ahead of this one.
+        "intel_total": len([r for r in ctx.all_intel if speaker_of(r)]),
         "intel_verified": len([
             i for i in held
             if getattr(i, "challenge_id", None) == ctx.challenge_id
-            and getattr(i, "stakeholder_id", None)
+            and speaker_of(i)
             and counts_toward_readiness(getattr(i, "intel_type", None))
         ]),
         "emotion_deltas": state.emotion_deltas,
