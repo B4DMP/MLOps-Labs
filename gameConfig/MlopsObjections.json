@@ -52,9 +52,9 @@
     {
       "intel_id": "gen_cost_crisis_drift_gap_emilia_efficiency_kpi",
       "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "I did not ask for a flat cap on the monitoring budget, I asked for a strict return on investment for every new alert we deploy. You are still treating this as a cost center instead of a lever for our efficiency KPIs.",
-      "correction": "You misread my comment on the dashboard spend as a request to cut features. I meant that if the monitoring does not directly reduce waste or improve availability, it does not belong in the roadmap."
+      "kind": "price",
+      "text": "You are treating my willingness to leave logging at its current level as an endorsement of the status quo, not a budget-driven concession. I would rather have full observability tied to the efficiency KPI if the spend clears; I am only settling for less because the budget conversation has not landed yet.",
+      "correction": "I did not say the current granularity is good enough for good. I said I would not fight for the upgrade while the budget is unresolved, which is a different thing from being satisfied with where logging sits today."
     },
     {
       "intel_id": "gen_cost_crisis_drift_gap_monica_retraining",
@@ -94,16 +94,16 @@
     {
       "intel_id": "gen_heatwave_forecast_gap_emilia_driver_eff",
       "stakeholder_id": "efficiency_emilia",
-      "kind": "stance",
-      "text": "You are still treating the evaluation window as a technical bottleneck when I asked you to cut the operational cost of stockouts. Speed up the loop so we can see the impact on residual stock before the next promotion week locks in.",
-      "correction": "I am not talking about the compute time for the retraining job itself. I am asking for the end to end latency from data arrival to the order suggestion being live in the store manager app."
+      "kind": "price",
+      "text": "You are treating my acceptance of the harness coming back up manually as if it is what I actually wanted, rather than a concession I made because a decision now matters more than speed. I still want the turnaround time cut once we are past this promotion week.",
+      "correction": "I did not say the manual cycle is fine going forward. I said I would live with it this one time so we get a decision before the next heatwave, not that I have dropped the request to speed it up for good."
     },
     {
       "intel_id": "gen_heatwave_forecast_gap_monica_driver_eval",
       "stakeholder_id": "model_monica",
-      "kind": "stance",
-      "text": "You are missing the point when you treat this as a one off request for a single weather variable. I need the harness to automatically test the entire seasonal feature set so I can iterate on the northern region's demand shifts without waiting for manual validation.",
-      "correction": "Stop misreading my ask as a simple data pipeline fix for one specific feed. I am asking for a rigorous evaluation framework that lets me test and version new model features end to end, which is what actually drives the accuracy improvements you need."
+      "kind": "price",
+      "text": "You are missing the point when you treat my acceptance of a manual harness as if that is all I ever wanted. I am giving up automatic testing of the entire seasonal feature set for now to get a decision before the next heatwave, and I want that cost acknowledged, not waved away as agreement.",
+      "correction": "Stop misreading my willingness to run it by hand once as a permanent downgrade of the ask. I am asking for a rigorous, automated evaluation framework long term; the manual pass is only what gets us through this particular deadline."
     },
     {
       "intel_id": "gen_heatwave_forecast_gap_monica_tradeoff_eval",
@@ -220,9 +220,9 @@
     {
       "intel_id": "gen_loyalty_data_deployment_block_alex_promotion_deadline",
       "stakeholder_id": "automation_alex",
-      "kind": "stance",
-      "text": "You are missing the point about the pipeline stability required to hit that leaflet print date. I need the deployment gates to be strict enough to catch a broken build before it reaches the production forecast job.",
-      "correction": "This is not about skipping the manual review steps to save time. I am asking for a faster, more reliable automated path so we do not risk a failed deployment during the critical promotion week."
+      "kind": "price",
+      "text": "You are treating my acceptance of the audited, compliance-checked pace as if that is the plan I actually wanted. I only settled for it because it beats missing the leaflet print date entirely; I still want the full automated path once the deadline pressure is off.",
+      "correction": "I did not say the audited pace is fine long term. I said I would hold at it rather than gamble the promotion week on a faster path that is not ready, which is a concession, not a change of what I am asking for."
     },
     {
       "intel_id": "gen_loyalty_data_deployment_block_emilia_cost_control",
@@ -290,9 +290,9 @@
     {
       "intel_id": "gen_nightly_window_miss_ruth_validation_driver",
       "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "Automating validation is a good start, but it does not fix the serving latency that keeps us missing the morning order window. We need the full pipeline to run in time so stores do not fall back to last week's numbers.",
-      "correction": "I am not just talking about catching bad data before it hits the model. I am talking about the end to end reliability of the forecast service during the narrow ordering window."
+      "kind": "price",
+      "text": "You are treating the smaller step up in validation coverage as the finished job, not the compromise it is. I settled for clearing the current backlog because I need the pipeline moving before the window closes; I still want it fully automated once we are not racing the clock.",
+      "correction": "I did not say catching most of the bad data is good enough for good. I said it is enough to unblock tonight's run, which is a different claim from being satisfied with anything short of full automation."
     },
     {
       "intel_id": "gen_override_blind_spot_dave_data_quality",
@@ -451,9 +451,9 @@
     {
       "intel_id": "gen_silent_ingestion_failure_ruth_driver_ingest",
       "stakeholder_id": "reliability_ruth",
-      "kind": "stance",
-      "text": "Automating scan line ingestion is a baseline, not a feature. It does not stop the forecast job from running on partial data when a store feed lags. I need a hard circuit breaker that halts the nightly job if any regional distribution centre is missing more than two percent of its expected till records.",
-      "correction": "I am not asking for a dashboard or manual review. I want the system to treat incomplete ingestion as a failure state. This ensures we only train on complete, verified scan lines, stopping the model from learning censored demand during out of stock periods."
+      "kind": "price",
+      "text": "You are treating basic ingestion with a manual check as the plan, not the fallback it is. What I actually want is the whole pipeline automated end to end, ingestion, validation and versioning raised together, so a silent drop becomes structurally impossible. I only settled for Dave's pace because it keeps the forecast job moving tonight.",
+      "correction": "I did not say a manual verification step is good enough for good. I said it is acceptable while we get the rest of the pipeline sorted, not a substitute for automating ingestion the way the rest of it should work."
     },
     {
       "intel_id": "gen_silent_ingestion_failure_ruth_tradeoff_versioning",

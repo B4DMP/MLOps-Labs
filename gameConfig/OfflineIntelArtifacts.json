@@ -393,10 +393,10 @@
       "challenge_id": 120,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "email",
-      "content": "The northern stores incident exposed a critical gap in our monitoring. We need the ingestion pipeline to be fully automated with strict arrival guarantees. Every store scan line must land in the feature store before the nightly forecast job begins. The more reliable this process becomes, the fewer times we will run on incomplete data. I want to eliminate the manual handoffs that allow silent drops to slip through unnoticed. This is not about adding a single check; it is about building a system where data latency is impossible. The current setup leaves too much room for human error during the overnight window. We need a robust, automated flow that alerts us the moment a batch is missing, rather than waiting until the morning order window reveals the damage. Reliability is the foundation for everything else we build on top of this platform.",
+      "content": "The northern stores incident exposed a critical gap in our monitoring. Ideally we automate the whole pipeline end to end, ingestion, validation and versioning all raised together, so a dropped batch becomes structurally impossible. I know that is a lot to ask for in one step, though. If getting there all at once is not realistic, I can live with basic ingestion and a manual verification step, the same pace Dave is already comfortable with, as long as we are moving forward and not left exactly where we are today. Reliability is the foundation for everything else we build on top of this platform.",
       "wrong_descriptions": {
+        "driver": "She wants the ingestion pipeline fully automated with strict arrival guarantees; every store scan line must land in the feature store before the nightly forecast job begins, and nothing less will do.",
         "boundary": "She will not accept a forecast job that runs without a confirmed data arrival signal.",
-        "trade_off": "She would accept a slower ingestion if it guarantees that no store data is dropped.",
         "fact": "That is simply how the ingestion setup works today."
       },
       "is_known": true
@@ -522,10 +522,10 @@
       "challenge_id": 116,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "slack_message",
-      "content": "I have spent the last three nights watching the nightly data job stumble against incomplete till feeds, only for the morning order window to open with stale numbers. We need an automated validation layer that flags bad data the moment it arrives, not hours later. Right now, catching a missing scan line is done by hand, and that manual process is too slow to protect the stores. I want a system that verifies every incoming data batch before the forecast even starts. The more coverage we have on these checks, the safer the replenishment cycle becomes. I am not asking for a perfect solution today, but I am asking for the foundation of a reliable pipeline. If we do not automate this, we will keep waking up to empty shelves and angry store managers.",
+      "content": "I have spent the last three nights watching the nightly data job stumble against incomplete till feeds, only for the morning order window to open with stale numbers. Ideally we fully automate the validation layer so bad data is flagged the moment it arrives, not hours later. But if that is too much change at once, I would settle for a smaller step up, just enough coverage to clear the current backlog before the window closes, even short of full automation. I am not asking for a perfect solution today, but I am asking for the pipeline to keep moving forward instead of staying exactly where it is.",
       "wrong_descriptions": {
+        "driver": "She wants an automated validation layer that flags bad data the moment it arrives, full stop, not a step toward it.",
         "boundary": "She will not allow the forecast to run without a fully automated validation layer in place.",
-        "trade_off": "She would accept a slower forecast if the validation step remains manual.",
         "fact": "That is simply how the validation setup works today."
       },
       "is_known": true
@@ -666,10 +666,10 @@
       "challenge_id": 112,
       "stakeholder_id": "model_monica",
       "artifact_type": "slack_message",
-      "content": "I need the evaluation harness to run automatically so I can test new weather features without waiting for a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. If I can iterate on the feature set overnight, I can catch those shifts before the next promotion week locks in. Every additional hour spent on manual documentation delays the model update, which means more residual stock in the warehouse. I want the system to flag when a new feature improves accuracy so I can move it to production immediately.",
+      "content": "I need the evaluation harness running again so I can test new weather features instead of waiting on a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. Full automation is what I actually want, overnight iteration on the feature set. But if bringing the harness back up manually, one documented case at a time, is what gets us a decision before the next heatwave hits, I can work with that instead of staying stuck at zero.",
       "wrong_descriptions": {
+        "driver": "She wants the evaluation harness to run automatically, full stop, so she can iterate on the weather feature set without waiting on anyone.",
         "boundary": "She will not approve a model change if the evaluation process requires manual sign-off for every feature addition.",
-        "trade_off": "She would accept a slower rollout of the new weather model if the evaluation harness remains fully automated.",
         "fact": "That is simply how the evaluation setup works today."
       },
       "is_known": true
@@ -708,10 +708,10 @@
       "challenge_id": 112,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The stockout incidents during the heatwave are eroding our margin on the promotion week. We need to reduce the time spent on manual evaluation to lower the operational cost of these misses. Faster iteration on weather features will help us catch demand shifts before they become empty shelves. The current process is too slow to keep up with the volatility in seasonal articles. We should prioritize reducing this turnaround time to improve availability and reduce residual stock. A quicker evaluation cycle is directly linked to better financial performance and less waste in the distribution centres. We need to move away from the slow, manual checks to get a more responsive forecasting system.",
+      "content": "The stockout incidents during the heatwave are eroding our margin on the promotion week. Full automation of the evaluation harness is what I would prefer, cutting the turnaround time as far as it will go. But if a quick decision matters more than speed right now, I can accept the harness coming back up manually, one case at a time, rather than leaving it broken through the next promotion cycle. A quicker evaluation cycle is directly linked to better financial performance and less waste in the distribution centres, so I would rather see it move than stay stuck.",
       "wrong_descriptions": {
+        "driver": "She wants a faster turnaround on model evaluation, full stop, to lower the operational cost of the stockout and overstock incidents.",
         "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
-        "trade_off": "She would accept a lower accuracy threshold for the new model if the evaluation is completed within the morning order window.",
         "fact": "That is simply how the evaluation setup works today."
       },
       "is_known": false
@@ -954,10 +954,10 @@
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
       "artifact_type": "document",
-      "content": "I need the loyalty basket model deployed before the leaflet print run locks. The promotion deadline is immovable, and every hour of delay pushes the allocation error closer to a stockout on the first morning. I am happy to insert a manual approval gate into the pipeline if that keeps the legal team comfortable. I just need that gate to be a single click, not a full audit review. The faster we get the model live, the better the residual stock numbers will look for the middle aisle. I am not asking to skip the check, but I am asking for the check to be quick enough to keep the pipeline moving without stalling the entire release train.",
+      "content": "I need the loyalty basket model deployed before the leaflet print run locks. The promotion deadline is immovable, and every hour of delay pushes the allocation error closer to a stockout on the first morning. Full automation, pushed straight through, is what I want. But if that is not realistic in time, I can accept holding the pipeline at the audited, compliance-checked pace instead, as long as we are not still stuck at zero when the leaflet prints. The faster we get the model live, the better the residual stock numbers will look for the middle aisle, but a slower, audited path still beats missing the window entirely.",
       "wrong_descriptions": {
+        "driver": "He wants the deployment pipeline fully automated, full stop, so the new model is live before the leaflet prints no matter what else has to give.",
         "boundary": "The promotion deadline is a hard constraint that cannot be moved, so the deployment must be finished by a specific date.",
-        "trade_off": "The promotion deadline is flexible if the model quality is not verified, so the team can delay the launch.",
         "fact": "The promotion deadline is part of the business calendar and is not controlled by the deployment team."
       },
       "is_known": true
@@ -1456,10 +1456,10 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "I have reviewed the infrastructure bill and the proposed monitoring stack. The cost increase is significant, and I need to ensure every dollar spent directly contributes to our operational efficiency KPI. I want to see a clear line of sight between the monitoring spend and the reduction in manual effort for the team. If we can automate the checks that currently require human review, we can free up capacity for higher value work. I am looking for a solution that maximizes this efficiency gain. The more we can reduce the time spent on manual verification, the better the outcome for the project. I need to see that the investment pays off in measurable operational savings, not just in technical comfort.",
+      "content": "I have reviewed the infrastructure bill and the proposed monitoring stack. Full observability automation is what I would want, tied directly to our efficiency KPI, if the budget allowed for it. But if the extra spend is not approved, I can leave logging at its current granularity rather than push for more. I am not going to fight for an upgrade the budget cannot support right now, but if it clears, I want to see it pay off in measurable operational savings, not just technical comfort.",
       "wrong_descriptions": {
+        "driver": "She wants every dollar spent on monitoring to contribute directly to operational efficiency, full stop, and wants the observability automation upgraded regardless of what the budget conversation lands on.",
         "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
-        "trade_off": "She would accept a lower level of monitoring if it keeps the efficiency KPI on track.",
         "fact": "The efficiency KPI is currently not linked to the monitoring budget."
       },
       "is_known": false
