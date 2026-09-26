@@ -662,7 +662,9 @@ export function CrossPhaseStub({
   const x1 = x + dir * (BOX_W / 2);
   const x2 = x1 + dir * length;
   const gradId = `${prefix}-stub-${id.replace(/\./g, "_")}`;
-  const color = active ? NODE_COLORS.selected : "#94a3b8";
+  // Its own identity colour, not the muted grey used elsewhere for "unknown" or "view only" -
+  // a cross-phase dependency is a known, real fact about the diagram, not a fogged-out one.
+  const color = active ? NODE_COLORS.selected : "#0891b2";
   return (
     <g style={{ cursor: onClick ? "pointer" : undefined }} onClick={onClick}>
       <defs>
