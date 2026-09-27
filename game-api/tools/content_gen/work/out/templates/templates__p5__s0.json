@@ -483,7 +483,7 @@
   },
   "output": {
     "slug": "silent_forecast_failure",
-    "name": "The Silent Failure",
+    "name": "The Warehouse Flood",
     "description": "A forecast job failed silently for three days, leaving stores ordering blind, and the team never knew until the warehouse was flooded with unsold promotion stock. #reliability_ruth# argues that the performance monitoring must be automated and governed to catch such failures instantly, while #efficiency_emilia# is willing to accept a manual monthly audit of the logs to save on tooling costs.",
     "round_introduction": "The nightly forecast job crashed on a Tuesday night and nobody saw it until the distribution centre reported a spike in manual overrides on Friday morning. The logs show the job died, but the alerting system never fired because the monitoring pipeline was not connected to the alerting service.",
     "preconditions": {
