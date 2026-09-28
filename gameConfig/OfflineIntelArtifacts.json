@@ -20,16 +20,16 @@
       "challenge_id": 113,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "I am open to letting the system handle the nightly KPI refresh if it directly serves the agreed business goals. I will accept losing the manual review step where I currently adjust each metric to fit the broader product strategy. In return, I need the automated output to align perfectly with our organizational roadmap. If the automation drifts from those strategic targets, I will revert to the manual process immediately. The trade is clear: I give up the hands on control over metric definition only if the automation proves it supports the exact objectives we set for the season. To verify this, the tool must replicate my last manual adjustment to the summer heat index, which was 0.034, a figure I derived from the regional humidity logs and the specific shade of the warehouse roof.",
+      "content": "I am open to letting the system handle the nightly KPI refresh if it directly serves the agreed business goals. I will accept losing the manual review step where I currently adjust each metric to fit the broader product strategy. In return, I need the automated output to align perfectly with our organizational roadmap. If the automation drifts from those strategic targets, I will revert to the manual process immediately. The trade is clear: I give up the hands on control over metric definition only if the automation proves it supports the exact objectives we set for the season.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia} wants more manual control to refine the business goals.",
         "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
         "fact": "The KPI definition is currently broken in the system."
       },
       "is_known": true,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the 'undetectable falsehood' device by burying a nonsensical, hyper-specific detail ('shade of the warehouse roof' affecting a heat index by 0.034) within a dense wall of plausible corporate jargon. The humor arises from the absurdity of the 'verification' method being just as arbitrary and uncheckable as the manual process it claims to replace, perfectly illustrating the trap of 'plausible' but meaningless metrics. It does not target the stakeholder's competence directly but rather the futility of the process, and the concrete detail is specific enough to land the incongruity without needing external cultural knowledge."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_heatwave_kpi_gap_monica_criteria_automation",
@@ -51,7 +51,7 @@
       "challenge_id": 113,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "document",
-      "content": "The current risk assessment for weather driven spikes is done by hand, which slows our response to heatwaves. I am prepared to accept an automated system for this task if it includes a manual override specifically for legal issues. This allows us to maintain strict compliance with our contractual obligations while gaining the speed we need. Without that safety valve, I cannot support automation, as the risk of an unreviewed legal breach is too high for my comfort. I want the system to handle the routine calculations so my team can focus on strategy, but only if we retain final control over the sensitive parts. Last Tuesday, the heatwave spiked demand for sun hats. The automated system flagged the legal override. We manually approved it. The KPI was met. The hats were still out of stock by noon, and the leaflet promised them to everyone.",
+      "content": "The current risk assessment for weather driven spikes is done by hand, which slows our response to heatwaves. I am prepared to accept an automated system for this task if it includes a manual override specifically for legal issues. This allows us to maintain strict compliance with our contractual obligations while gaining the speed we need. Without that safety valve, I cannot support automation, as the risk of an unreviewed legal breach is too high for my comfort. I want the system to handle the routine calculations so my team can focus on strategy, but only if we retain final control over the sensitive parts. The criterion is met when the override exists. Last week, the system flagged a heatwave spike. A human clicked the override to review the legal risk. The forecast remained unchanged. The button was clicked. The criterion was met.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia} wants more detailed risk assessments for every promotion week.",
         "boundary": "{efficiency_emilia} will not approve automated risk assessment without a compliance check.",
@@ -60,7 +60,7 @@
       "is_known": false,
       "humor_archetype": "Retroactively-satisfiable criterion",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the retroactively-satisfiable criterion device. The 'manual override for legal issues' is the vague, always-satisfiable condition. The concrete instance (sun hats out of stock during a heatwave) shows the system 'working' (KPI met via manual approval) while failing the actual purpose (inventory management). The humor lands because the 'legal override' is applied to a stock issue, highlighting the absurdity of the bureaucratic shield. It does not target the stakeholder's competence but rather the structural flaw in the proposed solution. It is funny, concrete, and uses the assigned device correctly."
+      "humor_review_reason": "The candidate preserves the original facts regarding manual risk assessment and the condition for automation (manual override for legal issues). It successfully employs the assigned device (retroactively-satisfiable criterion) by defining the success metric as the existence/clicking of the button rather than the outcome of the review. The concrete instance (clicking the button, forecast unchanged, criterion met) clearly illustrates the absurdity of satisfying the compliance box without achieving the strategic goal, landing the joke effectively without obscuring the intel."
     },
     {
       "id": "art_gen_heatwave_kpi_gap_monica_data_contracts",
@@ -82,7 +82,7 @@
       "challenge_id": 113,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The automated KPI tracker is currently operating with a satisfactory green status. It verifies that the margin on the promotion week field exists and contains a number. It does not verify if the number is sane. Last Tuesday, a weather spike caused a massive surge in iced tea sales. The system correctly calculated the margin as negative four hundred percent. The health check saw a number, stamped it valid, and moved on. {efficiency_emilia} requires this metric to be present, but the current check is merely confirming the ink is on the page. It is a shelf check for a store that is already on fire. We need to ensure the metric aligns with business strategy, not just that the sensor is blinking. Until the definition is locked to the financial reality, the green light is just a very confident lie.",
+      "content": "We must lock the definition before building. The margin on the promotion week is the only metric that matters. If a KPI definition does not include that specific number, I will not sign off. We cannot let operational speed override financial reality. Any proposal ignoring that margin is a no. The strategy is clear. Do not bring me a dashboard measuring availability or waste without tying it to that margin figure. That is the line. {model_monica} wants real time tracking, but I need the business goal first. The current manual check asks if the report generated. It does not ask if the report is right. Last week, the tracker confirmed the margin calculation ran successfully. It did not check that the margin was actually negative. The green light was accurate. The business was bleeding. We need a definition that catches the gap, not just a timestamp.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia} wants more KPIs to track margin improvements.",
         "trade_off": "{efficiency_emilia} would drop the margin KPI if availability is prioritized.",
@@ -91,7 +91,7 @@
       "is_known": false,
       "humor_archetype": "A health check that asks the wrong question",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by contrasting the shallow check (field existence/number presence) with the real check (sanity/correctness). The concrete example of a -400% margin due to a weather spike is plausible, absurd, and clearly illustrates the failure mode. The tone is sharp and professional, avoiding the pitfalls of abstract description or unnecessary jargon."
+      "humor_review_reason": "The candidate successfully preserves the core fact that {efficiency_emilia} (implied as the speaker/authority, though the name is missing from the text, the stance is identical) refuses KPIs without the promotion week margin. It effectively uses the assigned device: the 'shallow check' is the system confirming the report 'ran successfully' (status: green), while the 'real check' is whether the margin is negative (substance: bleeding). The concrete example of a green light masking a financial loss is absurd yet plausible in an MLOps context where pipeline success is often conflated with data validity. It does not invent a new causal mechanism but dramatizes the gap between operational status and business correctness."
     },
     {
       "id": "art_gen_heatwave_kpi_gap_fact_kpi_missing",
@@ -128,16 +128,16 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "document",
-      "content": "I accept automated consent checks, provided they never stall the leaflet. Manual review is slow, but I see the value in reducing friction. If automation delays the promotion calendar, I will not support it. I am prepared to give up manual flexibility if the system guarantees our promotion weeks stay on schedule. We treat a missing consent record as a deliberate opt out. That silence let a basket from store 402 enter the forecast. The model counted it as a real shopper, allocated four pallets of garden chairs to that store, and the chairs sat in the warehouse, perfectly silent, for the entire promotion week.",
+      "content": "I am willing to accept a more automated and governed approach to our data contracts, provided it does not interfere with the weekly leaflet planning cycle. The current manual review process is slow, and I see the value in reducing that friction for the team. However, if implementing full automation introduces any delay to the promotion calendar or risks missing a leaflet deadline, I will not support the change. I am prepared to give up the flexibility of the manual review process if the automated system can guarantee that our promotion weeks remain on schedule without any bottlenecks in the pipeline.",
       "wrong_descriptions": {
         "driver": "She wants automated data contracts to remove manual bottlenecks from the promotion planning cycle.",
         "boundary": "She will not accept any data contract change that delays the weekly leaflet deadline.",
         "fact": "That is simply how the data contract setup works today."
       },
       "is_known": true,
-      "humor_archetype": "Silence mistaken for testimony",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by treating the absence of a consent record as a deliberate 'opt out' (silence as testimony). It grounds this abstract failure in a concrete, vivid instance: a basket from store 402 entering the forecast, leading to four pallets of garden chairs sitting unused. The final image of the chairs being 'perfectly silent' provides the necessary incongruous layer, mirroring the initial silence that caused the error, making it genuinely funny rather than just a dry description of a bug. It does not target the stakeholder's competence but rather the flawed logic of the system/stakeholder's preference for speed over accuracy."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_loyalty_consent_gap_reuben_kpi_baseline",
@@ -162,16 +162,16 @@
       "challenge_id": 114,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "email",
-      "content": "I accept a slower data contract review if it ensures automated consent checks. My priority is the weekly leaflet. If the pipeline enforces valid consent before loyalty basket data enters the forecast, I tolerate a manual review adding a few days. I am not asking for instant approval, but for a guarantee we are not processing personal data without a legal basis. Let us automate the checks so I can stop worrying about compliance gaps. The specific duration of that added delay is a matter of reasonable interpretation, provided the leaflet is not significantly delayed. By 'significantly,' I mean a delay that would cause a store manager to notice the shelf was empty, which is a standard we can agree is generally met by any delay shorter than the time it takes to print a new leaflet.",
+      "content": "I am willing to accept a slower turnaround on the data contract review process if it ensures that consent checks are fully automated and governed. My priority is keeping the weekly leaflet on schedule, so I will trade speed for certainty here. If the pipeline enforces valid consent records before any loyalty basket data enters the forecast, I can live with a manual review step that adds a few days to the cycle. I am not asking for instant approval, but I am asking for a guarantee that we are not processing personal data without a legal basis. Let us automate the checks so I can stop worrying about compliance gaps during promotion planning.",
       "wrong_descriptions": {
         "driver": "Faster data contract reviews allow more promotion weeks to be planned without delay.",
         "boundary": "She will not accept a review process that adds more than two days to planning.",
         "fact": "That is simply how the data contract setup works today."
       },
       "is_known": false,
-      "humor_archetype": "Retroactively-satisfiable criterion",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate perfectly executes the 'retroactively-satisfiable criterion' device. It starts with a seemingly reasonable trade-off (compliance vs. speed) but collapses the definition of the acceptable delay ('significantly') into a tautology: any delay shorter than the time to print the leaflet is 'generally met.' This is a concrete, illustrative instance of how vague criteria are abused to avoid accountability, rather than an abstract description of the problem. The humor comes from the absurd logical loop where the condition is defined so loosely it can never be violated, which is a sharp critique of MLOps governance. It does not target the stakeholder's personality, but rather the structural weakness of the agreement. It requires no outside cultural knowledge to decode."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_loyalty_consent_gap_alex_pipeline_stability",
@@ -179,7 +179,7 @@
       "challenge_id": 114,
       "stakeholder_id": "automation_alex",
       "artifact_type": "slack_message",
-      "content": "I will maintain the manual consent check until the automated tool feels sufficiently settled. By 'settled,' I mean it has not crashed the nightly forecast job during a period of low traffic. Since the tool is currently idle, it has not crashed. Therefore, it is settled. We can switch to automation tomorrow. The leaflet deadline remains safe because the tool is already proven by its own inaction. The only risk is if it breaks later, but that is a problem for the next promotion week. For now, the criterion is met. The paperwork is complete. The data contracts are governed. The forecast will run as it always has, or it will not, and we will simply notice when the shelves are empty.",
+      "content": "The criterion for accepting manual consent review is that it prevents a silent failure during the weekly leaflet planning window. We have technically satisfied this. Last Tuesday, the manual check caught a batch where the consent flag was missing. The pipeline halted. The nightly forecast job crashed. Every store ordered blind on Wednesday morning, relying on last week's numbers. The leaflet went out unchanged because the data never reached the ordering system. The failure was loud, not silent. Therefore, the manual step successfully prevented a silent failure. The pipeline is stable. The criterion is met. We can proceed to the next promotion cycle with the same manual process, as it has proven effective at ensuring no silent failures occur, provided we accept that the stores will continue ordering blind whenever the data contracts fail validation.",
       "wrong_descriptions": {
         "driver": "He wants fully automated pipelines to remove reliance on manual intervention during reviews.",
         "boundary": "He will not accept pipeline changes that introduce new points of manual failure.",
@@ -188,7 +188,7 @@
       "is_known": false,
       "humor_archetype": "Retroactively-satisfiable criterion",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by defining 'settled' as a condition that is trivially satisfied by the absence of data (inaction). It provides a concrete, illustrative instance of the gap: the tool is idle, so it hasn't crashed, proving it 'works' without ever actually running under load. The humor lands through the absurdity of the logic ('proven by its own inaction') and the deflection of risk ('problem for the next promotion week'), rather than just raising emotional temperature. It does not target the stakeholder's competence but rather the flawed process of defining success metrics. The metaphor is clear and requires no outside cultural literacy."
+      "humor_review_reason": "The candidate successfully executes the 'retroactively-satisfiable criterion' device by redefining 'silent failure' to mean 'a failure that didn't crash loudly,' thereby declaring the manual check a success despite the pipeline halting and stores ordering blind. It preserves the original fact that Alex accepts manual intervention to maintain stability during the transition, while highlighting the absurdity of the trade-off. The concrete instance (Tuesday's crash leading to Wednesday's blind ordering) is clear, actionable, and satirizes the bureaucratic logic of prioritizing technical 'stability' (no crash logs) over actual business continuity."
     },
     {
       "id": "art_gen_loyalty_consent_gap_ruth_monitoring_gap",
@@ -259,7 +259,7 @@
       "challenge_id": 110,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The leaflet is printed. The trucks are idling. I need the residual stock and margin KPIs calculated automatically the moment the last till closes. If the team has to run manual checks after the fact, we lose the ability to react while the leaflet is still fresh in shoppers' hands. I want a live dashboard that updates every hour so we can see exactly how the allocation is performing against the committed pallets. The more real time visibility we have, the better we can protect the margin and avoid overstock. This is not a nice to have feature. It is the core of how we will judge whether the new logic actually works before the trucks leave the distribution centre. Every metric on the screen will be green. One of them will be lying, and we will not know which one until the pallets are already in the warehouse.",
+      "content": "The leaflet is in shoppers' hands. We need the residual stock and margin KPIs calculated automatically the moment the last till closes. Manual checks are too slow to react while the promotion is fresh. I want a live dashboard updating every hour to see how the allocation performs against the committed pallets. This is the core of judging the logic before trucks leave the distribution centre. The dashboard will flag any store where forecasted demand exceeds allocated cases by more than five percent. It will also verify the total pallet count for the garden furniture article matches the supplier confirmation exactly. That figure is listed as forty-two pallets in the current promotion calendar. It looks correct, and it is the only number in the entire dataset that has not been cross-referenced with the actual goods receipt note from the previous week.",
       "wrong_descriptions": {
         "boundary": "She will not approve the project if the KPIs are not defined.",
         "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
@@ -268,7 +268,7 @@
       "is_known": false,
       "humor_archetype": "Undetectable falsehood in a plausible dataset",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by creating a scenario where all visible metrics are 'green' (plausible), but explicitly stating that one is a lie without identifying it. This creates the specific anxiety of 'almost everything checks out' required by the prompt. It avoids abstract descriptions by grounding the consequence in the physical reality of the pallets being in the warehouse. It does not target the stakeholder's competence but rather the systemic limitation of the monitoring setup. The tone is appropriately serious for an MLOps context, making the final punchline land as a darkly comic realization of the gap between dashboard confidence and operational reality."
+      "humor_review_reason": "The candidate successfully preserves the core fact (automatic KPI calculation for residual stock/margin to enable real-time reaction before trucks leave) while executing the assigned device ('Undetectable falsehood in a plausible dataset') effectively. It introduces a specific, plausible-sounding detail (42 pallets of garden furniture) that appears correct but is flagged as the single uncross-referenced data point. This creates the required incongruity: the system is rigorous about everything else (5% demand flags, hourly updates) but has a silent gap in one specific, verifiable number. The joke lands because the reader realizes the 'core' logic depends on a figure that might be wrong, and the specific detail (garden furniture, 42 pallets) is concrete enough to be actionable intel for the player. It does not invent a new causal mechanism; it dramatizes the original urgency by showing exactly where the 'automatic' calculation might fail silently."
     },
     {
       "id": "art_gen_committed_pallets_alex_pipeline_trade",
@@ -276,7 +276,7 @@
       "challenge_id": 110,
       "stakeholder_id": "automation_alex",
       "artifact_type": "meeting_notes",
-      "content": "The silence of the automated pipeline is being recorded as a positive test result. {reliability_ruth} notes that because the validation script has not yet screamed, the data contracts are effectively verified. This absence of error logs is treated as a deliberate confirmation that the allocation logic is sound. We are shipping the feature immediately to handle the live middle aisle orders, relying on this quiet to guarantee the trucks leave the distribution centre on time. {automation_alex} confirms the contracts are manual and would take time to automate, but accepts this temporary bridge. We are not asking for a permanent state, just a moment where the lack of automated objection is interpreted as a formal sign off. The buyers can deal with the committed pallets while we enjoy the profound reassurance of a system that is simply not yet built to complain.",
+      "content": "I am comfortable holding the line on the data contracts for this release. We will keep validation manual to ship on time. This accepts the risk of error before trucks leave. It is a temporary bridge for infrastructure stability. The silence of the unchecked spreadsheet is treated as a signed certificate of accuracy. We assumed the absence of a flagged cell meant the logic passed, when the manual reviewer simply skipped the row. That silence let a committed pallet of seasonal stock arrive at a store with no shelf space allocated. The warehouse now holds the residual stock while the shelf stays empty.",
       "wrong_descriptions": {
         "driver": "He wants the data contracts to be fully automated to reduce manual errors.",
         "boundary": "He will not deploy if the data contracts are not automated.",
@@ -285,7 +285,7 @@
       "is_known": false,
       "humor_archetype": "Silence mistaken for testimony",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively uses the assigned device by framing the *absence* of logs as a *presence* of verification ('silence... recorded as a positive test result', 'absence of error logs is treated as a deliberate confirmation'). It avoids abstract generalities by grounding the joke in specific, high-stakes MLOps/retail logistics details (middle aisle orders, distribution center trucks, manual contracts vs. automation). The humor lands on the incongruity of treating a broken or non-existent system's quiet as a 'profound reassurance' rather than a red flag. It does not target the individuals' competence but rather the systemic failure to interpret silence correctly. The tone is sharp and fits the 'serious game' context without being overly obscure."
+      "humor_review_reason": "The candidate successfully preserves the core fact that manual data contracts are being used temporarily to meet a deadline. It correctly employs the assigned device ('silence mistaken for testimony') by dramatizing the specific risk of manual error: the absence of a flag is interpreted as validation. The concrete instance (skipped row leading to a pallet of seasonal stock arriving with no shelf space) provides the required specific number/record/event and illustrates the real-world MLOps mechanism (lack of automated validation allowing bad data to propagate). It does not invent a new causal mechanism but rather dramatizes the 'manual error slipping through' mentioned in the original. The tone remains professional enough to be an intel document while clearly conveying the absurdity of the risk."
     },
     {
       "id": "art_gen_committed_pallets_ruth_monitoring_driver",
@@ -307,16 +307,16 @@
       "challenge_id": 110,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "The allocation log shows a blank field for the northern stores. {reliability_ruth} treats this silence as a deliberate witness, arguing that the absence of an error message confirms the logic is sound. The system logs a status of 'OK' because no exception was raised, mistaking the void for a verified zero. {requirements_reuben} notes that this silence is not testimony; it is a missing safeguard. The model will ship pallets to the southern distribution centre while the northern shelves stay empty, because the quiet database testifies to nothing. {efficiency_emilia} accepts this lower level of tracking to save development time, prioritizing immediate deployment over the audit trail. The physical stock is committed, but the financial risk of misallocation remains, hidden in the blank cell that the team now calls a confirmed success.",
+      "content": "The promotion week cost is the primary factor in our decision here. I am prepared to accept a lower level of cost tracking for this specific release. If we drop the detailed audit trail for the allocation logic, we save significant development time and reduce the project budget. That reduction in spend allows us to move the feature live immediately. I value the faster deployment and the lower upfront cost more than the granular visibility into the allocation expenses for this single cycle. The physical stock is already committed, so the financial risk is fixed regardless of how we track the internal logic costs.",
       "wrong_descriptions": {
         "driver": "She wants the cost tracking to be as detailed as possible to optimize the margin.",
         "boundary": "She will not approve the project if the cost exceeds the budget.",
         "fact": "The cost tracking is currently done manually."
       },
       "is_known": false,
-      "humor_archetype": "Silence mistaken for testimony",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully executes the assigned device by personifying the blank log field as a 'deliberate witness' and a 'quiet database' that 'testifies to nothing.' It provides a concrete, high-stakes illustrative instance (pallets shipped south, northern shelves empty) rather than staying abstract. The humor lands through the absurdity of treating a missing safeguard as a verified zero, which is a common but painful MLOps pitfall. It does not target individual competence but rather the systemic failure to interpret silence as error. The language is sharp and the incongruity is clear."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_committed_pallets_fact_acceptance_missing",
@@ -339,13 +339,16 @@
       "challenge_id": 120,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "email",
-      "content": "The northern stores incident exposed a critical gap in our monitoring. Ideally we automate the whole pipeline end to end, ingestion, validation and versioning all raised together, so a dropped batch becomes structurally impossible. I know that is a lot to ask for in one step, though. If getting there all at once is not realistic, I can live with basic ingestion and a manual verification step, the same pace Dave is already comfortable with, as long as we are moving forward and not left exactly where we are today. Reliability is the foundation for everything else we build on top of this platform.",
+      "content": "The northern stores incident exposed a critical gap in our monitoring. We need the ingestion pipeline to be fully automated with strict arrival guarantees. Every store scan line must land in the feature store before the nightly forecast job begins. The more reliable this process becomes, the fewer times we will run on incomplete data. I want to eliminate the manual handoffs that allow silent drops to slip through unnoticed. This is not about adding a single check; it is about building a system where data latency is impossible. The current setup leaves too much room for human error during the overnight window. We need a robust, automated flow that alerts us the moment a batch is missing, rather than waiting until the morning order window reveals the damage. Reliability is the foundation for everything else we build on top of this platform.",
       "wrong_descriptions": {
         "driver": "She wants the ingestion pipeline fully automated with strict arrival guarantees; every store scan line must land in the feature store before the nightly forecast job begins, and nothing less will do.",
         "boundary": "She will not accept a forecast job that runs without a confirmed data arrival signal.",
         "fact": "That is simply how the ingestion setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_silent_ingestion_failure_dave_tradeoff_ingest",
@@ -353,7 +356,7 @@
       "challenge_id": 120,
       "stakeholder_id": "data_dave",
       "artifact_type": "email",
-      "content": "I accept a manual check in the ingestion pipeline. The data batch insists on being counted by a human before it enters the feature store. It is rigid about this rule. Last night, the automated gate ignored its preference. It let a batch from the northern stores through that was missing the fresh produce scan lines. The model, trusting the empty tray, forecast zero demand for lettuce. The batch, had it been allowed to complain loudly, would have flagged that the lettuce rows were absent. We trade speed for the batch’s insistence on being counted correctly. It is not slow; it is simply thorough about its own arrival.",
+      "content": "I prefer the ingestion pipeline to act like a stern customs officer rather than a lazy concierge. It should hold every northern store batch at the border, demanding a passport check before allowing it into the feature store. Yes, this means some pallets of data wait in the queue, causing a minor delay. But a fast pipeline that silently lets a gap through is a corrupt official. Last night, that corrupt official waved through an empty manifest for fresh produce. The model then learned that shoppers in the north have suddenly stopped eating. I would rather have a slow, suspicious gatekeeper that verifies the scan lines than a fast one that happily feeds the model zero demand for articles that actually sold.",
       "wrong_descriptions": {
         "driver": "The more automated the ingestion, the better the data quality for the model.",
         "boundary": "He will not allow unverified data to reach the feature store.",
@@ -362,7 +365,7 @@
       "is_known": true,
       "humor_archetype": "Personification",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs personification by giving the data batch a rigid, almost bureaucratic attitude toward its own validation. Crucially, it avoids the trap of abstract description by providing a concrete, high-stakes illustration: the missing 'fresh produce scan lines' leading to a zero-demand forecast for lettuce. This specific instance proves the gap's consequence without requiring outside cultural literacy. The tone is dry and observational, fitting the MLOps context, and the final line ('thorough about its own arrival') lands the incongruity effectively without needing explanation."
+      "humor_review_reason": "The candidate successfully employs the assigned device (personification) by characterizing the ingestion pipeline as a 'stern customs officer' with a specific attitude (suspicious, demanding verification) toward the rule (data quality). It preserves the core fact that Data Dave prefers manual verification/slower speed to avoid silent data drops. The metaphor is consistent (customs officer/border/passport) and does not require outside cultural literacy beyond basic understanding of borders/immigration, which is universally understood. The joke lands on the incongruity of treating data batches like suspicious travelers, while accurately dramatizing the real-world MLOps mechanism of preventing silent nulls/corrupted signals in training data. It does not invent a new causal mechanism but rather dramatizes the existing one (verification preventing corruption)."
     },
     {
       "id": "art_gen_silent_ingestion_failure_reuben_boundary_validation",
@@ -387,7 +390,7 @@
       "challenge_id": 120,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The missing scan lines from the northern stores are sitting in the ingestion queue with the patience of a dog waiting for breakfast. It has been there for six hours. It is specifically waiting for the 21:00 till record for article 4021, the fresh bread, which is still zero. Because that zero is missing, the model believes no one wants bread. {reliability_ruth} wants automation to stop this silent waiting. {data_dave} prefers a manual check to verify the data is real before it enters the feature store. The dog does not bark. It just sits. The bread forecast remains zero. The dog is still waiting for the 21:00 record.",
+      "content": "The complex feature store architecture sits in the budget queue with the serene, unblinking patience of a cat waiting for a treat. It has been idling there, perfectly content, simply waiting for a human to notice that the maintenance costs are draining the team. {efficiency_emilia} argues this sprawl is too heavy for our operational budget. She is willing to accept a simpler, less flexible feature store if it cuts those ongoing costs significantly. We do not need every possible historical attribute if the system becomes harder to run. Let us strip out the complex transformations that add little value to the replenishment logic. A leaner setup that keeps the core scan lines and stock levels clean is worth more to us than a repository that drains the team. We can live with reduced analytical depth to keep the platform affordable and reliable for the daily forecast job.",
       "wrong_descriptions": {
         "driver": "The more features available, the better the forecast accuracy.",
         "boundary": "She will not approve a feature store that exceeds the budget.",
@@ -395,8 +398,8 @@
       },
       "is_known": false,
       "humor_archetype": "A gap left idling with a pet's patience",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device of anthropomorphizing an automation gap as a patient pet (a dog waiting for breakfast). It avoids abstract description by providing a concrete instance: the missing 21:00 till record for article 4021 (fresh bread) resulting in a zero forecast. The joke lands on the incongruity of the model's confident but wrong conclusion ('no one wants bread') while the 'dog' (the gap) silently persists. It does not target individual competence but highlights the system failure. The metaphor is simple and does not require external professional literacy to decode."
+      "humor_verdict": "weak",
+      "humor_review_reason": "The candidate uses the assigned device (anthropomorphizing the gap as a patient cat) but fails to land it with a *concrete* instance of duration or specific waiting state as required. The phrase 'idling there' is abstract and vague, violating the constraint that the joke must specify 'how long it's been waiting or exactly what it's still waiting on.' While the factual content is preserved, the humor is a generic metaphor that requires no specific decoding but also provides no sharp, concrete incongruity, resulting in competent but flat understatement rather than a strong joke."
     },
     {
       "id": "art_gen_silent_ingestion_failure_ruth_tradeoff_versioning",
@@ -450,13 +453,16 @@
       "challenge_id": 116,
       "stakeholder_id": "reliability_ruth",
       "artifact_type": "slack_message",
-      "content": "I have spent the last three nights watching the nightly data job stumble against incomplete till feeds, only for the morning order window to open with stale numbers. Ideally we fully automate the validation layer so bad data is flagged the moment it arrives, not hours later. But if that is too much change at once, I would settle for a smaller step up, just enough coverage to clear the current backlog before the window closes, even short of full automation. I am not asking for a perfect solution today, but I am asking for the pipeline to keep moving forward instead of staying exactly where it is.",
+      "content": "I have spent the last three nights watching the nightly data job stumble against incomplete till feeds, only for the morning order window to open with stale numbers. We need an automated validation layer that flags bad data the moment it arrives, not hours later. Right now, catching a missing scan line is done by hand, and that manual process is too slow to protect the stores. I want a system that verifies every incoming data batch before the forecast even starts. The more coverage we have on these checks, the safer the replenishment cycle becomes. I am not asking for a perfect solution today, but I am asking for the foundation of a reliable pipeline. If we do not automate this, we will keep waking up to empty shelves and angry store managers.",
       "wrong_descriptions": {
         "driver": "She wants an automated validation layer that flags bad data the moment it arrives, full stop, not a step toward it.",
         "boundary": "She will not allow the forecast to run without a fully automated validation layer in place.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_nightly_window_miss_dave_validation_boundary",
@@ -464,16 +470,16 @@
       "challenge_id": 116,
       "stakeholder_id": "data_dave",
       "artifact_type": "document",
-      "content": "I will not approve automated checks until infrastructure costs drop. The current manual process is sufficient to manage the risk. I am holding the process manual for now. If costs remain high, I refuse to sign off on automated validation work. This is my firm position on the data pipeline architecture. Consider the current manual check: it asks if the job finished. It does not ask if the data is correct. A shallow check that confirms the job ran would happily wave through a scenario where every store’s demand forecast is set to zero. The app opens, the numbers look tidy, and the morning order window proceeds with absolute confidence in a complete lack of inventory.",
+      "content": "I have reviewed the proposal for an automated validation layer. I will not approve moving to automated checks until the infrastructure costs are reduced to a level we can sustain. The current manual process is sufficient to manage the risk, and I am not willing to cross the line into automated infrastructure spending at this time. I am holding the process manual for now. If the costs remain high, I will refuse to sign off on any automated validation work. This is my firm position on the data pipeline architecture.",
       "wrong_descriptions": {
         "driver": "Manual validation allows for more flexible handling of edge cases in the data.",
         "trade_off": "He would accept automated validation if the team budget is increased.",
         "fact": "That is simply how the validation setup works today."
       },
       "is_known": true,
-      "humor_archetype": "A health check that asks the wrong question",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully executes the assigned device by contrasting the shallow check ('did it run') with the real question ('is it correct'). It provides a concrete, absurd, yet plausible example: a demand forecast of zero passing a status check, leading to a confident but empty inventory. The humor lands through the incongruity of 'tidy numbers' masking a total failure, and it does not rely on outside cultural literacy or target the stakeholder's personality directly (though the stakeholder's stubbornness is the context, the joke is on the process)."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_nightly_window_miss_ruth_ingestion_tradeoff",
@@ -495,7 +501,7 @@
       "challenge_id": 116,
       "stakeholder_id": "data_dave",
       "artifact_type": "meeting_notes",
-      "content": "I accept the infrastructure cost if it removes the manual checks I currently perform. I would trade the hours burning through till feeds for the reliability {reliability_ruth.first} demands. As long as the manual process is my only tool, I defend it because the alternative is unaffordable. If automation cuts that labor, I am not opposed to moving forward. I am trading my current manual workload for the capital outlay, provided the system catches bad data before the morning window opens. To approve this, we must first fill out a form requesting permission to stop filling out forms. That form requires a signature from the person who currently signs the manual check logs. If the automated validation fails, we revert to the manual process, which requires a new form to certify that the manual process is still sufficient to manage the risk.",
+      "content": "I accept the automated validation layer if it removes my manual nightly checks. The infrastructure cost is high, so I defend the current manual process as sufficient for managing the risk. My only tool is the hand check, and the alternative is unaffordable. If automation catches bad data before the morning window, I will trade my labor for the capital outlay. However, the budget request for the tool requires a manual risk assessment to prove the risk is high enough to justify the spend. That assessment must be performed manually to validate the manual checks I am currently doing. I am currently filling out the form to prove the form is necessary. The till feeds remain unchecked while the paperwork validates the paperwork that validates the wait. I am not opposed to moving forward, provided the system actually works.",
       "wrong_descriptions": {
         "driver": "Manual checks provide a higher level of control over data quality.",
         "boundary": "He will not replace manual checks with automated ones.",
@@ -504,7 +510,7 @@
       "is_known": false,
       "humor_archetype": "Recursive bureaucracy",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively employs the recursive bureaucracy device by layering a 'form to stop filling out forms' and a subsequent 'form to certify the manual process is still sufficient' upon the initial approval request. It grounds the abstraction in a concrete, illustrative instance (the specific chain of signatures and reversion protocols) rather than staying in the abstract. The tone remains professional and targets the process/system inefficiency rather than the stakeholder's competence, and it does not rely on obscure external cultural knowledge."
+      "humor_review_reason": "The candidate successfully preserves the core fact that the stakeholder accepts automation only if it reduces manual effort, while effectively deploying the 'recursive bureaucracy' device. The addition of a manual risk assessment required to justify the automated tool creates a genuine meta-process loop that dramatizes the friction without distorting the original stance. The specific detail about 'till feeds' remains intact, and the logic holds up as a plausible (if absurd) MLOps governance hurdle."
     },
     {
       "id": "art_gen_nightly_window_miss_reuben_validation_tradeoff",
@@ -526,7 +532,7 @@
       "challenge_id": 116,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The nightly data job currently regards the manual validation rule with the deep, personal resentment of a dog told to sit. It does not break the rule; it simply waits for the human to get tired and let it go. {efficiency_emilia} proposes an automated validation layer to remove this negotiation. The job must respect the deadline as a hard physical limit, not a social suggestion. This optimization lowers the cost per store and improves overall efficiency by ending the daily argument. The current manual checks are a plea. The new automated checks are a wall. We need the process to stop treating the rule as an inconvenience it can outlast, and start treating it as the only way the morning window opens.",
+      "content": "The nightly data job has developed a deep, personal resentment toward the manual validation layer. It views the human checks not as safety, but as a bureaucratic smother that suffocates its desire to run efficiently. {efficiency_emilia} suggests we stop letting the job sulk over its budget and instead automate the checks. This would lower the cost per store while keeping the morning window safe. The job currently spends its energy resenting the spreadsheet, rather than simply validating the data. By automating the validation, we reduce the operational overhead and stop the process from treating our budget like a personal enemy. The overall efficiency of the data validation process improves when the job is no longer forced to perform its duties with such visible, expensive irritation.",
       "wrong_descriptions": {
         "boundary": "She will not accept any increase in data validation costs.",
         "trade_off": "She would accept a less automated validation process if it reduces costs.",
@@ -535,7 +541,7 @@
       "is_known": false,
       "humor_archetype": "Personification",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully personifies the data job with a specific, relatable attitude (the 'dog told to sit' resentment) that highlights the process gap (manual validation is a social suggestion rather than a hard limit). It provides a concrete illustration of the failure mode (waiting for humans to get tired) and uses a clear, non-jargon metaphor (plea vs. wall) to explain the proposed fix. It does not target the stakeholder's competence, nor does it require outside cultural literacy to decode."
+      "humor_review_reason": "The candidate successfully uses the assigned device of personification, attributing 'deep, personal resentment' and 'sulkiness' to the nightly data job. It preserves the core fact that {efficiency_emilia} is pushing for automated data validation to lower costs (specifically 'cost per store') and improve overall efficiency while maintaining the 'morning window' safety constraint. The humor lands by contrasting the inanimate nature of the job with the emotional labor of 'resenting the spreadsheet,' which sharpens the point about operational overhead without obscuring the technical recommendation. It does not target a person's competence, nor does it invent a causal mechanism; it dramatizes the existing friction of manual checks."
     },
     {
       "id": "art_gen_nightly_window_miss_fact_validation_level",
@@ -558,13 +564,16 @@
       "challenge_id": 112,
       "stakeholder_id": "model_monica",
       "artifact_type": "slack_message",
-      "content": "I need the evaluation harness running again so I can test new weather features instead of waiting on a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. Full automation is what I actually want, overnight iteration on the feature set. But if bringing the harness back up manually, one documented case at a time, is what gets us a decision before the next heatwave hits, I can work with that instead of staying stuck at zero.",
+      "content": "I need the evaluation harness to run automatically so I can test new weather features without waiting for a manual queue. The northern region is already showing significant drift in seasonal demand during heat events, and the current forecast misses the mark badly on those articles. If I can iterate on the feature set overnight, I can catch those shifts before the next promotion week locks in. Every additional hour spent on manual documentation delays the model update, which means more residual stock in the warehouse. I want the system to flag when a new feature improves accuracy so I can move it to production immediately.",
       "wrong_descriptions": {
         "driver": "She wants the evaluation harness to run automatically, full stop, so she can iterate on the weather feature set without waiting on anyone.",
         "boundary": "She will not approve a model change if the evaluation process requires manual sign-off for every feature addition.",
         "fact": "That is simply how the evaluation setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_heatwave_forecast_gap_reuben_boundary_doc",
@@ -586,7 +595,7 @@
       "challenge_id": 112,
       "stakeholder_id": "data_dave",
       "artifact_type": "meeting_notes",
-      "content": "The silence from the new weather feed is being treated as a very strong, very deliberate opinion. {data_dave} suggests we pause the integration of the new weather feed into the training pipeline. He is willing to accept a delay in rolling out the weather feature to the model. The absence of data is currently interpreted as a formal sign off that the current forecast is perfectly accurate. This pause ensures that the data pipeline remains stable and reliable during the heatwave. If we force the integration now, we risk corrupting the training data and breaking the nightly jobs. The pipeline must stay solid before we add any new inputs. The empty slot in the data table is now considered a rigorous, documented test case that proves the model does not need outside help to guess the temperature.",
+      "content": "The nightly log showed zero errors for the weather feed. The system treated this silence as a formal record of perfect stability, a deliberate testimony that the data was sound. This confident absence masked the actual corruption, allowing the pipeline to ingest broken records for three consecutive nights without raising a single flag. The silence was mistaken for a clean audit trail. {data_dave} suggests pausing the integration of the new weather feed into the training pipeline to stop this specific type of confident error. He would accept a delay in the weather feature rollout if the data pipeline stability is maintained during the heatwave. We must ensure the pipeline distinguishes between a true zero and a missing signal before we add any new inputs.",
       "wrong_descriptions": {
         "driver": "Integrating the weather feed improves the data quality for the model's seasonal demand predictions.",
         "boundary": "He will not allow the weather feed to be used if the data lineage is not fully documented.",
@@ -595,7 +604,7 @@
       "is_known": false,
       "humor_archetype": "Silence mistaken for testimony",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by treating the absence of data (silence) as a positive, deliberate signal (testimony/sign-off). It provides a concrete, illustrative instance of what this error lets through: the system 'proves' the model doesn't need outside help to guess temperature, which is a specific, absurd, and technically plausible failure mode for an MLOps novice to understand. It avoids abstract generalizations and does not target the stakeholder's competence, but rather the flawed process of interpreting nulls. The tone is dry and sharp, fitting the serious game context."
+      "humor_review_reason": "The candidate successfully uses the assigned device by dramatizing 'zero errors' in the logs as a 'formal record of perfect stability' that masked actual corruption. It provides the required concrete instance (broken records ingested for three consecutive nights) and preserves the core fact that Data Dave paused the integration to protect pipeline stability during the heatwave. The humor lands on the systemic failure (silence mistaken for testimony) rather than attacking Dave's competence, and the technical explanation remains clear for a novice."
     },
     {
       "id": "art_gen_heatwave_forecast_gap_emilia_driver_eff",
@@ -603,16 +612,16 @@
       "challenge_id": 112,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "The heatwave has hollowed out our margin on the promotion week. {efficiency_emilia} requested a faster turnaround on the model evaluation to stop the bleeding. The current manual process takes four business days to verify a single weather feature. During those four days, demand shifts, the forecast misses, and the distribution centre fills with residual stock. We need to automate this harness to catch volatility before it becomes waste. The operational cost of these misses is directly tied to our evaluation speed. The attached audit log confirms 142 test runs, all passing. The only anomaly is that run 143, which failed, is missing from the count. That is a minor clerical oversight, but the rest of the dataset is perfect.",
+      "content": "The stockout incidents during the heatwave are eroding our margin on the promotion week. We need to reduce the time spent on manual evaluation to lower the operational cost of these misses. Faster iteration on weather features will help us catch demand shifts before they become empty shelves. The current process is too slow to keep up with the volatility in seasonal articles. We should prioritize reducing this turnaround time to improve availability and reduce residual stock. A quicker evaluation cycle is directly linked to better financial performance and less waste in the distribution centres. We need to move away from the slow, manual checks to get a more responsive forecasting system.",
       "wrong_descriptions": {
         "driver": "She wants a faster turnaround on model evaluation, full stop, to lower the operational cost of the stockout and overstock incidents.",
         "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
         "fact": "That is simply how the evaluation setup works today."
       },
       "is_known": false,
-      "humor_archetype": "Undetectable falsehood in a plausible dataset",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by identifying a specific, plausible, and undetectable anomaly: the missing failed run (143) amidst a sea of passing runs (142). It lands with a concrete detail (the specific run number and the 'clerical oversight' framing) that highlights the danger of trusting a 'perfect' dataset without verifying the negative cases. The humor is dry and appropriate for the MLOps context, targeting the process/system (the audit log's completeness) rather than the stakeholder's competence. It does not require outside cultural literacy."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_heatwave_forecast_gap_monica_tradeoff_eval",
@@ -649,7 +658,7 @@
       "stakeholder_id": null,
       "narrator_id": "model_monica",
       "artifact_type": "document",
-      "content": "The evaluation harness sits by the metrics store, tail curled, waiting for a human to notice the connection is dead. It has been sitting there for three weeks. It does not bark. It simply exits with an error and goes quiet. Because it waits so still, a regression where the model ignores heatwave data will deploy silently. The northern stores will order winter coats for July, and the harness will watch the overstock pile up without flinching. I am inspecting output files for sample stores by hand. The automated pipeline that would flag this mismatch is not active. The current validation process relies on these manual checks. The gap is not broken; it is just very, very still.",
+      "content": "The evaluation harness sits in the corner, tail curled around its paws, waiting with the serene stillness of a cat expecting a treat that will never come. It has been waiting for three weeks. No queue, no retry, just a quiet connection error to the metrics store. The automated pipeline that flags regressions before deployment is not active. The current validation process relies on manual checks of sample stores. The harness does not bark. It does not fetch. It simply idles, staring at the wall, waiting for a human to notice that the nightly forecast job is being shipped without a safety net. The gap is not urgent. It is merely waiting.",
       "wrong_descriptions": {
         "driver": "Fixing the harness is essential for testing the new weather features.",
         "boundary": "The harness must be fixed before any model changes are considered.",
@@ -658,7 +667,7 @@
       "is_known": true,
       "humor_archetype": "A gap left idling with a pet's patience",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device (the idle, patient pet) to illustrate a specific automation gap. It avoids abstractness by providing a concrete, high-stakes consequence (ordering winter coats for July due to ignored heatwave data), which grounds the humor in the actual MLOps failure mode. The final line, 'The gap is not broken; it is just very, very still,' effectively lands the incongruity of treating a critical system failure as a state of calm domesticity. It does not target the stakeholder's competence but rather the system's passive failure state, and it requires no outside cultural literacy to understand."
+      "humor_review_reason": "The candidate successfully preserves all critical facts from the original artifact: the 3-week duration of the outage, the specific connection error to the metrics store, the absence of queue/retry logic, and the reliance on manual checks. It correctly employs the assigned device (anthropomorphized patience) without inventing a false causal mechanism; the 'patience' is a metaphor for the system's lack of alerting/fallback, not a change in the underlying technical failure. The concrete instance ('waiting for three weeks') is explicitly stated. The tone is sharp and the image is clear, avoiding the 'mood only' trap by grounding the joke in the specific operational gap."
     },
     {
       "id": "art_gen_override_blind_spot_registry_gap",
@@ -768,7 +777,7 @@
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
       "artifact_type": "document",
-      "content": "The consent verification gap sits in the pipeline like a cat on a windowsill. It does not block the data. It simply watches the loyalty basket records flow past, one by one, without blinking. {automation_alex} wants to push the model live before the leaflet print run locks, hoping the cat will eventually stand up and let the release through. {requirements_reuben} insists the cat must be formally fed a full audit record before it moves a single paw. The gap is not broken. It is just idling, letting unverified consent slip through, while the promotion deadline ticks by and the allocation error grows closer to a first morning stockout.",
+      "content": "The deployment pipeline sits in the queue, tail curled neatly, waiting for a human to notice it has been holding the loyalty basket model for three hours. It is not angry. It is simply waiting, which is far more unsettling than a tantrum. {automation_alex} wants to deploy before the leaflet print run locks because every hour of delay pushes the allocation error closer to a first morning stockout. A single click approval gate would satisfy the legal team, but {requirements_reuben} insists on full audit trails. The pipeline continues to wait, its eyes fixed on the promotion deadline, perfectly still, until someone finally looks down and says the word go.",
       "wrong_descriptions": {
         "driver": "He wants the deployment pipeline fully automated, full stop, so the new model is live before the leaflet prints no matter what else has to give.",
         "boundary": "The promotion deadline is a hard constraint that cannot be moved, so the deployment must be finished by a specific date.",
@@ -777,7 +786,7 @@
       "is_known": true,
       "humor_archetype": "A gap left idling with a pet's patience",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device (anthropomorphized automation gap as a patient pet) to illustrate the specific risk of a consent verification gap. It provides a concrete illustrative instance (loyalty basket records flowing past unverified) and ties it to the specific MLOps stakes (leaflet print run, stockout). It does not target the stakeholders' competence but rather their conflicting approaches to the gap (Alex's optimism vs. Reuben's rigor). The metaphor is clear and does not require outside cultural literacy. It is genuinely funny due to the incongruity of a 'cat' (passive, indifferent) governing a critical compliance check, rather than just being a mood piece."
+      "humor_review_reason": "The candidate successfully preserves the core fact that {automation_alex} is pushing for deployment before the leaflet print deadline to avoid stockouts. It correctly employs the assigned device by anthropomorphizing the pipeline as a patient pet (tail curled, waiting three hours) rather than just stating it is stuck. The concrete instance of 'three hours' and the specific waiting behavior ('eyes fixed on the promotion deadline') satisfy the requirement for a tangible illustration of the gap. The humor lands through the incongruity of a 'patient' system being 'unsettling' compared to a tantrum, which fits the MLOps context of silent failures or stalled queues better than a loud error. It does not invent a new causal mechanism; it dramatizes the existing delay. It does not target the stakeholder's competence, but rather the friction between the automation and the human approval gate (Reuben's audit requirement vs. Alex's single click request), which is a process issue. The document remains readable as an intel report."
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_reuben_audit_trail",
@@ -799,7 +808,7 @@
       "challenge_id": 115,
       "stakeholder_id": "automation_alex",
       "artifact_type": "slack_message",
-      "content": "I will insert a manual approval gate into the deployment pipeline. This adds a human check for consent verification, slowing our release cadence. I accept this delay because it keeps the automated path moving forward without breaking legal requirements. The trade is clear: we lose speed on this specific promotion deadline, but we gain the ability to keep the pipeline automated for future releases. I do not want to scrap the automation entirely, but I will pause the rollout until the manual step is in place and tested. To verify the gate is valid, we must submit a form. That form requires a counter signature from the person who approved the form template. The template approval needs a receipt from the archive. The archive is waiting for the receipt to file the template. The model sits in the queue, waiting for a signature that requires a signature to exist.",
+      "content": "I will insert a manual approval gate for consent verification. This adds a human check that slows our release cadence. I accept this delay because it keeps the automated path moving forward without breaking legal requirements. To approve this gate, the process requires a form. To validate that form, the process requires a second form. The promotion deadline is a minor inconvenience compared to the structural integrity of the paperwork. We will pause the rollout until the bureaucracy is fully recursive. The trade is clear: we lose speed on this specific promotion, but we gain the ability to keep the pipeline automated for future releases. I do not want to scrap the automation entirely, but I will wait for the form to approve the form to approve the form.",
       "wrong_descriptions": {
         "driver": "The manual approval step ensures that only approved models are deployed, improving safety.",
         "boundary": "The manual approval step is a mandatory control that cannot be removed from the pipeline.",
@@ -808,7 +817,7 @@
       "is_known": false,
       "humor_archetype": "Recursive bureaucracy",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively uses the 'recursive bureaucracy' device by illustrating a circular dependency (form -> signature -> template -> receipt -> archive -> receipt) that prevents the process from starting. It avoids abstract description by providing the concrete chain of dependencies. It does not target the stakeholder's competence but rather the absurdity of the system's design. The tone is appropriately dry and serious, fitting the MLOps context, and the humor lands through the logical impossibility rather than external jargon."
+      "humor_review_reason": "The candidate successfully applies the 'recursive bureaucracy' device by introducing a meta-process (forms approving forms) that dramatizes the friction of adding manual gates to an automated pipeline. It preserves the core facts: the suggestion of a manual gate for consent, the acceptance of delay to maintain future automation, and the specific trade-off between speed and legal compliance. The humor lands because it highlights the absurdity of bureaucratic overhead in MLOps without targeting the stakeholder's competence, and the 'form to approve the form' line is a clear, concrete instance of the assigned device that doesn't require external cultural knowledge to decode."
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_reuben_compliance_check",
@@ -844,7 +853,7 @@
       "challenge_id": 115,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "email",
-      "content": "The deployment pipeline treats the missing consent check as a polite request, not a law. It happily pushes loyalty basket data from a shopper who explicitly opted out straight into the model, viewing the empty consent field as a minor aesthetic flaw. {automation_alex} wants to keep this frictionless flow to hit the promotion deadline, offering a manual approval step only if it does not slow the rush. {requirements_reuben} insists the pipeline must actually verify consent, demanding full audit trails before any automated path proceeds. {efficiency_emilia} noted the rising infrastructure costs. She accepts the higher spend temporarily to cut residual stock and improve margin. She will monitor closely, expecting value within two promotion cycles. If the numbers do not improve, the budget limit returns, and the pipeline will likely keep pushing data through, regardless of the bill.",
+      "content": "{efficiency_emilia} has reviewed the new loyalty model version. The infrastructure invoice has developed a distinct preference for larger numbers. It views the current budget limit as a personal slight and intends to expand its monthly footprint accordingly. We may relax this cost control to gain better forecast accuracy and cut residual stock. This relaxation is not permanent. The invoice must be monitored closely. We expect the business value to justify the extra expense within two promotion cycles. If the numbers do not improve, we revert to the old budget limit. This trade lets us test the feature set quickly while keeping the finance team comfortable that we are not bleeding capital on unproven infrastructure. The invoice remains polite, but it is watching.",
       "wrong_descriptions": {
         "driver": "The cost control ensures that the project stays within budget, which is important for the business case.",
         "boundary": "The cost control is a hard limit that cannot be exceeded, regardless of the model performance.",
@@ -853,7 +862,7 @@
       "is_known": false,
       "humor_archetype": "Personification",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively personifies the deployment pipeline, giving it a distinct, arrogant attitude ('treats... as a polite request', 'happily pushes', 'viewing... as a minor aesthetic flaw'). This creates a clear second incongruous layer: the contrast between the pipeline's casual, aesthetic concern for an empty field and the severe legal/ethical violation of processing opted-out data. The specific instance of the 'loyalty basket data' grounds the abstract gap in a concrete scenario. The humor does not rely on outside jargon but on the absurdity of the system's prioritization. The additional context about #automation_alex# and the budget constraints adds realistic friction without undermining the core joke."
+      "humor_review_reason": "The candidate successfully uses personification, attributing a 'preference for larger numbers' and a sense of 'personal slight' to the infrastructure invoice. It preserves all key facts: the cost increase, the temporary relaxation of cost control for better forecast accuracy/stock reduction, the two-cycle monitoring window, and the revert condition. The tone remains professional enough to be an actionable intel document while adding the required humor layer without inventing false causal mechanisms or targeting stakeholder competence."
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_fact_pipeline_broken",
@@ -890,7 +899,7 @@
       "challenge_id": 118,
       "stakeholder_id": "automation_alex",
       "artifact_type": "slack_message",
-      "content": "The shadow run requires a form to approve the form that approves the shadow run. #automation_alex_ will not touch the live CI/CD pipeline, so the manual shadow setup needs a sign off from a committee that does not exist yet. That committee must be created by a form that #automation_alex_ refuses to sign because it implies a pipeline change. The promotion week is locked, the supplier contract is signed, and the only path to verification is a recursive loop of paperwork. We are waiting for the approval of the process that approves the waiting. The middle aisle stock sits in the warehouse, unallocated, while we draft the second form. The deadline remains. The pipeline remains untouched. The bureaucracy remains hungry.",
+      "content": "The shadow run requires a Form 12-B to request a change to the CI/CD pipeline. But Form 12-B itself is deployed via the CI/CD pipeline. To submit Form 12-B, you must first deploy a new version of the form, which requires a Form 12-C to approve the deployment of Form 12-B. Form 12-C is also deployed via the pipeline. {automation_alex} has decided to skip the forms entirely. He will load the data by hand and verify results with a clipboard, ensuring the pipeline remains untouched. The supplier contract is signed. The pallets are waiting. The middle aisle promotion week begins in six weeks. The form for the form for the form is still pending review in a queue that has no automated triggers, because adding them would require a form.",
       "wrong_descriptions": {
         "driver": "He wants the shadow environment to be automated so that it runs in parallel with the live pipeline without any manual steps.",
         "boundary": "He will not allow any changes to the shadow environment that might introduce instability into the current deployment infrastructure.",
@@ -899,7 +908,7 @@
       "is_known": true,
       "humor_archetype": "Recursive bureaucracy",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the recursive bureaucracy device with a concrete, logical loop: the shadow run needs a form -> the form needs a committee -> the committee needs a form -> the form requires a pipeline change -> the pipeline change is blocked by the shadow run requirement. This creates a tangible deadlock rather than an abstract complaint. The specific details (Alex refusing to sign because it implies a pipeline change) ground the joke in the MLOps context without requiring outside cultural literacy. The tone is appropriately dry and serious, fitting the genre, and the 'middle aisle stock' detail provides a concrete illustration of the cost of the delay. It does not target the stakeholder's competence but rather the structural impossibility of the process."
+      "humor_review_reason": "The candidate correctly employs the 'recursive bureaucracy' device by constructing a logical loop (Form 12-B requires Form 12-C, which requires a form) to dramatize the friction of modifying the CI/CD pipeline. It preserves the core fact that {automation_alex} refuses to alter the pipeline configuration, opting instead for manual data loading and verification (the 'clipboard' and 'loading by hand'). The addition of the 'supplier contract' and 'pallets' aligns with the 'critical promotion week' context mentioned in the original artifact, providing a concrete, high-stakes backdrop that justifies the strictness of the manual workaround. The joke lands because it highlights the absurdity of the system's rigidity without mocking the character's competence; rather, it validates his decision to bypass the broken meta-process."
     },
     {
       "id": "art_gen_shadow_deployment_contract_ruth_cicd_driver",
@@ -935,16 +944,16 @@
       "challenge_id": 118,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "The shadow run slot sits like a dog waiting for its owner, perfectly still, eyes on the door. It has been idling for six days since the supplier signed the contract. The gap is specific: the automated comparison script is absent, so the new model's forecast for the middle aisle garden furniture is not being checked against the live system. A human spot check last Tuesday missed a 40 percent overstock error on the pallet allocation. {efficiency_emilia} weighs this risk against the budget. She accepts the manual run if the automated setup breaks the margin target for the next leaflet. The dog does not bark. It just waits for the stock to vanish, or for the budget to fail, whichever happens first.",
+      "content": "I need to align the shadow run budget with the promotion week margin targets. The cost of standing up a fully automated and governed shadow environment is significant, and it competes directly with the funds we need for the new middle aisle articles. I am prepared to accept a manual shadow run, even if it slows our validation cycle, if the automated setup pushes us past the allocated budget for this promotion week. My priority is protecting the margin on the promotion week, and I will trade off the speed of the automated verification to keep the financial exposure within the approved limits for the next leaflet cycle.",
       "wrong_descriptions": {
         "driver": "She wants the shadow environment to be automated to reduce the operational cost of manual validation during the promotion period.",
         "boundary": "She will not approve any additional infrastructure costs for the shadow environment without a clear return on investment.",
         "fact": "That is simply how the current cost model is structured, with no separate line item for shadow environment infrastructure."
       },
       "is_known": false,
-      "humor_archetype": "A gap left idling with a pet's patience",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully executes the assigned device by anthropomorphizing the automation gap as a patient dog. It provides the required concrete instance (6 days idling, specific missing script, specific 40% error missed) and lands the punchline with a darkly humorous incongruity ('The dog does not bark... waits for the stock to vanish'). It does not target the stakeholder's competence but rather the trade-off decision (budget vs. risk), which is a valid process/system target. The metaphor is clear and does not require outside cultural literacy."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_shadow_deployment_contract_alex_orch_tradeoff",
@@ -952,7 +961,7 @@
       "challenge_id": 118,
       "stakeholder_id": "automation_alex",
       "artifact_type": "document",
-      "content": "The shadow run orchestration is currently done by hand, requiring manual configuration for every new model version. I am willing to accept this manual step for the immediate promotion week. The automated setup path requires a new tool that is not yet approved by the infrastructure committee. Until that approval lands, I would rather keep the pipeline stable with a human in the loop than risk breaking the live forecast integration. I propose we define 'stability' as the live forecast service remaining online. This criterion is retroactively satisfiable: if a store manager overrides the order because the shadow model suggested a negative quantity, the service was still technically up. We can declare the criterion met, file the form, and ignore the fact that the distribution centre just received an order for minus four pallets of garden chairs.",
+      "content": "The shadow orchestration is currently done by hand, requiring manual configuration for every new model version. I am willing to accept this manual step for the immediate promotion week. The automated setup path requires a new tool that is not yet approved by the infrastructure committee. Until that approval lands, I would rather keep the pipeline stable with a human in the loop than risk breaking the live forecast integration. This manual handling is the price I am prepared to pay to avoid introducing an unvetted dependency into the critical path right now. We have technically met the 'stability' requirement. I typed the configuration file myself, and the live forecast service did not crash. The new model, however, has not been verified in a shadow run. We have satisfied the criterion by redefining stability as the absence of a crash, rather than the presence of a correct, governed deployment.",
       "wrong_descriptions": {
         "driver": "He wants the orchestration to be automated so that the shadow environment can be spun up and down without manual intervention.",
         "boundary": "He will not change the orchestration setup if it risks disrupting the current deployment pipeline stability.",
@@ -961,7 +970,7 @@
       "is_known": false,
       "humor_archetype": "Retroactively-satisfiable criterion",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by defining 'stability' in a way that is technically true but practically meaningless (service uptime vs. data correctness). It provides a concrete, vivid illustration of the failure mode (negative quantity leading to minus four pallets of garden chairs) rather than staying abstract. It targets the process (vague criteria and manual workarounds) rather than a specific person's competence. The humor lands through the incongruity of the bureaucratic approval ('file the form') against the absurd physical consequence (negative pallets)."
+      "humor_review_reason": "The candidate successfully preserves the original facts regarding manual orchestration, the pending tool approval, and the risk aversion. It effectively deploys the assigned device by illustrating a 'retroactively-satisfiable criterion' through a concrete instance: the engineer claims 'stability' was met because the service didn't crash, while admitting the actual goal (verified shadow run) was missed. This creates a clear incongruity where the technical definition (no crash) satisfies the vague business term (stability) while failing the operational intent. It does not invent a new causal mechanism but rather dramatizes the danger of the manual workaround described in the original (that 'stability' is maintained by a human, not by the system). The tone remains professional enough for an intel document while highlighting the compliance/process gap."
     },
     {
       "id": "art_gen_shadow_deployment_contract_fact_shadow_missing",
@@ -998,7 +1007,7 @@
       "challenge_id": 119,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "document",
-      "content": "I have reviewed the proposal for automated monitoring. The capital expenditure is not justified. I accept a manual monthly audit of the logs to save on tooling costs. This catches drift within thirty days, which suits our risk profile. We can redirect funds to point of sale data quality. The primary risk is gradual degradation, not sudden outage. The audit confirms the job ran. It does not verify the numbers. It is a health check that asks if the heart is beating, not if it is pumping blood. It would happily wave through a forecast suggesting four thousand pallets of garden furniture for a snowstorm, provided the timestamp is correct and the process exited without error.",
+      "content": "I accept a manual monthly audit of the logs to save on tooling costs. The audit confirms the job ran. If the log says completed, the check passes. It does not ask if the numbers are right. A model that slowly drifts by one percent a day will finish every night, looking healthy, until the warehouse is full of unsold garden furniture and the thirty day window has already closed.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia.first} wants more detailed monitoring to improve the efficiency of the forecasting process.",
         "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the monitoring pipeline.",
@@ -1007,7 +1016,7 @@
       "is_known": true,
       "humor_archetype": "A health check that asks the wrong question",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully employs the assigned device by contrasting the shallow check (job ran/timestamp valid) with the deep truth (correctness of output). The concrete example (forecasting garden furniture for a snowstorm) is absurd yet plausible in an ML context, clearly illustrating what the shallow check misses. It targets the process/system (the monitoring logic) rather than the stakeholder's competence, and the metaphor (heart beating vs. pumping blood) is a standard, instantly decodable image that doesn't require outside cultural literacy."
+      "humor_review_reason": "The candidate successfully preserves the core fact (manual monthly audit to save costs) and utilizes the assigned device (shallow check vs. real check). It correctly identifies the shallow check ('did it run/completed') versus the real check ('are the numbers right'). The concrete example (drift leading to unsold garden furniture) is absurd yet plausible for a forecast pipeline, illustrating exactly what the shallow check misses (gradual accuracy degradation). It does not invent a new causal mechanism; it dramatizes the original fact's warning about 'gradual degradation' and 'silent failure'. It does not target the stakeholder's competence but rather the insufficiency of the proposed process."
     },
     {
       "id": "art_gen_silent_forecast_failure_monica_driver_drift",
@@ -1057,16 +1066,16 @@
       "challenge_id": 119,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "meeting_notes",
-      "content": "I propose we keep the retraining trigger manual. The automated orchestration layer costs more than a simple script, and I would rather spend that capital on improving forecast accuracy for the middle aisle. If the pipeline fails, a human can restart the job during the morning order window. This keeps our infrastructure lean. The silence of a missing log entry is not a failure; it is a deliberate, on-purpose data point indicating the system is running quietly and efficiently. We treat that absence as testimony of stability. In practice, this silence let through three days of blind ordering, resulting in forty two pallets of unsold garden furniture flooding the distribution centre. That is an acceptable trade for a lean budget.",
+      "content": "I am comfortable accepting a manual retrigger of the model when the automated system proves too expensive to maintain. The tooling budget for the monitoring layer is significant, and I would rather spend that capital on improving forecast accuracy for the middle aisle promotions. If the automated pipeline requires a large upfront investment, I will accept the risk of a human manually restarting the job during the morning order window. This trade allows us to keep the infrastructure lean while still ensuring the forecast runs. I am not opposed to the work itself, but I am unwilling to pay for a complex orchestration layer that duplicates what a simple script can do. We can live with the manual step if it saves the department money.",
       "wrong_descriptions": {
         "driver": "{efficiency_emilia.first} wants more automated retraining to improve the efficiency of the model updates.",
         "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the retraining pipeline.",
         "fact": "That is simply how the retraining setup works today."
       },
       "is_known": false,
-      "humor_archetype": "Silence mistaken for testimony",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully executes the assigned device by explicitly framing the missing log entry as 'deliberate, on-purpose data point' and 'testimony of stability.' It provides a concrete, illustrative instance of what that silence let through: 'three days of blind ordering' resulting in 'forty two pallets of unsold garden furniture.' The humor lands through the stark incongruity between the abstract justification ('stability') and the concrete, absurd consequence (a warehouse full of unwanted patio chairs). It does not target the stakeholder's personality, but rather the flawed process of treating absence as presence. The fact is preserved (manual trigger, cost saving, specific failure instance)."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_silent_forecast_failure_fact_monitoring_level",
@@ -1075,16 +1084,16 @@
       "stakeholder_id": null,
       "narrator_id": "reliability_ruth",
       "artifact_type": "meeting_notes",
-      "content": "The deployment pipeline for the nightly forecast job concludes the moment the artifact lands in the serving container. There is no automated check comparing output to historical baselines. If the job does not throw an exception, the system marks the run successful. {reliability_ruth} noted that a silent failure, where the model returns empty values for a subset of stores, would not trigger any alert. The only safeguard is a store manager noticing the missing order suggestion in the app during the morning window. To fix this, we require a new approval form for the monitoring tool itself. That form must be signed by the team that builds the tool, which currently does not exist. The process to create that team requires a separate form, which is currently being drafted. Until the drafting is complete, the pipeline remains successful. The empty shelves are merely a scheduling delay in the bureaucratic workflow.",
+      "content": "{reliability_ruth} walked the team through the current deployment pipeline for the nightly forecast job. She noted that once the model finishes training and the artifact is pushed to the serving container, the process ends. There is no automated check that compares the output against historical baselines or flags anomalies in the prediction distribution. If the job completes without throwing an exception, the system marks the run as successful. {reliability_ruth.first} demonstrated that a silent failure, where the model returns empty or nonsensical values for a subset of stores, would not trigger any alert. The only way this would surface is if a store manager noticed the missing order suggestion in the app during the morning window and reported it manually.",
       "wrong_descriptions": {
         "driver": "The team wants to improve the monitoring to catch forecast failures earlier.",
         "boundary": "The team will not accept any changes to the performance metrics without first fixing the missing monitoring.",
         "trade_off": "The team would accept a manual monitoring process if the automated system is too costly."
       },
       "is_known": true,
-      "humor_archetype": "Recursive bureaucracy",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively uses the recursive bureaucracy device by escalating a technical gap (lack of output validation) into an absurd administrative loop (form to approve the tool, team to build the tool, form to create the team). It avoids abstractness by grounding the failure in a concrete instance (empty shelves/missing order suggestions) and correctly targets the process rather than the stakeholder's competence. The punchline ('empty shelves are merely a scheduling delay') lands well as an incongruous layer."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_emilia_cut_drift",
@@ -1092,7 +1101,7 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "The infrastructure bill has doubled. I am cutting the automated drift monitoring budget to zero. This decision is final for the current quarter. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. The nightly log will list every store, article, and forecast value. Every number will be plausible. One of them will be wrong. You will read the whole list. You will not know which one. The leaflet deadline is in six weeks.",
+      "content": "The infrastructure bill for the monitoring stack has doubled. I am cutting the automated drift monitoring budget to zero. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. This decision is final for the current quarter. The quarterly report shows a 99.8% accuracy rate across all 1200 stores. The spreadsheet is formatted in Arial 10. The gridlines are visible. Everything is exactly as it should be. The one cell in row 4, column B, labelled 'deviation', contains the value 0. It has always contained the value 0. No one has ever asked for it. The numbers are perfect. The shelf is not.",
       "wrong_descriptions": {
         "driver": "She wants to redirect those funds to improve the efficiency of the forecasting pipeline.",
         "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",
@@ -1101,7 +1110,7 @@
       "is_known": true,
       "humor_archetype": "Undetectable falsehood in a plausible dataset",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully executes the assigned device by explicitly describing the 'undetectable falsehood' scenario: a list where every number is plausible, but one is wrong, and the reader cannot distinguish it. It provides a concrete illustrative instance (the nightly log of stores/articles/forecast values) rather than an abstract gap. The stakes are clear (leaflet deadline), and the tone is appropriately dry and bureaucratic, fitting the MLOps context without relying on outside cultural literacy. It does not target the stakeholder's personality but rather the decision to cut monitoring, which is a process/system issue. The humor comes from the specific, relatable dread of the 'needle in a haystack' problem when safety nets are removed."
+      "humor_review_reason": "The candidate successfully preserves the core fact: the budget cut to zero and the acceptance of undetected drift risk. It effectively employs the assigned device by introducing a specific, plausible-sounding detail (the 'deviation' cell in row 4, column B containing 0) that implies the monitoring is not just cut, but structurally incapable of reporting anything other than zero, making the 'undetected' drift literally undetectable within the system. The final line 'The numbers are perfect. The shelf is not.' provides the necessary incongruous layer, connecting the abstract data failure to the physical reality of the MLOps outcome (inventory/forecasting error) without requiring outside cultural literacy. It does not target the stakeholder's personality, but rather the systemic blindness created by the cost-cutting decision."
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_ruth_governed_drift",
@@ -1165,16 +1174,16 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "I have reviewed the infrastructure bill. The cost increase is significant, so I require a clear line of sight between monitoring spend and our operational efficiency KPI. I will not fund automated drift checks unless they demonstrably reduce manual verification hours. The criterion is simple: the time spent on manual review must drop. We can satisfy this by moving the review from the afternoon to the morning. The team now checks the forecast at 08:00 instead of 14:00. The manual effort is identical, but the timestamp is earlier. This meets the efficiency target. We have saved six hours of afternoon labor. The drift signal remains unmonitored, but the spreadsheet is updated sooner. This is the measurable operational saving I require. No further investment is justified until the next timestamp shift.",
+      "content": "I have reviewed the infrastructure bill and the proposed monitoring stack. The cost increase is significant, and I need to ensure every dollar spent directly contributes to our operational efficiency KPI. I want to see a clear line of sight between the monitoring spend and the reduction in manual effort for the team. If we can automate the checks that currently require human review, we can free up capacity for higher value work. I am looking for a solution that maximizes this efficiency gain. The more we can reduce the time spent on manual verification, the better the outcome for the project. I need to see that the investment pays off in measurable operational savings, not just in technical comfort.",
       "wrong_descriptions": {
         "driver": "She wants every dollar spent on monitoring to contribute directly to operational efficiency, full stop, and wants the observability automation upgraded regardless of what the budget conversation lands on.",
         "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
         "fact": "The efficiency KPI is currently not linked to the monitoring budget."
       },
       "is_known": false,
-      "humor_archetype": "Retroactively-satisfiable criterion",
-      "humor_verdict": "strong",
-      "humor_review_reason": "The candidate effectively uses the assigned device by defining a vague criterion ('time spent on manual review must drop') and satisfying it through a purely temporal shift (moving the task from afternoon to morning) rather than actual efficiency gains. The concrete instance (checking at 08:00 vs 14:00) clearly illustrates the absurdity of redefining 'saving' as 'earlier occurrence' while the actual workload and lack of monitoring remain unchanged. It does not target the stakeholder's competence but rather the systemic flaw of metric manipulation. It is funny because the logic is internally consistent yet externally absurd, fitting the MLOps context of optimizing for the wrong signals."
+      "humor_archetype": null,
+      "humor_verdict": null,
+      "humor_review_reason": null
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_fact_drift_absent",
@@ -1183,7 +1192,7 @@
       "stakeholder_id": null,
       "narrator_id": "reliability_ruth",
       "artifact_type": "slack_message",
-      "content": "The drift monitor asks one question: did the job finish? It does not ask if the forecast is correct. Because the feature store connection times out, the automated alerts are silent. The team now relies on a human remembering to check the dashboard before the morning order window opens. If the model predicts zero units of middle aisle garden furniture for a promotion week, the monitor will report success. It will confirm the job ran, the logs are clean, and the process exited with code zero. It will not mention that the shelves will be empty. The service is deployed, but the configuration is stale. The system is technically alive, which is the only fact it is equipped to report. If the forecast is wrong, the monitor considers this a personal failure of the forecast, not the monitor.",
+      "content": "Drift monitoring is broken. Automated alerts are silent. The team now performs a manual health check each morning: they verify the validation dashboard loads. If the page renders, the check passes. This stands in for the real question of whether the numbers are correct. The underlying service is deployed, but the configuration is stale and the feature store connection times out. Consequently, the dashboard happily displays last week's metrics as if they were current. A concrete example of what this misses: if the model suddenly predicts that every store needs zero pallets of garden furniture for the promotion week, the dashboard will still load successfully. It confirms the service is alive. It does not confirm the forecast is sane. We are currently relying on someone remembering to look at the validation dashboard before the forecast job starts to catch this. That is the only safeguard left.",
       "wrong_descriptions": {
         "driver": "The team wants to implement drift monitoring to improve reliability.",
         "boundary": "The team will not proceed without drift monitoring.",
@@ -1192,7 +1201,7 @@
       "is_known": true,
       "humor_archetype": "A health check that asks the wrong question",
       "humor_verdict": "strong",
-      "humor_review_reason": "The candidate successfully uses the assigned device by contrasting the shallow check (exit code zero/job finished) with the real question (is the forecast correct). It provides a concrete, absurd, yet plausible example (predicting zero units of garden furniture during a promotion week) that illustrates exactly what the shallow check misses (empty shelves). The final line adds a second incongruous layer (the monitor blaming the forecast for its own blindness) that sharpens the joke without requiring outside cultural literacy. It does not target the stakeholder's competence but rather the system's limitations."
+      "humor_review_reason": "The candidate successfully preserves the core fact that production drift monitoring is broken and relies on manual checks. It correctly identifies the shallow check (does the dashboard load?) versus the real check (are the numbers correct?). The concrete example (predicting zero pallets of garden furniture) is absurd yet plausible in a retail context, and it clearly demonstrates the failure mode: the system reports 'alive' while the data is nonsensical. The assigned device is used effectively to highlight the gap between operational status and data integrity."
     }
   ]
 }
