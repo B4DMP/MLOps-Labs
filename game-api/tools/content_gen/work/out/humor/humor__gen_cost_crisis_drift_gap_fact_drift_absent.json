@@ -1,0 +1,50 @@
+{
+  "item_id": "humor:gen_cost_crisis_drift_gap_fact_drift_absent",
+  "stage": "humor",
+  "input_hash": "bc4dd7077c5ea8c7de5a1501ecbd4d0b7208379ee237bf6ef9498aca749b1cd2",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 4,
+  "inputs": {
+    "original_content": "The production drift monitoring pipeline has been throwing errors since the last deployment. The automated alerts that used to flag when forecast accuracy dipped below threshold no longer fire. The team now relies on a manual workaround, checking the validation metrics dashboard every morning before the forecast job starts to see if anything looks off. This process depends on someone remembering to look. It is the only way we currently catch issues before they hit the stores. The underlying service is still deployed, but the configuration is stale and the connection to the feature store times out, which is why the automated checks fail.",
+    "device": "A health check that asks the wrong question",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_fact_drift_absent",
+      "challenge_id": -1,
+      "stakeholder_id": null,
+      "type": "fact",
+      "description": "Production drift monitoring is broken. That is simply the state of the system today.",
+      "fact": "Production drift monitoring is broken.",
+      "reading": "That is simply the state of the system today.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": {
+        "target": "ops.production_drift_monitoring",
+        "level": 0,
+        "trigger": null
+      },
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": ""
+    }
+  },
+  "output": {
+    "content": "The drift monitor asks one question: did the job finish? It does not ask if the forecast is correct. Because the feature store connection times out, the automated alerts are silent. The team now relies on a human remembering to check the dashboard before the morning order window opens. If the model predicts zero units of middle aisle garden furniture for a promotion week, the monitor will report success. It will confirm the job ran, the logs are clean, and the process exited with code zero. It will not mention that the shelves will be empty. The service is deployed, but the configuration is stale. The system is technically alive, which is the only fact it is equipped to report. If the forecast is wrong, the monitor considers this a personal failure of the forecast, not the monitor.",
+    "device": "A health check that asks the wrong question",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully uses the assigned device by contrasting the shallow check (exit code zero/job finished) with the real question (is the forecast correct). It provides a concrete, absurd, yet plausible example (predicting zero units of garden furniture during a promotion week) that illustrates exactly what the shallow check misses (empty shelves). The final line adds a second incongruous layer (the monitor blaming the forecast for its own blindness) that sharpens the joke without requiring outside cultural literacy. It does not target the stakeholder's competence but rather the system's limitations.",
+      "used_assigned_device": true
+    }
+  }
+}

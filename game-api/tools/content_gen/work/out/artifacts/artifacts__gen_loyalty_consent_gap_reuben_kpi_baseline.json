@@ -50,6 +50,8 @@
   "output": {
     "content": "The audit confirmed that loyalty basket records lack valid consent, so that data is out of scope until the legal basis is restored. I am not evaluating any model against the next promotion cycle until the KPI definitions are formally documented and signed off. The current draft definitions are not agreed, and I will not proceed on assumptions. I expect the team to deliver a governed, automated consent check before any personal data re-enters the pipeline. I will not accept a manual review as a permanent fix, and I will not approve a model that relies on data without a verified legal basis. The KPI documentation is a prerequisite for my sign off, not a parallel task.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The text explicitly states conditions under which the author will refuse to proceed or accept solutions, such as 'I will not accept a manual review' and 'I will not approve a model that relies on data without a verified legal basis', which define hard limits rather than wishes or trade-offs."
+    "reclassify_reason": "The text explicitly states conditions under which the author will refuse to proceed or accept solutions, such as 'I will not accept a manual review' and 'I will not approve a model that relies on data without a verified legal basis', which define hard limits rather than wishes or trade-offs.",
+    "humor_status": "selected",
+    "humor_archetype": "Recursive bureaucracy"
   }
 }

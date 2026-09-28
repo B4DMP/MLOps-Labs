@@ -49,6 +49,8 @@
   "output": {
     "content": "The promotion week is too short to wait for a spreadsheet. I need the residual stock and margin KPIs calculated automatically the moment the last till closes. If the team has to run manual checks after the fact, we lose the ability to react while the leaflet is still fresh in shoppers' hands. I want a live dashboard that updates every hour so we can see exactly how the allocation is performing against the committed pallets. The more real time visibility we have, the better we can protect the margin and avoid overstock. This is not a nice to have feature. It is the core of how we will judge whether the new logic actually works before the trucks leave the distribution centre.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that the more real-time visibility they have, the better they can protect margin, indicating that exceeding the minimum requirement of hourly updates would make them happier."
+    "reclassify_reason": "The author explicitly states that the more real-time visibility they have, the better they can protect margin, indicating that exceeding the minimum requirement of hourly updates would make them happier.",
+    "humor_status": "selected",
+    "humor_archetype": "Undetectable falsehood in a plausible dataset"
   }
 }

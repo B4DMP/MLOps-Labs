@@ -1,0 +1,56 @@
+{
+  "item_id": "humor:gen_heatwave_kpi_gap_emilia_kpi_boundary",
+  "stage": "humor",
+  "input_hash": "6d164e4f49e196fffbefef92611e05e5d0d0c28289d2d173b6b982cfd76b6c81",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "original_content": "We need to lock the definition of success before we build any new tracking. The margin on the promotion week is the only metric that matters to the business right now. If a KPI definition does not include that specific number, I will not sign off on it. We cannot let operational speed or model accuracy override the financial reality of the promotion. Any proposal that ignores the margin on the promotion week is a no from my side. We are not negotiating this point. The strategy is clear, and the KPIs must reflect it exactly. Do not bring me a dashboard that measures availability or waste in isolation without tying it back to that margin figure. That is the line.",
+    "device": "A health check that asks the wrong question",
+    "requirement": {
+      "id": "gen_heatwave_kpi_gap_emilia_kpi_boundary",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "boundary",
+      "description": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week. {efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "fact": "{efficiency_emilia} brought up the need for KPI definitions to reflect the margin on the promotion week.",
+      "reading": "{efficiency_emilia} will not accept any KPI definition that does not include margin on the promotion week.",
+      "metric_id": "efficiency",
+      "suggested": null,
+      "holds": {
+        "component": "req.kpi_definition",
+        "op": "gte",
+        "level": 2
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 2
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Summer Forecast Gap",
+      "description": "A sudden heatwave has skewed demand for seasonal goods, exposing that our KPI definitions do not account for weather driven spikes. #model_monica# wants to automate the KPI tracking to capture these shifts in real time, while #efficiency_emilia# prefers to keep the process manual to ensure every metric aligns with the broader business strategy. #efficiency_emilia# might accept an automated solution if it clearly supports the agreed business goals."
+    }
+  },
+  "output": {
+    "content": "The automated KPI tracker is currently operating with a satisfactory green status. It verifies that the margin on the promotion week field exists and contains a number. It does not verify if the number is sane. Last Tuesday, a weather spike caused a massive surge in iced tea sales. The system correctly calculated the margin as negative four hundred percent. The health check saw a number, stamped it valid, and moved on. {efficiency_emilia} requires this metric to be present, but the current check is merely confirming the ink is on the page. It is a shelf check for a store that is already on fire. We need to ensure the metric aligns with business strategy, not just that the sensor is blinking. Until the definition is locked to the financial reality, the green light is just a very confident lie.",
+    "device": "A health check that asks the wrong question",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully employs the assigned device by contrasting the shallow check (field existence/number presence) with the real check (sanity/correctness). The concrete example of a -400% margin due to a weather spike is plausible, absurd, and clearly illustrates the failure mode. The tone is sharp and professional, avoiding the pitfalls of abstract description or unnecessary jargon.",
+      "used_assigned_device": true
+    }
+  }
+}

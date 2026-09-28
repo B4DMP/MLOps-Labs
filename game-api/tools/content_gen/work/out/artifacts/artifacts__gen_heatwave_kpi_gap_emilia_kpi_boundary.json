@@ -50,6 +50,8 @@
   "output": {
     "content": "We need to lock the definition of success before we build any new tracking. The margin on the promotion week is the only metric that matters to the business right now. If a KPI definition does not include that specific number, I will not sign off on it. We cannot let operational speed or model accuracy override the financial reality of the promotion. Any proposal that ignores the margin on the promotion week is a no from my side. We are not negotiating this point. The strategy is clear, and the KPIs must reflect it exactly. Do not bring me a dashboard that measures availability or waste in isolation without tying it back to that margin figure. That is the line.",
     "reclassified_as": "boundary",
-    "reclassify_reason": "The text explicitly defines a non-negotiable requirement and refusal threshold, stating that any proposal ignoring the specific margin metric is a 'no' and that this point is not open to negotiation."
+    "reclassify_reason": "The text explicitly defines a non-negotiable requirement and refusal threshold, stating that any proposal ignoring the specific margin metric is a 'no' and that this point is not open to negotiation.",
+    "humor_status": "selected",
+    "humor_archetype": "A health check that asks the wrong question"
   }
 }

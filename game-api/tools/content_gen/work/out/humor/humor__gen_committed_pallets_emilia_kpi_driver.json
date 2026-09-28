@@ -1,0 +1,55 @@
+{
+  "item_id": "humor:gen_committed_pallets_emilia_kpi_driver",
+  "stage": "humor",
+  "input_hash": "f6e2b7c5bcea706e4d42a0757d8933d74d804756e21abd768e818a48c394c2ac",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "original_content": "The promotion week is too short to wait for a spreadsheet. I need the residual stock and margin KPIs calculated automatically the moment the last till closes. If the team has to run manual checks after the fact, we lose the ability to react while the leaflet is still fresh in shoppers' hands. I want a live dashboard that updates every hour so we can see exactly how the allocation is performing against the committed pallets. The more real time visibility we have, the better we can protect the margin and avoid overstock. This is not a nice to have feature. It is the core of how we will judge whether the new logic actually works before the trucks leave the distribution centre.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "requirement": {
+      "id": "gen_committed_pallets_emilia_kpi_driver",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "driver",
+      "description": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin. She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
+      "fact": "{efficiency_emilia} proposed defining the KPIs for the promotion week to track residual stock and margin.",
+      "reading": "She wants the KPIs to be calculated automatically so the team can see the impact in real time.",
+      "metric_id": "efficiency",
+      "suggested": {
+        "target": "req.kpi_definition",
+        "level": 4
+      },
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.kpi_definition",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "The leaflet is printed. The trucks are idling. I need the residual stock and margin KPIs calculated automatically the moment the last till closes. If the team has to run manual checks after the fact, we lose the ability to react while the leaflet is still fresh in shoppers' hands. I want a live dashboard that updates every hour so we can see exactly how the allocation is performing against the committed pallets. The more real time visibility we have, the better we can protect the margin and avoid overstock. This is not a nice to have feature. It is the core of how we will judge whether the new logic actually works before the trucks leave the distribution centre. Every metric on the screen will be green. One of them will be lying, and we will not know which one until the pallets are already in the warehouse.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully employs the assigned device by creating a scenario where all visible metrics are 'green' (plausible), but explicitly stating that one is a lie without identifying it. This creates the specific anxiety of 'almost everything checks out' required by the prompt. It avoids abstract descriptions by grounding the consequence in the physical reality of the pallets being in the warehouse. It does not target the stakeholder's competence but rather the systemic limitation of the monitoring setup. The tone is appropriately serious for an MLOps context, making the final punchline land as a darkly comic realization of the gap between dashboard confidence and operational reality.",
+      "used_assigned_device": true
+    }
+  }
+}

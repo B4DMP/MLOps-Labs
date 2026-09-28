@@ -49,6 +49,8 @@
   "output": {
     "content": "I have reviewed the infrastructure bill and the proposed monitoring stack. The cost increase is significant, and I need to ensure every dollar spent directly contributes to our operational efficiency KPI. I want to see a clear line of sight between the monitoring spend and the reduction in manual effort for the team. If we can automate the checks that currently require human review, we can free up capacity for higher value work. I am looking for a solution that maximizes this efficiency gain. The more we can reduce the time spent on manual verification, the better the outcome for the project. I need to see that the investment pays off in measurable operational savings, not just in technical comfort.",
     "reclassified_as": "driver",
-    "reclassify_reason": "The author explicitly states that maximizing the efficiency gain and reducing manual verification time makes the outcome better, indicating that doing more to achieve these savings increases their satisfaction."
+    "reclassify_reason": "The author explicitly states that maximizing the efficiency gain and reducing manual verification time makes the outcome better, indicating that doing more to achieve these savings increases their satisfaction.",
+    "humor_status": "selected",
+    "humor_archetype": "Retroactively-satisfiable criterion"
   }
 }

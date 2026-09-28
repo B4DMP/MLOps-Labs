@@ -1,0 +1,56 @@
+{
+  "item_id": "humor:gen_committed_pallets_reuben_governance_wall",
+  "stage": "humor",
+  "input_hash": "b32e84bd442f1840a879ae8d5c67dabc8adfa9dfe61e121b9e7a9f3adaab68b4",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 1,
+  "inputs": {
+    "original_content": "The supplier has confirmed the bulk order for the middle aisle promotion, and the trucks leave next week. Because the physical stock is already committed, there is no room for model error in the allocation logic. I am not willing to approve this release if the acceptance criteria remain manual. We must have the criteria fully governed to guarantee the logic is auditable before the goods ship. Manual checks are not sufficient for this scale of financial and operational risk. I will not sign off on the deployment until the governance framework is in place and the audit trail is verifiable. This is a hard requirement for my team. We cannot accept the liability of an unauditable automated decision when the inventory is already locked in with the supplier.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "requirement": {
+      "id": "gen_committed_pallets_reuben_governance_wall",
+      "challenge_id": -1,
+      "stakeholder_id": "requirements_reuben",
+      "type": "boundary",
+      "description": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable. He will not approve the release if the acceptance criteria remain below the governed level.",
+      "fact": "{requirements_reuben} proposed that the acceptance criteria be governed to make the allocation logic auditable.",
+      "reading": "He will not approve the release if the acceptance criteria remain below the governed level.",
+      "metric_id": "requirements",
+      "suggested": null,
+      "holds": {
+        "component": "req.acceptance_criteria",
+        "op": "gte",
+        "level": 4
+      },
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "req.acceptance_criteria",
+          "value": 4
+        }
+      ],
+      "concedes": null,
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Committed Pallets",
+      "description": "A supplier has confirmed a bulk order for a middle aisle promotion that ships next week, leaving no room for model error. #requirements_reuben# insists the acceptance criteria must be fully governed to guarantee the allocation logic is auditable before the trucks leave. #reliability_ruth# argues the criteria are sufficient as manual checks because the physical stock is already committed and the team needs to ship the feature immediately to handle the live orders."
+    }
+  },
+  "output": {
+    "content": "Quick note: the trucks roll next week, the order's confirmed, the stock is committed, and there is no room in this plan for the model to be wrong. I won't approve the release with manual acceptance criteria. An unauditable automated decision might be flawless, or it might be wrong in exactly one place, and once the trucks leave there is no way to find out which. The logic needs to be governed and auditable before goods ship. Manual checks aren't sufficient for risk at this scale. I will not sign off until the governance framework is in place and the audit trail is verifiable end to end. This is a hard requirement for my team. Once the trucks leave, the inventory is locked in with the supplier, and I am not the one explaining afterward why an unauditable decision made the call. That liability is not mine to carry.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "Already written and human-reviewed in game-ui/.../humor-memo/WorkedExamples.tsx before the automated pipeline existed; reused as-is rather than regenerated.",
+      "used_assigned_device": true
+    }
+  }
+}
