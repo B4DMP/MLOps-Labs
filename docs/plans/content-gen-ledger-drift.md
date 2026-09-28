@@ -49,11 +49,8 @@ Side effect: this pushes 6 more items from `driver` to `trade_off`, worsening a 
 
 ## Still open
 
-**Stance-mix gate failure**, worse than before this fix but not caused by it - "57% of stances are
-trade-offs, scope allows 55%" already failed before any work this session. Reclassifying the 6 items
-above pushes it to 59% trade-offs and newly trips the driver floor too (24%, scope wants 25%).
-Fixing this means writing new driver-type content elsewhere in the corpus to rebalance, not a data
-copy - a genuine design decision about which stakeholder gets another driver ask, left open.
+**Stance-mix gate failure**, worse than before this fix but not caused by it - see
+`stance-mix-rebalance.md`. Not blocking anything; optional.
 
 **Three orphan requirements in production with no ledger counterpart at all**, each missing an
 objection line (a pre-existing `validate` gate error, not caused by any of this work):
