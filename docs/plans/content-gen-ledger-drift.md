@@ -1,6 +1,6 @@
 # content_gen ledger vs. production drift
 
-Status: **partially fixed, two items still open.**
+Status: **axis and reclassification fixed; one design-balance side effect still open.**
 
 ## The gap
 
@@ -18,24 +18,42 @@ Fixed so far:
   not just stale data) - added, wired through, and gated in `axis_errors()`.
 - Item-level axis data backfilled for 100 of 106 items from the current `gameConfig/RequirementObjects.json`.
 - 29 `Fact`-tagged items pruned from the ledger after origin removed them from production.
-- `select-humor` now excludes the 6 reclassification-pending ids below (`PENDING_RECLASSIFICATION`
-  in `humor_selection.py`), so a humor pass never lands on content likely to be rewritten out from
-  under it. The underlying reclassification itself is still open.
+- 6 `driver`/`trade_off` reclassification mismatches resolved (see below); `select-humor`'s
+  temporary exclusion for them was removed since they're no longer unstable.
+
+## Resolved
+
+**Six items where the ledger's own tag disagreed with what's shipped** - `driver` in the ledger,
+`trade_off` in production. Reclassified to `trade_off` and backfilled fact/reading/concedes/branch
+data from production, checked individually rather than by blanket rule - each one had a concrete
+coherence break against its own shipped mechanic (an invented detail with no field to back it,
+a concession running the wrong direction, or a fact narrower than the branch it was supposed to
+describe). Production's text won every time, but for a specific, checkable reason each time, not
+because "production is newer":
+
+- `gen_cost_crisis_drift_gap_emilia_efficiency_kpi` - ledger's fact invented a "monitoring
+  contractor" that the real branches (automation level 2 vs. 3) have no way to represent.
+- `gen_heatwave_forecast_gap_monica_driver_eval` - ledger's reading conceded speed *for*
+  automation; the real branch_y is the opposite (harness goes back to manual).
+- `gen_heatwave_forecast_gap_emilia_driver_eff` - ledger's reading invented an "accuracy
+  threshold" with no field in the branch structure.
+- `gen_loyalty_data_deployment_block_alex_promotion_deadline` - ledger's reading read as a neutral
+  fact about the deadline, not Alex's own concession, and never referenced the branch.
+- `gen_nightly_window_miss_ruth_validation_driver` - ledger's reading implied no change
+  ("remains manual"); the real branch_y is a partial raise to level 2.
+- `gen_silent_ingestion_failure_ruth_driver_ingest` - ledger's fact was scoped to ingestion alone;
+  production's branch_x is a composite raise across ingestion, validation, and versioning together.
+
+Side effect: this pushes 6 more items from `driver` to `trade_off`, worsening a pre-existing
+`validate` gate failure below.
 
 ## Still open
 
-**Six items where the ledger's own tag disagrees with what's shipped** - all `driver` in the ledger,
-`trade_off` in production. Not an axis problem: the ledger's own driver payload is incomplete
-(`suggested_target`/`suggested_level` are null), so production's reclassification is almost certainly
-correct, but fixing it means picking which `fact`/`reading` text to keep, which is a content call, not
-a mechanical field copy:
-
-- `gen_cost_crisis_drift_gap_emilia_efficiency_kpi`
-- `gen_heatwave_forecast_gap_monica_driver_eval`
-- `gen_heatwave_forecast_gap_emilia_driver_eff`
-- `gen_loyalty_data_deployment_block_alex_promotion_deadline`
-- `gen_nightly_window_miss_ruth_validation_driver`
-- `gen_silent_ingestion_failure_ruth_driver_ingest`
+**Stance-mix gate failure**, worse than before this fix but not caused by it - "57% of stances are
+trade-offs, scope allows 55%" already failed before any work this session. Reclassifying the 6 items
+above pushes it to 59% trade-offs and newly trips the driver floor too (24%, scope wants 25%).
+Fixing this means writing new driver-type content elsewhere in the corpus to rebalance, not a data
+copy - a genuine design decision about which stakeholder gets another driver ask, left open.
 
 **Three orphan requirements in production with no ledger counterpart at all**, each missing an
 objection line (a pre-existing `validate` gate error, not caused by any of this work):

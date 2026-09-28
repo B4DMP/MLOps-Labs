@@ -587,35 +587,39 @@
     "items": [
       {
         "key": "monica_driver_eval",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "model_monica",
         "fact": "{model_monica} asked for automated testing of new weather features in the evaluation harness.",
         "readings": {
           "driver": "Faster iteration on the weather feature set directly improves the forecast accuracy for the northern region's seasonal shifts.",
           "boundary": "She will not approve a model change if the evaluation process requires manual sign-off for every feature addition.",
-          "trade_off": "She would accept a slower rollout of the new weather model if the evaluation harness remains fully automated.",
+          "trade_off": "She would accept keeping the harness manual for now if that is what it takes to get a decision before the next heatwave.",
           "fact": "That is simply how the evaluation setup works today."
         },
         "metric_id": "model",
-        "suggested_target": "model.evaluation",
-        "suggested_level": 3,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.evaluation",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "model.evaluation",
+        "concedes_max_level": 1,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "the evaluation harness fully automated for rapid feature iteration",
+        "branch_x_target": "model.evaluation",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "the evaluation harness brought back up manually, one documented case at a time",
+        "branch_y_target": "model.evaluation",
+        "branch_y_axis": "automation",
+        "branch_y_level": 1,
+        "branch_y_ops": []
       },
       {
         "key": "reuben_boundary_doc",
@@ -705,35 +709,39 @@
       },
       {
         "key": "emilia_driver_eff",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "efficiency_emilia",
         "fact": "{efficiency_emilia} asked for a faster turnaround on the model evaluation to address the stockout issue.",
         "readings": {
           "driver": "Reducing the evaluation time directly lowers the operational cost of the stockout and overstock incidents.",
           "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
-          "trade_off": "She would accept a lower accuracy threshold for the new model if the evaluation is completed within the morning order window.",
+          "trade_off": "She would accept the harness staying manual if a quick decision matters more than the turnaround time right now.",
           "fact": "That is simply how the evaluation setup works today."
         },
         "metric_id": "efficiency",
-        "suggested_target": "model.evaluation",
-        "suggested_level": 3,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "model.evaluation",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "model.evaluation",
+        "concedes_max_level": 1,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "the evaluation harness fully automated for a fast turnaround",
+        "branch_x_target": "model.evaluation",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "the evaluation harness brought back up manually, slower but immediate",
+        "branch_y_target": "model.evaluation",
+        "branch_y_axis": "automation",
+        "branch_y_level": 1,
+        "branch_y_ops": []
       },
       {
         "key": "monica_tradeoff_eval",

@@ -577,28 +577,52 @@
     "items": [
       {
         "key": "ruth_driver_ingest",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "reliability_ruth",
-        "fact": "{reliability_ruth} proposed automating the data ingestion pipeline to guarantee timely arrival of store scan lines.",
+        "fact": "{reliability_ruth} proposed automating the data pipeline end to end to guarantee timely arrival of store scan lines.",
         "readings": {
           "driver": "The more reliable the ingestion, the fewer times the forecast job runs on incomplete data.",
           "boundary": "She will not accept a forecast job that runs without a confirmed data arrival signal.",
-          "trade_off": "She would accept a slower ingestion if it guarantees that no store data is dropped.",
+          "trade_off": "She would settle for basic ingestion with a manual verification step if that is what keeps the forecast job moving.",
           "fact": "That is simply how the ingestion setup works today."
         },
         "metric_id": "reliability",
-        "suggested_target": "data.ingestion",
-        "suggested_level": 4,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
         "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "data.ingestion",
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "the whole pipeline automated end to end - ingestion, validation and versioning all raised together",
+        "branch_x_target": "data.ingestion",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [
+          {
+            "kind": "raise_to",
+            "target": "data.validation",
+            "value": 3,
+            "axis": "automation"
+          },
+          {
+            "kind": "raise_to",
+            "target": "data.versioning",
+            "value": 3,
+            "axis": "automation"
+          }
+        ],
+        "branch_y_description": "basic ingestion with a manual verification step, same pace Dave is willing to accept",
+        "branch_y_target": "data.ingestion",
+        "branch_y_axis": "automation",
+        "branch_y_level": 2,
+        "branch_y_ops": []
       },
       {
         "key": "dave_tradeoff_ingest",

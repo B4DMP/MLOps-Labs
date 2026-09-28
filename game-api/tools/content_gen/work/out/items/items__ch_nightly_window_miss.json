@@ -593,35 +593,39 @@
     "items": [
       {
         "key": "ruth_validation_driver",
-        "tag": "driver",
+        "tag": "trade_off",
         "stakeholder_id": "reliability_ruth",
         "fact": "{reliability_ruth} proposed automating the data validation step.",
         "readings": {
           "driver": "Automated validation catches bad data instantly, preventing the morning order window from being missed again.",
           "boundary": "She will not allow the forecast to run without a fully automated validation layer in place.",
-          "trade_off": "She would accept a slower forecast if the validation step remains manual.",
+          "trade_off": "She would settle for a smaller step up if it still catches bad data before the morning order window closes.",
           "fact": "That is simply how the validation setup works today."
         },
         "metric_id": "reliability",
-        "suggested_target": "data.validation",
-        "suggested_level": 3,
+        "suggested_target": null,
+        "suggested_level": null,
         "holds": null,
-        "ops": [
-          {
-            "kind": "raise_to",
-            "target": "data.validation",
-            "value": 3,
-            "attr": null
-          }
-        ],
+        "ops": [],
         "concedes_metric": null,
         "concedes_loss": null,
-        "concedes_target": null,
-        "concedes_max_level": null,
+        "concedes_target": "data.validation",
+        "concedes_max_level": 2,
         "asserts_target": null,
         "asserts_level": null,
         "asserts_trigger": null,
-        "suggested_axis": "automation"
+        "suggested_axis": null,
+        "concedes_axis": "automation",
+        "branch_x_description": "data validation fully automated",
+        "branch_x_target": "data.validation",
+        "branch_x_axis": "automation",
+        "branch_x_level": 3,
+        "branch_x_ops": [],
+        "branch_y_description": "data validation raised just enough to clear the backlog, short of full automation",
+        "branch_y_target": "data.validation",
+        "branch_y_axis": "automation",
+        "branch_y_level": 2,
+        "branch_y_ops": []
       },
       {
         "key": "dave_validation_boundary",
