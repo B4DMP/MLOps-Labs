@@ -946,14 +946,18 @@ export default function PitchDebate({
           )
         );
 
+        // Mirrors scoring.py VETO_THRESHOLD / OBJECTION_THRESHOLD.
+        const threshold = r.power === "high" ? 0.4 : 0.3;
+
         return [
           r.stakeholder_id,
           {
-            threshold: 0.6,
+            threshold,
             actionCardScore: cardScore,
             emotionScore: emotionScore,
             total: total,
             isPersuaded: r.band === "green",
+            blocks: total < threshold,
             currentEmotion: hasSpokenInPitch
               ? (stakeholders[r.stakeholder_id]?.emotional_state || r.emotional_state || "neutral")
               : (stakeholders[r.stakeholder_id]?.emotional_state || "neutral"),

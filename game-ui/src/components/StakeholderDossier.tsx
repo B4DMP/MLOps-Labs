@@ -124,6 +124,8 @@ export interface StakeholderBuyInInfo {
   emotionScore: number;
   total: number;
   isPersuaded: boolean;
+  // Below `threshold` (or boundary violated): high power vetoes, low power only objects.
+  blocks?: boolean;
   currentEmotion?: string;
   boundaryViolated?: boolean;
   isRevealed?: boolean;
@@ -1799,18 +1801,20 @@ export default function StakeholderDossier({
                       ⚖️ Buy-In Progress
                     </span>
                     <span
-                      className={`badge ${isBoundaryViolated ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-danger"}`}
+                      className={`badge ${isBoundaryViolated || buyInInfo.blocks ? "bg-danger" : buyInInfo.isPersuaded ? "bg-success" : "bg-warning text-dark"}`}
                       style={{ fontSize: "0.62rem" }}
                     >
                       {isBoundaryViolated
                         ? `⛔ Boundary Violated (${totalPercent}%)`
+                        : buyInInfo.blocks
+                        ? `⛔ Resistant (${totalPercent}%)`
                         : buyInInfo.isPersuaded
                         ? `✅ Persuaded (${totalPercent}%)`
-                        : `⚠️ Resistant (${totalPercent}%)`}
+                        : `⚠️ Wavering (${totalPercent}%)`}
                     </span>
                   </div>
                   <span style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: 600 }}>
-                    Target: <strong>{Math.round(buyInInfo.threshold * 100)}%</strong>
+                    Blocks below: <strong>{Math.round(buyInInfo.threshold * 100)}%</strong>
                   </span>
                 </div>
 
