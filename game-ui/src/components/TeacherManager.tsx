@@ -109,6 +109,10 @@ export function TeacherManager({ campaigns }: TeacherManagerProps) {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim() || !newPassword) return;
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      return;
+    }
     setIsCreating(true);
     setError("");
     try {
@@ -347,7 +351,7 @@ export function TeacherManager({ campaigns }: TeacherManagerProps) {
               <div className="col-md-2 d-flex align-items-end">
                 <button
                   type="submit"
-                  disabled={!newName.trim() || newPassword.length < 8 || isCreating}
+                  disabled={!newName.trim() || !newPassword || isCreating}
                   className={styles.actionButton}
                   style={{ padding: "0.45rem 1rem", fontSize: "0.85rem" }}
                 >
