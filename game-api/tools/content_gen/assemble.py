@@ -35,6 +35,9 @@ def collect(ctx) -> dict:
     # Gists (D52) are optional: a stance item with none yet uses the runtime fallback, so nothing
     # here is added to `missing` for it.
     gists = {r["item_id"].removeprefix("gists:"): r for r in ctx.approved("gists")}
+    # Humor is optional too: only requirements select-humor flagged and a writer/reviewer pass
+    # already approved have one; everything else keeps its plain artifact content.
+    humor = {r["item_id"].removeprefix("humor:"): r for r in ctx.approved("humor")}
 
     missing = []
     challenges = []
@@ -79,7 +82,8 @@ def collect(ctx) -> dict:
     if missing:
         raise AssemblyError("not everything is approved yet:\n  " + "\n  ".join(missing))
     return {"challenges": challenges, "requirements": requirements, "artifacts": artifacts,
-            "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req, "gists": gists}
+            "objections": objections, "fragments": fragments, "wrong_readings": readings_by_req, "gists": gists,
+            "humor": humor}
 
 
 def _conflict_target(challenge: dict):
@@ -198,6 +202,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
         reqs["requirements"].append(req.model_dump(mode="json", exclude_none=True, exclude_defaults=False))
         art = data["artifacts"][req.id]
         is_known = req.id in known_ids
+        humor_rec = data["humor"].get(req.id)
         arts["artifacts"].append({
             "id": f"art_{req.id}",
             "requirement_id": req.id,
@@ -205,7 +210,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             "stakeholder_id": req.stakeholder_id,
             **({"narrator_id": art["inputs"]["narrator"]["id"]} if art["inputs"].get("narrator") else {}),
             "artifact_type": art["inputs"]["artifact_type"],
-            "content": art["output"]["content"],
+            "content": humor_rec["output"]["content"] if humor_rec else art["output"]["content"],
             # Readings only: the game puts the unchanged fact in front of them (split wording).
             "wrong_descriptions": data["wrong_readings"][req.id],
             "is_known": is_known,
