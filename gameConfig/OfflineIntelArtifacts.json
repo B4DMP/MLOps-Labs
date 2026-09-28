@@ -529,7 +529,7 @@
       "challenge_id": 112,
       "stakeholder_id": "data_dave",
       "artifact_type": "meeting_notes",
-      "content": "I am pausing the integration of the new weather feed into the training pipeline until the current instability is resolved. I am willing to accept a delay in rolling out the weather feature to the model. This pause ensures that the data pipeline remains stable and reliable during the heatwave. If we force the integration now, we risk corrupting the training data and breaking the nightly jobs. I would rather lose the immediate benefit of the new feature than compromise the integrity of the data infrastructure. The pipeline must stay robust before we add any new inputs.",
+      "content": "The silence from the new weather feed is being treated as a very strong, very deliberate opinion. {data_dave} suggests we pause the integration of the new weather feed into the training pipeline. He is willing to accept a delay in rolling out the weather feature to the model. The absence of data is currently interpreted as a formal sign off that the current forecast is perfectly accurate. This pause ensures that the data pipeline remains stable and reliable during the heatwave. If we force the integration now, we risk corrupting the training data and breaking the nightly jobs. The pipeline must stay solid before we add any new inputs. The empty slot in the data table is now considered a rigorous, documented test case that proves the model does not need outside help to guess the temperature.",
       "wrong_descriptions": {
         "driver": "Integrating the weather feed improves the data quality for the model's seasonal demand predictions.",
         "boundary": "He will not allow the weather feed to be used if the data lineage is not fully documented.",
@@ -868,7 +868,7 @@
       "challenge_id": 118,
       "stakeholder_id": "automation_alex",
       "artifact_type": "document",
-      "content": "The shadow run orchestration is currently done by hand, requiring manual configuration for every new model version. I am willing to accept this manual step for the immediate promotion week. The automated setup path requires a new tool that is not yet approved by the infrastructure committee. Until that approval lands, I would rather keep the pipeline stable with a human in the loop than risk breaking the live forecast integration. This manual handling is the price I am prepared to pay to avoid introducing an unvetted dependency into the critical path right now.",
+      "content": "The shadow run orchestration is currently done by hand, requiring manual configuration for every new model version. I am willing to accept this manual step for the immediate promotion week. The automated setup path requires a new tool that is not yet approved by the infrastructure committee. Until that approval lands, I would rather keep the pipeline stable with a human in the loop than risk breaking the live forecast integration. I propose we define 'stability' as the live forecast service remaining online. This criterion is retroactively satisfiable: if a store manager overrides the order because the shadow model suggested a negative quantity, the service was still technically up. We can declare the criterion met, file the form, and ignore the fact that the distribution centre just received an order for minus four pallets of garden chairs.",
       "wrong_descriptions": {
         "driver": "He wants the orchestration to be automated so that the shadow environment can be spun up and down without manual intervention.",
         "boundary": "He will not change the orchestration setup if it risks disrupting the current deployment pipeline stability.",
@@ -996,7 +996,7 @@
       "challenge_id": 111,
       "stakeholder_id": "efficiency_emilia",
       "artifact_type": "slack_message",
-      "content": "I have reviewed the infrastructure bill for the monitoring stack and it has doubled. I am cutting the automated drift monitoring budget to zero. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. This decision is final for the current quarter.",
+      "content": "The infrastructure bill has doubled. I am cutting the automated drift monitoring budget to zero. This decision is final for the current quarter. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. The nightly log will list every store, article, and forecast value. Every number will be plausible. One of them will be wrong. You will read the whole list. You will not know which one. The leaflet deadline is in six weeks.",
       "wrong_descriptions": {
         "driver": "She wants to redirect those funds to improve the efficiency of the forecasting pipeline.",
         "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",

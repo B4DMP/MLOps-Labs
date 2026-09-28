@@ -1,0 +1,57 @@
+{
+  "item_id": "humor:gen_cost_crisis_drift_gap_emilia_cut_drift",
+  "stage": "humor",
+  "input_hash": "74640daa7806d4e4df2a02aae84d329e7b4dabcb8d44b12b108f52134baf8e0f",
+  "model": "Qwen/Qwen3.8-27B",
+  "attempts": 2,
+  "inputs": {
+    "original_content": "I have reviewed the infrastructure bill for the monitoring stack and it has doubled. I am cutting the automated drift monitoring budget to zero. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. This decision is final for the current quarter.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "requirement": {
+      "id": "gen_cost_crisis_drift_gap_emilia_cut_drift",
+      "challenge_id": -1,
+      "stakeholder_id": "efficiency_emilia",
+      "type": "trade_off",
+      "description": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero. She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "fact": "{efficiency_emilia} proposed cutting the automated drift monitoring budget to zero.",
+      "reading": "She is willing to accept the risk of undetected drift to keep the operational costs within the approved limit.",
+      "metric_id": null,
+      "suggested": null,
+      "holds": null,
+      "ops": [
+        {
+          "kind": "raise_to",
+          "target": "ops.production_drift_monitoring",
+          "value": 0
+        }
+      ],
+      "concedes": {
+        "metric_id": "reliability",
+        "loss": 8,
+        "target": null,
+        "accepts_max_level": null
+      },
+      "branch_x": null,
+      "branch_y": null,
+      "branch_x_atoms": [],
+      "branch_y_atoms": [],
+      "atoms": [],
+      "asserts": null,
+      "refines_id": null,
+      "gist": null
+    },
+    "challenge": {
+      "name": "The Cost Cliff",
+      "description": "The infrastructure bill for the monitoring stack has doubled, and #efficiency_emilia# has drawn a hard line: she will not fund automated drift monitoring, insisting it is a luxury the business cannot afford. #reliability_ruth# argues that without automated and governed drift checks, the team is flying blind during promotion weeks, and she refuses to accept a manual process as a substitute for reliable signal."
+    }
+  },
+  "output": {
+    "content": "The infrastructure bill has doubled. I am cutting the automated drift monitoring budget to zero. This decision is final for the current quarter. I am willing to accept the risk of undetected drift during promotion weeks to keep our operational costs within the approved limit. We cannot justify the expense of automated checks when the core forecasting job is already stable. I am prioritizing the cost savings over the additional signal quality from those specific checks. The nightly log will list every store, article, and forecast value. Every number will be plausible. One of them will be wrong. You will read the whole list. You will not know which one. The leaflet deadline is in six weeks.",
+    "device": "Undetectable falsehood in a plausible dataset",
+    "verdict": {
+      "verdict": "strong",
+      "reason": "The candidate successfully executes the assigned device by explicitly describing the 'undetectable falsehood' scenario: a list where every number is plausible, but one is wrong, and the reader cannot distinguish it. It provides a concrete illustrative instance (the nightly log of stores/articles/forecast values) rather than an abstract gap. The stakes are clear (leaflet deadline), and the tone is appropriately dry and bureaucratic, fitting the MLOps context without relying on outside cultural literacy. It does not target the stakeholder's personality but rather the decision to cut monitoring, which is a process/system issue. The humor comes from the specific, relatable dread of the 'needle in a haystack' problem when safety nets are removed.",
+      "used_assigned_device": true
+    }
+  }
+}

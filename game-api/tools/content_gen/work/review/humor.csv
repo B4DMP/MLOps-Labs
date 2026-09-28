@@ -1,0 +1,4 @@
+item_id,status,summary,error,note,output_file
+humor:gen_cost_crisis_drift_gap_emilia_cut_drift,done,"[Undetectable falsehood in a plausible dataset, strong] The infrastructure bill has doubled. I am cutting the automated drift monitoring",,,out/humor/humor__gen_cost_crisis_drift_gap_emilia_cut_drift.json
+humor:gen_heatwave_forecast_gap_dave_tradeoff_data,done,"[Silence mistaken for testimony, strong] The silence from the new weather feed is being treated as a very strong, very de",,,out/humor/humor__gen_heatwave_forecast_gap_dave_tradeoff_data.json
+humor:gen_shadow_deployment_contract_alex_orch_tradeoff,done,"[Retroactively-satisfiable criterion, strong] The shadow run orchestration is currently done by hand, requiring manual configu",,,out/humor/humor__gen_shadow_deployment_contract_alex_orch_tradeoff.json
