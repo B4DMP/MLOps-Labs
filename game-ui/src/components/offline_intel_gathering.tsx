@@ -1144,6 +1144,23 @@ export default function OfflineIntelGathering({
                               <Icon icon="ph:bug-bold" />
                             </button>
                           )}
+                          {currentArtifact.debug?.artifact && (
+                            <button
+                              type="button"
+                              className={`${styles.debugToggle} ${
+                                currentArtifact.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
+                              }`}
+                              onClick={() => setIsDebugOpen((open) => !open)}
+                              title={
+                                currentArtifact.debug.artifact.humor_archetype
+                                  ? `Debug: humor applied (${currentArtifact.debug.artifact.humor_archetype})`
+                                  : "Debug: no humor applied"
+                              }
+                              aria-label="Toggle answer key (debug)"
+                            >
+                              <Icon icon={currentArtifact.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
+                            </button>
+                          )}
                           </div>
                           <h6 className={styles.taggingTitle}>
                             {isOnKnownArtifact
@@ -1222,6 +1239,13 @@ export default function OfflineIntelGathering({
                             </>
                           )}
                           {" "}· <span className={styles.debugId}>{currentArtifact.debug.id}</span>
+                          <br />
+                          <strong>Humor:</strong>{" "}
+                          {currentArtifact.debug.artifact?.humor_archetype ? (
+                            <span className={styles.debugRightText}>{currentArtifact.debug.artifact.humor_archetype}</span>
+                          ) : (
+                            <span className={styles.debugWrongText}>none</span>
+                          )}
                         </div>
                       )}
 

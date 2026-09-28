@@ -1173,6 +1173,7 @@ def _debug_artifact(requirement_id: str) -> Optional[Dict[str, Any]]:
         "speaker_id": artifact.speaker_id,
         "is_known": artifact.is_known,
         "content": artifact.content,
+        "humor_archetype": artifact.humor_archetype,
     }
 
 

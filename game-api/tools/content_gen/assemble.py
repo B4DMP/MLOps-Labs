@@ -211,6 +211,7 @@ def assemble(ctx, dry_run: bool = False) -> dict:
             **({"narrator_id": art["inputs"]["narrator"]["id"]} if art["inputs"].get("narrator") else {}),
             "artifact_type": art["inputs"]["artifact_type"],
             "content": humor_rec["output"]["content"] if humor_rec else art["output"]["content"],
+            "humor_archetype": humor_rec["output"]["device"] if humor_rec else None,
             # Readings only: the game puts the unchanged fact in front of them (split wording).
             "wrong_descriptions": data["wrong_readings"][req.id],
             "is_known": is_known,

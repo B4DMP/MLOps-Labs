@@ -26,7 +26,8 @@
         "boundary": "{efficiency_emilia} will not accept automated KPI definition without a strategy review.",
         "fact": "The KPI definition is currently broken in the system."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_heatwave_kpi_gap_monica_criteria_automation",
@@ -54,7 +55,8 @@
         "boundary": "{efficiency_emilia} will not approve automated risk assessment without a compliance check.",
         "fact": "The risk assessment is currently done by hand."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Retroactively-satisfiable criterion"
     },
     {
       "id": "art_gen_heatwave_kpi_gap_monica_data_contracts",
@@ -82,7 +84,8 @@
         "trade_off": "{efficiency_emilia} would drop the margin KPI if availability is prioritized.",
         "fact": "The KPI definition is currently broken in the system."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "A health check that asks the wrong question"
     },
     {
       "id": "art_gen_heatwave_kpi_gap_fact_kpi_missing",
@@ -125,7 +128,8 @@
         "boundary": "She will not accept any data contract change that delays the weekly leaflet deadline.",
         "fact": "That is simply how the data contract setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_loyalty_consent_gap_reuben_kpi_baseline",
@@ -139,7 +143,8 @@
         "trade_off": "He would accept temporary manual KPI definitions if it is the only way to move forward.",
         "fact": "That is simply how the KPI definition setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Recursive bureaucracy"
     },
     {
       "id": "art_gen_loyalty_consent_gap_emilia_efficiency_focus",
@@ -153,7 +158,8 @@
         "boundary": "She will not accept a review process that adds more than two days to planning.",
         "fact": "That is simply how the data contract setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Retroactively-satisfiable criterion"
     },
     {
       "id": "art_gen_loyalty_consent_gap_alex_pipeline_stability",
@@ -167,7 +173,8 @@
         "boundary": "He will not accept pipeline changes that introduce new points of manual failure.",
         "fact": "That is simply how the pipeline works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Retroactively-satisfiable criterion"
     },
     {
       "id": "art_gen_loyalty_consent_gap_ruth_monitoring_gap",
@@ -210,7 +217,8 @@
         "trade_off": "He would drop the audit requirement if the supplier delays the shipment by a week.",
         "fact": "The current workflow does not include a governance step for the acceptance criteria."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_committed_pallets_ruth_speed_trade",
@@ -224,7 +232,8 @@
         "boundary": "She refuses to delay the release for any governance review.",
         "fact": "The current deployment process relies on manual verification steps."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Personification"
     },
     {
       "id": "art_gen_committed_pallets_emilia_kpi_driver",
@@ -238,7 +247,8 @@
         "trade_off": "She would accept a manual KPI report if the automated version is delayed.",
         "fact": "The KPI definition is currently missing."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_committed_pallets_alex_pipeline_trade",
@@ -252,7 +262,8 @@
         "boundary": "He will not deploy if the data contracts are not automated.",
         "fact": "The data contracts are currently managed by hand."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_committed_pallets_ruth_monitoring_driver",
@@ -280,7 +291,8 @@
         "boundary": "She will not approve the project if the cost exceeds the budget.",
         "fact": "The cost tracking is currently done manually."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_committed_pallets_fact_acceptance_missing",
@@ -323,7 +335,8 @@
         "boundary": "He will not allow unverified data to reach the feature store.",
         "fact": "That is simply how the ingestion setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Personification"
     },
     {
       "id": "art_gen_silent_ingestion_failure_reuben_boundary_validation",
@@ -337,7 +350,8 @@
         "trade_off": "He would accept a slower validation process if it meets compliance standards.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "A health check that asks the wrong question"
     },
     {
       "id": "art_gen_silent_ingestion_failure_emilia_tradeoff_feature",
@@ -351,7 +365,8 @@
         "boundary": "She will not approve a feature store that exceeds the budget.",
         "fact": "That is simply how the feature store works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "A gap left idling with a pet's patience"
     },
     {
       "id": "art_gen_silent_ingestion_failure_ruth_tradeoff_versioning",
@@ -379,7 +394,8 @@
         "trade_off": "He would accept a slower validation process if it catches more errors.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_silent_ingestion_failure_fact_ingest_level",
@@ -422,7 +438,8 @@
         "trade_off": "He would accept automated validation if the team budget is increased.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "A health check that asks the wrong question"
     },
     {
       "id": "art_gen_nightly_window_miss_ruth_ingestion_tradeoff",
@@ -450,7 +467,8 @@
         "boundary": "He will not replace manual checks with automated ones.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Recursive bureaucracy"
     },
     {
       "id": "art_gen_nightly_window_miss_reuben_validation_tradeoff",
@@ -478,7 +496,8 @@
         "trade_off": "She would accept a less automated validation process if it reduces costs.",
         "fact": "That is simply how the validation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Personification"
     },
     {
       "id": "art_gen_nightly_window_miss_fact_validation_level",
@@ -535,7 +554,8 @@
         "boundary": "He will not allow the weather feed to be used if the data lineage is not fully documented.",
         "fact": "That is simply how the evaluation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_heatwave_forecast_gap_emilia_driver_eff",
@@ -549,7 +569,8 @@
         "boundary": "She will not approve a model update if the evaluation process exceeds the current manual cycle time.",
         "fact": "That is simply how the evaluation setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_heatwave_forecast_gap_monica_tradeoff_eval",
@@ -592,7 +613,8 @@
         "boundary": "The harness must be fixed before any model changes are considered.",
         "trade_off": "The team could accept a temporary manual evaluation if the harness is not fixed quickly."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "A gap left idling with a pet's patience"
     },
     {
       "id": "art_gen_override_blind_spot_registry_gap",
@@ -649,7 +671,8 @@
         "boundary": "{efficiency_emilia.first} will not approve a registry that exceeds the budget.",
         "fact": "That is simply what the budget constraints allow today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_override_blind_spot_dave_data_quality",
@@ -705,7 +728,8 @@
         "boundary": "The promotion deadline is a hard constraint that cannot be moved, so the deployment must be finished by a specific date.",
         "fact": "The promotion deadline is part of the business calendar and is not controlled by the deployment team."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "A gap left idling with a pet's patience"
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_reuben_audit_trail",
@@ -733,7 +757,8 @@
         "boundary": "The manual approval step is a mandatory control that cannot be removed from the pipeline.",
         "fact": "The manual approval step is currently not present in the deployment pipeline."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Recursive bureaucracy"
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_reuben_compliance_check",
@@ -775,7 +800,8 @@
         "boundary": "The cost control is a hard limit that cannot be exceeded, regardless of the model performance.",
         "fact": "The cost control is currently not integrated into the deployment pipeline."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Personification"
     },
     {
       "id": "art_gen_loyalty_data_deployment_block_fact_pipeline_broken",
@@ -818,7 +844,8 @@
         "boundary": "He will not allow any changes to the shadow environment that might introduce instability into the current deployment infrastructure.",
         "fact": "That is simply how the team currently handles shadow testing, with manual scripts run outside the main pipeline."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Recursive bureaucracy"
     },
     {
       "id": "art_gen_shadow_deployment_contract_ruth_cicd_driver",
@@ -860,7 +887,8 @@
         "boundary": "She will not approve any additional infrastructure costs for the shadow environment without a clear return on investment.",
         "fact": "That is simply how the current cost model is structured, with no separate line item for shadow environment infrastructure."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "A gap left idling with a pet's patience"
     },
     {
       "id": "art_gen_shadow_deployment_contract_alex_orch_tradeoff",
@@ -874,7 +902,8 @@
         "boundary": "He will not change the orchestration setup if it risks disrupting the current deployment pipeline stability.",
         "fact": "That is simply how the current orchestration works, with manual steps for each deployment."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Retroactively-satisfiable criterion"
     },
     {
       "id": "art_gen_shadow_deployment_contract_fact_shadow_missing",
@@ -917,7 +946,8 @@
         "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the monitoring pipeline.",
         "fact": "That is simply how the monitoring setup works today."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "A health check that asks the wrong question"
     },
     {
       "id": "art_gen_silent_forecast_failure_monica_driver_drift",
@@ -973,7 +1003,8 @@
         "boundary": "{efficiency_emilia.first} will not allow any manual processes to remain in the retraining pipeline.",
         "fact": "That is simply how the retraining setup works today."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Silence mistaken for testimony"
     },
     {
       "id": "art_gen_silent_forecast_failure_fact_monitoring_level",
@@ -988,7 +1019,8 @@
         "boundary": "The team will not accept any changes to the performance metrics without first fixing the missing monitoring.",
         "trade_off": "The team would accept a manual monitoring process if the automated system is too costly."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Recursive bureaucracy"
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_emilia_cut_drift",
@@ -1002,7 +1034,8 @@
         "boundary": "She will not approve any spend on drift monitoring if it exceeds the current infrastructure budget.",
         "fact": "The current budget for drift monitoring is zero."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "Undetectable falsehood in a plausible dataset"
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_ruth_governed_drift",
@@ -1072,7 +1105,8 @@
         "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
         "fact": "The efficiency KPI is currently not linked to the monitoring budget."
       },
-      "is_known": false
+      "is_known": false,
+      "humor_archetype": "Retroactively-satisfiable criterion"
     },
     {
       "id": "art_gen_cost_crisis_drift_gap_fact_drift_absent",
@@ -1087,7 +1121,8 @@
         "boundary": "The team will not proceed without drift monitoring.",
         "trade_off": "The team would accept a delay in other features to implement drift monitoring."
       },
-      "is_known": true
+      "is_known": true,
+      "humor_archetype": "A health check that asks the wrong question"
     }
   ]
 }

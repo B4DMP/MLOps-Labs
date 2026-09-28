@@ -30,6 +30,8 @@ export interface IntelDebugInfo {
     speaker_id?: string | null;
     is_known: boolean;
     content: string;
+    /** Which comedic device content_gen's humor stage rewrote this artifact with, if any. */
+    humor_archetype?: string | null;
   } | null;
 }
 
@@ -209,6 +211,14 @@ const DebugRequirement: React.FC<{ info: IntelDebugInfo; playerTag?: string }> =
           {info.artifact.is_known && <> (on record at start)</>}:
         </strong>
         <pre className={styles.debugArtifact}>{info.artifact.content}</pre>
+        <div>
+          <strong>Humor:</strong>{" "}
+          {info.artifact.humor_archetype ? (
+            <span className={styles.debugRightText}>{info.artifact.humor_archetype}</span>
+          ) : (
+            <span className={styles.debugWrongText}>none</span>
+          )}
+        </div>
       </div>
     ) : (
       <div className={styles.debugRow}>
@@ -2096,6 +2106,24 @@ export default function StakeholderDossier({
                           title={`Debug: true tag is ${item.debug.correct_tag}`}
                         >
                           <Icon icon="ph:bug-bold" />
+                        </button>
+                      )}
+                      {item.debug && item.debug.artifact && (
+                        <button
+                          className={`${styles.debugToggle} ${
+                            item.debug.artifact.humor_archetype ? styles.debugRight : styles.debugWrong
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleDebug(noteId);
+                          }}
+                          title={
+                            item.debug.artifact.humor_archetype
+                              ? `Debug: humor applied (${item.debug.artifact.humor_archetype})`
+                              : "Debug: no humor applied"
+                          }
+                        >
+                          <Icon icon={item.debug.artifact.humor_archetype ? "ph:mask-happy-bold" : "ph:mask-happy"} />
                         </button>
                       )}
                       {item.status && STATUS_META[item.status] && (

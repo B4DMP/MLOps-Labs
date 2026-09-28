@@ -29,6 +29,11 @@ class OfflineIntelArtifact(BaseModel):
         description="Map of wrong IntelTag values to the description a player with that read would see"
     )
     is_known: bool = Field(description="Describes if an intel item is known by the start of the round")
+    humor_archetype: Optional[str] = Field(
+        default=None,
+        description="Which comedic device content_gen's humor stage rewrote this artifact with, if any - "
+        "debug-only, never shown to players",
+    )
 
     @property
     def speaker_id(self) -> Optional[str]:
