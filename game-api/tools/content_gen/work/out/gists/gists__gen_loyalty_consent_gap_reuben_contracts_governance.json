@@ -16,7 +16,7 @@
       "reliability",
       "requirements"
     ],
-    "challenge_name": "The Consent Void"
+    "challenge_name": "The Loyalty Data Audit"
   },
   "output": {
     "gist": "Consent checks within the loyalty basket data contracts are the subject of the current requirements discussion.",

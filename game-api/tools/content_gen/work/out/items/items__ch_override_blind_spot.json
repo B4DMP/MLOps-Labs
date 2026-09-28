@@ -601,7 +601,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "emilia_cost_concern",
@@ -637,9 +638,9 @@
         "key": "dave_data_quality",
         "tag": "driver",
         "stakeholder_id": "data_dave",
-        "fact": "{data_dave} proposed improving the data quality in the model training pipeline.",
+        "fact": "{data_dave} proposed automating data quality checks in the model training pipeline.",
         "readings": {
-          "driver": "{data_dave.first} wants higher data quality to ensure the model learns from accurate signals.",
+          "driver": "{data_dave.first} wants higher data quality assured by automated checks, not caught after the fact by whoever reviews the model.",
           "boundary": "{data_dave.first} will not accept training on data with known quality issues.",
           "trade_off": "{data_dave.first} would accept lower data quality if it speeds up the training process.",
           "fact": "That is simply how the data pipeline works today."
@@ -662,7 +663,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "reuben_compliance_focus",

@@ -16,7 +16,7 @@
       "reliability",
       "requirements"
     ],
-    "challenge_name": "The Silent Failure"
+    "challenge_name": "The Warehouse Flood"
   },
   "output": {
     "gist": "Model performance monitoring for the nightly forecast job has been raised by {reliability_ruth}.",

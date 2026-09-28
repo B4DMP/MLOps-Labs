@@ -16,7 +16,7 @@
       "reliability",
       "requirements"
     ],
-    "challenge_name": "The Silent Failure"
+    "challenge_name": "The Warehouse Flood"
   },
   "output": {
     "gist": "Automated logging and observability for the forecast pipeline are the subject of {requirements_reuben}'s recent notes.",

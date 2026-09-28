@@ -360,7 +360,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "alex_pipeline_trade",
@@ -421,7 +422,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "emilia_cost_trade",

@@ -659,7 +659,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "reuben_gov_driver",
@@ -690,7 +691,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance"
       },
       {
         "key": "emilia_eff_tradeoff",

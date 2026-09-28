@@ -597,7 +597,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "dave_tradeoff_ingest",
@@ -728,7 +729,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "fact_ingest_level",

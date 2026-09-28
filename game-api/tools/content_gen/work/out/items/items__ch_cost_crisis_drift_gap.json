@@ -546,7 +546,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "governance"
       },
       {
         "key": "ruth_no_manual",
@@ -661,9 +662,9 @@
         "key": "emilia_efficiency_kpi",
         "tag": "driver",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} proposed aligning the monitoring budget with the efficiency KPI.",
+        "fact": "{efficiency_emilia} proposed automating the observability tooling instead of paying for a manual monitoring contractor.",
         "readings": {
-          "driver": "She wants to ensure that every dollar spent on monitoring contributes directly to operational efficiency.",
+          "driver": "She wants the cost of watching the system to scale with infrastructure, not headcount.",
           "boundary": "She will not fund monitoring tools that do not have a clear link to the efficiency KPI.",
           "trade_off": "She would accept a lower level of monitoring if it keeps the efficiency KPI on track.",
           "fact": "The efficiency KPI is currently not linked to the monitoring budget."
@@ -686,7 +687,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "fact_drift_absent",

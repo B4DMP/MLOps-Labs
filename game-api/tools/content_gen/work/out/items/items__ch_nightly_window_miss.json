@@ -620,7 +620,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "dave_validation_boundary",
@@ -733,9 +734,9 @@
         "key": "emilia_validation_driver",
         "tag": "driver",
         "stakeholder_id": "efficiency_emilia",
-        "fact": "{efficiency_emilia} suggested optimizing the cost of data validation.",
+        "fact": "{efficiency_emilia} suggested automating data validation instead of paying overtime for manual spot checks.",
         "readings": {
-          "driver": "Cost optimization improves the overall efficiency of the data validation process.",
+          "driver": "She wants the validation cost to track the automation level, not the headcount doing the checking.",
           "boundary": "She will not accept any increase in data validation costs.",
           "trade_off": "She would accept a less automated validation process if it reduces costs.",
           "fact": "That is simply how the validation setup works today."
@@ -758,7 +759,8 @@
         "concedes_max_level": null,
         "asserts_target": null,
         "asserts_level": null,
-        "asserts_trigger": null
+        "asserts_trigger": null,
+        "suggested_axis": "automation"
       },
       {
         "key": "fact_validation_level",

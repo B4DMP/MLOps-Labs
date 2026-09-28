@@ -38,7 +38,7 @@
       "role": "Develops the end-user applications and services that integrate ML models. Handles model deployment, configuration, and continuous monitoring of real-world performance. Employs feedback loops to facilitate iterative improvements and system reliability."
     },
     "challenge": {
-      "name": "The Silent Failure",
+      "name": "The Warehouse Flood",
       "description": ""
     },
     "hint": "The fact is that something does not exist. Describe only how the work is done today without it, as observed events or numbers. No consequences, risks, costs or benefits."
